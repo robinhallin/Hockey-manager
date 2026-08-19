@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>Hockey Manager</title>
+
+<style>
+:root{
+  --bg:#07111f;
+  --card:#10233a;
+  --card2:#15304e;
+  --text:#f4f7fb;
+  --muted:#9db0c4;
+  --accent:#f4c542;
+  --blue:#2f71c1;
+  --line:#294763;
+  --green:#39d98a;
+  --danger:#ff6b6b;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,#06101c,#0b1c30);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+button,select{font:inherit}
+
+.app{
+  max-width:760px;
+  margin:auto;
+  min-height:100vh;
+  padding-bottom:95px;
+}
+
+.top{
+  position:sticky;
+  top:0;
+  z-index:10;
+  padding:16px;
+  background:rgba(7,17,31,.96);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logo{
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:linear-gradient(145deg,var(--blue),#16457d);
+  display:grid;
+  place-items:center;
+  color:var(--accent);
+  font-weight:900;
+  border:2px solid var(--accent);
+}
+
+.brand h1{
+  margin:0;
+  font-size:20px;
+}
+
+.brand small{
+  color:var(--muted);
+}
+
+main{
+  padding:16px;
+}
+
+.card{
+  background:linear-gradient(145deg,var(--card2),var(--card));
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.hero{
+  padding:22px;
+}
+
+.hero h2{
+  margin:8px 0;
+  font-size:30px;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.pill{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#091a2d;
+  border:1px solid var(--line);
+  font-size:12px;
+}
+
+.btn{
+  width:100%;
+  border:0;
+  border-radius:13px;
+  padding:14px 16px;
+  font-weight:800;
+  background:var(--accent);
+  color:#252000;
+  cursor:pointer;
+}
+
+.btn.secondary{
+  background:#1c3958;
+  color:#fff;
+  border:1px solid #3b5e7e;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.stat{
+  background:#091a2d;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px;
+}
+
+.stat b{
+  display:block;
+  font-size:22px;
+}
+
+.stat span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.row:last-child{
+  border-bottom:0;
+}
+
+.player{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+}
+
+.player:last-child{
+  border-bottom:0;
+}
+
+.pos{
+  width:34px;
+  color:var(--accent);
+  font-weight:900;
+}
+
+.player-info{
+  flex:1;
+}
+
+.player-info small{
+  display:block;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+.rating{
+  min-width:44px;
+  text-align:center;
+  padding:8px;
+  border-radius:10px;
+  background:#071827;
+  color:var(--accent);
+  font-weight:900;
+}
+
+.scoreboard{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  text-align:center;
+  gap:10px;
+}
+
+.score{
+  font-size:42px;
+  font-weight:900;
+}
+
+.clock{
+  text-align:center;
+  font-size:22px;
+  margin:14px 0;
+}
+
+.livebar{
+  height:10px;
+  background:#071827;
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+
+.livebar span{
+  display:block;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--accent));
+}
+
+.log{
+  background:#071827;
+  border-radius:12px;
+  padding:12px;
+  max-height:300px;
+  overflow:auto;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.goal{
+  color:var(--accent);
+  font-weight:900;
+}
+
+.chance{
+  color:#c9d7e5;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:20;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:8px 5px calc(8px + env(safe-area-inset-bottom));
+  background:rgba(5,14,25,.97);
+  border-top:1px solid var(--line);
+}
+
+.nav button{
+  border:0;
+  background:none;
+  color:var(--muted);
+  padding:7px 2px;
+  font-size:11px;
+}
+
+.nav button.active{
+  color:var(--accent);
+  font-weight:800;
+}
+
+.nav i{
+  display:block;
+  font-style:normal;
+  font-size:21px;
+  margin-bottom:3px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+th,td{
+  padding:9px 4px;
+  border-bottom:1px solid var(--line);
+  text-align:right;
+}
+
+th:nth-child(2),td:nth-child(2){
+  text-align:left;
+}
+
+.me{
+  background:rgba(244,197,66,.12);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">HM</div>
+    <div>
+      <h1>Hockey Manager</h1>
+      <small>Alpha 0.1</small>
+    </div>
+  </div>
+</header>
+
+<main id="content"></main>
+
+<nav class="nav">
+  <button data-page="home"><i>🏠</i>Hem</button>
+  <button data-page="squad"><i>👥</i>Trupp</button>
+  <button data-page="match"><i>🏒</i>Match</button>
+  <button data-page="table"><i>📊</i>SHL</button>
+</nav>
+
+</div>
+
+<script>
+"use strict";
+
+const PLAYERS = [
+  ["Felix Sandström","MV",78],
+  ["Olof Glifford","MV",73],
+  ["Andreas Borgman","B",81],
+  ["Niklas Hansson","B",80],
+  ["Olle Alsing","B",78],
+  ["Santeri Hatakka","B",77],
+  ["Malte Gustafsson","B",72],
+  ["Jonathan Ang","HF",83],
+  ["Lukas Rousek","HF",82],
+  ["Riley Woods","VF",81],
+  ["Aleksi Heponiemi","C",81],
+  ["Justin Kloos","C",80],
+  ["Noah Philp","C",80],
+  ["Jan Mysak","C",79],
+  ["Oskar Stål Lyrenäs","VF",78],
+  ["Linus Lindström","C",77],
+  ["Nikola Pasic","HF",76],
+  ["Martin Johnsen","VF",72]
+].map((p,id)=>({
+  id,
+  name:p[0],
+  pos:p[1],
+  overall:p[2],
+  goals:0,
+  assists:0
+}));
+
+const TEAM_NAMES = [
+  "HV71",
+  "Brynäs IF",
+  "Djurgårdens IF",
+  "Färjestad BK",
+  "Frölunda HC",
+  "Linköping HC",
+  "Luleå Hockey",
+  "Malmö Redhawks",
+  "Rögle BK",
+  "Skellefteå AIK",
+  "Timrå IK",
+  "Växjö Lakers",
+  "Örebro Hockey",
+  "Björklöven"
+];
+
+function newState(){
+  return {
+    version:"0.1",
+    page:"home",
+    round:1,
+    morale:72,
+    money:14500000,
+    fans:6500,
+    roster:PLAYERS.map(p=>({...p})),
+    history:[],
+    live:null,
+    teams:TEAM_NAMES.map((name,i)=>({
+      name,
+      gp:0,
+      w:0,
+      l:0,
+      gf:0,
+      ga:0,
+      pts:0,
+      strength:72 + ((i*5)%10)
+    }))
+  };
+}
+
+let state;
+
+try{
+  state=JSON.parse(localStorage.getItem("hockey_manager_alpha01"));
+  if(!state || state.version!=="0.1") state=newState();
+}catch{
+  state=newState();
+}
+
+function save(){
+  localStorage.setItem("hockey_manager_alpha01",JSON.stringify(state));
+}
+
+function team(name){
+  return state.teams.find(t=>t.name===name);
+}
+
+function opponent(){
+  const others=TEAM_NAMES.filter(x=>x!=="HV71");
+  return others[(state.round-1)%others.length];
+}
+
+function randomPlayer(){
+  const players=state.roster.filter(p=>p.pos!=="MV");
+  const total=players.reduce((s,p)=>s+p.overall,0);
+  let r=Math.random()*total;
+
+  for(const p of players){
+    r-=p.overall;
+    if(r<=0) return p;
+  }
+
+  return players[0];
+}
+
+function homeView(){
+
+  const hv=team("HV71");
+
+  return `
+  <section class="card hero">
+    <span class="pill">Säsong 2026/27 • Omgång ${state.round}</span>
+    <h2>HV71</h2>
+    <p class="muted">
+      Nästa match mot <b>${opponent()}</b>.
+    </p>
+    <button class="btn" onclick="state.page='match';render()">
+      Till nästa match
+    </button>
+  </section>
+
+  <div class="grid">
+    <div class="stat">
+      <b>${hv.pts}</b>
+      <span>Poäng</span>
+    </div>
+
+    <div class="stat">
+      <b>${hv.gp}</b>
+      <span>Matcher</span>
+    </div>
+
+    <div class="stat">
+      <b>${state.morale}%</b>
+      <span>Moral</span>
+    </div>
+
+    <div class="stat">
+      <b>${state.fans}</b>
+      <span>Supportrar</span>
+    </div>
+  </div>
+
+  <section class="card">
+    <h3>Senaste resultat</h3>
+
+    ${
+      state.history.length
+      ? state.history.slice(0,5).map(x=>`
+        <div class="row">
+          <span>${x}</span>
+        </div>
+      `).join("")
+      : `<p class="muted">Ingen match spelad ännu.</p>`
+    }
+  </section>
+
+  <section class="card">
+    <h3>Klubbkassa</h3>
+    <h2>${state.money.toLocaleString("sv-SE")} kr</h2>
+  </section>
+  `;
+}
+
+function squadView(){
+
+  return `
+  <section class="card">
+    <h2>HV71</h2>
+    <p class="muted">Spelartrupp</p>
+
+    ${state.roster
+      .slice()
+      .sort((a,b)=>b.overall-a.overall)
+      .map(p=>`
+        <div class="player">
+          <span class="pos">${p.pos}</span>
+
+          <div class="player-info">
+            <b>${p.name}</b>
+            <small>
+              ${p.goals} mål • ${p.assists} assist
+            </small>
+          </div>
+
+          <span class="rating">${p.overall}</span>
+        </div>
+      `).join("")
+    }
+  </section>
+  `;
+}
+
+function createMatch(){
+
+  state.live={
+    opponent:opponent(),
+    period:1,
+    minute:0,
+    second:0,
+    hv:0,
+    opp:0,
+    shotsHV:0,
+    shotsOpp:0,
+    momentum:50,
+    running:false,
+    finished:false,
+    events:[]
+  };
+
+  addEvent("Nedsläpp i Husqvarna Garden.");
+
+  save();
+  render();
+}
+
+function timeText(){
+
+  const m=state.live;
+
+  return `${m.minute}:${String(m.second).padStart(2,"0")}`;
+}
+
+function addEvent(text,type="chance"){
+
+  state.live.events.unshift({
+    time:timeText(),
+    text,
+    type
+  });
+
+  state.live.events=state.live.events.slice(0,80);
+}
+
+let timer=null;
+
+function startMatch(){
+
+  if(!state.live) createMatch();
+
+  state.live.running=true;
+
+  save();
+  render();
+
+  clearTimeout(timer);
+  nextTick();
+}
+
+function pauseMatch(){
+
+  if(!state.live) return;
+
+  state.live.running=false;
+
+  clearTimeout(timer);
+
+  save();
+  render();
+}
+
+function nextTick(){
+
+  const m=state.live;
+
+  if(!m || !m.running || m.finished) return;
+
+  timer=setTimeout(()=>{
+
+    liveStep();
+
+    nextTick();
+
+  },650);
+}
+
+function liveStep(){
+
+  const m=state.live;
+
+  if(!m || !m.running) return;
+
+  m.second+=8;
+
+  while(m.second>=60){
+    m.second-=60;
+    m.minute++;
+  }
+
+  if(m.minute>=20){
+
+    if(m.period<3){
+
+      addEvent(`Period ${m.period} är slut.`);
+
+      m.period++;
+      m.minute=0;
+      m.second=0;
+      m.running=false;
+
+      save();
+      render();
+
+      return;
+
+    }else{
+
+      finishMatch();
+      return;
+    }
+  }
+
+  const hvPower=79 + (m.momentum-50)/12;
+  const oppPower=team(m.opponent).strength + (50-m.momentum)/12;
+
+  const hvChance=hvPower/(hvPower+oppPower);
+
+  if(Math.random()<0.25){
+
+    const hvAttack=Math.random()<hvChance;
+
+    if(hvAttack){
+
+      m.shotsHV++;
+
+      const scorer=randomPlayer();
+
+      if(Math.random()<0.105){
+
+        m.hv++;
+
+        scorer.goals++;
+
+        addEvent(
+          `MÅL HV71! ${scorer.name} gör ${m.hv}–${m.opp}.`,
+          "goal"
+        );
+
+        m.momentum=Math.min(80,m.momentum+8);
+
+      }else if(Math.random()<0.32){
+
+        addEvent(`HV71 skapar en farlig målchans genom ${scorer.name}.`);
+
+        m.momentum=Math.min(80,m.momentum+3);
+
+      }else{
+
+        addEvent(`${scorer.name} skjuter – räddning.`);
+      }
+
+    }else{
+
+      m.shotsOpp++;
+
+      if(Math.random()<0.105){
+
+        m.opp++;
+
+        addEvent(
+          `MÅL ${m.opponent}! Ställningen är ${m.hv}–${m.opp}.`,
+          "goal"
+        );
+
+        m.momentum=Math.max(20,m.momentum-8);
+
+      }else if(Math.random()<0.32){
+
+        addEvent(`${m.opponent} skapar en riktigt farlig chans.`);
+
+        m.momentum=Math.max(20,m.momentum-3);
+
+      }else{
+
+        addEvent(`${m.opponent} skjuter – HV71-målvakten räddar.`);
+      }
+    }
+  }
+
+  save();
+  render();
+}
+
+function finishMatch(){
+
+  const m=state.live;
+
+  m.running=false;
+
+  if(m.hv===m.opp){
+
+    if(Math.random()<0.52){
+
+      m.hv++;
+
+      addEvent("HV71 avgör efter förlängning!","goal");
+
+    }else{
+
+      m.opp++;
+
+      addEvent(`${m.opponent} avgör efter förlängning.`,"goal");
+    }
+  }
+
+  const win=m.hv>m.opp;
+
+  const hv=team("HV71");
+  const op=team(m.opponent);
+
+  hv.gp++;
+  op.gp++;
+
+  hv.gf+=m.hv;
+  hv.ga+=m.opp;
+
+  op.gf+=m.opp;
+  op.ga+=m.hv;
+
+  if(win){
+
+    hv.w++;
+    hv.pts+=3;
+
+    op.l++;
+
+    state.morale=Math.min(100,state.morale+4);
+    state.fans+=75;
+
+  }else{
+
+    op.w++;
+    op.pts+=3;
+
+    hv.l++;
+
+    state.morale=Math.max(30,state.morale-4);
+  }
+
+  state.history.unshift(
+    `HV71 ${m.hv}–${m.opp} ${m.opponent}`
+  );
+
+  state.round++;
+
+  state.money+=Math.round(state.fans*220)-300000;
+
+  m.finished=true;
+
+  save();
+
+  setTimeout(()=>{
+    state.live=null;
+    save();
+    render();
+  },1500);
+
+  render();
+}
+
+function matchView(){
+
+  const m=state.live;
+
+  if(!m){
+
+    return `
+    <section class="card">
+
+      <h2>Nästa match</h2>
+
+      <div class="scoreboard">
+
+        <div>
+          <b>HV71</b>
+        </div>
+
+        <div class="score">–</div>
+
+        <div>
+          <b>${opponent()}</b>
+        </div>
+
+      </div>
+
+      <br>
+
+      <button class="btn" onclick="createMatch()">
+        Starta match
+      </button>
+
+    </section>
+    `;
+  }
+
+  const progress=
+    (((m.period-1)*20)+m.minute+(m.second/60))/60*100;
+
+  return `
+  <section class="card">
+
+    <div class="scoreboard">
+
+      <div>
+        <b>HV71</b>
+      </div>
+
+      <div class="score">
+        ${m.hv}–${m.opp}
+      </div>
+
+      <div>
+        <b>${m.opponent}</b>
+      </div>
+
+    </div>
+
+    <div class="clock">
+      Period ${m.period} • ${timeText()}
+    </div>
+
+    <div class="livebar">
+      <span style="width:${progress}%"></span>
+    </div>
+
+    <br>
+
+    <div class="grid">
+
+      <div class="stat">
+        <b>${m.shotsHV}–${m.shotsOpp}</b>
+        <span>Skott</span>
+      </div>
+
+      <div class="stat">
+        <b>${Math.round(m.momentum)}%</b>
+        <span>HV71 momentum</span>
+      </div>
+
+    </div>
+
+    <div class="controls">
+
+      ${
+        m.running
+        ? `<button class="btn" onclick="pauseMatch()">Pausa</button>`
+        : `<button class="btn" onclick="startMatch()">Fortsätt</button>`
+      }
+
+      <button class="btn secondary"
+        onclick="
+        state.live.momentum=Math.min(80,state.live.momentum+6);
+        addEvent('HV71 tar timeout.');
+        pauseMatch();
+        ">
+        Timeout
+      </button>
+
+    </div>
+
+  </section>
+
+  <section class="card">
+
+    <h3>Matchhändelser</h3>
+
+    <div class="log">
+
+      ${
+        m.events.map(e=>`
+          <div class="${e.type}">
+            ${e.time} – ${e.text}
+          </div>
+        `).join("")
+      }
+
+    </div>
+
+  </section>
+  `;
+}
+
+function tableView(){
+
+  const sorted=state.teams
+    .slice()
+    .sort((a,b)=>
+      b.pts-a.pts ||
+      (b.gf-b.ga)-(a.gf-a.ga)
+    );
+
+  return `
+  <section class="card">
+
+    <h2>SHL</h2>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Lag</th>
+          <th>M</th>
+          <th>+/-</th>
+          <th>P</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        ${
+          sorted.map((t,i)=>`
+            <tr class="${t.name==="HV71"?"me":""}">
+              <td>${i+1}</td>
+              <td>${t.name}</td>
+              <td>${t.gp}</td>
+              <td>${t.gf-t.ga}</td>
+              <td><b>${t.pts}</b></td>
+            </tr>
+          `).join("")
+        }
+
+      </tbody>
+
+    </table>
+
+  </section>
+  `;
+}
+
+function render(){
+
+  document.getElementById("content").innerHTML=
+    state.page==="home"
+    ? homeView()
+    : state.page==="squad"
+    ? squadView()
+    : state.page==="match"
+    ? matchView()
+    : tableView();
+
+  document.querySelectorAll(".nav button").forEach(btn=>{
+
+    btn.classList.toggle(
+      "active",
+      btn.dataset.page===state.page
+    );
+
+  });
+}
+
+document.querySelectorAll(".nav button").forEach(btn=>{
+
+  btn.addEventListener("click",()=>{
+
+    state.page=btn.dataset.page;
+
+    render();
+
+  });
+
+});
+
+save();
+render();
+</script>
+
+</body>
+</html>
