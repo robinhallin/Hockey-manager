@@ -563,7 +563,13 @@ function liveStep(){
     : 6;
 
   m.second+=seconds;
+m.shiftSeconds += seconds;
 
+if(m.shiftSeconds >= 45){
+
+  rotateUnits();
+
+}
   while(
     m.second>=60
   ){
