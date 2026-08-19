@@ -2944,12 +2944,11 @@ const onIceDefense =
   <br>
 
   <div class="muted">
-  ${onIceForwards.map(p=>`${p.name} (${Math.round(p.fatigue)}% trött)`).join(" • ")}
+${onIceForwards.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4d' : p.fatigue >= 45 ? '#ffb84d' : '#55cc77'}">${Math.round(p.fatigue)}% trött</span>)`).join(" • ")}
   </div>
 
   <div class="muted" style="margin-top:6px;">
-${onIceDefense.map(p=>`${p.name} (${Math.round(p.fatigue)}% trött)`).join(" • ")}  </div>
-
+${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4d' : p.fatigue >= 45 ? '#ffb84d' : '#55cc77'}">${Math.round(p.fatigue)}% trött</span>)`).join(" • ")}
 </div>
 
     <br>
