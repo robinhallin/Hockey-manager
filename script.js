@@ -418,7 +418,9 @@ function createMatch(){
     speed:1,
 
     shiftCounter:0,
-
+currentLine:0,
+currentDefensePair:0,
+shiftSeconds:0,
     homePressure:0,
 
     awayPressure:0
