@@ -2292,7 +2292,354 @@ function squadView(){
 
 }
 
+/* =========================================================
+   KEDJOR
+   ========================================================= */
 
+function ensureLines(){
+
+  if(state.lines) return;
+
+  const fw = forwards()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+  const d = defenders()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+  const g = goalies()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+  state.lines = {
+    forwards: fw.slice(0,12).map(p=>p.id),
+    defense: d.slice(0,6).map(p=>p.id),
+    goalie: g[0]?.id ?? null
+  };
+
+  save();
+}
+
+
+function playerById(id){
+
+  return state.roster.find(
+    p=>p.id===Number(id)
+  );
+
+}
+
+
+function lineOptions(players, selectedId){
+
+  return players.map(p=>`
+    <option
+      value="${p.id}"
+      ${p.id===selectedId ? "selected" : ""}
+    >
+      ${p.name} • ${p.overall}
+    </option>
+  `).join("");
+
+}
+
+
+function changeLinePlayer(type,index,newId){
+
+  ensureLines();
+
+  newId=Number(newId);
+
+  const list=state.lines[type];
+
+  const existingIndex=
+    list.indexOf(newId);
+
+  /*
+     Om spelaren redan finns på en annan plats
+     byter spelarna plats med varandra.
+     Därmed kan samma spelare aldrig finnas
+     i två kedjor samtidigt.
+  */
+
+  if(existingIndex!==-1){
+
+    const oldId=list[index];
+
+    list[index]=newId;
+
+    list[existingIndex]=oldId;
+
+  }else{
+
+    list[index]=newId;
+
+  }
+
+  save();
+
+  render();
+
+}
+
+
+function changeGoalie(id){
+
+  ensureLines();
+
+  state.lines.goalie=
+    Number(id);
+
+  save();
+
+  render();
+
+}
+
+
+function lineAverage(ids){
+
+  const players=
+    ids
+    .map(playerById)
+    .filter(Boolean);
+
+  if(!players.length)
+    return 0;
+
+  return Math.round(
+    players.reduce(
+      (sum,p)=>sum+p.overall,
+      0
+    )/players.length
+  );
+
+}
+
+
+function linesView(){
+
+  ensureLines();
+
+  const fw=forwards()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+  const d=defenders()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+  const g=goalies()
+    .slice()
+    .sort((a,b)=>b.overall-a.overall);
+
+
+  let html=`
+
+  <section class="card">
+
+    <h2>Kedjor</h2>
+
+    <p class="muted">
+      Bygg dina fyra kedjor.
+      En spelare kan bara finnas på en plats.
+    </p>
+
+  `;
+
+
+  for(let line=0;line<4;line++){
+
+    const start=line*3;
+
+    const ids=
+      state.lines.forwards.slice(
+        start,
+        start+3
+      );
+
+    html+=`
+
+    <div class="line">
+
+      <div class="section-title">
+
+        <b>
+          Kedja ${line+1}
+        </b>
+
+        <span class="pill">
+          OVR ${lineAverage(ids)}
+        </span>
+
+      </div>
+
+      <br>
+
+      <select
+        onchange="
+        changeLinePlayer(
+          'forwards',
+          ${start},
+          this.value
+        )
+        "
+      >
+        ${lineOptions(
+          fw,
+          state.lines.forwards[start]
+        )}
+      </select>
+
+      <br><br>
+
+      <select
+        onchange="
+        changeLinePlayer(
+          'forwards',
+          ${start+1},
+          this.value
+        )
+        "
+      >
+        ${lineOptions(
+          fw,
+          state.lines.forwards[start+1]
+        )}
+      </select>
+
+      <br><br>
+
+      <select
+        onchange="
+        changeLinePlayer(
+          'forwards',
+          ${start+2},
+          this.value
+        )
+        "
+      >
+        ${lineOptions(
+          fw,
+          state.lines.forwards[start+2]
+        )}
+      </select>
+
+    </div>
+
+    `;
+
+  }
+
+
+  html+=`
+
+  </section>
+
+
+  <section class="card">
+
+    <h2>Backpar</h2>
+
+  `;
+
+
+  for(let pair=0;pair<3;pair++){
+
+    const start=pair*2;
+
+    const ids=
+      state.lines.defense.slice(
+        start,
+        start+2
+      );
+
+    html+=`
+
+    <div class="line">
+
+      <div class="section-title">
+
+        <b>
+          Backpar ${pair+1}
+        </b>
+
+        <span class="pill">
+          OVR ${lineAverage(ids)}
+        </span>
+
+      </div>
+
+      <br>
+
+      <select
+        onchange="
+        changeLinePlayer(
+          'defense',
+          ${start},
+          this.value
+        )
+        "
+      >
+        ${lineOptions(
+          d,
+          state.lines.defense[start]
+        )}
+      </select>
+
+      <br><br>
+
+      <select
+        onchange="
+        changeLinePlayer(
+          'defense',
+          ${start+1},
+          this.value
+        )
+        "
+      >
+        ${lineOptions(
+          d,
+          state.lines.defense[start+1]
+        )}
+      </select>
+
+    </div>
+
+    `;
+
+  }
+
+
+  html+=`
+
+  </section>
+
+
+  <section class="card">
+
+    <h2>Startande målvakt</h2>
+
+    <select
+      onchange="
+      changeGoalie(this.value)
+      "
+    >
+      ${lineOptions(
+        g,
+        state.lines.goalie
+      )}
+    </select>
+
+  </section>
+
+  `;
+
+
+  return html;
+
+}
 /* =========================================================
    MATCHVY
    ========================================================= */
@@ -3005,21 +3352,25 @@ function render(){
     );
 
 
-  content.innerHTML=
+content.innerHTML=
 
-    state.page==="home"
+  state.page==="home"
 
-    ? homeView()
+  ? homeView()
 
-    : state.page==="squad"
+  : state.page==="squad"
 
-    ? squadView()
+  ? squadView()
 
-    : state.page==="match"
+  : state.page==="lines"
 
-    ? matchView()
+  ? linesView()
 
-    : tableView();
+  : state.page==="match"
+
+  ? matchView()
+
+  : tableView();
 
 
   document
