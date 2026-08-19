@@ -330,3 +330,7 @@ tr.me{
     font-size: 17px;
     font-weight: 900;
 }
+/* 5 knappar i bottenmenyn */
+.nav {
+  grid-template-columns: repeat(5, 1fr);
+}
