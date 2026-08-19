@@ -239,10 +239,37 @@ function goalies(){
 
 function weightedPlayer(type="attack"){
 
-  let list =
-    type==="defense"
-    ? defenders()
-    : forwards();
+  let list;
+
+  if(state.live){
+
+    const onIce = [
+      ...currentLinePlayers(),
+      ...currentDefensePlayers()
+    ];
+
+    list =
+      type==="defense"
+      ? currentDefensePlayers()
+      : onIce.filter(p=>p.pos!=="MV");
+
+  }else{
+
+    list =
+      type==="defense"
+      ? defenders()
+      : forwards();
+
+  }
+
+  if(!list || !list.length){
+
+    list =
+      type==="defense"
+      ? defenders()
+      : forwards();
+
+  }
 
   let total = 0;
 
