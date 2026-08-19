@@ -1,126 +1,2143 @@
 "use strict";
 
+/* =========================================================
+   HOCKEY MANAGER
+   Alpha 0.2 – Matchmotor 2.0
+   ========================================================= */
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
 const PLAYERS = [
-  ["Felix Sandström","MV",78],
-  ["Olof Glifford","MV",73],
-  ["Andreas Borgman","B",81],
-  ["Niklas Hansson","B",80],
-  ["Olle Alsing","B",78],
-  ["Santeri Hatakka","B",77],
-  ["Malte Gustafsson","B",72],
-  ["Jonathan Ang","HF",83],
-  ["Lukas Rousek","HF",82],
-  ["Riley Woods","VF",81],
-  ["Aleksi Heponiemi","C",81],
-  ["Justin Kloos","C",80],
-  ["Noah Philp","C",80],
-  ["Jan Mysak","C",79],
-  ["Oskar Stål Lyrenäs","VF",78],
-  ["Linus Lindström","C",77],
-  ["Nikola Pasic","HF",76],
-  ["Martin Johnsen","VF",72]
+  ["Felix Sandström","MV",78,74,78,76,79],
+  ["Olof Glifford","MV",73,71,75,72,74],
+
+  ["Andreas Borgman","B",81,78,80,84,83],
+  ["Niklas Hansson","B",80,79,82,81,77],
+  ["Olle Alsing","B",78,76,80,79,75],
+  ["Santeri Hatakka","B",77,72,77,81,82],
+  ["Malte Gustafsson","B",72,70,74,72,71],
+  ["Hugo Fransson","B",71,69,72,73,70],
+
+  ["Jonathan Ang","HF",83,85,82,75,78],
+  ["Lukas Rousek","HF",82,82,85,74,76],
+  ["Riley Woods","VF",81,84,78,72,80],
+  ["Aleksi Heponiemi","C",81,79,86,74,72],
+  ["Justin Kloos","C",80,80,82,75,76],
+  ["Noah Philp","C",80,78,79,80,82],
+  ["Jan Mysak","C",79,81,78,72,77],
+  ["Oskar Stål Lyrenäs","VF",78,79,76,71,76],
+  ["Linus Lindström","C",77,75,78,78,75],
+  ["Nikola Pasic","HF",76,77,75,70,74],
+  ["Martin Johnsen","VF",72,74,70,68,72],
+  ["Victor Laz","HF",70,72,68,67,73]
 ].map((p,id)=>({
   id,
   name:p[0],
   pos:p[1],
   overall:p[2],
+
+  shooting:p[3],
+  passing:p[4],
+  defense:p[5],
+  physical:p[6],
+
   goals:0,
-  assists:0
+  assists:0,
+  shots:0,
+  pim:0,
+
+  fatigue:0,
+  form:0,
+  morale:70
 }));
 
-const TEAM_NAMES = [
-  "HV71",
-  "Brynäs IF",
-  "Djurgårdens IF",
-  "Färjestad BK",
-  "Frölunda HC",
-  "Linköping HC",
-  "Luleå Hockey",
-  "Malmö Redhawks",
-  "Rögle BK",
-  "Skellefteå AIK",
-  "Timrå IK",
-  "Växjö Lakers",
-  "Örebro Hockey",
-  "Björklöven"
+
+const TEAM_DATA = [
+  ["HV71",79,"balanced"],
+  ["Brynäs IF",80,"attack"],
+  ["Djurgårdens IF",78,"attack"],
+  ["Färjestad BK",83,"attack"],
+  ["Frölunda HC",82,"pressure"],
+  ["Linköping HC",76,"balanced"],
+  ["Luleå Hockey",82,"defense"],
+  ["Malmö Redhawks",75,"physical"],
+  ["Rögle BK",80,"pressure"],
+  ["Skellefteå AIK",82,"attack"],
+  ["Timrå IK",79,"balanced"],
+  ["Växjö Lakers",81,"defense"],
+  ["Örebro Hockey",77,"physical"],
+  ["Björklöven",73,"attack"]
 ];
 
+
+/* =========================================================
+   NY KARRIÄR
+   ========================================================= */
+
 function newState(){
+
   return {
-    version:"0.1",
+
+    version:"0.2",
+
     page:"home",
+
     round:1,
+
     morale:72,
+
     money:14500000,
+
     fans:6500,
+
+    tactic:"balanced",
+
     roster:PLAYERS.map(p=>({...p})),
+
     history:[],
+
+    news:[
+      "Välkommen till HV71.",
+      "Styrelsens mål är att nå slutspel."
+    ],
+
     live:null,
-    teams:TEAM_NAMES.map((name,i)=>({
-      name,
+
+    teams:TEAM_DATA.map(t=>({
+
+      name:t[0],
+
+      strength:t[1],
+
+      style:t[2],
+
       gp:0,
+
       w:0,
+
+      otw:0,
+
+      otl:0,
+
       l:0,
+
       gf:0,
+
       ga:0,
-      pts:0,
-      strength:72 + ((i*5)%10)
+
+      pts:0
+
     }))
+
   };
+
 }
+
+
+/* =========================================================
+   LADDA / SPARA
+   ========================================================= */
 
 let state;
 
 try{
-  state=JSON.parse(localStorage.getItem("hockey_manager_alpha01"));
-  if(!state || state.version!=="0.1") state=newState();
+
+  const saved=
+    JSON.parse(
+      localStorage.getItem("hockey_manager_alpha02")
+    );
+
+  state=
+    saved &&
+    saved.version==="0.2"
+    ? saved
+    : newState();
+
 }catch{
+
   state=newState();
+
 }
+
 
 function save(){
-  localStorage.setItem("hockey_manager_alpha01",JSON.stringify(state));
+
+  localStorage.setItem(
+    "hockey_manager_alpha02",
+    JSON.stringify(state)
+  );
+
 }
+
+
+/* =========================================================
+   HJÄLPFUNKTIONER
+   ========================================================= */
 
 function team(name){
-  return state.teams.find(t=>t.name===name);
+
+  return state.teams.find(
+    t=>t.name===name
+  );
+
 }
+
 
 function opponent(){
-  const others=TEAM_NAMES.filter(x=>x!=="HV71");
-  return others[(state.round-1)%others.length];
+
+  const others=
+    state.teams.filter(
+      t=>t.name!=="HV71"
+    );
+
+  return others[
+    (state.round-1)%others.length
+  ].name;
+
 }
 
-function randomPlayer(){
-  const players=state.roster.filter(p=>p.pos!=="MV");
-  const total=players.reduce((s,p)=>s+p.overall,0);
-  let r=Math.random()*total;
 
-  for(const p of players){
-    r-=p.overall;
-    if(r<=0) return p;
+function money(n){
+
+  return new Intl.NumberFormat(
+    "sv-SE"
+  ).format(
+    Math.round(n)
+  )+" kr";
+
+}
+
+
+function forwards(){
+
+  return state.roster.filter(
+    p=>p.pos!=="MV" && p.pos!=="B"
+  );
+
+}
+
+
+function defenders(){
+
+  return state.roster.filter(
+    p=>p.pos==="B"
+  );
+
+}
+
+
+function goalies(){
+
+  return state.roster.filter(
+    p=>p.pos==="MV"
+  );
+
+}
+
+
+function weightedPlayer(type="attack"){
+
+  const list=
+    type==="defense"
+    ? defenders()
+    : forwards();
+
+  let total=0;
+
+  list.forEach(p=>{
+
+    total+=
+      type==="shot"
+      ? p.shooting
+      : type==="pass"
+      ? p.passing
+      : p.overall;
+
+  });
+
+  let random=
+    Math.random()*total;
+
+  for(const p of list){
+
+    random-=
+      type==="shot"
+      ? p.shooting
+      : type==="pass"
+      ? p.passing
+      : p.overall;
+
+    if(random<=0)
+      return p;
+
   }
 
-  return players[0];
+  return list[0];
+
 }
+
+
+function randomGoalie(){
+
+  return goalies()
+    .slice()
+    .sort(
+      (a,b)=>b.overall-a.overall
+    )[0];
+
+}
+
+
+function gameTime(){
+
+  const m=state.live;
+
+  if(!m)
+    return "0:00";
+
+  return (
+    m.minute+
+    ":"+
+    String(
+      m.second
+    ).padStart(2,"0")
+  );
+
+}
+
+
+/* =========================================================
+   MATCHHÄNDELSER
+   ========================================================= */
+
+function addEvent(
+  text,
+  type="chance"
+){
+
+  if(!state.live)
+    return;
+
+  state.live.events.unshift({
+
+    period:
+      state.live.period,
+
+    time:
+      gameTime(),
+
+    text,
+
+    type
+
+  });
+
+  state.live.events=
+    state.live.events.slice(
+      0,
+      120
+    );
+
+}
+
+
+/* =========================================================
+   MATCHSTART
+   ========================================================= */
+
+function createMatch(){
+
+  const opp=opponent();
+
+  state.live={
+
+    opponent:opp,
+
+    period:1,
+
+    minute:0,
+
+    second:0,
+
+    hv:0,
+
+    opp:0,
+
+    shotsHV:0,
+
+    shotsOpp:0,
+
+    chancesHV:0,
+
+    chancesOpp:0,
+
+    possessionHV:50,
+
+    faceoffsHV:0,
+
+    faceoffsOpp:0,
+
+    hitsHV:0,
+
+    hitsOpp:0,
+
+    blocksHV:0,
+
+    blocksOpp:0,
+
+    ppHV:0,
+
+    ppOpp:0,
+
+    ppGoalsHV:0,
+
+    ppGoalsOpp:0,
+
+    penaltiesHV:[],
+
+    penaltiesOpp:[],
+
+    momentum:50,
+
+    running:false,
+
+    finished:false,
+
+    overtime:false,
+
+    timeoutUsed:false,
+
+    goaliePulled:false,
+
+    aiGoaliePulled:false,
+
+    events:[],
+
+    speed:1,
+
+    shiftCounter:0,
+
+    homePressure:0,
+
+    awayPressure:0
+
+  };
+
+  addEvent(
+    "Nedsläpp i Husqvarna Garden.",
+    "chance"
+  );
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   MATCHKLOCKA
+   ========================================================= */
+
+let matchTimer=null;
+
+
+function startMatch(){
+
+  if(!state.live)
+    createMatch();
+
+  if(
+    state.live.finished
+  )
+    return;
+
+  state.live.running=true;
+
+  save();
+
+  render();
+
+  clearTimeout(
+    matchTimer
+  );
+
+  scheduleTick();
+
+}
+
+
+function pauseMatch(){
+
+  if(!state.live)
+    return;
+
+  state.live.running=false;
+
+  clearTimeout(
+    matchTimer
+  );
+
+  save();
+
+  render();
+
+}
+
+
+function scheduleTick(){
+
+  const m=state.live;
+
+  if(
+    !m ||
+    !m.running ||
+    m.finished
+  )
+    return;
+
+  const delay=
+    m.speed===3
+    ? 150
+    : m.speed===2
+    ? 330
+    : 650;
+
+  matchTimer=
+    setTimeout(
+      ()=>{
+
+        liveStep();
+
+        scheduleTick();
+
+      },
+      delay
+    );
+
+}
+
+
+function setSpeed(value){
+
+  if(!state.live)
+    return;
+
+  state.live.speed=
+    Number(value);
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   MATCHMOTOR
+   ========================================================= */
+
+function liveStep(){
+
+  const m=state.live;
+
+  if(
+    !m ||
+    !m.running ||
+    m.finished
+  )
+    return;
+
+
+  /* ---------- TID ---------- */
+
+  const seconds=
+    m.speed===3
+    ? 15
+    : m.speed===2
+    ? 10
+    : 6;
+
+  m.second+=seconds;
+
+  while(
+    m.second>=60
+  ){
+
+    m.second-=60;
+
+    m.minute++;
+
+  }
+
+
+  /* ---------- UTVISNINGAR ---------- */
+
+  tickPenalties();
+
+
+  /* ---------- AI ---------- */
+
+  aiDecisions();
+
+
+  /* ---------- PERIOD SLUT ---------- */
+
+  if(
+    m.minute>=20
+  ){
+
+    if(
+      m.period<3
+    ){
+
+      addEvent(
+        `Period ${m.period} är slut.`,
+        "period"
+      );
+
+      m.period++;
+
+      m.minute=0;
+
+      m.second=0;
+
+      m.running=false;
+
+      m.momentum=
+        50+
+        ((m.hv-m.opp)*2);
+
+      save();
+
+      render();
+
+      return;
+
+    }
+
+
+    if(
+      m.period===3
+    ){
+
+      if(
+        m.hv===m.opp
+      ){
+
+        startOvertime();
+
+        return;
+
+      }
+
+      finishMatch(false);
+
+      return;
+
+    }
+
+  }
+
+
+  /* ---------- MATCHHÄNDELSE ---------- */
+
+  m.shiftCounter++;
+
+  const eventRoll=
+    Math.random();
+
+
+  if(
+    eventRoll<0.08
+  ){
+
+    simulateFaceoff();
+
+  }
+
+  else if(
+    eventRoll<0.15
+  ){
+
+    simulateHit();
+
+  }
+
+  else if(
+    eventRoll<0.18
+  ){
+
+    simulatePenalty();
+
+  }
+
+  else if(
+    eventRoll<0.52
+  ){
+
+    simulateAttack();
+
+  }
+
+  else if(
+    eventRoll<0.57
+  ){
+
+    simulateNeutralPlay();
+
+  }
+
+
+  updateFatigue();
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   ANFALL
+   ========================================================= */
+
+function simulateAttack(){
+
+  const m=state.live;
+
+  const hvTeamPower=
+    calculateHVPower();
+
+  const opponentTeam=
+    team(
+      m.opponent
+    );
+
+  const opponentPower=
+    calculateOpponentPower(
+      opponentTeam
+    );
+
+
+  let hvProbability=
+    hvTeamPower/
+    (
+      hvTeamPower+
+      opponentPower
+    );
+
+
+  /* momentum */
+
+  hvProbability+=
+    (
+      m.momentum-50
+    )/500;
+
+
+  /* powerplay */
+
+  if(
+    m.penaltiesOpp.length>
+    m.penaltiesHV.length
+  ){
+
+    hvProbability+=0.08;
+
+  }
+
+  if(
+    m.penaltiesHV.length>
+    m.penaltiesOpp.length
+  ){
+
+    hvProbability-=0.08;
+
+  }
+
+
+  hvProbability=
+    Math.max(
+      .28,
+      Math.min(
+        .72,
+        hvProbability
+      )
+    );
+
+
+  const hvAttack=
+    Math.random()<
+    hvProbability;
+
+
+  if(hvAttack){
+
+    hvAttackSequence();
+
+  }else{
+
+    opponentAttackSequence();
+
+  }
+
+}
+
+
+/* =========================================================
+   HV71-ANFALL
+   ========================================================= */
+
+function hvAttackSequence(){
+
+  const m=state.live;
+
+  const carrier=
+    weightedPlayer(
+      "attack"
+    );
+
+  const passer=
+    weightedPlayer(
+      "pass"
+    );
+
+  const shooter=
+    weightedPlayer(
+      "shot"
+    );
+
+
+  const sequence=
+    Math.random();
+
+
+  if(
+    sequence<0.18
+  ){
+
+    addEvent(
+      `${carrier.name} vinner pucken och driver in i offensiv zon.`
+    );
+
+  }
+
+  else if(
+    sequence<0.35
+  ){
+
+    addEvent(
+      `${passer.name} hittar ${shooter.name} med en fin passning.`
+    );
+
+  }
+
+  else if(
+    sequence<0.46
+  ){
+
+    m.chancesHV++;
+
+    addEvent(
+      `${shooter.name} kommer fri framför mål!`,
+      "bigChance"
+    );
+
+    hvShot(
+      shooter,
+      true
+    );
+
+    return;
+
+  }
+
+  else{
+
+    hvShot(
+      shooter,
+      false
+    );
+
+    return;
+
+  }
+
+
+  m.momentum=
+    Math.min(
+      80,
+      m.momentum+1
+    );
+
+}
+
+
+/* =========================================================
+   HV71-SKOTT
+   ========================================================= */
+
+function hvShot(
+  shooter,
+  dangerous
+){
+
+  const m=state.live;
+
+  m.shotsHV++;
+
+  shooter.shots++;
+
+
+  const goalieStrength=
+    team(
+      m.opponent
+    ).strength;
+
+
+  let goalChance=
+    dangerous
+    ? .18
+    : .075;
+
+
+  goalChance+=
+    (
+      shooter.shooting-75
+    )/500;
+
+
+  if(
+    m.penaltiesOpp.length>
+    m.penaltiesHV.length
+  ){
+
+    goalChance+=.035;
+
+  }
+
+
+  if(
+    m.goaliePulled
+  ){
+
+    goalChance+=.015;
+
+  }
+
+
+  if(
+    goalieStrength>81
+  ){
+
+    goalChance-=.01;
+
+  }
+
+
+  const result=
+    Math.random();
+
+
+  if(
+    result<
+    goalChance
+  ){
+
+    goalHV(
+      shooter
+    );
+
+  }
+
+  else if(
+    result<
+    goalChance+.12
+  ){
+
+    addEvent(
+      `${shooter.name} träffar stolpen!`,
+      "bigChance"
+    );
+
+    m.momentum=
+      Math.min(
+        80,
+        m.momentum+4
+      );
+
+  }
+
+  else if(
+    result<
+    goalChance+.28
+  ){
+
+    addEvent(
+      `${shooter.name} skjuter – målvakten lämnar retur!`,
+      "shot"
+    );
+
+    if(
+      Math.random()<.22
+    ){
+
+      const rebound=
+        weightedPlayer(
+          "shot"
+        );
+
+      m.shotsHV++;
+
+      rebound.shots++;
+
+      if(
+        Math.random()<.18
+      ){
+
+        goalHV(
+          rebound
+        );
+
+      }else{
+
+        addEvent(
+          `${rebound.name} får returen men målvakten räddar.`,
+          "shot"
+        );
+
+      }
+
+    }
+
+  }
+
+  else{
+
+    addEvent(
+      `${shooter.name} skjuter – räddning.`,
+      "shot"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   MOTSTÅNDARANFALL
+   ========================================================= */
+
+function opponentAttackSequence(){
+
+  const m=state.live;
+
+  const roll=
+    Math.random();
+
+
+  if(
+    roll<.18
+  ){
+
+    addEvent(
+      `${m.opponent} etablerar ett långt anfall.`
+    );
+
+  }
+
+  else if(
+    roll<.36
+  ){
+
+    addEvent(
+      `${m.opponent} kommer snabbt genom mittzon.`
+    );
+
+  }
+
+  else if(
+    roll<.46
+  ){
+
+    m.chancesOpp++;
+
+    addEvent(
+      `${m.opponent} kommer fri mot HV71-målet!`,
+      "bigChance"
+    );
+
+    opponentShot(
+      true
+    );
+
+    return;
+
+  }
+
+  else{
+
+    opponentShot(
+      false
+    );
+
+    return;
+
+  }
+
+
+  m.momentum=
+    Math.max(
+      20,
+      m.momentum-1
+    );
+
+}
+
+
+/* =========================================================
+   MOTSTÅNDARSKOTT
+   ========================================================= */
+
+function opponentShot(
+  dangerous
+){
+
+  const m=state.live;
+
+  m.shotsOpp++;
+
+
+  const goalie=
+    randomGoalie();
+
+
+  let goalChance=
+    dangerous
+    ? .17
+    : .07;
+
+
+  goalChance+=
+    (
+      team(m.opponent)
+      .strength-78
+    )/550;
+
+
+  goalChance-=
+    (
+      goalie.overall-75
+    )/600;
+
+
+  if(
+    m.penaltiesHV.length>
+    m.penaltiesOpp.length
+  ){
+
+    goalChance+=.035;
+
+  }
+
+
+  if(
+    m.goaliePulled
+  ){
+
+    goalChance=.58;
+
+  }
+
+
+  const result=
+    Math.random();
+
+
+  if(
+    result<
+    goalChance
+  ){
+
+    goalOpponent();
+
+  }
+
+  else if(
+    result<
+    goalChance+.12
+  ){
+
+    addEvent(
+      `${m.opponent} träffar ramen!`,
+      "bigChance"
+    );
+
+    m.momentum=
+      Math.max(
+        20,
+        m.momentum-4
+      );
+
+  }
+
+  else if(
+    result<
+    goalChance+.28
+  ){
+
+    addEvent(
+      `${goalie.name} räddar men lämnar retur.`,
+      "shot"
+    );
+
+  }
+
+  else{
+
+    addEvent(
+      `${m.opponent} skjuter – ${goalie.name} räddar.`,
+      "shot"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   MÅL HV71
+   ========================================================= */
+
+function goalHV(
+  scorer
+){
+
+  const m=state.live;
+
+  m.hv++;
+
+  scorer.goals++;
+
+
+  const possibleAssists=
+    forwards().filter(
+      p=>p.id!==scorer.id
+    );
+
+
+  if(
+    possibleAssists.length
+  ){
+
+    const assist=
+      possibleAssists[
+        Math.floor(
+          Math.random()*
+          possibleAssists.length
+        )
+      ];
+
+    assist.assists++;
+
+  }
+
+
+  addEvent(
+    `MÅÅÅL HV71! ${scorer.name} gör ${m.hv}–${m.opp}!`,
+    "goal"
+  );
+
+
+  if(
+    m.penaltiesOpp.length>
+    m.penaltiesHV.length
+  ){
+
+    m.ppGoalsHV++;
+
+  }
+
+
+  m.momentum=
+    Math.min(
+      85,
+      m.momentum+9
+    );
+
+}
+
+
+/* =========================================================
+   MÅL MOTSTÅNDARE
+   ========================================================= */
+
+function goalOpponent(){
+
+  const m=state.live;
+
+  m.opp++;
+
+
+  addEvent(
+    `MÅL ${m.opponent}! Ställningen är ${m.hv}–${m.opp}.`,
+    "goal"
+  );
+
+
+  if(
+    m.penaltiesHV.length>
+    m.penaltiesOpp.length
+  ){
+
+    m.ppGoalsOpp++;
+
+  }
+
+
+  m.momentum=
+    Math.max(
+      15,
+      m.momentum-9
+    );
+
+}
+
+
+/* =========================================================
+   TEKNING
+   ========================================================= */
+
+function simulateFaceoff(){
+
+  const m=state.live;
+
+  const hvWins=
+    Math.random()<.51;
+
+
+  if(hvWins){
+
+    m.faceoffsHV++;
+
+    addEvent(
+      "HV71 vinner tekningen."
+    );
+
+  }else{
+
+    m.faceoffsOpp++;
+
+    addEvent(
+      `${m.opponent} vinner tekningen.`
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TACKLING
+   ========================================================= */
+
+function simulateHit(){
+
+  const m=state.live;
+
+
+  const hvHit=
+    Math.random()<.52;
+
+
+  if(hvHit){
+
+    m.hitsHV++;
+
+    const hitter=
+      weightedPlayer(
+        "defense"
+      );
+
+    addEvent(
+      `${hitter.name} delar ut en tung tackling.`,
+      "hit"
+    );
+
+    m.momentum=
+      Math.min(
+        80,
+        m.momentum+2
+      );
+
+  }else{
+
+    m.hitsOpp++;
+
+    addEvent(
+      `${m.opponent} sätter in en hård tackling.`,
+      "hit"
+    );
+
+    m.momentum=
+      Math.max(
+        20,
+        m.momentum-2
+      );
+
+  }
+
+}
+
+
+/* =========================================================
+   UTVISNINGAR
+   ========================================================= */
+
+const PENALTIES=[
+  "Hooking",
+  "Tripping",
+  "Slashing",
+  "Interference",
+  "Holding",
+  "Roughing"
+];
+
+
+function simulatePenalty(){
+
+  const m=state.live;
+
+
+  const hvPenalty=
+    Math.random()<.5;
+
+
+  const penalty=
+    PENALTIES[
+      Math.floor(
+        Math.random()*
+        PENALTIES.length
+      )
+    ];
+
+
+  if(hvPenalty){
+
+    const player=
+      weightedPlayer();
+
+    player.pim+=2;
+
+    m.penaltiesHV.push(
+      120
+    );
+
+    m.ppOpp++;
+
+    addEvent(
+      `UTVISNING HV71: ${player.name}, 2 min ${penalty}.`,
+      "penalty"
+    );
+
+  }else{
+
+    m.penaltiesOpp.push(
+      120
+    );
+
+    m.ppHV++;
+
+    addEvent(
+      `UTVISNING ${m.opponent}: 2 min ${penalty}.`,
+      "penalty"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   UTVISNINGSTID
+   ========================================================= */
+
+function tickPenalties(){
+
+  const m=state.live;
+
+  const tick=
+    m.speed===3
+    ? 15
+    : m.speed===2
+    ? 10
+    : 6;
+
+
+  m.penaltiesHV=
+    m.penaltiesHV
+    .map(x=>x-tick)
+    .filter(x=>x>0);
+
+
+  m.penaltiesOpp=
+    m.penaltiesOpp
+    .map(x=>x-tick)
+    .filter(x=>x>0);
+
+}
+
+
+/* =========================================================
+   NEUTRALT SPEL
+   ========================================================= */
+
+function simulateNeutralPlay(){
+
+  const m=state.live;
+
+  const texts=[
+
+    "Spelet böljar fram och tillbaka.",
+
+    "HV71 försöker etablera spel genom mittzon.",
+
+    `${m.opponent} tvingas börja om i egen zon.`,
+
+    "HV71 forecheckar högt.",
+
+    "Lagen byter chanser med varandra."
+
+  ];
+
+  addEvent(
+    texts[
+      Math.floor(
+        Math.random()*
+        texts.length
+      )
+    ]
+  );
+
+}
+
+
+/* =========================================================
+   LAGSTYRKA
+   ========================================================= */
+
+function calculateHVPower(){
+
+  let power=
+    state.roster.reduce(
+      (
+        sum,
+        p
+      )=>sum+p.overall,
+      0
+    )/
+    state.roster.length;
+
+
+  power+=
+    state.morale/40;
+
+
+  if(
+    state.tactic===
+    "attack"
+  ){
+
+    power+=2;
+
+  }
+
+  if(
+    state.tactic===
+    "defense"
+  ){
+
+    power-=1;
+
+  }
+
+
+  return power;
+
+}
+
+
+function calculateOpponentPower(
+  opponentTeam
+){
+
+  let power=
+    opponentTeam.strength;
+
+
+  const m=
+    state.live;
+
+
+  if(
+    m &&
+    m.period===3
+  ){
+
+    if(
+      m.opp<m.hv
+    ){
+
+      power+=2;
+
+    }
+
+  }
+
+
+  return power;
+
+}
+
+
+/* =========================================================
+   TRÖTTHET
+   ========================================================= */
+
+function updateFatigue(){
+
+  state.roster.forEach(
+    p=>{
+
+      if(
+        p.pos!=="MV"
+      ){
+
+        p.fatigue=
+          Math.min(
+            100,
+            p.fatigue+
+            Math.random()*.22
+          );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   AI
+   ========================================================= */
+
+function aiDecisions(){
+
+  const m=
+    state.live;
+
+  if(!m)
+    return;
+
+
+  if(
+    m.period===3 &&
+    m.minute>=17 &&
+    m.opp<m.hv &&
+    !m.aiGoaliePulled
+  ){
+
+    m.aiGoaliePulled=true;
+
+    addEvent(
+      `${m.opponent} tar ut målvakten!`,
+      "strategy"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   TIMEOUT
+   ========================================================= */
+
+function useTimeout(){
+
+  const m=
+    state.live;
+
+  if(
+    !m ||
+    m.timeoutUsed
+  )
+    return;
+
+
+  m.timeoutUsed=true;
+
+  m.running=false;
+
+  m.momentum=
+    Math.min(
+      75,
+      m.momentum+7
+    );
+
+
+  state.roster.forEach(
+    p=>{
+
+      p.fatigue=
+        Math.max(
+          0,
+          p.fatigue-8
+        );
+
+    }
+  );
+
+
+  addEvent(
+    "HV71 tar timeout. Spelarna får återhämta sig.",
+    "strategy"
+  );
+
+
+  clearTimeout(
+    matchTimer
+  );
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   TA UT MÅLVAKT
+   ========================================================= */
+
+function toggleGoalie(){
+
+  const m=
+    state.live;
+
+  if(!m)
+    return;
+
+
+  m.goaliePulled=
+    !m.goaliePulled;
+
+
+  addEvent(
+    m.goaliePulled
+    ? "HV71 tar ut målvakten!"
+    : "HV71 sätter tillbaka målvakten.",
+    "strategy"
+  );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   TAKTIK
+   ========================================================= */
+
+function setTactic(
+  tactic
+){
+
+  state.tactic=
+    tactic;
+
+
+  if(
+    state.live
+  ){
+
+    const labels={
+
+      attack:"offensiv",
+
+      balanced:"balanserad",
+
+      defense:"defensiv"
+
+    };
+
+
+    addEvent(
+      `HV71 ändrar taktik till ${labels[tactic]}.`,
+      "strategy"
+    );
+
+  }
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   FÖRLÄNGNING
+   ========================================================= */
+
+function startOvertime(){
+
+  const m=
+    state.live;
+
+
+  addEvent(
+    "Ordinarie tid är slut. Förlängning väntar.",
+    "period"
+  );
+
+
+  m.overtime=true;
+
+  m.period=4;
+
+  m.minute=0;
+
+  m.second=0;
+
+  m.running=false;
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   FÖRLÄNGNINGSSTEG
+   ========================================================= */
+
+function overtimeStep(){
+
+  const m=
+    state.live;
+
+  if(
+    !m ||
+    !m.running
+  )
+    return;
+
+
+  m.second+=8;
+
+
+  while(
+    m.second>=60
+  ){
+
+    m.second-=60;
+
+    m.minute++;
+
+  }
+
+
+  simulateAttack();
+
+
+  if(
+    m.hv!==m.opp
+  ){
+
+    finishMatch(true);
+
+    return;
+
+  }
+
+
+  if(
+    m.minute>=5
+  ){
+
+    shootout();
+
+  }
+
+}
+
+
+/* =========================================================
+   STRAFFAR
+   ========================================================= */
+
+function shootout(){
+
+  const m=
+    state.live;
+
+
+  addEvent(
+    "Straffläggning börjar.",
+    "period"
+  );
+
+
+  const hvWin=
+    Math.random()<.52;
+
+
+  if(hvWin){
+
+    m.hv++;
+
+    addEvent(
+      "HV71 avgör på straffar!",
+      "goal"
+    );
+
+  }else{
+
+    m.opp++;
+
+    addEvent(
+      `${m.opponent} avgör på straffar.`,
+      "goal"
+    );
+
+  }
+
+
+  finishMatch(true);
+
+}
+
+
+/* =========================================================
+   MATCHSLUT
+   ========================================================= */
+
+function finishMatch(
+  overtime
+){
+
+  const m=
+    state.live;
+
+
+  m.running=false;
+
+  m.finished=true;
+
+
+  clearTimeout(
+    matchTimer
+  );
+
+
+  const hv=
+    team(
+      "HV71"
+    );
+
+  const opp=
+    team(
+      m.opponent
+    );
+
+
+  hv.gp++;
+
+  opp.gp++;
+
+
+  hv.gf+=
+    m.hv;
+
+  hv.ga+=
+    m.opp;
+
+
+  opp.gf+=
+    m.opp;
+
+  opp.ga+=
+    m.hv;
+
+
+  const hvWin=
+    m.hv>m.opp;
+
+
+  if(
+    overtime
+  ){
+
+    if(hvWin){
+
+      hv.otw++;
+
+      hv.pts+=2;
+
+      opp.otl++;
+
+      opp.pts+=1;
+
+    }else{
+
+      opp.otw++;
+
+      opp.pts+=2;
+
+      hv.otl++;
+
+      hv.pts+=1;
+
+    }
+
+  }else{
+
+    if(hvWin){
+
+      hv.w++;
+
+      hv.pts+=3;
+
+      opp.l++;
+
+    }else{
+
+      opp.w++;
+
+      opp.pts+=3;
+
+      hv.l++;
+
+    }
+
+  }
+
+
+  if(hvWin){
+
+    state.morale=
+      Math.min(
+        100,
+        state.morale+4
+      );
+
+    state.fans+=
+      75;
+
+  }else{
+
+    state.morale=
+      Math.max(
+        30,
+        state.morale-4
+      );
+
+  }
+
+
+  state.history.unshift(
+    `HV71 ${m.hv}–${m.opp} ${m.opponent}`
+  );
+
+
+  state.news.unshift(
+    hvWin
+    ? `HV71 besegrade ${m.opponent} med ${m.hv}–${m.opp}.`
+    : `HV71 föll mot ${m.opponent} med ${m.hv}–${m.opp}.`
+  );
+
+
+  state.money+=
+    Math.round(
+      state.fans*220
+    )-
+    300000;
+
+
+  state.round++;
+
+
+  state.roster.forEach(
+    p=>{
+
+      p.fatigue=
+        Math.max(
+          0,
+          p.fatigue-20
+        );
+
+    }
+  );
+
+
+  save();
+
+  render();
+
+}
+
+
+/* =========================================================
+   HEMSIDAN
+   ========================================================= */
 
 function homeView(){
 
-  const hv=team("HV71");
+  const hv=
+    team("HV71");
+
 
   return `
+
   <section class="card hero">
-    <span class="pill">Säsong 2026/27 • Omgång ${state.round}</span>
+
+    <span class="pill">
+      Säsong 2026/27 • Omgång ${state.round}
+    </span>
+
     <h2>HV71</h2>
+
     <p class="muted">
-      Nästa match mot <b>${opponent()}</b>.
+      Nästa match mot
+      <b>${opponent()}</b>.
     </p>
-    <button class="btn" onclick="state.page='match';render()">
+
+    <button
+      class="btn"
+      onclick="
+      state.page='match';
+      render();
+      "
+    >
       Till nästa match
     </button>
+
   </section>
 
+
   <div class="grid">
+
     <div class="stat">
       <b>${hv.pts}</b>
       <span>Poäng</span>
@@ -140,332 +2157,156 @@ function homeView(){
       <b>${state.fans}</b>
       <span>Supportrar</span>
     </div>
+
   </div>
 
+
   <section class="card">
+
     <h3>Senaste resultat</h3>
 
     ${
       state.history.length
-      ? state.history.slice(0,5).map(x=>`
+      ?
+      state.history
+      .slice(0,5)
+      .map(
+        x=>`
         <div class="row">
           <span>${x}</span>
         </div>
-      `).join("")
-      : `<p class="muted">Ingen match spelad ännu.</p>`
+        `
+      ).join("")
+      :
+      `
+      <p class="muted">
+        Ingen match spelad ännu.
+      </p>
+      `
     }
+
   </section>
 
+
   <section class="card">
-    <h3>Klubbkassa</h3>
-    <h2>${state.money.toLocaleString("sv-SE")} kr</h2>
+
+    <h3>Nyheter</h3>
+
+    ${
+      state.news
+      .slice(0,5)
+      .map(
+        n=>`
+        <div class="row">
+          <span>${n}</span>
+        </div>
+        `
+      ).join("")
+    }
+
   </section>
+
+
+  <section class="card">
+
+    <h3>Klubbkassa</h3>
+
+    <h2>
+      ${money(state.money)}
+    </h2>
+
+  </section>
+
   `;
+
 }
+
+
+/* =========================================================
+   TRUPP
+   ========================================================= */
 
 function squadView(){
 
   return `
-  <section class="card">
-    <h2>HV71</h2>
-    <p class="muted">Spelartrupp</p>
 
-    ${state.roster
+  <section class="card">
+
+    <h2>HV71:s trupp</h2>
+
+    <p class="muted">
+      Kondition påverkas under matcherna.
+    </p>
+
+
+    ${
+      state.roster
       .slice()
-      .sort((a,b)=>b.overall-a.overall)
-      .map(p=>`
+      .sort(
+        (a,b)=>
+        b.overall-a.overall
+      )
+      .map(
+        p=>`
+
         <div class="player">
-          <span class="pos">${p.pos}</span>
+
+          <span class="pos">
+            ${p.pos}
+          </span>
 
           <div class="player-info">
-            <b>${p.name}</b>
+
+            <b>
+              ${p.name}
+            </b>
+
             <small>
-              ${p.goals} mål • ${p.assists} assist
+              ${p.goals} mål
+              •
+              ${p.assists} assist
+              •
+              Kondition ${Math.max(
+                0,
+                Math.round(
+                  100-p.fatigue
+                )
+              )}%
             </small>
+
           </div>
 
-          <span class="rating">${p.overall}</span>
+          <span class="rating">
+            ${p.overall}
+          </span>
+
         </div>
-      `).join("")
+
+        `
+      ).join("")
     }
+
   </section>
+
   `;
+
 }
 
-function createMatch(){
 
-  state.live={
-    opponent:opponent(),
-    period:1,
-    minute:0,
-    second:0,
-    hv:0,
-    opp:0,
-    shotsHV:0,
-    shotsOpp:0,
-    momentum:50,
-    running:false,
-    finished:false,
-    events:[]
-  };
-
-  addEvent("Nedsläpp i Husqvarna Garden.");
-
-  save();
-  render();
-}
-
-function timeText(){
-
-  const m=state.live;
-
-  return `${m.minute}:${String(m.second).padStart(2,"0")}`;
-}
-
-function addEvent(text,type="chance"){
-
-  state.live.events.unshift({
-    time:timeText(),
-    text,
-    type
-  });
-
-  state.live.events=state.live.events.slice(0,80);
-}
-
-let timer=null;
-
-function startMatch(){
-
-  if(!state.live) createMatch();
-
-  state.live.running=true;
-
-  save();
-  render();
-
-  clearTimeout(timer);
-  nextTick();
-}
-
-function pauseMatch(){
-
-  if(!state.live) return;
-
-  state.live.running=false;
-
-  clearTimeout(timer);
-
-  save();
-  render();
-}
-
-function nextTick(){
-
-  const m=state.live;
-
-  if(!m || !m.running || m.finished) return;
-
-  timer=setTimeout(()=>{
-
-    liveStep();
-
-    nextTick();
-
-  },650);
-}
-
-function liveStep(){
-
-  const m=state.live;
-
-  if(!m || !m.running) return;
-
-  m.second+=8;
-
-  while(m.second>=60){
-    m.second-=60;
-    m.minute++;
-  }
-
-  if(m.minute>=20){
-
-    if(m.period<3){
-
-      addEvent(`Period ${m.period} är slut.`);
-
-      m.period++;
-      m.minute=0;
-      m.second=0;
-      m.running=false;
-
-      save();
-      render();
-
-      return;
-
-    }else{
-
-      finishMatch();
-      return;
-    }
-  }
-
-  const hvPower=79 + (m.momentum-50)/12;
-  const oppPower=team(m.opponent).strength + (50-m.momentum)/12;
-
-  const hvChance=hvPower/(hvPower+oppPower);
-
-  if(Math.random()<0.25){
-
-    const hvAttack=Math.random()<hvChance;
-
-    if(hvAttack){
-
-      m.shotsHV++;
-
-      const scorer=randomPlayer();
-
-      if(Math.random()<0.105){
-
-        m.hv++;
-
-        scorer.goals++;
-
-        addEvent(
-          `MÅL HV71! ${scorer.name} gör ${m.hv}–${m.opp}.`,
-          "goal"
-        );
-
-        m.momentum=Math.min(80,m.momentum+8);
-
-      }else if(Math.random()<0.32){
-
-        addEvent(`HV71 skapar en farlig målchans genom ${scorer.name}.`);
-
-        m.momentum=Math.min(80,m.momentum+3);
-
-      }else{
-
-        addEvent(`${scorer.name} skjuter – räddning.`);
-      }
-
-    }else{
-
-      m.shotsOpp++;
-
-      if(Math.random()<0.105){
-
-        m.opp++;
-
-        addEvent(
-          `MÅL ${m.opponent}! Ställningen är ${m.hv}–${m.opp}.`,
-          "goal"
-        );
-
-        m.momentum=Math.max(20,m.momentum-8);
-
-      }else if(Math.random()<0.32){
-
-        addEvent(`${m.opponent} skapar en riktigt farlig chans.`);
-
-        m.momentum=Math.max(20,m.momentum-3);
-
-      }else{
-
-        addEvent(`${m.opponent} skjuter – HV71-målvakten räddar.`);
-      }
-    }
-  }
-
-  save();
-  render();
-}
-
-function finishMatch(){
-
-  const m=state.live;
-
-  m.running=false;
-
-  if(m.hv===m.opp){
-
-    if(Math.random()<0.52){
-
-      m.hv++;
-
-      addEvent("HV71 avgör efter förlängning!","goal");
-
-    }else{
-
-      m.opp++;
-
-      addEvent(`${m.opponent} avgör efter förlängning.`,"goal");
-    }
-  }
-
-  const win=m.hv>m.opp;
-
-  const hv=team("HV71");
-  const op=team(m.opponent);
-
-  hv.gp++;
-  op.gp++;
-
-  hv.gf+=m.hv;
-  hv.ga+=m.opp;
-
-  op.gf+=m.opp;
-  op.ga+=m.hv;
-
-  if(win){
-
-    hv.w++;
-    hv.pts+=3;
-
-    op.l++;
-
-    state.morale=Math.min(100,state.morale+4);
-    state.fans+=75;
-
-  }else{
-
-    op.w++;
-    op.pts+=3;
-
-    hv.l++;
-
-    state.morale=Math.max(30,state.morale-4);
-  }
-
-  state.history.unshift(
-    `HV71 ${m.hv}–${m.opp} ${m.opponent}`
-  );
-
-  state.round++;
-
-  state.money+=Math.round(state.fans*220)-300000;
-
-  m.finished=true;
-
-  save();
-
-  setTimeout(()=>{
-    state.live=null;
-    save();
-    render();
-  },1500);
-
-  render();
-}
+/* =========================================================
+   MATCHVY
+   ========================================================= */
 
 function matchView(){
 
-  const m=state.live;
+  const m=
+    state.live;
+
 
   if(!m){
 
     return `
+
     <section class="card">
 
       <h2>Nästa match</h2>
@@ -476,7 +2317,9 @@ function matchView(){
           <b>HV71</b>
         </div>
 
-        <div class="score">–</div>
+        <div class="score">
+          –
+        </div>
 
         <div>
           <b>${opponent()}</b>
@@ -486,18 +2329,110 @@ function matchView(){
 
       <br>
 
-      <button class="btn" onclick="createMatch()">
+      <label>
+        <span class="muted">
+          Starttaktik
+        </span>
+      </label>
+
+      <select
+        onchange="
+        setTactic(this.value)
+        "
+      >
+
+        <option
+          value="attack"
+          ${
+            state.tactic==="attack"
+            ?"selected"
+            :""
+          }
+        >
+          Offensiv
+        </option>
+
+        <option
+          value="balanced"
+          ${
+            state.tactic==="balanced"
+            ?"selected"
+            :""
+          }
+        >
+          Balanserad
+        </option>
+
+        <option
+          value="defense"
+          ${
+            state.tactic==="defense"
+            ?"selected"
+            :""
+          }
+        >
+          Defensiv
+        </option>
+
+      </select>
+
+      <br><br>
+
+      <button
+        class="btn"
+        onclick="
+        createMatch()
+        "
+      >
         Starta match
       </button>
 
     </section>
+
     `;
+
   }
 
+
+  const totalMinutes=
+    m.period<=3
+    ?
+    (
+      (m.period-1)*20+
+      m.minute
+    )
+    :
+    60+
+    m.minute;
+
+
   const progress=
-    (((m.period-1)*20)+m.minute+(m.second/60))/60*100;
+    m.period<=3
+    ?
+    Math.min(
+      100,
+      totalMinutes/60*100
+    )
+    :
+    100;
+
+
+  const powerplay=
+    m.penaltiesOpp.length>
+    m.penaltiesHV.length
+    ?
+    "HV71 PP"
+    :
+    m.penaltiesHV.length>
+    m.penaltiesOpp.length
+    ?
+    `${m.opponent} PP`
+    :
+    "5 mot 5";
+
 
   return `
+
   <section class="card">
 
     <div class="scoreboard">
@@ -516,50 +2451,321 @@ function matchView(){
 
     </div>
 
+
     <div class="clock">
-      Period ${m.period} • ${timeText()}
+
+      ${
+        m.period===4
+        ?
+        "Förlängning"
+        :
+        `Period ${m.period}`
+      }
+
+      •
+
+      ${gameTime()}
+
     </div>
+
 
     <div class="livebar">
-      <span style="width:${progress}%"></span>
+
+      <span
+        style="
+        width:${progress}%
+        "
+      ></span>
+
     </div>
 
+
     <br>
+
 
     <div class="grid">
 
       <div class="stat">
-        <b>${m.shotsHV}–${m.shotsOpp}</b>
-        <span>Skott</span>
+
+        <b>
+          ${m.shotsHV}–${m.shotsOpp}
+        </b>
+
+        <span>
+          Skott
+        </span>
+
       </div>
 
+
       <div class="stat">
-        <b>${Math.round(m.momentum)}%</b>
-        <span>HV71 momentum</span>
+
+        <b>
+          ${m.chancesHV}–${m.chancesOpp}
+        </b>
+
+        <span>
+          Farliga chanser
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b>
+          ${Math.round(m.momentum)}%
+        </b>
+
+        <span>
+          HV71 momentum
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b>
+          ${powerplay}
+        </b>
+
+        <span>
+          Numerärt läge
+        </span>
+
       </div>
 
     </div>
+
+
+    <div class="grid">
+
+      <div class="stat">
+
+        <b>
+          ${m.faceoffsHV}–${m.faceoffsOpp}
+        </b>
+
+        <span>
+          Tekningar
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b>
+          ${m.hitsHV}–${m.hitsOpp}
+        </b>
+
+        <span>
+          Tacklingar
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b>
+          ${m.ppGoalsHV}/${m.ppHV}
+        </b>
+
+        <span>
+          HV71 PP
+        </span>
+
+      </div>
+
+
+      <div class="stat">
+
+        <b>
+          ${m.ppGoalsOpp}/${m.ppOpp}
+        </b>
+
+        <span>
+          Motstånd PP
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <label>
+      <span class="muted">
+        Matchtaktik
+      </span>
+    </label>
+
+    <select
+      onchange="
+      setTactic(this.value)
+      "
+    >
+
+      <option
+        value="attack"
+        ${
+          state.tactic==="attack"
+          ?"selected"
+          :""
+        }
+      >
+        Offensiv
+      </option>
+
+      <option
+        value="balanced"
+        ${
+          state.tactic==="balanced"
+          ?"selected"
+          :""
+        }
+      >
+        Balanserad
+      </option>
+
+      <option
+        value="defense"
+        ${
+          state.tactic==="defense"
+          ?"selected"
+          :""
+        }
+      >
+        Defensiv
+      </option>
+
+    </select>
+
+
+    <br><br>
+
+
+    <label>
+      <span class="muted">
+        Matchhastighet
+      </span>
+    </label>
+
+    <select
+      onchange="
+      setSpeed(this.value)
+      "
+    >
+
+      <option
+        value="1"
+        ${
+          m.speed===1
+          ?"selected"
+          :""
+        }
+      >
+        Normal
+      </option>
+
+      <option
+        value="2"
+        ${
+          m.speed===2
+          ?"selected"
+          :""
+        }
+      >
+        Snabb
+      </option>
+
+      <option
+        value="3"
+        ${
+          m.speed===3
+          ?"selected"
+          :""
+        }
+      >
+        Mycket snabb
+      </option>
+
+    </select>
+
 
     <div class="controls">
 
       ${
         m.running
-        ? `<button class="btn" onclick="pauseMatch()">Pausa</button>`
-        : `<button class="btn" onclick="startMatch()">Fortsätt</button>`
+        ?
+        `
+        <button
+          class="btn"
+          onclick="
+          pauseMatch()
+          "
+        >
+          Pausa
+        </button>
+        `
+        :
+        `
+        <button
+          class="btn"
+          onclick="
+          startMatch()
+          "
+          ${
+            m.finished
+            ?"disabled"
+            :""
+          }
+        >
+          ${
+            m.finished
+            ?"Match slut"
+            :"Fortsätt"
+          }
+        </button>
+        `
       }
 
-      <button class="btn secondary"
+
+      <button
+        class="btn secondary"
         onclick="
-        state.live.momentum=Math.min(80,state.live.momentum+6);
-        addEvent('HV71 tar timeout.');
-        pauseMatch();
-        ">
+        useTimeout()
+        "
+        ${
+          m.timeoutUsed
+          ?"disabled"
+          :""
+        }
+      >
         Timeout
+      </button>
+
+
+      <button
+        class="btn secondary"
+        onclick="
+        toggleGoalie()
+        "
+      >
+        ${
+          m.goaliePulled
+          ?
+          "Sätt in målvakt"
+          :
+          "Ta ut målvakt"
+        }
       </button>
 
     </div>
 
   </section>
+
 
   <section class="card">
 
@@ -568,29 +2774,91 @@ function matchView(){
     <div class="log">
 
       ${
-        m.events.map(e=>`
-          <div class="${e.type}">
-            ${e.time} – ${e.text}
+        m.events
+        .map(
+          e=>`
+
+          <div
+            class="${e.type}"
+          >
+
+            P${e.period}
+            ${e.time}
+            –
+            ${e.text}
+
           </div>
-        `).join("")
+
+          `
+        ).join("")
       }
 
     </div>
 
   </section>
+
+
+  ${
+    m.finished
+    ?
+    `
+
+    <section class="card">
+
+      <h3>Matchen är slut</h3>
+
+      <button
+        class="btn"
+        onclick="
+        state.live=null;
+        save();
+        render();
+        "
+      >
+        Fortsätt
+      </button>
+
+    </section>
+
+    `
+    :
+    ""
+  }
+
   `;
+
 }
+
+
+/* =========================================================
+   TABELL
+   ========================================================= */
 
 function tableView(){
 
-  const sorted=state.teams
+  const sorted=
+    state.teams
     .slice()
-    .sort((a,b)=>
-      b.pts-a.pts ||
-      (b.gf-b.ga)-(a.gf-a.ga)
+    .sort(
+      (a,b)=>
+
+      b.pts-a.pts
+
+      ||
+
+      (
+        b.gf-b.ga
+      )
+      -
+      (
+        a.gf-a.ga
+      )
+
     );
 
+
   return `
+
   <section class="card">
 
     <h2>SHL</h2>
@@ -598,27 +2866,65 @@ function tableView(){
     <table>
 
       <thead>
+
         <tr>
+
           <th>#</th>
+
           <th>Lag</th>
+
           <th>M</th>
+
           <th>+/-</th>
+
           <th>P</th>
+
         </tr>
+
       </thead>
+
 
       <tbody>
 
         ${
-          sorted.map((t,i)=>`
-            <tr class="${t.name==="HV71"?"me":""}">
-              <td>${i+1}</td>
-              <td>${t.name}</td>
-              <td>${t.gp}</td>
-              <td>${t.gf-t.ga}</td>
-              <td><b>${t.pts}</b></td>
+          sorted
+          .map(
+            (t,i)=>`
+
+            <tr
+              class="${
+                t.name==="HV71"
+                ?"me"
+                :""
+              }"
+            >
+
+              <td>
+                ${i+1}
+              </td>
+
+              <td>
+                ${t.name}
+              </td>
+
+              <td>
+                ${t.gp}
+              </td>
+
+              <td>
+                ${t.gf-t.ga}
+              </td>
+
+              <td>
+                <b>
+                  ${t.pts}
+                </b>
+              </td>
+
             </tr>
-          `).join("")
+
+            `
+          ).join("")
         }
 
       </tbody>
@@ -626,41 +2932,149 @@ function tableView(){
     </table>
 
   </section>
+
+
+  <section class="card">
+
+    <h2>HV71:s poängliga</h2>
+
+    ${
+      state.roster
+      .slice()
+      .sort(
+        (a,b)=>
+
+        (
+          b.goals+
+          b.assists
+        )
+
+        -
+
+        (
+          a.goals+
+          a.assists
+        )
+      )
+      .slice(
+        0,
+        10
+      )
+      .map(
+        (p,i)=>`
+
+        <div class="row">
+
+          <span>
+            ${i+1}. ${p.name}
+          </span>
+
+          <b>
+            ${p.goals}
+            +
+            ${p.assists}
+            =
+            ${
+              p.goals+
+              p.assists
+            }
+          </b>
+
+        </div>
+
+        `
+      ).join("")
+    }
+
+  </section>
+
   `;
+
 }
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
 
 function render(){
 
-  document.getElementById("content").innerHTML=
-    state.page==="home"
-    ? homeView()
-    : state.page==="squad"
-    ? squadView()
-    : state.page==="match"
-    ? matchView()
-    : tableView();
-
-  document.querySelectorAll(".nav button").forEach(btn=>{
-
-    btn.classList.toggle(
-      "active",
-      btn.dataset.page===state.page
+  const content=
+    document.getElementById(
+      "content"
     );
 
-  });
+
+  content.innerHTML=
+
+    state.page==="home"
+
+    ? homeView()
+
+    : state.page==="squad"
+
+    ? squadView()
+
+    : state.page==="match"
+
+    ? matchView()
+
+    : tableView();
+
+
+  document
+  .querySelectorAll(
+    ".nav button"
+  )
+  .forEach(
+    btn=>{
+
+      btn.classList.toggle(
+
+        "active",
+
+        btn.dataset.page===
+        state.page
+
+      );
+
+    }
+  );
+
 }
 
-document.querySelectorAll(".nav button").forEach(btn=>{
 
-  btn.addEventListener("click",()=>{
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
 
-    state.page=btn.dataset.page;
+document
+.querySelectorAll(
+  ".nav button"
+)
+.forEach(
+  btn=>{
 
-    render();
+    btn.addEventListener(
+      "click",
+      ()=>{
 
-  });
+        state.page=
+          btn.dataset.page;
 
-});
+        render();
+
+      }
+    );
+
+  }
+);
+
+
+/* =========================================================
+   START
+   ========================================================= */
 
 save();
+
 render();
