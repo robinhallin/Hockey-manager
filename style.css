@@ -1,1 +1,268 @@
+/* Hockey Manager – ny design */
 
+:root{
+  --bg:#07111f;
+  --card:#0d1d31;
+  --card2:#112942;
+  --text:#f6f8fb;
+  --muted:#9fb0c4;
+  --accent:#f4c542;
+  --blue:#2467b2;
+  --line:#233e59;
+  --danger:#ff6868;
+  --green:#3bd790;
+}
+
+html{
+  background:var(--bg);
+}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at top,#123458 0,#07111f 38%,#050c16 100%);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+.app{
+  max-width:760px;
+  margin:0 auto;
+  min-height:100vh;
+}
+
+.top{
+  background:rgba(5,13,23,.94);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  box-shadow:0 5px 25px rgba(0,0,0,.25);
+}
+
+.logo{
+  width:48px;
+  height:48px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#317fd0,#0b396b);
+  border:2px solid var(--accent);
+  box-shadow:0 0 25px rgba(244,197,66,.12);
+}
+
+.brand h1{
+  color:white;
+  font-size:21px;
+  font-weight:800;
+  letter-spacing:-.3px;
+}
+
+.brand small{
+  color:var(--muted);
+}
+
+main{
+  padding:18px 16px 115px;
+}
+
+.card{
+  background:
+    linear-gradient(145deg,rgba(20,48,78,.96),rgba(10,27,46,.98));
+  border:1px solid rgba(115,160,199,.22);
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding:24px;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(244,197,66,.18),transparent 30%),
+    linear-gradient(135deg,#164677,#0b2746 65%,#091c31);
+}
+
+.hero h2{
+  margin:12px 0 6px;
+  color:white;
+  font-size:35px;
+  line-height:1;
+  letter-spacing:-1px;
+}
+
+.hero p{
+  line-height:1.5;
+}
+
+.pill{
+  padding:7px 11px;
+  color:#d8e5f1;
+  background:rgba(4,16,29,.55);
+  border:1px solid rgba(255,255,255,.12);
+  font-weight:650;
+}
+
+.btn{
+  min-height:52px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#f8d04e,#eeb825);
+  color:#171300;
+  font-weight:850;
+  font-size:15px;
+  box-shadow:0 6px 18px rgba(244,197,66,.16);
+  cursor:pointer;
+}
+
+.btn:hover{
+  filter:brightness(1.05);
+}
+
+.btn.secondary{
+  background:#183754;
+  border:1px solid #345777;
+  color:#f5f8fb;
+  box-shadow:none;
+}
+
+.grid{
+  gap:11px;
+}
+
+.stat{
+  min-height:82px;
+  padding:15px;
+  background:linear-gradient(145deg,#0c2239,#081725);
+  border:1px solid rgba(102,147,184,.18);
+  border-radius:16px;
+}
+
+.stat b{
+  color:white;
+  font-size:25px;
+  line-height:1.1;
+}
+
+.stat span{
+  display:block;
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+}
+
+.row{
+  padding:13px 0;
+  border-color:rgba(255,255,255,.08);
+}
+
+.player{
+  padding:13px 0;
+  border-color:rgba(255,255,255,.08);
+}
+
+.rating{
+  padding:8px 10px;
+  background:#061422;
+  border:1px solid rgba(244,197,66,.18);
+  color:var(--accent);
+}
+
+.score{
+  color:white;
+  font-size:46px;
+  letter-spacing:-2px;
+}
+
+.log{
+  background:#061522;
+  border:1px solid rgba(255,255,255,.06);
+  line-height:1.75;
+}
+
+.goal{
+  display:block;
+  padding:5px 0;
+  color:#ffd447;
+  font-weight:900;
+}
+
+.chance{
+  display:block;
+  padding:3px 0;
+  color:#c9d7e5;
+}
+
+.livebar{
+  height:12px;
+  background:#061522;
+}
+
+.livebar span{
+  background:linear-gradient(90deg,#2875c6,#f4c542);
+}
+
+.nav{
+  max-width:760px;
+  margin:auto;
+  padding-top:9px;
+  background:rgba(3,10,18,.97);
+  border-top:1px solid rgba(255,255,255,.09);
+  box-shadow:0 -8px 30px rgba(0,0,0,.28);
+}
+
+.nav button{
+  min-height:58px;
+  color:#8195aa;
+  transition:.15s ease;
+}
+
+.nav button.active{
+  color:var(--accent);
+}
+
+.nav button.active i{
+  transform:translateY(-2px);
+}
+
+.nav i{
+  font-size:22px;
+  transition:.15s ease;
+}
+
+table{
+  color:var(--text);
+}
+
+th{
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+td{
+  border-color:rgba(255,255,255,.07);
+}
+
+tr.me{
+  background:rgba(244,197,66,.10);
+}
+
+@media(min-width:700px){
+  main{
+    padding:24px 22px 120px;
+  }
+
+  .card{
+    padding:22px;
+  }
+
+  .hero{
+    padding:30px;
+  }
+
+  .hero h2{
+    font-size:42px;
+  }
+}
