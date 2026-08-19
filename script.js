@@ -1644,24 +1644,32 @@ function calculateOpponentPower(
 
 function updateFatigue(){
 
-  state.roster.forEach(
-    p=>{
+  const onIce = [
+    ...currentLinePlayers(),
+    ...currentDefensePlayers()
+  ];
 
-      if(
-        p.pos!=="MV"
-      ){
+  state.roster.forEach(p => {
 
-        p.fatigue=
-          Math.min(
-            100,
-            p.fatigue+
-            Math.random()*.22
-          );
+    if(p.pos === "MV") return;
 
-      }
+    const isOnIce = onIce.some(player => player.id === p.id);
 
+    if(isOnIce){
+      // Spelare på isen blir tröttare
+      p.fatigue = Math.min(
+        100,
+        p.fatigue + 1.2
+      );
+    } else {
+      // Spelare på bänken återhämtar sig
+      p.fatigue = Math.max(
+        0,
+        p.fatigue - 0.8
+      );
     }
-  );
+
+  });
 
 }
 
