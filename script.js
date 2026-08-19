@@ -1297,10 +1297,13 @@ function goalHV(
   scorer.goals++;
 
 
-  const possibleAssists=
-    forwards().filter(
-      p=>p.id!==scorer.id
-    );
+const possibleAssists=
+  [
+    ...currentLinePlayers(),
+    ...currentDefensePlayers()
+  ].filter(
+    p=>p.id!==scorer.id
+  );
 
 
   if(
