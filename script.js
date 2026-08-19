@@ -239,10 +239,51 @@ function goalies(){
 
 function weightedPlayer(type="attack"){
 
-  const list=
-    type==="defense"
-    ? defenders()
-    : forwards();
+  let list=[];
+
+  if(
+    state.live &&
+    state.live.running
+  ){
+
+    const onIce=[
+      ...currentLinePlayers(),
+      ...currentDefensePlayers()
+    ];
+
+    if(type==="defense"){
+
+      list=
+        currentDefensePlayers();
+
+    }else{
+
+      list=
+        onIce.filter(
+          p=>p.pos!=="MV"
+        );
+
+    }
+
+  }else{
+
+    list=
+      type==="defense"
+      ? defenders()
+      : forwards();
+
+  }
+
+
+  if(!list.length){
+
+    list=
+      type==="defense"
+      ? defenders()
+      : forwards();
+
+  }
+
 
   let total=0;
 
@@ -254,6 +295,31 @@ function weightedPlayer(type="attack"){
       : type==="pass"
       ? p.passing
       : p.overall;
+
+  });
+
+
+  let random=
+    Math.random()*total;
+
+
+  for(const p of list){
+
+    random-=
+      type==="shot"
+      ? p.shooting
+      : type==="pass"
+      ? p.passing
+      : p.overall;
+
+    if(random<=0)
+      return p;
+
+  }
+
+  return list[0];
+
+}
 
   });
 
