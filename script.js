@@ -85,7 +85,7 @@ function newState(){
     page:"home",
 
     round:1,
-
+    schedule:createSchedule(),
     morale:72,
 
     money:14500000,
@@ -134,7 +134,33 @@ function newState(){
   };
 
 }
+function createSchedule(){
 
+  const teams = TEAM_DATA.map(t => t[0]);
+  const games = [];
+
+  for(let cycle = 0; cycle < 4; cycle++){
+
+    for(let i = 0; i < teams.length; i++){
+
+      for(let j = i + 1; j < teams.length; j++){
+
+        games.push({
+          home: cycle % 2 === 0 ? teams[i] : teams[j],
+          away: cycle % 2 === 0 ? teams[j] : teams[i],
+          played: false,
+          homeGoals: null,
+          awayGoals: null
+        });
+
+      }
+
+    }
+
+  }
+
+  return games;
+}
 
 /* =========================================================
    LADDA / SPARA
@@ -160,7 +186,14 @@ try{
   state=newState();
 
 }
+if(
+  !Array.isArray(state.schedule) ||
+  state.schedule.length===0
+){
 
+  state.schedule=createSchedule();
+
+}
 
 function save(){
 
