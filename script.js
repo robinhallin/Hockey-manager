@@ -239,57 +239,16 @@ function goalies(){
 
 function weightedPlayer(type="attack"){
 
-  let list=[];
+  let list =
+    type==="defense"
+    ? defenders()
+    : forwards();
 
-  if(
-    state.live &&
-    state.live.running
-  ){
-
-    const onIce=[
-      ...currentLinePlayers(),
-      ...currentDefensePlayers()
-    ];
-
-    if(type==="defense"){
-
-      list=
-        currentDefensePlayers();
-
-    }else{
-
-      list=
-        onIce.filter(
-          p=>p.pos!=="MV"
-        );
-
-    }
-
-  }else{
-
-    list=
-      type==="defense"
-      ? defenders()
-      : forwards();
-
-  }
-
-
-  if(!list.length){
-
-    list=
-      type==="defense"
-      ? defenders()
-      : forwards();
-
-  }
-
-
-  let total=0;
+  let total = 0;
 
   list.forEach(p=>{
 
-    total+=
+    total +=
       type==="shot"
       ? p.shooting
       : type==="pass"
@@ -298,37 +257,12 @@ function weightedPlayer(type="attack"){
 
   });
 
-
-  let random=
-    Math.random()*total;
-
-
-  for(const p of list){
-
-    random-=
-      type==="shot"
-      ? p.shooting
-      : type==="pass"
-      ? p.passing
-      : p.overall;
-
-    if(random<=0)
-      return p;
-
-  }
-
-  return list[0];
-
-}
-
-  });
-
-  let random=
+  let random =
     Math.random()*total;
 
   for(const p of list){
 
-    random-=
+    random -=
       type==="shot"
       ? p.shooting
       : type==="pass"
