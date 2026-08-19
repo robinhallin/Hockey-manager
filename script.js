@@ -2793,7 +2793,11 @@ function matchView(){
 
   }
 
+const onIceForwards =
+  currentLinePlayers();
 
+const onIceDefense =
+  currentDefensePlayers();
   const totalMinutes=
     m.period<=3
     ?
