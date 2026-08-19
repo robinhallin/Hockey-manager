@@ -2419,7 +2419,52 @@ function lineAverage(ids){
 
 }
 
+function currentLinePlayers(){
 
+  ensureLines();
+
+  if(!state.live) return [];
+
+  const start =
+    state.live.currentLine * 3;
+
+  return state.lines.forwards
+    .slice(start, start + 3)
+    .map(playerById)
+    .filter(Boolean);
+}
+
+
+function currentDefensePlayers(){
+
+  ensureLines();
+
+  if(!state.live) return [];
+
+  const start =
+    state.live.currentDefensePair * 2;
+
+  return state.lines.defense
+    .slice(start, start + 2)
+    .map(playerById)
+    .filter(Boolean);
+}
+
+
+function rotateUnits(){
+
+  const m = state.live;
+
+  if(!m) return;
+
+  m.shiftSeconds = 0;
+
+  m.currentLine =
+    (m.currentLine + 1) % 4;
+
+  m.currentDefensePair =
+    (m.currentDefensePair + 1) % 3;
+}
 function linesView(){
 
   ensureLines();
