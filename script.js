@@ -236,7 +236,25 @@ function goalies(){
 
 }
 
+function effectiveRating(p,type="attack"){
 
+  const base =
+    type==="shot"
+    ? p.shooting
+    : type==="pass"
+    ? p.passing
+    : type==="defense"
+    ? p.defense
+    : p.overall;
+
+  const fatiguePenalty =
+    Math.min(25, p.fatigue * 0.22);
+
+  return Math.max(
+    40,
+    base - fatiguePenalty
+  );
+}
 function weightedPlayer(type="attack"){
 
   let list;
@@ -273,28 +291,18 @@ function weightedPlayer(type="attack"){
 
   let total = 0;
 
-  list.forEach(p=>{
+list.forEach(p=>{
 
-    total +=
-      type==="shot"
-      ? p.shooting
-      : type==="pass"
-      ? p.passing
-      : p.overall;
+  total += effectiveRating(p,type);
 
-  });
+});
 
   let random =
     Math.random()*total;
 
   for(const p of list){
 
-    random -=
-      type==="shot"
-      ? p.shooting
-      : type==="pass"
-      ? p.passing
-      : p.overall;
+    random -= effectiveRating(p,type);
 
     if(random<=0)
       return p;
