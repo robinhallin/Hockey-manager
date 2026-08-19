@@ -2882,7 +2882,33 @@ const onIceDefense =
       ></span>
 
     </div>
+<div class="line">
 
+  <div class="section-title">
+
+    <b>
+      På isen
+    </b>
+
+    <span class="pill">
+      Kedja ${m.currentLine + 1}
+      •
+      Backpar ${m.currentDefensePair + 1}
+    </span>
+
+  </div>
+
+  <br>
+
+  <div class="muted">
+    ${onIceForwards.map(p=>p.name).join(" • ")}
+  </div>
+
+  <div class="muted" style="margin-top:6px;">
+    ${onIceDefense.map(p=>p.name).join(" • ")}
+  </div>
+
+</div>
 
     <br>
 
