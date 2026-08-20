@@ -139,15 +139,26 @@ function createSchedule(){
   const teams = TEAM_DATA.map(t => t[0]);
   const games = [];
 
+  let roundNumber = 1;
+
   for(let cycle = 0; cycle < 4; cycle++){
 
-    for(let i = 0; i < teams.length; i++){
+    const rotating = [...teams];
 
-      for(let j = i + 1; j < teams.length; j++){
+    for(let r = 0; r < teams.length - 1; r++){
+
+      for(let i = 0; i < teams.length / 2; i++){
+
+        const teamA = rotating[i];
+        const teamB = rotating[rotating.length - 1 - i];
+
+        const reverseHome =
+          (r + cycle) % 2 === 1;
 
         games.push({
-          home: cycle % 2 === 0 ? teams[i] : teams[j],
-          away: cycle % 2 === 0 ? teams[j] : teams[i],
+          round: roundNumber,
+          home: reverseHome ? teamB : teamA,
+          away: reverseHome ? teamA : teamB,
           played: false,
           homeGoals: null,
           awayGoals: null
@@ -155,6 +166,10 @@ function createSchedule(){
 
       }
 
+      const lastTeam = rotating.pop();
+      rotating.splice(1, 0, lastTeam);
+
+      roundNumber++;
     }
 
   }
@@ -163,17 +178,15 @@ function createSchedule(){
 }
 function simulateOtherGames(){
 
-  const hvGames = state.schedule.filter(
-    game => game.home === "HV71" || game.away === "HV71"
-  );
 
-  const hvGame = hvGames[state.round - 1];
 
-  state.schedule.forEach(game => {
+ state.schedule
+  .filter(game => game.round === state.round)
+  .forEach(game => {
 
     if(game.played) return;
 
-    if(game === hvGame) return;
+   if(game.home === "HV71" || game.away === "HV71") return;
 
     const homeTeam = team(game.home);
     const awayTeam = team(game.away);
@@ -241,11 +254,10 @@ try{
 }
 if(
   !Array.isArray(state.schedule) ||
-  state.schedule.length===0
+  state.schedule.length === 0 ||
+  state.schedule.some(game => typeof game.round !== "number")
 ){
-
-  state.schedule=createSchedule();
-
+  state.schedule = createSchedule();
 }
 
 function save(){
