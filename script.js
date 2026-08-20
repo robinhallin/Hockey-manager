@@ -1818,7 +1818,8 @@ addEvent(
    ========================================================= */
 
 function opponentShot(
-  dangerous
+  dangerous,
+  shooterName = getRandomOpponentForward(state.live.opponent)
 ){
 
   const m=state.live;
@@ -1877,7 +1878,7 @@ function opponentShot(
     goalChance
   ){
 
-    goalOpponent();
+  goalOpponent(shooterName);
 
   }
 
@@ -1886,10 +1887,10 @@ function opponentShot(
     goalChance+.12
   ){
 
-    addEvent(
-      `${m.opponent} träffar ramen!`,
-      "bigChance"
-    );
+addEvent(
+  `${shooterName} träffar ramen!`,
+  "bigChance"
+);
 
     m.momentum=
       Math.max(
@@ -1913,10 +1914,10 @@ function opponentShot(
 
   else{
 
-    addEvent(
-      `${m.opponent} skjuter – ${goalie.name} räddar.`,
-      "shot"
-    );
+addEvent(
+  `${shooterName} skjuter – ${goalie.name} räddar.`,
+  "shot"
+);
 
   }
 
@@ -1990,17 +1991,17 @@ function goalHV(
    MÅL MOTSTÅNDARE
    ========================================================= */
 
-function goalOpponent(){
+function goalOpponent(scorerName){
 
   const m=state.live;
 
   m.opp++;
 
 
-  addEvent(
-    `MÅL ${m.opponent}! Ställningen är ${m.hv}–${m.opp}.`,
-    "goal"
-  );
+addEvent(
+  `MÅL ${m.opponent}! ${scorerName} gör ${m.hv}-${m.opp}!`,
+  "goal"
+);
 
 
   if(
