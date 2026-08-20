@@ -210,7 +210,7 @@ function simulateOtherGames(){
       }
 
     }
-
+    const overtime = homeGoals === awayGoals;
     if(homeGoals === awayGoals){
 
       if(Math.random() < homeStrength / (homeStrength + awayStrength)){
@@ -224,7 +224,48 @@ function simulateOtherGames(){
     game.homeGoals = homeGoals;
     game.awayGoals = awayGoals;
     game.played = true;
+game.overtime = overtime;
 
+homeTeam.gp++;
+awayTeam.gp++;
+
+homeTeam.gf += homeGoals;
+homeTeam.ga += awayGoals;
+
+awayTeam.gf += awayGoals;
+awayTeam.ga += homeGoals;
+
+if(overtime){
+
+  if(homeGoals > awayGoals){
+    homeTeam.otw++;
+    homeTeam.pts += 2;
+
+    awayTeam.otl++;
+    awayTeam.pts += 1;
+  }else{
+    awayTeam.otw++;
+    awayTeam.pts += 2;
+
+    homeTeam.otl++;
+    homeTeam.pts += 1;
+  }
+
+}else{
+
+  if(homeGoals > awayGoals){
+    homeTeam.w++;
+    homeTeam.pts += 3;
+
+    awayTeam.l++;
+  }else{
+    awayTeam.w++;
+    awayTeam.pts += 3;
+
+    homeTeam.l++;
+  }
+
+}
   });
 
 }
