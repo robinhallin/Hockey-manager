@@ -2356,7 +2356,15 @@ const opponentName = nextGame
     >
       Till nästa match
     </button>
-
+<button
+  class="btn"
+  onclick="
+    state.page='schedule';
+    render();
+  "
+>
+  Spelschema
+</button>
   </section>
 
 
