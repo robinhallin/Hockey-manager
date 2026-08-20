@@ -70,8 +70,478 @@ const TEAM_DATA = [
   ["Örebro Hockey",77,"physical"],
   ["Björklöven",73,"attack"]
 ];
+const TEAM_ROSTERS = {
 
+  'Björklöven': {
+    G: [
+      'Frans Tuohimaa',
+      'Lassi Lehtinen'
+    ],
+    D: [
+      'Marcus Björk',
+      'Linus Cronholm',
+      'Anton Malmström',
+      'Topi Niemelä',
+      'Lucas Ekeståhl Jonsson',
+      'Alfred Barklund',
+      'Tarmo Reunanen',
+      'Josiah Didier'
+    ],
+    F: [
+      'Fredrik Forsberg',
+      'Philip Hemmyr',
+      'Gustaf Kangas',
+      'Lenni Killinen',
+      'Albin Lundin',
+      'Marcus Nilsson',
+      'Bruno Osmanis',
+      'Axel Ottosson',
+      'Gustav Possler',
+      'Oscar Tellström',
+      'Lucas Wallmark',
+      'Joel Mustonen',
+      'Chris DiDomenico',
+      'Tristen Robins',
+      'Emil Alba',
+      'Phil Di Giuseppe',
+      'Robin Kovacs'
+    ]
+  },
 
+  'Brynäs IF': {
+    G: [
+      'Erik Källgren',
+      'Magnus Chrona'
+    ],
+    D: [
+      'Axel Andersson',
+      'Simon Bertilsson',
+      'Christian Djoos',
+      'Robert Hägg',
+      'Johannes Kinnvall',
+      'Mattias Norlinder',
+      'Victor Hedin Raftheim',
+      'Aron Dahlqvist',
+      'Victor Johansson',
+      'Axel Rindell'
+    ],
+    F: [
+      'Kieffer Bellows',
+      'Nicklas Bäckström',
+      'Axel Jonsson Fjällby',
+      'Johan Larsson',
+      'Oskar Lindblom',
+      'Anton Rödin',
+      'Jakob Silfverberg',
+      'Bobby Trivigno',
+      'Linus Ölund',
+      'Leo Sundqvist',
+      'Gustav Hillström',
+      'Charlie Forslund',
+      'Milton Gästrin',
+      'Jaret Anderson-Dolan',
+      'Julien Gauthier'
+    ]
+  },
+
+  'Djurgårdens IF': {
+    G: [
+      'Magnus Hellberg',
+      'Daniel Marmenlind',
+      'Hugo Hävelid'
+    ],
+    D: [
+      'Gustav Lindström',
+      'Jesper Pettersson',
+      'Hugo Blixt',
+      'Philip Holm',
+      'Colby Sissons',
+      'Lucas Carlsson',
+      'Liam Pettersson',
+      'Nikolas Brouillard'
+    ],
+    F: [
+      'David Blomgren',
+      'Albin Grewe',
+      'Charles Hudon',
+      'Jacob Josefson',
+      'Mathias Emilio Pettersen',
+      'Håvard Salsten',
+      'Joe Snively',
+      'Lukas Vejdemo',
+      'Noel Gunler',
+      'Sebastian Hartmann',
+      'Theo Stockselius',
+      'Nils Åman',
+      'Marcus Krüger'
+    ]
+  },
+
+  'Frölunda HC': {
+    G: [
+      'Lars Johansson',
+      'Tobias Normann'
+    ],
+    D: [
+      'Henrik Tömmernes',
+      'Christian Folin',
+      'Tom Nilsson',
+      'Samuel Johannesson',
+      'Linus Högberg',
+      'Filip Hasa',
+      'Isac Heens',
+      'Stefan Milosevic'
+    ],
+    F: [
+      'Filip Cederqvist',
+      'Max Friberg',
+      'Noah Hasa',
+      'Nicklas Lasu',
+      'Max Lindholm',
+      'Jacob Peterson',
+      'Erik Thorell',
+      'Max Westergård',
+      'Mads Kongsbak Klyvö',
+      'Liam Dower Nilsson',
+      'Patrik Puistola',
+      'Oskar Olausson',
+      'Samuel Fagemo',
+      'Linus Nässén'
+    ]
+  },
+
+  'Färjestad BK': {
+    G: [
+      'Emil Larmi',
+      'Melker Thelin'
+    ],
+    D: [
+      'Axel Bergkvist',
+      'Gabriel Carlsson',
+      'Magnus Nygren',
+      'Adam Ollas Mattsson',
+      'Filip Roos',
+      'Albert Wikman',
+      'Noel Fransén'
+    ],
+    F: [
+      'Christoffer Jansson',
+      'Linus Johansson',
+      'Viktor Lodin',
+      'Joakim Nygård',
+      'Oskar Steen',
+      'Marian Studenic',
+      'Radim Zohorna',
+      'Per Åslund',
+      'Jack Berglund',
+      'Mikkel Öby Olsen',
+      'Victor Ejdsell',
+      'Sebastian Cederle',
+      'Marcus Johansson'
+    ]
+  },
+  'HV71': {
+    G: [
+      'Felix Sandström',
+      'Olof Glifford',
+      'Herman Liv'
+    ],
+    D: [
+      'Olle Alsing',
+      'Andreas Borgman',
+      'Hugo Fransson',
+      'Niklas Hansson',
+      'Santeri Hatakka',
+      'Lucas Lagerberg',
+      'Karl Annborn',
+      'Malte Gustafsson'
+    ],
+    F: [
+      'Jonathan Ang',
+      'Hampus Eriksson',
+      'Aleksi Heponiemi',
+      'Martin Johnsen',
+      'Justin Kloos',
+      'Victor Laz',
+      'Linus Lindström',
+      'William Ignberg Nilsson',
+      'Nikola Pasic',
+      'Lukas Rousek',
+      'Oskar Stål Lyrenäs',
+      'Riley Woods',
+      'Jan Mysak'
+    ]
+  },
+
+  'Linköping HC': {
+    G: [
+      'Waltteri Ignatjew',
+      'Marcus Högberg'
+    ],
+    D: [
+      'Oscar Fantenberg',
+      'Mikko Kokkonen',
+      'Theodor Lennström',
+      'David Bernhardt',
+      'Max Martin',
+      'Felix Öhrqvist',
+      'Zach Giuttari',
+      'Linus Hultström'
+    ],
+    F: [
+      'Christoffer Ehn',
+      'Remi Elie',
+      'Adam Hofbauer',
+      'Fredrik Karlström',
+      'Loke Krantz',
+      'Ludvig Larsson',
+      'Zion Nybeck',
+      'Johan Södergran',
+      'Jakub Vrana',
+      'Oscar Holmertz',
+      'Milton Carpenhammar',
+      'Arvid Degerstedt',
+      'Brendan Shinnimin',
+      'Cooper Marody',
+      'Tim Söderlund',
+      'Johan Johnsson',
+      'Samu Tuomaala'
+    ]
+  },
+
+  'Luleå Hockey': {
+    G: [
+      'Joel Lassinantti',
+      'Matteus Ward',
+      'Isak Sörqvist'
+    ],
+    D: [
+      'Erik Gustafsson',
+      'Oscar Engsund',
+      'Oskari Laaksonen',
+      'Otto Leskinen',
+      'Jesper Sellgren',
+      'Pontus Själin',
+      'William Håkansson',
+      'Oliwer Sjöström'
+    ],
+    F: [
+      'Pontus Andreasson',
+      'Mathias Bromé',
+      'Filip Eriksson',
+      'David Granberg',
+      'Isac Hedqvist',
+      'Jakob Ihs Wozniak',
+      'Caper Juustovaara Karlsson',
+      'Anton Levtchi',
+      'Markus Nurmi',
+      "Brian O'Neill",
+      'Ben Tardif',
+      'Isac Brännström',
+      'Joona Koppanen',
+      'Valtteri Puustinen'
+    ]
+  },
+
+  'Malmö Redhawks': {
+    G: [
+      'Oskar Blomgren',
+      'Marek Langhamer'
+    ],
+    D: [
+      'Seth Barton',
+      'Johan Ivarsson',
+      'Patrik Norén',
+      'Eemil Viro',
+      'Felix Carell',
+      'Elia Pedrotti',
+      'Martin Schreiber',
+      'Peter DiLiberatore',
+      'Jonathan Myrenberg',
+      'Oliwer Kaski',
+      'Klas Dahlbeck'
+    ],
+    F: [
+      'Thomas Berg-Paulsen',
+      'Filip Björkman',
+      'Robin Hanzl',
+      'Fredrik Händemark',
+      'Janne Kuokkanen',
+      'Isac Nilsson',
+      'Lauri Pajuniemi',
+      'Carl Persson',
+      'Axel Sundberg',
+      'Petter Vesterheim',
+      'William von Barnekow',
+      'Viktor Olofsson',
+      'Kalle Hemström',
+      'Isac Born',
+      'Hugo Pettersson',
+      'Oscar Eklind'
+    ]
+  },
+
+  'Rögle BK': {
+    G: [
+      'Arvid Holm',
+      'Calle Clang',
+      'Axel Nyman'
+    ],
+    D: [
+      'Mark Friedman',
+      'Calvin de Haan',
+      'Filip Johansson',
+      'Calle Själin',
+      'Axel Kumlin',
+      'Ludvig Claesson',
+      'Nate Clurman',
+      'Paul LaDue'
+    ],
+    F: [
+      'Anton Bengtsson',
+      'Leon Bristedt',
+      'Dennis Everberg',
+      'Fredrik Olofsson',
+      'Linus Sandin',
+      'Isac Solberg',
+      'Albin Sundsvik',
+      'Daniel Zaar',
+      'Simon Zether',
+      'Lubos Horky',
+      'Joel Kellman',
+      'Karson Kuhlman',
+      'Oskar Jellvik'
+    ]
+  },
+     'Skellefteå AIK': {
+    G: [
+      'Linus Söderström',
+      'Gustaf Lindvall'
+    ],
+    D: [
+      'Jonathan Pudas',
+      'Axel Sandin Pellikka',
+      'Arvid Lundberg',
+      'Elias Salomonsson',
+      'Anton Olsson',
+      'Petter Granberg',
+      'Måns Forsfjäll',
+      'Vili Saarijärvi'
+    ],
+    F: [
+      'Oscar Lindberg',
+      'Rickard Hugg',
+      'Pär Lindholm',
+      'Andreas Johnson',
+      'Jonathan Johnson',
+      'Max Lindholm',
+      'Michael Brandsegg-Nygård',
+      'Oskar Nilsson',
+      'Filip Sandberg',
+      'Linus Lindström',
+      'Albin Sundsvik',
+      'Melker Karlsson',
+      'Viktor Arvidsson'
+    ]
+  },
+
+  'Timrå IK': {
+    G: [
+      'Jacob Johansson',
+      'Mio Blom'
+    ],
+    D: [
+      'Joonas Lyytinen',
+      'Elmeri Eronen',
+      'Jakob Ragnarsson',
+      'Per Svensson',
+      'Joey LaLeggia',
+      'Adam Ollas Mattsson',
+      'Ludvig Claesson',
+      'Anton Strålman'
+    ],
+    F: [
+      'Anton Lander',
+      'Jonathan Dahlén',
+      'Sebastian Hartmann',
+      'Filip Hållander',
+      'Oliver Kapanen',
+      'Robin Alvarez',
+      'Erik Walli Walterholm',
+      'Emil Pettersson',
+      'Viktor Lodin',
+      'Linus Omark',
+      'Isac Lundeström',
+      'Albin Lundin',
+      'Oscar Pettersson'
+    ]
+  },
+
+  'Växjö Lakers': {
+    G: [
+      'Adam Åhman',
+      'Emil Larmi'
+    ],
+    D: [
+      'Joel Persson',
+      'Gabriel Carlsson',
+      'Ludvig Nilsson',
+      'Eric Martinsson',
+      'Dylan McIlrath',
+      'Brian Cooper',
+      'Victor Sjöholm',
+      'Noah Östlund'
+    ],
+    F: [
+      'Robert Rosén',
+      'Kalle Kossila',
+      'Dylan McLaughlin',
+      'Manuel Ågren',
+      'Marcus Sylvegård',
+      'Eemeli Suomi',
+      'Ludvig Nilsson',
+      'Noah Östlund',
+      'Dennis Rasmussen',
+      'Pontus Holmberg',
+      'Peter Cehlarik',
+      'Lucas Elvenes',
+      'Emil Forslund'
+    ]
+  },
+
+  'Örebro Hockey': {
+    G: [
+      'Jonas Arntzen',
+      'Jhonas Enroth'
+    ],
+    D: [
+      'Robin Norell',
+      'Marcus Hardegård',
+      'Philip Holm',
+      'Kristian Näkyvä',
+      'Rasmus Rissanen',
+      'Samuel Johannesson',
+      'David Quenneville',
+      'William Wikman'
+    ],
+    F: [
+      'Patrik Puistola',
+      'Patrik Karlkvist',
+      'Robert Leino',
+      'Glenn Gustafsson',
+      'Filip Berglund',
+      'Emil Larsson',
+      'Ludvig Larsson',
+      'William Wikman',
+      'Elias Ekström',
+      'Noel Nordh',
+      'Nick Ebert',
+      'Mathias Bromé',
+      'Rodrigo Abols'
+    ]
+  }
+
+};
 /* =========================================================
    NY KARRIÄR
    ========================================================= */
