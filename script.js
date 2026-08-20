@@ -2159,20 +2159,23 @@ function simulatePenalty(){
       "penalty"
     );
 
-  }else{
+}else{
+
+    const playerName =
+        getRandomOpponentSkater(m.opponent);
 
     m.penaltiesOpp.push(
-      120
+        120
     );
 
     m.ppHV++;
 
     addEvent(
-      `UTVISNING ${m.opponent}: 2 min ${penalty}.`,
-      "penalty"
+        `UTVISNING ${m.opponent}: ${playerName}, 2 min ${penalty}.`,
+        "penalty"
     );
 
-  }
+}
 
 }
 
