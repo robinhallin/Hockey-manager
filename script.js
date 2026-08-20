@@ -1747,7 +1747,7 @@ function hvShot(
 function opponentAttackSequence(){
 
   const m=state.live;
-
+const opponentPlayer = getRandomOpponentSkater(m.opponent);
   const roll=
     Math.random();
 
@@ -1756,9 +1756,9 @@ function opponentAttackSequence(){
     roll<.18
   ){
 
-    addEvent(
-      `${m.opponent} etablerar ett långt anfall.`
-    );
+addEvent(
+  `${opponentPlayer} driver upp pucken och ${m.opponent} etablerar anfall.`
+);
 
   }
 
@@ -1766,9 +1766,9 @@ function opponentAttackSequence(){
     roll<.36
   ){
 
-    addEvent(
-      `${m.opponent} kommer snabbt genom mittzon.`
-    );
+addEvent(
+  `${opponentPlayer} kommer med fart genom mittzon.`
+);
 
   }
 
@@ -1778,10 +1778,12 @@ function opponentAttackSequence(){
 
     m.chancesOpp++;
 
-    addEvent(
-      `${m.opponent} kommer fri mot HV71-målet!`,
-      "bigChance"
-    );
+const opponentShooter = getRandomOpponentForward(m.opponent);
+
+addEvent(
+  `${opponentShooter} kommer fri mot HV71-målet!`,
+  "bigChance"
+);
 
     opponentShot(
       true
