@@ -679,10 +679,10 @@ function scheduleTick(){
 
   const delay=
     m.speed===3
-    ? 150
+    ? 300
     : m.speed===2
-    ? 330
-    : 650;
+    ? 700
+    : 1400;
 
   matchTimer=
     setTimeout(
@@ -3374,11 +3374,12 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
             :""
           }
         >
-          ${
-            m.finished
-            ?"Match slut"
-            :"Fortsätt"
-          }
+         ${m.finished
+  ? "Match slut"
+  : !m.running && m.minute === 0 && m.second === 0 && m.period > 1
+    ? `Starta period ${m.period}`
+    : "Fortsätt"
+}
         </button>
         `
       }
