@@ -3062,7 +3062,30 @@ const onIceDefense =
   return `
 
   <section class="card">
+${!m.running && m.minute === 0 && m.second === 0 && m.period > 1 && !m.finished
+  ? `
+    <div class="card" style="
+      text-align:center;
+      margin-bottom:16px;
+      border:2px solid #ffe600;
+    ">
+      <h2>🏒 PERIODPAUS</h2>
 
+      <div class="muted">
+        Period ${m.period - 1} slut
+      </div>
+
+      <h2 style="margin:12px 0;">
+        HV71 ${m.hv}-${m.opp} ${m.opponent}
+      </h2>
+
+      <div style="margin-top:10px;">
+        Nästa: Period ${m.period}
+      </div>
+    </div>
+  `
+  : ""
+}
     <div class="scoreboard">
 
       <div>
