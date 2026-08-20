@@ -3643,7 +3643,62 @@ function tableView(){
   `;
 
 }
+function gamesForRound(round){
 
+  return state.schedule
+    .filter(game => game.round === round)
+    .sort((a,b) => a.home.localeCompare(b.home));
+
+}
+function roundView(){
+
+  const round = state.selectedRound || state.round;
+
+  const games = gamesForRound(round);
+
+  const rows = games.map(game => {
+
+    const result = game.played
+      ? `${game.homeGoals} - ${game.awayGoals}`
+      : "Ej spelad";
+
+    return `
+      <div class="card" style="margin-bottom:10px;">
+        <b>${game.home} vs ${game.away}</b>
+
+        <div style="margin-top:6px;">
+          ${result}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <section class="card">
+
+      <h2>Omgång ${round}</h2>
+
+      <p class="muted">
+        SHL • 7 matcher
+      </p>
+
+      <button
+        class="btn"
+        onclick="
+          state.page='schedule';
+          render();
+        "
+      >
+        Tillbaka till spelschema
+      </button>
+
+    </section>
+
+    <br>
+
+    ${rows}
+  `;
+}
 function scheduleView(){
 
   const hvGames = state.schedule
@@ -3679,6 +3734,17 @@ function scheduleView(){
         <div style="margin-top:6px;">
           ${result}
         </div>
+        <button
+  class="btn"
+  style="margin-top:10px;"
+  onclick="
+    state.selectedRound=${game.round};
+    state.page='round';
+    render();
+  "
+>
+  Visa hela omgången
+</button>
       </div>
     `;
   }).join("");
@@ -3735,9 +3801,13 @@ content.innerHTML=
 
   ? linesView()
 
-  : state.page==="schedule"
+: state.page==="schedule"
 
 ? scheduleView()
+
+: state.page==="round"
+
+? roundView()
 
 : state.page==="match"
 
