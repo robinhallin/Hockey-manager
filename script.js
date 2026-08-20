@@ -542,6 +542,64 @@ const TEAM_ROSTERS = {
   }
 
 };
+function getTeamRoster(teamName) {
+  return TEAM_ROSTERS[teamName] || {
+    G: [],
+    D: [],
+    F: []
+  };
+}
+
+function getRandomOpponentForward(teamName) {
+  const roster = getTeamRoster(teamName);
+
+  if (!roster.F.length) {
+    return teamName;
+  }
+
+  return roster.F[
+    Math.floor(Math.random() * roster.F.length)
+  ];
+}
+
+function getRandomOpponentDefense(teamName) {
+  const roster = getTeamRoster(teamName);
+
+  if (!roster.D.length) {
+    return teamName;
+  }
+
+  return roster.D[
+    Math.floor(Math.random() * roster.D.length)
+  ];
+}
+
+function getRandomOpponentSkater(teamName) {
+  const roster = getTeamRoster(teamName);
+
+  const players = [
+    ...roster.D,
+    ...roster.F
+  ];
+
+  if (!players.length) {
+    return teamName;
+  }
+
+  return players[
+    Math.floor(Math.random() * players.length)
+  ];
+}
+
+function getOpponentGoalie(teamName) {
+  const roster = getTeamRoster(teamName);
+
+  if (!roster.G.length) {
+    return teamName;
+  }
+
+  return roster.G[0];
+}
 /* =========================================================
    NY KARRIÄR
    ========================================================= */
