@@ -2161,7 +2161,23 @@ function finishMatch(
     )-
     300000;
 
+  const hvGames = state.schedule.filter(
+  game => game.home === "HV71" || game.away === "HV71"
+);
 
+const scheduleGame = hvGames[state.round - 1];
+
+if (scheduleGame) {
+  scheduleGame.played = true;
+
+  if (scheduleGame.home === "HV71") {
+    scheduleGame.homeGoals = m.hv;
+    scheduleGame.awayGoals = m.opp;
+  } else {
+    scheduleGame.homeGoals = m.opp;
+    scheduleGame.awayGoals = m.hv;
+  }
+}
   state.round++;
 
 
