@@ -2315,7 +2315,16 @@ state.round++;
    ========================================================= */
 
 function homeView(){
+   const hvGames = state.schedule.filter(
+  game => game.home === "HV71" || game.away === "HV71"
+);
 
+const nextGame = hvGames[state.round - 1];
+
+const isHome = nextGame && nextGame.home === "HV71";
+const opponentName = nextGame
+  ? (isHome ? nextGame.away : nextGame.home)
+  : "Ingen match";
   const hv=
     team("HV71");
 
@@ -2324,16 +2333,19 @@ function homeView(){
 
   <section class="card hero">
 
-    <span class="pill">
-      Säsong 2026/27 • Omgång ${state.round}
-    </span>
+<span class="pill">
+  Säsong 2026/27 • Omgång ${state.round} av 52
+</span>
 
-    <h2>HV71</h2>
+<h2>
+  ${isHome ? "HV71" : opponentName}
+  vs
+  ${isHome ? opponentName : "HV71"}
+</h2>
 
-    <p class="muted">
-      Nästa match mot
-      <b>${opponent()}</b>.
-    </p>
+<p class="muted">
+  ${isHome ? "Hemmamatch" : "Bortamatch"}
+</p>
 
     <button
       class="btn"
