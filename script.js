@@ -220,17 +220,20 @@ function team(name){
 
 function opponent(){
 
-  const others=
-    state.teams.filter(
-      t=>t.name!=="HV71"
+    const hvGames = state.schedule.filter(
+        game => game.home === "HV71" || game.away === "HV71"
     );
 
-  return others[
-    (state.round-1)%others.length
-  ].name;
+    const game = hvGames[state.round - 1];
 
+    if(!game){
+        return "Ingen match";
+    }
+
+    return game.home === "HV71"
+        ? game.away
+        : game.home;
 }
-
 
 function money(n){
 
