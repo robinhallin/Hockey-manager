@@ -3662,15 +3662,27 @@ function roundView(){
       ? `${game.homeGoals} - ${game.awayGoals}`
       : "Ej spelad";
 
-    return `
-      <div class="card" style="margin-bottom:10px;">
-        <b>${game.home} vs ${game.away}</b>
+const isHVGame =
+  game.home === "HV71" || game.away === "HV71";
 
-        <div style="margin-top:6px;">
-          ${result}
-        </div>
-      </div>
-    `;
+return `
+  <div
+    class="card"
+    style="
+      margin-bottom:10px;
+      ${isHVGame ? "border:2px solid #ffd400;" : ""}
+    "
+  >
+    <b>
+      ${isHVGame ? "★ " : ""}
+      ${game.home} vs ${game.away}
+    </b>
+
+    <div style="margin-top:6px;">
+      ${result}
+    </div>
+  </div>
+`;
   }).join("");
 
   return `
@@ -3681,7 +3693,33 @@ function roundView(){
       <p class="muted">
         SHL • 7 matcher
       </p>
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
 
+  ${round > 1 ? `
+    <button
+      class="btn"
+      onclick="
+        state.selectedRound=${round - 1};
+        render();
+      "
+    >
+      ← Föregående omgång
+    </button>
+  ` : ""}
+
+  ${round < 52 ? `
+    <button
+      class="btn"
+      onclick="
+        state.selectedRound=${round + 1};
+        render();
+      "
+    >
+      Nästa omgång →
+    </button>
+  ` : ""}
+
+</div>
       <button
         class="btn"
         onclick="
