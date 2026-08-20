@@ -3644,7 +3644,71 @@ function tableView(){
 
 }
 
+function scheduleView(){
 
+  const hvGames = state.schedule
+    .filter(game => game.home === "HV71" || game.away === "HV71")
+    .sort((a,b) => a.round - b.round);
+
+  const rows = hvGames.map(game => {
+
+    const isHome = game.home === "HV71";
+
+    const opponentName =
+      isHome ? game.away : game.home;
+
+    const place =
+      isHome ? "Hemma" : "Borta";
+
+    const result = game.played
+      ? `${game.homeGoals} - ${game.awayGoals}`
+      : "Ej spelad";
+
+    return `
+      <div class="card" style="margin-bottom:10px;">
+        <b>Omgång ${game.round}</b>
+
+        <div style="margin-top:6px;">
+          ${game.home} vs ${game.away}
+        </div>
+
+        <div class="muted" style="margin-top:4px;">
+          ${place} mot ${opponentName}
+        </div>
+
+        <div style="margin-top:6px;">
+          ${result}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <section class="card">
+
+      <h2>HV71 – Spelschema</h2>
+
+      <p class="muted">
+        Säsong 2026/27 • 52 omgångar
+      </p>
+
+      <button
+        class="btn"
+        onclick="
+          state.page='home';
+          render();
+        "
+      >
+        Tillbaka
+      </button>
+
+    </section>
+
+    <br>
+
+    ${rows}
+  `;
+}
 /* =========================================================
    RENDER
    ========================================================= */
@@ -3671,11 +3735,17 @@ content.innerHTML=
 
   ? linesView()
 
-  : state.page==="match"
+  : state.page==="schedule"
 
-  ? matchView()
+? scheduleView()
 
-  : tableView();
+: state.page==="match"
+
+? matchView()
+
+: tableView();
+
+
 
 
   document
