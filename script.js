@@ -161,7 +161,60 @@ function createSchedule(){
 
   return games;
 }
+function simulateOtherGames(){
 
+  const hvGames = state.schedule.filter(
+    game => game.home === "HV71" || game.away === "HV71"
+  );
+
+  const hvGame = hvGames[state.round - 1];
+
+  state.schedule.forEach(game => {
+
+    if(game.played) return;
+
+    if(game === hvGame) return;
+
+    const homeTeam = team(game.home);
+    const awayTeam = team(game.away);
+
+    if(!homeTeam || !awayTeam) return;
+
+    const homeStrength = homeTeam.strength + 2;
+    const awayStrength = awayTeam.strength;
+
+    let homeGoals = 0;
+    let awayGoals = 0;
+
+    for(let i = 0; i < 8; i++){
+
+      if(Math.random() < homeStrength / 420){
+        homeGoals++;
+      }
+
+      if(Math.random() < awayStrength / 420){
+        awayGoals++;
+      }
+
+    }
+
+    if(homeGoals === awayGoals){
+
+      if(Math.random() < homeStrength / (homeStrength + awayStrength)){
+        homeGoals++;
+      }else{
+        awayGoals++;
+      }
+
+    }
+
+    game.homeGoals = homeGoals;
+    game.awayGoals = awayGoals;
+    game.played = true;
+
+  });
+
+}
 /* =========================================================
    LADDA / SPARA
    ========================================================= */
@@ -2178,7 +2231,10 @@ if (scheduleGame) {
     scheduleGame.awayGoals = m.hv;
   }
 }
-  state.round++;
+
+simulateOtherGames();
+
+state.round++;
 
 
   state.roster.forEach(
