@@ -5787,6 +5787,121 @@ function scheduleView(){
     ${rows}
   `;
 }
+function getTransferMarketPlayers(){
+
+  const marketPlayers = [];
+
+  const positionMap = {
+    G:"MV",
+    D:"B",
+    F:"F"
+  };
+
+  const teamStrength = teamName => {
+
+    const data =
+      TEAM_DATA.find(
+        team => team[0] === teamName
+      );
+
+    return data
+      ? data[1]
+      : 75;
+  };
+
+  const nameVariation = name => {
+
+    let total = 0;
+
+    for(let i=0; i<name.length; i++){
+      total += name.charCodeAt(i);
+    }
+
+    return (total % 7) - 3;
+  };
+
+
+  Object.entries(TEAM_ROSTERS).forEach(
+    ([teamName, roster]) => {
+
+      if(teamName === "HV71"){
+        return;
+      }
+
+      ["G","D","F"].forEach(group => {
+
+        const players =
+          roster[group] || [];
+
+        players.forEach(
+          (playerName,index) => {
+
+            const strength =
+              teamStrength(teamName);
+
+            let overall =
+              strength +
+              nameVariation(playerName);
+
+            if(group === "G"){
+              overall -= 1;
+            }
+
+            overall =
+              Math.max(
+                67,
+                Math.min(
+                  85,
+                  overall
+                )
+              );
+
+            const value =
+              Math.round(
+                (
+                  2500000 +
+                  Math.max(
+                    0,
+                    overall - 70
+                  ) * 850000
+                ) / 100000
+              ) * 100000;
+
+            marketPlayers.push({
+
+              id:
+                `${teamName}-${group}-${index}`,
+
+              name:
+                playerName,
+
+              team:
+                teamName,
+
+              pos:
+                positionMap[group],
+
+              overall,
+
+              value
+
+            });
+
+          }
+        );
+
+      });
+
+    }
+  );
+
+
+  return marketPlayers.sort(
+    (a,b) =>
+      b.overall - a.overall
+  );
+
+}
 function transfersView(){
 
   const listedPlayers =
@@ -5901,38 +6016,80 @@ function transfersView(){
         </section>
 
 
-        <section class="dashboard-panel">
+<section class="dashboard-panel">
 
-          <div class="panel-header">
+  <div class="panel-header">
+
+    <div>
+
+      <span class="panel-label">
+        MARKNAD
+      </span>
+
+      <h2>
+        Transfermarknad
+      </h2>
+
+    </div>
+
+  </div>
+
+  <div class="transfer-market-list">
+
+    ${
+      getTransferMarketPlayers()
+        .slice(0,30)
+        .map(player => `
+          <div class="market-player-row">
 
             <div>
+              <strong>
+                ${player.name}
+              </strong>
 
-              <span class="panel-label">
-                MARKNAD
+              <span>
+                ${player.team}
+              </span>
+            </div>
+
+            <div>
+              <span>
+                Position
               </span>
 
-              <h2>
-                Transfermarknad
-              </h2>
+              <strong>
+                ${player.pos}
+              </strong>
+            </div>
 
+            <div>
+              <span>
+                OVR
+              </span>
+
+              <strong>
+                ${player.overall}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Värde
+              </span>
+
+              <strong>
+                ${Math.round(player.value).toLocaleString("sv-SE")} kr
+              </strong>
             </div>
 
           </div>
+        `)
+        .join("")
+    }
 
-          <div class="transfer-market-placeholder">
+  </div>
 
-            <strong>
-              Transfermarknaden byggs här
-            </strong>
-
-            <span>
-              Nästa steg blir spelare från andra SHL-lag,
-              filtrering, scouting och bud.
-            </span>
-
-          </div>
-
-        </section>
+</section>
 
 
       </div>
