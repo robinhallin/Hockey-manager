@@ -3162,15 +3162,15 @@ const hv =
 
 
   state.history.unshift(
-    `HV71 ${m.hv}–${m.opp} ${m.opponent}`
+    `${managerClub()} ${m.hv}–${m.opp} ${m.opponent}`
   );
 
 
-  state.news.unshift(
-    hvWin
-    ? `HV71 besegrade ${m.opponent} med ${m.hv}–${m.opp}.`
-    : `HV71 föll mot ${m.opponent} med ${m.hv}–${m.opp}.`
-  );
+state.news.unshift(
+  hvWin
+    ? `${managerClub()} besegrade ${m.opponent} med ${m.hv}-${m.opp}.`
+    : `${managerClub()} föll mot ${m.opponent} med ${m.hv}-${m.opp}.`
+);
 
 
   state.money+=
@@ -3202,7 +3202,7 @@ simulateOtherGames();
 state.round++;
 
 
-state.roster.forEach(
+managerRoster().forEach(
 
       p.fatigue=
         Math.max(
