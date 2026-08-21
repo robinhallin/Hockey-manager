@@ -2627,26 +2627,122 @@ function overtimeStep(){
 
 function shootout(){
 
-  const m=
-    state.live;
-
+  const m = state.live;
 
   addEvent(
     "Straffläggning börjar.",
     "period"
   );
 
+  let hvGoals = 0;
+  let oppGoals = 0;
 
-  const hvWin=
-    Math.random()<.52;
+  let hvTaken = 0;
+  let oppTaken = 0;
 
+  // Första 5 straffarna per lag
+  for(let i = 1; i <= 5; i++){
 
-  if(hvWin){
+    const hvScores = Math.random() < 0.52;
+    hvTaken++;
+
+    if(hvScores){
+      hvGoals++;
+
+      addEvent(
+        `HV71 straff ${i}: MÅL!`,
+        "goal"
+      );
+    }else{
+      addEvent(
+        `HV71 straff ${i}: miss.`,
+        "chance"
+      );
+    }
+
+    // Motståndaren kan inte längre komma ikapp
+    const oppRemaining = 5 - oppTaken;
+
+    if(hvGoals > oppGoals + oppRemaining){
+      break;
+    }
+
+    const oppScores = Math.random() < 0.48;
+    oppTaken++;
+
+    if(oppScores){
+      oppGoals++;
+
+      addEvent(
+        `${m.opponent} straff ${i}: MÅL!`,
+        "goal"
+      );
+    }else{
+      addEvent(
+        `${m.opponent} straff ${i}: miss.`,
+        "chance"
+      );
+    }
+
+    // HV71 kan inte längre komma ikapp
+    const hvRemaining = 5 - hvTaken;
+
+    if(oppGoals > hvGoals + hvRemaining){
+      break;
+    }
+  }
+
+  // Sudden death om lika efter grundomgången
+  let suddenRound = 1;
+
+  while(hvGoals === oppGoals){
+
+    addEvent(
+      `Sudden death-straffar, omgång ${suddenRound}.`,
+      "period"
+    );
+
+    const hvScores = Math.random() < 0.52;
+
+    if(hvScores){
+      hvGoals++;
+
+      addEvent(
+        "HV71: MÅL!",
+        "goal"
+      );
+    }else{
+      addEvent(
+        "HV71: miss.",
+        "chance"
+      );
+    }
+
+    const oppScores = Math.random() < 0.48;
+
+    if(oppScores){
+      oppGoals++;
+
+      addEvent(
+        `${m.opponent}: MÅL!`,
+        "goal"
+      );
+    }else{
+      addEvent(
+        `${m.opponent}: miss.`,
+        "chance"
+      );
+    }
+
+    suddenRound++;
+  }
+
+  if(hvGoals > oppGoals){
 
     m.hv++;
 
     addEvent(
-      "HV71 avgör på straffar!",
+      `HV71 vinner straffläggningen ${hvGoals}-${oppGoals}.`,
       "goal"
     );
 
@@ -2655,15 +2751,13 @@ function shootout(){
     m.opp++;
 
     addEvent(
-      `${m.opponent} avgör på straffar.`,
+      `${m.opponent} vinner straffläggningen ${oppGoals}-${hvGoals}.`,
       "goal"
     );
 
   }
 
-
   finishMatch(true);
-
 }
 
 
