@@ -3959,8 +3959,8 @@ const isHome =
 
 function squadView(){
 
-  const players =
-    [...state.roster]
+const players =
+  [...managerRoster()]
       .sort((a,b)=>{
         const order = { MV:0, B:1, C:2, VF:3, HF:4 };
 
