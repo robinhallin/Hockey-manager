@@ -1257,7 +1257,10 @@ function liveStep(){
   )
     return;
 
-
+  if(m.period === 4){
+    overtimeStep();
+    return;
+  }
   /* ---------- TID ---------- */
 
   const seconds=
