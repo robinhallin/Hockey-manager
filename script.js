@@ -1090,6 +1090,11 @@ if(
   state.clubRosters = createClubRosters();
 }
 if(
+  !state.managerClub
+){
+  state.managerClub = "HV71";
+}
+if(
   !Array.isArray(state.schedule) ||
   state.schedule.length === 0 ||
   state.schedule.some(game => typeof game.round !== "number")
