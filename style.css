@@ -1452,3 +1452,172 @@ input {
   }
 
 }
+/* =========================================
+   SPELARPROFIL 2.0
+========================================= */
+
+.player-hero-expanded{
+  align-items:stretch;
+}
+
+.player-hero-right{
+  display:flex;
+  align-items:stretch;
+  gap:12px;
+}
+
+.player-meta-line{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:7px;
+  color:#819ab3;
+  font-size:10px;
+}
+
+.player-role-badge{
+  display:inline-flex;
+  align-items:center;
+  margin-top:10px;
+  min-height:24px;
+  padding:0 9px;
+  border-radius:6px;
+  background:rgba(245,214,26,.10);
+  color:#f1d52f;
+  border:1px solid rgba(245,214,26,.16);
+  font-size:9px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+.player-contract-mini{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(120px,1fr));
+  gap:8px;
+}
+
+.player-contract-mini > div{
+  min-width:125px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:12px 14px;
+  border-radius:12px;
+  background:rgba(3,18,33,.45);
+  border:1px solid rgba(255,255,255,.06);
+}
+
+.player-contract-mini span{
+  color:#69839c;
+  font-size:8px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+.player-contract-mini strong{
+  margin-top:6px;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.player-contract-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  padding:0 18px 10px;
+}
+
+.player-contract-grid > div{
+  min-height:72px;
+  padding:13px;
+  border-radius:9px;
+  background:rgba(6,24,43,.55);
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.player-contract-grid span{
+  display:block;
+  color:#637e97;
+  font-size:8px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.player-contract-grid strong{
+  display:block;
+  margin-top:7px;
+  font-size:14px;
+}
+
+.player-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:4px 18px 18px;
+}
+
+.player-actions .btn{
+  font-size:9px;
+}
+
+.player-stats-grid{
+  grid-template-columns:repeat(6,minmax(0,1fr));
+}
+
+@media(max-width:1200px){
+
+  .player-hero-expanded{
+    align-items:flex-start;
+  }
+
+  .player-hero-right{
+    flex-direction:column-reverse;
+  }
+
+  .player-contract-mini{
+    grid-template-columns:1fr;
+  }
+
+  .player-contract-mini > div{
+    min-width:180px;
+  }
+
+}
+
+@media(max-width:900px){
+
+  .player-hero-expanded{
+    flex-direction:column;
+  }
+
+  .player-hero-right{
+    width:100%;
+  }
+
+  .player-contract-mini{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .player-overall{
+    width:100%;
+    height:auto;
+    flex-basis:auto;
+    padding:14px;
+  }
+
+  .player-stats-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+}
+
+@media(max-width:650px){
+
+  .player-contract-mini,
+  .player-contract-grid,
+  .player-stats-grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+}
