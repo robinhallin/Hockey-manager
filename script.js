@@ -6975,13 +6975,14 @@ function clubSelectView(){
 
               </div>
 
-              <button
-                class="btn"
-                disabled
-                style="opacity:.5; cursor:not-allowed;"
-              >
-                Starta karriär – kommer i nästa steg
-              </button>
+<button
+  class="btn"
+  onclick="
+    startCareerWithClub(state.selectedClub);
+  "
+>
+  Starta karriär med ${state.selectedClub}
+</button>
 
             </div>
           `
