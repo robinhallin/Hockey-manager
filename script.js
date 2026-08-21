@@ -732,6 +732,16 @@ function managerClub(){
 
 function managerRoster(){
 
+  const clubName =
+    managerClub();
+
+  if(
+    state.clubRosters &&
+    state.clubRosters[clubName]
+  ){
+    return state.clubRosters[clubName];
+  }
+
   return state.roster || [];
 
 }
