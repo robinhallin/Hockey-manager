@@ -1006,3 +1006,198 @@ input {
   }
 
 }
+/* =========================================
+   TRUPP
+========================================= */
+
+.squad-page {
+  max-width: 1450px;
+  margin: 0 auto;
+}
+
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 22px;
+}
+
+.page-heading h1 {
+  margin: 4px 0 0;
+  font-size: 30px;
+}
+
+.page-heading p {
+  margin: 7px 0 0;
+  color: #6f879e;
+  font-size: 11px;
+}
+
+.squad-summary {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.squad-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.squad-panel .panel-header {
+  padding: 18px 18px 0;
+}
+
+.squad-table-header {
+  display: grid;
+  grid-template-columns:
+    minmax(280px,2.2fr)
+    repeat(5,minmax(80px,.7fr))
+    30px;
+  gap: 10px;
+  padding: 11px 18px;
+  background: rgba(5,17,31,.38);
+  border-top: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  color: #607991;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.squad-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.squad-row {
+  display: grid;
+  grid-template-columns:
+    minmax(280px,2.2fr)
+    repeat(5,minmax(80px,.7fr))
+    30px;
+  gap: 10px;
+  align-items: center;
+  min-height: 62px;
+  padding: 8px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  cursor: pointer;
+  transition:
+    background .15s ease,
+    transform .15s ease;
+}
+
+.squad-row:hover {
+  background: rgba(44,103,163,.12);
+}
+
+.squad-player-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.squad-position {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 9px;
+  background: rgba(50,112,175,.17);
+  color: #87b1db;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.squad-player-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.squad-player-name strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.squad-player-name span {
+  margin-top: 4px;
+  color: #617b94;
+  font-size: 9px;
+}
+
+.squad-cell {
+  text-align: center;
+}
+
+.squad-cell strong {
+  display: block;
+  font-size: 13px;
+}
+
+.squad-cell span {
+  display: block;
+  margin-top: 3px;
+  color: #5f7890;
+  font-size: 8px;
+}
+
+.condition-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.condition-value.good {
+  background: rgba(62,208,137,.1);
+  color: #4adb94;
+}
+
+.condition-value.medium {
+  background: rgba(226,181,59,.1);
+  color: #e5bb49;
+}
+
+.condition-value.bad {
+  background: rgba(229,84,101,.1);
+  color: #ed6675;
+}
+
+.squad-arrow {
+  color: #57738e;
+  font-size: 18px;
+  text-align: right;
+}
+
+@media(max-width:1100px){
+
+  .squad-summary {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+
+  .squad-table-header,
+  .squad-row {
+    grid-template-columns:
+      minmax(220px,2fr)
+      repeat(3,minmax(70px,.7fr))
+      90px
+      30px;
+  }
+
+  .squad-table-header > div:nth-child(4),
+  .squad-row > div:nth-child(4) {
+    display: none;
+  }
+
+}
