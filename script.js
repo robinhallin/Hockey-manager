@@ -3225,7 +3225,6 @@ managerRoster().forEach(
       );
   }
 );
-  );
 
 
   save();
