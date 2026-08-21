@@ -3929,7 +3929,15 @@ const isHome =
                 <span>◆</span>
                 Match
               </button>
-
+<button
+  onclick="
+    state.page='clubSelect';
+    render();
+  "
+>
+  <span>◆</span>
+  Välj klubb
+</button>
             </div>
 
           </section>
