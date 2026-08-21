@@ -1,41 +1,281 @@
 <!doctype html>
 <html lang="sv">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07111f">
-<title>Hockey Manager</title>
-<link rel="stylesheet" href="style.css">
 
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#08111f"
+  >
+
+  <title>Hockey Manager</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 </head>
 
 <body>
 
-<div class="app">
+<div class="game-shell">
 
-<header class="top">
-  <div class="brand">
-    <div class="logo">HM</div>
-    <div>
-      <h1>Hockey Manager</h1>
-      <small>Alpha 0.2</small>
+  <!-- =========================================
+       VÄNSTERMENY
+  ========================================== -->
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+
+      <div class="logo">
+        HM
+      </div>
+
+      <div class="brand-text">
+        <strong>HOCKEY</strong>
+        <span>MANAGER</span>
+      </div>
+
     </div>
+
+
+    <div class="club-box">
+
+      <div class="club-badge">
+        HV
+      </div>
+
+      <div class="club-info">
+        <strong>HV71</strong>
+        <span>SHL</span>
+      </div>
+
+    </div>
+
+
+    <nav class="manager-nav">
+
+      <div class="nav-section">
+        MANAGER
+      </div>
+
+      <button
+        class="nav-item active"
+        data-page="home"
+      >
+        <span class="nav-icon">⌂</span>
+        Översikt
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="squad"
+      >
+        <span class="nav-icon">♟</span>
+        Trupp
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="lines"
+      >
+        <span class="nav-icon">☷</span>
+        Kedjor
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="match"
+      >
+        <span class="nav-icon">◆</span>
+        Match
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="table"
+      >
+        <span class="nav-icon">▥</span>
+        SHL
+      </button>
+
+
+      <div class="nav-section">
+        SPORT
+      </div>
+
+
+      <button
+        class="nav-item"
+        data-page="tactics"
+      >
+        <span class="nav-icon">◎</span>
+        Taktik
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="transfers"
+      >
+        <span class="nav-icon">⇄</span>
+        Transfers
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="scouting"
+      >
+        <span class="nav-icon">⌕</span>
+        Scouting
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="statistics"
+      >
+        <span class="nav-icon">▥</span>
+        Statistik
+      </button>
+
+
+      <div class="nav-section">
+        KLUBB
+      </div>
+
+
+      <button
+        class="nav-item"
+        data-page="finance"
+      >
+        <span class="nav-icon">kr</span>
+        Ekonomi
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="board"
+      >
+        <span class="nav-icon">▣</span>
+        Styrelse
+      </button>
+
+
+      <button
+        class="nav-item"
+        data-page="news"
+      >
+        <span class="nav-icon">✉</span>
+        Nyheter
+      </button>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+      <button
+        class="nav-item settings-item"
+        data-page="settings"
+      >
+        <span class="nav-icon">⚙</span>
+        Inställningar
+      </button>
+
+      <div class="version">
+        Hockey Manager Alpha
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =========================================
+       HÖGER DEL AV SPELET
+  ========================================== -->
+
+  <div class="game-area">
+
+
+    <!-- TOPPRAD -->
+
+    <header class="topbar">
+
+      <div class="topbar-left">
+
+        <div class="current-section">
+          ÖVERSIKT
+        </div>
+
+      </div>
+
+
+      <div class="topbar-center">
+
+        <div class="season-info">
+          <span>SÄSONG</span>
+          <strong>2026/27</strong>
+        </div>
+
+      </div>
+
+
+      <div class="topbar-right">
+
+        <div class="manager-club">
+          HV71
+        </div>
+
+        <button
+          class="continue-button"
+          id="continueGame"
+        >
+          FORTSÄTT
+          <span>▶</span>
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- =========================================
+         SPELETS SIDINNEHÅLL
+
+         VIKTIGT:
+         ID="content" behålls eftersom script.js
+         redan använder detta.
+    ========================================== -->
+
+    <main
+      id="content"
+      class="game-content"
+    >
+    </main>
+
+
   </div>
-</header>
-
-<main id="content"></main>
-
-<nav class="nav">
-  <button data-page="home"><i>🏠</i>Hem</button>
-  <button data-page="squad"><i>👥</i>Trupp</button>
-  <button data-page="lines"><i>🧩</i>Kedjor</button>
-  <button data-page="match"><i>🏒</i>Match</button>
-  <button data-page="table"><i>📊</i>SHL</button>
-</nav>
 
 </div>
+
 
 <script src="script.js"></script>
 
 </body>
+
 </html>
