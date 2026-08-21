@@ -3217,14 +3217,14 @@ state.round++;
 
 
 managerRoster().forEach(
-
-      p.fatigue=
-        Math.max(
-          0,
-          p.fatigue-20
-        );
-
-    }
+  p=>{
+    p.fatigue=
+      Math.max(
+        0,
+        p.fatigue-20
+      );
+  }
+);
   );
 
 
