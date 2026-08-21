@@ -1621,3 +1621,25 @@ input {
   }
 
 }
+/* =========================================
+   TRANSFERSTATUS
+========================================= */
+
+.player-transfer-badge{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  margin-top:10px;
+  margin-left:6px;
+  padding:0 9px;
+  border-radius:6px;
+
+  background:rgba(224,76,90,.12);
+  border:1px solid rgba(224,76,90,.25);
+
+  color:#ff7180;
+
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
