@@ -3179,8 +3179,8 @@ function finishMatch(
     )-
     300000;
 
-  const hvGames = state.schedule.filter(
-  game => game.home === "HV71" || game.away === "HV71"
+const hvGames = state.schedule.filter(
+  game => game.home === managerClub() || game.away === managerClub()
 );
 
 const scheduleGame = hvGames[state.round - 1];
@@ -3188,7 +3188,7 @@ const scheduleGame = hvGames[state.round - 1];
 if (scheduleGame) {
   scheduleGame.played = true;
 
-  if (scheduleGame.home === "HV71") {
+if(game.home === managerClub()){
     scheduleGame.homeGoals = m.hv;
     scheduleGame.awayGoals = m.opp;
   } else {
@@ -3202,8 +3202,7 @@ simulateOtherGames();
 state.round++;
 
 
-  state.roster.forEach(
-    p=>{
+state.roster.forEach(
 
       p.fatigue=
         Math.max(
