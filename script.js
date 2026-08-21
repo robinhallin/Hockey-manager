@@ -619,9 +619,11 @@ function getOpponentGoalie(teamName) {
 
 function newState(){
 
-  return {
+return {
 
     version:"0.2",
+
+    managerClub:"HV71",
 
     page:"home",
 
@@ -673,6 +675,18 @@ function newState(){
     }))
 
   };
+
+}
+function managerClub(){
+
+  return state.managerClub || "HV71";
+
+}
+
+
+function managerRoster(){
+
+  return state.roster || [];
 
 }
 function createSchedule(){
