@@ -6217,7 +6217,14 @@ const filteredMarketPlayers =
       filteredMarketPlayers
         .slice(0,30)
         .map(player => `
-          <div class="market-player-row">
+        <div
+  class="market-player-row"
+  onclick="
+    state.selectedMarketPlayer='${player.id}';
+    state.page='marketPlayer';
+    render();
+  "
+>
 
             <div>
               <strong>
@@ -6276,6 +6283,241 @@ const filteredMarketPlayers =
   `;
 
 }
+function marketPlayerView(){
+
+  const marketPlayers =
+    getTransferMarketPlayers();
+
+  const player =
+    marketPlayers.find(
+      p => p.id === state.selectedMarketPlayer
+    );
+
+  if(!player){
+
+    return `
+      <section class="card">
+
+        <h2>
+          Spelare hittades inte
+        </h2>
+
+        <button
+          class="btn"
+          onclick="
+            state.page='transfers';
+            render();
+          "
+        >
+          Tillbaka till Transfers
+        </button>
+
+      </section>
+    `;
+
+  }
+
+
+  return `
+
+    <div class="player-page">
+
+      <button
+        class="player-back-button"
+        onclick="
+          state.page='transfers';
+          render();
+        "
+      >
+        ← Tillbaka till Transfers
+      </button>
+
+
+      <section class="player-hero player-hero-expanded">
+
+        <div class="player-identity">
+
+          <div class="player-number">
+            ${player.pos}
+          </div>
+
+          <div>
+
+            <span class="overview-kicker">
+              ${player.team}
+            </span>
+
+            <h1>
+              ${player.name}
+            </h1>
+
+            <div class="player-meta-line">
+              <span>${player.pos}</span>
+              <span>•</span>
+              <span>${player.team}</span>
+            </div>
+
+            <div class="player-role-badge">
+              EXTERN SPELARE
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="player-hero-right">
+
+          <div class="player-contract-mini">
+
+            <div>
+              <span>Klubb</span>
+              <strong>${player.team}</strong>
+            </div>
+
+            <div>
+              <span>Marknadsvärde</span>
+              <strong>
+                ${Math.round(player.value).toLocaleString("sv-SE")} kr
+              </strong>
+            </div>
+
+            <div>
+              <span>Status</span>
+              <strong>Under bevakning</strong>
+            </div>
+
+          </div>
+
+
+          <div class="player-overall">
+
+            <span>
+              OVR
+            </span>
+
+            <strong>
+              ${player.overall}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <div class="player-dashboard">
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                SPELARINFO
+              </span>
+
+              <h2>
+                Översikt
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-contract-grid">
+
+            <div>
+              <span>Namn</span>
+              <strong>${player.name}</strong>
+            </div>
+
+            <div>
+              <span>Lag</span>
+              <strong>${player.team}</strong>
+            </div>
+
+            <div>
+              <span>Position</span>
+              <strong>${player.pos}</strong>
+            </div>
+
+            <div>
+              <span>OVR</span>
+              <strong>${player.overall}</strong>
+            </div>
+
+            <div>
+              <span>Marknadsvärde</span>
+              <strong>
+                ${Math.round(player.value).toLocaleString("sv-SE")} kr
+              </strong>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                TRANSFER
+              </span>
+
+              <h2>
+                Åtgärder
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-actions">
+
+            <button
+              class="btn"
+            >
+              Lägg bud
+            </button>
+
+            <button
+              class="btn secondary"
+            >
+              Scouta spelaren
+            </button>
+
+            <button
+              class="btn secondary"
+              onclick="
+                state.page='transfers';
+                render();
+              "
+            >
+              Tillbaka
+            </button>
+
+          </div>
+
+        </section>
+
+
+      </div>
+
+    </div>
+
+  `;
+
+}
 /* =========================================================
    RENDER
    ========================================================= */
@@ -6305,6 +6547,10 @@ content.innerHTML=
    : state.page==="transfers"
    
   ? transfersView()
+
+   : state.page==="marketPlayer"
+   
+  ? marketPlayerView()
    
   : state.page==="lines"
 
