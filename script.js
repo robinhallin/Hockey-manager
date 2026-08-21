@@ -6185,6 +6185,191 @@ function getTransferMarketPlayers(){
   );
 
 }
+function getPlayerClub(playerId){
+
+  for(const [clubName, roster] of Object.entries(state.clubRosters || {})){
+
+    if(roster.some(player => player.id === playerId)){
+      return clubName;
+    }
+
+  }
+
+  return null;
+
+}
+
+
+function findPlayerAnywhere(playerId){
+
+  for(const roster of Object.values(state.clubRosters || {})){
+
+    const player =
+      roster.find(p => p.id === playerId);
+
+    if(player){
+      return player;
+    }
+
+  }
+
+  return null;
+
+}
+
+
+function calculateTransferPrice(player){
+
+  if(!player){
+    return 0;
+  }
+
+  const baseValue =
+    player.value || 1000000;
+
+  const contractMultiplier =
+    1 + ((player.contractYears || 1) * 0.08);
+
+  const potentialBonus =
+    Math.max(
+      0,
+      (player.potential || player.overall) -
+      player.overall
+    ) * 0.04;
+
+  return Math.round(
+    baseValue *
+    contractMultiplier *
+    (1 + potentialBonus)
+  );
+
+}
+
+
+function submitTransferBid(playerId, amount){
+
+  const player =
+    findPlayerAnywhere(playerId);
+
+  if(!player){
+    return;
+  }
+
+  const sellingClub =
+    getPlayerClub(playerId);
+
+  const buyingClub =
+    managerClub();
+
+  if(
+    !sellingClub ||
+    sellingClub === buyingClub
+  ){
+    return;
+  }
+
+  amount =
+    Math.round(Number(amount) || 0);
+
+  const askingPrice =
+    player.askingPrice ||
+    calculateTransferPrice(player);
+
+  if(amount <= 0){
+    return;
+  }
+
+  if(amount > state.money){
+
+    state.news.unshift(
+      `Budet på ${player.name} kunde inte läggas. Klubben saknar pengar.`
+    );
+
+    save();
+    render();
+    return;
+  }
+
+  const acceptanceLimit =
+    askingPrice * 0.92;
+
+  if(amount >= acceptanceLimit){
+
+    completeTransfer(
+      playerId,
+      sellingClub,
+      buyingClub,
+      amount
+    );
+
+    return;
+  }
+
+  state.news.unshift(
+    `${sellingClub} avslog budet på ${player.name}.`
+  );
+
+  save();
+  render();
+
+}
+
+
+function completeTransfer(
+  playerId,
+  sellingClub,
+  buyingClub,
+  amount
+){
+
+  const sellingRoster =
+    state.clubRosters[sellingClub];
+
+  const playerIndex =
+    sellingRoster.findIndex(
+      player => player.id === playerId
+    );
+
+  if(playerIndex === -1){
+    return;
+  }
+
+  const [player] =
+    sellingRoster.splice(playerIndex,1);
+
+  player.club =
+    buyingClub;
+
+  player.transferListed =
+    false;
+
+  player.askingPrice =
+    null;
+
+  player.morale =
+    Math.max(
+      70,
+      player.morale || 70
+    );
+
+  state.clubRosters[buyingClub].push(player);
+
+  if(buyingClub === managerClub()){
+
+    state.money -= amount;
+
+  }
+
+  state.news.unshift(
+    `${buyingClub} värvade ${player.name} från ${sellingClub} för ${amount.toLocaleString("sv-SE")} kr.`
+  );
+
+  syncManagerRoster();
+
+  save();
+  render();
+
+}
 function transfersView(){
 const marketPlayers = getTransferMarketPlayers();
 
