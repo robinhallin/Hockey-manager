@@ -4018,7 +4018,284 @@ function squadView(){
   `;
 
 }
+function playerView(){
 
+  const player =
+    state.roster.find(
+      p => p.id === state.selectedPlayer
+    );
+
+  if(!player){
+    return `
+      <section class="card">
+        <h2>Spelare hittades inte</h2>
+
+        <button
+          class="btn"
+          onclick="
+            state.page='squad';
+            render();
+          "
+        >
+          Tillbaka till truppen
+        </button>
+      </section>
+    `;
+  }
+
+  const points =
+    (player.goals || 0) +
+    (player.assists || 0);
+
+  const condition =
+    Math.max(
+      0,
+      Math.round(
+        100 - (player.fatigue || 0)
+      )
+    );
+
+  const positionName =
+    player.pos === "MV"
+      ? "Målvakt"
+      : player.pos === "B"
+        ? "Back"
+        : player.pos === "C"
+          ? "Center"
+          : player.pos === "VF"
+            ? "Vänsterforward"
+            : player.pos === "HF"
+              ? "Högerforward"
+              : "Forward";
+
+  return `
+
+    <div class="player-page">
+
+      <button
+        class="player-back-button"
+        onclick="
+          state.page='squad';
+          render();
+        "
+      >
+        ← Tillbaka till truppen
+      </button>
+
+
+      <section class="player-hero">
+
+        <div class="player-identity">
+
+          <div class="player-number">
+            ${player.pos}
+          </div>
+
+          <div>
+
+            <span class="overview-kicker">
+              HV71
+            </span>
+
+            <h1>
+              ${player.name}
+            </h1>
+
+            <p>
+              ${positionName}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="player-overall">
+
+          <span>
+            OVR
+          </span>
+
+          <strong>
+            ${player.overall}
+          </strong>
+
+        </div>
+
+      </section>
+
+
+      <div class="player-dashboard">
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                SPELARATTRIBUT
+              </span>
+
+              <h2>
+                Egenskaper
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-attributes">
+
+            <div class="player-attribute">
+              <span>Skott</span>
+              <strong>${player.shooting ?? "-"}</strong>
+            </div>
+
+            <div class="player-attribute">
+              <span>Passning</span>
+              <strong>${player.passing ?? "-"}</strong>
+            </div>
+
+            <div class="player-attribute">
+              <span>Försvar</span>
+              <strong>${player.defense ?? "-"}</strong>
+            </div>
+
+            <div class="player-attribute">
+              <span>Fysik</span>
+              <strong>${player.physical ?? "-"}</strong>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                SÄSONG 2026/27
+              </span>
+
+              <h2>
+                Statistik
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-stats-grid">
+
+            <div>
+              <span>Mål</span>
+              <strong>${player.goals || 0}</strong>
+            </div>
+
+            <div>
+              <span>Assist</span>
+              <strong>${player.assists || 0}</strong>
+            </div>
+
+            <div>
+              <span>Poäng</span>
+              <strong>${points}</strong>
+            </div>
+
+            <div>
+              <span>Skott</span>
+              <strong>${player.shots || 0}</strong>
+            </div>
+
+            <div>
+              <span>Utvisningsminuter</span>
+              <strong>${player.pim || 0}</strong>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                STATUS
+              </span>
+
+              <h2>
+                Form & fysisk status
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-status-grid">
+
+            <div>
+
+              <span>
+                Kondition
+              </span>
+
+              <strong>
+                ${condition}%
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Form
+              </span>
+
+              <strong>
+                ${player.form || 0}
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Moral
+              </span>
+
+              <strong>
+                ${player.morale || 70}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+      </div>
+
+    </div>
+
+  `;
+
+}
 /* =========================================================
    KEDJOR
    ========================================================= */
