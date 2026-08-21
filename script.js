@@ -6945,8 +6945,12 @@ function render(){
 
 
 content.innerHTML=
+   
+state.page==="clubSelect"
+   
+  ? clubSelectView()
 
-  state.page==="home"
+: state.page==="home"
 
   ? homeView()
 
