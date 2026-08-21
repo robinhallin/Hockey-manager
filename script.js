@@ -5630,7 +5630,11 @@ content.innerHTML=
   : state.page==="squad"
 
   ? squadView()
-
+   
+: state.page==="player"
+   
+  ? playerView()
+   
   : state.page==="lines"
 
   ? linesView()
