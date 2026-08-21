@@ -2954,139 +2954,716 @@ state.round++;
    ========================================================= */
 
 function homeView(){
-   const hvGames = state.schedule.filter(
-  game => game.home === "HV71" || game.away === "HV71"
-);
 
-const nextGame = hvGames[state.round - 1];
+  const hvGames = state.schedule.filter(
+    game => game.home === "HV71" || game.away === "HV71"
+  );
 
-const isHome = nextGame && nextGame.home === "HV71";
-const opponentName = nextGame
-  ? (isHome ? nextGame.away : nextGame.home)
-  : "Ingen match";
-  const hv=
-    team("HV71");
+  const nextGame =
+    hvGames.find(game => !game.played);
+
+  const playedGames =
+    hvGames
+      .filter(game => game.played)
+      .slice(-5)
+      .reverse();
+
+  const upcomingGames =
+    hvGames
+      .filter(game => !game.played)
+      .slice(0, 4);
+
+  const topPlayers =
+    [...state.roster]
+      .sort(
+        (a,b) =>
+          ((b.goals || 0) + (b.assists || 0)) -
+          ((a.goals || 0) + (a.assists || 0))
+      )
+      .slice(0,5);
+
+  const avgMorale =
+    state.roster.length
+      ? Math.round(
+          state.roster.reduce(
+            (sum,p) => sum + (p.morale || 70),
+            0
+          ) / state.roster.length
+        )
+      : state.morale || 70;
+
+  const avgFatigue =
+    state.roster.length
+      ? Math.round(
+          state.roster.reduce(
+            (sum,p) => sum + (p.fatigue || 0),
+            0
+          ) / state.roster.length
+        )
+      : 0;
+
+
+  let nextOpponent = "Ingen match";
+
+  let nextPlace = "";
+
+  if(nextGame){
+
+    const isHome =
+      nextGame.home === "HV71";
+
+    nextOpponent =
+      isHome
+        ? nextGame.away
+        : nextGame.home;
+
+    nextPlace =
+      isHome
+        ? "Hemma"
+        : "Borta";
+
+  }
+
+
+  const latestResult =
+    playedGames.length
+      ? playedGames[0]
+      : null;
+
+
+  const resultText = game => {
+
+    if(!game){
+      return "Ingen match spelad";
+    }
+
+    return `${game.home} ${game.homeGoals}–${game.awayGoals} ${game.away}`;
+
+  };
+
+
+  const upcomingHTML =
+    upcomingGames.length
+      ? upcomingGames.map(game => {
+
+          const isHome =
+            game.home === "HV71";
+
+          const opponent =
+            isHome
+              ? game.away
+              : game.home;
+
+          return `
+            <div class="overview-fixture">
+
+              <div class="fixture-round">
+                Omgång ${game.round}
+              </div>
+
+              <div class="fixture-main">
+
+                <strong>
+                  ${opponent}
+                </strong>
+
+                <span>
+                  ${isHome ? "Hemma" : "Borta"}
+                </span>
+
+              </div>
+
+              <button
+                class="overview-small-button"
+                onclick="
+                  state.page='schedule';
+                  render();
+                "
+              >
+                ›
+              </button>
+
+            </div>
+          `;
+
+        }).join("")
+      : `
+          <div class="overview-empty">
+            Inga kommande matcher
+          </div>
+        `;
+
+
+  const resultsHTML =
+    playedGames.length
+      ? playedGames.map(game => {
+
+          const hvHome =
+            game.home === "HV71";
+
+          const hvGoals =
+            hvHome
+              ? game.homeGoals
+              : game.awayGoals;
+
+          const oppGoals =
+            hvHome
+              ? game.awayGoals
+              : game.homeGoals;
+
+          const opponent =
+            hvHome
+              ? game.away
+              : game.home;
+
+          const resultClass =
+            hvGoals > oppGoals
+              ? "win"
+              : hvGoals < oppGoals
+                ? "loss"
+                : "draw";
+
+          return `
+            <div class="overview-result">
+
+              <span class="result-dot ${resultClass}">
+              </span>
+
+              <div>
+
+                <strong>
+                  ${opponent}
+                </strong>
+
+                <span>
+                  ${hvHome ? "Hemma" : "Borta"}
+                </span>
+
+              </div>
+
+              <b>
+                ${hvGoals}–${oppGoals}
+              </b>
+
+            </div>
+          `;
+
+        }).join("")
+      : `
+          <div class="overview-empty">
+            Ingen match spelad ännu
+          </div>
+        `;
+
+
+  const playersHTML =
+    topPlayers.map((player,index) => {
+
+      const points =
+        (player.goals || 0) +
+        (player.assists || 0);
+
+      return `
+        <div class="overview-player">
+
+          <div class="player-rank">
+            ${index + 1}
+          </div>
+
+          <div class="player-info">
+
+            <strong>
+              ${player.name}
+            </strong>
+
+            <span>
+              ${player.pos}
+            </span>
+
+          </div>
+
+          <div class="player-points">
+
+            <b>
+              ${points}
+            </b>
+
+            <span>
+              P
+            </span>
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  const newsHTML =
+    state.news && state.news.length
+      ? state.news
+          .slice(0,5)
+          .map((news,index) => `
+
+            <div class="overview-news-item">
+
+              <div class="news-marker">
+                ${index === 0 ? "!" : "•"}
+              </div>
+
+              <span>
+                ${news}
+              </span>
+
+            </div>
+
+          `).join("")
+      : `
+          <div class="overview-empty">
+            Inga nya meddelanden
+          </div>
+        `;
 
 
   return `
 
-  <section class="card hero">
-
-<span class="pill">
-  Säsong 2026/27 • Omgång ${state.round} av 52
-</span>
-
-<h2>
-  ${isHome ? "HV71" : opponentName}
-  vs
-  ${isHome ? opponentName : "HV71"}
-</h2>
-
-<p class="muted">
-  ${isHome ? "Hemmamatch" : "Bortamatch"}
-</p>
-
-    <button
-      class="btn"
-      onclick="
-      state.page='match';
-      render();
-      "
-    >
-      Till nästa match
-    </button>
-<button
-  class="btn"
-  onclick="
-    state.page='schedule';
-    render();
-  "
->
-  Spelschema
-</button>
-  </section>
+    <div class="overview-page">
 
 
-  <div class="grid">
+      <!-- RUBRIK -->
 
-    <div class="stat">
-      <b>${hv.pts}</b>
-      <span>Poäng</span>
-    </div>
+      <div class="overview-heading">
 
-    <div class="stat">
-      <b>${hv.gp}</b>
-      <span>Matcher</span>
-    </div>
+        <div>
 
-    <div class="stat">
-      <b>${state.morale}%</b>
-      <span>Moral</span>
-    </div>
+          <span class="overview-kicker">
+            MANAGERÖVERSIKT
+          </span>
 
-    <div class="stat">
-      <b>${state.fans}</b>
-      <span>Supportrar</span>
-    </div>
+          <h1>
+            HV71
+          </h1>
 
-  </div>
+          <p>
+            Säsong 2026/27 · Omgång ${state.round}
+          </p>
 
-
-  <section class="card">
-
-    <h3>Senaste resultat</h3>
-
-    ${
-      state.history.length
-      ?
-      state.history
-      .slice(0,5)
-      .map(
-        x=>`
-        <div class="row">
-          <span>${x}</span>
         </div>
-        `
-      ).join("")
-      :
-      `
-      <p class="muted">
-        Ingen match spelad ännu.
-      </p>
-      `
-    }
-
-  </section>
 
 
-  <section class="card">
+        <div class="overview-heading-status">
 
-    <h3>Nyheter</h3>
+          <span>
+            Lagmoral
+          </span>
 
-    ${
-      state.news
-      .slice(0,5)
-      .map(
-        n=>`
-        <div class="row">
-          <span>${n}</span>
+          <strong>
+            ${avgMorale}%
+          </strong>
+
         </div>
-        `
-      ).join("")
-    }
 
-  </section>
+      </div>
 
 
-  <section class="card">
 
-    <h3>Klubbkassa</h3>
+      <!-- HUVUDGRID -->
 
-    <h2>
-      ${money(state.money)}
-    </h2>
+      <div class="overview-layout">
 
-  </section>
+
+        <!-- VÄNSTER / MITTEN -->
+
+        <div class="overview-main-column">
+
+
+          <!-- NÄSTA MATCH -->
+
+          <section class="dashboard-panel next-match-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  NÄSTA MATCH
+                </span>
+
+                <h2>
+                  Omgång ${nextGame ? nextGame.round : state.round}
+                </h2>
+
+              </div>
+
+              <span class="match-location">
+                ${nextPlace}
+              </span>
+
+            </div>
+
+
+            <div class="next-match-teams">
+
+              <div class="next-team">
+
+                <div class="team-badge hv-badge">
+                  HV
+                </div>
+
+                <strong>
+                  HV71
+                </strong>
+
+              </div>
+
+
+              <div class="versus">
+
+                <span>
+                  VS
+                </span>
+
+              </div>
+
+
+              <div class="next-team">
+
+                <div class="team-badge opponent-badge">
+                  ${nextOpponent.substring(0,2).toUpperCase()}
+                </div>
+
+                <strong>
+                  ${nextOpponent}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <div class="next-match-actions">
+
+              <button
+                class="btn"
+                onclick="
+                  state.page='match';
+                  render();
+                "
+              >
+                Till match
+              </button>
+
+              <button
+                class="btn secondary"
+                onclick="
+                  state.page='lines';
+                  render();
+                "
+              >
+                Se kedjor
+              </button>
+
+            </div>
+
+          </section>
+
+
+
+          <!-- STATUS -->
+
+          <div class="overview-stats-row">
+
+            <div class="overview-stat-card">
+
+              <span>
+                LAGMORAL
+              </span>
+
+              <strong>
+                ${avgMorale}%
+              </strong>
+
+              <small>
+                ${avgMorale >= 75 ? "Bra stämning" : "Kan förbättras"}
+              </small>
+
+            </div>
+
+
+            <div class="overview-stat-card">
+
+              <span>
+                TRÖTTHET
+              </span>
+
+              <strong>
+                ${avgFatigue}%
+              </strong>
+
+              <small>
+                Truppsnitt
+              </small>
+
+            </div>
+
+
+            <div class="overview-stat-card">
+
+              <span>
+                EKONOMI
+              </span>
+
+              <strong>
+                ${formatMoney(state.money)}
+              </strong>
+
+              <small>
+                Klubbkassa
+              </small>
+
+            </div>
+
+
+            <div class="overview-stat-card">
+
+              <span>
+                SUPPORTERS
+              </span>
+
+              <strong>
+                ${state.fans || 0}
+              </strong>
+
+              <small>
+                Registrerade
+              </small>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- NYHETER -->
+
+          <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  INKORG
+                </span>
+
+                <h2>
+                  Senaste nytt
+                </h2>
+
+              </div>
+
+              <button
+                class="overview-link-button"
+                onclick="
+                  state.page='news';
+                  render();
+                "
+              >
+                Visa alla
+              </button>
+
+            </div>
+
+            <div class="overview-news-list">
+              ${newsHTML}
+            </div>
+
+          </section>
+
+
+
+          <!-- SENASTE RESULTAT -->
+
+          <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  FORM
+                </span>
+
+                <h2>
+                  Senaste matcher
+                </h2>
+
+              </div>
+
+              <span class="latest-result">
+                ${resultText(latestResult)}
+              </span>
+
+            </div>
+
+            <div class="overview-results">
+              ${resultsHTML}
+            </div>
+
+          </section>
+
+        </div>
+
+
+
+        <!-- HÖGERKOLUMN -->
+
+        <aside class="overview-side-column">
+
+
+          <!-- KOMMANDE -->
+
+          <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  SPELSCHEMA
+                </span>
+
+                <h2>
+                  Kommande
+                </h2>
+
+              </div>
+
+            </div>
+
+            <div>
+              ${upcomingHTML}
+            </div>
+
+          </section>
+
+
+
+          <!-- POÄNGLIGA -->
+
+          <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  HV71
+                </span>
+
+                <h2>
+                  Poängliga
+                </h2>
+
+              </div>
+
+              <button
+                class="overview-link-button"
+                onclick="
+                  state.page='squad';
+                  render();
+                "
+              >
+                Trupp
+              </button>
+
+            </div>
+
+            <div class="overview-player-list">
+              ${playersHTML}
+            </div>
+
+          </section>
+
+
+
+          <!-- SNABBVAL -->
+
+          <section class="dashboard-panel">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-label">
+                  MANAGER
+                </span>
+
+                <h2>
+                  Snabbval
+                </h2>
+
+              </div>
+
+            </div>
+
+
+            <div class="quick-actions">
+
+              <button
+                onclick="
+                  state.page='squad';
+                  render();
+                "
+              >
+                <span>♟</span>
+                Trupp
+              </button>
+
+
+              <button
+                onclick="
+                  state.page='lines';
+                  render();
+                "
+              >
+                <span>☷</span>
+                Kedjor
+              </button>
+
+
+              <button
+                onclick="
+                  state.page='table';
+                  render();
+                "
+              >
+                <span>▥</span>
+                SHL
+              </button>
+
+
+              <button
+                onclick="
+                  state.page='match';
+                  render();
+                "
+              >
+                <span>◆</span>
+                Match
+              </button>
+
+            </div>
+
+          </section>
+
+
+        </aside>
+
+      </div>
+
+    </div>
 
   `;
 
