@@ -740,6 +740,180 @@ function getClub(clubName = managerClub()){
   return CLUB_DATA[clubName] || null;
 
 }
+function createClubRosters(){
+
+  const clubRosters = {};
+
+  Object.entries(TEAM_ROSTERS).forEach(
+    ([clubName, roster]) => {
+
+      /*
+        HV71 har redan vår detaljerade PLAYERS-databas.
+        Den använder vi direkt.
+      */
+      if(clubName === "HV71"){
+
+        clubRosters[clubName] =
+          PLAYERS.map(
+            player => ({
+              ...player,
+              club: clubName
+            })
+          );
+
+        return;
+      }
+
+
+      /*
+        Övriga klubbar byggs tills vidare från
+        deras befintliga TEAM_ROSTERS.
+      */
+
+      const players = [];
+
+      const addPlayers =
+        (names, position) => {
+
+          (names || []).forEach(
+            (name,index) => {
+
+              const club =
+                getClub(clubName);
+
+              const baseOverall =
+                club?.strength || 75;
+
+              let variation = 0;
+
+              for(
+                let i=0;
+                i<name.length;
+                i++
+              ){
+                variation +=
+                  name.charCodeAt(i);
+              }
+
+              variation =
+                (variation % 7) - 3;
+
+              const overall =
+                Math.max(
+                  68,
+                  Math.min(
+                    85,
+                    baseOverall + variation
+                  )
+                );
+
+
+              players.push({
+
+                id:
+                  `${clubName}-${position}-${index}`,
+
+                name,
+
+                club:
+                  clubName,
+
+                pos:
+                  position,
+
+                overall,
+
+                shooting:
+                  overall,
+
+                passing:
+                  overall,
+
+                defense:
+                  overall,
+
+                physical:
+                  overall,
+
+                age:
+                  25,
+
+                nationality:
+                  "SWE",
+
+                potential:
+                  Math.min(
+                    88,
+                    overall + 3
+                  ),
+
+                contractYears:
+                  2,
+
+                salary:
+                  Math.round(
+                    600000 +
+                    Math.max(
+                      0,
+                      overall - 70
+                    ) * 120000
+                  ),
+
+                value:
+                  Math.round(
+                    2500000 +
+                    Math.max(
+                      0,
+                      overall - 70
+                    ) * 850000
+                  ),
+
+                goals:0,
+                assists:0,
+                shots:0,
+                pim:0,
+
+                fatigue:0,
+                form:0,
+                morale:70,
+
+                transferListed:false,
+                askingPrice:null
+
+              });
+
+            }
+          );
+
+        };
+
+
+      addPlayers(
+        roster.G,
+        "MV"
+      );
+
+      addPlayers(
+        roster.D,
+        "B"
+      );
+
+      addPlayers(
+        roster.F,
+        "F"
+      );
+
+
+      clubRosters[clubName] =
+        players;
+
+    }
+  );
+
+
+  return clubRosters;
+
+}
 function createSchedule(){
 
   const teams = TEAM_DATA.map(t => t[0]);
