@@ -6951,12 +6951,68 @@ function marketPlayerView(){
 
 
           <div class="player-actions">
+          ${
+  state.transferBidPlayer === player.id
+    ? `
+      <div class="transfer-bid-box">
 
-            <button
-              class="btn"
-            >
-              Lägg bud
-            </button>
+        <div>
+          <span>Rekommenderat bud</span>
+          <strong>
+            ${calculateTransferPrice(player).toLocaleString("sv-SE")} kr
+          </strong>
+        </div>
+
+        <input
+          type="number"
+          value="${state.transferBidAmount || calculateTransferPrice(player)}"
+          oninput="
+            state.transferBidAmount=Number(this.value);
+          "
+        >
+
+        <div class="transfer-bid-actions">
+
+          <button
+            class="btn"
+            onclick="
+              submitTransferBid(
+                '${player.id}',
+                state.transferBidAmount
+              );
+              state.transferBidPlayer=null;
+            "
+          >
+            Skicka bud
+          </button>
+
+          <button
+            class="btn secondary"
+            onclick="
+              state.transferBidPlayer=null;
+              render();
+            "
+          >
+            Avbryt
+          </button>
+
+        </div>
+
+      </div>
+    `
+    : ""
+}
+
+<button
+  class="btn"
+  onclick="
+    state.transferBidPlayer='${player.id}';
+    state.transferBidAmount=calculateTransferPrice(player);
+    render();
+  "
+>
+  Lägg bud
+</button>
 
             <button
               class="btn secondary"
