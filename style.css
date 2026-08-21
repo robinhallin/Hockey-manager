@@ -1750,3 +1750,69 @@ input {
     display:none;
   }
 }
+/* =========================================
+   TRANSFERMARKNAD
+========================================= */
+
+.transfer-market-list{
+  display:flex;
+  flex-direction:column;
+  max-height:720px;
+  overflow:auto;
+}
+
+.market-player-row{
+  display:grid;
+  grid-template-columns:minmax(220px,1.6fr) 80px 80px minmax(150px,1fr);
+  gap:14px;
+  align-items:center;
+  min-height:64px;
+  padding:10px 4px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+
+.market-player-row:last-child{
+  border-bottom:0;
+}
+
+.market-player-row:hover{
+  background:rgba(45,103,165,.09);
+}
+
+.market-player-row > div{
+  display:flex;
+  flex-direction:column;
+}
+
+.market-player-row strong{
+  font-size:12px;
+}
+
+.market-player-row span{
+  margin-top:4px;
+  color:#687f97;
+  font-size:9px;
+}
+
+.market-player-row > div:nth-child(2),
+.market-player-row > div:nth-child(3){
+  text-align:center;
+  align-items:center;
+}
+
+.transfer-market-list::-webkit-scrollbar{
+  width:8px;
+}
+
+.transfer-market-list::-webkit-scrollbar-thumb{
+  background:rgba(90,135,180,.25);
+  border-radius:99px;
+}
+
+@media(max-width:900px){
+
+  .market-player-row{
+    grid-template-columns:minmax(190px,1.5fr) 65px 65px minmax(130px,1fr);
+  }
+
+}
