@@ -7007,7 +7007,9 @@ function marketPlayerView(){
   class="btn"
   onclick="
     state.transferBidPlayer='${player.id}';
-    state.transferBidAmount=calculateTransferPrice(player);
+    state.transferBidAmount=calculateTransferPrice(
+      findPlayerAnywhere('${player.id}')
+    );
     render();
   "
 >
