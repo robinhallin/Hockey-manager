@@ -3415,7 +3415,7 @@ function homeView(){
               </span>
 
               <strong>
-                ${formatMoney(state.money)}
+            money(state.money)
               </strong>
 
               <small>
