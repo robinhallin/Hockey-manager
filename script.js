@@ -3676,65 +3676,344 @@ function homeView(){
 
 function squadView(){
 
-  return `
+  const players =
+    [...state.roster]
+      .sort((a,b)=>{
+        const order = { MV:0, B:1, C:2, VF:3, HF:4 };
 
-  <section class="card">
+        return (
+          (order[a.pos] ?? 9) -
+          (order[b.pos] ?? 9)
+        ) || b.overall - a.overall;
+      });
 
-    <h2>HV71:s trupp</h2>
+  const goalies =
+    players.filter(p=>p.pos==="MV").length;
 
-    <p class="muted">
-      Kondition påverkas under matcherna.
-    </p>
+  const defendersCount =
+    players.filter(p=>p.pos==="B").length;
 
+  const forwardsCount =
+    players.filter(
+      p=>p.pos!=="MV" && p.pos!=="B"
+    ).length;
 
-    ${
-      state.roster
-      .slice()
-      .sort(
-        (a,b)=>
-        b.overall-a.overall
-      )
-      .map(
-        p=>`
+  const avgOverall =
+    Math.round(
+      players.reduce(
+        (sum,p)=>sum+p.overall,
+        0
+      ) / players.length
+    );
 
-        <div class="player">
+  const rows =
+    players.map(p=>{
 
-          <span class="pos">
-            ${p.pos}
-          </span>
+      const points =
+        (p.goals || 0) +
+        (p.assists || 0);
 
-          <div class="player-info">
+      const condition =
+        Math.max(
+          0,
+          Math.round(
+            100 - (p.fatigue || 0)
+          )
+        );
 
-            <b>
-              ${p.name}
-            </b>
+      const conditionClass =
+        condition >= 80
+          ? "good"
+          : condition >= 55
+            ? "medium"
+            : "bad";
 
-            <small>
-              ${p.goals} mål
-              •
-              ${p.assists} assist
-              •
-              Kondition ${Math.max(
-                0,
-                Math.round(
-                  100-p.fatigue
-                )
-              )}%
-            </small>
+      return `
+        <div
+          class="squad-row"
+          onclick="
+            state.selectedPlayer=${p.id};
+            state.page='player';
+            render();
+          "
+        >
+
+          <div class="squad-player-main">
+
+            <div class="squad-position">
+              ${p.pos}
+            </div>
+
+            <div class="squad-player-name">
+
+              <strong>
+                ${p.name}
+              </strong>
+
+              <span>
+                ${p.pos === "MV"
+                  ? "Målvakt"
+                  : p.pos === "B"
+                    ? "Back"
+                    : "Forward"
+                }
+              </span>
+
+            </div>
 
           </div>
 
-          <span class="rating">
-            ${p.overall}
+
+          <div class="squad-cell">
+            <strong>
+              ${p.overall}
+            </strong>
+
+            <span>
+              OVR
+            </span>
+          </div>
+
+
+          <div class="squad-cell">
+            <strong>
+              ${p.goals || 0}
+            </strong>
+
+            <span>
+              Mål
+            </span>
+          </div>
+
+
+          <div class="squad-cell">
+            <strong>
+              ${p.assists || 0}
+            </strong>
+
+            <span>
+              Assist
+            </span>
+          </div>
+
+
+          <div class="squad-cell">
+            <strong>
+              ${points}
+            </strong>
+
+            <span>
+              Poäng
+            </span>
+          </div>
+
+
+          <div class="squad-cell">
+
+            <div class="condition-value ${conditionClass}">
+              ${condition}%
+            </div>
+
+            <span>
+              Kondition
+            </span>
+
+          </div>
+
+
+          <div class="squad-arrow">
+            ›
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  return `
+
+    <div class="squad-page">
+
+
+      <div class="page-heading">
+
+        <div>
+
+          <span class="overview-kicker">
+            LAG
           </span>
+
+          <h1>
+            HV71 – Trupp
+          </h1>
+
+          <p>
+            Säsong 2026/27
+          </p>
 
         </div>
 
-        `
-      ).join("")
-    }
+      </div>
 
-  </section>
+
+      <div class="squad-summary">
+
+        <div class="overview-stat-card">
+
+          <span>
+            SPELARE
+          </span>
+
+          <strong>
+            ${players.length}
+          </strong>
+
+          <small>
+            A-lag
+          </small>
+
+        </div>
+
+
+        <div class="overview-stat-card">
+
+          <span>
+            MÅLVAKTER
+          </span>
+
+          <strong>
+            ${goalies}
+          </strong>
+
+          <small>
+            I truppen
+          </small>
+
+        </div>
+
+
+        <div class="overview-stat-card">
+
+          <span>
+            BACKAR
+          </span>
+
+          <strong>
+            ${defendersCount}
+          </strong>
+
+          <small>
+            I truppen
+          </small>
+
+        </div>
+
+
+        <div class="overview-stat-card">
+
+          <span>
+            FORWARDS
+          </span>
+
+          <strong>
+            ${forwardsCount}
+          </strong>
+
+          <small>
+            I truppen
+          </small>
+
+        </div>
+
+
+        <div class="overview-stat-card">
+
+          <span>
+            SNITT OVR
+          </span>
+
+          <strong>
+            ${avgOverall}
+          </strong>
+
+          <small>
+            Lagstyrka
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <section class="dashboard-panel squad-panel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <span class="panel-label">
+              SPELARTRUPP
+            </span>
+
+            <h2>
+              A-lag
+            </h2>
+
+          </div>
+
+          <button
+            class="overview-link-button"
+            onclick="
+              state.page='lines';
+              render();
+            "
+          >
+            Visa kedjor
+          </button>
+
+        </div>
+
+
+        <div class="squad-table-header">
+
+          <div>
+            Spelare
+          </div>
+
+          <div>
+            OVR
+          </div>
+
+          <div>
+            Mål
+          </div>
+
+          <div>
+            Assist
+          </div>
+
+          <div>
+            Poäng
+          </div>
+
+          <div>
+            Kondition
+          </div>
+
+          <div>
+          </div>
+
+        </div>
+
+
+        <div class="squad-list">
+          ${rows}
+        </div>
+
+      </section>
+
+    </div>
 
   `;
 
