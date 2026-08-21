@@ -2031,16 +2031,21 @@ function simulateFaceoff(){
 
   const m=state.live;
 
+  const hvPlayer =
+    weightedPlayer("center");
+
+  const oppPlayer =
+    getRandomOpponentForward(m.opponent);
+
   const hvWins=
     Math.random()<.51;
-
 
   if(hvWins){
 
     m.faceoffsHV++;
 
     addEvent(
-      "HV71 vinner tekningen."
+      `${hvPlayer.name} vinner tekningen mot ${oppPlayer}.`
     );
 
   }else{
@@ -2048,7 +2053,7 @@ function simulateFaceoff(){
     m.faceoffsOpp++;
 
     addEvent(
-      `${m.opponent} vinner tekningen.`
+      `${oppPlayer} vinner tekningen mot ${hvPlayer.name}.`
     );
 
   }
