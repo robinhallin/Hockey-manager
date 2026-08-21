@@ -83,6 +83,50 @@ const TEAM_DATA = [
   ["Örebro Hockey",77,"physical"],
   ["Björklöven",73,"attack"]
 ];
+const CLUB_DATA = Object.fromEntries(
+  TEAM_DATA.map(team => {
+
+    const name = team[0];
+    const strength = team[1];
+    const style = team[2];
+
+    return [
+      name,
+      {
+        name,
+        strength,
+        style,
+
+        reputation: strength,
+
+        budget:
+          Math.round(
+            (8000000 + strength * 120000)
+          ),
+
+        wageBudget:
+          Math.round(
+            (6500000 + strength * 90000)
+          ),
+
+        fans:
+          Math.round(
+            3500 + strength * 55
+          ),
+
+        boardExpectation:
+          strength >= 82
+            ? "Slåss om guldet"
+            : strength >= 79
+              ? "Slutspel"
+              : strength >= 76
+                ? "Play-in"
+                : "Undvik botten"
+      }
+    ];
+
+  })
+);
 const TEAM_ROSTERS = {
 
   'Björklöven': {
@@ -687,6 +731,11 @@ function managerClub(){
 function managerRoster(){
 
   return state.roster || [];
+
+}
+function getClub(clubName = managerClub()){
+
+  return CLUB_DATA[clubName] || null;
 
 }
 function createSchedule(){
