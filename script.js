@@ -1107,6 +1107,7 @@ if(
 ){
   state.managerClub = "HV71";
 }
+syncManagerRoster();
 if(
   !Array.isArray(state.schedule) ||
   state.schedule.length === 0 ||
