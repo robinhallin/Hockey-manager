@@ -3056,10 +3056,10 @@ function finishMatch(
   );
 
 
-  const hv=
-    team(
-      "HV71"
-    );
+const hv =
+  team(
+    managerClub()
+  );
 
   const opp=
     team(
