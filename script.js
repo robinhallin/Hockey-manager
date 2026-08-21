@@ -745,6 +745,19 @@ function managerRoster(){
   return state.roster || [];
 
 }
+function syncManagerRoster(){
+
+  const clubName = managerClub();
+
+  if(
+    state.clubRosters &&
+    state.clubRosters[clubName]
+  ){
+    state.roster =
+      state.clubRosters[clubName];
+  }
+
+}
 function getClub(clubName = managerClub()){
 
   return CLUB_DATA[clubName] || null;
