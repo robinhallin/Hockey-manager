@@ -1155,7 +1155,7 @@ function money(n){
 
 function forwards(){
 
-  return state.roster.filter(
+return managerRoster().filter(
     p=>p.pos!=="MV" && p.pos!=="B"
   );
 
@@ -1164,7 +1164,7 @@ function forwards(){
 
 function defenders(){
 
-  return state.roster.filter(
+return managerRoster().filter(
     p=>p.pos==="B"
   );
 
@@ -1173,7 +1173,7 @@ function defenders(){
 
 function goalies(){
 
-  return state.roster.filter(
+return managerRoster().filter(
     p=>p.pos==="MV"
   );
 
