@@ -4031,6 +4031,42 @@ function squadView(){
   `;
 
 }
+function toggleTransferStatus(playerId){
+
+  const player =
+    state.roster.find(
+      p => p.id === playerId
+    );
+
+  if(!player){
+    return;
+  }
+
+  player.transferListed =
+    !player.transferListed;
+
+  if(player.transferListed){
+
+    player.askingPrice =
+      player.value;
+
+    state.news.unshift(
+      `${player.name} har placerats på transferlistan.`
+    );
+
+  }else{
+
+    player.askingPrice = null;
+
+    state.news.unshift(
+      `${player.name} har tagits bort från transferlistan.`
+    );
+
+  }
+
+  save();
+  render();
+}
 function playerView(){
 
   const player =
