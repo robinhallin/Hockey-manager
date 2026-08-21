@@ -5903,7 +5903,44 @@ function getTransferMarketPlayers(){
 
 }
 function transfersView(){
+const marketPlayers = getTransferMarketPlayers();
 
+const selectedPosition =
+  state.transferPosition || "ALL";
+
+const selectedTeam =
+  state.transferTeam || "ALL";
+
+const selectedMinOverall =
+  Number(state.transferMinOverall || 0);
+
+
+const filteredMarketPlayers =
+  marketPlayers.filter(player => {
+
+    if(
+      selectedPosition !== "ALL" &&
+      player.pos !== selectedPosition
+    ){
+      return false;
+    }
+
+    if(
+      selectedTeam !== "ALL" &&
+      player.team !== selectedTeam
+    ){
+      return false;
+    }
+
+    if(
+      player.overall < selectedMinOverall
+    ){
+      return false;
+    }
+
+    return true;
+
+  });
   const listedPlayers =
     state.roster.filter(
       p => p.transferListed
@@ -6033,11 +6070,151 @@ function transfersView(){
     </div>
 
   </div>
+<div class="transfer-filters">
 
+  <div class="transfer-filter">
+
+    <label>
+      Position
+    </label>
+
+    <select
+      onchange="
+        state.transferPosition=this.value;
+        render();
+      "
+    >
+
+      <option
+        value="ALL"
+        ${selectedPosition==="ALL" ? "selected" : ""}
+      >
+        Alla positioner
+      </option>
+
+      <option
+        value="MV"
+        ${selectedPosition==="MV" ? "selected" : ""}
+      >
+        Målvakter
+      </option>
+
+      <option
+        value="B"
+        ${selectedPosition==="B" ? "selected" : ""}
+      >
+        Backar
+      </option>
+
+      <option
+        value="F"
+        ${selectedPosition==="F" ? "selected" : ""}
+      >
+        Forwards
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="transfer-filter">
+
+    <label>
+      Lag
+    </label>
+
+    <select
+      onchange="
+        state.transferTeam=this.value;
+        render();
+      "
+    >
+
+      <option
+        value="ALL"
+        ${selectedTeam==="ALL" ? "selected" : ""}
+      >
+        Alla lag
+      </option>
+
+      ${
+        Object.keys(TEAM_ROSTERS)
+          .filter(team => team !== "HV71")
+          .sort()
+          .map(team => `
+            <option
+              value="${team}"
+              ${selectedTeam===team ? "selected" : ""}
+            >
+              ${team}
+            </option>
+          `)
+          .join("")
+      }
+
+    </select>
+
+  </div>
+
+
+  <div class="transfer-filter">
+
+    <label>
+      Minsta OVR
+    </label>
+
+    <select
+      onchange="
+        state.transferMinOverall=Number(this.value);
+        render();
+      "
+    >
+
+      <option
+        value="0"
+        ${selectedMinOverall===0 ? "selected" : ""}
+      >
+        Alla
+      </option>
+
+      <option
+        value="70"
+        ${selectedMinOverall===70 ? "selected" : ""}
+      >
+        70+
+      </option>
+
+      <option
+        value="75"
+        ${selectedMinOverall===75 ? "selected" : ""}
+      >
+        75+
+      </option>
+
+      <option
+        value="80"
+        ${selectedMinOverall===80 ? "selected" : ""}
+      >
+        80+
+      </option>
+
+      <option
+        value="83"
+        ${selectedMinOverall===83 ? "selected" : ""}
+      >
+        83+
+      </option>
+
+    </select>
+
+  </div>
+
+</div>
   <div class="transfer-market-list">
 
     ${
-      getTransferMarketPlayers()
+      filteredMarketPlayers
         .slice(0,30)
         .map(player => `
           <div class="market-player-row">
