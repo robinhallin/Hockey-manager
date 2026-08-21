@@ -2089,22 +2089,25 @@ function simulateHit(){
         m.momentum+2
       );
 
-  }else{
+}else{
 
-    m.hitsOpp++;
+  const hitterName =
+    getRandomOpponentSkater(m.opponent);
 
-    addEvent(
-      `${m.opponent} sätter in en hård tackling.`,
-      "hit"
+  m.hitsOpp++;
+
+  addEvent(
+    `${hitterName} sätter in en hård tackling för ${m.opponent}.`,
+    "hit"
+  );
+
+  m.momentum=
+    Math.max(
+      20,
+      m.momentum-2
     );
 
-    m.momentum=
-      Math.max(
-        20,
-        m.momentum-2
-      );
-
-  }
+}
 
 }
 
