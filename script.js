@@ -6781,6 +6781,157 @@ function marketPlayerView(){
   `;
 
 }
+function clubSelectView(){
+
+  const clubs =
+    Object.values(CLUB_DATA)
+      .sort(
+        (a,b) =>
+          b.reputation - a.reputation
+      );
+
+  const clubCards =
+    clubs.map(club => {
+
+      const roster =
+        state.clubRosters?.[club.name] || [];
+
+      return `
+
+        <div class="club-select-card">
+
+          <div class="club-select-badge">
+            ${club.name.substring(0,2).toUpperCase()}
+          </div>
+
+          <div class="club-select-info">
+
+            <h2>
+              ${club.name}
+            </h2>
+
+            <span>
+              SHL
+            </span>
+
+          </div>
+
+
+          <div class="club-select-stats">
+
+            <div>
+              <span>Styrka</span>
+              <strong>${club.strength}</strong>
+            </div>
+
+            <div>
+              <span>Spelare</span>
+              <strong>${roster.length}</strong>
+            </div>
+
+            <div>
+              <span>Budget</span>
+              <strong>
+                ${Math.round(club.budget).toLocaleString("sv-SE")} kr
+              </strong>
+            </div>
+
+            <div>
+              <span>Styrelsens krav</span>
+              <strong>
+                ${club.boardExpectation}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <button
+            class="btn secondary"
+            onclick="
+              state.selectedClub='${club.name}';
+              render();
+            "
+          >
+            ${
+              state.selectedClub === club.name
+                ? "Valt lag"
+                : "Välj lag"
+            }
+          </button>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+
+  return `
+
+    <div class="club-select-page">
+
+      <div class="page-heading">
+
+        <div>
+
+          <span class="overview-kicker">
+            NY KARRIÄR
+          </span>
+
+          <h1>
+            Välj klubb
+          </h1>
+
+          <p>
+            Välj vilket SHL-lag du vill leda under säsongen 2026/27.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="club-select-grid">
+        ${clubCards}
+      </div>
+
+
+      ${
+        state.selectedClub
+          ? `
+            <div class="club-select-footer">
+
+              <div>
+
+                <span>
+                  Vald klubb
+                </span>
+
+                <strong>
+                  ${state.selectedClub}
+                </strong>
+
+              </div>
+
+              <button
+                class="btn"
+                disabled
+                style="opacity:.5; cursor:not-allowed;"
+              >
+                Starta karriär – kommer i nästa steg
+              </button>
+
+            </div>
+          `
+          : ""
+      }
+
+    </div>
+
+  `;
+
+}
 /* =========================================================
    RENDER
    ========================================================= */
