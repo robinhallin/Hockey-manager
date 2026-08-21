@@ -5967,6 +5967,10 @@ content.innerHTML=
    
   ? playerView()
    
+   : state.page==="transfers"
+   
+  ? transfersView()
+   
   : state.page==="lines"
 
   ? linesView()
