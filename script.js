@@ -4329,7 +4329,18 @@ ${
               <span>Marknadsvärde</span>
               <strong>${formatCurrency(player.value)}</strong>
             </div>
-
+${
+  player.transferListed
+    ? `
+      <div>
+        <span>Begärt pris</span>
+        <strong>
+          ${formatCurrency(player.askingPrice)}
+        </strong>
+      </div>
+    `
+    : ""
+}
           </div>
 
 
