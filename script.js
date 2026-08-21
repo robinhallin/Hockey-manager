@@ -6802,6 +6802,46 @@ function marketPlayerView(){
   `;
 
 }
+function startCareerWithClub(clubName){
+
+  if(
+    !clubName ||
+    !CLUB_DATA[clubName]
+  ){
+    return;
+  }
+
+  const freshState = newState();
+
+  freshState.managerClub = clubName;
+
+  freshState.roster =
+    freshState.clubRosters[clubName]
+      .map(player => ({
+        ...player
+      }));
+
+  freshState.money =
+    CLUB_DATA[clubName].budget;
+
+  freshState.fans =
+    CLUB_DATA[clubName].fans;
+
+  freshState.news = [
+    `Välkommen som huvudtränare för ${clubName}.`,
+    `Styrelsens förväntan: ${CLUB_DATA[clubName].boardExpectation}.`
+  ];
+
+  freshState.page = "home";
+
+  state = freshState;
+
+  syncManagerRoster();
+
+  save();
+  render();
+
+}
 function clubSelectView(){
 
   const clubs =
