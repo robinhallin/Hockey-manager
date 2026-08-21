@@ -4091,7 +4091,161 @@ function playerView(){
       </section>
     `;
   }
+function transfersView(){
 
+  const listedPlayers =
+    state.roster.filter(
+      p => p.transferListed
+    );
+
+  const listedHTML =
+    listedPlayers.length
+      ? listedPlayers.map(player => `
+          <div
+            class="transfer-player-row"
+            onclick="
+              state.selectedPlayer=${player.id};
+              state.page='player';
+              render();
+            "
+          >
+
+            <div>
+              <strong>
+                ${player.name}
+              </strong>
+
+              <span>
+                ${player.pos} · OVR ${player.overall}
+              </span>
+            </div>
+
+            <div>
+              <span>
+                Marknadsvärde
+              </span>
+
+              <strong>
+                ${Math.round(player.value || 0).toLocaleString("sv-SE")} kr
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Begärt pris
+              </span>
+
+              <strong>
+                ${Math.round(player.askingPrice || 0).toLocaleString("sv-SE")} kr
+              </strong>
+            </div>
+
+            <div class="transfer-row-arrow">
+              ›
+            </div>
+
+          </div>
+        `).join("")
+      : `
+          <div class="transfer-empty">
+            Inga spelare är transferlistade.
+          </div>
+        `;
+
+  return `
+
+    <div class="transfers-page">
+
+      <div class="page-heading">
+
+        <div>
+
+          <span class="overview-kicker">
+            SPORT
+          </span>
+
+          <h1>
+            Transfers
+          </h1>
+
+          <p>
+            Hantera försäljningar och bevaka transfermarknaden.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="transfer-grid">
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                HV71
+              </span>
+
+              <h2>
+                Mina transferlistade
+              </h2>
+
+            </div>
+
+          </div>
+
+          <div class="transfer-player-list">
+            ${listedHTML}
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                MARKNAD
+              </span>
+
+              <h2>
+                Transfermarknad
+              </h2>
+
+            </div>
+
+          </div>
+
+          <div class="transfer-market-placeholder">
+
+            <strong>
+              Transfermarknaden byggs här
+            </strong>
+
+            <span>
+              Nästa steg blir spelare från andra SHL-lag,
+              filtrering, scouting och bud.
+            </span>
+
+          </div>
+
+        </section>
+
+
+      </div>
+
+    </div>
+
+  `;
+
+}
   const points =
     (player.goals || 0) +
     (player.assists || 0);
