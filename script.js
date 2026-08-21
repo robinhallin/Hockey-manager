@@ -3031,21 +3031,22 @@ state.round++;
 
 function homeView(){
 
-  const hvGames = state.schedule.filter(
-    game => game.home === "HV71" || game.away === "HV71"
-  );
+const clubName = managerClub();
 
+const clubGames = state.schedule.filter(
+  game => game.home === clubName || game.away === clubName
+);
   const nextGame =
-    hvGames.find(game => !game.played);
+    clubGames.find(game => !game.played);
 
   const playedGames =
-    hvGames
+    clubGames
       .filter(game => game.played)
       .slice(-5)
       .reverse();
 
   const upcomingGames =
-    hvGames
+    clubGames
       .filter(game => !game.played)
       .slice(0, 4);
 
@@ -3085,8 +3086,8 @@ function homeView(){
 
   if(nextGame){
 
-    const isHome =
-      nextGame.home === "HV71";
+const isHome =
+  nextGame.home === clubName;
 
     nextOpponent =
       isHome
@@ -3123,7 +3124,7 @@ function homeView(){
       ? upcomingGames.map(game => {
 
           const isHome =
-            game.home === "HV71";
+           game.home === clubName
 
           const opponent =
             isHome
@@ -3175,7 +3176,7 @@ function homeView(){
       ? playedGames.map(game => {
 
           const hvHome =
-            game.home === "HV71";
+           game.home === clubName
 
           const hvGoals =
             hvHome
