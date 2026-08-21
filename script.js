@@ -3319,7 +3319,7 @@ const isHome =
           </span>
 
           <h1>
-            HV71
+          ${clubName}
           </h1>
 
           <p>
@@ -3389,7 +3389,7 @@ const isHome =
                 </div>
 
                 <strong>
-                  HV71
+                ${clubName}
                 </strong>
 
               </div>
@@ -3636,7 +3636,7 @@ const isHome =
               <div>
 
                 <span class="panel-label">
-                  HV71
+                ${clubName}
                 </span>
 
                 <h2>
