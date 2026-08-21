@@ -60,7 +60,7 @@ const PLAYERS = [
 
   fatigue:0,
   form:0,
-  morale:70
+  morale:70,
      
 transferListed:false,
 askingPrice:null
