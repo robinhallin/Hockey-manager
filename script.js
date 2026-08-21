@@ -10,30 +10,34 @@
    ========================================================= */
 
 const PLAYERS = [
-  ["Felix Sandström","MV",78,74,78,76,79],
-  ["Olof Glifford","MV",73,71,75,72,74],
 
-  ["Andreas Borgman","B",81,78,80,84,83],
-  ["Niklas Hansson","B",80,79,82,81,77],
-  ["Olle Alsing","B",78,76,80,79,75],
-  ["Santeri Hatakka","B",77,72,77,81,82],
-  ["Malte Gustafsson","B",72,70,74,72,71],
-  ["Hugo Fransson","B",71,69,72,73,70],
+  ["Felix Sandström","MV",78,74,78,76,79,29,"SWE",2,1650000,8500000],
+  ["Olof Glifford","MV",73,71,75,72,74,20,"SWE",3,650000,3500000],
 
-  ["Jonathan Ang","HF",83,85,82,75,78],
-  ["Lukas Rousek","HF",82,82,85,74,76],
-  ["Riley Woods","VF",81,84,78,72,80],
-  ["Aleksi Heponiemi","C",81,79,86,74,72],
-  ["Justin Kloos","C",80,80,82,75,76],
-  ["Noah Philp","C",80,78,79,80,82],
-  ["Jan Mysak","C",79,81,78,72,77],
-  ["Oskar Stål Lyrenäs","VF",78,79,76,71,76],
-  ["Linus Lindström","C",77,75,78,78,75],
-  ["Nikola Pasic","HF",76,77,75,70,74],
-  ["Martin Johnsen","VF",72,74,70,68,72],
-  ["Victor Laz","HF",70,72,68,67,73]
+  ["Andreas Borgman","B",81,78,80,84,83,31,"SWE",3,2200000,12500000],
+  ["Niklas Hansson","B",80,79,82,81,77,31,"SWE",2,2050000,10500000],
+  ["Olle Alsing","B",78,76,80,79,75,30,"SWE",2,1750000,8000000],
+  ["Santeri Hatakka","B",77,72,77,81,82,25,"FIN",2,1450000,7500000],
+  ["Malte Gustafsson","B",72,70,74,72,71,22,"SWE",3,750000,4200000],
+  ["Hugo Fransson","B",71,69,72,73,70,21,"SWE",3,650000,3800000],
+
+  ["Jonathan Ang","HF",83,85,82,75,78,28,"CAN",2,2600000,15000000],
+  ["Lukas Rousek","HF",82,82,85,74,76,27,"CZE",2,2400000,14000000],
+  ["Riley Woods","VF",81,84,78,72,80,28,"CAN",2,2200000,12500000],
+  ["Aleksi Heponiemi","C",81,79,86,74,72,27,"FIN",2,2250000,13000000],
+  ["Justin Kloos","C",80,80,82,75,76,32,"USA",1,2000000,9000000],
+  ["Noah Philp","C",80,78,79,80,82,26,"CAN",2,2100000,11500000],
+  ["Jan Mysak","C",79,81,78,72,77,24,"CZE",3,1700000,10000000],
+  ["Oskar Stål Lyrenäs","VF",78,79,76,71,76,27,"SWE",2,1550000,8000000],
+  ["Linus Lindström","C",77,75,78,78,75,27,"SWE",2,1500000,7500000],
+  ["Nikola Pasic","HF",76,77,75,70,74,24,"SWE",2,1300000,6500000],
+  ["Martin Johnsen","VF",72,74,70,68,72,21,"NOR",3,700000,4000000],
+  ["Victor Laz","HF",70,72,68,67,73,20,"SWE",3,600000,3200000]
+
 ].map((p,id)=>({
+
   id,
+
   name:p[0],
   pos:p[1],
   overall:p[2],
@@ -43,6 +47,12 @@ const PLAYERS = [
   defense:p[5],
   physical:p[6],
 
+  age:p[7],
+  nationality:p[8],
+  contractYears:p[9],
+  salary:p[10],
+  value:p[11],
+
   goals:0,
   assists:0,
   shots:0,
@@ -51,6 +61,7 @@ const PLAYERS = [
   fatigue:0,
   form:0,
   morale:70
+
 }));
 
 
