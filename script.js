@@ -4079,6 +4079,32 @@ function playerView(){
               ? "Högerforward"
               : "Forward";
 
+  const nationalityNames = {
+    SWE:"Sverige",
+    FIN:"Finland",
+    CAN:"Kanada",
+    CZE:"Tjeckien",
+    USA:"USA",
+    NOR:"Norge"
+  };
+
+  const nationality =
+    nationalityNames[player.nationality]
+    || player.nationality
+    || "-";
+
+  const role =
+    player.overall >= 82
+      ? "Nyckelspelare"
+      : player.overall >= 79
+        ? "Ordinarie"
+        : player.overall >= 75
+          ? "Rotation"
+          : "Breddspelare";
+
+  const formatCurrency = value =>
+    `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
+
   return `
 
     <div class="player-page">
@@ -4094,7 +4120,7 @@ function playerView(){
       </button>
 
 
-      <section class="player-hero">
+      <section class="player-hero player-hero-expanded">
 
         <div class="player-identity">
 
@@ -4112,24 +4138,56 @@ function playerView(){
               ${player.name}
             </h1>
 
-            <p>
-              ${positionName}
-            </p>
+            <div class="player-meta-line">
+              <span>${positionName}</span>
+              <span>•</span>
+              <span>${player.age} år</span>
+              <span>•</span>
+              <span>${nationality}</span>
+            </div>
+
+            <div class="player-role-badge">
+              ${role}
+            </div>
 
           </div>
 
         </div>
 
 
-        <div class="player-overall">
+        <div class="player-hero-right">
 
-          <span>
-            OVR
-          </span>
+          <div class="player-contract-mini">
 
-          <strong>
-            ${player.overall}
-          </strong>
+            <div>
+              <span>Kontrakt</span>
+              <strong>${player.contractYears} år</strong>
+            </div>
+
+            <div>
+              <span>Lön</span>
+              <strong>${formatCurrency(player.salary)}</strong>
+            </div>
+
+            <div>
+              <span>Marknadsvärde</span>
+              <strong>${formatCurrency(player.value)}</strong>
+            </div>
+
+          </div>
+
+
+          <div class="player-overall">
+
+            <span>
+              OVR
+            </span>
+
+            <strong>
+              ${player.overall}
+            </strong>
+
+          </div>
 
         </div>
 
@@ -4166,7 +4224,7 @@ function playerView(){
             </div>
 
             <div class="player-attribute">
-              <span>Passning</span>
+              <span>Passningar</span>
               <strong>${player.passing ?? "-"}</strong>
             </div>
 
@@ -4179,6 +4237,69 @@ function playerView(){
               <span>Fysik</span>
               <strong>${player.physical ?? "-"}</strong>
             </div>
+
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-header">
+
+            <div>
+
+              <span class="panel-label">
+                KONTRAKT
+              </span>
+
+              <h2>
+                Klubbstatus
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          <div class="player-contract-grid">
+
+            <div>
+              <span>Roll</span>
+              <strong>${role}</strong>
+            </div>
+
+            <div>
+              <span>Kontrakt kvar</span>
+              <strong>${player.contractYears} år</strong>
+            </div>
+
+            <div>
+              <span>Årslön</span>
+              <strong>${formatCurrency(player.salary)}</strong>
+            </div>
+
+            <div>
+              <span>Marknadsvärde</span>
+              <strong>${formatCurrency(player.value)}</strong>
+            </div>
+
+          </div>
+
+
+          <div class="player-actions">
+
+            <button class="btn secondary">
+              Kontrakt
+            </button>
+
+            <button class="btn secondary">
+              Transferstatus
+            </button>
+
+            <button class="btn secondary">
+              Historik
+            </button>
 
           </div>
 
@@ -4205,6 +4326,11 @@ function playerView(){
 
 
           <div class="player-stats-grid">
+
+            <div>
+              <span>Matcher</span>
+              <strong>${player.games || 0}</strong>
+            </div>
 
             <div>
               <span>Mål</span>
@@ -4258,41 +4384,18 @@ function playerView(){
           <div class="player-status-grid">
 
             <div>
-
-              <span>
-                Kondition
-              </span>
-
-              <strong>
-                ${condition}%
-              </strong>
-
+              <span>Kondition</span>
+              <strong>${condition}%</strong>
             </div>
 
-
             <div>
-
-              <span>
-                Form
-              </span>
-
-              <strong>
-                ${player.form || 0}
-              </strong>
-
+              <span>Form</span>
+              <strong>${player.form || 0}</strong>
             </div>
 
-
             <div>
-
-              <span>
-                Moral
-              </span>
-
-              <strong>
-                ${player.morale || 70}
-              </strong>
-
+              <span>Moral</span>
+              <strong>${player.morale || 70}</strong>
             </div>
 
           </div>
