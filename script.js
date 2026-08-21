@@ -5098,7 +5098,7 @@ content.innerHTML=
 
   document
   .querySelectorAll(
-    ".nav button"
+ "[data-page]"
   )
   .forEach(
     btn=>{
@@ -5124,7 +5124,7 @@ content.innerHTML=
 
 document
 .querySelectorAll(
-  ".nav button"
+"[data-page]"
 )
 .forEach(
   btn=>{
