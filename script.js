@@ -683,6 +683,8 @@ return {
 
     roster:PLAYERS.map(p=>({...p})),
 
+   clubRosters: {},
+
     history:[],
 
     news:[
