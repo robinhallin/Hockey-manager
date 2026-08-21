@@ -1084,6 +1084,12 @@ try{
 
 }
 if(
+  !state.clubRosters ||
+  Object.keys(state.clubRosters).length === 0
+){
+  state.clubRosters = createClubRosters();
+}
+if(
   !Array.isArray(state.schedule) ||
   state.schedule.length === 0 ||
   state.schedule.some(game => typeof game.round !== "number")
