@@ -3033,6 +3033,8 @@ function homeView(){
 
 const clubName = managerClub();
 
+   const roster = managerRoster();
+
 const clubGames = state.schedule.filter(
   game => game.home === clubName || game.away === clubName
 );
@@ -3050,8 +3052,8 @@ const clubGames = state.schedule.filter(
       .filter(game => !game.played)
       .slice(0, 4);
 
-  const topPlayers =
-    [...state.roster]
+const topPlayers =
+  [...roster]
       .sort(
         (a,b) =>
           ((b.goals || 0) + (b.assists || 0)) -
@@ -3060,22 +3062,22 @@ const clubGames = state.schedule.filter(
       .slice(0,5);
 
   const avgMorale =
-    state.roster.length
+    roster.length
       ? Math.round(
-          state.roster.reduce(
+          roster.reduce(
             (sum,p) => sum + (p.morale || 70),
             0
-          ) / state.roster.length
+          ) / roster.length
         )
       : state.morale || 70;
 
   const avgFatigue =
-    state.roster.length
+    roster.length
       ? Math.round(
-          state.roster.reduce(
+          roster.reduce(
             (sum,p) => sum + (p.fatigue || 0),
             0
-          ) / state.roster.length
+          ) / roster.length
         )
       : 0;
 
