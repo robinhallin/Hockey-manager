@@ -4187,7 +4187,15 @@ function playerView(){
             <div class="player-role-badge">
               ${role}
             </div>
-
+${
+  player.transferListed
+    ? `
+      <div class="player-transfer-badge">
+        TRANSFERLISTAD
+      </div>
+    `
+    : ""
+}
           </div>
 
         </div>
@@ -4331,9 +4339,16 @@ function playerView(){
               Kontrakt
             </button>
 
-            <button class="btn secondary">
-              Transferstatus
-            </button>
+<button
+  class="btn secondary"
+  onclick="toggleTransferStatus(${player.id})"
+>
+  ${
+    player.transferListed
+      ? "Ta bort från transferlista"
+      : "Transferlista spelaren"
+  }
+</button>
 
             <button class="btn secondary">
               Historik
