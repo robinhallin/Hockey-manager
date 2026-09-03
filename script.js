@@ -7039,7 +7039,136 @@ const negotiation =
     ? state.transferNegotiation
     : null;
   if(!player){
+${
+  negotiation
+    ? `
+      <div class="contract-negotiation-box">
 
+        <div class="contract-negotiation-header">
+
+          <div>
+
+            <span>
+              KONTRAKTSFÖRHANDLING
+            </span>
+
+            <h3>
+              ${player.name}
+            </h3>
+
+          </div>
+
+          <strong>
+            Klubbens bud accepterat
+          </strong>
+
+        </div>
+
+
+        <div class="contract-demand-grid">
+
+          <div>
+            <span>Transferkostnad</span>
+
+            <strong>
+              ${negotiation.transferFee.toLocaleString("sv-SE")} kr
+            </strong>
+          </div>
+
+          <div>
+            <span>Lönekrav</span>
+
+            <strong>
+              ${negotiation.salaryDemand.toLocaleString("sv-SE")} kr
+            </strong>
+          </div>
+
+          <div>
+            <span>Önskat kontrakt</span>
+
+            <strong>
+              ${negotiation.contractYears} år
+            </strong>
+          </div>
+
+          <div>
+            <span>Försök</span>
+
+            <strong>
+              ${negotiation.attempts}/3
+            </strong>
+          </div>
+
+        </div>
+
+
+        <label class="contract-input-label">
+          Erbjuden årslön
+        </label>
+
+        <input
+          class="contract-input"
+          id="contractSalary"
+          type="number"
+          value="${negotiation.salaryDemand}"
+        >
+
+
+        <label class="contract-input-label">
+          Kontraktslängd
+        </label>
+
+        <select
+          class="contract-input"
+          id="contractYears"
+        >
+
+          <option value="1">
+            1 år
+          </option>
+
+          <option value="2">
+            2 år
+          </option>
+
+          <option
+            value="3"
+            ${negotiation.contractYears===3 ? "selected" : ""}
+          >
+            3 år
+          </option>
+
+          <option
+            value="4"
+            ${negotiation.contractYears===4 ? "selected" : ""}
+          >
+            4 år
+          </option>
+
+          <option value="5">
+            5 år
+          </option>
+
+        </select>
+
+
+        <button
+          class="btn"
+          onclick="
+            submitContractOffer(
+              '${player.id}',
+              document.getElementById('contractSalary').value,
+              document.getElementById('contractYears').value
+            );
+          "
+        >
+          Erbjud kontrakt
+        </button>
+
+      </div>
+    `
+    : ""
+}
     return `
       <section class="card">
 
