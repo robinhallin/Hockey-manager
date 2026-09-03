@@ -1111,6 +1111,17 @@ if(
 ){
   state.managerClub = "HV71";
 }
+if(
+  !Array.isArray(state.transferOffers)
+){
+  state.transferOffers = [];
+}
+
+if(
+  !("transferNegotiation" in state)
+){
+  state.transferNegotiation = null;
+}
 syncManagerRoster();
 if(
   !Array.isArray(state.schedule) ||
