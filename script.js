@@ -685,6 +685,10 @@ return {
 
 clubRosters: createClubRosters(),
 
+   transferOffers: [],
+
+transferNegotiation: null,
+
     history:[],
 
     news:[
