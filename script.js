@@ -7033,7 +7033,11 @@ function marketPlayerView(){
     marketPlayers.find(
       p => p.id === state.selectedMarketPlayer
     );
-
+const negotiation =
+  state.transferNegotiation &&
+  state.transferNegotiation.playerId === player.id
+    ? state.transferNegotiation
+    : null;
   if(!player){
 
     return `
