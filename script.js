@@ -6072,114 +6072,33 @@ function scheduleView(){
 }
 function getTransferMarketPlayers(){
 
-  const marketPlayers = [];
+  const myClub =
+    managerClub();
 
-  const positionMap = {
-    G:"MV",
-    D:"B",
-    F:"F"
-  };
+  const players = [];
 
-  const teamStrength = teamName => {
+  Object.entries(
+    state.clubRosters || {}
+  ).forEach(
+    ([clubName, roster]) => {
 
-    const data =
-      TEAM_DATA.find(
-        team => team[0] === teamName
-      );
-
-    return data
-      ? data[1]
-      : 75;
-  };
-
-  const nameVariation = name => {
-
-    let total = 0;
-
-    for(let i=0; i<name.length; i++){
-      total += name.charCodeAt(i);
-    }
-
-    return (total % 7) - 3;
-  };
-
-
-  Object.entries(TEAM_ROSTERS).forEach(
-    ([teamName, roster]) => {
-
-      if(teamName === "HV71"){
+      if(clubName === myClub){
         return;
       }
 
-      ["G","D","F"].forEach(group => {
+      (roster || []).forEach(player => {
 
-        const players =
-          roster[group] || [];
-
-        players.forEach(
-          (playerName,index) => {
-
-            const strength =
-              teamStrength(teamName);
-
-            let overall =
-              strength +
-              nameVariation(playerName);
-
-            if(group === "G"){
-              overall -= 1;
-            }
-
-            overall =
-              Math.max(
-                67,
-                Math.min(
-                  85,
-                  overall
-                )
-              );
-
-            const value =
-              Math.round(
-                (
-                  2500000 +
-                  Math.max(
-                    0,
-                    overall - 70
-                  ) * 850000
-                ) / 100000
-              ) * 100000;
-
-            marketPlayers.push({
-
-              id:
-                `${teamName}-${group}-${index}`,
-
-              name:
-                playerName,
-
-              team:
-                teamName,
-
-              pos:
-                positionMap[group],
-
-              overall,
-
-              value
-
-            });
-
-          }
-        );
+        players.push({
+          ...player,
+          team: clubName
+        });
 
       });
 
     }
   );
 
-
-  return marketPlayers.sort(
+  return players.sort(
     (a,b) =>
       b.overall - a.overall
   );
