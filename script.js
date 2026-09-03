@@ -6202,46 +6202,174 @@ function submitTransferBid(playerId, amount){
     return;
   }
 
-  amount =
-    Math.round(Number(amount) || 0);
 
-  const askingPrice =
-    player.askingPrice ||
-    calculateTransferPrice(player);
+  amount =
+    Math.round(
+      Number(amount) || 0
+    );
+
 
   if(amount <= 0){
     return;
   }
 
+
   if(amount > state.money){
 
     state.news.unshift(
-      `Budet på ${player.name} kunde inte läggas. Klubben saknar pengar.`
+      `Budet på ${player.name} kunde inte skickas. ${buyingClub} saknar tillräckligt med pengar.`
     );
 
     save();
     render();
+
     return;
   }
 
-  const acceptanceLimit =
-    askingPrice * 0.92;
 
-  if(amount >= acceptanceLimit){
+  const askingPrice =
+    player.askingPrice ||
+    calculateTransferPrice(player);
 
-    completeTransfer(
-      playerId,
+
+  /*
+    Transferlistad spelare:
+    säljande klubb är mer villig att acceptera.
+  */
+
+  const acceptancePrice =
+    player.transferListed
+      ? askingPrice * 0.90
+      : askingPrice;
+
+
+  const offer = {
+
+    id:
+      Date.now(),
+
+    playerId:
+      player.id,
+
+    playerName:
+      player.name,
+
+    sellingClub,
+
+    buyingClub,
+
+    amount,
+
+    askingPrice,
+
+    status:
+      "pending"
+
+  };
+
+
+  state.transferOffers.unshift(
+    offer
+  );
+
+
+  /*
+    KLUBBEN SVARAR
+  */
+
+  if(
+    amount >= acceptancePrice
+  ){
+
+    offer.status =
+      "clubAccepted";
+
+
+    const baseSalary =
+      player.salary ||
+      Math.round(
+        600000 +
+        Math.max(
+          0,
+          player.overall - 70
+        ) * 120000
+      );
+
+
+    const salaryDemand =
+      Math.round(
+        (
+          baseSalary *
+          (
+            1.08 +
+            Math.max(
+              0,
+              player.overall - 76
+            ) * 0.015
+          )
+        ) / 10000
+      ) * 10000;
+
+
+    const contractYears =
+      player.age >= 31
+        ? 2
+        : player.age <= 23
+          ? 4
+          : 3;
+
+
+    state.transferNegotiation = {
+
+      offerId:
+        offer.id,
+
+      playerId:
+        player.id,
+
+      playerName:
+        player.name,
+
       sellingClub,
+
       buyingClub,
-      amount
+
+      transferFee:
+        amount,
+
+      salaryDemand,
+
+      contractYears,
+
+      attempts:
+        0
+
+    };
+
+
+    state.news.unshift(
+      `${sellingClub} accepterade budet på ${player.name}. Nu väntar kontraktsförhandling.`
     );
 
-    return;
+  }else{
+
+    offer.status =
+      "clubRejected";
+
+
+    state.news.unshift(
+      `${sellingClub} avslog budet på ${player.name}. De värderar spelaren högre.`
+    );
+
   }
 
-  state.news.unshift(
-    `${sellingClub} avslog budet på ${player.name}.`
-  );
+
+  state.transferBidPlayer =
+    null;
+
+  state.transferBidAmount =
+    null;
+
 
   save();
   render();
@@ -6249,30 +6377,206 @@ function submitTransferBid(playerId, amount){
 }
 
 
-function completeTransfer(
+
+function submitContractOffer(
   playerId,
-  sellingClub,
-  buyingClub,
-  amount
+  salary,
+  years
 ){
+
+  const negotiation =
+    state.transferNegotiation;
+
+
+  if(
+    !negotiation ||
+    negotiation.playerId !== playerId
+  ){
+    return;
+  }
+
+
+  const player =
+    findPlayerAnywhere(playerId);
+
+
+  if(!player){
+    return;
+  }
+
+
+  salary =
+    Math.round(
+      Number(salary) || 0
+    );
+
+  years =
+    Math.round(
+      Number(years) || 0
+    );
+
+
+  if(
+    salary <= 0 ||
+    years < 1 ||
+    years > 5
+  ){
+    return;
+  }
+
+
+  negotiation.attempts++;
+
+
+  /*
+    SPELARENS KRAV
+  */
+
+  const salaryLimit =
+    negotiation.salaryDemand * 0.95;
+
+
+  const yearsOkay =
+    years >= 1 &&
+    years <= 5;
+
+
+  if(
+    salary >= salaryLimit &&
+    yearsOkay
+  ){
+
+    completeTransfer(
+      negotiation,
+      salary,
+      years
+    );
+
+    return;
+
+  }
+
+
+  /*
+    SPELAREN AVSLÅR
+  */
+
+  negotiation.salaryDemand =
+    Math.round(
+      negotiation.salaryDemand *
+      1.03 /
+      10000
+    ) * 10000;
+
+
+  state.news.unshift(
+    `${player.name} avslog kontraktsförslaget. Spelaren kräver bättre villkor.`
+  );
+
+
+  /*
+    Efter tre misslyckade försök bryter spelaren.
+  */
+
+  if(
+    negotiation.attempts >= 3
+  ){
+
+    const offer =
+      state.transferOffers.find(
+        item =>
+          item.id === negotiation.offerId
+      );
+
+
+    if(offer){
+      offer.status =
+        "playerRejected";
+    }
+
+
+    state.news.unshift(
+      `Förhandlingarna med ${player.name} har brutit samman.`
+    );
+
+
+    state.transferNegotiation =
+      null;
+
+  }
+
+
+  save();
+  render();
+
+}
+
+
+
+function completeTransfer(
+  negotiation,
+  salary,
+  years
+){
+
+  const {
+    playerId,
+    sellingClub,
+    buyingClub,
+    transferFee
+  } = negotiation;
+
 
   const sellingRoster =
     state.clubRosters[sellingClub];
 
+
+  if(!sellingRoster){
+    return;
+  }
+
+
   const playerIndex =
     sellingRoster.findIndex(
-      player => player.id === playerId
-    );
+      player =>
+        player.id === playerId
+  );
+
 
   if(playerIndex === -1){
     return;
   }
 
+
+  if(
+    buyingClub === managerClub() &&
+    transferFee > state.money
+  ){
+
+    state.news.unshift(
+      `Övergången kunde inte genomföras eftersom klubbens ekonomi inte räcker.`
+    );
+
+    return;
+
+  }
+
+
   const [player] =
-    sellingRoster.splice(playerIndex,1);
+    sellingRoster.splice(
+      playerIndex,
+      1
+    );
+
 
   player.club =
     buyingClub;
+
+  player.salary =
+    salary;
+
+  player.contractYears =
+    years;
 
   player.transferListed =
     false;
@@ -6281,26 +6585,61 @@ function completeTransfer(
     null;
 
   player.morale =
-    Math.max(
-      70,
-      player.morale || 70
-    );
+    78;
 
-  state.clubRosters[buyingClub].push(player);
+  player.fatigue =
+    0;
 
-  if(buyingClub === managerClub()){
 
-    state.money -= amount;
+  state.clubRosters[
+    buyingClub
+  ].push(player);
+
+
+  if(
+    buyingClub === managerClub()
+  ){
+
+    state.money -=
+      transferFee;
 
   }
 
+
+  const offer =
+    state.transferOffers.find(
+      item =>
+        item.id === negotiation.offerId
+    );
+
+
+  if(offer){
+
+    offer.status =
+      "completed";
+
+    offer.salary =
+      salary;
+
+    offer.contractYears =
+      years;
+
+  }
+
+
   state.news.unshift(
-    `${buyingClub} värvade ${player.name} från ${sellingClub} för ${amount.toLocaleString("sv-SE")} kr.`
+    `${buyingClub} har värvat ${player.name} från ${sellingClub} för ${transferFee.toLocaleString("sv-SE")} kr. Kontrakt: ${years} år.`
   );
+
+
+  state.transferNegotiation =
+    null;
+
 
   syncManagerRoster();
 
   save();
+
   render();
 
 }
