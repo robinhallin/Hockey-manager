@@ -101,7 +101,7 @@ function beginPreseason(){
  s.phase='preseason';s.year++;s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
   p.age++;p.contractYears=Math.max(0,(p.contractYears||1)-1);
-  if(club!==managerClub()&&p.contractYears===0)p.contractYears=2;
+
   if(p.age>=33){const a=ensurePlayerAttributes(p);const key=p.pos==='MV'?'movement':'acceleration';a[key]=Math.max(1,a[key]-1);}
   p.fatigue=0;
  }
@@ -111,13 +111,14 @@ function beginPreseason(){
  clubNewYear();clubPost("grant",s.grant,"Styrelsens försäsongstilldelning");
  juniorNewYear();
  leagueApplyMovement();
+ playerWorldNewYear();
  managerPreseason();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
  state.page='season';save();render();
 }
 function releaseExpiredPlayer(id){
  const s=state.season,p=managerRoster().find(p=>samePlayerId(p.id,id));if(s?.phase!=='preseason'||!p||p.contractYears>0)return;
- state.clubRosters[managerClub()]=managerRoster().filter(x=>!samePlayerId(x.id,id));s.freeAgents.push(p);s.departures.push(p.name);syncManagerRoster();state.lines=null;state.specialTeams=null;save();render();
+ state.clubRosters[managerClub()]=managerRoster().filter(x=>!samePlayerId(x.id,id));worldRelease(p,managerClub(),'Klubben avslutade avtalet');s.departures.push(p.name);syncManagerRoster();state.lines=null;state.specialTeams=null;save();render();
 }
 function recruitAcademyPlayer(pos){if(state.season?.phase==='preseason')juniorEmergency(pos);}
 
@@ -157,6 +158,6 @@ function seasonView(){
  ${s.phase==='preseason'?preseasonView():''}
  <section class="season-archive"><h2>Karriärhistorik</h2>${s.archive.map(a=>`<details><summary>${seasonLabel(a.year)} · Mästare: ${a.champion} · ${a.club}, plats ${a.position}</summary><p>Styrelsens mål: ${a.goals.filter(g=>g.met).length}/${a.goals.length} uppnådda. Spelarstatistiken nedan omfattar hela säsongen inklusive slutspel.</p>${[...a.players].sort((p,q)=>(q.goals+q.assists)-(p.goals+p.assists)).map(p=>`<div class="row"><span>${p.name}</span><strong>${p.goals} mål · ${p.assists} assist · ${p.development} attributsteg</strong></div>`).join('')}<h3>Sluttabell</h3>${a.standings.map((t,i)=>`<div class="row"><span>${i+1}. ${t.name}</span><b>${t.pts} p</b></div>`).join('')}</details>`).join('')||'<p>Avslutade säsonger sparas här.</p>'}</section><p class="training-note">SHL och Hockeyallsvenskan spelar parallellt. Allsvenska mästaren går upp; förloraren i SHL-kvalet går ned. Se Ligavärlden för båda tabellerna.</p></section>`;
 }
-function preseasonView(){const s=state.season,expired=managerRoster().filter(p=>p.contractYears<=0);return `<section class="season-review"><h2>Försäsong ${seasonLabel()}</h2><div class="career-finances"><div><span>Ny tilldelning</span><strong>${careerMoney(s.grant)}</strong></div><div><span>Ny lönebudget</span><strong>${careerMoney(s.nextWageLimit)}</strong></div></div><p>Nuvarande årslöner: ${careerMoney(annualWageCost())}. ${annualWageCost()>s.nextWageLimit?'Du ligger över lönebudgeten. Du kan starta säsongen, men styrelsens ekonomimål kräver att lönerna minskar.':''} Spelarna har blivit ett år äldre. Utgående kontrakt behöver ditt beslut.</p>${expired.map(p=>`<div class="preseason-player"><strong>${p.name} · ${p.pos}</strong><div><button class="btn secondary" onclick="preseasonRenew('${p.id}')">Förhandla nytt avtal</button><button class="btn secondary" onclick="releaseExpiredPlayer('${p.id}')">Avsluta avtalet</button></div></div>`).join('')||'<p>Alla spelare har giltiga kontrakt.</p>'}<h3>Flytta upp juniorer</h3><p>Treårsavtal, 350 000 kr per år. Juniorerna är skapade spelare.</p><div class="training-presets">${['MV','B','C','VF','HF'].map(pos=>`<button onclick="recruitAcademyPlayer('${pos}')">+ ${pos}</button>`).join('')}</div><h3>Kontraktslösa spelare från din klubb</h3>${s.freeAgents.map(p=>`<div class="preseason-player"><span>${p.name} · ${p.pos}</span><button class="btn secondary" onclick="signSeasonFreeAgent('${p.id}')">Tvåårsavtal · ${careerMoney(p.salary)}/år</button></div>`).join('')||'<p>Inga spelare i listan.</p>'}<button class="btn secondary" onclick="trainingOpen('transfers')">Öppna rekrytering & gå försäsongsveckor</button><p role="status">${s.message||''}</p><button class="btn" onclick="launchSeason()">Godkänn truppen och starta grundserien →</button></section>`;}
+function preseasonView(){const s=state.season,expired=managerRoster().filter(p=>p.contractYears<=0);return `<section class="season-review"><h2>Försäsong ${seasonLabel()}</h2><div class="career-finances"><div><span>Ny tilldelning</span><strong>${careerMoney(s.grant)}</strong></div><div><span>Ny lönebudget</span><strong>${careerMoney(s.nextWageLimit)}</strong></div></div><p>Nuvarande årslöner: ${careerMoney(annualWageCost())}. ${annualWageCost()>s.nextWageLimit?'Du ligger över lönebudgeten. Du kan starta säsongen, men styrelsens ekonomimål kräver att lönerna minskar.':''} Spelarna har blivit ett år äldre. Utgående kontrakt behöver ditt beslut.</p>${expired.map(p=>`<div class="preseason-player"><strong>${p.name} · ${p.pos}</strong><div><button class="btn secondary" onclick="preseasonRenew('${p.id}')">Förhandla nytt avtal</button><button class="btn secondary" onclick="releaseExpiredPlayer('${p.id}')">Avsluta avtalet</button></div></div>`).join('')||'<p>Alla spelare har giltiga kontrakt.</p>'}<h3>Flytta upp juniorer</h3><p>Treårsavtal, 350 000 kr per år. Juniorerna är skapade spelare.</p><div class="training-presets">${['MV','B','C','VF','HF'].map(pos=>`<button onclick="recruitAcademyPlayer('${pos}')">+ ${pos}</button>`).join('')}</div><h3>Gemensam marknad för kontraktslösa</h3>${s.freeAgents.slice(0,12).map(p=>`<div class="preseason-player"><span>${p.name} · ${p.pos}</span><button class="btn secondary" onclick="signSeasonFreeAgent('${p.id}')">Förhandla avtal</button></div>`).join('')||'<p>Inga spelare i listan.</p>'}<button class="btn secondary" onclick="trainingOpen('transfers')">Öppna rekrytering & gå försäsongsveckor</button><p role="status">${s.message||''}</p><button class="btn" onclick="launchSeason()">Godkänn truppen och starta grundserien →</button></section>`;}
 
-function signSeasonFreeAgent(id){const s=state.season;if(s?.phase!=='preseason')return;const p=s.freeAgents.find(p=>samePlayerId(p.id,id));if(!p||managerRoster().some(x=>samePlayerId(x.id,id)))return;p.contractYears=2;p.transferListed=false;s.freeAgents=s.freeAgents.filter(x=>!samePlayerId(x.id,id));managerRoster().push(p);save();render();}
+function signSeasonFreeAgent(id){if(state.season?.phase!=='preseason'||!worldIsFree(id))return;recruitOpen(id);}

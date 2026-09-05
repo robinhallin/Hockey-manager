@@ -3,7 +3,7 @@
 function ensureMedical(){
  if(!state.careerStarted)return;
  if(!state.medical)state.medical={version:1,day:0,nextId:1,history:[],message:'',rng:Math.floor(attrSeed(`${managerClub()}:medical`)*4294967296),staff:{doctor:'Lagläkare',physio:'Fysioterapeut',skill:15}};
- for(const roster of [...Object.values(state.clubRosters),state.juniors?.roster||[]])for(const p of roster)if(!p.health)p.health={load:0,injury:null,clearance:'rest'};
+ for(const roster of [...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)if(!p.health)p.health={load:0,injury:null,clearance:'rest'};
 }
 function medicalRoll(){const s=state.medical;s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
 function medicalReady(p){return Boolean(p&&(!p.health?.injury||(p.health.injury.remaining===0&&p.health.clearance!=='rest')));}
@@ -29,7 +29,7 @@ function injurePlayer(p,source='match',days=null){
 }
 function medicalDay(session=null){
  ensureMedical();const s=state.medical;ensureClub();s.day++;
- for(const p of [...Object.values(state.clubRosters).flat(),...(state.juniors?.roster||[])]){
+ for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[]),...(state.juniors?.roster||[])]){
    const h=p.health;
    if(!isOwnPlayer(p)){h.load*=.8;if(h.injury){if(h.injury.remaining>0)h.injury.remaining--;else{h.injury.readiness=Math.min(100,h.injury.readiness+15);if(h.injury.readiness===100){h.injury=null;h.clearance='rest';}}}continue;}
    const rest=Boolean(h.injury)||!session||session.type==='recovery'||p.trainingLoad==='rest',hard=session?.intensity==='hard'&&p.trainingLoad!=='light';
