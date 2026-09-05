@@ -79,6 +79,7 @@ function validPlayerFocus(p,key){return key==='Balanserad'||Boolean(TRAINING_FOC
 function focusOptions(p){return Object.keys(TRAINING_FOCUSES).filter(key=>validPlayerFocus(p,key));}
 function trainingTarget(p,session='skills'){
   const a=ensurePlayerAttributes(p),focus=TRAINING_FOCUSES[p.developmentFocus];
+  if(p.academy&&p.developmentFocus==='Balanserad')return juniorTarget(p);
   if(focus&&Object.hasOwn(a,focus))return focus;
   const keys=p.pos==='MV'?['reflexes','positioning','reboundControl','movement','handling','composure']:TRAINING_SESSIONS[session].keys;
   const available=keys.filter(key=>Object.hasOwn(a,key));
@@ -86,12 +87,14 @@ function trainingTarget(p,session='skills'){
   return available.length?available[(state.round+state.training.day+Math.floor(attrSeed(p.id)*10))%available.length]:Object.keys(a)[0];
 }
 function trainingGrowth(p,key,points){
+  if(p.academy&&p.attributes[key]>=p.academy.ceiling[key])return false;
   if(!Number.isFinite(points)||points<=0||!Object.hasOwn(p.attributes,key)||p.attributes[key]>=20)return false;
+  if(p.academy)p.academy.cursor++;
   p.trainingProgress[key]=(p.trainingProgress[key]||0)+points;
   if(p.trainingProgress[key]<100)return false;
   p.trainingProgress[key]-=100;p.attributes[key]++;p.attributeGrowth=Math.max(0,p.attributeGrowth-.12);
   const label=(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[key];
-  managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,`${p.name} tar ett steg framåt`,`${p.name} har utvecklat ${label.toLowerCase()} genom träning och matchvana. Öppna spelarprofilen för tränarteamets aktuella bedömning.`,'Utvecklingsrapport',{playerId:p.id});
+  managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,`${p.name} tar ett steg framåt`,`${p.name} har utvecklat ${label.toLowerCase()} genom träning och matchvana. Öppna spelarprofilen för tränarteamets aktuella bedömning.`,'Utvecklingsrapport',p.academy&&!isOwnPlayer(p)?{link:'juniors'}:{playerId:p.id});
   return true;
 }
 function grantMatchDevelopment(p,seconds){
@@ -153,6 +156,7 @@ function runTrainingSession(){
   t.logs.push(log);t.history.unshift(log);t.history=t.history.slice(0,60);t.day++;
   managerMessage(`session:${state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
   trainSocialPairs(session);
+  juniorTraining(session,`${state.season.year}:${state.round}:${t.day}`);
   medicalDay(session);
   if(t.day===3)createOpponentBrief();
   return true;
@@ -230,6 +234,7 @@ function afterTrainingMatch(){
   afterLockerMatch();
   medicalAfterMatch();
   finishAnalysis();
+  juniorFixture(`${state.season.year}:${state.round}`);
   managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));
 }
 function openManagerMessage(id){
@@ -266,7 +271,7 @@ function trainingView(){
 function inboxView(){
   ensureTrainingData();const t=state.training,selected=t.messages.find(m=>m.id===t.selectedMessage)||t.messages[0];
   const unread=t.messages.filter(m=>!m.read).length;
-  return `<section class="manager-inbox"><header class="daily-heading"><div><span class="career-eyebrow">KLUBBKONTORET</span><h1>Din inkorg.</h1><p>${unread} olästa meddelanden · rapporter, samtal och nästa beslut.</p></div><button class="btn secondary" onclick="markManagerInboxRead()">Markera rapporter som lästa</button></header><div class="inbox-layout"><nav class="inbox-list" aria-label="Meddelanden">${t.messages.map(m=>`<button class="inbox-item ${m.id===selected?.id?'selected':''} ${m.read?'':'unread'}" onclick="openManagerMessage(${m.id})"><span>${m.category}<small>OMG ${m.round}</small></span><strong>${trainingSafe(m.title)}</strong><p>${m.decisionType&&!m.resolved?'Ditt svar behövs':m.read?'Läst':'Oläst'}</p></button>`).join('')}</nav><article class="inbox-letter">${selected?`<header><span class="career-eyebrow">${selected.category} · OMGÅNG ${selected.round}</span><h2>${trainingSafe(selected.title)}</h2></header><div class="message-body">${trainingSafe(selected.body).split('\n').map(line=>`<p>${line}</p>`).join('')}</div>${selected.decisionType==='minutes'&&!selected.resolved?`<section class="manager-decision"><h3>Vad svarar du?</h3><button class="btn" onclick="answerPlayerConversation(${selected.id},'promise')">Jag lovar dig mer istid</button><p>Minst 15 minuter i två av de tre kommande matcherna.</p><button class="btn secondary" onclick="answerPlayerConversation(${selected.id},'honest')">Jag kan inte lova en större roll</button></section>`:''}${selected.outcome?`<div class="manager-outcome">${trainingSafe(selected.outcome)}</div>`:''}<footer>${selected.link?`<button class="btn secondary" onclick="trainingOpen('${selected.link}')">${({training:'Till träningsplanen',board:'Till styrelsen',tactics:'Till matchplanen',scouting:'Till scouting',transfers:'Till transfers',news:'Till klubbnyheterna',season:'Till säsongsöversikten',locker:'Till omklädningsrummet',medical:'Till medicinska teamet',statistics:'Till matchanalysen'})[selected.link]||'Öppna'}</button>`:''}${selected.playerId!==undefined?`<button class="btn secondary" onclick="trainingPlayerLink('${selected.playerId}')">Öppna spelarprofil</button>`:''}<button class="btn" onclick="managerContinue()">Fortsätt till nästa händelse →</button></footer>`:'<h2>Inkorgen är tom</h2>'}</article></div></section>`;
+  return `<section class="manager-inbox"><header class="daily-heading"><div><span class="career-eyebrow">KLUBBKONTORET</span><h1>Din inkorg.</h1><p>${unread} olästa meddelanden · rapporter, samtal och nästa beslut.</p></div><button class="btn secondary" onclick="markManagerInboxRead()">Markera rapporter som lästa</button></header><div class="inbox-layout"><nav class="inbox-list" aria-label="Meddelanden">${t.messages.map(m=>`<button class="inbox-item ${m.id===selected?.id?'selected':''} ${m.read?'':'unread'}" onclick="openManagerMessage(${m.id})"><span>${m.category}<small>OMG ${m.round}</small></span><strong>${trainingSafe(m.title)}</strong><p>${m.decisionType&&!m.resolved?'Ditt svar behövs':m.read?'Läst':'Oläst'}</p></button>`).join('')}</nav><article class="inbox-letter">${selected?`<header><span class="career-eyebrow">${selected.category} · OMGÅNG ${selected.round}</span><h2>${trainingSafe(selected.title)}</h2></header><div class="message-body">${trainingSafe(selected.body).split('\n').map(line=>`<p>${line}</p>`).join('')}</div>${selected.decisionType==='minutes'&&!selected.resolved?`<section class="manager-decision"><h3>Vad svarar du?</h3><button class="btn" onclick="answerPlayerConversation(${selected.id},'promise')">Jag lovar dig mer istid</button><p>Minst 15 minuter i två av de tre kommande matcherna.</p><button class="btn secondary" onclick="answerPlayerConversation(${selected.id},'honest')">Jag kan inte lova en större roll</button></section>`:''}${selected.outcome?`<div class="manager-outcome">${trainingSafe(selected.outcome)}</div>`:''}<footer>${selected.link?`<button class="btn secondary" onclick="trainingOpen('${selected.link}')">${({training:'Till träningsplanen',board:'Till styrelsen',tactics:'Till matchplanen',scouting:'Till scouting',transfers:'Till transfers',news:'Till klubbnyheterna',season:'Till säsongsöversikten',locker:'Till omklädningsrummet',medical:'Till medicinska teamet',statistics:'Till matchanalysen',juniors:'Till juniorlaget'})[selected.link]||'Öppna'}</button>`:''}${selected.playerId!==undefined?`<button class="btn secondary" onclick="trainingPlayerLink('${selected.playerId}')">Öppna spelarprofil</button>`:''}<button class="btn" onclick="managerContinue()">Fortsätt till nästa händelse →</button></footer>`:'<h2>Inkorgen är tom</h2>'}</article></div></section>`;
 }
 function dailyOverview(){
   ensureTrainingData();const t=state.training;if(!t)return '';
