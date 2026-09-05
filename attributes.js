@@ -90,7 +90,7 @@ function requestScoutReport(id){
 }
 function advanceScoutReports(){
   ensureAssessmentData();
-  for(const [id,r] of Object.entries(state.scoutReports))if(r.dueRound&&r.dueRound<=state.round){r.visits=Math.min(3,r.visits+1);delete r.dueRound;const p=findPlayerAnywhere(id);if(p)state.news.unshift(`Scoutrapport klar: ${p.name}. Observation ${r.visits} av 3 – öppna Scouting.`);}
+  for(const [id,r] of Object.entries(state.scoutReports))if(r.dueRound&&r.dueRound<=state.round){r.visits=Math.min(3,r.visits+1);delete r.dueRound;const p=findPlayerAnywhere(id);if(p){state.news.unshift(`Scoutrapport klar: ${p.name}. Observation ${r.visits} av 3 – öppna Scouting.`);managerMessage(`scout:${id}:${r.visits}`,`Scoutrapport: ${p.name}`,`Observation ${r.visits} av 3 är klar. Rapportens säkerhet har förbättrats. Öppna Scouting för att läsa bedömningen.`, 'Chefsscout',{link:'scouting'});}}
 }
 function scoutingView(){
   ensureAssessmentData();
