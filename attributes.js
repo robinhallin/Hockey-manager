@@ -79,6 +79,7 @@ function assessmentPanel(p){
   <p>${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
   <p class="muted">Stjärnorna jämförs med din trupp. Attribut visas på skalan 1–20 som bedömda intervall. Potential är en osäker prognos.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
+  ${haResearchPanel(p)}
   <div class="role-reports">${r.roles.map(role=>`<span><b>${role.name}</b> · ${role.value>=14?'Tydliga styrkor':role.value>=11?'Användbar profil':'Behöver utvecklas'}</span>`).join('')}</div>
   ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||r.visits>=3?'disabled':''}>${pending?(state.season?.phase==='preseason'?'Rapport nästa försäsongsvecka':`Rapport efter omgång ${pending-1}`):r.visits>=3?'Grundligt scoutad':'Beställ scoutobservation'}</button><span>${r.visits} av 3 observationer</span></div>`:'<p class="muted">Tränarteamet känner spelaren genom den dagliga träningen.</p>'}</section>`;
 }

@@ -170,3 +170,15 @@ Promotion/relegation preserves player identity, attributes, salaries and existin
 Existing careers retain all old fixtures and results. A newly introduced HA background league is caught up deterministically to the old save's current regular round; old SHL fixtures and money are untouched. Saves already in playoffs/review/preseason keep their existing postseason rules and start the new two-league playoffs after the next season launch. No old results are retroactively used to relegate the player. Frozen season tables remain visible through preseason; the new membership determines the next schedule. Movement application is once-only across refreshes and save/reload.
 
 Validation: fifteen Node suites pass. The dedicated league suite verifies 28 clubs, 728 fixtures, 26 home games per club, no cross-league regular fixtures, unique fictional player IDs, a full HA game, both migration paths, concurrent playoffs, no automatic simulation of managed survival games, overtime, promotion/relegation financial effects and player reactions, repeated rollover protection, next-season membership and reload. Prior tests now exercise all 28 club offers and views; expected bracket/schedule sizes were updated for the added competition. JavaScript syntax, local assets and git diff checks pass. Visual browser QA has not been performed.
+
+
+## Riktiga allsvenska starttrupper (2026-09-05)
+
+325 verkliga spelare i samtliga 14 allsvenska klubbar för nya karriärer.
+Individuell grundseriestatistik från 2024/25 och 2025/26 ligger till grund
+för ligajusterade attribut. Spelarkort visar underlag och direktlänkar till
+källorna; inga exakta scoutingbetyg eller löner påstås vara verkliga.
+Befintliga karriärer behålls. Se [metod, källor och begränsningar](ALLSVENSKAN_RESEARCH.md).
+
+Nya moduler: `allsvenskan-data.js` (fakta) och `allsvenskan.js` (spelmodell).
+Test: `node allsvenskan.test.cjs`. Alla befintliga VM-sviter laddar båda modulerna.
