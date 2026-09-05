@@ -8,7 +8,7 @@ function ensureClub(){
  ensureAssessmentData();
  if(!state.clubOffice){
   const fans=CLUB_DATA[managerClub()]?.fans||6500;
-  state.clubOffice={version:1,year:clubYear(),opening:state.money,ledger:[],totals:{},settled:[],priority:'balanced',ticket:220,capacity:Math.round(fans*1.2),sponsor:Math.round(annualWageCost()*.6+6000000),operations:9000000,staffLimit:3200000,market:[],taken:[],archives:[],message:'',offer:null};
+  state.clubOffice={version:1,year:clubYear(),opening:state.money,ledger:[],totals:{},settled:[],priority:'balanced',ticket:220,capacity:Math.round(fans*1.2),sponsor:Math.round(annualWageCost()*.6+(leagueOf()==='HA'?2500000:6000000)),operations:leagueOf()==='HA'?4000000:9000000,staffLimit:leagueOf()==='HA'?2600000:3200000,market:[],taken:[],archives:[],message:'',offer:null};
   const existing={assistant:['Erik Lind',600000],scout:['Anna Berg',480000],goalie:['Johan Nyström',420000]};
   for(const s of state.staff){const def=existing[s.id];if(def)Object.assign(s,{name:def[0],personId:s.id,salary:def[1],expires:clubYear()+2,coaching:s.coaching??(s.id==='goalie'?16:s.id==='assistant'?14:8)});}
   state.staff.push({id:'junior',personId:'initial-junior',name:'Sara Holm',ability:12,potential:15,specialty:'Tvåvägsforward',coaching:12,salary:420000,expires:clubYear()+2});

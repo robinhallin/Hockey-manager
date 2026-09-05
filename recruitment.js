@@ -32,7 +32,7 @@ function ensureRecruitment(){
   state.recruitment.history=(state.transferOffers||[]).filter(o=>o.status==='completed').map(o=>({id:state.recruitment.nextId++,year:recruitmentYear(),tick:0,name:o.playerName,playerId:o.playerId,seller:o.sellingClub,buyer:o.buyingClub,fee:o.amount}));
   for(const club of Object.keys(state.clubRosters))if(club!==managerClub()){
     const wage=state.clubRosters[club].reduce((sum,p)=>sum+p.salary,0);
-    state.recruitment.ai[club]={cash:12000000,wageLimit:Math.round(wage*1.3),year:recruitmentYear()};
+    state.recruitment.ai[club]={cash:leagueOf(club)==='HA'?6000000:12000000,wageLimit:Math.round(wage*1.3),year:recruitmentYear()};
   }
 }
 function recruitCountry(club){return RECRUIT_CLUBS.find(c=>c[0]===club)?.[1]||'SWE';}
@@ -102,7 +102,8 @@ function recruitPlayerWishes(p,club=managerClub()){
  const ambition=attrSeed(`${p.id}:ambition`)>.58;
  const level=ability-avg,role=level>2?'Nyckelspelare':level>-3?'Ordinarie':'Rotation';
  const clubStrength=roster.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,roster.length);
- const stretch=ambition&&ability>clubStrength+5;
+ const relegationStep=state.world?.membership?.[getPlayerClub(p.id)]==='SHL'&&leagueOf(club)==='HA';
+ const stretch=ambition&&(ability>clubStrength+5||relegationStep);
  const salary=Math.round(p.salary*(stretch?1.35:1.12)/10000)*10000;
  return {role,salary,minYears:p.age<24?2:1,maxYears:p.age>=32?2:5,priority:ambition?'Sportsliga ambitioner':'Speltid och trygghet',stretch};
 }

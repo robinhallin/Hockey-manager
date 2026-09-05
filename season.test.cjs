@@ -21,16 +21,17 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('hockey.js','utf8'),context);
   vm.runInContext(fs.readFileSync('club.js','utf8'),context);
   vm.runInContext(fs.readFileSync('manager.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
 const {run,storage}=boot();
 function endRegular(club,rank){
- run(`startCareerWithClub(${JSON.stringify(club)});state.schedule.forEach(g=>{g.played=true;g.homeGoals=2;g.awayGoals=1});state.teams.forEach((t,i)=>{t.gp=52;t.pts=100-i;t.gf=150;t.ga=130});globalThis.other=state.teams.filter(t=>t.name!==managerClub()).sort((a,b)=>b.pts-a.pts);team(managerClub()).pts=${rank}===1?200:${rank}===14?0:(other[${rank}-2].pts-.5);state.round=53;enterPlayoffs()`);
+ run(`startCareerWithClub(${JSON.stringify(club)});state.schedule.forEach(g=>{g.played=true;g.homeGoals=2;g.awayGoals=1});state.teams.forEach((t,i)=>{t.gp=52;t.pts=100-i;t.gf=150;t.ga=130});globalThis.other=leagueTable().filter(t=>t.name!==managerClub()).sort((a,b)=>b.pts-a.pts);team(managerClub()).pts=${rank}===1?200:${rank}===14?0:(other[${rank}-2].pts-.5);state.round=53;enterPlayoffs()`);
 }
 endRegular('HV71',7);
 assert.equal(run('state.season.phase'),'playoffs');
-assert.equal(run('state.season.series.length'),2);
+assert.equal(run('state.season.series.length'),5);
 assert.equal(run('state.season.series[0].high'),'HV71');
 assert.equal(run('currentSeasonFixture().away'),'HV71');
 const fixture=run('JSON.stringify(currentSeasonFixture())');run('watchRemainingPlayoffs()');
@@ -53,8 +54,8 @@ assert.equal(run('state.season.champion'),'HV71');
 assert.equal(run('state.season.phase'),'review');
 assert.equal(run('state.season.archive.length'),1);
 assert.equal(run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),table);
-assert.equal(run('state.season.series.filter(s=>s.stage==="quarter").length'),4);
-assert.equal(run('state.season.series.filter(s=>s.stage==="semi").length'),2);
+assert.equal(run('state.season.series.filter(s=>s.stage==="quarter"&&s.league===leagueOf()).length'),4);
+assert.equal(run('state.season.series.filter(s=>s.stage==="semi"&&s.league===leagueOf()).length'),2);
 const archive=run('JSON.stringify(state.season.archive)');
 const originalId=run('managerRoster()[0].id');const age=run('managerRoster()[0].age');run('managerRoster()[0].contractYears=1;beginPreseason()');
 assert.equal(run(`managerRoster().find(p=>samePlayerId(p.id,${JSON.stringify(originalId)})).age`),age+1);
@@ -67,7 +68,7 @@ assert.equal(run('managerRoster().find(p=>samePlayerId(p.id,expired.id)).contrac
 run('managerRoster().forEach(p=>{if(p.contractYears===0)p.contractYears=2});launchSeason()');
 assert.equal(run('state.season.phase'),'regular');
 assert.equal(run('state.round'),1);
-assert.equal(run('state.schedule.length'),364);
+assert.equal(run('state.schedule.length'),728);
 assert.equal(run('state.teams.every(t=>t.gp===0&&t.pts===0)'),true);
 assert.equal(run('JSON.stringify(state.season.archive)'),archive);
 assert.equal(run(`managerRoster().find(p=>samePlayerId(p.id,${JSON.stringify(originalId)})).age`),age+1);
@@ -85,7 +86,7 @@ assert.equal(run('state.season.archive.length'),2);
 assert.equal(run('state.season.archive[0].year'),2027);
 assert.equal(run('JSON.stringify(state.season.archive.slice(1))'),archive);
 // No-playoff teams can finish a season too.
-endRegular('Björklöven',14);run('watchRemainingPlayoffs()');
+endRegular('Björklöven',11);run('watchRemainingPlayoffs()');
 assert.equal(run('state.season.phase'),'review');
 assert.ok(run('state.season.champion'));
 // A top-six seed waits for the preliminary round, then gets a quarterfinal.

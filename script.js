@@ -661,6 +661,8 @@ function getOpponentGoalie(teamName) {
    NY KARRIÄR
    ========================================================= */
 
+registerLeagueClubs();
+
 function newState(){
 
 return {
@@ -709,7 +711,7 @@ contractNegotiation: null,
 
     live:null,
 
-    teams:TEAM_DATA.map(t=>({
+    teams:leagueTeamRows().map(t=>({
 
       name:t[0],
 
@@ -996,12 +998,15 @@ function createClubRosters(){
   );
 
 
+  for(const [name,,,strength] of ALLSVENSKAN_CLUBS)if(!clubRosters[name])clubRosters[name]=leagueRoster(name,strength);
   return clubRosters;
 
 }
-function createSchedule(){
-
-  const teams = TEAM_DATA.map(t => t[0]);
+function createSchedule(membership=leagueInitial()){
+  const groups=['SHL','HA'].map(id=>Object.keys(membership).filter(name=>membership[name]===id));
+  return groups.flatMap(teams=>createLeagueSchedule(teams));
+}
+function createLeagueSchedule(teams){
   const games = [];
 
   let roundNumber = 1;
@@ -1198,6 +1203,7 @@ if(
 function save(){
   ensureSeason();
   ensureAssessmentData();
+  ensureLeagues();
   ensureRecruitment();
   ensureLocker();
   ensureMedical();
@@ -3989,7 +3995,7 @@ const isHome =
                 "
               >
                 <span>▥</span>
-                SHL
+                ${leagueName()}
               </button>
 
 
@@ -5941,7 +5947,7 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
 function tableView(){
 
   const sorted=
-    state.teams
+    leagueTable()
     .slice()
     .sort(
       (a,b)=>
@@ -5965,7 +5971,7 @@ function tableView(){
 
   <section class="card">
 
-    <h2>SHL</h2>
+    <h2>${leagueName()}</h2>
 
     <table>
 
@@ -6098,7 +6104,7 @@ function tableView(){
 function gamesForRound(round){
 
   return state.schedule
-    .filter(game => game.round === round)
+    .filter(game => game.round === round && leagueOf(game.home)===leagueOf())
     .sort((a,b) => a.home.localeCompare(b.home));
 
 }
@@ -6143,7 +6149,7 @@ return `
       <h2>Omgång ${round}</h2>
 
       <p class="muted">
-        SHL • 7 matcher
+        ${leagueName()} • ${games.length} matcher
       </p>
 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
 
@@ -6484,6 +6490,7 @@ function continueGame(){managerContinue();}
 function render(){
   ensureSeason();
   ensureAssessmentData();
+  ensureLeagues();
   ensureRecruitment();
   ensureLocker();
   ensureMedical();
@@ -6562,6 +6569,9 @@ careerScreen === "menu" ? careerMenuView()
 
 ? newsView()
 
+: state.page==="leagues"
+? leaguesView()
+
 : state.page==="manager"
 ? managerView()
 
@@ -6617,8 +6627,8 @@ careerScreen === "menu" ? careerMenuView()
   const club = getClub(clubName);
   const sectionNames = {
     medical:"MEDICINSKT TEAM", locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
-    table:"SHL", tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
-    manager:"MIN KARRIÄR", staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
+    table:leagueName(), tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
+    leagues:"LIGAVÄRLDEN", manager:"MIN KARRIÄR", staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
   };
 
@@ -6635,7 +6645,7 @@ careerScreen === "menu" ? careerMenuView()
   if(topClub) topClub.textContent = clubName;
   if(badge){badge.textContent=careerIdentity(clubName).code;if(badge.style){badge.style.background=careerIdentity(clubName).color;badge.style.color="#0c1720";}}
   if(clubInfoName) clubInfoName.textContent = clubName;
-  if(clubInfoLeague) clubInfoLeague.textContent = club ? "SHL" : "";
+  if(clubInfoLeague) clubInfoLeague.textContent = club ? leagueName() : "";
 
 
 
