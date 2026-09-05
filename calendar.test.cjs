@@ -69,5 +69,6 @@ assert.throws(()=>run(`validateSaveText(${JSON.stringify(text.replace('"HV71"','
 run('saveFilePreview=validateSaveText(saveExportText());applyCareerImport()');assert.equal(run('state.managerClub'),'HV71');assert.equal(run('saveFilePreview'),null);assert.match(run('saveFileNotice'),/inläst/);
 const oldSave=run('JSON.stringify(state)');run('saveFilePreview={...JSON.parse(JSON.stringify(state)),schedule:null};applyCareerImport()');assert.equal(run('JSON.stringify(state)'),oldSave);
 run('globalThis.originalSet=localStorage.setItem;saveFilePreview=validateSaveText(saveExportText());localStorage.setItem=(k,v)=>{if(k===CAREER_SAVE_KEY)throw Error("quota");originalSet(k,v)};applyCareerImport();localStorage.setItem=originalSet');assert.match(run('saveFileNotice'),/avbröts/);
+const single=boot();single.run('startCareerWithClub("HV71");calendarInitialPreseason();managerContinue()');assert.equal(single.run('state.calendar.date'),'2026-08-02');
 const empty=boot();empty.run('showSaveFiles()');assert.doesNotMatch(empty.run('saveSettingsView()'),/undefined|NaN/);
 console.log('PASS: dates, once-only training, event continuation, deadline boundaries, future arrivals, full 2D friendly/stat isolation, tight schedule, paused reload and safe save import/export.');

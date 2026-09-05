@@ -174,7 +174,7 @@ function managerContinue(){
   if(careerScreen||!state.careerStarted)return;
   if(!managerCanPlay())return;
   ensureTrainingData();
-  if(state.season.phase==='preseason'){calendarContinue();return;}
+  if(state.season.phase==='preseason'){calendarContinue(1);return;}
   if(seasonContinue())return;
   if(state.live&&!state.live.finished&&state.training.lockedRound===state.round){state.page='match';save();render();return;}
   const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
