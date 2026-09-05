@@ -2141,3 +2141,20 @@ input {
     grid-template-columns:1fr;
   }
 }
+
+/* =========================================
+   MATCHPLAN OCH TAKTIK
+========================================= */
+.tactics-page{max-width:1200px;margin:0 auto}
+.tactics-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.tactic-choice-grid{display:grid;gap:10px;margin-top:14px}
+.tactic-choice{display:grid;gap:4px;width:100%;padding:16px;text-align:left;color:#f4f7fb;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer}
+.tactic-choice span{color:#738aa0;font-size:14px}
+.tactic-choice.active{border-color:#ffd400;background:rgba(255,212,0,.08);box-shadow:inset 3px 0 0 #ffd400}
+.tactical-orders{display:grid;gap:2px;margin-top:10px}
+.tactical-orders label{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,210px);align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.tactical-orders label > span{font-weight:700}
+.tactical-orders small{display:block;margin-top:4px;color:#738aa0;font-weight:400;line-height:1.4}
+.tactical-orders select{width:100%}
+@media(max-width:850px){.tactics-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.tactical-orders label{grid-template-columns:1fr}}
