@@ -115,7 +115,7 @@ function lockerMatchBonus(){
  const trust=players.reduce((n,p)=>n+(p.social?.trust??60),0)/players.length;
  const talk=state.live.socialTalks?.[socialTalkSlot()]?.reactions||[];
  const response=players.reduce((n,p)=>n+(talk.find(x=>samePlayerId(x.id,p.id))?.effect||0),0)/players.length;
- return Math.max(-2,Math.min(2,(socialChemistry(players)-30)/50+(trust-60)/60+response));
+ return Math.max(-2,Math.min(2,(socialChemistry(players)-30)/50+(trust-60)/60+response+(typeof matchFeedbackBonus==='function'?matchFeedbackBonus(players):0)));
 }
 function teamTalkPanel(){
  const m=state.live;if(!m)return '';const report=m.socialTalks?.[socialTalkSlot()],available=canTeamTalk();
