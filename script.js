@@ -1206,6 +1206,7 @@ function save(){
   ensureAssessmentData();
   ensureLeagues();
   ensureRecruitment();
+  ensurePlayerWorld();
   ensureLocker();
   ensureMedical();
   ensureAnalysis();
@@ -6301,6 +6302,7 @@ function getTransferMarketPlayers(){
     }
   );
 
+  players.push(...(state.playerWorld?.freeAgents||[]).map(p=>({...p,team:WORLD_FREE})));
   return players.sort(
     (a,b) =>
       a.name.localeCompare(b.name,"sv")
@@ -6317,7 +6319,7 @@ function getPlayerClub(playerId){
 
   }
 
-  return null;
+  return state.playerWorld?.freeAgents.some(p=>samePlayerId(p.id,playerId))?WORLD_FREE:null;
 
 }
 
@@ -6335,7 +6337,7 @@ function findPlayerAnywhere(playerId){
 
   }
 
-  return null;
+  return state.playerWorld?.freeAgents.find(p=>samePlayerId(p.id,playerId))||null;
 
 }
 
@@ -6493,6 +6495,7 @@ function render(){
   ensureAssessmentData();
   ensureLeagues();
   ensureRecruitment();
+  ensurePlayerWorld();
   ensureLocker();
   ensureMedical();
   ensureAnalysis();

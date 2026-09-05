@@ -109,11 +109,12 @@ function managerStoreClub(){
  const c=state.managerCareer,snapshot={year:clubYear(),money:state.money,wageLimit:wageBudget()};
  for(const field of MANAGER_CLUB_FIELDS)snapshot[field]=state[field]??null;
  snapshot.recruitment={missions:state.recruitment.missions.map(m=>m.status==='active'?{...m,status:'cancelled'}:m),shortlist:[...state.recruitment.shortlist]};
- snapshot.freeAgents=state.season.freeAgents;
+
  c.bank[managerClub()]=snapshot;
  state.recruitment.ai[managerClub()]={cash:state.money,wageLimit:wageBudget(),year:clubYear()};
  // Outgoing expiring player contracts become AI-managed after the departure.
- for(const p of managerRoster())if(p.contractYears<=0)p.contractYears=2;
+ worldAIContracts(managerClub());
+ worldFillClub(managerClub());
 }
 function managerAcceptJob(){
  ensureManager();const c=state.managerCareer,i=c.interview,j=c.jobs.find(j=>j.id===i?.id);
@@ -129,7 +130,7 @@ function managerAcceptJob(){
  state.fans=saved?.fans??CLUB_DATA[j.club].fans;state.morale=saved?.morale??65;
  state.tactic=saved?.tactic||'balanced';state.tacticalPlan=saved?.tacticalPlan||{forecheck:'balanced',tempo:'normal',physicality:'balanced',lineUsage:'balanced'};
  state.live=null;state.lines=null;state.specialTeams=null;state.selectedPlayer=null;state.selectedMarketPlayer=null;state.assessorId='assistant';
- state.boardPlan=null;state.season.nextWageLimit=offer.wageLimit;state.season.grant=0;state.season.freeAgents=saved?.freeAgents||[];state.season.departures=[];delete state.season.boardResult;
+ state.boardPlan=null;state.season.nextWageLimit=offer.wageLimit;state.season.grant=0;state.season.freeAgents=state.playerWorld.freeAgents;state.season.departures=[];delete state.season.boardResult;
  delete state.recruitment.ai[j.club];
  // Assignments and reports belong to the former employer; market history stays global.
  state.recruitment.missions=saved?.recruitment?.missions||[];state.recruitment.shortlist=saved?.recruitment?.shortlist||[];state.recruitment.incoming=[];state.recruitment.message='';state.recruitment.tab='search';

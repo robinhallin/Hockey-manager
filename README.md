@@ -182,3 +182,46 @@ Befintliga karriärer behålls. Se [metod, källor och begränsningar](ALLSVENSK
 
 Nya moduler: `allsvenskan-data.js` (fakta) och `allsvenskan.js` (spelmodell).
 Test: `node allsvenskan.test.cjs`. Alla befintliga VM-sviter laddar båda modulerna.
+
+## Player-world renewal
+
+The shared player world now advances once at each preseason boundary. Existing
+careers keep current rosters; old club-specific free-agent lists migrate into a
+single pool, deduplicated against employed players and across saved employers.
+Contractless players use the existing scouting, player wishes, reserved salary
+budget, competing offers and timed decisions, with exactly zero transfer fee.
+The old instant two-year re-sign button now opens a normal negotiation.
+
+Players can retire from age 36 (38 for goalies), with increasing deterministic
+career-specific probability and a maximum playing age of 43. Retirement removes
+them at the offseason boundary, including from the managed roster; inbox reports
+explain departures. These are game events, not real-world retirement predictions.
+Historical snapshots and original researched statistics remain unchanged.
+
+AI clubs assess expiring contracts by positional depth, age, salary room and a
+limited desire for a new challenge. Renewals vary from one to three years; players
+who are not retained enter the shared free-agent market. Contracted AI youngsters
+through age 25 gain one attribute per year while development room remains. This
+is a modest background model, not a simulation of their daily training.
+
+AI clubs fill positional shortages from affordable free agents, then fictional
+academy graduates if necessary, retaining at least two goalies, six defenders and
+twelve forwards. Emergency academy salaries can put a troubled AI club over its
+budget rather than make its fixtures unplayable; ordinary signings stay budgeted.
+Two additional fictional prospects per AI club annually compete for senior slots;
+those without room enter the market. Pending user targets are excluded from
+emergency recruitment. Normal rival-offer resolution remains active.
+
+Contractless players age and receive rehabilitation. After three unemployed
+offseasons they leave the tracked market (distinct from retirement), bounding
+pool growth. The world retains 700 compact event records and 20 yearly summaries.
+Rekrytering contains Kontraktslösa and a filterable Spelarvärlden journal.
+The shared pool persists across coaching jobs. Foreign clubs remain fictional
+recruitment destinations, not playable simulated leagues. There is no new real
+calendar or transfer-window regulation in this update.
+
+Validation: player-world.test.cjs covers migration/deduplication, scouting and
+zero-fee negotiations, retirement, AI contract decisions, eleven offseason
+transitions with valid unique rosters, bounded history, free-agent rehabilitation,
+reload and views. Existing recruitment, season, manager, medical and league tests
+cover interacting systems. Browser visual QA has not been performed.

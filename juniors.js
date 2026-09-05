@@ -80,7 +80,7 @@ function juniorRelease(id){
  const p=state.juniors.roster.find(q=>samePlayerId(q.id,id));if(!p||p.age<=20||juniorLocked())return;
  if(p.academy.loan)return juniorNotice('Återkalla lånet först.');
  const compensation=p.academy.seniorContract?p.salary*p.contractYears:0;if(state.money<compensation)return juniorNotice('Kassan räcker inte för att lösa det återstående A-avtalet.');
- clubPost('other',-compensation,'Avslutat junioravtal · '+p.name);p.contractYears=0;p.academy.seniorContract=false;state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);state.season.freeAgents.push(p);p.academy.mentor=null;
+ clubPost('other',-compensation,'Avslutat junioravtal · '+p.name);p.contractYears=0;p.academy.seniorContract=false;state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);worldRelease(p,managerClub(),'Lämnar juniorverksamheten');p.academy.mentor=null;
  juniorReport(`${p.name} lämnar juniorverksamheten`,'Spelaren är över junioråldern och har släppts till listan över kontraktslösa spelare.');juniorNotice(`${p.name} har lämnat klubben.`);
 }
 function juniorTarget(p){const all=Object.keys(PLAYER_ROLES[p.academy.role]).filter(k=>Object.hasOwn(p.attributes,k)),keys=all.filter(k=>p.attributes[k]<p.academy.ceiling[k]);return keys.length?keys[p.academy.cursor%keys.length]:all[0];}
