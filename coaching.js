@@ -24,6 +24,7 @@ function ensureSpecialTeams(){
 }
 
 function changeSpecialPlayer(key,index,id){
+  if(!hockeyAllowChange())return;
   ensureSpecialTeams();
   const unit=state.specialTeams[key];
   const player=managerRoster().find(p=>samePlayerId(p.id,id)&&p.pos!=="MV"&&medicalAvailable(p));
@@ -65,6 +66,7 @@ function coachingNavigate(page){
 }
 
 function benchLine(index){
+  if(!hockeyAllowChange())return;
   if(!state.live||state.live.finished||!Number.isInteger(index)||index<0||index>3) return;
   pauseMatch();
   state.live.currentLine=index;
