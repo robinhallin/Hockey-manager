@@ -74,6 +74,7 @@ document.addEventListener?.('keydown',event=>{
 if(typeof window!=='undefined')window.matchMedia?.('(min-width: 761px)').addEventListener?.('change',event=>{if(event.matches)deskCloseMenu();});
 
 function deskRefreshShell(){
+  document.querySelector('.game-shell')?.classList.toggle('match-mode',state.page==='match'&&!careerScreen);
   const nav=document.querySelector('.manager-nav');if(nav)nav.innerHTML=deskPrimaryNav();
   const date=document.querySelector('.season-info strong');if(date)date.textContent=state.calendar?calText(state.calendar.date):seasonLabel();
   const season=document.querySelector('.season-info span');if(season)season.textContent=seasonLabel();
