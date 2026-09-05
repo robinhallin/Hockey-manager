@@ -55,6 +55,7 @@ function trackIceTime(seconds){
   const players=[...new Map([...skaters,...(goalie?[goalie]:[])].map(p=>[String(p.id),p])).values()];
   const shared=Math.min(seconds,...players.map(p=>medicalLimit(p)-(m.iceTime[p.id]||0)));
   analysisIce(players,seconds);
+  leagueTrackIce(players,seconds);
   trackSocialIce(skaters,Math.max(0,shared));
   for(const p of players)m.iceTime[p.id]=(m.iceTime[p.id]||0)+Math.max(0,Math.min(seconds,medicalLimit(p)-(m.iceTime[p.id]||0)));
   medicalExposure(players,seconds);

@@ -66,9 +66,14 @@ function playerAssessment(p){
   const potentialEstimate=roles[0].value+p.attributeGrowth+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
   return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(roles[0].value),low:stars(roles[0].value-uncertainty),high:stars(roles[0].value+uncertainty),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
-function starsText(value){return '★'.repeat(Math.floor(value))+(value%1?'½':'')+'☆'.repeat(5-Math.ceil(value));}
-function assessmentBadge(p,potential=false){const r=playerAssessment(p);const lo=potential?r.potentialLow:r.low,hi=potential?r.potentialHigh:r.high;return `<span class="assessment-stars" title="${r.staff.name}: ${lo}–${hi} av 5, relativt din trupp">${lo===hi?starsText(lo):`${lo}–${hi} ★`}</span>`;}
-function assessmentShort(p){const r=playerAssessment(p);return `${r.low}–${r.high} ★ · ${r.roles[0].name}`;}
+function starsText(value){const n=Math.max(0,Math.min(5,Math.round(value)));return '★'.repeat(n)+'☆'.repeat(5-n);}
+function starRatingHTML(low,high,potential=false,assessor='Personalens bedömning'){
+ const lo=attrClamp(Number(low)||0,0,5),hi=Math.max(lo,attrClamp(Number(high)||0,0,5));
+ const label=`${potential?'Potential':'Förmåga'}: ${lo===hi?lo:lo+'–'+hi} av 5 stjärnor. ${assessor}. Ljusa stjärnor visar osäkerheten.`;
+ return `<span class="assessment-stars star-rating ${potential?'star-potential':'star-ability'}" role="img" aria-label="${trainingSafe(label)}" title="${trainingSafe(label)}">${Array.from({length:5},(_,i)=>`<span class="rating-star" aria-hidden="true"><span class="star-empty">☆</span><span class="star-possible" style="width:${Math.max(0,Math.min(1,hi-i))*100}%">★</span><span class="star-certain" style="width:${Math.max(0,Math.min(1,lo-i))*100}%">★</span></span>`).join('')}</span>`;
+}
+function assessmentBadge(p,potential=false){const r=playerAssessment(p);return starRatingHTML(potential?r.potentialLow:r.low,potential?r.potentialHigh:r.high,potential,r.staff.name);}
+function assessmentShort(p){const r=playerAssessment(p);return `${starsText(r.current)} · ${r.roles[0].name}`;}
 function attributeInterval(p,key,r){const center=r.estimated[key],spread=r.uncertainty;const lo=attrClamp(Math.floor(center-spread)),hi=attrClamp(Math.ceil(center+spread));return lo===hi?String(lo):`${lo}–${hi}`;}
 function assessmentPanel(p){
   const r=playerAssessment(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
@@ -77,7 +82,7 @@ function assessmentPanel(p){
   return `<section class="assessment-panel"><div class="assessment-heading"><div><span class="panel-label">PERSONALENS RAPPORT</span><h2>Så kan ${p.name.split(' ')[0]} användas</h2></div><label>Bedömare<select onchange="state.assessorId=this.value;save();render()">${state.staff.map(s=>`<option value="${s.id}" ${s.id===r.staff.id?'selected':''}>${s.name}</option>`).join('')}</select></label></div>
   <div class="assessment-summary"><div><small>Nuvarande förmåga</small>${assessmentBadge(p)}</div><div><small>Potential</small>${assessmentBadge(p,true)}</div><div><small>Rapportens säkerhet</small><strong>${r.familiarity>.8?'Hög':r.familiarity>.4?'Medel':'Låg'}</strong></div></div>
   <p>${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
-  <p class="muted">Stjärnorna jämförs med din trupp. Attribut visas på skalan 1–20 som bedömda intervall. Potential är en osäker prognos.</p>
+  <p class="muted">Guld visar förmåga, blått visar potential. Fyllda stjärnor är den säkrare delen av bedömningen; ljusa stjärnor visar möjlig nivå. Båda jämförs med din trupp. Attribut visas på skalan 1–20.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
   ${haResearchPanel(p)}
   <div class="role-reports">${r.roles.map(role=>`<span><b>${role.name}</b> · ${role.value>=14?'Tydliga styrkor':role.value>=11?'Användbar profil':'Behöver utvecklas'}</span>`).join('')}</div>

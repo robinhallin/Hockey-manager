@@ -44,7 +44,7 @@ function leagueBackground(g){
  if(g.played)return;const a=team(g.home),b=team(g.away);if(!a||!b)return;
  const roll=k=>attrSeed(`${state.season?.year||2026}:${g.round}:${g.home}:${k}`),delta=(a.strength-b.strength)/25;
  let h=Math.max(0,Math.floor(roll('h')*5+delta)),v=Math.max(0,Math.floor(roll('v')*5-delta)),ot=h===v;if(ot){if(roll('ot')<.53)h++;else v++;}
- Object.assign(g,{played:true,homeGoals:h,awayGoals:v});a.gp++;b.gp++;a.gf+=h;a.ga+=v;b.gf+=v;b.ga+=h;
+ Object.assign(g,{played:true,homeGoals:h,awayGoals:v,overtime:ot});leagueRecordBackground(g);a.gp++;b.gp++;a.gf+=h;a.ga+=v;b.gf+=v;b.ga+=h;
  const win=h>v?a:b,lose=h>v?b:a;if(ot){win.otw++;lose.otl++;win.pts+=2;lose.pts++;}else{win.w++;lose.l++;win.pts+=3;}
 }
 function leagueStartPlayoffs(){
