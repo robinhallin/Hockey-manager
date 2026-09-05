@@ -137,7 +137,7 @@ function runTrainingSession(){
       p.fatigue=trainingClamp(p.fatigue+load);
       const coach=state.staff.find(s=>s.id===(p.pos==='MV'?'goalie':'assistant'));
       const age=p.age<=23?1.35:p.age<=28?.85:.45;
-      const quality=(coach?.coaching||12)/15;
+      const quality=(coach?.coaching||12)/15*clubTrainingFactor();
       const freshness=Math.max(.25,1-previous/120);
       const growthRoom=.5+Math.min(3,p.attributeGrowth||0)/6;
       const points=(hard?8:light?3.5:6)*age*quality*freshness*growthRoom;

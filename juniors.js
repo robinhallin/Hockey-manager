@@ -80,7 +80,7 @@ function juniorRelease(id){
  const p=state.juniors.roster.find(q=>samePlayerId(q.id,id));if(!p||p.age<=20||juniorLocked())return;
  if(p.academy.loan)return juniorNotice('Återkalla lånet först.');
  const compensation=p.academy.seniorContract?p.salary*p.contractYears:0;if(state.money<compensation)return juniorNotice('Kassan räcker inte för att lösa det återstående A-avtalet.');
- state.money-=compensation;p.contractYears=0;p.academy.seniorContract=false;state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);state.season.freeAgents.push(p);p.academy.mentor=null;
+ clubPost('other',-compensation,'Avslutat junioravtal · '+p.name);p.contractYears=0;p.academy.seniorContract=false;state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);state.season.freeAgents.push(p);p.academy.mentor=null;
  juniorReport(`${p.name} lämnar juniorverksamheten`,'Spelaren är över junioråldern och har släppts till listan över kontraktslösa spelare.');juniorNotice(`${p.name} har lämnat klubben.`);
 }
 function juniorTarget(p){const all=Object.keys(PLAYER_ROLES[p.academy.role]).filter(k=>Object.hasOwn(p.attributes,k)),keys=all.filter(k=>p.attributes[k]<p.academy.ceiling[k]);return keys.length?keys[p.academy.cursor%keys.length]:all[0];}
@@ -98,9 +98,9 @@ function juniorTraining(session,key){
   }
   if(!medicalCanTrain(p)||p.trainingLoad==='rest'||(a.path==='guest'&&session.type==='recovery')){p.fatigue=Math.max(0,p.fatigue-20);continue;}
   const offer=a.loan?JUNIOR_LOANS[a.loan.destination]:null;
-  const coach=offer?.coach||(a.path==='guest'?(state.staff.find(q=>q.id===(p.pos==='MV'?'goalie':'assistant'))?.coaching||13):12);
+  const coach=offer?.coach||(a.path==='guest'?(state.staff.find(q=>q.id===(p.pos==='MV'?'goalie':'assistant'))?.coaching||13):(state.staff.find(q=>q.id==='junior')?.coaching||12));
   const fresh=Math.max(.2,1-p.fatigue/100),age=p.age<=20?1.15:.75;
-  juniorGrow(p,5*coach/12*fresh*age*(p.trainingLoad==='light'?.6:1));
+  juniorGrow(p,5*coach/12*fresh*age*(p.trainingLoad==='light'?.6:1)*(a.loan?1:clubJuniorFactor()));
   const mentor=juniorMentor(p);if(mentor){juniorGrow(p,1.2*(mentor.social?.leadership||10)/10,p.pos==='MV'?'composure':'workRate');p.morale=Math.min(85,p.morale+.3);}
   p.fatigue=trainingClamp(p.fatigue+(p.trainingLoad==='light'?-12:a.path==='guest'&&session.intensity==='hard'?6:-8));
  }
@@ -152,7 +152,7 @@ function juniorAssessment(p){
  const baseline=peers.reduce((n,q)=>n+attributeWeighted(q.attributes,weights),0)/Math.max(1,peers.length);
  const known=Math.min(.85,.25+a.observations/100),special=staff.specialty===a.role?1:0;
  const error=(1-known)*1.5+(20-staff.ability-special)/15,potError=1+(20-staff.potential-special)/12+(1-known)*2;
- const bias=(attrSeed(`${p.id}:${staff.id}:junior`)-.5)*2;
+ const bias=(attrSeed(`${p.id}:${staff.personId||staff.id}:junior`)-.5)*2;
  const value=attributeWeighted(p.attributes,weights)+bias*error,future=attributeWeighted(a.ceiling,weights)+bias*potError;
  const stars=n=>Math.round(attrClamp(2.5+(n-baseline)*.6,0,5)*2)/2;
  return {staff,current:`${stars(value-error)}–${stars(value+error)} ★`,potential:`${stars(future-potError)}–${stars(future+potError)} ★`,confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};

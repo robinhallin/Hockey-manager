@@ -67,7 +67,7 @@ function finishPlayoffMatch(){
   grantMatchDevelopment(p,seconds);p.happiness=trainingClamp((p.happiness||70)+(m.hv>m.opp?1:-1),20,100);
  }
  state.history.unshift(`${SEASON_STAGES[g.stage]}: ${managerClub()} ${m.hv}–${m.opp} ${m.opponent}`);
- state.money+=Math.round(state.fans*220)-300000;afterTrainingMatch();
+ clubSettleMatch();afterTrainingMatch();
  const series=state.season.series.find(s=>s.id===g.seriesId);
  managerMessage(`series:${g.seriesId}:${series.games.length}`,`${series.high} ${series.winsHigh}–${series.winsLow} ${series.low}`,`${series.winner?`${series.winner} vinner serien.`:`Nästa match blir match ${series.games.length+1}.`} Återhämtning, kedjor och matchplan kan justeras inför nästa möte.`,'Slutspelsrapport',{link:'season'});
  finishPlayoffDay();state.page="season";save();render();
@@ -105,7 +105,8 @@ function beginPreseason(){
  }
  const fulfilled=s.boardResult.filter(g=>g.met).length/Math.max(1,s.boardResult.length);
  s.nextWageLimit=Math.round(wageBudget()*(.95+.1*fulfilled)/10000)*10000;
- s.grant=Math.round(careerIdentity(managerClub()).cash*(.4+.2*fulfilled));state.money+=s.grant;
+ s.grant=Math.round(careerIdentity(managerClub()).cash*(.4+.2*fulfilled));
+ clubNewYear();clubPost("grant",s.grant,"Styrelsens försäsongstilldelning");
  juniorNewYear();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
  state.page='season';save();render();
