@@ -18,7 +18,7 @@ const TRAINING_PRESETS = {
 };
 let trainingPosition='all';
 function trainingClamp(n,lo=0,hi=100){return Math.max(lo,Math.min(hi,n));}
-function trainingSignature(){return [state.tactic,state.tacticalPlan?.forecheck,state.tacticalPlan?.tempo].join(':');}
+function trainingSignature(){const base=[state.tactic,state.tacticalPlan?.forecheck,state.tacticalPlan?.tempo].join(':');return state.tacticalPlan?.attackStyle&&state.tacticalPlan.attackStyle!=='control'?base+':'+state.tacticalPlan.attackStyle:base;}
 function trainingPlan(name='balanced'){return TRAINING_PRESETS[name].plan.map(([type,intensity])=>({type,intensity}));}
 function managerMessage(key,title,body,category='Tränarteam',extra={}){
   const t=state.training;if(!t||t.messages.some(m=>m.key===key))return;

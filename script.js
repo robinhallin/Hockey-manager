@@ -1987,7 +1987,8 @@ function hvShot(
   const location=context?.location||shotLocation(dangerous);
   goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !m.aiGoaliePulled ? 0.52 : 1)));
   const result=Math.random();
-  recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result);
+  recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result,context&&m.aiGoaliePulled&&result>=goalChance?'wide':null);
+  if(context&&m.aiGoaliePulled&&result>=goalChance){addEvent(`${shooter.name} skjuter utanför det tomma målet.`,'shot');return;}
 
 
   if(
@@ -2211,7 +2212,8 @@ function opponentShot(
   const location=context?.location||shotLocation(dangerous);
   goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !m.goaliePulled ? 0.52 : 1)));
   const result=Math.random();
-  recordAnalysisShot('opponent',shooterName,null,dangerous,location,goalChance,result);
+  recordAnalysisShot('opponent',shooterName,null,dangerous,location,goalChance,result,context&&m.goaliePulled&&result>=goalChance?'wide':null);
+  if(context&&m.goaliePulled&&result>=goalChance){addEvent(`${shooterName} skjuter utanför det tomma målet.`,'shot');return;}
 
 
   if(
@@ -2731,6 +2733,7 @@ function updateFatigue(){
    ========================================================= */
 
 function aiDecisions(){
+  if(hockeyChangeBlocked("opponent"))return;
 
   const m=
     state.live;
@@ -2821,6 +2824,7 @@ function useTimeout(){
    ========================================================= */
 
 function toggleGoalie(){
+  if(!hockeyAllowChange())return;
 
   const m=
     state.live;
@@ -4992,6 +4996,7 @@ function lineOptions(players, selectedId){
 
 
 function changeLinePlayer(type,index,newId){
+  if(!hockeyAllowChange())return;
   const chosen=playerById(newId);if(!medicalAvailable(chosen))return;
 
   ensureLines();
@@ -5030,6 +5035,7 @@ function changeLinePlayer(type,index,newId){
 
 
 function changeGoalie(id){
+  if(!hockeyAllowChange())return;
   if(!medicalAvailable(playerById(id)))return;
 
   ensureLines();
@@ -5098,7 +5104,7 @@ function rotateUnits(){
 
   const m = state.live;
 
-  if(!m) return;
+  if(!m||hockeyChangeBlocked()) return;
 
   m.shiftSeconds = 0;
 
@@ -6430,6 +6436,7 @@ function tacticsView(){
     </section>
     <section class="dashboard-panel"><div class="panel-header"><div><span class="panel-label">DETALJER</span><h2>Lagorder</h2></div></div>
       <div class="tactical-orders">
+        <label><span>Spelidé<small>Valet ställer också in forecheck. Anpassa detaljerna efteråt.</small></span><select onchange="hockeySetStyle(this.value)">${Object.entries(HOCKEY_STYLES).map(([v,l])=>`<option value="${v}" ${hockeyStyle("own")===v?"selected":""}>${l}</option>`).join("")}</select></label>
         <label><span>Forecheck<small>Hög press ger fler chanser men kostar ork.</small></span>${select("forecheck",[["passive","Avvaktande"],["balanced","Balanserad"],["aggressive","Aggressiv"]])}</label>
         <label><span>Tempo<small>Högt tempo ökar både tryck och trötthet.</small></span>${select("tempo",[["low","Lågt"],["normal","Normalt"],["high","Högt"]])}</label>
         <label><span>Fysisk nivå<small>Mer fysik ger tacklingar men riskerar utvisningar.</small></span>${select("physicality",[["safe","Disciplinerat"],["balanced","Balanserat"],["hard","Hårt"]])}</label>
