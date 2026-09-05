@@ -1200,6 +1200,7 @@ function save(){
   ensureAssessmentData();
   ensureRecruitment();
   ensureLocker();
+  ensureMedical();
   ensureTrainingData();
 
   localStorage.setItem(
@@ -1302,7 +1303,7 @@ function effectiveRating(p,type="attack"){
 
   return Math.max(
     40,
-    base - fatiguePenalty
+    base - fatiguePenalty - (p.health?.injury?3:0)
   );
 }
 function weightedPlayer(type="attack"){
@@ -1341,6 +1342,7 @@ function weightedPlayer(type="attack"){
 
   }
 
+  list=list.filter(medicalAvailable);
   let total = 0;
 
 list.forEach(p=>{
@@ -1369,8 +1371,8 @@ list.forEach(p=>{
 function randomGoalie(){
   ensureLines();
   const selected=playerById(state.lines.goalie);
-  if(selected?.pos==="MV") return selected;
-  return goalies()
+  if(selected?.pos==="MV"&&medicalAvailable(selected)) return selected;
+  return goalies().filter(medicalAvailable)
     .slice()
     .sort(
       (a,b)=>matchAttributeRating(b)-matchAttributeRating(a)
@@ -1437,6 +1439,7 @@ function addEvent(
    ========================================================= */
 
 function createMatch(){
+  if(!medicalMatchReady()){state.page="medical";render();return;}
   if(opponent()==="Ingen match"){state.page="season";render();return;}
 
   const opp=opponent();
@@ -1547,6 +1550,7 @@ function startMatch(){
   )
     return;
 
+  if(!medicalMatchReady()){state.page="medical";save();render();return;}
   lockTrainingForMatch();
   markSocialPeriodStarted();
   state.live.running=true;
@@ -1679,6 +1683,7 @@ if(m.shiftSeconds >= 45){
   }
 
 
+  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
   /* ---------- UTVISNINGAR ---------- */
 
   tickPenalties();
@@ -2325,8 +2330,8 @@ function goalHV(
 
 
   const possibleAssists=
-    forwards().filter(
-      p=>p.id!==scorer.id
+    [...currentLinePlayers(),...currentDefensePlayers()].filter(
+      p=>medicalAvailable(p)&&p.id!==scorer.id
     );
 
 
@@ -2992,6 +2997,7 @@ function overtimeStep(){
   }
 
 
+  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
   simulateAttack();
 
 
@@ -3337,7 +3343,7 @@ function updateSquadAfterMatch(won){
     const promisedRank = SQUAD_ROLES.indexOf(player.promisedRole);
     const actualRank = SQUAD_ROLES.indexOf(player.squadRole);
 
-    if(dressed) player.games = (player.games || 0) + 1;
+    if(dressed||(state.live.iceTime?.[player.id]||0)>0) player.games = (player.games || 0) + 1;
 
     const moodChange = (won ? 1 : -1) + (promisedRank > actualRank ? -2 : 0);
     player.happiness = Math.max(20,Math.min(100,player.happiness + moodChange));
@@ -4995,6 +5001,7 @@ ${
 
           ${trainingPlayerPanel(player)}
           ${lockerPlayerPanel(player)}
+          ${medicalPlayerPanel(player)}
 
         </section>
 
@@ -5012,17 +5019,17 @@ ${
 
 function ensureLines(){
 
-  if(state.lines) return;
+  if(state.lines){repairMedicalLines();return;}
 
-  const fw = forwards()
+  const fw = forwards().filter(medicalAvailable)
     .slice()
     .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
-  const d = defenders()
+  const d = defenders().filter(medicalAvailable)
     .slice()
     .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
-  const g = goalies()
+  const g = goalies().filter(medicalAvailable)
     .slice()
     .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
@@ -5047,12 +5054,13 @@ function playerById(id){
 
 function lineOptions(players, selectedId){
 
-  return players.map(p=>`
+  return (selectedId===null?'<option value="">Vakant</option>':'')+players.map(p=>`
     <option
       value="${p.id}"
       ${samePlayerId(p.id,selectedId) ? "selected" : ""}
+      ${medicalAvailable(p)?"":"disabled"}
     >
-      ${p.name} • ${assessmentShort(p)}
+      ${p.name} • ${assessmentShort(p)} ${medicalAvailable(p)?"":"· Ej tillgänglig"}
     </option>
   `).join("");
 
@@ -5060,6 +5068,7 @@ function lineOptions(players, selectedId){
 
 
 function changeLinePlayer(type,index,newId){
+  const chosen=playerById(newId);if(!medicalAvailable(chosen))return;
 
   ensureLines();
 
@@ -5097,6 +5106,7 @@ function changeLinePlayer(type,index,newId){
 
 
 function changeGoalie(id){
+  if(!medicalAvailable(playerById(id)))return;
 
   ensureLines();
 
@@ -5140,10 +5150,7 @@ function currentLinePlayers(){
   const start =
     state.live.currentLine * 3;
 
-  return state.lines.forwards
-    .slice(start, start + 3)
-    .map(playerById)
-    .filter(Boolean);
+  return medicalUnit(state.lines.forwards.slice(start,start+3).map(playerById).filter(Boolean),3,"F");
 }
 
 
@@ -5159,10 +5166,7 @@ function currentDefensePlayers(){
   const start =
     state.live.currentDefensePair * 2;
 
-  return state.lines.defense
-    .slice(start, start + 2)
-    .map(playerById)
-    .filter(Boolean);
+  return medicalUnit(state.lines.defense.slice(start,start+2).map(playerById).filter(Boolean),2,"B");
 }
 
 
@@ -6562,6 +6566,7 @@ function render(){
   ensureAssessmentData();
   ensureRecruitment();
   ensureLocker();
+  ensureMedical();
   ensureTrainingData();
   applyCareerShell();
 
@@ -6647,6 +6652,10 @@ careerScreen === "menu" ? careerMenuView()
 
 ? inboxView()
 
+: state.page==="medical"
+
+? medicalView()
+
 : state.page==="locker"
 
 ? lockerView()
@@ -6672,7 +6681,7 @@ careerScreen === "menu" ? careerMenuView()
   const clubName = managerClub();
   const club = getClub(clubName);
   const sectionNames = {
-    locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
+    medical:"MEDICINSKT TEAM", locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
     statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"

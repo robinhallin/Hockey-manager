@@ -13,6 +13,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('attributes.js','utf8'),context);
   vm.runInContext(fs.readFileSync('recruitment.js','utf8'),context);
   vm.runInContext(fs.readFileSync('locker.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('medical.js','utf8'),context);
   vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
