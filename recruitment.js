@@ -72,6 +72,7 @@ function advanceRecruitmentRound(){
 function recruitmentWeek(){
  if(state.season?.phase!=='preseason')return;
  const r=state.recruitment;r.weeks++;advanceRecruitment();for(let i=0;i<7;i++)medicalDay();
+ for(let i=0;i<3;i++)juniorTraining({type:"skills",intensity:"normal"},`${state.season.year}:preseason:${r.weeks}:${i}`);
  // Individual observations use the same offseason time as scout assignments.
  for(const report of Object.values(state.scoutReports))if(report.dueRound){report.visits=Math.min(3,report.visits+1);delete report.dueRound;}
  recruitMessage(`Försäsongsvecka ${r.weeks}: scouter, spelare och klubbar har lämnat nya besked.`);

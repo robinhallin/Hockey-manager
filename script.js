@@ -814,7 +814,7 @@ function ensureManagementData(){
 }
 
 function annualWageCost(){
-  return managerRoster().reduce((sum,player) => sum + (player.salary || 0), 0);
+  return [...managerRoster(),...(state.juniors?.roster||[]).filter(p=>p.academy.seniorContract)].reduce((sum,player) => sum + (player.salary || 0), 0);
 }
 
 function wageBudget(){
@@ -1203,6 +1203,7 @@ function save(){
   ensureMedical();
   ensureAnalysis();
   ensureTrainingData();
+  ensureJuniors();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -6585,6 +6586,7 @@ function render(){
   ensureMedical();
   ensureAnalysis();
   ensureTrainingData();
+  ensureJuniors();
   applyCareerShell();
 
   const content=
@@ -6680,6 +6682,9 @@ careerScreen === "menu" ? careerMenuView()
 : state.page==="scouting"
 
 ? scoutingView()
+
+: state.page==="juniors"
+? juniorsView()
 
 : state.page==="statistics"
 

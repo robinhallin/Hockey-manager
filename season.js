@@ -106,6 +106,7 @@ function beginPreseason(){
  const fulfilled=s.boardResult.filter(g=>g.met).length/Math.max(1,s.boardResult.length);
  s.nextWageLimit=Math.round(wageBudget()*(.95+.1*fulfilled)/10000)*10000;
  s.grant=Math.round(careerIdentity(managerClub()).cash*(.4+.2*fulfilled));state.money+=s.grant;
+ juniorNewYear();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
  state.page='season';save();render();
 }
@@ -113,14 +114,8 @@ function releaseExpiredPlayer(id){
  const s=state.season,p=managerRoster().find(p=>samePlayerId(p.id,id));if(s?.phase!=='preseason'||!p||p.contractYears>0)return;
  state.clubRosters[managerClub()]=managerRoster().filter(x=>!samePlayerId(x.id,id));s.freeAgents.push(p);s.departures.push(p.name);syncManagerRoster();state.lines=null;state.specialTeams=null;save();render();
 }
-function recruitAcademyPlayer(pos){
- const s=state.season;if(s?.phase!=='preseason'||!['MV','B','C','VF','HF'].includes(pos))return;
- const salary=350000;
- const index=(s.academyCount||0)+1;s.academyCount=index;
- const names=['Elias','Vilgot','Alvin','Noel','Hugo','Axel','Liam','Anton'];const surnames=['Berg','Lind','Ekström','Holm','Sandberg','Nyström','Lund','Fors'];
- const p={id:`academy-${s.year}-${index}`,name:`${names[(index+s.year)%8]} ${surnames[Math.floor(index/8)%8]}`,pos,age:18,nationality:'SWE',overall:65+index%4,potential:80,salary,contractYears:3,value:1000000,shooting:65,passing:67,defense:66,physical:65,fatigue:0,morale:70,happiness:70,goals:0,assists:0,shots:0,pim:0,games:0,squadRole:'Breddspelare',promisedRole:'Breddspelare',developmentFocus:'Balanserad'};
- managerRoster().push(p);ensureManagementData();ensurePlayerAttributes(p);s.message=`${p.name} har flyttats upp från juniorlaget.`;save();render();
-}
+function recruitAcademyPlayer(pos){if(state.season?.phase==='preseason')juniorEmergency(pos);}
+
 function preseasonRenew(id){const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p)return;state.selectedPlayer=p.id;state.page='player';openContractNegotiation(p.id);}
 function launchSeason(){
  const s=state.season;if(s?.phase!=='preseason')return;
