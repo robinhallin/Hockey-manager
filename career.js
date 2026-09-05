@@ -48,12 +48,13 @@ function initializeBoardPlan(offer=null){
   const chosen=offer||careerOffer(managerClub(),state.clubRosters);
   // Older careers keep their existing financial room and start observation now.
   if(!offer){chosen.wageLimit=getClub()?.wageBudget||chosen.wageLimit;chosen.cashFloor=Math.max(0,Math.min(chosen.cashFloor,state.money));}
-  const total=state.schedule.filter(g=>g.home===managerClub()||g.away===managerClub()).length;
+  const total=state.schedule.filter(g=>!g.seriesId&&(g.home===managerClub()||g.away===managerClub())).length;
   const played=team(managerClub())?.gp||0;
   chosen.youthGames=Math.min(12,Math.max(1,total-played));
   state.boardPlan={version:1,club:managerClub(),offer:chosen,startPlayed:played,youthAppearances:{},lastRecordedRound:0};
 }
 function recordBoardMatch(){
+  if(state.season?.phase && state.season.phase!=="regular")return;
   initializeBoardPlan();
   const b=state.boardPlan,m=state.live;
   if(!m?.finished||b.lastRecordedRound===state.round)return;
@@ -66,11 +67,12 @@ function recordBoardMatch(){
   b.lastRecordedRound=state.round;
 }
 function boardProgress(){
+  if(state.season?.boardResult)return state.season.boardResult;
   initializeBoardPlan();
   const b=state.boardPlan,offer=b.offer;
   const table=[...state.teams].sort((a,z)=>z.pts-a.pts||(z.gf-z.ga)-(a.gf-a.ga));
   const own=team(managerClub()),played=own?.gp||0;
-  const total=state.schedule.filter(g=>g.home===managerClub()||g.away===managerClub()).length;
+  const total=state.schedule.filter(g=>!g.seriesId&&(g.home===managerClub()||g.away===managerClub())).length;
   const ended=played>=total;
   const position=table.findIndex(t=>t.name===managerClub())+1;
   const youngsters=Object.values(b.youthAppearances).sort((a,z)=>z.games-a.games);
@@ -90,7 +92,7 @@ function boardGoalsHTML(goals,tracked=false){return `<div class="board-goals">${
 function boardView(){
   const goals=boardProgress(),c=careerIdentity(managerClub());
   const youngsters=Object.values(state.boardPlan.youthAppearances).sort((a,b)=>b.games-a.games);
-  return `<section class="board-page"><header class="career-page-heading"><div><span class="career-eyebrow">KLUBBLEDNING · 2026/27</span><h1>Styrelsens uppdrag</h1><p>Det här kom ni överens om. Resultat och ekonomi utvärderas vid grundseriens slut.</p></div>${careerBadge(managerClub(),'large')}</header><div class="board-letter"><span class="career-eyebrow">FRÅN STYRELSERUMMET</span><h2>${c.title}</h2><p>”${c.pitch}”</p><span class="letter-signature">Styrelsen · ${managerClub()}</span></div>${boardGoalsHTML(goals,true)}<section class="board-youth"><h2>Talanger som fått förtroende</h2><p>En match räknas först vid minst fem minuters registrerad istid, även i powerplay och boxplay.</p>${youngsters.length?youngsters.map(p=>`<div class="row"><span>${p.name}</span><strong>${p.games} / ${state.boardPlan.offer.youthGames} matcher</strong></div>`).join(''):'<p class="muted">Ingen spelare har nått fem minuters istid i en avslutad match ännu.</p>'}</section></section>`;
+  return `<section class="board-page"><header class="career-page-heading"><div><span class="career-eyebrow">KLUBBLEDNING · ${seasonLabel()}</span><h1>Styrelsens uppdrag</h1><p>Det här kom ni överens om. Resultat och ekonomi utvärderas vid grundseriens slut.</p></div>${careerBadge(managerClub(),'large')}</header><div class="board-letter"><span class="career-eyebrow">FRÅN STYRELSERUMMET</span><h2>${c.title}</h2><p>”${c.pitch}”</p><span class="letter-signature">Styrelsen · ${managerClub()}</span></div>${boardGoalsHTML(goals,true)}<section class="board-youth"><h2>Talanger som fått förtroende</h2><p>En match räknas först vid minst fem minuters registrerad istid, även i powerplay och boxplay.</p>${youngsters.length?youngsters.map(p=>`<div class="row"><span>${p.name}</span><strong>${p.games} / ${state.boardPlan.offer.youthGames} matcher</strong></div>`).join(''):'<p class="muted">Ingen spelare har nått fem minuters istid i en avslutad match ännu.</p>'}</section></section>`;
 }
 function boardOverview(){
   const goals=boardProgress();
@@ -129,7 +131,7 @@ function previousCareerName(){try{const p=JSON.parse(localStorage.getItem(PREVIO
 function careerHeader(step=''){return `<header class="career-top"><button class="career-wordmark" onclick="showCareerMenu()" aria-label="Hockey Manager huvudmeny"><b>HM<span>26</span></b><span>HOCKEY<br>MANAGER</span></button>${step?`<nav class="career-steps" aria-label="Karriärstart"><span class="${step==='select'?'current':''}">01 <b>Välj klubb</b></span><span class="${step==='review'?'current':''}">02 <b>Ditt uppdrag</b></span></nav>`:'<span class="career-season">SÄSONG 2026/27</span>'}${step?'<button class="career-text-button" onclick="showCareerMenu()">Till huvudmenyn</button>':''}</header>`;}
 function careerMenuView(){
   const previous=previousCareerName();
-  return `<section class="career-menu">${careerHeader()}<div class="career-menu-body"><div class="career-menu-copy"><span class="career-eyebrow">SVENSK HOCKEY. DITT NÄSTA KAPITEL.</span><h1>DITT LAG.<br>DINA <em>BESLUT.</em></h1><p>Från första laguttagningen till den sista slutsignalen. Bygg laget du tror på.</p><div class="career-menu-actions">${state.careerStarted?`<button class="career-resume" onclick="resumeCareer()"><span><small>FORTSÄTT KARRIÄR</small><strong>${managerClub()}</strong><span>Omgång ${state.round} · ${state.live&&!state.live.finished?'Match pausad':'Klubbkontoret'}</span></span><b aria-hidden="true">↗</b></button>`:''}<button class="career-primary" onclick="beginCareerSelection()">Starta ny karriär <span aria-hidden="true">→</span></button>${previous?`<button class="career-text-button previous-career" onclick="previousCareer()">Öppna föregående karriär · ${previous}</button>`:''}</div>${careerMessage?`<p role="alert">${careerMessage}</p>`:''}</div><div class="arena-caption"><span>01 / FÖRE NEDSLÄPP</span><p>Allt börjar<br>med ett beslut.</p></div></div><footer class="career-menu-footer"><span>14 KLUBBAR <i>•</i> 52 OMGÅNGAR <i>•</i> DIN IDENTITET</span><span>HOCKEY MANAGER / ALPHA</span></footer></section>`;
+  return `<section class="career-menu">${careerHeader()}<div class="career-menu-body"><div class="career-menu-copy"><span class="career-eyebrow">SVENSK HOCKEY. DITT NÄSTA KAPITEL.</span><h1>DITT LAG.<br>DINA <em>BESLUT.</em></h1><p>Från första laguttagningen till den sista slutsignalen. Bygg laget du tror på.</p><div class="career-menu-actions">${state.careerStarted?`<button class="career-resume" onclick="resumeCareer()"><span><small>FORTSÄTT KARRIÄR</small><strong>${managerClub()}</strong><span>${seasonLabel()} · Omgång ${state.round} · ${state.live&&!state.live.finished?'Match pausad':'Klubbkontoret'}</span></span><b aria-hidden="true">↗</b></button>`:''}<button class="career-primary" onclick="beginCareerSelection()">Starta ny karriär <span aria-hidden="true">→</span></button>${previous?`<button class="career-text-button previous-career" onclick="previousCareer()">Öppna föregående karriär · ${previous}</button>`:''}</div>${careerMessage?`<p role="alert">${careerMessage}</p>`:''}</div><div class="arena-caption"><span>01 / FÖRE NEDSLÄPP</span><p>Allt börjar<br>med ett beslut.</p></div></div><footer class="career-menu-footer"><span>14 KLUBBAR <i>•</i> 52 OMGÅNGAR <i>•</i> DIN IDENTITET</span><span>HOCKEY MANAGER / ALPHA</span></footer></section>`;
 }
 function careerClubSelectView(){
   if(!careerDraft)careerDraft=newState();
