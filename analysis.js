@@ -55,7 +55,7 @@ function analysisSnapshot(){
 }
 function finishAnalysis(){
  ensureAnalysis();leagueCommitLive();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
- const snapshot=analysisSnapshot();a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest';
+ const snapshot=analysisSnapshot();a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest'; storiesAfterMatch(snapshot);
  managerMessage(`analysis:${a.id}`,'Matchanalysen är klar',`${snapshot.club} ${snapshot.own}–${snapshot.against} ${snapshot.opponent}. Skott, formationer och spelarnas minuter finns under Statistik & analys.`,'Matchanalytiker',{link:'statistics'});
 }
 function trimAnalysisArchive(){
