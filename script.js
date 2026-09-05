@@ -1210,6 +1210,7 @@ function save(){
   ensureLocker();
   ensureMedical();
   ensureAnalysis();
+  ensureCalendar();
   ensureTrainingData();
   ensureJuniors();
   ensureRink();
@@ -1238,6 +1239,7 @@ function team(name){
 
 
 function opponent(){
+    if(state.calendar?.active){const f=state.calendar.friendlies.find(f=>f.id===state.calendar.active);if(f)return f.opponent;}
     if(state.season && state.season.phase!=="regular"){const g=currentSeasonFixture();return g?(g.home===managerClub()?g.away:g.home):"Ingen match";}
 
     const clubName = managerClub();
@@ -1453,6 +1455,8 @@ function addEvent(
 
 function createMatch(){
   if(!managerCanPlay())return;
+  if(state.season.phase==='preseason'&&!state.calendar?.active){state.page='calendar';save();render();return;}
+  calendarToMatch();
   if(!medicalMatchReady()){state.page="medical";render();return;}
   if(opponent()==="Ingen match"){state.page="season";render();return;}
 
@@ -3111,6 +3115,7 @@ function finishMatch(
   overtime
 ){
 
+  if(state.live?.friendly){calendarFinishFriendly();return;}
   if(isPlayoffMatch()){finishPlayoffMatch();return;}
   const m=state.live;
   if(!m||m.finished)return;
@@ -3294,7 +3299,7 @@ simulateOtherGames();
 afterTrainingMatch();
 
 state.round++;
-advanceScoutReports();
+calendarAfterFixture();
 
 
   save();
@@ -4475,6 +4480,7 @@ function submitContractRenewal(playerId,salary,years,role){
   const player = managerRoster().find(p => samePlayerId(p.id,playerId));
   if(!negotiation || !player || !samePlayerId(negotiation.playerId,playerId)) return;
 
+  if(player.futureContract){negotiation.message='Spelaren har redan ett bindande avtal med nästa klubb.';save();render();return;}
   salary = Math.round(Number(salary) || 0);
   years = Math.round(Number(years) || 0);
   negotiation.attempts++;
@@ -6488,7 +6494,7 @@ function placeholderView(title){
 
 }
 
-function continueGame(){managerContinue();}
+function continueGame(){calendarContinue();}
 
 function render(){
   ensureSeason();
@@ -6499,6 +6505,7 @@ function render(){
   ensureLocker();
   ensureMedical();
   ensureAnalysis();
+  ensureCalendar();
   ensureTrainingData();
   ensureJuniors();
   ensureRink();
@@ -6514,7 +6521,8 @@ function render(){
 
 
 content.innerHTML=
-careerScreen === "menu" ? careerMenuView()
+careerScreen === "files" ? saveSettingsView()
+: careerScreen === "menu" ? careerMenuView()
 : careerScreen === "select" ? careerClubSelectView()
 : careerScreen === "review" ? careerReviewView()
 : state.page==="clubSelect"
@@ -6621,9 +6629,11 @@ careerScreen === "menu" ? careerMenuView()
 
 ? boardView()
 
+: state.page==="calendar"
+? calendarView()
 : state.page==="settings"
 
-? placeholderView("Inställningar")
+? saveSettingsView()
 
 : homeView();
 
@@ -6633,7 +6643,7 @@ careerScreen === "menu" ? careerMenuView()
     medical:"MEDICINSKT TEAM", locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:leagueName(), tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
     leagues:"LIGAVÄRLDEN", manager:"MIN KARRIÄR", staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
-    settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
+    calendar:"KALENDER", settings:"SPARFILER & INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
   };
 
   const section = document.querySelector(".current-section");

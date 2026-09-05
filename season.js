@@ -57,7 +57,7 @@ function finishPlayoffDay(){
   if(game.home===managerClub()||game.away===managerClub())return false;
   simulatePlayoffGame(game);
  }
- state.round++;advanceScoutReports();advancePlayoffStage();return true;
+ calendarToMatch();state.round++;calendarAfterFixture();advancePlayoffStage();return true;
 }
 function finishPlayoffMatch(){
  const m=state.live,g=currentSeasonFixture();if(!m||m.finished||!g||m.hv===m.opp)return;
@@ -98,7 +98,7 @@ function watchRemainingPlayoffs(){
 }
 function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
- s.phase='preseason';s.year++;s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
+ s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
   p.age++;p.contractYears=Math.max(0,(p.contractYears||1)-1);
 
@@ -127,8 +127,10 @@ function launchSeason(){
  if(!managerCanPlay())return;
  const s=state.season;if(s?.phase!=='preseason')return;
  if(state.recruitment?.deals.some(d=>d.status==='pending')){s.message='Invänta eller återkalla pågående transferbud under Rekrytering innan premiären.';render();return;}
+ if(state.calendar.friendlies.some(f=>f.club===managerClub()&&!f.played)){s.message='Spela eller avboka återstående träningsmatcher under Kalender före seriepremiären.';save();render();return;}
  const ps=managerRoster();if(ps.some(p=>p.contractYears<=0)){s.message='Förnya eller avsluta samtliga utgående avtal innan premiären.';render();return;}
  if(ps.filter(p=>p.pos==='MV').length<2||ps.filter(p=>p.pos==='B').length<6||ps.filter(p=>!['MV','B'].includes(p.pos)).length<12){s.message='Premiärtruppen behöver minst två målvakter, sex backar och tolv forwards. Du kan flytta upp juniorer.';render();return;}
+ calendarLaunch();
  for(const roster of Object.values(state.clubRosters))for(const p of roster){for(const key of ['goals','assists','shots','pim','games','saves','goalsAgainst'])p[key]=0;p.fatigue=0;p.trainingBaseline={...p.attributes};}
  state.teams=leagueTeamRows().map(([name,strength,style])=>({name,strength:Math.round(state.clubRosters[name].reduce((n,p)=>n+matchAttributeRating(p),0)/state.clubRosters[name].length),style,gp:0,w:0,l:0,otw:0,otl:0,pts:0,gf:0,ga:0}));
  state.managerCareer.startGames=0;state.managerCareer.lastReview=null;
@@ -146,7 +148,7 @@ function seasonMatchPanel(){
  const series=state.season.series.find(s=>s.id===g.seriesId);
  return `<section class="season-banner"><span>${SEASON_STAGES[g.stage]} · MATCH ${series.games.length+1} · BÄST AV ${series.bestOf}</span><h2>${series.high} <b>${series.winsHigh}–${series.winsLow}</b> ${series.low}</h2><p>${g.home===managerClub()?'Hemmaplan':'Bortaplan'} · Förlängning avgörs med sudden death, utan straffläggning.</p><button class="btn secondary" onclick="trainingOpen('training')">Återhämtning & matchplanering</button></section>`;
 }
-function seasonOverview(){ensureSeason();const s=state.season;if(!s)return '';return `<section class="season-strip"><span>${seasonLabel()} · ${s.phase==='regular'?'GRUNDSERIE':s.phase==='playoffs'?SEASON_STAGES[s.stage]:s.phase==='preseason'?'FÖRSÄSONG':'SÄSONGSAVSLUT'}</span><button class="btn secondary" onclick="trainingOpen('season')">Säsong & karriärhistorik →</button></section>`;}
+function seasonOverview(){ensureSeason();const s=state.season;if(!s)return '';return `<section class="season-strip"><span>${state.calendar?calText(state.calendar.date)+' · ':''}${seasonLabel()} · ${s.phase==='regular'?'GRUNDSERIE':s.phase==='playoffs'?SEASON_STAGES[s.stage]:s.phase==='preseason'?'FÖRSÄSONG':'SÄSONGSAVSLUT'}</span><button class="btn secondary" onclick="trainingOpen('season')">Säsong & karriärhistorik →</button></section>`;}
 function seasonView(){
  ensureSeason();const s=state.season;
  const series=(s.series||[]).filter(x=>(x.league||leagueOf(x.high))===leagueOf()),latest=s.archive[0],current=series.filter(x=>x.stage===s.stage);

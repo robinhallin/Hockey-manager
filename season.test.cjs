@@ -25,6 +25,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -66,7 +68,7 @@ assert.equal(run('managerRoster()[0].contractYears'),0);
 assert.equal(run('seasonLabel()'),'2027/28');
 const cash=run('state.money');run('beginPreseason()');assert.equal(run('state.money'),cash);
 run('launchSeason()');assert.equal(run('state.season.phase'),'preseason');
-run('globalThis.expired=managerRoster().find(p=>p.contractYears===0);releaseExpiredPlayer(expired.id);signSeasonFreeAgent(expired.id);state.money=1000000000;state.season.nextWageLimit=1000000000;submitRecruitOffer(expired.id,0,recruitPlayerWishes(expired).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;advanceRecruitment()');
+run('globalThis.expired=managerRoster().find(p=>p.contractYears===0);releaseExpiredPlayer(expired.id);signSeasonFreeAgent(expired.id);state.money=1000000000;state.season.nextWageLimit=1000000000;submitRecruitOffer(expired.id,0,recruitPlayerWishes(expired).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;calendarStep(true);calendarStep(true)');
 assert.equal(run('managerRoster().find(p=>samePlayerId(p.id,expired.id)).contractYears'),2);
 run('managerRoster().forEach(p=>{if(p.contractYears===0)p.contractYears=2});launchSeason()');
 assert.equal(run('state.season.phase'),'regular');

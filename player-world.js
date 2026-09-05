@@ -31,7 +31,7 @@ function worldRetires(p){
 }
 function worldRetire(p,club,type='retire'){
  worldLog(type,p,club,type==='retire'?'Avslutar spelarkarriären':'Tre säsonger utan avtal – lämnar den bevakade marknaden');
- for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&d.status==='pending'){d.status='rejected';d.reason='Spelaren har lämnat marknaden.';}
+ for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&['pending','future_signed'].includes(d.status)){d.status='rejected';d.reason='Spelaren har lämnat marknaden.';}
  state.recruitment.incoming.forEach(o=>{if(samePlayerId(o.playerId,p.id)&&o.status==='pending')o.status='expired';});
  if(club===managerClub()){
   state.season.departures.push(p.name);
@@ -89,6 +89,7 @@ function playerWorldNewYear(){
    p.attributes[key]=Math.min(20,p.attributes[key]+1);p.attributeGrowth=Math.max(0,p.attributeGrowth-.2);
   }
  }
+ calendarActivateFuture();
  // All clubs decide before any replacement hiring, so the shared pool is available to everyone.
  for(const club of Object.keys(state.recruitment.ai))worldAIContracts(club);
  for(const club of Object.keys(state.recruitment.ai)){

@@ -25,6 +25,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -50,7 +52,7 @@ assert.equal(run('mission.players.every(id=>state.scoutReports[String(id)].visit
 run('globalThis.target=state.clubRosters[RECRUIT_CLUBS[0][0]][5];target.transferListed=true;globalThis.source=getPlayerClub(target.id);globalThis.fee=recruitFee(target);globalThis.salary=recruitPlayerWishes(target).salary*2;globalThis.beforeCash=state.money;globalThis.beforeSellerCash=state.recruitment.ai[source].cash;submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals[0].status'),'pending');assert.equal(run('getPlayerClub(target.id)'),run('source'));
 run('submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');assert.equal(run('state.recruitment.deals.filter(d=>d.status==="pending").length'),1);
-run('state.round++;advanceScoutReports()');
+run('state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()');
 assert.equal(run('state.recruitment.deals[0].status'),'signed');
 assert.equal(run('getPlayerClub(target.id)'),'HV71');assert.equal(run('state.money'),run('beforeCash-fee'));
 assert.equal(run('state.recruitment.ai[source].cash'),run('beforeSellerCash+fee'));
@@ -65,11 +67,11 @@ run('for(let i=0;i<2;i++){state.round++;state.live=null;createMatch();state.live
 assert.equal(run('target.recruitmentPromise.resolved'),true);
 assert.equal(run('target.happiness'),run('happy-12'));
 // A weak salary offer fails; no fee deducted and the reason is explicit.
-run('globalThis.reject=state.clubRosters[RECRUIT_CLUBS[1][0]][5];reject.transferListed=true;globalThis.rejectCash=state.money;submitRecruitOffer(reject.id,recruitFee(reject),1,2,"Nyckelspelare");state.round++;advanceScoutReports()');
+run('globalThis.reject=state.clubRosters[RECRUIT_CLUBS[1][0]][5];reject.transferListed=true;globalThis.rejectCash=state.money;submitRecruitOffer(reject.id,recruitFee(reject),1,2,"Nyckelspelare");state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()');
 assert.equal(run('state.recruitment.deals[0].status'),'rejected');assert.match(run('state.recruitment.deals[0].reason'),/minst/);
 assert.equal(run('state.money'),run('rejectCash'));
 // A rival can win a player for better overall conditions, and must pay.
-run('globalThis.rivalTarget=state.clubRosters[RECRUIT_CLUBS[2][0]][5];rivalTarget.transferListed=true;globalThis.w=recruitPlayerWishes(rivalTarget);submitRecruitOffer(rivalTarget.id,recruitFee(rivalTarget),w.salary,2,w.role);globalThis.deal=state.recruitment.deals[0];globalThis.rivalClub=Object.keys(state.recruitment.ai).find(c=>c!==deal.seller);state.recruitment.ai[rivalClub].cash=100000000;state.recruitment.ai[rivalClub].wageLimit=100000000;deal.rival={club:rivalClub,fee:deal.fee,salary:w.salary*3,years:2,role:"Nyckelspelare"};globalThis.rivalCash=state.recruitment.ai[rivalClub].cash;state.round++;advanceScoutReports()');
+run('globalThis.rivalTarget=state.clubRosters[RECRUIT_CLUBS[2][0]][5];rivalTarget.transferListed=true;globalThis.w=recruitPlayerWishes(rivalTarget);submitRecruitOffer(rivalTarget.id,recruitFee(rivalTarget),w.salary,2,w.role);globalThis.deal=state.recruitment.deals[0];globalThis.rivalClub=Object.keys(state.recruitment.ai).find(c=>c!==deal.seller);state.recruitment.ai[rivalClub].cash=100000000;state.recruitment.ai[rivalClub].wageLimit=100000000;deal.rival={club:rivalClub,fee:deal.fee,salary:w.salary*3,years:2,role:"Nyckelspelare"};globalThis.rivalCash=state.recruitment.ai[rivalClub].cash;state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()');
 assert.equal(run('deal.status'),'rejected');assert.equal(run('getPlayerClub(rivalTarget.id)'),run('rivalClub'));
 assert.equal(run('state.recruitment.ai[rivalClub].cash'),run('rivalCash-deal.fee'));
 // Budget cap and pending reservations reject impossible offers without mutation.
@@ -84,12 +86,12 @@ run('state.live=null;globalThis.saleCash=state.money;answerIncomingOffer(incomin
 assert.equal(run('incoming.status'),'accepted');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
 run('answerIncomingOffer(incoming.id,true)');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
 // Autonomous transfers conserve player ownership and respect minimum roster sizes.
-run('globalThis.historyBefore=state.recruitment.history.length;for(let i=0;i<30;i++){state.round++;advanceScoutReports()}');
+run('globalThis.historyBefore=state.recruitment.history.length;for(let i=0;i<30;i++){state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()}');
 assert.ok(run('state.recruitment.history.length>historyBefore'));
 assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),allPlayers);
 assert.equal(run('Object.values(state.clubRosters).every(ps=>ps.filter(p=>p.pos==="MV").length>=2&&ps.filter(p=>p.pos==="B").length>=6&&ps.filter(p=>!["MV","B"].includes(p.pos)).length>=12)'),true);
 // Offseason weeks advance work and bids; ordinary pages never advance time.
-run('state.season.phase="preseason";state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;recruitmentWeek()');
+run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.training.messages.forEach(m=>m.resolved=true);state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;recruitmentWeek()');
 assert.equal(run('state.recruitment.tick'),run('tick+1'));
 const tick=run('state.recruitment.tick');run('save();render()');assert.equal(run('state.recruitment.tick'),tick);
 run('save()');const reload=boot(storage.value);assert.equal(reload.run('state.recruitment.tick'),tick);
