@@ -695,6 +695,7 @@ return {
     roster:PLAYERS.map(p=>({...p})),
 
 clubRosters: createClubRosters(),
+playerDatabaseVersion: ALLSVENSKAN_DATABASE.version,
 
    transferOffers: [],
 
@@ -999,7 +1000,7 @@ function createClubRosters(){
 
 
   for(const [name,,,strength] of ALLSVENSKAN_CLUBS)if(!clubRosters[name])clubRosters[name]=leagueRoster(name,strength);
-  return clubRosters;
+  return haRemoveStartingDuplicates(clubRosters);
 
 }
 function createSchedule(membership=leagueInitial()){

@@ -21,6 +21,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('hockey.js','utf8'),context);
   vm.runInContext(fs.readFileSync('club.js','utf8'),context);
   vm.runInContext(fs.readFileSync('manager.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('allsvenskan-data.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
@@ -28,7 +30,7 @@ function boot(saved){
 const {run,storage}=boot();
 run('startCareerWithClub("AIK")');
 assert.equal(run('leagueOf()'),'HA');assert.equal(run('state.teams.length'),28);assert.equal(run('state.schedule.length'),728);
-assert.equal(run('managerRoster().length'),24);assert.ok(run('managerRoster().every(p=>p.fictional)'));
+assert.equal(run('managerRoster().length'),24);assert.ok(run('managerRoster().every(p=>!p.fictional&&p.research)'));
 for(const name of run('Object.keys(CLUB_DATA)')){
  const n=JSON.stringify(name);
  assert.equal(run(`state.schedule.filter(g=>g.home===${n}||g.away===${n}).length`),52);
@@ -100,4 +102,4 @@ for(let i=0;i<40&&late.run('state.season.phase')==='playoffs';i++){
 assert.equal(late.run('state.season.phase'),'review');assert.equal(late.run('state.world.movement'),null);
 late.run('beginPreseason();managerRoster().forEach(p=>p.contractYears=Math.max(1,p.contractYears));launchSeason()');
 assert.equal(late.run('state.world.legacyCup'),false);assert.equal(late.run('state.schedule.length'),728);
-console.log('PASS: 28 clubs, 728 fixtures, unique fictional rosters, full HA match, midseason and playoff migration, parallel playoffs, own survival/OT, promotion and relegation budgets/reactions, idempotent rollover and save/reload.');
+console.log('PASS: 28 clubs, 728 fixtures, unique researched rosters, full HA match, midseason and playoff migration, parallel playoffs, own survival/OT, promotion and relegation budgets/reactions, idempotent rollover and save/reload.');
