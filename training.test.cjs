@@ -25,6 +25,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -107,6 +109,7 @@ assert.equal(run('state.round'),2);
 assert.equal(run('state.training.day'),0);
 assert.equal(run('state.training.lastMatchRound'),1);
 assert.ok(run('state.training.messages.some(m=>m.category==="Matchrapport")'));
+run('globalThis.observationDate=state.calendar.marketDay;while(state.calendar.date<observationDate)calendarStep();');
 assert.ok(run('state.training.messages.some(m=>m.category==="Chefsscout")'));
 run('state.news.unshift("Ett nytt kontraktsbud väntar.");save()');
 assert.ok(run('state.training.messages.some(m=>m.category==="Sportchef")'));

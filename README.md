@@ -225,3 +225,60 @@ zero-fee negotiations, retirement, AI contract decisions, eleven offseason
 transitions with valid unique rosters, bounded history, free-agent rehabilitation,
 reload and views. Existing recruitment, season, manager, medical and league tests
 cover interacting systems. Browser visual QA has not been performed.
+
+## Calendar, preseason fixtures, future contracts and portable saves
+
+The career now has ISO dates. Regular rounds receive a generated schedule starting
+10 September, with two-to-five-day gaps; playoff dates follow at two-day intervals.
+These are game dates, not an imported official fixture list. Existing scores,
+fixtures and partial matches remain intact when dates are added. Calendar time
+advances only through training, continuing, match progression or explicit launch.
+There is no offline progression or dependence on the user's real-world clock.
+
+Training plans contain the days available before a match (up to seven displayed at
+once in preseason). Each completed session advances one date and provides one
+rehabilitation day. Direct match entry skips training and advances intervening rest
+days. Weekly scout/AI-market turns and two-day offer decisions follow calendar time.
+FORTSÄTT processes the selected plan until a fixture, deal decision, weekly report,
+deadline or player conversation; the training page also retains single-session
+control. Completed training and junior-work keys include dates. The established
+52-instalment annual finance model remains, so this is not monthly accounting.
+
+Kalender offers up to six preseason friendlies against playable Swedish clubs,
+with at least two days between fixtures. They use the full 2D match engine and
+retain fatigue, injuries, ice time, chemistry and modest match development.
+League table/results and seasonal player production are unaffected. Analysis
+archives label friendlies and exclude them from competitive trend aggregates.
+Unplayed friendlies must be played or cancelled before launching the league.
+A new career can opt into its first preseason from Kalender before round one;
+subsequent preseasons start in July without changing the existing annual rollover.
+
+Immediate player registrations use a simplified 16 May–15 February window for
+this game. Source: [SIF player transfers](https://www.swehockey.se/spelare/spelare-aktiva/spelaroevergaang/)
+and [SIF international transfers](https://www.swehockey.se/spelare/spelare-aktiva/spelaroevergaang/internationell/).
+These published references support the SHL/HA deadline; exceptions, administrative
+registration, loan rules and future regulatory changes are not simulated. A deal
+must resolve while the window is open; free agents, AI purchases and approved
+outgoing sales use the same gate. Scouting remains available after closing.
+
+Players in another club's final contract year can negotiate a binding agreement
+for the next season. Salary, role, years, competition and projected salary room
+are checked; current ownership does not change. Agreements activate exactly once
+after offseason aging/retirement and before AI renewal decisions. Actual later
+budget reductions do not silently void signed obligations. Retired targets are
+not resurrected. This is a deliberately simplified pre-contract game mechanic,
+not a claim about every competition's legal negotiation rules.
+
+Sparfiler & inställningar and the main menu support JSON export/import. Exports
+pause live matches. Imports accept the wrapper format or a legacy career object,
+validate core structure, IDs, numeric attributes and unsafe content, then show a
+review before replacing the active career. A previous-career backup is retained;
+failed validation or storage writes preserve the current career. Transfer between
+iPhone and desktop uses the downloaded file; this does not add accounts/cloud sync.
+
+Validation: calendar.test.cjs exercises actual date progression, deadline submission
+and completion boundaries, delayed agreements and once-only arrivals, a complete
+2D friendly with isolated competitive statistics, reduced training time, paused
+reload, portable save validation/import and failed-storage rollback. Existing tests
+now use calendar days for timed offers and date-anchored medical scenarios.
+Browser interaction/visual QA has not been performed.

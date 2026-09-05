@@ -25,6 +25,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -33,7 +35,7 @@ run('startCareerWithClub("HV71");ensurePlayerWorld()');
 const original=run('JSON.stringify(state.clubRosters)');
 run('save();render();ensurePlayerWorld()');assert.equal(run('JSON.stringify(state.clubRosters)'),original);
 // Release, lookup, scouting, negotiations and budget reservation all share one identity.
-run('globalThis.p=managerRoster()[4];p.contractYears=0;state.season.phase="preseason";state.season.departures=[];releaseExpiredPlayer(p.id);state.money=100000000;state.season.nextWageLimit=100000000');
+run('globalThis.p=managerRoster()[4];p.contractYears=0;state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.season.departures=[];releaseExpiredPlayer(p.id);state.money=100000000;state.season.nextWageLimit=100000000');
 assert.equal(run('getPlayerClub(p.id)'), 'Kontraktslös');
 assert.equal(run('findPlayerAnywhere(p.id)===p'),true);
 assert.equal(run('getTransferMarketPlayers().filter(q=>samePlayerId(q.id,p.id)).length'),1);
@@ -41,7 +43,7 @@ assert.equal(run('recruitFee(p)'),0);
 run('requestScoutReport(p.id);recruitmentWeek()');
 assert.equal(run('state.scoutReports[String(p.id)].visits'),1);
 run('submitRecruitOffer(p.id,1,recruitPlayerWishes(p).salary,2,"Nyckelspelare")');assert.equal(run('state.recruitment.deals.length'),0);
-run('submitRecruitOffer(p.id,0,recruitPlayerWishes(p).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;globalThis.cash=state.money;advanceRecruitment()');
+run('submitRecruitOffer(p.id,0,recruitPlayerWishes(p).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;globalThis.cash=state.money;calendarStep(true);calendarStep(true)');
 assert.equal(run('state.recruitment.deals[0].status'),'signed');assert.equal(run('state.money'),run('cash'));
 assert.equal(run('getPlayerClub(p.id)'),'HV71');assert.equal(run('worldIsFree(p.id)'),false);
 // Reload/migration merges old club-specific pools once, retaining attributes and IDs.

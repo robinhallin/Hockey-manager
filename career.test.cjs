@@ -25,6 +25,8 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
   vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }

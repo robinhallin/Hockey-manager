@@ -40,9 +40,10 @@ function ensureTrainingData(){
     if(!p.trainingLoad)p.trainingLoad='normal';
   }
   if(t.round!==state.round){t.round=state.round;t.day=0;t.logs=[];t.lockedRound=null;}
+  calendarTrainingPlan(t);
   if(initial){
-    if(state.live&&!state.live.finished&&(state.live.running||state.live.minute>0||state.live.second>0||state.live.period>1)){t.day=3;t.lockedRound=state.round;}
-    managerMessage('welcome','Välkommen till tränarvardagen','Mellan omgångarna har du tre träningsdagar. Planera lagets pass och spelarnas individuella fokus. FORTSÄTT genomför nästa pass och lämnar en rapport i inkorgen. Du kan också låta tränarteamet genomföra återstående pass.','Assisterande tränare',{link:'training'});
+    if(state.live&&!state.live.finished&&(state.live.running||state.live.minute>0||state.live.second>0||state.live.period>1)){t.day=trainingDays();t.lockedRound=state.round;}
+    managerMessage('welcome','Välkommen till tränarvardagen','Mellan omgångarna har du daterade träningsdagar. Planera lagets pass och spelarnas individuella fokus. FORTSÄTT genomför nästa pass och lämnar en rapport i inkorgen. Du kan också låta tränarteamet genomföra återstående pass.','Assisterande tränare',{link:'training'});
   }
   if(!t.newsSeen)t.newsSeen=[...(state.news||[])];
   for(const text of (state.news||[]).slice(0,12).reverse()){
@@ -104,7 +105,7 @@ function grantMatchDevelopment(p,seconds){
 }
 function setTrainingSession(index,key,value){
   ensureTrainingData();const t=state.training;
-  if(!t||!Number.isInteger(index)||index<t.day||index>2||t.lockedRound===state.round)return;
+  if(!t||!Number.isInteger(index)||index<t.day||index>=trainingDays()||t.lockedRound===state.round)return;
   if(key==='type'&&TRAINING_SESSIONS[value])t.plan[index].type=value;
   else if(key==='intensity'&&['light','normal','hard'].includes(value))t.plan[index].intensity=value;
   else return;
@@ -112,7 +113,7 @@ function setTrainingSession(index,key,value){
 }
 function applyTrainingPreset(name){
   ensureTrainingData();if(!TRAINING_PRESETS[name]||state.training.lockedRound===state.round)return;
-  const plan=trainingPlan(name);for(let i=state.training.day;i<3;i++)state.training.plan[i]=plan[i];
+  const plan=trainingPlan(name);for(let i=state.training.day;i<trainingDays();i++)state.training.plan[i]={...plan[i%plan.length]};
   save();render();
 }
 function setIndividualLoad(id,value){
@@ -124,7 +125,7 @@ function pendingManagerDecision(){return state.training?.messages.find(m=>m.deci
 function runTrainingSession(){
   if(!managerEmployed())return false;
   ensureTrainingData();const t=state.training;
-  if(!t||t.day>=3||t.lockedRound===state.round||state.live?.running||opponent()==='Ingen match'||pendingManagerDecision())return false;
+  if(!t||t.day>=trainingDays()||t.lockedRound===state.round||state.live?.running||(opponent()==='Ingen match'&&state.season.phase!=='preseason')||pendingManagerDecision())return false;
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
   let fatigueChange=0,trained=0,resting=0,improvements=0;
   const before=managerRoster().reduce((n,p)=>n+p.fatigue,0)/managerRoster().length;
@@ -153,37 +154,39 @@ function runTrainingSession(){
   if(session.type==='powerplay')t.powerplay=trainingClamp(t.powerplay+12*participation,0,90);
   if(session.type==='penaltykill')t.penaltykill=trainingClamp(t.penaltykill+12*participation,0,90);
   const after=before+fatigueChange/managerRoster().length;
-  const log={round:state.round,day:t.day+1,type:session.type,intensity:session.intensity,trained,resting,before,after,improvements};
+  const log={date:state.calendar?.date,round:state.round,day:t.day+1,type:session.type,intensity:session.intensity,trained,resting,before,after,improvements};
   t.logs.push(log);t.history.unshift(log);t.history=t.history.slice(0,60);t.day++;
-  managerMessage(`session:${state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
+  managerMessage(`session:${state.season.year}:${log.date||state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
   trainSocialPairs(session);
-  juniorTraining(session,`${state.season.year}:${state.round}:${t.day}`);
+  juniorTraining(session,`${state.season.year}:${state.calendar?.date||state.round}:${t.day}`);
   medicalDay(session);
-  if(t.day===3)createOpponentBrief();
+  if(t.day===trainingDays())createOpponentBrief();
+  if(state.calendar)calendarStep(true);
   return true;
 }
 function executeTrainingPeriod(){
   ensureTrainingData();
   const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
-  while(runTrainingSession()){}
+  const remaining=trainingDays()-state.training.day;for(let i=0;i<remaining;i++)if(!runTrainingSession())break;
   state.page='inbox';state.training.selectedMessage=state.training.messages[0]?.id;if(state.training.messages[0])state.training.messages[0].read=true;save();render();
 }
 function managerContinue(){
   if(careerScreen||!state.careerStarted)return;
   if(!managerCanPlay())return;
   ensureTrainingData();
+  if(state.season.phase==='preseason'){calendarContinue();return;}
   if(seasonContinue())return;
   if(state.live&&!state.live.finished&&state.training.lockedRound===state.round){state.page='match';save();render();return;}
   const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
   if(opponent()==='Ingen match'){state.page='season';save();render();return;}
-  if(runTrainingSession()){state.page='inbox';const report=state.training.messages.find(m=>m.key===`session:${state.round}:${state.training.day}`);state.training.selectedMessage=report?.id;if(report)report.read=true;}
+  if(runTrainingSession()){state.page='inbox';const report=state.training.messages.find(m=>m.key===`session:${state.season.year}:${state.training.logs.at(-1)?.date||state.round}:${state.training.day}`);state.training.selectedMessage=report?.id;if(report)report.read=true;}
   else{if(state.live?.finished)state.live=null;state.page='match';}
   save();render();
 }
 function lockTrainingForMatch(){
   ensureTrainingData();const t=state.training;if(!t||t.lockedRound===state.round)return;
-  if(t.day<3)managerMessage(`skip:${state.round}`,'Du går direkt till match',`${3-t.day} planerade träningspass genomfördes inte. De ger ingen träningseffekt. Du kan planera nästa period efter matchen.`,'Tränarteam');
-  t.lockedRound=state.round;t.day=3;
+  if(t.day<trainingDays())managerMessage(`skip:${state.round}`,'Du går direkt till match',`${trainingDays()-t.day} planerade träningspass genomfördes inte. De ger ingen träningseffekt. Du kan planera nästa period efter matchen.`,'Tränarteam');
+  t.lockedRound=state.round;t.day=trainingDays();
 }
 function createOpponentBrief(){
   const name=opponent(),roster=(state.clubRosters[name]||[]).filter(p=>p.pos!=='MV');if(!roster.length)return;
@@ -264,10 +267,10 @@ function trainingView(){
   ensureTrainingData();const t=state.training;
   const roster=managerRoster(),filtered=roster.filter(p=>trainingPosition==='all'||(trainingPosition==='skater'?p.pos!=='MV':p.pos==='MV'));
   const condition=Math.round(roster.reduce((n,p)=>n+100-p.fatigue,0)/roster.length);
-  const locked=t.lockedRound===state.round||opponent()==='Ingen match';
-  return `<section class="training-page"><header class="daily-heading"><div><span class="career-eyebrow">TRÄNARVARDAG · OMGÅNG ${state.round}</span><h1>Arbetet bakom laget.</h1><p>${opponent()==='Ingen match'?'Grundserien är avslutad.':`Tre träningsdagar inför ${opponent()}. Planera belastningen och utveckla din spelidé.`}</p></div><button class="btn secondary" onclick="trainingOpen('inbox')">Öppna inkorgen</button></header>
+  const locked=t.lockedRound===state.round||(opponent()==='Ingen match'&&state.season.phase!=='preseason');
+  return `<section class="training-page"><header class="daily-heading"><div><span class="career-eyebrow">TRÄNARVARDAG · OMGÅNG ${state.round}</span><h1>Arbetet bakom laget.</h1><p>${state.season.phase==='preseason'?'Försäsong: planera belastningen och prova din spelidé.':`${trainingDays()} träningsdagar inför ${opponent()}.`}</p></div><button class="btn secondary" onclick="trainingOpen('inbox')">Öppna inkorgen</button></header>
   <div class="training-metrics"><div><span>GENOMSNITTLIG ORK</span><strong>${condition}<small>%</small></strong><p>${roster.filter(p=>p.fatigue>=60).length} spelare behöver extra återhämtning</p></div><div><span>SAMSPEL MED MATCHPLANEN</span><strong>${Math.round(currentTrainingFamiliarity())}<small>%</small></strong><p>Taktik och matchvana bygger trygghet</p></div><div><span>SPECIAL TEAMS · FÖRBEREDELSE</span><strong>${Math.round(t.powerplay)}<small> PP / </small>${Math.round(t.penaltykill)}<small> PK</small></strong><p>Skala 0–100 · påverkar special teams</p></div></div>
-  <div class="training-layout"><div><section class="training-planner"><div class="daily-section-heading"><div><span class="career-eyebrow">INFÖR NÄSTA MATCH</span><h2>Din träningsplan</h2></div><span>${t.day}/3 pass klara</span></div><div class="training-presets">${Object.entries(TRAINING_PRESETS).map(([id,p])=>`<button ${locked||t.day===3?'disabled':''} onclick="applyTrainingPreset('${id}')">${p.name}</button>`).join('')}</div><div class="training-days">${t.plan.map((session,i)=>{const done=i<t.day,log=t.logs.find(l=>l.day===i+1);return `<article class="training-day ${i===t.day?'current':''} ${done?'completed':''}"><header><span>DAG 0${i+1}</span><b>${log?'✓ GENOMFÖRT':done?'EJ GENOMFÖRT':i===t.day?'NÄSTA PASS':'PLANERAT'}</b></header><label>Innehåll<select ${done||locked?'disabled':''} onchange="setTrainingSession(${i},'type',this.value)">${Object.entries(TRAINING_SESSIONS).map(([id,s])=>`<option value="${id}" ${id===session.type?'selected':''}>${s.name}</option>`).join('')}</select></label><p>${TRAINING_SESSIONS[session.type].description}</p><label>Intensitet<select ${done||locked||session.type==='recovery'||session.type==='matchprep'?'disabled':''} onchange="setTrainingSession(${i},'intensity',this.value)">${[['light','Lätt'],['normal','Normal'],['hard','Hård']].map(([id,label])=>`<option value="${id}" ${(session.type==='recovery'||session.type==='matchprep'?'light':session.intensity)===id?'selected':''}>${label}</option>`).join('')}</select></label>${log?`<div class="session-result">Ork ${Math.round(100-log.before)} → ${Math.round(100-log.after)} %</div>`:''}</article>`;}).join('')}</div><div class="training-plan-actions"><button class="btn" onclick="managerContinue()">${t.day<3&&!locked?'Genomför nästa pass →':'Till nästa händelse →'}</button><button class="btn secondary" ${t.day>=3||locked?'disabled':''} onclick="executeTrainingPeriod()">Låt tränarteamet sköta återstående pass</button></div><p class="training-note">Planen upprepas nästa omgång. Genomförda pass kan inte ändras. Går du direkt till match uteblir återstående träning.</p></section>
+  <div class="training-layout"><div><section class="training-planner"><div class="daily-section-heading"><div><span class="career-eyebrow">INFÖR NÄSTA MATCH</span><h2>Din träningsplan</h2></div><span>${t.day}/${trainingDays()} pass klara</span></div><div class="training-presets">${Object.entries(TRAINING_PRESETS).map(([id,p])=>`<button ${locked||t.day===trainingDays()?'disabled':''} onclick="applyTrainingPreset('${id}')">${p.name}</button>`).join('')}</div><div class="training-days">${t.plan.map((session,i)=>{const done=i<t.day,log=t.logs.find(l=>l.day===i+1);return `<article class="training-day ${i===t.day?'current':''} ${done?'completed':''}"><header><span>${state.calendar?calText(calAdd(state.calendar.date,i-t.day)):`DAG ${i+1}`}</span><b>${log?'✓ GENOMFÖRT':done?'EJ GENOMFÖRT':i===t.day?'NÄSTA PASS':'PLANERAT'}</b></header><label>Innehåll<select ${done||locked?'disabled':''} onchange="setTrainingSession(${i},'type',this.value)">${Object.entries(TRAINING_SESSIONS).map(([id,s])=>`<option value="${id}" ${id===session.type?'selected':''}>${s.name}</option>`).join('')}</select></label><p>${TRAINING_SESSIONS[session.type].description}</p><label>Intensitet<select ${done||locked||session.type==='recovery'||session.type==='matchprep'?'disabled':''} onchange="setTrainingSession(${i},'intensity',this.value)">${[['light','Lätt'],['normal','Normal'],['hard','Hård']].map(([id,label])=>`<option value="${id}" ${(session.type==='recovery'||session.type==='matchprep'?'light':session.intensity)===id?'selected':''}>${label}</option>`).join('')}</select></label>${log?`<div class="session-result">Ork ${Math.round(100-log.before)} → ${Math.round(100-log.after)} %</div>`:''}</article>`;}).join('')}</div><div class="training-plan-actions"><button class="btn" onclick="managerContinue()">${t.day<trainingDays()&&!locked?'Genomför nästa pass →':'Till nästa händelse →'}</button><button class="btn secondary" ${t.day>=trainingDays()||locked?'disabled':''} onclick="executeTrainingPeriod()">Låt tränarteamet sköta återstående pass</button></div><p class="training-note">Planen upprepas nästa omgång. Genomförda pass kan inte ändras. Går du direkt till match uteblir återstående träning.</p></section>
   <section class="training-individuals"><div class="daily-section-heading"><div><span class="career-eyebrow">INDIVIDEN I LAGET</span><h2>Utveckling & belastning</h2></div><label>Visa<select onchange="trainingPosition=this.value;render()"><option value="all" ${trainingPosition==='all'?'selected':''}>Hela truppen</option><option value="skater" ${trainingPosition==='skater'?'selected':''}>Utespelare</option><option value="goalie" ${trainingPosition==='goalie'?'selected':''}>Målvakter</option></select></label></div><p class="training-note">Individuell vila gäller tills du ändrar den. Lätt träning begränsar belastningen även om laget tränar hårt.</p><div class="individual-training-list">${filtered.map(p=>`<article class="training-player-row"><div class="training-player-title"><button onclick="trainingPlayerLink('${p.id}')"><strong>${p.name}</strong><span>${p.pos} · ${p.age} år</span></button><span class="player-readiness ${p.fatigue>=60?'tired':''}">${Math.round(100-p.fatigue)} % ork</span></div>${trainingPlayerPanel(p)}</article>`).join('')}</div></section></div>
   <aside class="training-sidebar"><section class="training-coach-note"><span class="career-eyebrow">ASSISTERANDE TRÄNAREN</span><h2>Min rekommendation</h2><p>${trainingAdvice()}</p><div class="row"><span>Isträning</span><strong>${state.staff.find(s=>s.id==='assistant')?.coaching||14}/20</strong></div><div class="row"><span>Målvaktsträning</span><strong>${state.staff.find(s=>s.id==='goalie')?.coaching||16}/20</strong></div></section><section class="training-promises"><span class="career-eyebrow">DITT ORD SPELAR ROLL</span><h2>Löften till spelarna</h2>${t.promises.filter(p=>!p.resolved).length?t.promises.filter(p=>!p.resolved).map(p=>`<article><strong>${p.name}</strong><p>${p.qualified}/2 matcher med minst 15 minuter. ${3-p.games} matcher kvar.</p></article>`).join(''):'<p>Inga aktiva löften. Spelare tar upp sin roll när de behöver mer förtroende.</p>'}</section><section class="training-history"><h2>Senaste passen</h2>${t.history.length?t.history.slice(0,6).map(l=>`<div><span>Omgång ${l.round} · dag ${l.day}</span><strong>${TRAINING_SESSIONS[l.type].name}</strong><p>Ork ${Math.round(100-l.before)} → ${Math.round(100-l.after)} %</p></div>`).join(''):'<p>Rapporterna visas när träningen har börjat.</p>'}</section></aside></div></section>`;
 }
@@ -279,5 +282,5 @@ function inboxView(){
 function dailyOverview(){
   ensureTrainingData();const t=state.training;if(!t)return '';
   const unread=t.messages.filter(m=>!m.read).length,pending=pendingManagerDecision();
-  return `<section class="daily-overview"><div><span class="career-eyebrow">NÄSTA PÅ DITT BORD</span><h2>${opponent()==='Ingen match'?'Dags att utvärdera grundserien':pending?'Ett spelarsamtal väntar':t.day<3?`Dag ${t.day+1}: ${TRAINING_SESSIONS[t.plan[t.day].type].name}`:'Laget är framme vid matchdag'}</h2><p>${unread} olästa meddelanden · ${t.day}/3 pass klara · samspel ${Math.round(currentTrainingFamiliarity())} %</p></div><div><button class="btn secondary" onclick="trainingOpen('training')">Planera träningen</button><button class="btn" onclick="trainingOpen('inbox')">Inkorg${unread?` (${unread})`:''} →</button></div></section>`;
+  return `<section class="daily-overview"><div><span class="career-eyebrow">NÄSTA PÅ DITT BORD</span><h2>${opponent()==='Ingen match'?'Dags att utvärdera grundserien':pending?'Ett spelarsamtal väntar':t.day<trainingDays()?`Dag ${t.day+1}: ${TRAINING_SESSIONS[t.plan[t.day].type].name}`:'Laget är framme vid matchdag'}</h2><p>${unread} olästa meddelanden · ${t.day}/${trainingDays()} pass klara · samspel ${Math.round(currentTrainingFamiliarity())} %</p></div><div><button class="btn secondary" onclick="trainingOpen('training')">Planera träningen</button><button class="btn" onclick="trainingOpen('inbox')">Inkorg${unread?` (${unread})`:''} →</button></div></section>`;
 }
