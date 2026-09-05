@@ -4192,6 +4192,7 @@ ${
 
           ${trainingPlayerPanel(player)}
           ${lockerPlayerPanel(player)}
+          ${storiesPlayerPanel(player)}
           ${medicalPlayerPanel(player)}
 
         </section>
@@ -4794,6 +4795,7 @@ function render(){
   ensureRink();
   ensureClub();
   ensureManager();
+  ensureStories();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
@@ -4843,6 +4845,9 @@ careerScreen === "files" ? saveSettingsView()
 : state.page==="round"
 
 ? roundView()
+
+: state.page==="stories"
+? storiesView()
 
 : state.page==="match"
 
