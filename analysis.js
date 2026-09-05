@@ -6,6 +6,7 @@ function ensureAnalysis(){
   m.analysis={id:`${state.season?.year||2026}-${state.round}-${state.analysis.nextId++}`,shots:[],events:[],units:{},players:{},partial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),saved:false};
   for(const p of managerRoster())m.analysis.players[String(p.id)]={id:p.id,name:p.name,pos:p.pos,seconds:0,shots:0,goals:0,assists:0,pim:0,startAttributes:{...p.attributes}};
  }
+ ensureLeagueLive();
 }
 function analysisClock(){const m=state.live;return (m.period<=3?(m.period-1)*1200:3600+((m.overtimePeriods||1)-1)*1200)+m.minute*60+m.second;}
 function analysisSituation(){const m=state.live;return m.penaltiesOpp.length>m.penaltiesHV.length?'pp':m.penaltiesHV.length>m.penaltiesOpp.length?'pk':m.period===4&&!isPlayoffMatch()?'ot':'even';}
@@ -33,25 +34,27 @@ function recordAnalysisShot(side,name,id,dangerous,location,probability,result,o
  const outcome=override||(result<probability?'goal':result<probability+.12?'post':result<probability+.28?'rebound':'save');
  const shot={time:analysisClock(),side,name,id,dangerous:Boolean(dangerous),x:location.x,y:location.y,probability,outcome,situation:analysisSituation()};
  a.shots.push(shot);
+ leagueTrackShot(side,id,name,outcome);
  for(const unit of analysisUnits()){const u=analysisUnitRecord(unit);u[side==='own'?'shotsFor':'shotsAgainst']++;if(dangerous)u[side==='own'?'dangerFor':'dangerAgainst']++;}
  if(side==='own'){const p=playerById(id);if(p)analysisPlayer(p).shots++;}
 }
 function analysisEvent(type,side,text,id=null){
  ensureAnalysis();const a=state.live?.analysis;if(!a)return;
  a.events.push({time:analysisClock(),type,side,text,situation:analysisSituation()});
+ if(type==="goal"||type==="penalty")leagueTrackEvent(type,side,id);
  if(type==='goal'){
   for(const unit of analysisUnits())analysisUnitRecord(unit)[side==='own'?'goalsFor':'goalsAgainst']++;
   if(side==='own'){const p=playerById(id);if(p)analysisPlayer(p).goals++;}
  }
  if(type==='penalty'&&side==='own'){const p=playerById(id);if(p)analysisPlayer(p).pim+=2;}
 }
-function analysisAssist(p){ensureAnalysis();if(state.live?.analysis)analysisPlayer(p).assists++;}
+function analysisAssist(p){ensureAnalysis();leagueTrackEvent("assist","own",p.id);if(state.live?.analysis)analysisPlayer(p).assists++;}
 function analysisSnapshot(){
  const m=state.live,a=m?.analysis;if(!a)return null;
  return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.home===managerClub(),stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
 }
 function finishAnalysis(){
- ensureAnalysis();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
+ ensureAnalysis();leagueCommitLive();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
  const snapshot=analysisSnapshot();a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest';
  managerMessage(`analysis:${a.id}`,'Matchanalysen är klar',`${snapshot.club} ${snapshot.own}–${snapshot.against} ${snapshot.opponent}. Skott, formationer och spelarnas minuter finns under Statistik & analys.`,'Matchanalytiker',{link:'statistics'});
 }

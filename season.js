@@ -41,7 +41,9 @@ function simulatePlayoffGame(game){
  const strength=name=>{const ps=(state.clubRosters[name]||[]).filter(p=>p.pos!=='MV');return ps.reduce((n,p)=>n+matchAttributeRating(p),0)/Math.max(1,ps.length);};
  const advantage=(strength(game.home)+2-strength(game.away))/100;
  let h=0,a=0;for(let i=0;i<10;i++){if(Math.random()<.25+advantage/2)h++;if(Math.random()<.25-advantage/2)a++;}
- if(h===a){if(Math.random()<.5+advantage)h++;else a++;}recordSeriesGame(game,h,a);
+ game.overtime=h===a;
+ if(h===a){if(Math.random()<.5+advantage)h++;else a++;}
+ if(recordSeriesGame(game,h,a))leagueRecordBackground(game);
 }
 function advancePlayoffStage(){
  if(leagueAdvanceCups())return;

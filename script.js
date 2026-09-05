@@ -1096,6 +1096,7 @@ function simulateOtherGames(){
     game.awayGoals = awayGoals;
     game.played = true;
 game.overtime = overtime;
+leagueRecordBackground(game);
 
 homeTeam.gp++;
 awayTeam.gp++;
@@ -1205,6 +1206,7 @@ function save(){
   ensureSeason();
   ensureAssessmentData();
   ensureLeagues();
+  ensureLeagueStatistics();
   ensureRecruitment();
   ensurePlayerWorld();
   ensureLocker();
@@ -2236,7 +2238,7 @@ function opponentShot(
     goalChance
   ){
 
-  goalOpponent(shooterName);
+  goalOpponent(shooterName,context);
 
   }
 
@@ -2352,12 +2354,14 @@ function goalHV(
    MÅL MOTSTÅNDARE
    ========================================================= */
 
-function goalOpponent(scorerName){
+function goalOpponent(scorerName,context=null){
 
   const m=state.live;
 
   m.opp++;
-  analysisEvent("goal","opponent",`${scorerName}: ${m.hv}–${m.opp}`);
+  const scorer=(state.clubRosters[m.opponent]||[]).find(p=>p.name===scorerName);
+  analysisEvent("goal","opponent",`${scorerName}: ${m.hv}–${m.opp}`,scorer?.id);
+  if(context?.assistId!=null&&!samePlayerId(context.assistId,scorer?.id))leagueTrackEvent("assist","opponent",context.assistId);
 
 
 addEvent(
@@ -2544,7 +2548,7 @@ function simulatePenalty(){
     );
 
     m.ppHV++;
-    analysisEvent("penalty","opponent",`${playerName}, 2 min ${penalty}`);
+    analysisEvent("penalty","opponent",`${playerName}, 2 min ${penalty}`,(state.clubRosters[m.opponent]||[]).find(p=>p.name===playerName)?.id);
 
     addEvent(
         `UTVISNING ${m.opponent}: ${playerName}, 2 min ${penalty}.`,
@@ -3258,6 +3262,7 @@ const scheduleGame = state.schedule.find(
 
 if (scheduleGame) {
   scheduleGame.played = true;
+  scheduleGame.overtime=Boolean(overtime);
 
 if(scheduleGame.home === managerClub()){
     scheduleGame.homeGoals = m.hv;
@@ -3400,15 +3405,7 @@ const players =
           </div>
 
 
-          <div class="squad-cell">
-            <strong>
-              ${assessmentBadge(p)}
-            </strong>
-
-            <span>
-              Bedömning
-            </span>
-          </div>
+          <div class="squad-cell squad-grades"><div><small>Förmåga</small>${assessmentBadge(p)}</div><div><small>Potential</small>${assessmentBadge(p,true)}</div></div>
 
 
           <div class="squad-cell">
@@ -4263,7 +4260,8 @@ function lineOptions(players, selectedId){
 
 function changeLinePlayer(type,index,newId){
   if(!hockeyAllowChange())return;
-  const chosen=playerById(newId);if(!medicalAvailable(chosen))return;
+  if(!["forwards","defense"].includes(type)||!Number.isInteger(index)||index<0||index>=(type==="forwards"?12:6))return;
+  const chosen=playerById(newId);if(!medicalAvailable(chosen)||type==="defense"&&chosen.pos!=="B"||type==="forwards"&&["B","MV"].includes(chosen.pos))return;
 
   ensureLines();
 
@@ -4302,7 +4300,7 @@ function changeLinePlayer(type,index,newId){
 
 function changeGoalie(id){
   if(!hockeyAllowChange())return;
-  if(!medicalAvailable(playerById(id)))return;
+  if(!medicalAvailable(playerById(id))||playerById(id).pos!=="MV")return;
 
   ensureLines();
 
@@ -4387,231 +4385,7 @@ function rotateUnits(){
   m.currentDefensePair =
     (m.currentDefensePair + 1) % 3;
 }
-function linesView(){
-
-  ensureLines();
-
-  const fw=forwards()
-    .slice()
-    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
-
-  const d=defenders()
-    .slice()
-    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
-
-  const g=goalies()
-    .slice()
-    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
-
-
-  let html=`
-
-  <section class="card">
-
-    <h2>Kedjor</h2>
-
-    <p class="muted">
-      Bygg dina fyra kedjor.
-      En spelare kan bara finnas på en plats.
-    </p>
-
-  `;
-
-
-  for(let line=0;line<4;line++){
-
-    const start=line*3;
-
-    const ids=
-      state.lines.forwards.slice(
-        start,
-        start+3
-      );
-
-    html+=`
-
-    <div class="line">
-
-      <div class="section-title">
-
-        <b>
-          Kedja ${line+1}
-        </b>
-
-        <span class="pill">
-          ${unitAssessment(ids)}
-        </span>
-
-      </div>
-
-      <br>
-
-      <select
-        onchange="
-        changeLinePlayer(
-          'forwards',
-          ${start},
-          this.value
-        )
-        "
-      >
-        ${lineOptions(
-          fw,
-          state.lines.forwards[start]
-        )}
-      </select>
-
-      <br><br>
-
-      <select
-        onchange="
-        changeLinePlayer(
-          'forwards',
-          ${start+1},
-          this.value
-        )
-        "
-      >
-        ${lineOptions(
-          fw,
-          state.lines.forwards[start+1]
-        )}
-      </select>
-
-      <br><br>
-
-      <select
-        onchange="
-        changeLinePlayer(
-          'forwards',
-          ${start+2},
-          this.value
-        )
-        "
-      >
-        ${lineOptions(
-          fw,
-          state.lines.forwards[start+2]
-        )}
-      </select>
-
-    </div>
-
-    `;
-
-  }
-
-
-  html+=`
-
-  </section>
-
-
-  <section class="card">
-
-    <h2>Backpar</h2>
-
-  `;
-
-
-  for(let pair=0;pair<3;pair++){
-
-    const start=pair*2;
-
-    const ids=
-      state.lines.defense.slice(
-        start,
-        start+2
-      );
-
-    html+=`
-
-    <div class="line">
-
-      <div class="section-title">
-
-        <b>
-          Backpar ${pair+1}
-        </b>
-
-        <span class="pill">
-          ${unitAssessment(ids)}
-        </span>
-
-      </div>
-
-      <br>
-
-      <select
-        onchange="
-        changeLinePlayer(
-          'defense',
-          ${start},
-          this.value
-        )
-        "
-      >
-        ${lineOptions(
-          d,
-          state.lines.defense[start]
-        )}
-      </select>
-
-      <br><br>
-
-      <select
-        onchange="
-        changeLinePlayer(
-          'defense',
-          ${start+1},
-          this.value
-        )
-        "
-      >
-        ${lineOptions(
-          d,
-          state.lines.defense[start+1]
-        )}
-      </select>
-
-    </div>
-
-    `;
-
-  }
-
-
-  html+=`
-
-  </section>
-
-
-  <section class="card">
-
-    <h2>Startande målvakt</h2>
-
-    <select
-      onchange="
-      changeGoalie(this.value)
-      "
-    >
-      ${lineOptions(
-        g,
-        state.lines.goalie
-      )}
-    </select>
-
-  </section>
-
-  `;
-
-
-  return `<div class="bench-strip"><h2>Bygg matchtruppen</h2><button class="btn" onclick="coachingNavigate('specialTeams')">Powerplay & boxplay</button></div>`+html;
-
-}
-/* =========================================================
-   MATCHVY
-   ========================================================= */
+function linesView(){return lineupBoardView();}
 
 function matchView(){
 
@@ -5205,163 +4979,8 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
    TABELL
    ========================================================= */
 
-function tableView(){
+function tableView(){return leagueStandingsView();}
 
-  const sorted=
-    leagueTable()
-    .slice()
-    .sort(
-      (a,b)=>
-
-      b.pts-a.pts
-
-      ||
-
-      (
-        b.gf-b.ga
-      )
-      -
-      (
-        a.gf-a.ga
-      )
-
-    );
-
-
-  return `
-
-  <section class="card">
-
-    <h2>${leagueName()}</h2>
-
-    <table>
-
-      <thead>
-
-        <tr>
-
-          <th>#</th>
-
-          <th>Lag</th>
-
-          <th>M</th>
-
-          <th>+/-</th>
-
-          <th>P</th>
-
-        </tr>
-
-      </thead>
-
-
-      <tbody>
-
-        ${
-          sorted
-          .map(
-            (t,i)=>`
-
-            <tr
-              class="${
-                t.name===managerClub()
-                ?"me"
-                :""
-              }"
-            >
-
-              <td>
-                ${i+1}
-              </td>
-
-              <td>
-                ${t.name}
-              </td>
-
-              <td>
-                ${t.gp}
-              </td>
-
-              <td>
-                ${t.gf-t.ga}
-              </td>
-
-              <td>
-                <b>
-                  ${t.pts}
-                </b>
-              </td>
-
-            </tr>
-
-            `
-          ).join("")
-        }
-
-      </tbody>
-
-    </table>
-
-  </section>
-
-
-  <section class="card">
-
-    <h2>${managerClub()}:s poängliga</h2>
-
-    ${
-      managerRoster()
-      .slice()
-      .sort(
-        (a,b)=>
-
-        (
-          b.goals+
-          b.assists
-        )
-
-        -
-
-        (
-          a.goals+
-          a.assists
-        )
-      )
-      .slice(
-        0,
-        10
-      )
-      .map(
-        (p,i)=>`
-
-        <div class="row">
-
-          <span>
-            ${i+1}. ${p.name}
-          </span>
-
-          <b>
-            ${p.goals}
-            +
-            ${p.assists}
-            =
-            ${
-              p.goals+
-              p.assists
-            }
-          </b>
-
-        </div>
-
-        `
-      ).join("")
-    }
-
-  </section>
-
-  `;
-
-}
 function gamesForRound(round){
 
   return state.schedule
@@ -5753,6 +5372,7 @@ function render(){
   ensureSeason();
   ensureAssessmentData();
   ensureLeagues();
+  ensureLeagueStatistics();
   ensureRecruitment();
   ensurePlayerWorld();
   ensureLocker();
@@ -5821,6 +5441,9 @@ careerScreen === "files" ? saveSettingsView()
 : state.page==="specialTeams"
 
 ? specialTeamsView()
+
+: state.page==="leagueStats"
+? leagueStatisticsView()
 
 : state.page==="table"
 

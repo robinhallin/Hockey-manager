@@ -155,7 +155,7 @@ function juniorAssessment(p){
  const bias=(attrSeed(`${p.id}:${staff.personId||staff.id}:junior`)-.5)*2;
  const value=attributeWeighted(p.attributes,weights)+bias*error,future=attributeWeighted(a.ceiling,weights)+bias*potError;
  const stars=n=>Math.round(attrClamp(2.5+(n-baseline)*.6,0,5)*2)/2;
- return {staff,current:`${stars(value-error)}–${stars(value+error)} ★`,potential:`${stars(future-potError)}–${stars(future+potError)} ★`,confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};
+ return {staff,current:starRatingHTML(stars(value-error),stars(value+error),false,staff.name),potential:starRatingHTML(stars(future-potError),stars(future+potError),true,staff.name),confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};
 }
 function juniorAdvice(p){
  const a=p.academy,changes=Object.keys(p.attributes).filter(k=>p.attributes[k]>(a.baseline[k]||0)),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
