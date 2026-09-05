@@ -7,6 +7,7 @@ function boot(saved){
   const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},
     localStorage:{getItem:()=>storage.value||null,setItem:(k,v)=>storage.value=v},
     document:{getElementById:()=>node(),querySelector:()=>node(),querySelectorAll:()=>[]}});
+  vm.runInContext(fs.readFileSync('attributes.js','utf8'),context);
   vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};

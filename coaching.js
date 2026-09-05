@@ -4,8 +4,8 @@
 function ensureSpecialTeams(){
   ensureLines();
   const skaters=managerRoster().filter(p=>p.pos!=="MV");
-  const attack=[...skaters].sort((a,b)=>(b.shooting+b.passing)-(a.shooting+a.passing));
-  const defense=[...skaters].sort((a,b)=>b.defense-a.defense);
+  const attack=[...skaters].sort((a,b)=>(matchAttributeRating(b,"shot")+matchAttributeRating(b,"pass"))-(matchAttributeRating(a,"shot")+matchAttributeRating(a,"pass")));
+  const defense=[...skaters].sort((a,b)=>matchAttributeRating(b,"defense")-matchAttributeRating(a,"defense"));
   if(!state.specialTeams) state.specialTeams={};
   for(const [key,size,pool] of [["pp1",5,attack],["pp2",5,attack],["pk1",4,defense],["pk2",4,defense]]){
     const old=Array.isArray(state.specialTeams[key])?state.specialTeams[key]:[];
@@ -76,8 +76,7 @@ function specialTeamsView(){
     <div class="units-grid">${Object.entries(state.specialTeams).map(([key,ids])=>{
       const power=key.startsWith("pp");
       const players=ids.map(playerById).filter(Boolean);
-      const rating=Math.round(players.reduce((sum,p)=>sum+(power?(p.shooting+p.passing)/2:p.defense),0)/Math.max(1,players.length));
-      return `<article class="unit-card ${power?'unit-attack':'unit-defense'}"><header><div><small>${power?'NUMERÄRT ÖVERLÄGE':'NUMERÄRT UNDERLÄGE'}</small><h2>${power?'Powerplay':'Boxplay'} ${key.slice(-1)}</h2></div><strong>${rating}<small>${power?'ANFALL':'FÖRSVAR'}</small></strong></header><p>${power?'Fem valfria utespelare. Prioritera skott och passningar.':'Fyra utespelare. Prioritera försvar. Vid dubbla utvisningar används de tre första.'}</p>${ids.map((id,i)=>`<label><span>${i+1}</span><select aria-label="${key} spelare ${i+1}" onchange="changeSpecialPlayer('${key}',${i},this.value)">${lineOptions(pool,id)}</select></label>`).join('')}</article>`;
+      return `<article class="unit-card ${power?'unit-attack':'unit-defense'}"><header><div><small>${power?'NUMERÄRT ÖVERLÄGE':'NUMERÄRT UNDERLÄGE'}</small><h2>${power?'Powerplay':'Boxplay'} ${key.slice(-1)}</h2></div><strong>${unitAssessment(ids)}<small>${power?'ANFALL':'FÖRSVAR'}</small></strong></header><p>${power?'Fem valfria utespelare. Prioritera skott och passningar.':'Fyra utespelare. Prioritera försvar. Vid dubbla utvisningar används de tre första.'}</p>${ids.map((id,i)=>`<label><span>${i+1}</span><select aria-label="${key} spelare ${i+1}" onchange="changeSpecialPlayer('${key}',${i},this.value)">${lineOptions(pool,id)}</select></label>`).join('')}</article>`;
     }).join('')}</div><p class="muted">Spelare kan ingå i flera enheter, men aldrig dubbelt i samma enhet. Istiden visas på matchsidan.</p></section>`;
 }
 
