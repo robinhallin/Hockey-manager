@@ -1199,6 +1199,7 @@ function save(){
   ensureSeason();
   ensureAssessmentData();
   ensureRecruitment();
+  ensureLocker();
   ensureTrainingData();
 
   localStorage.setItem(
@@ -1547,6 +1548,7 @@ function startMatch(){
     return;
 
   lockTrainingForMatch();
+  markSocialPeriodStarted();
   state.live.running=true;
 
   save();
@@ -2684,7 +2686,7 @@ function calculateHVPower(){
   }
 
 
-  return power + trainingMatchBonus();
+  return power + trainingMatchBonus() + lockerMatchBonus();
 
 }
 
@@ -4992,6 +4994,7 @@ ${
           </div>
 
           ${trainingPlayerPanel(player)}
+          ${lockerPlayerPanel(player)}
 
         </section>
 
@@ -6558,6 +6561,7 @@ function render(){
   ensureSeason();
   ensureAssessmentData();
   ensureRecruitment();
+  ensureLocker();
   ensureTrainingData();
   applyCareerShell();
 
@@ -6609,7 +6613,7 @@ careerScreen === "menu" ? careerMenuView()
 
 : state.page==="match"
 
-? seasonMatchPanel()+benchPanel()+matchView()+iceTimeView()
+? seasonMatchPanel()+benchPanel()+teamTalkPanel()+matchView()+iceTimeView()
 
 : state.page==="specialTeams"
 
@@ -6643,6 +6647,10 @@ careerScreen === "menu" ? careerMenuView()
 
 ? inboxView()
 
+: state.page==="locker"
+
+? lockerView()
+
 : state.page==="scouting"
 
 ? scoutingView()
@@ -6664,7 +6672,7 @@ careerScreen === "menu" ? careerMenuView()
   const clubName = managerClub();
   const club = getClub(clubName);
   const sectionNames = {
-    season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
+    locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
     statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
