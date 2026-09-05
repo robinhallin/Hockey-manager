@@ -106,7 +106,7 @@ const CLUB_DATA = Object.fromEntries(
 
         wageBudget:
           Math.round(
-            (6500000 + strength * 90000)
+            (25000000 + strength * 400000)
           ),
 
         fans:
@@ -689,6 +689,8 @@ clubRosters: createClubRosters(),
 
 transferNegotiation: null,
 
+contractNegotiation: null,
+
     history:[],
 
     news:[
@@ -761,6 +763,53 @@ function syncManagerRoster(){
       state.clubRosters[clubName];
   }
 
+}
+
+const SQUAD_ROLES = [
+  "Breddspelare",
+  "Rotation",
+  "Ordinarie",
+  "Nyckelspelare"
+];
+
+function ensureManagementData(){
+
+  Object.entries(state.clubRosters || {}).forEach(([clubName,roster]) => {
+
+    const clubStrength = getClub(clubName)?.strength || 75;
+
+    roster.forEach(player => {
+      if(!player.potential){
+        const ageBonus = player.age <= 21 ? 7 : player.age <= 24 ? 4 : player.age <= 27 ? 2 : 0;
+        player.potential = Math.min(90, player.overall + ageBonus);
+      }
+
+      if(!player.squadRole){
+        player.squadRole = player.overall >= clubStrength + 2
+          ? "Nyckelspelare"
+          : player.overall >= clubStrength - 1
+            ? "Ordinarie"
+            : player.overall >= clubStrength - 4
+              ? "Rotation"
+              : "Breddspelare";
+      }
+
+      if(!player.promisedRole) player.promisedRole = player.squadRole;
+      if(typeof player.happiness !== "number") player.happiness = player.morale || 70;
+      if(!player.developmentFocus) player.developmentFocus = "Balanserad";
+      if(typeof player.developmentProgress !== "number") player.developmentProgress = 0;
+      if(typeof player.games !== "number") player.games = 0;
+    });
+  });
+
+}
+
+function annualWageCost(){
+  return managerRoster().reduce((sum,player) => sum + (player.salary || 0), 0);
+}
+
+function wageBudget(){
+  return getClub()?.wageBudget || 35000000;
 }
 function getClub(clubName = managerClub()){
 
@@ -1123,6 +1172,7 @@ if(
   state.transferNegotiation = null;
 }
 syncManagerRoster();
+ensureManagementData();
 if(
   !Array.isArray(state.schedule) ||
   state.schedule.length === 0 ||
@@ -3135,6 +3185,8 @@ const hv =
   const hvWin=
     m.hv>m.opp;
 
+  updateSquadAfterMatch(hvWin);
+
 
   if(
     overtime
@@ -3241,6 +3293,50 @@ if(scheduleGame.home === managerClub()){
     scheduleGame.homeGoals = m.opp;
     scheduleGame.awayGoals = m.hv;
   }
+}
+
+function updateSquadAfterMatch(won){
+
+  ensureLines();
+
+  const dressedIds = [
+    ...state.lines.forwards,
+    ...state.lines.defense,
+    state.lines.goalie
+  ];
+
+  managerRoster().forEach(player => {
+    const dressed = dressedIds.some(id => samePlayerId(id,player.id));
+    const promisedRank = SQUAD_ROLES.indexOf(player.promisedRole);
+    const actualRank = SQUAD_ROLES.indexOf(player.squadRole);
+
+    if(dressed) player.games = (player.games || 0) + 1;
+
+    const moodChange = (won ? 1 : -1) + (promisedRank > actualRank ? -2 : 0);
+    player.happiness = Math.max(20,Math.min(100,player.happiness + moodChange));
+    player.morale = Math.max(20,Math.min(100,(player.morale || 70) + (won ? 1 : -1)));
+
+    if(dressed && player.overall < player.potential){
+      const ageFactor = player.age <= 22 ? 1.5 : player.age <= 26 ? 1 : 0.45;
+      player.developmentProgress += (player.potential - player.overall) * 0.16 * ageFactor;
+
+      if(player.developmentProgress >= 100){
+        player.developmentProgress -= 100;
+        player.overall++;
+
+        const focusMap = {
+          Skott:"shooting",
+          Passningar:"passing",
+          Försvar:"defense",
+          Fysik:"physical"
+        };
+        const attribute = focusMap[player.developmentFocus];
+        if(attribute) player[attribute] = Math.min(99,(player[attribute] || player.overall) + 1);
+        state.news.unshift(`${player.name} har utvecklats och är nu ${player.overall} OVR.`);
+      }
+    }
+  });
+
 }
 
 simulateOtherGames();
@@ -4034,6 +4130,11 @@ const players =
       ) / players.length
     );
 
+  const wageCost = annualWageCost();
+  const availableWages = wageBudget() - wageCost;
+  const expiringContracts = players.filter(player => player.contractYears <= 1);
+  const unhappyPlayers = players.filter(player => player.happiness < 60);
+
   const rows =
     players.map(p=>{
 
@@ -4269,6 +4370,36 @@ const players =
 
       </div>
 
+      <section class="dashboard-panel squad-management-panel">
+        <div class="panel-header">
+          <div>
+            <span class="panel-label">TRUPPLANERING</span>
+            <h2>Kontrakt och löner</h2>
+          </div>
+          <strong class="${availableWages < 0 ? "budget-negative" : "budget-positive"}">
+            ${availableWages >= 0 ? "+" : ""}${money(availableWages)} kvar
+          </strong>
+        </div>
+
+        <div class="management-summary-grid">
+          <div><span>Lönekostnad</span><strong>${money(wageCost)}</strong></div>
+          <div><span>Lönebudget</span><strong>${money(wageBudget())}</strong></div>
+          <div><span>Utgående avtal</span><strong>${expiringContracts.length}</strong></div>
+          <div><span>Missnöjda spelare</span><strong>${unhappyPlayers.length}</strong></div>
+        </div>
+
+        ${expiringContracts.length ? `
+          <div class="squad-alert-list">
+            ${expiringContracts.map(player => `
+              <button onclick="selectPlayer('${player.id}')">
+                <span><b>${player.name}</b><small>${player.squadRole}</small></span>
+                <strong>Avtal: ${player.contractYears} år ›</strong>
+              </button>
+            `).join("")}
+          </div>
+        ` : `<p class="muted">Inga kontrakt löper ut efter säsongen.</p>`}
+      </section>
+
 
       <section class="dashboard-panel squad-panel">
 
@@ -4378,6 +4509,91 @@ function toggleTransferStatus(playerId){
   save();
   render();
 }
+
+function openContractNegotiation(playerId){
+
+  const player = managerRoster().find(p => samePlayerId(p.id,playerId));
+  if(!player) return;
+
+  const raise = player.contractYears <= 1 ? 1.12 : 1.06;
+
+  state.contractNegotiation = {
+    playerId: player.id,
+    salaryDemand: Math.round(player.salary * raise / 10000) * 10000,
+    years: player.age >= 31 ? 2 : player.age <= 23 ? 4 : 3,
+    role: player.squadRole,
+    attempts: 0,
+    message: "Spelaren är redo att diskutera ett nytt avtal."
+  };
+
+  save();
+  render();
+
+}
+
+function cancelContractNegotiation(){
+  state.contractNegotiation = null;
+  save();
+  render();
+}
+
+function submitContractRenewal(playerId,salary,years,role){
+
+  const negotiation = state.contractNegotiation;
+  const player = managerRoster().find(p => samePlayerId(p.id,playerId));
+  if(!negotiation || !player || !samePlayerId(negotiation.playerId,playerId)) return;
+
+  salary = Math.round(Number(salary) || 0);
+  years = Math.round(Number(years) || 0);
+  negotiation.attempts++;
+
+  const currentRoleRank = SQUAD_ROLES.indexOf(player.squadRole);
+  const offeredRoleRank = SQUAD_ROLES.indexOf(role);
+  const newWageCost = annualWageCost() - player.salary + salary;
+
+  if(newWageCost > wageBudget()){
+    negotiation.message = "Lönebudgeten räcker inte för det här avtalet.";
+  }else if(salary < negotiation.salaryDemand){
+    negotiation.message = `Lönen är för låg. Kravet är ${money(negotiation.salaryDemand)} per år.`;
+  }else if(years < 1 || years > 5){
+    negotiation.message = "Kontraktet måste vara mellan ett och fem år.";
+  }else if(offeredRoleRank < currentRoleRank){
+    negotiation.message = `${player.name} accepterar inte en mindre roll i laget.`;
+  }else{
+    player.salary = salary;
+    player.contractYears = years;
+    player.promisedRole = role;
+    player.happiness = Math.min(100,player.happiness + 8);
+    player.morale = Math.min(100,(player.morale || 70) + 5);
+    state.news.unshift(`${player.name} har förlängt med ${managerClub()} i ${years} år.`);
+    state.contractNegotiation = null;
+    save();
+    render();
+    return;
+  }
+
+  negotiation.salaryDemand = Math.round(negotiation.salaryDemand * 1.03 / 10000) * 10000;
+
+  if(negotiation.attempts >= 3){
+    state.news.unshift(`Kontraktsförhandlingarna med ${player.name} har pausats efter tre avslag.`);
+    state.contractNegotiation = null;
+  }
+
+  save();
+  render();
+
+}
+
+function setDevelopmentFocus(playerId,focus){
+
+  const player = managerRoster().find(p => samePlayerId(p.id,playerId));
+  if(!player) return;
+  player.developmentFocus = focus;
+  state.news.unshift(`${player.name} tränar nu med fokus på ${focus.toLowerCase()}.`);
+  save();
+  render();
+
+}
 function playerView(){
 
   const player =
@@ -4442,14 +4658,12 @@ function playerView(){
     || player.nationality
     || "-";
 
-  const role =
-    player.overall >= 82
-      ? "Nyckelspelare"
-      : player.overall >= 79
-        ? "Ordinarie"
-        : player.overall >= 75
-          ? "Rotation"
-          : "Breddspelare";
+  const role = player.squadRole;
+
+  const negotiation = state.contractNegotiation &&
+    samePlayerId(state.contractNegotiation.playerId,player.id)
+      ? state.contractNegotiation
+      : null;
 
   const formatCurrency = value =>
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
@@ -4627,6 +4841,11 @@ ${
             </div>
 
             <div>
+              <span>Utlovad roll</span>
+              <strong>${player.promisedRole}</strong>
+            </div>
+
+            <div>
               <span>Kontrakt kvar</span>
               <strong>${player.contractYears} år</strong>
             </div>
@@ -4657,8 +4876,8 @@ ${
 
           <div class="player-actions">
 
-            <button class="btn secondary">
-              Kontrakt
+            <button class="btn secondary" onclick="openContractNegotiation('${player.id}')">
+              Förhandla kontrakt
             </button>
 
 <button
@@ -4672,11 +4891,53 @@ ${
   }
 </button>
 
-            <button class="btn secondary">
-              Historik
-            </button>
-
           </div>
+
+          ${negotiation ? `
+            <div class="contract-negotiation-box">
+              <div class="contract-negotiation-head">
+                <div>
+                  <span class="panel-label">FÖRHANDLING</span>
+                  <h3>Nytt kontrakt</h3>
+                </div>
+                <span>Försök ${negotiation.attempts + 1} av 3</span>
+              </div>
+
+              <p class="contract-message">${negotiation.message}</p>
+
+              <div class="contract-form-grid">
+                <label>
+                  Årslön
+                  <input id="renewalSalary" type="number" step="10000" value="${negotiation.salaryDemand}">
+                  <small>Krav: ${formatCurrency(negotiation.salaryDemand)}</small>
+                </label>
+
+                <label>
+                  Kontraktslängd
+                  <select id="renewalYears">
+                    ${[1,2,3,4,5].map(year => `<option value="${year}" ${year===negotiation.years ? "selected" : ""}>${year} år</option>`).join("")}
+                  </select>
+                </label>
+
+                <label>
+                  Utlovad roll
+                  <select id="renewalRole">
+                    ${SQUAD_ROLES.map(item => `<option value="${item}" ${item===negotiation.role ? "selected" : ""}>${item}</option>`).join("")}
+                  </select>
+                </label>
+              </div>
+
+              <div class="player-actions">
+                <button class="btn" onclick="submitContractRenewal(
+                  '${player.id}',
+                  document.getElementById('renewalSalary').value,
+                  document.getElementById('renewalYears').value,
+                  document.getElementById('renewalRole').value
+                )">Lämna erbjudande</button>
+                <button class="btn secondary" onclick="cancelContractNegotiation()">Avbryt</button>
+              </div>
+            </div>
+          ` : ""}
 
         </section>
 
@@ -4773,6 +5034,23 @@ ${
               <strong>${player.morale || 70}</strong>
             </div>
 
+            <div>
+              <span>Trivsel</span>
+              <strong>${player.happiness}%</strong>
+            </div>
+
+            <div>
+              <span>Potential</span>
+              <strong>${player.potential}</strong>
+            </div>
+
+          </div>
+
+          <div class="development-control">
+            <label for="developmentFocus">Individuellt träningsfokus</label>
+            <select id="developmentFocus" onchange="setDevelopmentFocus('${player.id}',this.value)">
+              ${["Balanserad","Skott","Passningar","Försvar","Fysik"].map(focus => `<option ${focus===player.developmentFocus ? "selected" : ""}>${focus}</option>`).join("")}
+            </select>
           </div>
 
         </section>
@@ -7499,6 +7777,7 @@ function startCareerWithClub(clubName){
   state = freshState;
 
   syncManagerRoster();
+  ensureManagementData();
 
   save();
   render();
