@@ -79,6 +79,7 @@ function closeSeason(){
  const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money};
  if(!s.archive.some(a=>a.year===s.year))s.archive.unshift(record);
  managerMessage(`review:${s.year}`,`${s.champion} är mästare ${seasonLabel()}`,`Säsongen är avslutad. Din placering i grundserien: ${record.position}. Styrelsens mål: ${record.goals.filter(g=>g.met).length} av ${record.goals.length} uppnådda. Öppna Säsong för utvärdering och nästa försäsong.`,'Säsongsutvärdering',{link:'season'});
+ managerSeasonReview();
  state.page='season';
 }
 function seasonContinue(){
@@ -108,6 +109,7 @@ function beginPreseason(){
  s.grant=Math.round(careerIdentity(managerClub()).cash*(.4+.2*fulfilled));
  clubNewYear();clubPost("grant",s.grant,"Styrelsens försäsongstilldelning");
  juniorNewYear();
+ managerPreseason();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
  state.page='season';save();render();
 }
@@ -119,12 +121,14 @@ function recruitAcademyPlayer(pos){if(state.season?.phase==='preseason')juniorEm
 
 function preseasonRenew(id){const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p)return;state.selectedPlayer=p.id;state.page='player';openContractNegotiation(p.id);}
 function launchSeason(){
+ if(!managerCanPlay())return;
  const s=state.season;if(s?.phase!=='preseason')return;
  if(state.recruitment?.deals.some(d=>d.status==='pending')){s.message='Invänta eller återkalla pågående transferbud under Rekrytering innan premiären.';render();return;}
  const ps=managerRoster();if(ps.some(p=>p.contractYears<=0)){s.message='Förnya eller avsluta samtliga utgående avtal innan premiären.';render();return;}
  if(ps.filter(p=>p.pos==='MV').length<2||ps.filter(p=>p.pos==='B').length<6||ps.filter(p=>!['MV','B'].includes(p.pos)).length<12){s.message='Premiärtruppen behöver minst två målvakter, sex backar och tolv forwards. Du kan flytta upp juniorer.';render();return;}
  for(const roster of Object.values(state.clubRosters))for(const p of roster){for(const key of ['goals','assists','shots','pim','games','saves','goalsAgainst'])p[key]=0;p.fatigue=0;p.trainingBaseline={...p.attributes};}
  state.teams=TEAM_DATA.map(([name,strength,style])=>({name,strength:Math.round(state.clubRosters[name].reduce((n,p)=>n+matchAttributeRating(p),0)/state.clubRosters[name].length),style,gp:0,w:0,l:0,otw:0,otl:0,pts:0,gf:0,ga:0}));
+ state.managerCareer.startGames=0;state.managerCareer.lastReview=null;
  state.schedule=createSchedule();state.round=1;state.selectedRound=1;state.live=null;state.lines=null;state.specialTeams=null;
  const oldTraining=state.training;
  state.training=null;state.scoutReports=state.scoutReports||{};

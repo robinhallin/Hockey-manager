@@ -122,6 +122,7 @@ function setIndividualLoad(id,value){
 }
 function pendingManagerDecision(){return state.training?.messages.find(m=>m.decisionType&&!m.resolved);}
 function runTrainingSession(){
+  if(!managerEmployed())return false;
   ensureTrainingData();const t=state.training;
   if(!t||t.day>=3||t.lockedRound===state.round||state.live?.running||opponent()==='Ingen match'||pendingManagerDecision())return false;
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
@@ -169,6 +170,7 @@ function executeTrainingPeriod(){
 }
 function managerContinue(){
   if(careerScreen||!state.careerStarted)return;
+  if(!managerCanPlay())return;
   ensureTrainingData();
   if(seasonContinue())return;
   if(state.live&&!state.live.finished&&state.training.lockedRound===state.round){state.page='match';save();render();return;}
@@ -215,6 +217,7 @@ function afterTrainingMatch(){
   ensureTrainingData();const t=state.training,m=state.live;
   if(!t||!m?.finished||t.lastMatchRound===state.round)return;
   t.lastMatchRound=state.round;
+  managerCheckIn();
   followRecruitmentPromises(m);
   for(const p of managerRoster()){const seconds=m.iceTime?.[p.id]||0;t.matchMinutes[p.id]=(t.matchMinutes[p.id]||0)+seconds;if(p.pos==='MV')p.fatigue=trainingClamp(p.fatigue+seconds/300);}
   for(const promise of t.promises.filter(p=>!p.resolved)){

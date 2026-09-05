@@ -52,6 +52,7 @@ function clubSettleMatch(){
   clubPost('sponsor',o.sponsor/52,'Sponsor & centrala avtal · 1/52');
   clubPost('players',-annualWageCost()/52,'Spelarlöner · 1/52 av nuvarande årslön');
   clubPost('staff',-clubStaffCost()/52,'Personallöner · 1/52');
+  if(managerSalary())clubPost('manager',-managerSalary()/52,'Huvudtränarens lön · 1/52');
   clubPost('operations',-o.operations/52,'Klubbdrift & ungdomsverksamhet · 1/52');
   const p=CLUB_PRIORITIES[o.priority];if(p.cost)clubPost('priority',-p.cost/52,p.name+' · 1/52');
  }
@@ -61,7 +62,7 @@ function clubForecast(){
  const o=state.clubOffice,remaining=state.schedule.filter(g=>!g.played&&!g.seriesId&&(g.home===managerClub()||g.away===managerClub())),home=remaining.filter(g=>g.home===managerClub()).length;
  // During preseason the old schedule remains; project the next 52-fixture season.
  const preseason=state.season.phase==='preseason',games=preseason?52:remaining.length,homes=preseason?26:home;
- const wage=annualWageCost()+clubStaffCost(),recurring=o.operations+CLUB_PRIORITIES[o.priority].cost;
+ const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations+CLUB_PRIORITIES[o.priority].cost;
  const income=homes*clubGate().revenue+games*o.sponsor/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
  const reserved=(state.recruitment?.deals||[]).filter(d=>d.status==='pending').reduce((n,d)=>n+d.fee,0);
  return {games,homes,income,cost,reserved,cash:Math.round(state.money+income-cost-reserved)};
@@ -69,6 +70,7 @@ function clubForecast(){
 function clubNotice(message){state.clubOffice.message=message;save();render();}
 function clubLocked(){return Boolean(state.live&&!state.live.finished);}
 function clubSetPolicy(key,value){
+ if(!managerCanPlay())return;
  ensureClub();if(clubLocked())return clubNotice('Ändra klubbens plan mellan matcher.');
  if(key==='priority'&&Object.hasOwn(CLUB_PRIORITIES,value)){
   if(CLUB_PRIORITIES[value].cost>CLUB_PRIORITIES[state.clubOffice.priority].cost&&state.money-clubForecast().reserved<=0)return clubNotice('Kassan saknar utrymme för en större satsning.');
@@ -107,6 +109,7 @@ function clubOfferEdit(key,value){
 }
 function clubInterim(role){return {id:role,personId:`interim-${role}`,name:`Tillförordnad ${CLUB_ROLES[role].toLowerCase()}`,ability:8,potential:8,coaching:8,specialty:role==='goalie'?'Målvakt':'Tvåvägsforward',salary:0,expires:null};}
 function clubSign(){
+ if(!managerCanPlay())return;
  ensureClub();const o=state.clubOffice,d=o.offer;if(!d)return;
  if(clubLocked())return clubNotice('Personalbyten görs mellan matcher.');
  const candidate=d.type==='hire'?o.market.find(c=>c.personId===d.personId):state.staff.find(s=>s.personId===d.personId);
@@ -140,7 +143,7 @@ function clubNewYear(){
  if(soon.length)managerMessage(`staff-renew:${o.year}`,'Personalavtal går in på sista året',`${soon.map(s=>s.name).join(', ')} kan nu erbjudas förlängning. Annars lämnar de vid nästa försäsong.`,'Personal',{link:'staff'});
  if(expired.length)managerMessage(`staff-expiry:${o.year}`,'Personalavtal har löpt ut',`${expired.join(', ')} har lämnat. Tillförordnade tar över tills du rekryterar ersättare.`,'Personal',{link:'staff'});
 }
-const CLUB_CATEGORIES={tickets:'Biljetter',matchday:'Match & resor',sponsor:'Sponsor & centrala avtal',players:'Spelarlöner',staff:'Personallöner',operations:'Klubbdrift',priority:'Extra satsning',transfer:'Spelarövergångar',scouting:'Scoutuppdrag',severance:'Avgångsersättning',grant:'Styrelsetilldelning',other:'Övrigt'};
+const CLUB_CATEGORIES={manager:'Huvudtränarens lön',tickets:'Biljetter',matchday:'Match & resor',sponsor:'Sponsor & centrala avtal',players:'Spelarlöner',staff:'Personallöner',operations:'Klubbdrift',priority:'Extra satsning',transfer:'Spelarövergångar',scouting:'Scoutuppdrag',severance:'Avgångsersättning',grant:'Styrelsetilldelning',other:'Övrigt'};
 function clubNavigation(page){return `<div class="club-tabs"><button class="btn ${page==='finance'?'':'secondary'}" onclick="trainingOpen('finance')">Ekonomi & plan</button><button class="btn ${page==='staff'?'':'secondary'}" onclick="trainingOpen('staff')">Personal & rekrytering</button></div>`;}
 function clubFinanceView(){
  ensureClub();const o=state.clubOffice,f=clubForecast(),priority=CLUB_PRIORITIES[o.priority];

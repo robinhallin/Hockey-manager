@@ -71,7 +71,7 @@ function boardProgress(){
   initializeBoardPlan();
   const b=state.boardPlan,offer=b.offer;
   const table=[...state.teams].sort((a,z)=>z.pts-a.pts||(z.gf-z.ga)-(a.gf-a.ga));
-  const own=team(managerClub()),played=own?.gp||0;
+  const own=team(managerClub()),played=state.season?.phase==='preseason'?0:own?.gp||0;
   const total=state.schedule.filter(g=>!g.seriesId&&(g.home===managerClub()||g.away===managerClub())).length;
   const ended=played>=total;
   const position=table.findIndex(t=>t.name===managerClub())+1;
