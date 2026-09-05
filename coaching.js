@@ -50,6 +50,7 @@ function trackIceTime(seconds){
   const m=state.live;
   if(!m||m.finished) return;
   if(!m.iceTime) m.iceTime={};
+  trackSocialIce([...currentLinePlayers(),...currentDefensePlayers()],seconds);
   const ids=[...currentLinePlayers(),...currentDefensePlayers()].map(p=>p.id);
   if(!m.goaliePulled){const goalie=randomGoalie();if(goalie) ids.push(goalie.id);}
   for(const id of new Set(ids.map(String))) m.iceTime[id]=(m.iceTime[id]||0)+seconds;
