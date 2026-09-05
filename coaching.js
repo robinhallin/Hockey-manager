@@ -38,11 +38,11 @@ function specialUnitOnIce(){
   const m=state.live;
   if(!m||m.finished) return null;
   const own=Math.min(2,m.penaltiesHV.length),other=Math.min(2,m.penaltiesOpp.length);
-  if(!own&&!other&&m.period!==4) return null;
+  if(!own&&!other&&(m.period!==4||isPlayoffMatch())) return null;
   ensureSpecialTeams();
   const unitNumber=(m.rotationIndex||0)%2+1;
   const key=(other>own?"pp":"pk")+unitNumber;
-  const count=m.period===4?Math.min(5,3+Math.max(0,other-own)):5-own;
+  const count=(m.period===4&&!isPlayoffMatch())?Math.min(5,3+Math.max(0,other-own)):5-own;
   return state.specialTeams[key].map(playerById).filter(Boolean).slice(0,count);
 }
 

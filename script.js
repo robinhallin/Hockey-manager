@@ -818,7 +818,7 @@ function annualWageCost(){
 }
 
 function wageBudget(){
-  return state.boardPlan?.offer?.wageLimit || getClub()?.wageBudget || 35000000;
+  return (state.season?.phase==="preseason"?state.season.nextWageLimit:null) || state.boardPlan?.offer?.wageLimit || getClub()?.wageBudget || 35000000;
 }
 function getClub(clubName = managerClub()){
 
@@ -1196,6 +1196,7 @@ if(
 }
 
 function save(){
+  ensureSeason();
   ensureAssessmentData();
   ensureTrainingData();
 
@@ -1221,6 +1222,7 @@ function team(name){
 
 
 function opponent(){
+    if(state.season && state.season.phase!=="regular"){const g=currentSeasonFixture();return g?(g.home===managerClub()?g.away:g.home):"Ingen match";}
 
     const clubName = managerClub();
     const clubGames = state.schedule.filter(
@@ -1433,6 +1435,7 @@ function addEvent(
    ========================================================= */
 
 function createMatch(){
+  if(opponent()==="Ingen match"){state.page="season";render();return;}
 
   const opp=opponent();
 
@@ -1538,7 +1541,7 @@ function startMatch(){
     createMatch();
 
   if(
-    state.live.finished
+    !state.live || state.live.finished
   )
     return;
 
@@ -2574,11 +2577,11 @@ function simulatePenalty(){
    UTVISNINGSTID
    ========================================================= */
 
-function tickPenalties(){
+function tickPenalties(secondsOverride=null){
 
   const m=state.live;
 
-  const tick=
+  const tick=Number.isFinite(secondsOverride)?secondsOverride:
     m.speed===3
     ? 15
     : m.speed===2
@@ -2970,7 +2973,8 @@ function overtimeStep(){
     return;
 
 
-  trackIceTime(Math.min(8,300-(m.minute*60+m.second)));
+  trackIceTime(Math.max(0,Math.min(8,(isPlayoffMatch()?1200:300)-(m.minute*60+m.second))));
+  if(isPlayoffMatch()){tickPenalties(8);m.shiftSeconds+=8;if(m.shiftSeconds>=45)rotateUnits();updateFatigue();}
   m.second+=8;
 
 
@@ -3000,9 +3004,10 @@ function overtimeStep(){
 
 
   if(
-    m.minute>=5
+    m.minute>=(isPlayoffMatch()?20:5)
   ){
 
+    if(isPlayoffMatch()){m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent("Ny förlängningsperiod – nästa mål avgör.","period");save();render();return;}
     shootout();
 
   }
@@ -3158,12 +3163,10 @@ function finishMatch(
   overtime
 ){
 
-  const m=
-    state.live;
-
-
+  if(isPlayoffMatch()){finishPlayoffMatch();return;}
+  const m=state.live;
+  if(!m||m.finished)return;
   m.running=false;
-
   m.finished=true;
 
 
@@ -3640,6 +3643,7 @@ const isHome =
   return `
 
     <div class="overview-page">
+      ${seasonOverview()}
       ${dailyOverview()}
       ${boardOverview()}
 
@@ -3659,7 +3663,7 @@ const isHome =
           </h1>
 
           <p>
-            Säsong 2026/27 · Omgång ${state.round}
+            Säsong ${seasonLabel()} · Omgång ${state.round}
           </p>
 
         </div>
@@ -4258,7 +4262,7 @@ const players =
           </h1>
 
           <p>
-            Säsong 2026/27
+            Säsong ${seasonLabel()}
           </p>
 
         </div>
@@ -4889,7 +4893,7 @@ ${
             <div>
 
               <span class="panel-label">
-                SÄSONG 2026/27
+                SÄSONG ${seasonLabel()}
               </span>
 
               <h2>
@@ -6302,7 +6306,7 @@ function scheduleView(){
       <h2>${clubName} – Spelschema</h2>
 
       <p class="muted">
-        Säsong 2026/27 • 52 omgångar
+        Säsong ${seasonLabel()} • 52 omgångar
       </p>
 
       <button
@@ -7811,6 +7815,7 @@ function placeholderView(title){
 function continueGame(){managerContinue();}
 
 function render(){
+  ensureSeason();
   ensureAssessmentData();
   ensureTrainingData();
   applyCareerShell();
@@ -7863,7 +7868,7 @@ careerScreen === "menu" ? careerMenuView()
 
 : state.page==="match"
 
-? benchPanel()+matchView()+iceTimeView()
+? seasonMatchPanel()+benchPanel()+matchView()+iceTimeView()
 
 : state.page==="specialTeams"
 
@@ -7884,6 +7889,10 @@ careerScreen === "menu" ? careerMenuView()
 : state.page==="finance"
 
 ? financeView()
+
+: state.page==="season"
+
+? seasonView()
 
 : state.page==="training"
 
@@ -7914,7 +7923,7 @@ careerScreen === "menu" ? careerMenuView()
   const clubName = managerClub();
   const club = getClub(clubName);
   const sectionNames = {
-    training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
+    season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"TRANSFERS", scouting:"SCOUTING",
     statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
@@ -7926,6 +7935,7 @@ careerScreen === "menu" ? careerMenuView()
   const clubInfoName = document.querySelector(".club-info strong");
   const clubInfoLeague = document.querySelector(".club-info span");
 
+  const seasonText=document.querySelector(".season-info strong");if(seasonText)seasonText.textContent=seasonLabel();
   const unread=document.getElementById("inboxCount");
   if(unread)unread.textContent=state.training?.messages.filter(m=>!m.read).length||"";
   if(section) section.textContent = sectionNames[state.page] || "HOCKEY MANAGER";
