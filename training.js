@@ -209,6 +209,7 @@ function afterTrainingMatch(){
   ensureTrainingData();const t=state.training,m=state.live;
   if(!t||!m?.finished||t.lastMatchRound===state.round)return;
   t.lastMatchRound=state.round;
+  followRecruitmentPromises(m);
   for(const p of managerRoster()){const seconds=m.iceTime?.[p.id]||0;t.matchMinutes[p.id]=(t.matchMinutes[p.id]||0)+seconds;if(p.pos==='MV')p.fatigue=trainingClamp(p.fatigue+seconds/300);}
   for(const promise of t.promises.filter(p=>!p.resolved)){
     const p=managerRoster().find(p=>samePlayerId(p.id,promise.playerId));
