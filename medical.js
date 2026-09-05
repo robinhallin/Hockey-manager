@@ -28,15 +28,15 @@ function injurePlayer(p,source='match',days=null){
  repairMedicalLines();return true;
 }
 function medicalDay(session=null){
- ensureMedical();const s=state.medical;s.day++;
+ ensureMedical();const s=state.medical;ensureClub();s.day++;
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.juniors?.roster||[])]){
    const h=p.health;
    if(!isOwnPlayer(p)){h.load*=.8;if(h.injury){if(h.injury.remaining>0)h.injury.remaining--;else{h.injury.readiness=Math.min(100,h.injury.readiness+15);if(h.injury.readiness===100){h.injury=null;h.clearance='rest';}}}continue;}
    const rest=Boolean(h.injury)||!session||session.type==='recovery'||p.trainingLoad==='rest',hard=session?.intensity==='hard'&&p.trainingLoad!=='light';
-   h.load=trainingClamp(h.load*.8+(rest?0:hard?12:5));
+   h.load=trainingClamp(h.load*(.8+(15-s.staff.skill)*.008)+(rest?0:hard?12:5));
    if(h.injury){const i=h.injury;
      if(i.remaining>0){i.remaining--;p.fatigue=Math.max(0,p.fatigue-12);if(i.remaining===0)medicalReport(`${p.name}: återgångsträning`,`${p.name} kan börja återgångsträna. Fortsatt återhämtning är det lugnaste alternativet. Du kan också välja en begränsad comeback under Medicinskt team.`);}
-     else{i.readiness=Math.min(100,i.readiness+(rest?15:10));p.fatigue=Math.max(0,p.fatigue-10);
+     else{i.readiness=Math.min(100,i.readiness+(rest?15:10)*(.7+s.staff.skill/50));p.fatigue=Math.max(0,p.fatigue-10);
        if(i.readiness===100){h.injury=null;h.clearance='rest';medicalReport(`${p.name} är fullt återställd`,'Spelaren kan träna och spela normalt igen. Håll fortsatt koll på belastningen.');}
      }
    }else if(!rest&&medicalRoll()<.0004*medicalRisk(p,hard)){injurePlayer(p,'träning');}

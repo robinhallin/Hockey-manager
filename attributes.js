@@ -57,13 +57,13 @@ function playerAssessment(p){
   const ability=attrClamp(staff.ability+(specialized?2:0));
   const uncertainty=(1-familiarity)*4+(20-ability)*.08;
   const attributes=ensurePlayerAttributes(p),estimated={};
-  for(const key of Object.keys(attributes))estimated[key]=attrClamp(attributes[key]+(attrSeed(`${p.id}:${staff.id}:${key}`)-.5)*2*uncertainty);
+  for(const key of Object.keys(attributes))estimated[key]=attrClamp(attributes[key]+(attrSeed(`${p.id}:${staff.personId||staff.id}:${key}`)-.5)*2*uncertainty);
   const roles=roleWeights(p).map(name=>({name,value:attributeWeighted(estimated,PLAYER_ROLES[name])})).sort((a,b)=>b.value-a.value);
   const peers=managerRoster().filter(x=>x.pos==='MV'?(p.pos==='MV'):(p.pos!=='MV'));
   const baseline=peers.reduce((sum,x)=>sum+Math.max(...roleWeights(x).map(name=>attributeWeighted(ensurePlayerAttributes(x),PLAYER_ROLES[name]))),0)/Math.max(1,peers.length);
   const stars=value=>Math.round(attrClamp(2.5+(value-baseline)*.65,0,5)*2)/2;
   const potentialError=(p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2;
-  const potentialEstimate=roles[0].value+p.attributeGrowth+(attrSeed(`${p.id}:${staff.id}:potential`)-.5)*2*potentialError;
+  const potentialEstimate=roles[0].value+p.attributeGrowth+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
   return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(roles[0].value),low:stars(roles[0].value-uncertainty),high:stars(roles[0].value+uncertainty),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
 function starsText(value){return '★'.repeat(Math.floor(value))+(value%1?'½':'')+'☆'.repeat(5-Math.ceil(value));}

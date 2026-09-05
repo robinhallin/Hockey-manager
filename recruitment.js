@@ -56,13 +56,13 @@ function recruitSelectProfile(name){recruitFilters().profile=name;state.recruitm
 function recruitOpen(id){state.selectedMarketPlayer=id;state.page='marketPlayer';save();render();}
 function toggleRecruitShortlist(id){const r=state.recruitment;if(!findPlayerAnywhere(id))return;r.shortlist=r.shortlist.some(x=>samePlayerId(x,id))?r.shortlist.filter(x=>!samePlayerId(x,id)):[...r.shortlist,id];save();render();}
 function createScoutMission(){
- const r=state.recruitment;if(r.missions.filter(m=>m.status==='active').length>=2)return recruitMessage('Chefsscouten kan ansvara för två uppdrag samtidigt.');
- if(state.money<25000)return recruitMessage('Ett scoutuppdrag kostar 25 000 kr.');
+ const r=state.recruitment;if(r.missions.filter(m=>m.status==='active').length>=clubMissionLimit())return recruitMessage(`Tränarteamet kan ansvara för ${clubMissionLimit()} uppdrag samtidigt.`);
+ if(state.money-clubForecast().reserved<clubMissionFee())return recruitMessage(`Ett scoutuppdrag kostar ${money(clubMissionFee())}.`);
  const filters={...r.filters},candidates=recruitCandidates(filters).filter(p=>(state.scoutReports[String(p.id)]?.visits||0)<3).slice(0,3);
  if(!candidates.length)return recruitMessage('Inga spelare matchar sökningen. Bredda land, ålder, budget eller attributkrav.');
- state.money-=25000;
+ clubPost('scouting',-clubMissionFee(),'Scoutuppdrag · tre kandidater');
  r.missions.unshift({id:r.nextId++,filters,players:candidates.map(p=>p.id),started:r.tick,observations:0,status:'active'});
- recruitMessage('Uppdraget är startat. Tre observationer görs över tre omgångar eller försäsongsveckor. Kostnad: 25 000 kr.');
+ recruitMessage(`Uppdraget är startat. Tre observationer görs över tre omgångar eller försäsongsveckor. Kostnad: ${money(clubMissionFee())}.`);
 }
 function cancelScoutMission(id){const m=state.recruitment.missions.find(m=>m.id===id);if(!m||m.status!=='active')return;m.status='cancelled';recruitMessage('Uppdraget avslutat. Tidigare observationer finns kvar.');}
 function advanceRecruitmentRound(){
@@ -161,8 +161,8 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  const r=state.recruitment;if(getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
  state.clubRosters[buyer].push(p);
- if(buyer===managerClub())state.money-=fee;else r.ai[buyer].cash-=fee;
- if(seller===managerClub())state.money+=fee;else if(r.ai[seller])r.ai[seller].cash+=fee;
+ if(buyer===managerClub())clubPost('transfer',-fee,'Värvning · '+p.name);else r.ai[buyer].cash-=fee;
+ if(seller===managerClub())clubPost('transfer',fee,'Försäljning · '+p.name);else if(r.ai[seller])r.ai[seller].cash+=fee;
  Object.assign(p,{club:buyer,salary,contractYears:years,squadRole:role,promisedRole:role,transferListed:false,askingPrice:null,happiness:78,morale:78,fatigue:0});
  if(buyer===managerClub()&&SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
  else delete p.recruitmentPromise;
@@ -224,7 +224,7 @@ function recruitmentView(){
 }
 function recruitSearchView(){
  const f=recruitFilters(),players=recruitCandidates();
- return `<section><div class="recruit-filters"><label>Sök namn eller klubb<input type="search" value="${trainingSafe(f.query)}" onchange="setRecruitFilter('query',this.value)" placeholder="Spelare eller klubb"></label><label>Marknad<select onchange="setRecruitFilter('country',this.value)">${recruitOptions(RECRUIT_COUNTRIES,f.country)}</select></label><label>Spelarprofil<select onchange="setRecruitFilter('profile',this.value)">${recruitOptions({ALL:'Alla roller',...Object.fromEntries(Object.keys(RECRUIT_PROFILES).map(k=>[k,k]))},f.profile)}</select></label><label>Högsta ålder<input type="number" min="18" max="60" value="${f.maxAge}" onchange="setRecruitFilter('maxAge',this.value)"></label><label>Högsta övergångssumma<input type="number" min="0" step="100000" value="${f.maxFee}" onchange="setRecruitFilter('maxFee',this.value)"></label><label>Viktigt attribut<select onchange="setRecruitFilter('attribute',this.value)">${recruitOptions({'':'Inget särskilt',...SKATER_ATTRIBUTES,...GOALIE_ATTRIBUTES},f.attribute||'')}</select></label><label>Lägsta bedömda attribut<input type="number" min="1" max="20" value="${f.minAttribute||10}" onchange="setRecruitFilter('minAttribute',this.value)"></label></div><div class="recruit-search-actions"><p>${players.length} spelare matchar. Filtrering och rangordning använder personalens osäkra attributbedömning.</p><button class="btn" onclick="createScoutMission()">Scouta tre kandidater · 25 000 kr</button></div>${recruitPlayerRows(players.slice(0,50))}${players.length>50?'<p>Visar de första 50. Begränsa sökningen för att hitta fler profiler.</p>':''}</section>`;
+ return `<section><div class="recruit-filters"><label>Sök namn eller klubb<input type="search" value="${trainingSafe(f.query)}" onchange="setRecruitFilter('query',this.value)" placeholder="Spelare eller klubb"></label><label>Marknad<select onchange="setRecruitFilter('country',this.value)">${recruitOptions(RECRUIT_COUNTRIES,f.country)}</select></label><label>Spelarprofil<select onchange="setRecruitFilter('profile',this.value)">${recruitOptions({ALL:'Alla roller',...Object.fromEntries(Object.keys(RECRUIT_PROFILES).map(k=>[k,k]))},f.profile)}</select></label><label>Högsta ålder<input type="number" min="18" max="60" value="${f.maxAge}" onchange="setRecruitFilter('maxAge',this.value)"></label><label>Högsta övergångssumma<input type="number" min="0" step="100000" value="${f.maxFee}" onchange="setRecruitFilter('maxFee',this.value)"></label><label>Viktigt attribut<select onchange="setRecruitFilter('attribute',this.value)">${recruitOptions({'':'Inget särskilt',...SKATER_ATTRIBUTES,...GOALIE_ATTRIBUTES},f.attribute||'')}</select></label><label>Lägsta bedömda attribut<input type="number" min="1" max="20" value="${f.minAttribute||10}" onchange="setRecruitFilter('minAttribute',this.value)"></label></div><div class="recruit-search-actions"><p>${players.length} spelare matchar. Filtrering och rangordning använder personalens osäkra attributbedömning.</p><button class="btn" onclick="createScoutMission()">Scouta tre kandidater · ${money(clubMissionFee())}</button></div>${recruitPlayerRows(players.slice(0,50))}${players.length>50?'<p>Visar de första 50. Begränsa sökningen för att hitta fler profiler.</p>':''}</section>`;
 }
 function recruitPlayerRows(players){
  const r=state.recruitment;
@@ -235,7 +235,7 @@ function recruitPlayerRows(players){
 }
 function recruitMissionsView(){
  const r=state.recruitment;
- return `<section><h2>Chefsscoutens uppdrag</h2><p>Två samtidiga uppdrag. Varje uppdrag kostar 25 000 kr och omfattar upp till tre spelare. Välj sökkrav under Spelarsökning.</p>${r.missions.map(m=>`<article class="recruit-mission"><header><h3>${m.filters.profile==='ALL'?'Bred sökning':m.filters.profile} · ${RECRUIT_COUNTRIES[m.filters.country]}</h3><span>${m.status==='active'?'Pågår':m.status==='completed'?'Rapport klar':'Avslutat'}</span></header><p>Högst ${m.filters.maxAge} år · ${careerMoney(m.filters.maxFee)} · ${m.observations}/3 observationstillfällen</p><progress max="3" value="${m.observations}" aria-label="Observationstillfällen"></progress>${recruitPlayerRows(m.players.map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p)))}${m.status==='active'?`<button class="btn secondary" onclick="cancelScoutMission(${m.id})">Avsluta uppdrag</button>`:''}</article>`).join('')||'<p>Inga uppdrag startade ännu.</p>'}</section>`;
+ return `<section><h2>Chefsscoutens uppdrag</h2><p>${clubMissionLimit()} samtidiga uppdrag. Varje uppdrag kostar ${money(clubMissionFee())} och omfattar upp till tre spelare. Välj sökkrav under Spelarsökning.</p>${r.missions.map(m=>`<article class="recruit-mission"><header><h3>${m.filters.profile==='ALL'?'Bred sökning':m.filters.profile} · ${RECRUIT_COUNTRIES[m.filters.country]}</h3><span>${m.status==='active'?'Pågår':m.status==='completed'?'Rapport klar':'Avslutat'}</span></header><p>Högst ${m.filters.maxAge} år · ${careerMoney(m.filters.maxFee)} · ${m.observations}/3 observationstillfällen</p><progress max="3" value="${m.observations}" aria-label="Observationstillfällen"></progress>${recruitPlayerRows(m.players.map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p)))}${m.status==='active'?`<button class="btn secondary" onclick="cancelScoutMission(${m.id})">Avsluta uppdrag</button>`:''}</article>`).join('')||'<p>Inga uppdrag startade ännu.</p>'}</section>`;
 }
 function recruitDealsView(){
  const r=state.recruitment;

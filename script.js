@@ -1205,6 +1205,7 @@ function save(){
   ensureTrainingData();
   ensureJuniors();
   ensureRink();
+  ensureClub();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -3232,11 +3233,7 @@ state.news.unshift(
 );
 
 
-  state.money+=
-    Math.round(
-      state.fans*220
-    )-
-    300000;
+  clubSettleMatch();
 
 const scheduleGame = state.schedule.find(
   game =>
@@ -6467,20 +6464,7 @@ function newsView(){
 
 }
 
-function financeView(){
-
-  const wageCost = managerRoster().reduce((sum,player) => sum + (player.salary || 0), 0);
-
-  return `
-    <section class="card">
-      <h2>Ekonomi</h2>
-      <div class="row"><span>Klubbkassa</span><b>${money(state.money)}</b></div>
-      <div class="row"><span>Spelarlöner per år</span><b>${money(wageCost)}</b></div>
-      <div class="row"><span>Supporters</span><b>${state.fans || 0}</b></div>
-    </section>
-  `;
-
-}
+function financeView(){return clubFinanceView();}
 
 function placeholderView(title){
 
@@ -6505,6 +6489,7 @@ function render(){
   ensureTrainingData();
   ensureJuniors();
   ensureRink();
+  ensureClub();
   applyCareerShell();
 
   const content=
@@ -6573,6 +6558,9 @@ careerScreen === "menu" ? careerMenuView()
 
 ? newsView()
 
+: state.page==="staff"
+? clubStaffView()
+
 : state.page==="finance"
 
 ? financeView()
@@ -6623,7 +6611,7 @@ careerScreen === "menu" ? careerMenuView()
   const sectionNames = {
     medical:"MEDICINSKT TEAM", locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
-    statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
+    staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
   };
 
