@@ -53,6 +53,7 @@ function trackIceTime(seconds){
   const goalie=m.goaliePulled?null:randomGoalie();
   const players=[...new Map([...skaters,...(goalie?[goalie]:[])].map(p=>[String(p.id),p])).values()];
   const shared=Math.min(seconds,...players.map(p=>medicalLimit(p)-(m.iceTime[p.id]||0)));
+  analysisIce(players,seconds);
   trackSocialIce(skaters,Math.max(0,shared));
   for(const p of players)m.iceTime[p.id]=(m.iceTime[p.id]||0)+Math.max(0,Math.min(seconds,medicalLimit(p)-(m.iceTime[p.id]||0)));
   medicalExposure(players,seconds);
@@ -88,7 +89,7 @@ function benchPanel(){
   if(!m) return '';
   const goalie=randomGoalie();
   const special=specialUnitOnIce();
-  return `<section class="bench-strip"><div><small>COACHBÄNKEN · ${m.finished?'SLUTRESULTAT':special?'SPECIAL TEAMS':'FEM MOT FEM'}</small><h2>${m.finished?'Matchrapport':'Ditt nästa drag'}</h2><p>Målvakt: ${goalie?.name||'Ingen vald'}${m.goaliePulled?' · Uttagen':''}</p></div><div class="bench-actions"><button class="btn secondary" onclick="coachingNavigate('tactics')">Matchplan</button><button class="btn secondary" onclick="coachingNavigate('specialTeams')">PP / PK</button><button class="btn secondary" onclick="coachingNavigate('lines')">Kedjor & målvakt</button></div>${!m.finished?`<div class="bench-actions">${[0,1,2,3].map(i=>`<button class="btn secondary" onclick="benchLine(${i})">In med kedja ${i+1}</button>`).join('')}<small>Coachval pausar matchen. Tryck Starta för att fortsätta.</small></div>`:''}</section>`;
+  return `<section class="bench-strip"><div><small>COACHBÄNKEN · ${m.finished?'SLUTRESULTAT':special?'SPECIAL TEAMS':'FEM MOT FEM'}</small><h2>${m.finished?'Matchrapport':'Ditt nästa drag'}</h2><p>Målvakt: ${goalie?.name||'Ingen vald'}${m.goaliePulled?' · Uttagen':''}</p></div><div class="bench-actions"><button class="btn secondary" onclick="state.analysis.selected=state.live.finished?'latest':'live';coachingNavigate('statistics')">Matchanalys</button><button class="btn secondary" onclick="coachingNavigate('tactics')">Matchplan</button><button class="btn secondary" onclick="coachingNavigate('specialTeams')">PP / PK</button><button class="btn secondary" onclick="coachingNavigate('lines')">Kedjor & målvakt</button></div>${!m.finished?`<div class="bench-actions">${[0,1,2,3].map(i=>`<button class="btn secondary" onclick="benchLine(${i})">In med kedja ${i+1}</button>`).join('')}<small>Coachval pausar matchen. Tryck Starta för att fortsätta.</small></div>`:''}</section>`;
 }
 
 function iceTimeView(){

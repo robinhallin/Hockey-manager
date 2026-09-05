@@ -15,6 +15,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('locker.js','utf8'),context);
   vm.runInContext(fs.readFileSync('medical.js','utf8'),context);
   vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('analysis.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -33,6 +34,8 @@ const table=run('JSON.stringify(state.teams.map(({strength,...standing})=>standi
 run('createMatch();state.live.hv=4;state.live.opp=1;finishMatch(false)');
 assert.equal(run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),table);
 assert.equal(run('state.season.series[0].winsHigh'),1);
+assert.equal(run('state.analysis.matches[0].stage'),'Åttondelsfinal');
+assert.equal(run('state.analysis.matches[0].own'),4);
 assert.equal(run('currentSeasonFixture().home'),'HV71');
 run('save()');const reload=boot(storage.value);
 assert.equal(reload.run('state.season.series[0].winsHigh'),1);

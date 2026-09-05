@@ -1201,6 +1201,7 @@ function save(){
   ensureRecruitment();
   ensureLocker();
   ensureMedical();
+  ensureAnalysis();
   ensureTrainingData();
 
   localStorage.setItem(
@@ -1997,6 +1998,7 @@ function hvShot(
 ){
 
   const m=state.live;
+  ensureAnalysis();
 
   m.shotsHV++;
 
@@ -2041,8 +2043,10 @@ function hvShot(
   goalChance-=(goalieStrength-75)/600;
 
 
-  const result=
-    Math.random();
+  const location=shotLocation(dangerous);
+  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor));
+  const result=Math.random();
+  recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result);
 
 
   if(
@@ -2097,9 +2101,11 @@ function hvShot(
 
       rebound.shots++;
 
-      if(
-        Math.random()<.18
-      ){
+      const reboundLocation=shotLocation(true);
+      const reboundChance=.18*reboundLocation.factor;
+      const reboundResult=Math.random();
+      recordAnalysisShot('own',rebound.name,rebound.id,true,reboundLocation,reboundChance,reboundResult,reboundResult<reboundChance?'goal':'save');
+      if(reboundResult<reboundChance){
 
         goalHV(
           rebound
@@ -2176,7 +2182,7 @@ addEvent(
 );
 
     opponentShot(
-      true
+      true,opponentShooter
     );
 
     return;
@@ -2213,6 +2219,7 @@ function opponentShot(
 ){
 
   const m=state.live;
+  ensureAnalysis();
 
   m.shotsOpp++;
 
@@ -2259,8 +2266,10 @@ function opponentShot(
   }
 
 
-  const result=
-    Math.random();
+  const location=shotLocation(dangerous);
+  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor));
+  const result=Math.random();
+  recordAnalysisShot('opponent',shooterName,null,dangerous,location,goalChance,result);
 
 
   if(
@@ -2327,6 +2336,7 @@ function goalHV(
   m.hv++;
 
   scorer.goals++;
+  analysisEvent("goal","own",`${scorer.name}: ${m.hv}–${m.opp}`,scorer.id);
 
 
   const possibleAssists=
@@ -2348,6 +2358,7 @@ function goalHV(
       ];
 
     assist.assists++;
+    analysisAssist(assist);
 
   }
 
@@ -2386,6 +2397,7 @@ function goalOpponent(scorerName){
   const m=state.live;
 
   m.opp++;
+  analysisEvent("goal","opponent",`${scorerName}: ${m.hv}–${m.opp}`);
 
 
 addEvent(
@@ -2554,6 +2566,7 @@ function simulatePenalty(){
     );
 
     m.ppOpp++;
+    analysisEvent("penalty","own",`${player.name}, 2 min ${penalty}`,player.id);
 
     addEvent(
       `UTVISNING ${managerClub()}: ${player.name}, 2 min ${penalty}.`,
@@ -2570,6 +2583,7 @@ function simulatePenalty(){
     );
 
     m.ppHV++;
+    analysisEvent("penalty","opponent",`${playerName}, 2 min ${penalty}`);
 
     addEvent(
         `UTVISNING ${m.opponent}: ${playerName}, 2 min ${penalty}.`,
@@ -3140,6 +3154,8 @@ function shootout(){
     suddenRound++;
   }
 
+  m.analysisShootout=true;
+  analysisEvent("decider",hvGoals>oppGoals?"own":"opponent",`Straffläggning: ${hvGoals}–${oppGoals}`);
   if(hvGoals > oppGoals){
 
     m.hv++;
@@ -6567,6 +6583,7 @@ function render(){
   ensureRecruitment();
   ensureLocker();
   ensureMedical();
+  ensureAnalysis();
   ensureTrainingData();
   applyCareerShell();
 
@@ -6666,7 +6683,7 @@ careerScreen === "menu" ? careerMenuView()
 
 : state.page==="statistics"
 
-? placeholderView("Statistik")
+? statisticsView()
 
 : state.page==="board"
 

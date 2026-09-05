@@ -95,6 +95,7 @@ function medicalCallUp(pos){
 }
 function medicalConcede(){
  const m=state.live;if(!m||m.finished||medicalMatchReady())return;
+ m.analysisAbandoned=true;analysisEvent('decider','opponent','Matchen avbröts på grund av spelarbrist.');
  m.opp=Math.max(5,m.hv+1,m.opp);addEvent('Matchen avbryts: för få tillgängliga spelare. Förlust registreras.','period');finishMatch(false);
 }
 function medicalPlayerPanel(p){
