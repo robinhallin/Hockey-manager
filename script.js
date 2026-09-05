@@ -1206,6 +1206,7 @@ function save(){
   ensureJuniors();
   ensureRink();
   ensureClub();
+  ensureManager();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -1443,6 +1444,7 @@ function addEvent(
    ========================================================= */
 
 function createMatch(){
+  if(!managerCanPlay())return;
   if(!medicalMatchReady()){state.page="medical";render();return;}
   if(opponent()==="Ingen match"){state.page="season";render();return;}
 
@@ -6490,6 +6492,8 @@ function render(){
   ensureJuniors();
   ensureRink();
   ensureClub();
+  ensureManager();
+  if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
   const content=
@@ -6558,6 +6562,9 @@ careerScreen === "menu" ? careerMenuView()
 
 ? newsView()
 
+: state.page==="manager"
+? managerView()
+
 : state.page==="staff"
 ? clubStaffView()
 
@@ -6611,7 +6618,7 @@ careerScreen === "menu" ? careerMenuView()
   const sectionNames = {
     medical:"MEDICINSKT TEAM", locker:"OMKLÄDNINGSRUM", season:"SÄSONG", training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"REKRYTERING", scouting:"SCOUTING",
-    staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
+    manager:"MIN KARRIÄR", staff:"PERSONAL", statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
   };
 

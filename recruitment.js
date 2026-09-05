@@ -56,6 +56,7 @@ function recruitSelectProfile(name){recruitFilters().profile=name;state.recruitm
 function recruitOpen(id){state.selectedMarketPlayer=id;state.page='marketPlayer';save();render();}
 function toggleRecruitShortlist(id){const r=state.recruitment;if(!findPlayerAnywhere(id))return;r.shortlist=r.shortlist.some(x=>samePlayerId(x,id))?r.shortlist.filter(x=>!samePlayerId(x,id)):[...r.shortlist,id];save();render();}
 function createScoutMission(){
+ if(!managerCanPlay())return;
  const r=state.recruitment;if(r.missions.filter(m=>m.status==='active').length>=clubMissionLimit())return recruitMessage(`Tränarteamet kan ansvara för ${clubMissionLimit()} uppdrag samtidigt.`);
  if(state.money-clubForecast().reserved<clubMissionFee())return recruitMessage(`Ett scoutuppdrag kostar ${money(clubMissionFee())}.`);
  const filters={...r.filters},candidates=recruitCandidates(filters).filter(p=>(state.scoutReports[String(p.id)]?.visits||0)<3).slice(0,3);
@@ -70,6 +71,7 @@ function advanceRecruitmentRound(){
  const key=`${recruitmentYear()}:${state.round}`;if(r.lastRound===key)return;r.lastRound=key;advanceRecruitment();
 }
 function recruitmentWeek(){
+ if(!managerCanPlay())return;
  if(state.season?.phase!=='preseason')return;
  const r=state.recruitment;r.weeks++;advanceRecruitment();for(let i=0;i<7;i++)medicalDay();
  for(let i=0;i<3;i++)juniorTraining({type:"skills",intensity:"normal"},`${state.season.year}:preseason:${r.weeks}:${i}`);
@@ -122,6 +124,7 @@ function recruitOfferScore(p,club,offer){
  return offer.salary/w.salary*40+(rank-SQUAD_ROLES.indexOf(w.role))*12+(w.stretch?-15:5)+(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25);
 }
 function submitRecruitOffer(id,fee,salary,years,role){
+ if(!managerCanPlay())return;
  ensureRecruitment();const r=state.recruitment,p=findPlayerAnywhere(id),seller=getPlayerClub(id);
  if(state.live&&!state.live.finished)return recruitMessage('Avsluta matchen innan du skickar ett transferbud.');
  if(!p||!seller||seller===managerClub())return;
@@ -181,6 +184,7 @@ function generateIncomingOffer(){
  recruitReport(`Bud på ${p.name}`,`${buyer} erbjuder ${money(fee)}. Du avgör om spelaren ska säljas. Budet gäller i tre marknadsomgångar.`);
 }
 function answerIncomingOffer(id,accept){
+ if(!managerCanPlay())return;
  const r=state.recruitment,o=r.incoming.find(o=>o.id===id);if(!o||o.status!=='pending')return;
  if(!accept){o.status='rejected';return recruitMessage('Budet avvisat.');}
  if(state.live&&!state.live.finished)return recruitMessage('Avsluta matchen innan du säljer en spelare.');
