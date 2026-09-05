@@ -1197,6 +1197,7 @@ if(
 
 function save(){
   ensureAssessmentData();
+  ensureTrainingData();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -1541,6 +1542,7 @@ function startMatch(){
   )
     return;
 
+  lockTrainingForMatch();
   state.live.running=true;
 
   save();
@@ -2223,7 +2225,7 @@ function opponentShot(
 
   goalChance-=
     (
-      matchAttributeRating(goalie)-75
+      effectiveRating(goalie,"goalie")-75
     )/600;
 
 
@@ -2678,7 +2680,7 @@ function calculateHVPower(){
   }
 
 
-  return power;
+  return power + trainingMatchBonus();
 
 }
 
@@ -3335,45 +3337,17 @@ function updateSquadAfterMatch(won){
     player.happiness = Math.max(20,Math.min(100,player.happiness + moodChange));
     player.morale = Math.max(20,Math.min(100,(player.morale || 70) + (won ? 1 : -1)));
 
-    if(dressed && player.overall < player.potential){
-      const ageFactor = player.age <= 22 ? 1.5 : player.age <= 26 ? 1 : 0.45;
-      player.developmentProgress += (player.potential - player.overall) * 0.16 * ageFactor;
+    grantMatchDevelopment(player,state.live?.iceTime?.[player.id]||0);
 
-      if(player.developmentProgress >= 100){
-        player.developmentProgress -= 100;
-        player.overall++;
-        developAttributes(player);
-
-        const focusMap = {
-          Skott:"shooting",
-          Passningar:"passing",
-          Försvar:"defense",
-          Fysik:"physical"
-        };
-        const attribute = focusMap[player.developmentFocus];
-        if(attribute) player[attribute] = Math.min(99,(player[attribute] || player.overall) + 1);
-        state.news.unshift(`${player.name} har utvecklat sina attribut genom träningen.`);
-      }
-    }
   });
 
 }
 
 simulateOtherGames();
+afterTrainingMatch();
 
 state.round++;
 advanceScoutReports();
-
-
-managerRoster().forEach(
-  p=>{
-    p.fatigue=
-      Math.max(
-        0,
-        p.fatigue-20
-      );
-  }
-);
 
 
   save();
@@ -3666,6 +3640,7 @@ const isHome =
   return `
 
     <div class="overview-page">
+      ${dailyOverview()}
       ${boardOverview()}
 
 
@@ -4596,7 +4571,7 @@ function submitContractRenewal(playerId,salary,years,role){
 function setDevelopmentFocus(playerId,focus){
 
   const player = managerRoster().find(p => samePlayerId(p.id,playerId));
-  if(!player) return;
+  if(!player || !validPlayerFocus(player,focus)) return;
   player.developmentFocus = focus;
   state.news.unshift(`${player.name} tränar nu med fokus på ${focus.toLowerCase()}.`);
   save();
@@ -5011,12 +4986,7 @@ ${
 
           </div>
 
-          <div class="development-control">
-            <label for="developmentFocus">Individuellt träningsfokus</label>
-            <select id="developmentFocus" onchange="setDevelopmentFocus('${player.id}',this.value)">
-              ${["Balanserad","Skott","Passningar","Försvar","Fysik"].map(focus => `<option ${focus===player.developmentFocus ? "selected" : ""}>${focus}</option>`).join("")}
-            </select>
-          </div>
+          ${trainingPlayerPanel(player)}
 
         </section>
 
@@ -7838,31 +7808,11 @@ function placeholderView(title){
 
 }
 
-function continueGame(){
-
-  if(careerScreen || !state.careerStarted || state.page === "clubSelect"){
-    return;
-  }
-
-  if(state.live && state.live.finished){
-    state.live = null;
-  }
-
-  if(opponent() === "Ingen match"){
-    state.page = "table";
-    save();
-    render();
-    return;
-  }
-
-  state.page = "match";
-  save();
-  render();
-
-}
+function continueGame(){managerContinue();}
 
 function render(){
   ensureAssessmentData();
+  ensureTrainingData();
   applyCareerShell();
 
   const content=
@@ -7935,6 +7885,14 @@ careerScreen === "menu" ? careerMenuView()
 
 ? financeView()
 
+: state.page==="training"
+
+? trainingView()
+
+: state.page==="inbox"
+
+? inboxView()
+
 : state.page==="scouting"
 
 ? scoutingView()
@@ -7956,7 +7914,7 @@ careerScreen === "menu" ? careerMenuView()
   const clubName = managerClub();
   const club = getClub(clubName);
   const sectionNames = {
-    home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
+    training:"TRÄNING", inbox:"INKORG", home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
     table:"SHL", tactics:"TAKTIK", transfers:"TRANSFERS", scouting:"SCOUTING",
     statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
     settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
@@ -7968,6 +7926,8 @@ careerScreen === "menu" ? careerMenuView()
   const clubInfoName = document.querySelector(".club-info strong");
   const clubInfoLeague = document.querySelector(".club-info span");
 
+  const unread=document.getElementById("inboxCount");
+  if(unread)unread.textContent=state.training?.messages.filter(m=>!m.read).length||"";
   if(section) section.textContent = sectionNames[state.page] || "HOCKEY MANAGER";
   if(topClub) topClub.textContent = clubName;
   if(badge){badge.textContent=careerIdentity(clubName).code;if(badge.style){badge.style.background=careerIdentity(clubName).color;badge.style.color="#0c1720";}}
