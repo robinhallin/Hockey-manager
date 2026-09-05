@@ -1318,6 +1318,8 @@ function weightedPlayer(type="attack"){
       ? currentDefensePlayers()
       : onIce.filter(p=>p.pos!=="MV");
 
+    if(!list.length) list=onIce;
+
   }else{
 
     list =
@@ -1362,7 +1364,9 @@ list.forEach(p=>{
 
 
 function randomGoalie(){
-
+  ensureLines();
+  const selected=playerById(state.lines.goalie);
+  if(selected?.pos==="MV") return selected;
   return goalies()
     .slice()
     .sort(
@@ -1647,6 +1651,8 @@ function liveStep(){
     : m.speed===2
     ? 10
     : 6;
+
+  trackIceTime(Math.min(seconds,1200-(m.minute*60+m.second)));
 
   m.second+=seconds;
 m.shiftSeconds += seconds;
@@ -2972,6 +2978,7 @@ function overtimeStep(){
     return;
 
 
+  trackIceTime(Math.min(8,300-(m.minute*60+m.second)));
   m.second+=8;
 
 
@@ -5212,6 +5219,9 @@ function currentLinePlayers(){
 
   if(!state.live) return [];
 
+  const special=specialUnitOnIce();
+  if(special) return special.filter(p=>p.pos!=="B");
+
   const start =
     state.live.currentLine * 3;
 
@@ -5227,6 +5237,9 @@ function currentDefensePlayers(){
   ensureLines();
 
   if(!state.live) return [];
+
+  const special=specialUnitOnIce();
+  if(special) return special.filter(p=>p.pos==="B");
 
   const start =
     state.live.currentDefensePair * 2;
@@ -5478,7 +5491,7 @@ function linesView(){
   `;
 
 
-  return html;
+  return `<div class="bench-strip"><h2>Bygg matchtruppen</h2><button class="btn" onclick="coachingNavigate('specialTeams')">Powerplay & boxplay</button></div>`+html;
 
 }
 /* =========================================================
@@ -8104,7 +8117,11 @@ state.page==="clubSelect"
 
 : state.page==="match"
 
-? matchView()
+? benchPanel()+matchView()+iceTimeView()
+
+: state.page==="specialTeams"
+
+? specialTeamsView()
 
 : state.page==="table"
 
