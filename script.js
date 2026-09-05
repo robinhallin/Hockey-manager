@@ -681,6 +681,13 @@ return {
 
     tactic:"balanced",
 
+    tacticalPlan:{
+      forecheck:"balanced",
+      tempo:"normal",
+      physicality:"balanced",
+      lineUsage:"balanced"
+    },
+
     roster:PLAYERS.map(p=>({...p})),
 
 clubRosters: createClubRosters(),
@@ -1173,6 +1180,9 @@ if(
 }
 syncManagerRoster();
 ensureManagementData();
+if(!state.tacticalPlan){
+  state.tacticalPlan={forecheck:"balanced",tempo:"normal",physicality:"balanced",lineUsage:"balanced"};
+}
 if(
   !Array.isArray(state.schedule) ||
   state.schedule.length === 0 ||
@@ -1490,6 +1500,7 @@ function createMatch(){
     speed:1,
 
     shiftCounter:0,
+rotationIndex:0,
 currentLine:0,
 currentDefensePair:0,
 shiftSeconds:0,
@@ -2507,7 +2518,10 @@ function simulatePenalty(){
 
 
   const hvPenalty=
-    Math.random()<.5;
+    Math.random()<(
+      state.tacticalPlan?.physicality==="hard" ? .62 :
+      state.tacticalPlan?.physicality==="safe" ? .38 : .5
+    );
 
 
   const penalty=
@@ -2654,6 +2668,10 @@ function calculateHVPower(){
 
   }
 
+  if(state.tacticalPlan?.forecheck==="aggressive") power+=1;
+  if(state.tacticalPlan?.tempo==="high") power+=0.8;
+  if(state.tacticalPlan?.tempo==="low") power-=0.4;
+
   if(
     state.tactic===
     "defense"
@@ -2723,7 +2741,10 @@ function updateFatigue(){
       // Spelare på isen blir tröttare
       p.fatigue = Math.min(
         100,
-        p.fatigue + 1.2
+        p.fatigue + 1.2 * (
+          state.tacticalPlan?.tempo==="high" ? 1.3 :
+          state.tacticalPlan?.tempo==="low" ? .8 : 1
+        )
       );
     } else {
       // Spelare på bänken återhämtar sig
@@ -5225,8 +5246,15 @@ function rotateUnits(){
 
   m.shiftSeconds = 0;
 
-  m.currentLine =
-    (m.currentLine + 1) % 4;
+  const usage = state.tacticalPlan?.lineUsage || "balanced";
+  const patterns = {
+    balanced:[0,1,2,3],
+    topHeavy:[0,1,0,2,0,1,3],
+    rollFour:[0,1,2,3]
+  };
+  const pattern = patterns[usage] || patterns.balanced;
+  m.rotationIndex = ((m.rotationIndex || 0) + 1) % pattern.length;
+  m.currentLine = pattern[m.rotationIndex];
 
   m.currentDefensePair =
     (m.currentDefensePair + 1) % 3;
@@ -7940,29 +7968,30 @@ function clubSelectView(){
    ========================================================= */
 
 function tacticsView(){
-
-  const tactics = [
-    ["attack", "Offensiv", "Fler anfall och högre risk."],
-    ["balanced", "Balanserad", "Jämn balans mellan anfall och försvar."],
-    ["defense", "Defensiv", "Lägre risk och större defensivt fokus."]
-  ];
-
-  return `
-    <section class="card">
-      <h2>Taktik</h2>
-      <p class="muted">Välj hur ${managerClub()} ska spela.</p>
-      ${tactics.map(([value,label,description]) => `
-        <div class="row">
-          <span><b>${label}</b><br><small>${description}</small></span>
-          <button class="btn ${state.tactic===value ? "secondary" : ""}"
-            onclick="setTactic('${value}')">
-            ${state.tactic===value ? "Vald" : "Välj"}
-          </button>
-        </div>
-      `).join("")}
+  const plan=state.tacticalPlan;
+  const select=(key,options)=>`<select onchange="setTacticalSetting('${key}',this.value)">${options.map(([value,label])=>`<option value="${value}" ${plan[key]===value?"selected":""}>${label}</option>`).join("")}</select>`;
+  return `<div class="tactics-page"><div class="page-heading"><div><span class="overview-kicker">MATCHPLAN</span><h1>${managerClub()} – Taktik</h1><p>Din matchplan påverkar lagstyrka, risk och hur kedjorna används.</p></div></div>
+  <div class="tactics-grid">
+    <section class="dashboard-panel"><div class="panel-header"><div><span class="panel-label">GRUNDIDÉ</span><h2>Spelsätt</h2></div></div>
+      <div class="tactic-choice-grid">${[["attack","Offensiv","Fler spelare framåt"],["balanced","Balanserad","Kontrollerat tvåvägsspel"],["defense","Defensiv","Skydda mitten"]].map(([v,l,d])=>`<button class="tactic-choice ${state.tactic===v?"active":""}" onclick="setTactic('${v}')"><b>${l}</b><span>${d}</span></button>`).join("")}</div>
     </section>
-  `;
+    <section class="dashboard-panel"><div class="panel-header"><div><span class="panel-label">DETALJER</span><h2>Lagorder</h2></div></div>
+      <div class="tactical-orders">
+        <label><span>Forecheck<small>Hög press ger fler chanser men kostar ork.</small></span>${select("forecheck",[["passive","Avvaktande"],["balanced","Balanserad"],["aggressive","Aggressiv"]])}</label>
+        <label><span>Tempo<small>Högt tempo ökar både tryck och trötthet.</small></span>${select("tempo",[["low","Lågt"],["normal","Normalt"],["high","Högt"]])}</label>
+        <label><span>Fysisk nivå<small>Mer fysik ger tacklingar men riskerar utvisningar.</small></span>${select("physicality",[["safe","Disciplinerat"],["balanced","Balanserat"],["hard","Hårt"]])}</label>
+        <label><span>Kedjeanvändning<small>Toppning stärker laget men sliter på stjärnorna.</small></span>${select("lineUsage",[["rollFour","Rulla fyra"],["balanced","Balanserad"],["topHeavy","Toppa laget"]])}</label>
+      </div>
+    </section>
+  </div></div>`;
 
+}
+
+function setTacticalSetting(key,value){
+  const allowed={forecheck:["passive","balanced","aggressive"],tempo:["low","normal","high"],physicality:["safe","balanced","hard"],lineUsage:["rollFour","balanced","topHeavy"]};
+  if(!allowed[key]?.includes(value)) return;
+  state.tacticalPlan[key]=value;
+  save();render();
 }
 
 function newsView(){
