@@ -1192,6 +1192,7 @@ if(
 }
 
 function save(){
+  ensureAssessmentData();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -1285,14 +1286,7 @@ return managerRoster().filter(
 
 function effectiveRating(p,type="attack"){
 
-  const base =
-    type==="shot"
-    ? p.shooting
-    : type==="pass"
-    ? p.passing
-    : type==="defense"
-    ? p.defense
-    : p.overall;
+  const base = matchAttributeRating(p,type);
 
   const fatiguePenalty =
     Math.min(25, p.fatigue * 0.22);
@@ -1370,7 +1364,7 @@ function randomGoalie(){
   return goalies()
     .slice()
     .sort(
-      (a,b)=>b.overall-a.overall
+      (a,b)=>matchAttributeRating(b)-matchAttributeRating(a)
     )[0];
 
 }
@@ -1992,10 +1986,8 @@ function hvShot(
   shooter.shots++;
 
 
-  const goalieStrength=
-    team(
-      m.opponent
-    ).strength;
+  const opponentGoalie=(state.clubRosters[m.opponent]||[]).filter(p=>p.pos==="MV").sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a))[0];
+  const goalieStrength=opponentGoalie?matchAttributeRating(opponentGoalie):team(m.opponent).strength;
 
 
   let goalChance=
@@ -2006,7 +1998,7 @@ function hvShot(
 
   goalChance+=
     (
-      shooter.shooting-75
+      effectiveRating(shooter,"shot")-75
     )/500;
 
 
@@ -2029,13 +2021,7 @@ function hvShot(
   }
 
 
-  if(
-    goalieStrength>81
-  ){
-
-    goalChance-=.01;
-
-  }
+  goalChance-=(goalieStrength-75)/600;
 
 
   const result=
@@ -2233,7 +2219,7 @@ function opponentShot(
 
   goalChance-=
     (
-      goalie.overall-75
+      matchAttributeRating(goalie)-75
     )/600;
 
 
@@ -2419,13 +2405,13 @@ function simulateFaceoff(){
   const m=state.live;
 
   const hvPlayer =
-    weightedPlayer("center");
+    currentLinePlayers().find(p=>p.pos==="C") || weightedPlayer("faceoff");
 
   const oppPlayer =
     getRandomOpponentForward(m.opponent);
 
   const hvWins=
-    Math.random()<.51;
+    Math.random()<attrClamp(.5+(effectiveRating(hvPlayer,"faceoff")-team(m.opponent).strength)/100,.2,.8);
 
   if(hvWins){
 
@@ -2458,7 +2444,7 @@ function simulateHit(){
 
 
   const hvHit=
-    Math.random()<.52;
+    Math.random()<attrClamp(.5+(currentLinePlayers().reduce((n,p)=>n+ensurePlayerAttributes(p).checking,0)/Math.max(1,currentLinePlayers().length)-12)/60,.3,.7);
 
 
   if(hvHit){
@@ -2524,10 +2510,10 @@ function simulatePenalty(){
 
 
   const hvPenalty=
-    Math.random()<(
+    Math.random()<attrClamp((
       state.tacticalPlan?.physicality==="hard" ? .62 :
       state.tacticalPlan?.physicality==="safe" ? .38 : .5
-    );
+    )+(12-currentLinePlayers().reduce((n,p)=>n+ensurePlayerAttributes(p).discipline,0)/Math.max(1,currentLinePlayers().length))/80,.2,.8);
 
 
   const penalty=
@@ -2648,14 +2634,14 @@ function simulateNeutralPlay(){
 
 function calculateHVPower(){
 
-  const roster = managerRoster();
+  const roster = state.live ? [...currentLinePlayers(),...currentDefensePlayers()] : managerRoster().filter(p=>p.pos!=="MV");
 
   let power=
     roster.reduce(
       (
         sum,
         p
-      )=>sum+p.overall,
+      )=>sum+(effectiveRating(p,"attack")+effectiveRating(p,"defense"))/2,
       0
     )/
     roster.length;
@@ -2697,8 +2683,8 @@ function calculateOpponentPower(
   opponentTeam
 ){
 
-  let power=
-    opponentTeam.strength;
+  const roster=(state.clubRosters[opponentTeam.name]||[]).filter(p=>p.pos!=="MV");
+  let power=roster.length?roster.reduce((n,p)=>n+(matchAttributeRating(p,"attack")+matchAttributeRating(p,"defense"))/2,0)/roster.length:opponentTeam.strength;
 
 
   const m=
@@ -2747,7 +2733,7 @@ function updateFatigue(){
       // Spelare på isen blir tröttare
       p.fatigue = Math.min(
         100,
-        p.fatigue + 1.2 * (
+        p.fatigue + 1.2 * (1.4-ensurePlayerAttributes(p).stamina/25) * (
           state.tacticalPlan?.tempo==="high" ? 1.3 :
           state.tacticalPlan?.tempo==="low" ? .8 : 1
         )
@@ -3351,6 +3337,7 @@ function updateSquadAfterMatch(won){
       if(player.developmentProgress >= 100){
         player.developmentProgress -= 100;
         player.overall++;
+        developAttributes(player);
 
         const focusMap = {
           Skott:"shooting",
@@ -3360,7 +3347,7 @@ function updateSquadAfterMatch(won){
         };
         const attribute = focusMap[player.developmentFocus];
         if(attribute) player[attribute] = Math.min(99,(player[attribute] || player.overall) + 1);
-        state.news.unshift(`${player.name} har utvecklats och är nu ${player.overall} OVR.`);
+        state.news.unshift(`${player.name} har utvecklat sina attribut genom träningen.`);
       }
     }
   });
@@ -3370,6 +3357,7 @@ function updateSquadAfterMatch(won){
 simulateOtherGames();
 
 state.round++;
+advanceScoutReports();
 
 
 managerRoster().forEach(
@@ -4136,7 +4124,7 @@ const players =
         return (
           (order[a.pos] ?? 9) -
           (order[b.pos] ?? 9)
-        ) || b.overall - a.overall;
+        ) || a.name.localeCompare(b.name,"sv");
       });
 
   const goalies =
@@ -4149,14 +4137,6 @@ const players =
     players.filter(
       p=>p.pos!=="MV" && p.pos!=="B"
     ).length;
-
-  const avgOverall =
-    Math.round(
-      players.reduce(
-        (sum,p)=>sum+p.overall,
-        0
-      ) / players.length
-    );
 
   const wageCost = annualWageCost();
   const availableWages = wageBudget() - wageCost;
@@ -4219,11 +4199,11 @@ const players =
 
           <div class="squad-cell">
             <strong>
-              ${p.overall}
+              ${assessmentBadge(p)}
             </strong>
 
             <span>
-              OVR
+              Bedömning
             </span>
           </div>
 
@@ -4383,15 +4363,15 @@ const players =
         <div class="overview-stat-card">
 
           <span>
-            SNITT OVR
+            BEDÖMNING
           </span>
 
           <strong>
-            ${avgOverall}
+            Tränarteamet
           </strong>
 
           <small>
-            Lagstyrka
+            Öppna spelarnas rapporter
           </small>
 
         </div>
@@ -4465,7 +4445,7 @@ const players =
           </div>
 
           <div>
-            OVR
+            Bedömning
           </div>
 
           <div>
@@ -4779,11 +4759,11 @@ ${
           <div class="player-overall">
 
             <span>
-              OVR
+              Bedömning
             </span>
 
             <strong>
-              ${player.overall}
+              ${assessmentBadge(player)}
             </strong>
 
           </div>
@@ -4796,51 +4776,7 @@ ${
       <div class="player-dashboard">
 
 
-        <section class="dashboard-panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <span class="panel-label">
-                SPELARATTRIBUT
-              </span>
-
-              <h2>
-                Egenskaper
-              </h2>
-
-            </div>
-
-          </div>
-
-
-          <div class="player-attributes">
-
-            <div class="player-attribute">
-              <span>Skott</span>
-              <strong>${player.shooting ?? "-"}</strong>
-            </div>
-
-            <div class="player-attribute">
-              <span>Passningar</span>
-              <strong>${player.passing ?? "-"}</strong>
-            </div>
-
-            <div class="player-attribute">
-              <span>Försvar</span>
-              <strong>${player.defense ?? "-"}</strong>
-            </div>
-
-            <div class="player-attribute">
-              <span>Fysik</span>
-              <strong>${player.physical ?? "-"}</strong>
-            </div>
-
-          </div>
-
-        </section>
-
+        ${assessmentPanel(player)}
 
         <section class="dashboard-panel">
 
@@ -5069,7 +5005,7 @@ ${
 
             <div>
               <span>Potential</span>
-              <strong>${player.potential}</strong>
+              <strong>${assessmentBadge(player,true)}</strong>
             </div>
 
           </div>
@@ -5101,15 +5037,15 @@ function ensureLines(){
 
   const fw = forwards()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
   const d = defenders()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
   const g = goalies()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
   state.lines = {
     forwards: fw.slice(0,12).map(p=>p.id),
@@ -5137,7 +5073,7 @@ function lineOptions(players, selectedId){
       value="${p.id}"
       ${samePlayerId(p.id,selectedId) ? "selected" : ""}
     >
-      ${p.name} • ${p.overall}
+      ${p.name} • ${assessmentShort(p)}
     </option>
   `).join("");
 
@@ -5206,7 +5142,7 @@ function lineAverage(ids){
 
   return Math.round(
     players.reduce(
-      (sum,p)=>sum+p.overall,
+      (sum,p)=>sum+(effectiveRating(p,"attack")+effectiveRating(p,"defense"))/2,
       0
     )/players.length
   );
@@ -5278,15 +5214,15 @@ function linesView(){
 
   const fw=forwards()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
   const d=defenders()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
   const g=goalies()
     .slice()
-    .sort((a,b)=>b.overall-a.overall);
+    .sort((a,b)=>a.name.localeCompare(b.name,"sv"));
 
 
   let html=`
@@ -5324,7 +5260,7 @@ function linesView(){
         </b>
 
         <span class="pill">
-          OVR ${lineAverage(ids)}
+          ${unitAssessment(ids)}
         </span>
 
       </div>
@@ -5420,7 +5356,7 @@ function linesView(){
         </b>
 
         <span class="pill">
-          OVR ${lineAverage(ids)}
+          ${unitAssessment(ids)}
         </span>
 
       </div>
@@ -6445,7 +6381,7 @@ function getTransferMarketPlayers(){
 
   return players.sort(
     (a,b) =>
-      b.overall - a.overall
+      a.name.localeCompare(b.name,"sv")
   );
 
 }
@@ -6982,8 +6918,8 @@ const selectedPosition =
 const selectedTeam =
   state.transferTeam || "ALL";
 
-const selectedMinOverall =
-  Number(state.transferMinOverall || 0);
+const selectedMinStars =
+  Number(state.transferMinStars || 0);
 
 
 const filteredMarketPlayers =
@@ -6991,7 +6927,7 @@ const filteredMarketPlayers =
 
     if(
       selectedPosition !== "ALL" &&
-      player.pos !== selectedPosition
+      (selectedPosition === "F" ? ["MV","B"].includes(player.pos) : player.pos !== selectedPosition)
     ){
       return false;
     }
@@ -7004,7 +6940,7 @@ const filteredMarketPlayers =
     }
 
     if(
-      player.overall < selectedMinOverall
+      playerAssessment(player).low < selectedMinStars
     ){
       return false;
     }
@@ -7033,7 +6969,7 @@ const filteredMarketPlayers =
               </strong>
 
               <span>
-                ${player.pos} · OVR ${player.overall}
+                ${player.pos} · Bedömning ${assessmentBadge(player)}
               </span>
             </div>
 
@@ -7230,49 +7166,49 @@ const filteredMarketPlayers =
   <div class="transfer-filter">
 
     <label>
-      Minsta OVR
+      Minsta bedömning
     </label>
 
     <select
       onchange="
-        state.transferMinOverall=Number(this.value);
+        state.transferMinStars=Number(this.value);
         render();
       "
     >
 
       <option
         value="0"
-        ${selectedMinOverall===0 ? "selected" : ""}
+        ${selectedMinStars===0 ? "selected" : ""}
       >
         Alla
       </option>
 
       <option
-        value="70"
-        ${selectedMinOverall===70 ? "selected" : ""}
+        value="1"
+        ${selectedMinStars===1 ? "selected" : ""}
       >
-        70+
+        1+ stjärnor (lägsta bedömning)
       </option>
 
       <option
-        value="75"
-        ${selectedMinOverall===75 ? "selected" : ""}
+        value="2"
+        ${selectedMinStars===2 ? "selected" : ""}
       >
-        75+
+        2+ stjärnor (lägsta bedömning)
       </option>
 
       <option
-        value="80"
-        ${selectedMinOverall===80 ? "selected" : ""}
+        value="3"
+        ${selectedMinStars===3 ? "selected" : ""}
       >
-        80+
+        3+ stjärnor (lägsta bedömning)
       </option>
 
       <option
-        value="83"
-        ${selectedMinOverall===83 ? "selected" : ""}
+        value="4"
+        ${selectedMinStars===4 ? "selected" : ""}
       >
-        83+
+        4+ stjärnor (lägsta bedömning)
       </option>
 
     </select>
@@ -7317,11 +7253,11 @@ const filteredMarketPlayers =
 
             <div>
               <span>
-                OVR
+                Bedömning
               </span>
 
               <strong>
-                ${player.overall}
+                ${assessmentBadge(player)}
               </strong>
             </div>
 
@@ -7466,11 +7402,11 @@ const negotiation =
           <div class="player-overall">
 
             <span>
-              OVR
+              Bedömning
             </span>
 
             <strong>
-              ${player.overall}
+              ${assessmentBadge(player)}
             </strong>
 
           </div>
@@ -7480,6 +7416,7 @@ const negotiation =
       </section>
 
 
+      ${assessmentPanel(player)}
       <div class="player-dashboard">
 
 
@@ -7520,8 +7457,8 @@ const negotiation =
             </div>
 
             <div>
-              <span>OVR</span>
-              <strong>${player.overall}</strong>
+              <span>Bedömning</span>
+              <strong>${assessmentBadge(player)}</strong>
             </div>
 
             <div>
@@ -8070,6 +8007,7 @@ function continueGame(){
 }
 
 function render(){
+  ensureAssessmentData();
 
   const content=
     document.getElementById(
@@ -8141,7 +8079,7 @@ state.page==="clubSelect"
 
 : state.page==="scouting"
 
-? placeholderView("Scouting")
+? scoutingView()
 
 : state.page==="statistics"
 
