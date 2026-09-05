@@ -1204,6 +1204,7 @@ function save(){
   ensureAnalysis();
   ensureTrainingData();
   ensureJuniors();
+  ensureRink();
 
   localStorage.setItem(
     "hockey_manager_alpha02",
@@ -1599,12 +1600,7 @@ function scheduleTick(){
   )
     return;
 
-  const delay=
-    m.speed===3
-    ? 300
-    : m.speed===2
-    ? 700
-    : 1400;
+  const delay=rinkDelay();
 
   matchTimer=
     setTimeout(
@@ -1622,17 +1618,8 @@ function scheduleTick(){
 
 
 function setSpeed(value){
-
-  if(!state.live)
-    return;
-
-  state.live.speed=
-    Number(value);
-
-  save();
-
-  render();
-
+ if(!state.live||![1,2,3].includes(Number(value)))return;
+ state.live.speed=Number(value);clearTimeout(matchTimer);save();render();scheduleTick();
 }
 
 
@@ -1657,12 +1644,7 @@ function liveStep(){
   }
   /* ---------- TID ---------- */
 
-  const seconds=
-    m.speed===3
-    ? 15
-    : m.speed===2
-    ? 10
-    : 6;
+  const seconds=Math.min(6,1200-(m.minute*60+m.second));
 
   trackIceTime(Math.min(seconds,1200-(m.minute*60+m.second)));
 
@@ -1688,7 +1670,7 @@ if(m.shiftSeconds >= 45){
   if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
   /* ---------- UTVISNINGAR ---------- */
 
-  tickPenalties();
+  tickPenalties(seconds);
 
 
   /* ---------- AI ---------- */
@@ -1758,51 +1740,7 @@ if(m.shiftSeconds >= 45){
   /* ---------- MATCHHÄNDELSE ---------- */
 
   m.shiftCounter++;
-
-  const eventRoll=
-    Math.random();
-
-
-  if(
-    eventRoll<0.08
-  ){
-
-    simulateFaceoff();
-
-  }
-
-  else if(
-    eventRoll<0.15
-  ){
-
-    simulateHit();
-
-  }
-
-  else if(
-    eventRoll<0.18
-  ){
-
-    simulatePenalty();
-
-  }
-
-  else if(
-    eventRoll<0.52
-  ){
-
-    simulateAttack();
-
-  }
-
-  else if(
-    eventRoll<0.57
-  ){
-
-    simulateNeutralPlay();
-
-  }
-
+  rinkStep();
 
   updateFatigue();
 
@@ -1995,7 +1933,8 @@ function hvAttackSequence(){
 
 function hvShot(
   shooter,
-  dangerous
+  dangerous,
+  context=null
 ){
 
   const m=state.live;
@@ -2042,10 +1981,11 @@ function hvShot(
 
 
   goalChance-=(goalieStrength-75)/600;
+  if(m.aiGoaliePulled)goalChance=.58;
 
 
-  const location=shotLocation(dangerous);
-  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor));
+  const location=context?.location||shotLocation(dangerous);
+  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !m.aiGoaliePulled ? 0.52 : 1)));
   const result=Math.random();
   recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result);
 
@@ -2056,7 +1996,7 @@ function hvShot(
   ){
 
     goalHV(
-      shooter
+      shooter,context
     );
 
   }
@@ -2090,7 +2030,7 @@ function hvShot(
     );
 
     if(
-      Math.random()<.22
+      !context?.suppressRebound&&Math.random()<.22
     ){
 
       const rebound=
@@ -2216,7 +2156,8 @@ addEvent(
 
 function opponentShot(
   dangerous,
-  shooterName = getRandomOpponentForward(state.live.opponent)
+  shooterName = getRandomOpponentForward(state.live.opponent),
+  context=null
 ){
 
   const m=state.live;
@@ -2267,8 +2208,8 @@ function opponentShot(
   }
 
 
-  const location=shotLocation(dangerous);
-  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor));
+  const location=context?.location||shotLocation(dangerous);
+  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !m.goaliePulled ? 0.52 : 1)));
   const result=Math.random();
   recordAnalysisShot('opponent',shooterName,null,dangerous,location,goalChance,result);
 
@@ -2329,7 +2270,7 @@ addEvent(
    ========================================================= */
 
 function goalHV(
-  scorer
+  scorer,context=null
 ){
 
   const m=state.live;
@@ -2342,7 +2283,7 @@ function goalHV(
 
   const possibleAssists=
     [...currentLinePlayers(),...currentDefensePlayers()].filter(
-      p=>medicalAvailable(p)&&p.id!==scorer.id
+      p=>medicalAvailable(p)&&p.id!==scorer.id&&(!context||samePlayerId(p.id,context.assistId))
     );
 
 
@@ -2376,6 +2317,7 @@ function goalHV(
   ){
 
     m.ppGoalsHV++;
+    m.penaltiesOpp.shift();
 
   }
 
@@ -2413,6 +2355,7 @@ addEvent(
   ){
 
     m.ppGoalsOpp++;
+    m.penaltiesHV.shift();
 
   }
 
@@ -2796,10 +2739,11 @@ function aiDecisions(){
     return;
 
 
+  if(m.aiGoaliePulled&&(m.opp>=m.hv||m.hv-m.opp>2)){m.aiGoaliePulled=false;addEvent(`${m.opponent} sätter tillbaka målvakten.`,'strategy');}
   if(
     m.period===3 &&
     m.minute>=17 &&
-    m.opp<m.hv &&
+    m.opp<m.hv && m.hv-m.opp<=2 &&
     !m.aiGoaliePulled
   ){
 
@@ -2825,7 +2769,7 @@ function useTimeout(){
     state.live;
 
   if(
-    !m ||
+    !m || m.finished ||
     m.timeoutUsed
   )
     return;
@@ -2881,7 +2825,7 @@ function toggleGoalie(){
   const m=
     state.live;
 
-  if(!m)
+  if(!m||m.finished)
     return;
 
 
@@ -2963,6 +2907,7 @@ function startOvertime(){
 
 
   m.overtime=true;
+  m.goaliePulled=false;m.aiGoaliePulled=false;
 
   m.period=4;
 
@@ -2985,57 +2930,19 @@ function startOvertime(){
    ========================================================= */
 
 function overtimeStep(){
-
-  const m=
-    state.live;
-
-  if(
-    !m ||
-    !m.running
-  )
-    return;
-
-
-  trackIceTime(Math.max(0,Math.min(8,(isPlayoffMatch()?1200:300)-(m.minute*60+m.second))));
-  if(isPlayoffMatch()){tickPenalties(8);m.shiftSeconds+=8;if(m.shiftSeconds>=45)rotateUnits();updateFatigue();}
-  m.second+=8;
-
-
-  while(
-    m.second>=60
-  ){
-
-    m.second-=60;
-
-    m.minute++;
-
-  }
-
-
-  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
-  simulateAttack();
-
-
-  if(
-    m.hv!==m.opp
-  ){
-
-    finishMatch(true);
-
-    return;
-
-  }
-
-
-  if(
-    m.minute>=(isPlayoffMatch()?20:5)
-  ){
-
-    if(isPlayoffMatch()){m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent("Ny förlängningsperiod – nästa mål avgör.","period");save();render();return;}
-    shootout();
-
-  }
-
+ const m=state.live;if(!m||!m.running||m.finished)return;
+ const limit=isPlayoffMatch()?1200:300,seconds=Math.max(0,Math.min(6,limit-m.minute*60-m.second));
+ trackIceTime(seconds);tickPenalties(seconds);m.shiftSeconds+=seconds;
+ if(m.shiftSeconds>=45)rotateUnits();updateFatigue();
+ const elapsed=m.minute*60+m.second+seconds;m.minute=Math.floor(elapsed/60);m.second=elapsed%60;
+ if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
+ if(elapsed>=limit){
+  if(isPlayoffMatch()){m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent('Ny förlängningsperiod – nästa mål avgör.','period');save();render();return;}
+  shootout();return;
+ }
+ rinkStep();
+ if(m.hv!==m.opp){finishMatch(true);return;}
+ save();render();
 }
 
 
@@ -5162,12 +5069,12 @@ function currentLinePlayers(){
   if(!state.live) return [];
 
   const special=specialUnitOnIce();
-  if(special) return special.filter(p=>p.pos!=="B");
+  if(special) return rinkExtraForward(special.filter(p=>p.pos!=="B"),special);
 
   const start =
     state.live.currentLine * 3;
 
-  return medicalUnit(state.lines.forwards.slice(start,start+3).map(playerById).filter(Boolean),3,"F");
+  return rinkExtraForward(medicalUnit(state.lines.forwards.slice(start,start+3).map(playerById).filter(Boolean),3,"F"));
 }
 
 
@@ -5633,6 +5540,9 @@ ${!m.running && m.minute === 0 && m.second === 0 && m.period > 1 && !m.finished
     </div>
 
 
+    ${rinkView()}
+
+    <details class="rink-match-details"><summary>Detaljerad matchstatistik & fler coachval</summary>
     <div class="livebar">
 
       <span
@@ -5952,13 +5862,13 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
       </button>
 
     </div>
-
+    </details>
   </section>
 
 
   <section class="card">
 
-    <h3>Matchhändelser</h3>
+    <details><summary>Textreferat & matchhändelser</summary>
 
     <div class="log">
 
@@ -5983,7 +5893,7 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
       }
 
     </div>
-
+    </details>
   </section>
 
 
@@ -6587,6 +6497,7 @@ function render(){
   ensureAnalysis();
   ensureTrainingData();
   ensureJuniors();
+  ensureRink();
   applyCareerShell();
 
   const content=
@@ -6637,7 +6548,7 @@ careerScreen === "menu" ? careerMenuView()
 
 : state.page==="match"
 
-? seasonMatchPanel()+benchPanel()+teamTalkPanel()+matchView()+iceTimeView()
+? seasonMatchPanel()+matchView()+benchPanel()+teamTalkPanel()+iceTimeView()
 
 : state.page==="specialTeams"
 
@@ -6764,6 +6675,7 @@ document
       "click",
       ()=>{
 
+        if(state.live?.running)pauseMatch();
         state.page=
           btn.dataset.page;
 
