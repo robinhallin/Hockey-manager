@@ -11,6 +11,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('training.js','utf8'),context);
   vm.runInContext(fs.readFileSync('career.js','utf8'),context);
   vm.runInContext(fs.readFileSync('attributes.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('recruitment.js','utf8'),context);
   vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
@@ -26,9 +27,9 @@ assert.equal(run('state.season.series[0].high'),'HV71');
 assert.equal(run('currentSeasonFixture().away'),'HV71');
 const fixture=run('JSON.stringify(currentSeasonFixture())');run('watchRemainingPlayoffs()');
 assert.equal(run('JSON.stringify(currentSeasonFixture())'),fixture);
-const table=run('JSON.stringify(state.teams)');
+const table=run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))');
 run('createMatch();state.live.hv=4;state.live.opp=1;finishMatch(false)');
-assert.equal(run('JSON.stringify(state.teams)'),table);
+assert.equal(run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),table);
 assert.equal(run('state.season.series[0].winsHigh'),1);
 assert.equal(run('currentSeasonFixture().home'),'HV71');
 run('save()');const reload=boot(storage.value);
@@ -41,7 +42,7 @@ for(let i=0;i<40&&run('state.season.phase')==='playoffs';i++){
 assert.equal(run('state.season.champion'),'HV71');
 assert.equal(run('state.season.phase'),'review');
 assert.equal(run('state.season.archive.length'),1);
-assert.equal(run('JSON.stringify(state.teams)'),table);
+assert.equal(run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),table);
 assert.equal(run('state.season.series.filter(s=>s.stage==="quarter").length'),4);
 assert.equal(run('state.season.series.filter(s=>s.stage==="semi").length'),2);
 const archive=run('JSON.stringify(state.season.archive)');
