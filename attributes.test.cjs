@@ -3,10 +3,11 @@ const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const node=()=>({innerHTML:'',textContent:'',classList:{toggle(){}},addEventListener(){}});
 function boot(saved){
-  const storage={value:saved};
+  const storage={value:saved,extra:{}};
   const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},
-    localStorage:{getItem:()=>storage.value||null,setItem:(k,v)=>storage.value=v},
+    localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value||null:storage.extra[k]||null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;}},
     document:{getElementById:()=>node(),querySelector:()=>node(),querySelectorAll:()=>[]}});
+  vm.runInContext(fs.readFileSync('career.js','utf8'),context);
   vm.runInContext(fs.readFileSync('attributes.js','utf8'),context);
   vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);

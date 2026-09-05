@@ -667,6 +667,8 @@ return {
 
     version:"0.2",
 
+    careerStarted:false,
+
     managerClub:"HV71",
 
     page:"home",
@@ -816,7 +818,7 @@ function annualWageCost(){
 }
 
 function wageBudget(){
-  return getClub()?.wageBudget || 35000000;
+  return state.boardPlan?.offer?.wageLimit || getClub()?.wageBudget || 35000000;
 }
 function getClub(clubName = managerClub()){
 
@@ -1178,6 +1180,8 @@ if(
 ){
   state.transferNegotiation = null;
 }
+if(typeof state.careerStarted!=="boolean")state.careerStarted=true;
+if(state.live)state.live.running=false;
 syncManagerRoster();
 ensureManagementData();
 if(!state.tacticalPlan){
@@ -3200,6 +3204,7 @@ const hv =
     m.hv>m.opp;
 
   updateSquadAfterMatch(hvWin);
+  recordBoardMatch();
 
 
   if(
@@ -3661,6 +3666,7 @@ const isHome =
   return `
 
     <div class="overview-page">
+      ${boardOverview()}
 
 
       <!-- RUBRIK -->
@@ -3739,9 +3745,7 @@ const isHome =
 
               <div class="next-team">
 
-                <div class="team-badge hv-badge">
-                  HV
-                </div>
+                ${careerBadge(clubName,'large')}
 
                 <strong>
                 ${clubName}
@@ -3761,9 +3765,7 @@ const isHome =
 
               <div class="next-team">
 
-                <div class="team-badge opponent-badge">
-                  ${nextOpponent.substring(0,2).toUpperCase()}
-                </div>
+                ${CLUB_DATA[nextOpponent]?careerBadge(nextOpponent,'large'):''}
 
                 <strong>
                   ${nextOpponent}
@@ -4087,12 +4089,11 @@ const isHome =
               </button>
 <button
   onclick="
-    state.page='clubSelect';
-    render();
+    beginCareerSelection();
   "
 >
   <span>◆</span>
-  Välj klubb
+  Ny karriär
 </button>
             </div>
 
@@ -7709,7 +7710,7 @@ ${
     : ""
 }
 
-</section>   // nuvarande rad 7314
+</section>
         </section>
 
 
@@ -7729,7 +7730,8 @@ function startCareerWithClub(clubName){
     return;
   }
 
-  const freshState = newState();
+  const freshState = careerDraft || newState();
+  const offer = careerOffer(clubName,freshState.clubRosters);
 
   freshState.managerClub = clubName;
 
@@ -7740,19 +7742,23 @@ function startCareerWithClub(clubName){
       }));
 
   freshState.money =
-    CLUB_DATA[clubName].budget;
+    offer.cash;
 
   freshState.fans =
     CLUB_DATA[clubName].fans;
 
   freshState.news = [
     `Välkommen som huvudtränare för ${clubName}.`,
-    `Styrelsens förväntan: ${CLUB_DATA[clubName].boardExpectation}.`
+    `Styrelsens uppdrag: topp ${offer.place}, talangutveckling och ekonomisk disciplin. Öppna Styrelse för att följa målen.`
   ];
 
   freshState.page = "home";
 
   state = freshState;
+  state.careerStarted=true;
+  careerDraft=null;
+  careerScreen=null;
+  initializeBoardPlan(offer);
 
   syncManagerRoster();
   ensureManagementData();
@@ -7761,158 +7767,7 @@ function startCareerWithClub(clubName){
   render();
 
 }
-function clubSelectView(){
-
-  const clubs =
-    Object.values(CLUB_DATA)
-      .sort(
-        (a,b) =>
-          b.reputation - a.reputation
-      );
-
-  const clubCards =
-    clubs.map(club => {
-
-      const roster =
-        state.clubRosters?.[club.name] || [];
-
-      return `
-
-        <div class="club-select-card">
-
-          <div class="club-select-badge">
-            ${club.name.substring(0,2).toUpperCase()}
-          </div>
-
-          <div class="club-select-info">
-
-            <h2>
-              ${club.name}
-            </h2>
-
-            <span>
-              SHL
-            </span>
-
-          </div>
-
-
-          <div class="club-select-stats">
-
-            <div>
-              <span>Styrka</span>
-              <strong>${club.strength}</strong>
-            </div>
-
-            <div>
-              <span>Spelare</span>
-              <strong>${roster.length}</strong>
-            </div>
-
-            <div>
-              <span>Budget</span>
-              <strong>
-                ${Math.round(club.budget).toLocaleString("sv-SE")} kr
-              </strong>
-            </div>
-
-            <div>
-              <span>Styrelsens krav</span>
-              <strong>
-                ${club.boardExpectation}
-              </strong>
-            </div>
-
-          </div>
-
-
-          <button
-            class="btn secondary"
-            onclick="
-              state.selectedClub='${club.name}';
-              render();
-            "
-          >
-            ${
-              state.selectedClub === club.name
-                ? "Valt lag"
-                : "Välj lag"
-            }
-          </button>
-
-        </div>
-
-      `;
-
-    }).join("");
-
-
-  return `
-
-    <div class="club-select-page">
-
-      <div class="page-heading">
-
-        <div>
-
-          <span class="overview-kicker">
-            NY KARRIÄR
-          </span>
-
-          <h1>
-            Välj klubb
-          </h1>
-
-          <p>
-            Välj vilket SHL-lag du vill leda under säsongen 2026/27.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <div class="club-select-grid">
-        ${clubCards}
-      </div>
-
-
-      ${
-        state.selectedClub
-          ? `
-            <div class="club-select-footer">
-
-              <div>
-
-                <span>
-                  Vald klubb
-                </span>
-
-                <strong>
-                  ${state.selectedClub}
-                </strong>
-
-              </div>
-
-<button
-  class="btn"
-  onclick="
-    startCareerWithClub(state.selectedClub);
-  "
->
-  Starta karriär med ${state.selectedClub}
-</button>
-
-            </div>
-          `
-          : ""
-      }
-
-    </div>
-
-  `;
-
-}
+function clubSelectView(){return careerClubSelectView();}
 /* =========================================================
    RENDER
    ========================================================= */
@@ -7985,7 +7840,7 @@ function placeholderView(title){
 
 function continueGame(){
 
-  if(state.page === "clubSelect"){
+  if(careerScreen || !state.careerStarted || state.page === "clubSelect"){
     return;
   }
 
@@ -8008,6 +7863,7 @@ function continueGame(){
 
 function render(){
   ensureAssessmentData();
+  applyCareerShell();
 
   const content=
     document.getElementById(
@@ -8016,8 +7872,10 @@ function render(){
 
 
 content.innerHTML=
-   
-state.page==="clubSelect"
+careerScreen === "menu" ? careerMenuView()
+: careerScreen === "select" ? careerClubSelectView()
+: careerScreen === "review" ? careerReviewView()
+: state.page==="clubSelect"
    
   ? clubSelectView()
 
@@ -8087,7 +7945,7 @@ state.page==="clubSelect"
 
 : state.page==="board"
 
-? placeholderView("Styrelse")
+? boardView()
 
 : state.page==="settings"
 
@@ -8112,7 +7970,7 @@ state.page==="clubSelect"
 
   if(section) section.textContent = sectionNames[state.page] || "HOCKEY MANAGER";
   if(topClub) topClub.textContent = clubName;
-  if(badge) badge.textContent = clubName.substring(0,2).toUpperCase();
+  if(badge){badge.textContent=careerIdentity(clubName).code;if(badge.style){badge.style.background=careerIdentity(clubName).color;badge.style.color="#0c1720";}}
   if(clubInfoName) clubInfoName.textContent = clubName;
   if(clubInfoLeague) clubInfoLeague.textContent = club ? "SHL" : "";
 
