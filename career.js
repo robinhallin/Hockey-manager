@@ -150,12 +150,6 @@ function careerReviewView(){
 function applyCareerShell(){
   const shell=document.querySelector('.game-shell');
   shell?.classList.toggle('career-mode',Boolean(careerScreen));
-  shell?.classList.toggle('mobile-nav-open',false);
-  document.getElementById('mobileMenu')?.setAttribute?.('aria-expanded','false');
+  deskCloseMenu();
 }
-function toggleManagerMenu(){
-  if(state.live?.running)pauseMatch();
-  const shell=document.querySelector('.game-shell');
-  const open=shell?.classList.toggle('mobile-nav-open');
-  document.getElementById('mobileMenu')?.setAttribute?.('aria-expanded',String(Boolean(open)));
-}
+function toggleManagerMenu(){deskToggleMenu();}

@@ -16,25 +16,27 @@
 
   <title>Hockey Manager</title>
 
-  <link rel="stylesheet" href="calendar.css?v=calendar2">
-  <link rel="stylesheet" href="style.css?v=calendar2">
-  <link rel="stylesheet" href="coaching.css?v=calendar2">
-  <link rel="stylesheet" href="attributes.css?v=calendar2">
-  <link rel="stylesheet" href="career.css?v=calendar2">
-  <link rel="stylesheet" href="training.css?v=calendar2">
-  <link rel="stylesheet" href="season.css?v=calendar2">
-  <link rel="stylesheet" href="recruitment.css?v=calendar2">
-  <link rel="stylesheet" href="locker.css?v=calendar2">
-  <link rel="stylesheet" href="medical.css?v=calendar2">
-  <link rel="stylesheet" href="analysis.css?v=calendar2">
-  <link rel="stylesheet" href="juniors.css?v=calendar2">
-  <link rel="stylesheet" href="rink.css?v=calendar2">
-  <link rel="stylesheet" href="club.css?v=calendar2">
-  <link rel="stylesheet" href="manager.css?v=calendar2">
-  <link rel="stylesheet" href="leagues.css?v=calendar2">
+  <link rel="stylesheet" href="calendar.css?v=desk1">
+  <link rel="stylesheet" href="style.css?v=desk1">
+  <link rel="stylesheet" href="coaching.css?v=desk1">
+  <link rel="stylesheet" href="attributes.css?v=desk1">
+  <link rel="stylesheet" href="career.css?v=desk1">
+  <link rel="stylesheet" href="training.css?v=desk1">
+  <link rel="stylesheet" href="season.css?v=desk1">
+  <link rel="stylesheet" href="recruitment.css?v=desk1">
+  <link rel="stylesheet" href="locker.css?v=desk1">
+  <link rel="stylesheet" href="medical.css?v=desk1">
+  <link rel="stylesheet" href="analysis.css?v=desk1">
+  <link rel="stylesheet" href="juniors.css?v=desk1">
+  <link rel="stylesheet" href="rink.css?v=desk1">
+  <link rel="stylesheet" href="club.css?v=desk1">
+  <link rel="stylesheet" href="manager.css?v=desk1">
+  <link rel="stylesheet" href="leagues.css?v=desk1">
+  <link rel="stylesheet" href="interface.css?v=desk1">
 </head>
 
 <body>
+<a class="desk-skip" href="#content">Hoppa till innehållet</a>
 
 <div class="game-shell">
 
@@ -42,7 +44,8 @@
        VÄNSTERMENY
   ========================================== -->
 
-  <aside class="sidebar">
+  <aside class="sidebar" id="managerSidebar" aria-label="Huvudmeny">
+    <button class="desk-mobile-close" onclick="deskCloseMenu(true)" aria-label="Stäng menyn">×</button>
 
     <div class="sidebar-brand">
 
@@ -72,142 +75,7 @@
     </div>
 
 
-    <nav class="manager-nav">
-      <button class="nav-item" data-page="calendar"><span class="nav-icon">▦</span>Kalender</button>
-      <button class="nav-item" data-page="medical"><span class="nav-icon">✚</span>Medicinskt team</button>
-      <button class="nav-item" data-page="locker"><span class="nav-icon">C</span>Omklädningsrum</button>
-      <button class="nav-item" data-page="season"><span class="nav-icon">◇</span>Säsong & historik</button>
-      <button class="nav-item" data-page="inbox"><span class="nav-icon">✉</span>Inkorg <span id="inboxCount" class="inbox-count"></span></button>
-      <button class="nav-item" data-page="training"><span class="nav-icon">◎</span>Träning</button>
-
-      <div class="nav-section">
-        MANAGER
-      </div>
-
-      <button
-        class="nav-item active"
-        data-page="home"
-      >
-        <span class="nav-icon">⌂</span>
-        Översikt
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="squad"
-      >
-        <span class="nav-icon">♟</span>
-        Trupp
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="lines"
-      >
-        <span class="nav-icon">☷</span>
-        Kedjor
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="match"
-      >
-        <span class="nav-icon">◆</span>
-        Match
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="table"
-      >
-        <span class="nav-icon">▥</span>
-        Tabell
-      </button>
-
-
-      <div class="nav-section">
-        SPORT
-      </div>
-
-
-      <button
-        class="nav-item"
-        data-page="tactics"
-      >
-        <span class="nav-icon">◎</span>
-        Taktik
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="transfers"
-      >
-        <span class="nav-icon">⇄</span>
-        Rekrytering
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="scouting"
-      >
-        <span class="nav-icon">⌕</span>
-        Scouting
-      </button>
-
-
-      <button class="nav-item" data-page="juniors"><span class="nav-icon">◇</span>Juniorer & talanger</button>
-
-      <button
-        class="nav-item"
-        data-page="statistics"
-      >
-        <span class="nav-icon">▥</span>
-        Statistik & analys
-      </button>
-
-
-      <div class="nav-section">
-        KLUBB
-      </div>
-
-
-      <button class="nav-item" data-page="leagues"><span class="nav-icon">▥</span>Ligavärlden</button>
-      <button class="nav-item" data-page="manager"><span class="nav-icon">◇</span>Min karriär</button>
-      <button class="nav-item" data-page="staff"><span class="nav-icon">◇</span>Personal</button>
-
-      <button
-        class="nav-item"
-        data-page="finance"
-      >
-        <span class="nav-icon">kr</span>
-        Ekonomi
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="board"
-      >
-        <span class="nav-icon">▣</span>
-        Styrelse
-      </button>
-
-
-      <button
-        class="nav-item"
-        data-page="news"
-      >
-        <span class="nav-icon">✉</span>
-        Nyheter
-      </button>
-
-    </nav>
+    <nav class="manager-nav" aria-label="Spelets huvudområden"></nav>
 
 
     <div class="sidebar-bottom">
@@ -215,19 +83,20 @@
 
       <button
         class="nav-item settings-item"
-        data-page="settings"
+        onclick="deskNavigate('settings')"
       >
         <span class="nav-icon">⚙</span>
-        Inställningar
+        Sparfiler & inställningar
       </button>
 
-      <div class="version">
+      <div class="version sidebar-version">
         Hockey Manager Alpha
       </div>
 
     </div>
 
   </aside>
+  <button class="desk-menu-backdrop" onclick="deskCloseMenu(true)" tabindex="-1" aria-label="Stäng menyn"></button>
 
 
   <!-- =========================================
@@ -242,7 +111,7 @@
     <header class="topbar">
 
       <div class="topbar-left">
-        <button id="mobileMenu" aria-label="Öppna spelmenyn" aria-expanded="false" onclick="toggleManagerMenu()">Meny</button>
+        <button id="mobileMenu" aria-controls="managerSidebar" aria-label="Öppna spelmenyn" aria-expanded="false" onclick="toggleManagerMenu()">Meny</button>
 
         <div class="current-section">
           ÖVERSIKT
@@ -263,9 +132,7 @@
 
       <div class="topbar-right">
 
-        <div class="manager-club">
-          HV71
-        </div>
+        <button id="deskInbox" class="desk-inbox" onclick="deskNavigate('inbox')" aria-label="Inkorg">Inkorg</button>
 
         <button
           class="continue-button"
@@ -290,7 +157,7 @@
 
     <main
       id="content"
-      class="game-content"
+      class="game-content" tabindex="-1"
     >
     </main>
 
@@ -300,27 +167,28 @@
 </div>
 
 
-<script src="season.js?v=calendar2"></script>
-<script src="training.js?v=calendar2"></script>
-<script src="career.js?v=calendar2"></script>
-<script src="attributes.js?v=calendar2"></script>
-<script src="recruitment.js?v=calendar2"></script>
-<script src="locker.js?v=calendar2"></script>
-<script src="medical.js?v=calendar2"></script>
-<script src="coaching.js?v=calendar2"></script>
-<script src="analysis.js?v=calendar2"></script>
-<script src="juniors.js?v=calendar2"></script>
-<script src="rink.js?v=calendar2"></script>
-<script src="hockey.js?v=calendar2"></script>
-<script src="club.js?v=calendar2"></script>
-<script src="manager.js?v=calendar2"></script>
-<script src="allsvenskan-data.js?v=calendar2"></script>
-<script src="allsvenskan.js?v=calendar2"></script>
-<script src="leagues.js?v=calendar2"></script>
-<script src="player-world.js?v=calendar2"></script>
-<script src="calendar.js?v=calendar2"></script>
-<script src="savefiles.js?v=calendar2"></script>
-<script src="script.js?v=calendar2"></script>
+<script src="season.js?v=desk1"></script>
+<script src="training.js?v=desk1"></script>
+<script src="career.js?v=desk1"></script>
+<script src="attributes.js?v=desk1"></script>
+<script src="recruitment.js?v=desk1"></script>
+<script src="locker.js?v=desk1"></script>
+<script src="medical.js?v=desk1"></script>
+<script src="coaching.js?v=desk1"></script>
+<script src="analysis.js?v=desk1"></script>
+<script src="juniors.js?v=desk1"></script>
+<script src="rink.js?v=desk1"></script>
+<script src="hockey.js?v=desk1"></script>
+<script src="club.js?v=desk1"></script>
+<script src="manager.js?v=desk1"></script>
+<script src="allsvenskan-data.js?v=desk1"></script>
+<script src="allsvenskan.js?v=desk1"></script>
+<script src="leagues.js?v=desk1"></script>
+<script src="player-world.js?v=desk1"></script>
+<script src="calendar.js?v=desk1"></script>
+<script src="savefiles.js?v=desk1"></script>
+<script src="interface.js?v=desk1"></script>
+<script src="script.js?v=desk1"></script>
 
 </body>
 

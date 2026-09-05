@@ -3313,736 +3313,9 @@ calendarAfterFixture();
    HEMSIDAN
    ========================================================= */
 
-function homeView(){
+function homeView(){return managerDeskView();}
 
-const clubName = managerClub();
-
-   const roster = managerRoster();
-
-const clubGames = state.schedule.filter(
-  game => game.home === clubName || game.away === clubName
-);
-  const nextGame =
-    clubGames.find(game => !game.played);
-
-  const playedGames =
-    clubGames
-      .filter(game => game.played)
-      .slice(-5)
-      .reverse();
-
-  const upcomingGames =
-    clubGames
-      .filter(game => !game.played)
-      .slice(0, 4);
-
-const topPlayers =
-  [...roster]
-      .sort(
-        (a,b) =>
-          ((b.goals || 0) + (b.assists || 0)) -
-          ((a.goals || 0) + (a.assists || 0))
-      )
-      .slice(0,5);
-
-  const avgMorale =
-    roster.length
-      ? Math.round(
-          roster.reduce(
-            (sum,p) => sum + (p.morale || 70),
-            0
-          ) / roster.length
-        )
-      : state.morale || 70;
-
-  const avgFatigue =
-    roster.length
-      ? Math.round(
-          roster.reduce(
-            (sum,p) => sum + (p.fatigue || 0),
-            0
-          ) / roster.length
-        )
-      : 0;
-
-
-  let nextOpponent = "Ingen match";
-
-  let nextPlace = "";
-
-  if(nextGame){
-
-const isHome =
-  nextGame.home === clubName;
-
-    nextOpponent =
-      isHome
-        ? nextGame.away
-        : nextGame.home;
-
-    nextPlace =
-      isHome
-        ? "Hemma"
-        : "Borta";
-
-  }
-
-
-  const latestResult =
-    playedGames.length
-      ? playedGames[0]
-      : null;
-
-
-  const resultText = game => {
-
-    if(!game){
-      return "Ingen match spelad";
-    }
-
-    return `${game.home} ${game.homeGoals}–${game.awayGoals} ${game.away}`;
-
-  };
-
-
-  const upcomingHTML =
-    upcomingGames.length
-      ? upcomingGames.map(game => {
-
-          const isHome =
-           game.home === clubName
-
-          const opponent =
-            isHome
-              ? game.away
-              : game.home;
-
-          return `
-            <div class="overview-fixture">
-
-              <div class="fixture-round">
-                Omgång ${game.round}
-              </div>
-
-              <div class="fixture-main">
-
-                <strong>
-                  ${opponent}
-                </strong>
-
-                <span>
-                  ${isHome ? "Hemma" : "Borta"}
-                </span>
-
-              </div>
-
-              <button
-                class="overview-small-button"
-                onclick="
-                  state.page='schedule';
-                  render();
-                "
-              >
-                ›
-              </button>
-
-            </div>
-          `;
-
-        }).join("")
-      : `
-          <div class="overview-empty">
-            Inga kommande matcher
-          </div>
-        `;
-
-
-  const resultsHTML =
-    playedGames.length
-      ? playedGames.map(game => {
-
-          const hvHome =
-           game.home === clubName
-
-          const hvGoals =
-            hvHome
-              ? game.homeGoals
-              : game.awayGoals;
-
-          const oppGoals =
-            hvHome
-              ? game.awayGoals
-              : game.homeGoals;
-
-          const opponent =
-            hvHome
-              ? game.away
-              : game.home;
-
-          const resultClass =
-            hvGoals > oppGoals
-              ? "win"
-              : hvGoals < oppGoals
-                ? "loss"
-                : "draw";
-
-          return `
-            <div class="overview-result">
-
-              <span class="result-dot ${resultClass}">
-              </span>
-
-              <div>
-
-                <strong>
-                  ${opponent}
-                </strong>
-
-                <span>
-                  ${hvHome ? "Hemma" : "Borta"}
-                </span>
-
-              </div>
-
-              <b>
-                ${hvGoals}–${oppGoals}
-              </b>
-
-            </div>
-          `;
-
-        }).join("")
-      : `
-          <div class="overview-empty">
-            Ingen match spelad ännu
-          </div>
-        `;
-
-
-  const playersHTML =
-    topPlayers.map((player,index) => {
-
-      const points =
-        (player.goals || 0) +
-        (player.assists || 0);
-
-      return `
-        <div class="overview-player">
-
-          <div class="player-rank">
-            ${index + 1}
-          </div>
-
-          <div class="player-info">
-
-            <strong>
-              ${player.name}
-            </strong>
-
-            <span>
-              ${player.pos}
-            </span>
-
-          </div>
-
-          <div class="player-points">
-
-            <b>
-              ${points}
-            </b>
-
-            <span>
-              P
-            </span>
-
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
-
-
-  const newsHTML =
-    state.news && state.news.length
-      ? state.news
-          .slice(0,5)
-          .map((news,index) => `
-
-            <div class="overview-news-item">
-
-              <div class="news-marker">
-                ${index === 0 ? "!" : "•"}
-              </div>
-
-              <span>
-                ${news}
-              </span>
-
-            </div>
-
-          `).join("")
-      : `
-          <div class="overview-empty">
-            Inga nya meddelanden
-          </div>
-        `;
-
-
-  return `
-
-    <div class="overview-page">
-      ${seasonOverview()}
-      ${dailyOverview()}
-      ${boardOverview()}
-
-
-      <!-- RUBRIK -->
-
-      <div class="overview-heading">
-
-        <div>
-
-          <span class="overview-kicker">
-            MANAGERÖVERSIKT
-          </span>
-
-          <h1>
-          ${clubName}
-          </h1>
-
-          <p>
-            Säsong ${seasonLabel()} · Omgång ${state.round}
-          </p>
-
-        </div>
-
-
-        <div class="overview-heading-status">
-
-          <span>
-            Lagmoral
-          </span>
-
-          <strong>
-            ${avgMorale}%
-          </strong>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- HUVUDGRID -->
-
-      <div class="overview-layout">
-
-
-        <!-- VÄNSTER / MITTEN -->
-
-        <div class="overview-main-column">
-
-
-          <!-- NÄSTA MATCH -->
-
-          <section class="dashboard-panel next-match-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                  NÄSTA MATCH
-                </span>
-
-                <h2>
-                  Omgång ${nextGame ? nextGame.round : state.round}
-                </h2>
-
-              </div>
-
-              <span class="match-location">
-                ${nextPlace}
-              </span>
-
-            </div>
-
-
-            <div class="next-match-teams">
-
-              <div class="next-team">
-
-                ${careerBadge(clubName,'large')}
-
-                <strong>
-                ${clubName}
-                </strong>
-
-              </div>
-
-
-              <div class="versus">
-
-                <span>
-                  VS
-                </span>
-
-              </div>
-
-
-              <div class="next-team">
-
-                ${CLUB_DATA[nextOpponent]?careerBadge(nextOpponent,'large'):''}
-
-                <strong>
-                  ${nextOpponent}
-                </strong>
-
-              </div>
-
-            </div>
-
-
-            <div class="next-match-actions">
-
-              <button
-                class="btn"
-                onclick="
-                  state.page='match';
-                  render();
-                "
-              >
-                Till match
-              </button>
-
-              <button
-                class="btn secondary"
-                onclick="
-                  state.page='lines';
-                  render();
-                "
-              >
-                Se kedjor
-              </button>
-
-            </div>
-
-          </section>
-
-
-
-          <!-- STATUS -->
-
-          <div class="overview-stats-row">
-
-            <div class="overview-stat-card">
-
-              <span>
-                LAGMORAL
-              </span>
-
-              <strong>
-                ${avgMorale}%
-              </strong>
-
-              <small>
-                ${avgMorale >= 75 ? "Bra stämning" : "Kan förbättras"}
-              </small>
-
-            </div>
-
-
-            <div class="overview-stat-card">
-
-              <span>
-                TRÖTTHET
-              </span>
-
-              <strong>
-                ${avgFatigue}%
-              </strong>
-
-              <small>
-                Truppsnitt
-              </small>
-
-            </div>
-
-
-            <div class="overview-stat-card">
-
-              <span>
-                EKONOMI
-              </span>
-
-              <strong>
-            money(state.money)
-              </strong>
-
-              <small>
-                Klubbkassa
-              </small>
-
-            </div>
-
-
-            <div class="overview-stat-card">
-
-              <span>
-                SUPPORTERS
-              </span>
-
-              <strong>
-                ${state.fans || 0}
-              </strong>
-
-              <small>
-                Registrerade
-              </small>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- NYHETER -->
-
-          <section class="dashboard-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                  INKORG
-                </span>
-
-                <h2>
-                  Senaste nytt
-                </h2>
-
-              </div>
-
-              <button
-                class="overview-link-button"
-                onclick="
-                  state.page='news';
-                  render();
-                "
-              >
-                Visa alla
-              </button>
-
-            </div>
-
-            <div class="overview-news-list">
-              ${newsHTML}
-            </div>
-
-          </section>
-
-
-
-          <!-- SENASTE RESULTAT -->
-
-          <section class="dashboard-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                  FORM
-                </span>
-
-                <h2>
-                  Senaste matcher
-                </h2>
-
-              </div>
-
-              <span class="latest-result">
-                ${resultText(latestResult)}
-              </span>
-
-            </div>
-
-            <div class="overview-results">
-              ${resultsHTML}
-            </div>
-
-          </section>
-
-        </div>
-
-
-
-        <!-- HÖGERKOLUMN -->
-
-        <aside class="overview-side-column">
-
-
-          <!-- KOMMANDE -->
-
-          <section class="dashboard-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                  SPELSCHEMA
-                </span>
-
-                <h2>
-                  Kommande
-                </h2>
-
-              </div>
-
-            </div>
-
-            <div>
-              ${upcomingHTML}
-            </div>
-
-          </section>
-
-
-
-          <!-- POÄNGLIGA -->
-
-          <section class="dashboard-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                ${clubName}
-                </span>
-
-                <h2>
-                  Poängliga
-                </h2>
-
-              </div>
-
-              <button
-                class="overview-link-button"
-                onclick="
-                  state.page='squad';
-                  render();
-                "
-              >
-                Trupp
-              </button>
-
-            </div>
-
-            <div class="overview-player-list">
-              ${playersHTML}
-            </div>
-
-          </section>
-
-
-
-          <!-- SNABBVAL -->
-
-          <section class="dashboard-panel">
-
-            <div class="panel-header">
-
-              <div>
-
-                <span class="panel-label">
-                  MANAGER
-                </span>
-
-                <h2>
-                  Snabbval
-                </h2>
-
-              </div>
-
-            </div>
-
-
-            <div class="quick-actions">
-
-              <button
-                onclick="
-                  state.page='squad';
-                  render();
-                "
-              >
-                <span>♟</span>
-                Trupp
-              </button>
-
-
-              <button
-                onclick="
-                  state.page='lines';
-                  render();
-                "
-              >
-                <span>☷</span>
-                Kedjor
-              </button>
-
-
-              <button
-                onclick="
-                  state.page='table';
-                  render();
-                "
-              >
-                <span>▥</span>
-                ${leagueName()}
-              </button>
-
-
-              <button
-                onclick="
-                  state.page='match';
-                  render();
-                "
-              >
-                <span>◆</span>
-                Match
-              </button>
-<button
-  onclick="
-    beginCareerSelection();
-  "
->
-  <span>◆</span>
-  Ny karriär
-</button>
-            </div>
-
-          </section>
-
-
-        </aside>
-
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
-   TRUPP
-   ========================================================= */
-
+/* TRUPP */
 function squadView(){
 
 const players =
@@ -4096,7 +3369,8 @@ const players =
 
       return `
         <div
-          class="squad-row"
+          class="squad-row" role="button" tabindex="0"
+          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlayer('${p.id}')}"
           onclick="selectPlayer('${p.id}')"
         >
 
@@ -4207,7 +3481,7 @@ const players =
           </span>
 
           <h1>
-            ${managerClub()} – Trupp
+            Trupp
           </h1>
 
           <p>
@@ -4289,53 +3563,11 @@ const players =
         </div>
 
 
-        <div class="overview-stat-card">
 
-          <span>
-            BEDÖMNING
-          </span>
-
-          <strong>
-            Tränarteamet
-          </strong>
-
-          <small>
-            Öppna spelarnas rapporter
-          </small>
-
-        </div>
 
       </div>
 
-      <section class="dashboard-panel squad-management-panel">
-        <div class="panel-header">
-          <div>
-            <span class="panel-label">TRUPPLANERING</span>
-            <h2>Kontrakt och löner</h2>
-          </div>
-          <strong class="${availableWages < 0 ? "budget-negative" : "budget-positive"}">
-            ${availableWages >= 0 ? "+" : ""}${money(availableWages)} kvar
-          </strong>
-        </div>
 
-        <div class="management-summary-grid">
-          <div><span>Lönekostnad</span><strong>${money(wageCost)}</strong></div>
-          <div><span>Lönebudget</span><strong>${money(wageBudget())}</strong></div>
-          <div><span>Utgående avtal</span><strong>${expiringContracts.length}</strong></div>
-          <div><span>Missnöjda spelare</span><strong>${unhappyPlayers.length}</strong></div>
-        </div>
-
-        ${expiringContracts.length ? `
-          <div class="squad-alert-list">
-            ${expiringContracts.map(player => `
-              <button onclick="selectPlayer('${player.id}')">
-                <span><b>${player.name}</b><small>${player.squadRole}</small></span>
-                <strong>Avtal: ${player.contractYears} år ›</strong>
-              </button>
-            `).join("")}
-          </div>
-        ` : `<p class="muted">Inga kontrakt löper ut efter säsongen.</p>`}
-      </section>
 
 
       <section class="dashboard-panel squad-panel">
@@ -4354,15 +3586,7 @@ const players =
 
           </div>
 
-          <button
-            class="overview-link-button"
-            onclick="
-              state.page='lines';
-              render();
-            "
-          >
-            Visa kedjor
-          </button>
+
 
         </div>
 
@@ -4404,6 +3628,35 @@ const players =
         </div>
 
       </section>
+<details class="desk-fold" data-desk-fold="contracts" ${deskFolds.contracts?'open':''} ontoggle="deskFolds.contracts=this.open"><summary>Kontrakt och löner · ${expiringContracts.length} utgående avtal</summary>      <section class="dashboard-panel squad-management-panel">
+        <div class="panel-header">
+          <div>
+            <span class="panel-label">TRUPPLANERING</span>
+            <h2>Kontrakt och löner</h2>
+          </div>
+          <strong class="${availableWages < 0 ? "budget-negative" : "budget-positive"}">
+            ${availableWages >= 0 ? "+" : ""}${money(availableWages)} kvar
+          </strong>
+        </div>
+
+        <div class="management-summary-grid">
+          <div><span>Lönekostnad</span><strong>${money(wageCost)}</strong></div>
+          <div><span>Lönebudget</span><strong>${money(wageBudget())}</strong></div>
+          <div><span>Utgående avtal</span><strong>${expiringContracts.length}</strong></div>
+          <div><span>Missnöjda spelare</span><strong>${unhappyPlayers.length}</strong></div>
+        </div>
+
+        ${expiringContracts.length ? `
+          <div class="squad-alert-list">
+            ${expiringContracts.map(player => `
+              <button onclick="selectPlayer('${player.id}')">
+                <span><b>${player.name}</b><small>${player.squadRole}</small></span>
+                <strong>Avtal: ${player.contractYears} år ›</strong>
+              </button>
+            `).join("")}
+          </div>
+        ` : `<p class="muted">Inga kontrakt löper ut efter säsongen.</p>`}
+      </section></details>
 
     </div>
 
@@ -6443,7 +5696,7 @@ function clubSelectView(){return careerClubSelectView();}
 function tacticsView(){
   const plan=state.tacticalPlan;
   const select=(key,options)=>`<select onchange="setTacticalSetting('${key}',this.value)">${options.map(([value,label])=>`<option value="${value}" ${plan[key]===value?"selected":""}>${label}</option>`).join("")}</select>`;
-  return `<div class="tactics-page"><div class="page-heading"><div><span class="overview-kicker">MATCHPLAN</span><h1>${managerClub()} – Taktik</h1><p>Din matchplan påverkar lagstyrka, risk och hur kedjorna används.</p></div></div>
+  return `<div class="tactics-page"><div class="page-heading"><div><span class="overview-kicker">MATCHPLAN</span><h1>Taktik</h1><p>Din matchplan påverkar lagstyrka, risk och hur kedjorna används.</p></div></div>
   <div class="tactics-grid">
     <section class="dashboard-panel"><div class="panel-header"><div><span class="panel-label">GRUNDIDÉ</span><h2>Spelsätt</h2></div></div>
       <div class="tactic-choice-grid">${[["attack","Offensiv","Fler spelare framåt"],["balanced","Balanserad","Kontrollerat tvåvägsspel"],["defense","Defensiv","Skydda mitten"]].map(([v,l,d])=>`<button class="tactic-choice ${state.tactic===v?"active":""}" onclick="setTactic('${v}')"><b>${l}</b><span>${d}</span></button>`).join("")}</div>
@@ -6520,7 +5773,7 @@ function render(){
     );
 
 
-content.innerHTML=
+const pageHTML=
 careerScreen === "files" ? saveSettingsView()
 : careerScreen === "menu" ? careerMenuView()
 : careerScreen === "select" ? careerClubSelectView()
@@ -6563,7 +5816,7 @@ careerScreen === "files" ? saveSettingsView()
 
 : state.page==="match"
 
-? seasonMatchPanel()+matchView()+benchPanel()+teamTalkPanel()+iceTimeView()
+? seasonMatchPanel()+matchView()+benchPanel()+teamTalkPanel()+(state.live?'<details class="desk-fold" data-desk-fold="iceTime" '+(deskFolds.iceTime?'open':'')+' ontoggle="deskFolds.iceTime=this.open"><summary>Spelarnas istid</summary>'+iceTimeView()+'</details>':'')
 
 : state.page==="specialTeams"
 
@@ -6637,6 +5890,8 @@ careerScreen === "files" ? saveSettingsView()
 
 : homeView();
 
+  content.innerHTML=deskFrame(pageHTML);
+
   const clubName = managerClub();
   const club = getClub(clubName);
   const sectionNames = {
@@ -6664,24 +5919,7 @@ careerScreen === "files" ? saveSettingsView()
 
 
 
-  document
-  .querySelectorAll(
- "[data-page]"
-  )
-  .forEach(
-    btn=>{
-
-      btn.classList.toggle(
-
-        "active",
-
-        btn.dataset.page===
-        state.page
-
-      );
-
-    }
-  );
+  deskRefreshShell();
 
 }
 
@@ -6689,29 +5927,6 @@ careerScreen === "files" ? saveSettingsView()
 /* =========================================================
    NAVIGATION
    ========================================================= */
-
-document
-.querySelectorAll(
-"[data-page]"
-)
-.forEach(
-  btn=>{
-
-    btn.addEventListener(
-      "click",
-      ()=>{
-
-        if(state.live?.running)pauseMatch();
-        state.page=
-          btn.dataset.page;
-
-        render();
-
-      }
-    );
-
-  }
-);
 
 const continueButton =
   document.getElementById("continueGame");

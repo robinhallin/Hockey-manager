@@ -282,3 +282,13 @@ and completion boundaries, delayed agreements and once-only arrivals, a complete
 reload, portable save validation/import and failed-storage rollback. Existing tests
 now use calendar days for timed offers and date-anchored medical scenarios.
 Browser interaction/visual QA has not been performed.
+
+## Manager workspace and navigation
+
+The manager desk replaces the old shortcut-heavy overview. Seven primary areas — Översikt, Laget, Träning, Matcher, Rekrytering, Klubben and Ligorna — contain contextual secondary navigation. Inbox and the current career date sit beside the existing Continue action; save files remain in the sidebar footer. Player profiles retain their parent area. Recruitment uses one navigation row, with reports, free agents, transfer history and the player world under More.
+
+The overview reads the current career: next fixture or paused match, pending conversations and offers, medical availability, high fatigue, expiring contracts, cash/wage concerns, upcoming fixtures, recent scores, training plan and tracked board goals. Before a league game has been played, it avoids inventing a league position. Preseason, season review, unemployment and saved matches use their existing flows. Contract detail now follows the squad list, and ice time is expandable on the match page. Expanding these sections does not alter the game state.
+
+`interface.js` and `interface.css` hold the shared presentation layer. They do not introduce a new save schema or change simulation rules. Navigation pauses a live match, retains selections/filters and cannot advance dates. The mobile drawer includes Escape/close/backdrop handling, focus containment and inactive background content. Typography, panel spacing, secondary buttons, focus outlines and responsive layouts are shared across game pages. Asset version: `desk1`.
+
+Validation: 18 existing Node suites pass; `node interface.test.cjs` additionally covers all routes, all 28 club overviews, recruitment sections, priorities, preseason/review/paused matches, navigation isolation and save continuity. Generated HTML nesting, IDs, event-handler syntax and local entrypoint assets checked. Visual browser QA has not been performed.
