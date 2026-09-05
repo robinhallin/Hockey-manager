@@ -21,6 +21,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('hockey.js','utf8'),context);
   vm.runInContext(fs.readFileSync('club.js','utf8'),context);
   vm.runInContext(fs.readFileSync('manager.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -32,7 +33,7 @@ const initial=storage.value;
 run('beginCareerSelection()');
 assert.equal(storage.value,initial);
 assert.equal(run('careerScreen'),'select');
-assert.equal((run('careerClubSelectView()').match(/class="career-club-card/g)||[]).length,14);
+assert.equal((run('careerClubSelectView()').match(/class="career-club-card/g)||[]).length,28);
 for(const club of run('Object.keys(CLUB_DATA)')){
   run(`chooseCareerClub(${JSON.stringify(club)});careerReview()`);
   const html=run('careerReviewView()');
@@ -82,4 +83,4 @@ assert.equal(run('boardProgress().find(g=>g.id==="league").status'),'Uppnått');
 // Opening the menu safely pauses a live game.
 run('careerDraft=null;startCareerWithClub("HV71");startMatch();showCareerMenu()');
 assert.equal(run('state.live.running'),false);assert.equal(run('careerScreen'),'menu');
-console.log('PASS: 14 career offers, exact budgets, menu/resume, legacy saves, prior-career recovery, real ice-time goals, financial and table objectives.');
+console.log('PASS: 28 career offers, exact budgets, menu/resume, legacy saves, prior-career recovery, real ice-time goals, financial and table objectives.');
