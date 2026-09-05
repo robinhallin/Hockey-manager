@@ -3,7 +3,7 @@
 // Match-coaching systems. Loaded before script.js; initialized only after state exists.
 function ensureSpecialTeams(){
   ensureLines();
-  const skaters=managerRoster().filter(p=>p.pos!=="MV");
+  const skaters=managerRoster().filter(p=>p.pos!=="MV"&&medicalAvailable(p));
   const attack=[...skaters].sort((a,b)=>(matchAttributeRating(b,"shot")+matchAttributeRating(b,"pass"))-(matchAttributeRating(a,"shot")+matchAttributeRating(a,"pass")));
   const defense=[...skaters].sort((a,b)=>matchAttributeRating(b,"defense")-matchAttributeRating(a,"defense"));
   if(!state.specialTeams) state.specialTeams={};
@@ -26,7 +26,7 @@ function ensureSpecialTeams(){
 function changeSpecialPlayer(key,index,id){
   ensureSpecialTeams();
   const unit=state.specialTeams[key];
-  const player=managerRoster().find(p=>samePlayerId(p.id,id)&&p.pos!=="MV");
+  const player=managerRoster().find(p=>samePlayerId(p.id,id)&&p.pos!=="MV"&&medicalAvailable(p));
   if(!unit||!player||!Number.isInteger(index)||index<0||index>=unit.length) return;
   const existing=unit.findIndex(x=>samePlayerId(x,id));
   if(existing>=0) [unit[index],unit[existing]]=[unit[existing],unit[index]];
@@ -47,13 +47,15 @@ function specialUnitOnIce(){
 }
 
 function trackIceTime(seconds){
-  const m=state.live;
-  if(!m||m.finished) return;
-  if(!m.iceTime) m.iceTime={};
-  trackSocialIce([...currentLinePlayers(),...currentDefensePlayers()],seconds);
-  const ids=[...currentLinePlayers(),...currentDefensePlayers()].map(p=>p.id);
-  if(!m.goaliePulled){const goalie=randomGoalie();if(goalie) ids.push(goalie.id);}
-  for(const id of new Set(ids.map(String))) m.iceTime[id]=(m.iceTime[id]||0)+seconds;
+  const m=state.live;if(!m||m.finished||!Number.isFinite(seconds)||seconds<=0)return;
+  if(!m.iceTime)m.iceTime={};
+  const skaters=[...currentLinePlayers(),...currentDefensePlayers()];
+  const goalie=m.goaliePulled?null:randomGoalie();
+  const players=[...new Map([...skaters,...(goalie?[goalie]:[])].map(p=>[String(p.id),p])).values()];
+  const shared=Math.min(seconds,...players.map(p=>medicalLimit(p)-(m.iceTime[p.id]||0)));
+  trackSocialIce(skaters,Math.max(0,shared));
+  for(const p of players)m.iceTime[p.id]=(m.iceTime[p.id]||0)+Math.max(0,Math.min(seconds,medicalLimit(p)-(m.iceTime[p.id]||0)));
+  medicalExposure(players,seconds);
 }
 
 function coachingNavigate(page){
@@ -72,7 +74,7 @@ function benchLine(index){
 
 function specialTeamsView(){
   ensureSpecialTeams();
-  const pool=managerRoster().filter(p=>p.pos!=="MV");
+  const pool=managerRoster().filter(p=>p.pos!=="MV"&&medicalAvailable(p));
   return `<section class="bench-hub"><div class="bench-heading"><div><span>SPECIAL TEAMS</span><h1>De avgörande minuterna</h1><p>Välj dina egna formationer. De två enheterna växlar vid byten i matchen.</p></div><button class="btn secondary" onclick="coachingNavigate('match')">Till matchen</button></div>
     <div class="units-grid">${Object.entries(state.specialTeams).map(([key,ids])=>{
       const power=key.startsWith("pp");

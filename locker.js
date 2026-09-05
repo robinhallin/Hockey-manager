@@ -30,7 +30,7 @@ function trainSocialPairs(session){
  units.push(...Array.from({length:3},(_,i)=>state.lines.defense.slice(i*2,i*2+2)));
  if(session.type==='powerplay'||session.type==='penaltykill'){ensureSpecialTeams();units=Object.entries(state.specialTeams).filter(([key])=>key.startsWith(session.type==='powerplay'?'pp':'pk')).map(([,ids])=>ids);}
  const seen=new Set();
- for(const ids of units){const players=ids.map(playerById).filter(p=>p&&p.trainingLoad!=='rest');socialPairs(players,(a,b)=>{const key=socialPairKey(a,b);if(seen.has(key))return;seen.add(key);const pair=socialPair(a,b,true);pair.bond=Math.min(90,pair.bond+(session.type==='tactics'?.8:.4));});}
+ for(const ids of units){const players=ids.map(playerById).filter(p=>p&&medicalCanTrain(p)&&p.trainingLoad!=='rest');socialPairs(players,(a,b)=>{const key=socialPairKey(a,b);if(seen.has(key))return;seen.add(key);const pair=socialPair(a,b,true);pair.bond=Math.min(90,pair.bond+(session.type==='tactics'?.8:.4));});}
 }
 function socialLog(title,body){const r=state.locker;r.log.unshift({turn:r.turn,year:state.season?.year||2026,title,body});r.log=r.log.slice(0,60);managerMessage(`locker:${r.turn}:${r.log.length}:${title}`,title,body,'Omklädningsrum',{link:'locker'});}
 function lockerNotice(text){state.locker.message=text;save();render();}
@@ -76,7 +76,7 @@ function afterLockerMatch(){
  for(const p of managerRoster()){
    const s=p.social,seconds=m.iceTime?.[p.id]||0,expected=p.pos==='MV'?1800:p.promisedRole==='Nyckelspelare'?900:p.promisedRole==='Ordinarie'?720:0;
    s.lastMinutes=seconds/60;
-   const missed=expected>0&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
+   const missed=expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
    if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(`${p.name} undrar över sin roll`,`${p.name} har fått mindre istid än sin utlovade roll i två matcher. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked.`);}
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
