@@ -993,7 +993,7 @@ function simulateOtherGames(){
 
     if(game.played) return;
 
-   if(game.home === "HV71" || game.away === "HV71") return;
+   if(game.home === managerClub() || game.away === managerClub()) return;
 
     const homeTeam = team(game.home);
     const awayTeam = team(game.away);
@@ -1156,19 +1156,34 @@ function team(name){
 
 function opponent(){
 
-    const hvGames = state.schedule.filter(
-        game => game.home === "HV71" || game.away === "HV71"
+    const clubName = managerClub();
+    const clubGames = state.schedule.filter(
+        game => game.home === clubName || game.away === clubName
     );
 
-    const game = hvGames[state.round - 1];
+    const game = clubGames.find(game => !game.played);
 
     if(!game){
         return "Ingen match";
     }
 
-    return game.home === "HV71"
+    return game.home === clubName
         ? game.away
         : game.home;
+}
+
+function samePlayerId(a,b){
+
+  return String(a) === String(b);
+
+}
+
+function selectPlayer(playerId){
+
+  state.selectedPlayer = playerId;
+  state.page = "player";
+  render();
+
 }
 
 function money(n){
@@ -1435,7 +1450,7 @@ shiftSeconds:0,
   };
 
   addEvent(
-    "Nedsläpp i Husqvarna Garden.",
+    `Nedsläpp mellan ${managerClub()} och ${opp}.`,
     "chance"
   );
 
@@ -2086,7 +2101,7 @@ addEvent(
 const opponentShooter = getRandomOpponentForward(m.opponent);
 
 addEvent(
-  `${opponentShooter} kommer fri mot HV71-målet!`,
+  `${opponentShooter} kommer fri mot ${managerClub()}-målet!`,
   "bigChance"
 );
 
@@ -2268,7 +2283,7 @@ function goalHV(
 
 
   addEvent(
-    `MÅÅÅL HV71! ${scorer.name} gör ${m.hv}–${m.opp}!`,
+    `MÅÅÅL ${managerClub()}! ${scorer.name} gör ${m.hv}–${m.opp}!`,
     "goal"
   );
 
@@ -2468,7 +2483,7 @@ function simulatePenalty(){
     m.ppOpp++;
 
     addEvent(
-      `UTVISNING HV71: ${player.name}, 2 min ${penalty}.`,
+      `UTVISNING ${managerClub()}: ${player.name}, 2 min ${penalty}.`,
       "penalty"
     );
 
@@ -2535,11 +2550,11 @@ function simulateNeutralPlay(){
 
     "Spelet böljar fram och tillbaka.",
 
-    "HV71 försöker etablera spel genom mittzon.",
+    `${managerClub()} försöker etablera spel genom mittzon.`,
 
     `${m.opponent} tvingas börja om i egen zon.`,
 
-    "HV71 forecheckar högt.",
+    `${managerClub()} forecheckar högt.`,
 
     "Lagen byter chanser med varandra."
 
@@ -2563,15 +2578,17 @@ function simulateNeutralPlay(){
 
 function calculateHVPower(){
 
+  const roster = managerRoster();
+
   let power=
-    state.roster.reduce(
+    roster.reduce(
       (
         sum,
         p
       )=>sum+p.overall,
       0
     )/
-    state.roster.length;
+    roster.length;
 
 
   power+=
@@ -2646,7 +2663,7 @@ function updateFatigue(){
     ...currentDefensePlayers()
   ];
 
-  state.roster.forEach(p => {
+  managerRoster().forEach(p => {
 
     if(p.pos === "MV") return;
 
@@ -2730,7 +2747,7 @@ function useTimeout(){
     );
 
 
-  state.roster.forEach(
+  managerRoster().forEach(
     p=>{
 
       p.fatigue=
@@ -2744,7 +2761,7 @@ function useTimeout(){
 
 
   addEvent(
-    "HV71 tar timeout. Spelarna får återhämta sig.",
+    `${managerClub()} tar timeout. Spelarna får återhämta sig.`,
     "strategy"
   );
 
@@ -2779,8 +2796,8 @@ function toggleGoalie(){
 
   addEvent(
     m.goaliePulled
-    ? "HV71 tar ut målvakten!"
-    : "HV71 sätter tillbaka målvakten.",
+    ? `${managerClub()} tar ut målvakten!`
+    : `${managerClub()} sätter tillbaka målvakten.`,
     "strategy"
   );
 
@@ -2820,7 +2837,7 @@ function setTactic(
 
 
     addEvent(
-      `HV71 ändrar taktik till ${labels[tactic]}.`,
+      `${managerClub()} ändrar taktik till ${labels[tactic]}.`,
       "strategy"
     );
 
@@ -2952,12 +2969,12 @@ function shootout(){
       hvGoals++;
 
       addEvent(
-        `HV71 straff ${i}: MÅL!`,
+        `${managerClub()} straff ${i}: MÅL!`,
         "goal"
       );
     }else{
       addEvent(
-        `HV71 straff ${i}: miss.`,
+        `${managerClub()} straff ${i}: miss.`,
         "chance"
       );
     }
@@ -3010,12 +3027,12 @@ function shootout(){
       hvGoals++;
 
       addEvent(
-        "HV71: MÅL!",
+        `${managerClub()}: MÅL!`,
         "goal"
       );
     }else{
       addEvent(
-        "HV71: miss.",
+        `${managerClub()}: miss.`,
         "chance"
       );
     }
@@ -3044,7 +3061,7 @@ function shootout(){
     m.hv++;
 
     addEvent(
-      `HV71 vinner straffläggningen ${hvGoals}-${oppGoals}.`,
+      `${managerClub()} vinner straffläggningen ${hvGoals}-${oppGoals}.`,
       "goal"
     );
 
@@ -3208,16 +3225,16 @@ state.news.unshift(
     )-
     300000;
 
-const hvGames = state.schedule.filter(
-  game => game.home === managerClub() || game.away === managerClub()
+const scheduleGame = state.schedule.find(
+  game =>
+    game.round === state.round &&
+    (game.home === managerClub() || game.away === managerClub())
 );
-
-const scheduleGame = hvGames[state.round - 1];
 
 if (scheduleGame) {
   scheduleGame.played = true;
 
-if(game.home === managerClub()){
+if(scheduleGame.home === managerClub()){
     scheduleGame.homeGoals = m.hv;
     scheduleGame.awayGoals = m.opp;
   } else {
@@ -4042,11 +4059,7 @@ const players =
       return `
         <div
           class="squad-row"
-          onclick="
-            state.selectedPlayer=${p.id};
-            state.page='player';
-            render();
-          "
+          onclick="selectPlayer('${p.id}')"
         >
 
           <div class="squad-player-main">
@@ -4156,7 +4169,7 @@ const players =
           </span>
 
           <h1>
-            HV71 – Trupp
+            ${managerClub()} – Trupp
           </h1>
 
           <p>
@@ -4332,8 +4345,8 @@ const players =
 function toggleTransferStatus(playerId){
 
   const player =
-    state.roster.find(
-      p => p.id === playerId
+    managerRoster().find(
+      p => samePlayerId(p.id, playerId)
     );
 
   if(!player){
@@ -4368,8 +4381,8 @@ function toggleTransferStatus(playerId){
 function playerView(){
 
   const player =
-    state.roster.find(
-      p => p.id === state.selectedPlayer
+    managerRoster().find(
+      p => samePlayerId(p.id, state.selectedPlayer)
     );
 
   if(!player){
@@ -4467,7 +4480,7 @@ function playerView(){
           <div>
 
             <span class="overview-kicker">
-              HV71
+              ${managerClub()}
             </span>
 
             <h1>
@@ -4650,7 +4663,7 @@ ${
 
 <button
   class="btn secondary"
-  onclick="toggleTransferStatus(${player.id})"
+  onclick="toggleTransferStatus('${player.id}')"
 >
   ${
     player.transferListed
@@ -4804,8 +4817,8 @@ function ensureLines(){
 
 function playerById(id){
 
-  return state.roster.find(
-    p=>p.id===Number(id)
+  return managerRoster().find(
+    p=>samePlayerId(p.id,id)
   );
 
 }
@@ -4816,7 +4829,7 @@ function lineOptions(players, selectedId){
   return players.map(p=>`
     <option
       value="${p.id}"
-      ${p.id===selectedId ? "selected" : ""}
+      ${samePlayerId(p.id,selectedId) ? "selected" : ""}
     >
       ${p.name} • ${p.overall}
     </option>
@@ -4829,12 +4842,10 @@ function changeLinePlayer(type,index,newId){
 
   ensureLines();
 
-  newId=Number(newId);
-
   const list=state.lines[type];
 
   const existingIndex=
-    list.indexOf(newId);
+    list.findIndex(id => samePlayerId(id,newId));
 
   /*
      Om spelaren redan finns på en annan plats
@@ -4868,8 +4879,7 @@ function changeGoalie(id){
 
   ensureLines();
 
-  state.lines.goalie=
-    Number(id);
+  state.lines.goalie=id;
 
   save();
 
@@ -5186,7 +5196,7 @@ function matchView(){
       <div class="scoreboard">
 
         <div>
-          <b>HV71</b>
+          <b>${managerClub()}</b>
         </div>
 
         <div class="score">
@@ -5297,7 +5307,7 @@ const onIceDefense =
     m.penaltiesOpp.length>
     m.penaltiesHV.length
     ?
-    "HV71 PP"
+    `${managerClub()} PP`
     :
     m.penaltiesHV.length>
     m.penaltiesOpp.length
@@ -5324,7 +5334,7 @@ ${!m.running && m.minute === 0 && m.second === 0 && m.period > 1 && !m.finished
       </div>
 
       <h2 style="margin:12px 0;">
-        HV71 ${m.hv}-${m.opp} ${m.opponent}
+        ${managerClub()} ${m.hv}-${m.opp} ${m.opponent}
       </h2>
 
       <div style="margin-top:10px;">
@@ -5337,7 +5347,7 @@ ${!m.running && m.minute === 0 && m.second === 0 && m.period > 1 && !m.finished
     <div class="scoreboard">
 
       <div>
-        <b>HV71</b>
+        <b>${managerClub()}</b>
       </div>
 
       <div class="score">
@@ -5441,7 +5451,7 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
         </b>
 
         <span>
-          HV71 momentum
+          ${managerClub()} momentum
         </span>
 
       </div>
@@ -5497,7 +5507,7 @@ ${onIceDefense.map(p=>`${p.name} (<span style="color:${p.fatigue >= 75 ? '#ff4d4
         </b>
 
         <span>
-          HV71 PP
+          ${managerClub()} PP
         </span>
 
       </div>
@@ -5817,7 +5827,7 @@ function tableView(){
 
             <tr
               class="${
-                t.name==="HV71"
+                t.name===managerClub()
                 ?"me"
                 :""
               }"
@@ -5860,10 +5870,10 @@ function tableView(){
 
   <section class="card">
 
-    <h2>HV71:s poängliga</h2>
+    <h2>${managerClub()}:s poängliga</h2>
 
     ${
-      state.roster
+      managerRoster()
       .slice()
       .sort(
         (a,b)=>
@@ -5935,7 +5945,7 @@ function roundView(){
       : "Ej spelad";
 
 const isHVGame =
-  game.home === "HV71" || game.away === "HV71";
+  game.home === managerClub() || game.away === managerClub();
 
 return `
   <div
@@ -6011,13 +6021,14 @@ return `
 }
 function scheduleView(){
 
+  const clubName = managerClub();
   const hvGames = state.schedule
-    .filter(game => game.home === "HV71" || game.away === "HV71")
+    .filter(game => game.home === clubName || game.away === clubName)
     .sort((a,b) => a.round - b.round);
 
   const rows = hvGames.map(game => {
 
-    const isHome = game.home === "HV71";
+    const isHome = game.home === clubName;
 
     const opponentName =
       isHome ? game.away : game.home;
@@ -6062,7 +6073,7 @@ function scheduleView(){
   return `
     <section class="card">
 
-      <h2>HV71 – Spelschema</h2>
+      <h2>${clubName} – Spelschema</h2>
 
       <p class="muted">
         Säsong 2026/27 • 52 omgångar
@@ -6123,7 +6134,7 @@ function getPlayerClub(playerId){
 
   for(const [clubName, roster] of Object.entries(state.clubRosters || {})){
 
-    if(roster.some(player => player.id === playerId)){
+    if(roster.some(player => samePlayerId(player.id, playerId))){
       return clubName;
     }
 
@@ -6139,7 +6150,7 @@ function findPlayerAnywhere(playerId){
   for(const roster of Object.values(state.clubRosters || {})){
 
     const player =
-      roster.find(p => p.id === playerId);
+      roster.find(p => samePlayerId(p.id, playerId));
 
     if(player){
       return player;
@@ -6390,7 +6401,7 @@ function submitContractOffer(
 
   if(
     !negotiation ||
-    negotiation.playerId !== playerId
+    !samePlayerId(negotiation.playerId, playerId)
   ){
     return;
   }
@@ -6539,7 +6550,7 @@ function completeTransfer(
   const playerIndex =
     sellingRoster.findIndex(
       player =>
-        player.id === playerId
+        samePlayerId(player.id, playerId)
   );
 
 
@@ -6683,7 +6694,7 @@ const filteredMarketPlayers =
 
   });
   const listedPlayers =
-    state.roster.filter(
+    managerRoster().filter(
       p => p.transferListed
     );
 
@@ -6693,9 +6704,7 @@ const filteredMarketPlayers =
           <div
             class="transfer-player-row"
             onclick="
-              state.selectedPlayer=${player.id};
-              state.page='player';
-              render();
+              selectPlayer('${player.id}');
             "
           >
 
@@ -6776,7 +6785,7 @@ const filteredMarketPlayers =
             <div>
 
               <span class="panel-label">
-                HV71
+                ${managerClub()}
               </span>
 
               <h2>
@@ -6881,7 +6890,7 @@ const filteredMarketPlayers =
 
       ${
         Object.keys(TEAM_ROSTERS)
-          .filter(team => team !== "HV71")
+          .filter(team => team !== managerClub())
           .sort()
           .map(team => `
             <option
@@ -7031,11 +7040,11 @@ function marketPlayerView(){
 
   const player =
     marketPlayers.find(
-      p => p.id === state.selectedMarketPlayer
+      p => samePlayerId(p.id, state.selectedMarketPlayer)
     );
 const negotiation =
   state.transferNegotiation &&
-  state.transferNegotiation.playerId === player?.id
+  samePlayerId(state.transferNegotiation.playerId, player?.id)
     ? state.transferNegotiation
     : null;
   if(!player){
@@ -7229,7 +7238,7 @@ const negotiation =
 
           <div class="player-actions">
           ${
-  state.transferBidPlayer === player.id
+  samePlayerId(state.transferBidPlayer, player.id)
     ? `
       <div class="transfer-bid-box">
 
@@ -7651,6 +7660,94 @@ function clubSelectView(){
    RENDER
    ========================================================= */
 
+function tacticsView(){
+
+  const tactics = [
+    ["attack", "Offensiv", "Fler anfall och högre risk."],
+    ["balanced", "Balanserad", "Jämn balans mellan anfall och försvar."],
+    ["defense", "Defensiv", "Lägre risk och större defensivt fokus."]
+  ];
+
+  return `
+    <section class="card">
+      <h2>Taktik</h2>
+      <p class="muted">Välj hur ${managerClub()} ska spela.</p>
+      ${tactics.map(([value,label,description]) => `
+        <div class="row">
+          <span><b>${label}</b><br><small>${description}</small></span>
+          <button class="btn ${state.tactic===value ? "secondary" : ""}"
+            onclick="setTactic('${value}')">
+            ${state.tactic===value ? "Vald" : "Välj"}
+          </button>
+        </div>
+      `).join("")}
+    </section>
+  `;
+
+}
+
+function newsView(){
+
+  return `
+    <section class="card">
+      <h2>Nyheter</h2>
+      ${(state.news || []).length
+        ? state.news.map(item => `<div class="row"><span>${item}</span></div>`).join("")
+        : `<p class="muted">Det finns inga nyheter ännu.</p>`}
+    </section>
+  `;
+
+}
+
+function financeView(){
+
+  const wageCost = managerRoster().reduce((sum,player) => sum + (player.salary || 0), 0);
+
+  return `
+    <section class="card">
+      <h2>Ekonomi</h2>
+      <div class="row"><span>Klubbkassa</span><b>${money(state.money)}</b></div>
+      <div class="row"><span>Spelarlöner per år</span><b>${money(wageCost)}</b></div>
+      <div class="row"><span>Supporters</span><b>${state.fans || 0}</b></div>
+    </section>
+  `;
+
+}
+
+function placeholderView(title){
+
+  return `
+    <section class="card">
+      <h2>${title}</h2>
+      <p class="muted">Den här delen byggs i en kommande uppdatering.</p>
+    </section>
+  `;
+
+}
+
+function continueGame(){
+
+  if(state.page === "clubSelect"){
+    return;
+  }
+
+  if(state.live && state.live.finished){
+    state.live = null;
+  }
+
+  if(opponent() === "Ingen match"){
+    state.page = "table";
+    save();
+    render();
+    return;
+  }
+
+  state.page = "match";
+  save();
+  render();
+
+}
+
 function render(){
 
   const content=
@@ -7701,7 +7798,60 @@ state.page==="clubSelect"
 
 ? matchView()
 
-: tableView();
+: state.page==="table"
+
+? tableView()
+
+: state.page==="tactics"
+
+? tacticsView()
+
+: state.page==="news"
+
+? newsView()
+
+: state.page==="finance"
+
+? financeView()
+
+: state.page==="scouting"
+
+? placeholderView("Scouting")
+
+: state.page==="statistics"
+
+? placeholderView("Statistik")
+
+: state.page==="board"
+
+? placeholderView("Styrelse")
+
+: state.page==="settings"
+
+? placeholderView("Inställningar")
+
+: homeView();
+
+  const clubName = managerClub();
+  const club = getClub(clubName);
+  const sectionNames = {
+    home:"ÖVERSIKT", squad:"TRUPP", lines:"KEDJOR", match:"MATCH",
+    table:"SHL", tactics:"TAKTIK", transfers:"TRANSFERS", scouting:"SCOUTING",
+    statistics:"STATISTIK", finance:"EKONOMI", board:"STYRELSE", news:"NYHETER",
+    settings:"INSTÄLLNINGAR", clubSelect:"VÄLJ KLUBB"
+  };
+
+  const section = document.querySelector(".current-section");
+  const topClub = document.querySelector(".manager-club");
+  const badge = document.querySelector(".club-badge");
+  const clubInfoName = document.querySelector(".club-info strong");
+  const clubInfoLeague = document.querySelector(".club-info span");
+
+  if(section) section.textContent = sectionNames[state.page] || "HOCKEY MANAGER";
+  if(topClub) topClub.textContent = clubName;
+  if(badge) badge.textContent = clubName.substring(0,2).toUpperCase();
+  if(clubInfoName) clubInfoName.textContent = clubName;
+  if(clubInfoLeague) clubInfoLeague.textContent = club ? "SHL" : "";
 
 
 
@@ -7753,6 +7903,13 @@ document
 
   }
 );
+
+const continueButton =
+  document.getElementById("continueGame");
+
+if(continueButton){
+  continueButton.addEventListener("click", continueGame);
+}
 
 
 /* =========================================================
