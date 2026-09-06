@@ -34,7 +34,7 @@ function leagueLivePlayer(side,id,name){
 function leagueKeeper(side){
  const m=state.live;if(!m)return null;
  if(side==='own')return m.goaliePulled?null:randomGoalie();
- return m.aiGoaliePulled?null:(state.clubRosters[m.opponent]||[]).filter(p=>p.pos==='MV').sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a))[0];
+ return rivalLiveKeeper();
 }
 function leagueTrackIce(ownPlayers,seconds){
  if(!ensureLeagueLive())return;
@@ -76,6 +76,8 @@ function leagueCommitRows(game,rows,partial=false,live=false){
   }
  }
  game.statsRecorded=true;game.statsPartial=partial;s.recorded[stage][league]++;
+ const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.baseStyle||'control',pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
+ rivalAfterFixture(game,rows,reports,partial);
 }
 function leagueCommitLive(){
  const m=state.live,box=m?.leagueBox;
@@ -86,7 +88,9 @@ function leagueCommitLive(){
  leagueCommitRows(game,Object.values(box.players),box.partial||Boolean(m.analysisAbandoned),true);box.saved=true;
 }
 function leagueRecordBackground(game){
- if(!game?.played||game.statsRecorded||!state.leagueStatistics)return;
+ if(!game?.played||game.statsRecorded)return;
+ if(!state.leagueStatistics){delete game.rivalRows;return;}
+ if(game.rivalRows){leagueCommitRows(game,game.rivalRows);delete game.rivalRows;return;}
  // Stable independent draws: collecting statistics cannot change later match outcomes.
  let rng=Math.floor(attrSeed(`${state.season.year}:${game.round}:${game.home}:${game.away}:stats`)*4294967296)>>>0;
  const rand=()=>{rng=(Math.imul(rng,1664525)+1013904223)>>>0;return rng/4294967296;};

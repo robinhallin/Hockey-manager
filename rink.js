@@ -8,26 +8,16 @@ function rinkKey(side,p){return `${side}:${p.id}`;}
 function rinkPlayer(actor){return actor?.side==='own'?playerById(actor.id):(state.clubRosters[state.live.opponent]||[]).find(p=>samePlayerId(p.id,actor?.id));}
 function rinkAttribute(actor,key){
  const p=rinkPlayer(actor);if(!p)return 10;
- const fatigue=actor.side==='own'?p.fatigue:(state.live.rink.oppFatigue?.[p.id]||0);
- const teamwork=actor.side==='own'&&['passing','vision','decisions','positioning','faceoffs'].includes(key)?(state.live.rink.teamBonus||0)/4:0;
+ const fatigue=actor.side==='own'?p.fatigue:((p.fatigue||0)+(state.live.rink.oppFatigue?.[p.id]||0));
+ const teamwork=actor.side==='own'&&['passing','vision','decisions','positioning','faceoffs'].includes(key)?(state.live.rink.teamBonus||0)/4:actor.side==='opponent'&&['passing','vision','decisions','positioning','faceoffs'].includes(key)?((rivalsClubState(state.live.opponent)?.familiarity||45)-45)/100:0;
  return attrClamp((ensurePlayerAttributes(p)[key]||10)-fatigue/25+teamwork,1,20);
 }
 function rinkClamp(n,min=6,max=94){return Math.max(min,Math.min(max,n));}
 function rinkDistance(a,b){return Math.hypot((a.x-b.x)*.6,(a.y-b.y)*.3);}
 function rinkRoll(){const r=state.live.rink;r.rng=(Math.imul(r.rng,1664525)+1013904223)>>>0;return r.rng/4294967296;}
 function rinkSkaters(side){return state.live.rink.actors.filter(a=>a.side===side&&a.pos!=='MV');}
-function rinkOpponentPlayers(){
- const m=state.live,pool=state.clubRosters[m.opponent]||[],rotation=m.rotationIndex||0;
- if(hockeyChangeBlocked('opponent'))return m.rink.hockey.icingHold.ids.map(id=>pool.find(p=>samePlayerId(p.id,id))).filter(Boolean);
- const skaters=pool.filter(p=>p.pos!=='MV'),fw=skaters.filter(p=>p.pos!=='B'),backs=skaters.filter(p=>p.pos==='B');
- const own=Math.min(2,m.penaltiesHV.length),opp=Math.min(2,m.penaltiesOpp.length),ot=m.period===4&&!isPlayoffMatch();
- const count=(ot?Math.min(5,3+Math.max(0,own-opp)):5-opp)+(m.aiGoaliePulled?1:0);
- const rotate=(ps,n)=>ps.length?[...ps.slice((rotation*n)%ps.length),...ps.slice(0,(rotation*n)%ps.length)]:[];
- const preferred=own>opp?[...skaters].sort((a,b)=>matchAttributeRating(b,'shot')-matchAttributeRating(a,'shot')):[...rotate(fw,3).slice(0,Math.max(1,count-2)),...rotate(backs,2).slice(0,2),...skaters];
- const players=[...new Map(preferred.map(p=>[String(p.id),p])).values()].slice(0,count);
- if(!m.aiGoaliePulled){const keeper=pool.filter(p=>p.pos==='MV').sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a))[0];if(keeper)players.push(keeper);}
- return players;
-}
+function rinkOpponentPlayers(){return rivalLivePlayers();}
+
 function rinkExtraForward(forwards,special=null){
  const m=state.live;if(!m?.goaliePulled)return forwards;
  const defenders=special||medicalUnit(state.lines.defense.slice(m.currentDefensePair*2,m.currentDefensePair*2+2).map(playerById).filter(Boolean),2,'B');
@@ -64,7 +54,7 @@ function rinkDelay(){const m=state.live,base=m?.speed===3?300:m?.speed===2?700:1
 function rinkMode(value){if(!state.live||!['full','highlights'].includes(value))return;ensureRink();state.live.rink.mode=value;clearTimeout(matchTimer);save();render();scheduleTick();}
 function rinkSelect(key){ensureRink();state.live.rink.selected=key;pauseMatch();}
 function rinkSay(text,phase,hot=false){const r=state.live.rink;r.caption=text;r.phase=phase;r.hot=hot;addEvent(text,phase==='goal'?'goal':['shot','save','post','rebound','block'].includes(phase)?'shot':phase==='penalty'?'penalty':'chance');}
-function rinkBeginFrame(){const r=state.live.rink;r.previous=r.actors.map(a=>({key:a.key,x:a.x,y:a.y}));r.puckFrom={...r.puck};r.puckVia=null;r.frame++;r.at=Date.now();r.hold=0;r.teamBonus=attrClamp(trainingMatchBonus()+lockerMatchBonus(),-6,6);}
+function rinkBeginFrame(){const r=state.live.rink;r.previous=r.actors.map(a=>({key:a.key,x:a.x,y:a.y}));r.puckFrom={...r.puck};r.puckVia=null;r.frame++;r.at=Date.now();r.hold=0;r.teamBonus=attrClamp(trainingMatchBonus()+lockerMatchBonus()+rivalPreparationBonus(),-6,6);}
 function rinkEndFrame(){
  const r=state.live.rink;r.hockey.transition=Math.max(0,r.hockey.transition-1);r.duration=Math.max(80,rinkDelay()*.88);if(!r.oppFatigue)r.oppFatigue={};
  const onIce=rinkSkaters('opponent');
@@ -84,7 +74,7 @@ function rinkFaceoff(){
  if(ownWin)m.faceoffsHV++;else m.faceoffsOpp++;
  rinkSay(`${winner.name} vinner tekningen.`, 'faceoff');
 }
-function rinkPress(side){return side==='own'?(state.tacticalPlan?.forecheck==='aggressive'?1:state.tacticalPlan?.forecheck==='passive'?0:.5):.5;}
+function rinkPress(side){return side==='own'?(state.tacticalPlan?.forecheck==='aggressive'?1:state.tacticalPlan?.forecheck==='passive'?0:.5):(hockeyStyle(side)==='pressure'?1:hockeyStyle(side)==='counter'?0:.5);}
 function rinkMove(actor,x,y){const distance=rinkDistance(actor,{x,y}),max=3.5+rinkAttribute(actor,actor.pos==='MV'?'movement':'skating')*.24,ratio=distance?Math.min(1,max/distance):1;actor.x=rinkClamp(actor.x+(x-actor.x)*ratio);actor.y=rinkClamp(actor.y+(y-actor.y)*ratio,10,90);}
 function rinkMoveTeam(){hockeyMoveTeam();}
 

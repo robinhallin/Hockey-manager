@@ -157,6 +157,7 @@ function runTrainingSession(){
   const log={date:state.calendar?.date,round:state.round,day:t.day+1,type:session.type,intensity:session.intensity,trained,resting,before,after,improvements};
   t.logs.push(log);t.history.unshift(log);t.history=t.history.slice(0,60);t.day++;
   managerMessage(`session:${state.season.year}:${log.date||state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
+  rivalStoryTraining(session);
   trainSocialPairs(session);
   juniorTraining(session,`${state.season.year}:${state.calendar?.date||state.round}:${t.day}`);
   medicalDay(session);
@@ -189,13 +190,10 @@ function lockTrainingForMatch(){
   t.lockedRound=state.round;t.day=trainingDays();
 }
 function createOpponentBrief(){
-  const name=opponent(),roster=(state.clubRosters[name]||[]).filter(p=>p.pos!=='MV');if(!roster.length)return;
-  const reports=roster.map(p=>({p,r:playerAssessment(p)}));
-  const avg=key=>reports.reduce((n,{r})=>n+(r.estimated[key]||10),0)/reports.length;
-  const strengths=[['passing','passningsspel'],['shooting','avslut'],['checking','fysiskt spel'],['skating','skridskoåkning']].sort((a,b)=>avg(b[0])-avg(a[0]));
-  const threat=reports.sort((a,b)=>b.r.current-a.r.current)[0];
-  managerMessage(`opponent:${state.round}`,`Inför ${name}`,`Scouternas preliminära bild pekar på ${strengths[0][1]} som en styrka. Håll ett öga på ${threat.p.name}, som bedöms passa som ${threat.r.roles[0].name.toLowerCase()}.\nBedömningen bygger på våra nuvarande observationer och kan vara osäker. Lagets samspel med din matchplan är ${Math.round(currentTrainingFamiliarity())} %. Se över kedjor, special teams och trötta spelare före nedsläpp.`,'Motståndsanalys',{link:'tactics'});
+ const name=opponent(),c=rivalsClubState(name);if(!c)return;
+ managerMessage(`opponent:${state.round}`,`Inför ${name}`,rivalBriefText(name),'Motståndsanalys',{link:'opponents'});
 }
+
 function createPlayerConversation(){
   if(pendingManagerDecision())return;
   const t=state.training;

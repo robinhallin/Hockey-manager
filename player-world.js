@@ -84,10 +84,8 @@ function playerWorldNewYear(){
  for(const p of [...w.freeAgents]){p.age++;if(worldRetires(p)||year-p.freeSince>=3){worldRetire(p,WORLD_FREE,worldRetires(p)?'retire':'exit');worldRemoveFree(p.id);}}
  for(const [club,roster] of Object.entries(state.clubRosters)){
   state.clubRosters[club]=roster.filter(p=>{if(!worldRetires(p))return true;worldRetire(p,club);return false;});
-  if(club!==managerClub())for(const p of state.clubRosters[club])if(p.age<=25&&p.attributeGrowth>0){
-   const keys=Object.keys(ensurePlayerAttributes(p)),key=keys[Math.floor(attrSeed(`${p.id}:${year}:develop`)*keys.length)];
-   p.attributes[key]=Math.min(20,p.attributes[key]+1);p.attributeGrowth=Math.max(0,p.attributeGrowth-.2);
-  }
+  // AI player development now accrues through actual calendar days and appearances.
+
  }
  calendarActivateFuture();
  // All clubs decide before any replacement hiring, so the shared pool is available to everyone.
