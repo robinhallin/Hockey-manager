@@ -59,7 +59,7 @@ function juniorPromote(id){
  juniorNotice(`${p.name} finns nu i A-truppen.`);
 }
 function juniorReturn(id){
- const p=managerRoster().find(q=>samePlayerId(q.id,id)&&q.academy);if(!p||p.age>20)return;
+ const p=managerRoster().find(q=>samePlayerId(q.id,id)&&q.academy);if(!p||p.age>20||playerLoan(p))return;
  if(state.juniors.roster.length>=30)return juniorNotice('Juniortruppen är full. Frigör en plats innan spelaren återgår.');
  if(juniorLocked())return juniorNotice('Truppbyten görs mellan matcher.');
  const group=q=>p.pos==='MV'?q.pos==='MV':p.pos==='B'?q.pos==='B':!['MV','B'].includes(q.pos),required=p.pos==='MV'?2:p.pos==='B'?6:12;

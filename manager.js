@@ -1,7 +1,7 @@
 "use strict";
 // The manager travels between clubs; club resources stay with their employer.
 const MANAGER_IDENTITIES={balanced:'Lagbyggare',youth:'Talangutvecklare',results:'Resultattränare'};
-const MANAGER_CLUB_FIELDS=['staff','clubOffice','juniors','locker','training','medical','scoutReports','lines','specialTeams','tactic','tacticalPlan','fans','morale'];
+const MANAGER_CLUB_FIELDS=['staff','clubOffice','juniors','locker','training','medical','scoutReports','matchSelection','lines','specialTeams','tactic','tacticalPlan','fans','morale'];
 function ensureManager(){
  if(!state.careerStarted)return;
  if(!state.managerCareer)state.managerCareer={version:1,name:'Huvudtränaren',identity:'balanced',reputation:25,confidence:60,expires:clubYear()+2,salary:600000,status:'employed',badSeasons:0,reviews:[],history:[],jobs:[],interview:null,week:0,lastWeek:0,moveYear:null,bank:{},lastReview:null,seasonReviews:[],joined:clubYear(),startGames:team(managerClub())?.gp||0,message:'',renewal:null,decision:null};

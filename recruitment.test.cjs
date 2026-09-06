@@ -33,6 +33,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('match-centre.js','utf8'),context);
   vm.runInContext(fs.readFileSync('stories.js','utf8'),context);
   vm.runInContext(fs.readFileSync('rivals.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('roster-depth.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
@@ -42,7 +43,7 @@ assert.equal(run('RECRUIT_CLUBS.length'),6);
 assert.equal(run('RECRUIT_CLUBS.reduce((n,[c])=>n+state.clubRosters[c].length,0)'),156);
 assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),run('Object.values(state.clubRosters).flat().length'));
 const allPlayers=run('Object.values(state.clubRosters).flat().length');
-run('ensureRecruitment();save();render()');assert.equal(run('Object.values(state.clubRosters).flat().length'),allPlayers);
+run('ensureRecruitment();save();render()');assert.equal(run('Object.values(state.clubRosters).flat().length+state.loans.external.length'),allPlayers);
 // Scouting spends once, follows filters, advances with actual time and survives reload.
 run('state.recruitment.filters={country:"FIN",profile:"Defensiv center",maxAge:40,maxFee:50000000,query:""};globalThis.cashBefore=state.money;createScoutMission();globalThis.mission=state.recruitment.missions[0]');
 assert.equal(run('cashBefore-state.money'),25000);
@@ -94,7 +95,7 @@ run('answerIncomingOffer(incoming.id,true)');assert.equal(run('state.money'),run
 // Autonomous transfers conserve player ownership and respect minimum roster sizes.
 run('globalThis.historyBefore=state.recruitment.history.length;for(let i=0;i<30;i++){state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()}');
 assert.ok(run('state.recruitment.history.length>historyBefore'));
-assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),allPlayers);
+assert.equal(run('new Set([...Object.values(state.clubRosters).flat(),...state.loans.external].map(p=>String(p.id))).size'),allPlayers);
 assert.equal(run('Object.values(state.clubRosters).every(ps=>ps.filter(p=>p.pos==="MV").length>=2&&ps.filter(p=>p.pos==="B").length>=6&&ps.filter(p=>!["MV","B"].includes(p.pos)).length>=12)'),true);
 // Offseason weeks advance work and bids; ordinary pages never advance time.
 run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.training.messages.forEach(m=>m.resolved=true);state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;recruitmentWeek()');
@@ -110,7 +111,7 @@ legacy.transferNegotiation={playerId:legacyPlayer.id,transferFee:1500000,salaryD
 legacy.selectedMarketPlayer=legacyPlayer.id;
 const migrated=boot(JSON.stringify(legacy));
 assert.equal(migrated.run('state.recruitment.history[0].fee'),1200000);
-assert.equal(migrated.run('Object.values(state.clubRosters).flat().length'),allPlayers);
+assert.equal(migrated.run('Object.values(state.clubRosters).flat().length+state.loans.external.length'),allPlayers);
 assert.ok(migrated.run('recruitDealsView().includes("Fortsätt diskussionen")'));
 assert.ok(migrated.run('recruitmentPlayerView().includes("1500000")'));
 // Pending offers reserve room; cancellation releases it and season launch waits for decisions.

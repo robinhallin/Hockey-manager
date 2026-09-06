@@ -62,7 +62,9 @@ function rivalLineup(club){
  const keepers=pool.filter(p=>p.pos==='MV').sort((a,b)=>rivalRating(b)-rivalRating(a));
  const keeperScore=p=>rivalRating(p)+(p.aiForm||0)*.25-(c?.recent.slice(-3).filter(g=>samePlayerId(g.keeper,p.id)).length||0)*.65;
  keepers.sort((a,b)=>keeperScore(b)-keeperScore(a));
- return {club,plan,forwards:lines.flat(),lines,defense,keeper:keepers[0]||null};
+ const selected=new Set([...forwards,...defense].map(p=>String(p.id)));
+ const extras=pool.filter(p=>p.pos!=='MV'&&!selected.has(String(p.id))).sort((a,b)=>score(b)-score(a)).slice(0,2);
+ return {club,plan,forwards:lines.flat(),lines,defense,extras,keepers:keepers.slice(0,2),keeper:keepers[0]||null};
 }
 function rivalEvent(club,kind,title,text){
  const w=state.rivals;if(!w)return;
@@ -114,7 +116,7 @@ function rivalLiveSetup(){
  const m=state.live;if(!m||m.finished||m.aiTeam||!rivalsClubState(m.opponent))return;
  const l=rivalLineup(m.opponent),c=rivalsClubState(m.opponent);
  m.aiTeam={coachId:c.coach.id,coachName:c.coach.name,style:l.plan.style,baseStyle:l.plan.style,rotation:l.plan.rotation,
-  forwards:l.forwards.map(p=>p.id),defense:l.defense.map(p=>p.id),keeper:l.keeper?.id??null,timeout:false,adjustment:null};
+  forwards:l.forwards.map(p=>p.id),defense:l.defense.map(p=>p.id),extras:l.extras.map(p=>p.id),goalies:l.keepers.map(p=>p.id),keeper:l.keeper?.id??null,timeout:false,adjustment:null};
 }
 function rivalPreparationBonus(){
  const m=state.live;if(!m||m.friendly)return 0;
@@ -134,7 +136,7 @@ function rivalLiveKeeper(){
  const pool=state.clubRosters[m.opponent]||[];
  const available=p=>medicalReady(p)&&(m.leagueBox?.players[m.opponent+':'+p.id]?.seconds||0)<medicalLimit(p);
  let p=pool.find(p=>samePlayerId(p.id,m.aiTeam?.keeper)&&available(p));
- if(!p){p=pool.filter(p=>p.pos==='MV'&&available(p)).sort((a,b)=>rivalRating(b)-rivalRating(a))[0];if(m.aiTeam)m.aiTeam.keeper=p?.id??null;}
+ if(!p){p=pool.filter(p=>p.pos==='MV'&&(!m.aiTeam?.goalies||m.aiTeam.goalies.some(id=>samePlayerId(id,p.id)))&&available(p)).sort((a,b)=>rivalRating(b)-rivalRating(a))[0];if(m.aiTeam)m.aiTeam.keeper=p?.id??null;}
  return p||null;
 }
 function rivalLiveRating(p,kind){
@@ -144,7 +146,7 @@ function rivalLiveRating(p,kind){
 }
 function rivalLivePlayers(){
  rivalLiveSetup();const m=state.live,a=m.aiTeam;if(!a)return [];
- const dressed=new Set([...a.forwards,...a.defense].map(String));
+ const dressed=new Set([...a.forwards,...a.defense,...(a.extras||[])].map(String));
  const pool=(state.clubRosters[m.opponent]||[]).filter(p=>(p.pos==='MV'||dressed.has(String(p.id)))&&medicalReady(p)&&(m.leagueBox?.players[m.opponent+':'+p.id]?.seconds||0)<medicalLimit(p));
  const penalized=p=>m.penaltiesOpp.some(x=>samePlayerId(x.playerId,p.id)||x.player===p.name||x.name===p.name);
  const ready=pool.filter(p=>p.pos!=='MV'&&!penalized(p));
@@ -170,13 +172,13 @@ function rivalLiveDecision(){
 function rivalSimulate(game){
  ensureRivals();const rand=rivalRandom(`${state.season.year}:${game.round}:${game.home}:${game.away}:${game.seriesId||'regular'}:match`);
  const names=[game.home,game.away],sides=names.map(club=>{
-  const l=rivalLineup(club);l.keepers=(state.clubRosters[club]||[]).filter(p=>p.pos==='MV'&&medicalReady(p));
-  const players=[...l.forwards,...l.defense,...l.keepers];
+  const l=rivalLineup(club);
+  const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
   return {l,rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
  });
  // Attributes do not change during a background fixture: snapshot once per player.
  const values=new Map(),ratings=new Map();
- for(const side of sides)for(const p of [...side.l.forwards,...side.l.defense,...side.l.keepers]){
+ for(const side of sides)for(const p of [...side.l.forwards,...side.l.defense,...side.l.extras,...side.l.keepers]){
   const a=Object.fromEntries(Object.entries(ensurePlayerAttributes(p)).map(([k,v])=>[k,attrClamp(v-(p.fatigue||0)/25,1,20)]));values.set(p,a);
   const average=keys=>keys.reduce((n,k)=>n+(a[k]||10),0)/keys.length;
   ratings.set(p,{attack:average(['shooting','passing','vision','skating']),defense:average(['positioning','decisions','workRate','discipline']),goalie:average(['reflexes','positioning','reboundControl','movement'])});
@@ -192,7 +194,7 @@ function rivalSimulate(game){
  const row=(side,p)=>sides[side].rows.get(String(p.id));
  const onIce=side=>{
   const b=sides[side],l=b.l,sequence=RIVAL_ROTATIONS[l.plan.rotation],idx=sequence[Math.floor(time/40)%sequence.length],pair=Math.floor(time/60)%3;
-  const available=[...l.forwards,...l.defense].filter(p=>!b.pens.some(x=>samePlayerId(x.id,p.id))&&row(side,p).seconds<medicalLimit(p));
+  const available=[...l.forwards,...l.defense,...l.extras].filter(p=>!b.pens.some(x=>samePlayerId(x.id,p.id))&&row(side,p).seconds<medicalLimit(p));
   const diff=sides[1-side].pens.length-b.pens.length;
   const count=overtime&&!game.seriesId?Math.min(5,3+Math.max(0,diff)):5-Math.min(2,b.pens.length);
   const preferred=diff?[...available].sort((a,b)=>rating(b,diff>0?'attack':'defense')-rating(a,diff>0?'attack':'defense')):[...l.lines[idx],...l.defense.slice(pair*2,pair*2+2)];

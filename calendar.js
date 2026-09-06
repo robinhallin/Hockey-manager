@@ -56,7 +56,7 @@ function calendarMarketDay(){
 function calendarStep(recovered=false){
  const c=state.calendar;if(!c)return;
  if(!recovered){medicalDay();managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
- c.date=calAdd(c.date,1);rivalsDay();calendarMarketDay();
+ c.date=calAdd(c.date,1);loansDay();rivalsDay();calendarMarketDay();
 }
 function calendarToMatch(){
  ensureCalendar();if(state.calendar.active)return;

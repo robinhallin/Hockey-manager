@@ -33,6 +33,7 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('match-centre.js','utf8'),context);
   vm.runInContext(fs.readFileSync('stories.js','utf8'),context);
   vm.runInContext(fs.readFileSync('rivals.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('roster-depth.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }

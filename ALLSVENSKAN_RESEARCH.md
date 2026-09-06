@@ -1,3 +1,5 @@
+> Historiskt underlag från 5 september. Den aktuella databasen, lånehanteringen och källförteckningen beskrivs i [PLAYER_RESEARCH.md](PLAYER_RESEARCH.md).
+
 # Hockeyallsvenskan – spelarunderlag 2026/27
 
 Kontrollerat **5 september 2026**. Startdatabas `ha-2026-09-05`.
