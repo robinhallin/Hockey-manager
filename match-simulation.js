@@ -1,5 +1,5 @@
 "use strict";
-/* Independent one-period prototype. Fixed 0.1 s simulation; the view never rolls results.
+/* Shared hockey simulation. Fixed 0.1 s simulation; the view never rolls results.
  * Coordinates are metres on a 60 × 30 rink. Home attacks right. No career/storage access.
  * Phase transitions, player motion and puck flights share one authoritative event stream.
  */
@@ -10,14 +10,14 @@ const StudioHockey = (() => {
   const point=(side,x,y)=>({x:progress(side,x),y});
   const ROLES=['LW','C','RW','LD','RD','X'];
   const ROLE_NAMES={LW:'Vänsterforward',C:'Center',RW:'Högerforward',LD:'Vänsterback',RD:'Högerback',G:'Målvakt',X:'Extra forward'};
-  const PHASES={faceoff:'Tekning',breakout:'Uppspel',entry:'Zoninträde',attack:'Etablerat anfall',counter:'Omställning',loose:'Lös puck',clear:'Rensning',stoppage:'Avblåsning',finished:'Periodpaus'};
+  const PHASES={faceoff:'Tekning',breakout:'Uppspel',entry:'Zoninträde',attack:'Etablerat anfall',counter:'Omställning',loose:'Lös puck',battle:'Kamp om pucken',dump:'Dump & jakt',clear:'Rensning',stoppage:'Avblåsning',finished:'Periodpaus'};
   function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return {d:distance(p,{x:a.x+dx*t,y:a.y+dy*t}),t};}
   function rating(p,keys){return keys.reduce((s,k)=>s+(p.attributes[k]||10),0)/keys.length;}
   class Match {
     constructor(rosters,{seed=710031,scenario='period',duration=1200}={}){
-      this.rng=seed>>>0;this.time=0;this.duration=duration;this.wall=0;this.tick=0;this.finished=false;
+      this.modelVersion=2;this.rng=seed>>>0;this.time=0;this.duration=duration;this.wall=0;this.tick=0;this.finished=false;
       this.score=[0,0];this.events=[];this.shots=[];this.goals=[];this.pressure=[];this.history=[];this.latestReplay=null;
-      this.stats=[0,1].map(()=>({shots:0,attempts:0,saves:0,passes:0,entries:0,zone:0,clears:0,turnovers:0,faceoffs:0}));
+      this.stats=[0,1].map(()=>({shots:0,attempts:0,saves:0,passes:0,entries:0,zone:0,clears:0,turnovers:0,faceoffs:0,passAttempts:0,battles:0,battleWins:0,hits:0,blocks:0,dangerousRebounds:0,oneTimers:0,dumps:0}));
       this.teams=rosters.map((r,side)=>{
         const players=r.players.map(p=>({...p,attributes:{...p.attributes},energy:100,ice:0}));
         const forwards=players.filter(p=>p.pos!=='B'&&p.pos!=='MV').sort((a,b)=>rating(b,['passing','shooting','positioning'])-rating(a,['passing','shooting','positioning']));
@@ -26,7 +26,7 @@ const StudioHockey = (() => {
         if(forwards.length<3||defense.length<2||!goalies.length)throw new Error('Testmatchen behöver minst tre forwards, två backar och en målvakt per lag.');
         return {...r,players,forwards,defense,goalie:goalies[0],side,line:0,pair:0,shift:0,requested:false,change:null,changeQueue:[],tactics:{mentality:'balanced',pp:'131',pk:'box'}};
       });
-      this.actors=[];this.penalty=null;this.owner=0;this.carrier=null;this.flight=null;this.lastTouches=[];
+      this.actors=[];this.penalty=null;this.owner=0;this.carrier=null;this.flight=null;this.lastTouches=[];this.battle=null;this.rebound=null;
       this.phase='faceoff';this.phaseTime=0;this.attackPasses=0;this.setupTime=0;this.decision=1;
       this.caption='Lagen väntar på nedsläpp.';this.eventType='faceoff';this.stoppage=1.8;this.restartSpot={x:30,y:15};this.restartSide=null;
       this.focus=true;this.focusUntil=0;this.advice='Backarna säkrar bakom anfallet. Leta efter fria passningsvägar.';
@@ -36,8 +36,61 @@ const StudioHockey = (() => {
     }
     random(){this.rng=(Math.imul(this.rng,1664525)+1013904223)>>>0;return this.rng/4294967296;}
     skaters(side){return this.actors.filter(a=>a.side===side&&a.role!=='G');}
+    shiftTime(a){return a.shift||0;}
     actor(id){return this.actors.find(a=>a.id===id);}
     attribute(a,key){return clamp((a?.player.attributes[key]||10)*(1-(100-(a?.player.energy??100))*.0035),1,20);}
+    // Upgrade old in-progress saves without re-rolling an already travelling puck.
+    upgrade(){
+      if(this.modelVersion>=2)return;
+      for(const s of this.stats){for(const key of ['battles','battleWins','hits','blocks','dangerousRebounds','oneTimers','dumps'])s[key]??=0;s.priorPasses=s.passes;s.passAttempts=0;}
+      if(this.flight)this.flight.preRealism=true;
+      this.battle??=null;this.rebound??=null;this.modelVersion=2;this.partialRealism=true;this.realismStartedAt=this.time;
+    }
+    pressureAt(a){return clamp(1-Math.min(...this.skaters(1-a.side).map(b=>distance(a,b)))/3,0,1);}
+    readDelay(a){
+      const reading=this.attribute(a,'decisions')*.4+this.attribute(a,'vision')*.25+this.attribute(a,'puckControl')*.35;
+      return clamp(1.18-reading*.043+this.pressureAt(a)*(20-this.attribute(a,'composure'))*.018,.28,1.35);
+    }
+    goalieTarget(side,puck=this.puck){
+      const goalie=this.actors.find(a=>a.side===side&&a.role==='G');
+      const x=progress(side,puck.x)-3.5,y=puck.y-15,d=Math.hypot(x,y);
+      // Square to the shooting angle. Skill limits tracking error; movement must get there.
+      const read=this.attribute(goalie,'positioning')*.7+this.attribute(goalie,'composure')*.3;
+      const error=(20-read)*.022*Math.sin(this.time*.8+side*2);
+      const depth=clamp(1.25+d*.035,1.35,2.05);
+      return point(side,3.5+Math.max(.35,x/Math.max(1,d)*depth),15+clamp(y/Math.max(1,d)*depth+error,-1.2,1.2));
+    }
+    rememberTouch(id,name,y){
+      this.lastTouches=this.lastTouches.filter(t=>t.id!==id);
+      this.lastTouches.push({id,name,y,time:this.time});this.lastTouches=this.lastTouches.slice(-2);
+    }
+    battleChance(defender,carrier){
+      const attack=this.attribute(defender,'checking')*.5+this.attribute(defender,'strength')*.25+this.attribute(defender,'workRate')*.25;
+      const shield=this.attribute(carrier,'puckControl')*.5+this.attribute(carrier,'strength')*.3+this.attribute(carrier,'decisions')*.2;
+      return clamp(.24+(attack-shield)*.018,.08,.48);
+    }
+    battleStrength(a){return this.attribute(a,'strength')*.35+this.attribute(a,'checking')*.2+this.attribute(a,'puckControl')*.25+this.attribute(a,'workRate')*.2;}
+    startBattle(a,b){
+      if(!a||!b||a.side===b.side||distance(a,b)>2.3)return false;
+      const boards=this.puck.y<4||this.puck.y>26||this.puck.x<3||this.puck.x>57;
+      this.battle={a:a.id,b:b.id,remaining:.55+this.random()*.65,spot:{...this.puck},boards};
+      this.carrier=null;this.flight=null;this.setPhase('battle');
+      this.stats[a.side].battles++;this.stats[b.side].battles++;
+      if(Math.hypot(a.vx-b.vx,a.vy-b.vy)>1.8&&this.random()<this.attribute(b,'checking')/40){this.stats[b.side].hits++;this.battle.hit=b.id;}
+      this.say('battle',a.player.name+' och '+b.player.name.split(' ').at(-1)+(boards?' kämpar längs sargen.':' kämpar om pucken.'),a.side);
+      return true;
+    }
+    resolveBattle(dt){
+      const battle=this.battle;if(!battle)return;
+      battle.remaining-=dt;if(battle.remaining>0)return;
+      const a=this.actor(battle.a),b=this.actor(battle.b);this.battle=null;
+      if(!a||!b){this.setPhase('loose');this.looseTime=0;return;}
+      const chance=clamp(.5+(this.battleStrength(a)-this.battleStrength(b))*.027,.15,.85);
+      const winner=this.random()<chance?a:b;
+      this.stats[winner.side].battleWins++;a.contactUntil=b.contactUntil=this.time+2.5;
+      this.takePossession(winner,{turnover:winner.side!==this.owner});
+      this.say('battle-win',winner.player.name+(battle.boards?' skyddar pucken och vinner sargduellen.':' får kontroll efter närkampen.'),winner.side,true);
+    }
     unit(side,line=this.teams[side].line,pair=this.teams[side].pair){
       const t=this.teams[side],forwardCount=Math.min(4,Math.floor(t.forwards.length/3)),pairCount=Math.min(3,Math.floor(t.defense.length/2));
       const f=t.forwards.slice((line%forwardCount)*3,(line%forwardCount)*3+3);
@@ -46,7 +99,7 @@ const StudioHockey = (() => {
       const rows=[{role:'LW',player:wings[0]},{role:'C',player:c},{role:'RW',player:wings[1]},...t.defense.slice((pair%pairCount)*2,(pair%pairCount)*2+2).map((player,i)=>({role:i?'RD':'LD',player}))];
       return this.penalty?.side===side?rows.filter(p=>p.role!=='C'):rows;
     }
-    makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
+    makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,shift:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
     installUnit(side){
       this.actors=this.actors.filter(a=>a.side!==side);
       for(const row of this.unit(side))this.actors.push(this.makeActor(side,row,point(side,20,15)));
@@ -65,7 +118,8 @@ const StudioHockey = (() => {
       const changed=a.side!==this.owner;
       if(changed)this.lastTouches=[];
       this.owner=a.side;this.carrier=a.id;this.flight=null;this.puck={x:a.x,y:a.y};
-      this.decision=1.0+this.random()*.5;
+      this.decision=this.readDelay(a)+this.random()*.15;
+      a.controlledAt=this.time;
       const p=progress(a.side,a.x);
       this.setPhase(p>40?'attack':changed&&p>18?'counter':p>23?'entry':'breakout');
       if(turnover){this.stats[a.side].turnovers++;this.say('turnover',a.player.name+' läser spelet och vinner pucken.',a.side,true);}
@@ -88,7 +142,7 @@ const StudioHockey = (() => {
       this.say('faceoff',centers[win].player.name+' vinner tekningen.',win);
     }
     stop(reason,text,spot={x:30,y:15}){
-      this.carrier=null;this.flight=null;this.lastTouches=[];this.restartSpot={...spot};this.stoppage=reason==='goal'?4:2.3;
+      this.carrier=null;this.flight=null;this.battle=null;this.rebound=null;this.lastTouches=[];this.restartSpot={...spot};this.stoppage=reason==='goal'?4:2.3;
       this.setPhase('stoppage');this.say(reason,text,this.owner,true);this.pendingFaceoff=true;
     }
     requestChange(side=0){
@@ -98,14 +152,17 @@ const StudioHockey = (() => {
     nextUnit(side){const t=this.teams[side];t.line=(t.line+1)%Math.min(4,Math.floor(t.forwards.length/3));t.pair=(t.pair+1)%Math.min(3,Math.floor(t.defense.length/2));}
     changeAtStoppage(){for(const side of [0,1]){const t=this.teams[side];if(t.requested||t.shift>32||t.change||t.changeQueue.length){if(!t.changeQueue.length&&!t.change)this.nextUnit(side);this.installUnit(side);}}}
     safeToChange(side){
-      if(this.owner!==side||!this.carrier||this.penalty||this.phase==='counter'||this.phase==='loose')return false;
+      // A controlled dump or PK clearance creates a real window for a short change.
+      if(this.flight?.side===side&&['dump','clear'].includes(this.flight.kind)&&progress(side,this.puck.x)>40)return true;
+      if(this.owner!==side||!this.carrier||this.phase==='counter'||this.phase==='loose')return false;
       const puckCarrier=this.actor(this.carrier);
       return progress(side,this.puck.x)>39&&this.skaters(1-side).every(a=>distance(a,puckCarrier)>2.4);
     }
     updateChanges(dt){
       for(const side of [0,1]){
         const t=this.teams[side];
-        if(t.shift>43&&!t.requested&&!t.change&&!t.changeQueue.length)t.requested=true;
+        const overdue=this.skaters(side).some(a=>this.shiftTime(a)>Math.max(60,(t.shiftLimit||43)*1.4));
+        if((t.shift>43||overdue)&&!t.requested&&!t.change&&!t.changeQueue.length)t.requested=true;
         if(t.requested&&!t.change&&!t.changeQueue.length&&this.safeToChange(side)){
           this.nextUnit(side);t.changeQueue=this.unit(side);t.requested=false;
         }
@@ -117,7 +174,11 @@ const StudioHockey = (() => {
             const incoming=this.makeActor(side,c.row,{x:c.gate,y:.7});incoming.status='entering';
             this.actors.push(incoming);c.id=incoming.id;c.stage='in';
             this.say('change',a.player.name+' lämnar vid sargen. '+incoming.player.name+' går in.',side);
-          }else if(c.stage==='in'&&a&&distance(a,a.target)<2){a.status='playing';t.change=null;if(!t.changeQueue.length)t.shift=0;}
+          }else if(c.stage==='in'&&a&&(distance(a,{x:c.gate,y:.7})>3||distance(a,a.target)<2)){
+            // The next player can change once this replacement has cleared the gate.
+            // Waiting for a moving tactical target could keep the whole queue stuck.
+            a.status='playing';t.change=null;if(!t.changeQueue.length)t.shift=0;
+          }
           continue;
         }
         if(t.changeQueue.length&&this.safeToChange(side)){
@@ -146,6 +207,12 @@ const StudioHockey = (() => {
           [x,y]=slots[a.role]||[51,21];y+=Math.sin(this.time*.28+ROLES.indexOf(a.role))*.8;
           duty=pp?({LD:'Spelar på blålinjen',LW:'Vänsterflank',RW:'Spelbar i slottet',RD:'Högerflank',C:'Skymmer framför mål'}[a.role]):a.role.endsWith('D')?'Säkrar bakom anfallet':a.role==='C'?'Söker ytan framför mål':'Breddar anfallet';
           if(a===carrier){x=Math.min(x,54);duty='Söker passning eller avslut';}
+          else if(!pp&&!a.role.endsWith('D')&&carrier&&p>46){
+            const weak=a.role===(carrier.y<15?'RW':'LW');
+            const timing=(this.attribute(a,'positioning')+this.attribute(a,'decisions'))/40;
+            if(weak){x=50+timing*3;y=carrier.y<15?21:9;duty='Söker bortre stolpen och en direktpassning';}
+            else if(a.role==='C'){x=53+timing;y=15+(carrier.y<15?1:-1);duty='Skymmer och förbereder sig för returen';}
+          }
         }else{
           const isBack=a.role.endsWith('D'),index=ROLES.indexOf(a.role);
           y=isBack?(a.role==='LD'?8:22):([6,15,24][index]??20);
@@ -186,8 +253,9 @@ const StudioHockey = (() => {
       }
       for(const {a,threat} of assignments){
         const at=progress(side,threat.x),hasPuck=threat===carrier;
-        const gap=hasPuck?1.15:2.1;
-        let x=clamp(at-gap,6,47),y=threat.y+(15-threat.y)*(hasPuck?.04:.14);
+        const gap=hasPuck?1.65-this.attribute(a,'positioning')*.035:2.55-this.attribute(a,'positioning')*.035;
+        const anticipate=this.attribute(a,'decisions')*.017;
+        let x=clamp(at-gap,6,47),y=threat.y+(15-threat.y)*(hasPuck?.04:.14)+clamp(threat.vy*anticipate,-.7,.7);
         // Backward skating keeps defenders between the rush and their own goal.
         if(enemyProgress<28&&a.role.endsWith('D'))x=Math.min(x,30);
         this.assign(a,point(side,x,y),hasPuck?'Styr puckföraren mot utsidan':'Täcker '+threat.player.name.split(' ').at(-1));
@@ -196,15 +264,15 @@ const StudioHockey = (() => {
     }
     targets(){
       this.attackTargets(this.owner);this.defenseTargets(1-this.owner);
-      if(!this.carrier&&!this.flight){
+      if(!this.carrier&&!this.flight&&!this.battle){
         // One pursuer per side; the other eight skaters continue supporting and covering.
         for(const side of [0,1]){const nearest=[...this.skaters(side)].filter(a=>a.status!=='leaving').sort((a,b)=>distance(a,this.puck)-distance(b,this.puck))[0];if(nearest)this.assign(nearest,this.puck,'Jagar den lösa pucken');}
       }
       for(const a of this.actors){
         if(a.role==='G'){
-          const p=progress(a.side,this.puck.x),depth=p<20?1.2:.5;
-          this.assign(a,point(a.side,3.4+depth,15+clamp((this.puck.y-15)*.19,-1.9,1.9)),'Följer pucken och täcker vinkeln');
+          this.assign(a,this.goalieTarget(a.side,this.flight?.kind==='shot'?this.flight.start:this.puck),'Följer pucken, sätter fötterna och täcker vinkeln');
         }
+        if(this.battle&&(a.id===this.battle.a||a.id===this.battle.b))this.assign(a,{x:this.battle.spot.x+(a.side===0?-.35:.35),y:this.battle.spot.y},'Skyddar pucken och arbetar i närkampen');
         if(a.status==='leaving')this.assign(a,{x:this.teams[a.side].change.gate,y:.7},'Går till bänken');
       }
     }
@@ -212,6 +280,7 @@ const StudioHockey = (() => {
       for(const a of this.actors){
         const dx=a.target.x-a.x,dy=a.target.y-a.y,d=Math.hypot(dx,dy);
         let top=a.role==='G'?2.2+this.attribute(a,'movement')*.09:3.1+this.attribute(a,'skating')*.09;
+        if(a.role!=='G'&&a.side!==this.owner)top*=.9+this.attribute(a,'workRate')*.008;
         if(a.id===this.carrier)top*=.86;
         const accel=2.7+this.attribute(a,a.role==='G'?'movement':'acceleration')*.085;
         const speed=Math.min(top,Math.sqrt(2*accel*d));
@@ -223,50 +292,127 @@ const StudioHockey = (() => {
       }
       const carrier=this.actor(this.carrier);if(carrier)this.puck={x:carrier.x,y:carrier.y};
     }
-    laneRisk(a,b){return this.skaters(1-a.side).reduce((risk,d)=>{const lane=segmentDistance(d,a,b);return lane.t>.12&&lane.t<.92?Math.max(risk,clamp(1-lane.d/1.9,0,1)*(this.attribute(d,'positioning')/20)):risk;},0);}
-    passChance(a,b){return clamp(.66+(this.attribute(a,'passing')+this.attribute(b,'puckControl'))*.007-this.laneRisk(a,b)*.48-distance(a,b)*.0035,.2,.97);}
-    shotQuality(a){
-      const goal=point(a.side,56.5,15),d=distance(a,goal),angle=Math.abs(a.y-15);
-      const defense=this.skaters(1-a.side),pressure=Math.max(0,1-Math.min(...defense.map(b=>distance(a,b)))/2.3);
-      const keeper=this.actors.find(b=>b.side!==a.side&&b.role==='G');
-      if(!keeper)return clamp(.8*Math.exp(-d/60)-pressure*.12,.15,.85);
-      const lateral=this.lastTouches.length&&this.time-this.lastTouches.at(-1).time<2.4?Math.min(.06,Math.abs(this.lastTouches.at(-1).y-a.y)*.004):0;
-      return clamp(.16*Math.exp(-d/13)*(1-angle/25)+(this.attribute(a,'shooting')-this.attribute(keeper,'reflexes'))*.003+lateral-pressure*.035,.012,.28);
+    laneRisk(a,b){return this.skaters(1-a.side).reduce((risk,d)=>{const lane=segmentDistance(d,a,b),reading=this.attribute(d,'positioning')*.65+this.attribute(d,'decisions')*.35;return lane.t>.1&&lane.t<.94?Math.max(risk,clamp(1-lane.d/1.9,0,1)*(reading/20)):risk;},0);}
+    passChance(a,b){
+      const pressure=this.pressureAt(a),calm=this.attribute(a,'composure')/20;
+      return clamp(.68+this.attribute(a,'passing')*.009+this.attribute(b,'puckControl')*.005-this.laneRisk(a,b)*.45-distance(a,b)*.0035-pressure*(.2-calm*.12),.15,.97);
     }
+    passingOptions(a){
+      const p=progress(a.side,a.x),pp=this.penalty&&this.penalty.side!==a.side;
+      return this.skaters(a.side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status)&&distance(a,b)>3).map(b=>{
+        const free=1-this.pressureAt(b),forward=progress(a.side,b.x)-p;
+        let score=this.passChance(a,b)+free*.19+this.shotQuality(b)*1.8+(pp?Math.abs(b.y-a.y)/90:clamp(forward/65,-.18,.2));
+        if(this.lastTouches.at(-1)?.id===b.id)score-=.07;
+        if(p<30&&forward<0)score-=.2;
+        return {b,score};
+      });
+    }
+    choosePass(a){
+      const uncertainty=(21-this.attribute(a,'vision'))*.013+(21-this.attribute(a,'decisions'))*.012;
+      // Better readers recognize valuable lanes more consistently; the pass can still fail.
+      return this.passingOptions(a).map(row=>({...row,seen:row.score+(this.random()-.5)*uncertainty*2})).sort((x,y)=>y.seen-x.seen)[0];
+    }
+    shotContext(a){
+      const goal=point(a.side,56.5,15),d=distance(a,goal),forward=56.5-progress(a.side,a.x);
+      const angle=Math.atan2(Math.abs(a.y-15),Math.max(.1,forward));
+      const last=a.receivedPass,oneTimer=Boolean(last&&this.time-last.time<.85&&Math.abs(last.y-a.y)>5);
+      const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3);
+      const screen=this.actors.filter(b=>b.role!=='G'&&b.id!==a.id).reduce((sum,b)=>{
+        const lane=segmentDistance(b,a,goal);
+        return sum+(lane.t>.5&&lane.t<.98&&distance(b,goal)<9?clamp(1-lane.d/.95,0,1)*(b.side===a.side?1:.55):0);
+      },0);
+      return {d,angle,pressure:this.pressureAt(a),screen:clamp(screen,0,1),oneTimer,rebound,behind:forward<=0,
+        type:rebound?'Retur':oneTimer?'Direktskott':d>16?'Slagskott':d<5?'Näravslut':'Handledsskott'};
+    }
+    shotModel(a,context=this.shotContext(a)){
+      const c=context,keeper=this.actors.find(b=>b.side!==a.side&&b.role==='G');
+      const shooting=this.attribute(a,'shooting'),control=this.attribute(a,'puckControl'),calm=this.attribute(a,'composure');
+      const onTarget=clamp(.53+shooting*.012+control*.004-c.pressure*(.2-calm*.006)-c.angle*.065-(c.oneTimer?.035:0),.28,.9);
+      const goal=point(a.side,56.5,15);
+      const block=this.skaters(1-a.side).reduce((risk,b)=>{
+        const lane=segmentDistance(b,a,goal),commit=this.attribute(b,'positioning')*.6+this.attribute(b,'workRate')*.4;
+        return lane.t>0&&lane.t<.96&&distance(a,b)>.4?Math.max(risk,clamp(1-lane.d/1.35,0,1)*(.14+commit*.014)):risk;
+      },0);
+      if(c.behind)return {goalChance:0,onTarget,block,quality:0,alignment:0};
+      if(!keeper)return {goalChance:1,onTarget:clamp(onTarget-c.d*.0025,.25,.9),block,quality:(1-block)*clamp(onTarget-c.d*.0025,.25,.9),alignment:1};
+      const desired=this.goalieTarget(keeper.side,a),alignment=clamp(distance(keeper,desired)/2.5,0,1);
+      const reflex=this.attribute(keeper,'reflexes'),position=this.attribute(keeper,'positioning'),composure=this.attribute(keeper,'composure');
+      const saving=reflex*(c.d<10?.5:.3)+position*(c.d<10?.3:.5)+composure*.2;
+      const location=(.027+.23*Math.exp(-c.d/9))*(.16+.84*Math.cos(c.angle)**2);
+      const finish=(.63+shooting*.035)*(1-c.pressure*(.30-calm*.011));
+      const goalChance=clamp(location*finish*(1.65-saving*.049)+alignment*.12+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.rebound?.035:0),.003,.65);
+      return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
+    }
+    shotQuality(a){return this.shotModel(a).quality;}
     pass(a,b){
       const end={x:b.x+b.vx*.25,y:b.y+b.vy*.25};end.x=clamp(end.x,1,59);end.y=clamp(end.y,1,29);
       if(progress(a.side,a.x)<40&&progress(a.side,end.x)>40&&this.skaters(a.side).some(p=>p.id!==a.id&&progress(a.side,p.x)>40.3))return false;
       const chance=this.passChance(a,b),success=this.random()<chance;
+      this.stats[a.side].passAttempts++;
       const interceptors=this.skaters(1-a.side).map(d=>({actor:d,...segmentDistance(d,a,end)})).filter(row=>row.t>.12&&row.t<.92&&row.d<2.1).sort((x,y)=>x.t-y.t);
       // A failed pass meets the actual defender along its lane, not the intended receiver.
       const interceptor=!success?interceptors[0]:null;
       if(interceptor){end.x=interceptor.actor.x;end.y=interceptor.actor.y;}
       else if(!success){end.x=clamp(end.x+(this.random()-.5)*6,1,59);end.y=clamp(end.y+(this.random()-.5)*6,1,29);}
-      this.flight={kind:interceptor?'intercept':'pass',from:a.id,to:interceptor?interceptor.actor.id:b.id,start:{...this.puck},end,elapsed:0,duration:Math.max(.24,distance(a,end)/17),chance,success,side:a.side};
+      this.flight={kind:interceptor?'intercept':'pass',from:a.id,fromName:a.player.name,to:interceptor?interceptor.actor.id:b.id,start:{...this.puck},end,elapsed:0,duration:Math.max(.24,distance(a,end)/(15+this.attribute(a,'passing')*.22)),chance,success,side:a.side};
       this.carrier=null;this.decision=1.2;
       this.say('pass',a.player.name+' söker '+b.player.name.split(' ').at(-1)+'.',a.side);return true;
     }
     shoot(a){
-      const quality=this.shotQuality(a),goal=point(a.side,56.5,15),risk=this.laneRisk(a,goal);
-      const roll=this.random(),onTarget=clamp(.61+(this.attribute(a,'shooting')-10)*.012,.48,.79);
-      let outcome=roll<risk*.23?'block':roll<risk*.23+(1-risk*.23)*(1-onTarget)?'wide':this.random()<quality?'goal':'save';
-      if(outcome==='save'&&!this.actors.some(b=>b.side!==a.side&&b.role==='G'))outcome='goal';
+      const context=this.shotContext(a);if(context.behind)return false;
+      const model=this.shotModel(a,context),goal=point(a.side,56.5,15);
+      const blockRoll=this.random(),targetRoll=this.random(),finishRoll=this.random();
+      let outcome=blockRoll<model.block?'block':targetRoll>model.onTarget?'wide':null;
       let end={...goal};
       if(outcome==='wide')end.y=15+(a.y<15?-1:1)*(2.3+this.random()*2);
+      let blocker=null;
       if(outcome==='block'){
-        const blocker=[...this.skaters(1-a.side)].sort((b,c)=>segmentDistance(b,a,goal).d-segmentDistance(c,a,goal).d)[0];end={x:blocker.x,y:blocker.y};
+        blocker=this.skaters(1-a.side).filter(b=>{const lane=segmentDistance(b,a,goal);return lane.t>0&&lane.t<.96&&lane.d<1.35&&distance(a,b)>.4;}).sort((b,c)=>segmentDistance(b,a,goal).t-segmentDistance(c,a,goal).t)[0];
+        if(blocker)end={x:blocker.x,y:blocker.y};else outcome=null;
       }
-      const shot={time:this.time,side:a.side,player:a.player.name,playerId:a.id,x:a.x,y:a.y,quality,outcome,assists:this.lastTouches.filter(t=>t.id!==a.id&&this.time-t.time<10).slice(-2).reverse()};
-      this.flight={kind:'shot',start:{...this.puck},end,elapsed:0,duration:Math.max(.22,distance(a,end)/26),shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
-      this.say('shot',a.player.name+' skjuter'+(a.y>10&&a.y<20?' från mitten!':' från kanten!'),a.side,true);
+      const shot={time:this.time,side:a.side,player:a.player.name,playerId:a.id,x:a.x,y:a.y,quality:model.quality,outcome,context,finishRoll,blockChance:model.block,onTargetChance:model.onTarget,liveResolution:true,blockerId:blocker?.id||null,assists:this.lastTouches.filter(t=>t.id!==a.id&&this.time-t.time<10).slice(-2).reverse()};
+      const velocity=context.type==='Slagskott'?28+this.attribute(a,'strength')*.2:23+this.attribute(a,'shooting')*.22;
+      this.flight={kind:'shot',start:{...this.puck},end,elapsed:0,duration:Math.max(.18,distance(a,end)/velocity),shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
+      const reason=context.oneTimer?' möter sidledspassningen med ett direktskott!':context.rebound?' hugger på returen!':context.screen>.3?' skjuter genom trafiken framför mål!':context.pressure>.5?' avslutar under hård press!':context.d<8?' avslutar från slottet!':' skjuter'+(context.angle>.65?' ur snäv vinkel!':' från distans!');
+      this.say('shot',a.player.name+reason,a.side,true);return true;
     }
     clear(a){
-      this.stats[a.side].clears++;
-      const end=point(a.side,52,clamp(a.y<15?5:25,2,28));
-      this.flight={kind:'clear',side:a.side,start:{...this.puck},end,elapsed:0,duration:distance(a,end)/18};
+      const chance=clamp(.77+this.attribute(a,'passing')*.006+this.attribute(a,'composure')*.003-this.pressureAt(a)*.22,.5,.98);
+      const success=this.random()<chance,end=point(a.side,success?52:clamp(progress(a.side,a.x)+8,22,38),a.y<15?4:26);
+      if(success)this.stats[a.side].clears++;
+      this.flight={kind:'clear',side:a.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(a,end)/18)};
       this.carrier=null;this.lastTouches=[];this.setPhase('clear');
-      this.say('clear',a.player.name+' rensar ur zonen. Boxplayenheten får andrum.',a.side,true);
-      this.advice=a.side===0?'Bra rensning. Vi kan samla boxen och få ner belastningen.':'De rensar. Hämta pucken och bygg upp powerplayet igen.';
+      this.say('clear',a.player.name+(success?' rensar ur zonen. Boxplayenheten får andrum.':' pressas och får inte ut pucken ur zonen.'),a.side,true);
+      this.advice=success?(a.side===0?'Bra rensning. Vi kan samla boxen och få ner belastningen.':'De rensar. Hämta pucken och bygg upp powerplayet igen.'):'Pucken är kvar i zonen. Boxplaylaget behöver behålla sin täckning.';
+    }
+    dump(a){
+      // Dumps start beyond the centre line. Teammates must be onside at release.
+      if(progress(a.side,a.x)<30||this.skaters(a.side).some(b=>b.id!==a.id&&progress(a.side,b.x)>40))return false;
+      const end=point(a.side,58,a.y<15?4:26);this.stats[a.side].dumps++;
+      this.flight={kind:'dump',side:a.side,start:{...this.puck},end,elapsed:0,duration:distance(a,end)/19};
+      this.carrier=null;this.lastTouches=[];this.setPhase('dump');
+      this.say('dump',a.player.name+' lägger pucken bakom backarna. Närmaste forward jagar; övriga säkrar.',a.side,true);return true;
+    }
+    reboundModel(goalie,context={}){
+      const pressure=(context.screen||0)*.1+(context.oneTimer?.08:0)+(context.d<7?.08:0);
+      const freeze=clamp(.38+this.attribute(goalie,'handling')*.012+this.attribute(goalie,'reboundControl')*.006+this.attribute(goalie,'composure')*.003-pressure,.3,.87);
+      const safe=clamp(.24+this.attribute(goalie,'reboundControl')*.027-this.pressureAt(goalie)*.1,.22,.85);
+      return {freeze,safe};
+    }
+    saveRebound(goalie,f){
+      const model=this.reboundModel(goalie,f.shot.context),name=goalie?.player.name||'Målvakten';
+      if(this.random()<model.freeze){
+        this.stop('save',name+' räddar och håller fast pucken.',point(f.side,47,f.start.y<15?9:21));return;
+      }
+      const safe=this.random()<model.safe;
+      const end=point(f.side,safe?54+this.random()*3:51+this.random()*3,safe?(f.start.y<15?4+this.random()*3:23+this.random()*3):12+this.random()*6);
+      this.rebound={side:f.side,time:this.time};
+      if(!safe)this.stats[1-f.side].dangerousRebounds++;
+      // A rebound travels out from the save. It does not appear magically in the slot.
+      this.flight={kind:'rebound',side:f.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(this.puck,end)/10)};
+      this.setPhase('loose');this.looseTime=0;
+      this.rememberTouch(f.shot.playerId,f.shot.player,f.start.y);
+      this.say('rebound',name+(safe?' styr returen ut mot sargen.':' lämnar en lös retur i slottet!'),f.side,true);
     }
     resolveFlight(dt){
       const f=this.flight;if(!f)return;
@@ -283,11 +429,22 @@ const StudioHockey = (() => {
         if(to&&distance(to,this.puck)<2.4&&f.success){
           const previous=this.phase;this.takePossession(to);if(previous==='attack'){this.phase='attack';this.attackPasses++;}
           this.stats[f.side].passes++;
-          this.lastTouches=this.lastTouches.filter(t=>t.id!==from.id);this.lastTouches.push({id:from.id,name:from.player.name,time:this.time,y:from.y});this.lastTouches=this.lastTouches.slice(-2);
+          if(f.preRealism)this.stats[f.side].priorPasses++;
+          this.rememberTouch(f.from,from?.player.name||f.fromName||'',f.start.y);
+          to.receivedPass={time:this.time,y:f.start.y};
           this.say('pass',to.player.name+' tar emot passningen.',f.side);
         }else{this.setPhase('loose');this.lastTouches=[];this.looseTime=0;this.say('loose','Passningen bryts. Båda lagen söker pucken.',f.side);}
       }else if(f.kind==='shot'){
-        const shot=f.shot;this.shots.push(shot);this.stats[f.side].attempts++;
+        const shot=f.shot;
+        if(shot.liveResolution&&shot.outcome===null){
+          const player=this.teams[f.side].players.find(p=>f.side+':'+p.id===shot.playerId);
+          const shooter={side:f.side,id:shot.playerId,player,x:shot.x,y:shot.y};
+          const model=this.shotModel(shooter,shot.context);
+          shot.quality=(1-shot.blockChance)*shot.onTargetChance*model.goalChance;shot.outcome=shot.finishRoll<model.goalChance?'goal':'save';shot.alignment=model.alignment;
+        }
+        this.shots.push(shot);this.stats[f.side].attempts++;
+        if(shot.context?.oneTimer)this.stats[f.side].oneTimers++;
+        if(shot.outcome==='block')this.stats[1-f.side].blocks++;
         if(['goal','save'].includes(shot.outcome))this.stats[f.side].shots++;
         if(shot.outcome==='goal'){
           this.score[f.side]++;this.goals.push(shot);
@@ -296,41 +453,47 @@ const StudioHockey = (() => {
         }else if(shot.outcome==='save'){
           this.stats[1-f.side].saves++;
           const goalie=this.actors.find(a=>a.side!==f.side&&a.role==='G');
-          if(this.random()<.67+(this.attribute(goalie,'reboundControl')-10)*.012){this.stop('save',goalie.player.name+' räddar och blockerar pucken.',point(f.side,47,f.start.y<15?9:21));}
-          else{this.puck=point(f.side,53.5,13+this.random()*4);this.setPhase('loose');this.looseTime=0;this.say('rebound',goalie.player.name+' räddar – retur framför mål!',f.side,true);}
+          this.saveRebound(goalie,f);
         }else{
           this.puck=shot.outcome==='wide'?point(f.side,58,clamp(f.end.y,2,28)):{...f.end};
           this.setPhase('loose');this.looseTime=0;this.say(shot.outcome,shot.player+(shot.outcome==='block'?' får skottet blockerat.':' skjuter utanför. Pucken går bakom mål.'),f.side,true);
         }
-        this.pendingReplayShot=shot;
+        this.pendingReplayShot=shot;this.lastShot=shot;
       }else{this.setPhase('loose');this.looseTime=0;}
     }
     decide(){
       const a=this.actor(this.carrier);if(!a)return;
       const t=this.teams[a.side],p=progress(a.side,a.x),opponents=this.skaters(1-a.side),nearest=[...opponents].sort((b,c)=>distance(a,b)-distance(a,c))[0];
       const pk=this.penalty?.side===a.side,pp=this.penalty&&this.penalty.side!==a.side;
+      this.decision=this.readDelay(a)+.2+this.random()*.35;
+      if(nearest&&distance(a,nearest)<2&&this.time>(a.contactUntil||0)){
+        const reaching=distance(a,nearest)>1.5?1.35:1;
+        const penaltyRisk=(.003+(20-this.attribute(nearest,'discipline'))*.0012)*reaching;
+        if(!this.penalty&&this.random()<penaltyRisk){this.givePenalty(nearest.side,nearest.player.name);return;}
+        if(this.random()<this.battleChance(nearest,a)&&this.startBattle(a,nearest))return;
+      }
       if(pk&&p<32){
-        const outlet=this.skaters(a.side).find(b=>b.id!==a.id&&progress(a.side,b.x)>p+8&&this.laneRisk(a,b)<.1&&opponents.every(d=>distance(d,b)>3));
-        if(outlet&&this.random()<.22)this.pass(a,outlet);else this.clear(a);return;
+        const outlet=this.skaters(a.side).find(b=>b.id!==a.id&&progress(a.side,b.x)>p+8&&this.passChance(a,b)>.82&&opponents.every(d=>distance(d,b)>3));
+        if(outlet&&!t.safeCounter&&this.random()<.12+this.attribute(a,'vision')*.009)this.pass(a,outlet);else this.clear(a);return;
       }
-      if(nearest&&distance(a,nearest)<1.65&&this.random()<clamp(.19+(this.attribute(nearest,'checking')-this.attribute(a,'puckControl'))*.013,.08,.4)){
-        this.takePossession(nearest,{turnover:true});return;
+      const context=this.shotContext(a),quality=this.shotModel(a,context).quality,option=this.choosePass(a);
+      const clearChance=p>47&&context.angle<.6&&context.pressure<.45;
+      const instant=context.oneTimer||context.rebound||clearChance;
+      // Established PP moves the box; a real rebound or open slot is never passed up
+      // merely because an arbitrary number of passes has not been completed.
+      const ready=!pp||instant||this.attackPasses>=2&&this.setupTime>1.2;
+      if(p>41&&!context.behind&&ready&&(this.phaseTime>.4||instant)){
+        const intent=t.tactics.mentality==='direct'?.63:t.tactics.mentality==='control'?.31:.44;
+        const composure=this.attribute(a,'composure')/20;
+        const urge=intent+quality*1.8+(instant?.3:0)-(context.angle>.9?.16:0);
+        const betterPass=option&&option.score>1.2&&quality<.045;
+        if(this.random()<clamp(urge-(betterPass?composure*.18:0),.07,.92)&&this.shoot(a))return;
       }
-      if(nearest&&distance(a,nearest)<2&&this.random()<.003+(20-this.attribute(nearest,'discipline'))*.0009&&!this.penalty){this.givePenalty(nearest.side,nearest.player.name);return;}
-      if(this.phase==='attack'&&p>42&&this.phaseTime>(pp?2:.8)&&(!pp||this.setupTime>2.5&&this.attackPasses>=2)){
-        const shoot=t.tactics.mentality==='direct'?.60:t.tactics.mentality==='control'?.24:.42;
-        if(this.random()<shoot+this.shotQuality(a)*.45){this.shoot(a);return;}
-      }
-      const options=this.skaters(a.side).filter(b=>b.id!==a.id&&b.status!=='leaving'&&b.status!=='entering'&&distance(a,b)>3).map(b=>{
-        const pressure=Math.min(...opponents.map(d=>distance(b,d)));
-        const forward=progress(a.side,b.x)-p,quality=this.shotQuality(b);
-        let score=this.passChance(a,b)+clamp(pressure/12,0,.32)+quality+(pp?Math.abs(b.y-a.y)/65:clamp(forward/35,-.3,.3));
-        if(this.lastTouches.at(-1)?.id===b.id)score-=.14;
-        if(p<30&&forward<0)score-=.4;
-        return {b,score:score+this.random()*.08};
-      }).sort((a,b)=>b.score-a.score);
-      if(options.length&&(this.phase==='attack'||this.random()<.45)&&this.pass(a,options[0].b))return;
-      if(this.phase==='attack'&&this.phaseTime>20&&p>40&&(!pp||this.attackPasses>=2))this.shoot(a);
+      if(!pp&&p>=30&&p<40&&this.pressureAt(a)>.35&&(t.tactics.mentality==='direct'||!option||option.score<.9)&&this.random()<.45&&this.dump(a))return;
+      if(option&&(this.phase==='attack'||this.pressureAt(a)>.3||this.random()<.35)&&this.pass(a,option.b))return;
+      // A carrier with time and space can skate; carrying ability is resolved by
+      // skating/acceleration, offside, defensive gaps and the next physical contest.
+      a.duty=this.pressureAt(a)>.4?'Skyddar pucken och söker understöd':'Utnyttjar fri is med pucken';
     }
     givePenalty(side,name){
       this.penalty={side,remaining:120,name};
@@ -347,6 +510,7 @@ const StudioHockey = (() => {
     }
     step(){
       if(this.finished)return;
+      this.upgrade();
       const dt=STEP;this.wall+=dt;this.tick++;
       if(this.stoppage>0){
         this.stoppage-=dt;
@@ -356,17 +520,22 @@ const StudioHockey = (() => {
       this.time=Math.min(this.duration,this.time+dt);this.phaseTime+=dt;
       if(this.time>=this.duration-1e-7){this.time=this.duration;this.finished=true;this.setPhase('finished');this.say('finished','Periodpaus. '+this.teams[0].name+' '+this.score.join('–')+' '+this.teams[1].name+'.',0,true);this.capture();return;}
       if(this.penalty){this.penalty.remaining-=dt;if(this.penalty.remaining<=0)this.endPenalty();}
-      for(const t of this.teams){t.shift+=dt;for(const p of t.players){const a=this.actors.find(a=>a.player===p);if(a){p.ice+=dt;if(a.role!=='G')p.energy=clamp(p.energy-dt*(.20+(Math.hypot(a.vx,a.vy)>3?.08:0))*(1.4-rating(p,['stamina'])/35),15,100);}else p.energy=clamp(p.energy+dt*.31,15,100);}}
+      for(const t of this.teams){t.shift+=dt;for(const p of t.players){const a=this.actors.find(a=>a.player===p);if(a){a.shift=(a.shift||0)+dt;p.ice+=dt;if(a.role!=='G')p.energy=clamp(p.energy-dt*(.20+(Math.hypot(a.vx,a.vy)>3?.08:0))*(1.4-rating(p,['stamina'])/35),15,100);}else p.energy=clamp(p.energy+dt*.31,15,100);}}
       const puckBefore={...this.puck};
       this.updateChanges(dt);this.targets();this.move(dt);
       if(this.carrier&&progress(this.owner,puckBefore.x)<=40&&progress(this.owner,this.puck.x)>40&&this.skaters(this.owner).some(a=>a.id!==this.carrier&&progress(this.owner,a.x)>40.3)){
         this.stop('offside','En medspelare är inne före pucken. Offside och tekning i mittzonen.',point(this.owner,37,this.puck.y<15?9:21));this.capture();return;
       }
-      if(this.flight)this.resolveFlight(dt);
+      if(this.battle)this.resolveBattle(dt);
+      else if(this.flight)this.resolveFlight(dt);
       else if(!this.carrier){
         this.looseTime=(this.looseTime||0)+dt;
         const closest=[...this.skaters(0),...this.skaters(1)].filter(a=>a.status!=='leaving').sort((a,b)=>distance(a,this.puck)-distance(b,this.puck));
-        if(closest[0]&&distance(closest[0],this.puck)<1.1)this.takePossession(closest[0],{turnover:closest[0].side!==this.owner});
+        const first=closest[0],rival=first&&closest.find(a=>a.side!==first.side);
+        if(first&&distance(first,this.puck)<1.1){
+          if(rival&&distance(rival,this.puck)<1.35&&this.time>(first.contactUntil||0)&&this.time>(rival.contactUntil||0))this.startBattle(first,rival);
+          else this.takePossession(first,{turnover:first.side!==this.owner});
+        }
         else if(this.looseTime>10)this.stop('stoppage','Pucken låses vid sargen. Ny tekning.',{x:this.puck.x<30?13:47,y:this.puck.y<15?9:21});
       }else{
         const a=this.actor(this.carrier),p=progress(this.owner,a.x);

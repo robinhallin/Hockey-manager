@@ -139,7 +139,11 @@ function matchCoachView(){
 function matchDetailedStats(){
  const m=state.live,s=matchStats(),counts=m.rink?.hockey?.counts;
  const rows=[['Skott på mål',...s.shots],['Alla avslut',m.shotsHV,m.shotsOpp],['Räddningar',...s.saves],['Farliga chanser',...s.danger],['Vunna tekningar',...s.faceoffs],['Tacklingar',m.hitsHV,m.hitsOpp],['PP-mål / tillfällen',...s.pp],['Lyckade passningar',m.rink?.passes.own||0,m.rink?.passes.opponent||0],...['offside','icing'].map(k=>[k==='offside'?'Offside':'Icing',counts?.[k].own||0,counts?.[k].opponent||0])];
- return `<div class="mc-table-scroll"><table><caption>Båda lagens matchstatistik</caption><thead><tr><th scope="col">Statistik</th><th scope="col">${trainingSafe(managerClub())}</th><th scope="col">${trainingSafe(m.opponent)}</th></tr></thead><tbody>${rows.map(([label,a,b])=>`<tr><th scope="row">${label}</th><td>${a}</td><td>${b}</td></tr>`).join('')}</tbody></table></div>${m.analysis?.partial?'<p class="mc-note">Skott på mål och räddningar gäller den registrerade delen av denna äldre match.</p>':''}`;
+ if(studioActive()){
+  const stats=studioEngine().stats;
+  rows.splice(8,0,['Passningsprocent',...stats.map(t=>t.passAttempts?Math.round((t.passes-(t.priorPasses||0))/t.passAttempts*100)+' %':'—')],['Vunna puckdueller',...stats.map(t=>`${t.battleWins||0} / ${t.battles||0}`)],['Blockerade skott',...stats.map(t=>t.blocks||0)],['Direktskott',...stats.map(t=>t.oneTimers||0)],['Farliga returer släppta',...stats.map(t=>t.dangerousRebounds||0)]);
+ }
+ return `<div class="mc-table-scroll"><table><caption>Båda lagens matchstatistik</caption><thead><tr><th scope="col">Statistik</th><th scope="col">${trainingSafe(managerClub())}</th><th scope="col">${trainingSafe(m.opponent)}</th></tr></thead><tbody>${rows.map(([label,a,b])=>`<tr><th scope="row">${label}</th><td>${a}</td><td>${b}</td></tr>`).join('')}</tbody></table></div>${studioActive()&&studioEngine().partialRealism?`<p class="mc-note">Passningsprocent, puckdueller och returstatistik har registrerats sedan ${analysisTime(studioEngine().realismStartedAt||0)} spelad matchtid.</p>`:''}${m.analysis?.partial?'<p class="mc-note">Skott på mål och räddningar gäller den registrerade delen av denna äldre match.</p>':''}`;
 }
 function matchPlayersView(){
  const m=state.live,rows=Object.values(m.leagueBox?.players||{}).filter(p=>p.seconds>0).sort((a,b)=>b.seconds-a.seconds);
