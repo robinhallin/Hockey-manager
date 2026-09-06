@@ -1,4 +1,13 @@
 # Hockey-manager
+
+## Current release: researched rosters, match squads and club loans
+
+New careers use 680 sourced players across all 28 Swedish clubs, including 25 HV71 players and 23 initial loans. Each player has a dated source profile and prior-season statistics; all attributes are conservative game estimates derived from that evidence. See [PLAYER_RESEARCH.md](PLAYER_RESEARCH.md) for the roster counts, sources, loan exceptions and full method.
+
+The match squad has up to 20 skaters and two goalkeepers, with a selectable bench and no mid-match additions from outside the registered squad. The loan centre moves one player object to a real borrowing club, splits wages, records actual fixtures and ice time, preserves the owner contract, and supports recall and automatic return. Old careers keep their existing rosters and development.
+
+Run `node --test *.test.cjs` for the integration suite. Earlier sections below describe the project at the time of each release and may have been superseded.
+
 ## Attribute and staff assessment system
 
 Player profiles now show 15 skater attributes or 6 goalie attributes on a 1–20 scale, as staff-estimated ranges. Current ability and potential use separate uncertain 0–5 star ranges relative to the manager's squad. Three assessors have different ability/potential judging skills and specialties. Reports give role suggestions, strengths and weaknesses. External players require up to three observations, each completed after a played round; refreshing or repeated clicks cannot accelerate progress.

@@ -33,12 +33,13 @@ function boot(saved){
   vm.runInContext(fs.readFileSync('match-centre.js','utf8'),context);
   vm.runInContext(fs.readFileSync('stories.js','utf8'),context);
   vm.runInContext(fs.readFileSync('rivals.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('roster-depth.js','utf8'),context);
   vm.runInContext(fs.readFileSync('script.js','utf8'),context);
   return {run:code=>vm.runInContext(code,context),storage};
 }
 const {run,storage}=boot();
 const rows=run('Object.values(ALLSVENSKAN_DATABASE.clubs).flatMap(c=>c.players)');
-assert.equal(rows.length,325);assert.equal(new Set(rows.map(p=>p.id)).size,325);
+assert.equal(rows.length,324);assert.equal(new Set(rows.map(p=>p.id)).size,324);
 assert.equal(run('Object.keys(ALLSVENSKAN_DATABASE.clubs).length'),14);
 for(const p of rows){
  assert.match(p.source,/^https:\/\/www.eliteprospects.com\/player\/\d+\//);
@@ -65,7 +66,7 @@ assert.ok(run('gronlund.attributes.positioning>pooley.attributes.positioning'));
 assert.equal(run('pooley.research.stats.find(s=>s.season==="25-26").goals'),27);
 assert.equal(run('pooley.research.stats.find(s=>s.season==="25-26").assists'),32);
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>p.name==="Jhonas Enroth").length'),1);
-assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>p.name==="Anton Olsson").length'),2); // different people
+assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>p.name==="Anton Olsson").length'),1); // The 2003 defender is no longer in the verified SHL rosters.
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>p.name==="Nathan Staios").length'),0);
 // Same evidence produces same attributes regardless of name/ID; level matters.
 run('globalThis.row=ALLSVENSKAN_DATABASE.clubs.AIK.players.find(p=>p.name==="Scott Pooley");globalThis.copy=JSON.parse(JSON.stringify(row));copy.name="Different";copy.id="different"');
@@ -105,4 +106,4 @@ ancient.managerClub='HV71';ancient.roster=ancient.clubRosters.HV71;
 const migrated=boot(JSON.stringify(ancient));
 assert.ok(migrated.run('state.clubRosters.AIK.every(p=>p.fictional)'));
 assert.equal(migrated.run(`getPlayerClub(${JSON.stringify(id)})`),'HV71');
-console.log('PASS: 325 sourced players, 14 HA clubs, all 28 lineups, role and league calibration, separate real stats, no new identity collisions, transfers/training/reload and untouched legacy careers.');
+console.log('PASS: 324 sourced HA players, 14 HA clubs, all 28 lineups, role and league calibration, separate real stats, no new identity collisions, transfers/training/reload and untouched legacy careers.');

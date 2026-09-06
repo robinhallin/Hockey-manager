@@ -771,7 +771,7 @@ function ensureManagementData(){
 }
 
 function annualWageCost(){
-  return [...managerRoster(),...(state.juniors?.roster||[]).filter(p=>p.academy.seniorContract)].reduce((sum,player) => sum + (player.salary || 0), 0);
+  return loanWageCost(managerClub())+(state.juniors?.roster||[]).filter(p=>p.academy.seniorContract).reduce((sum,p)=>sum+(p.salary||0),0);
 }
 
 function wageBudget(){
@@ -1070,6 +1070,7 @@ function save(){
   ensureAssessmentData();
   ensureLeagues();
   ensureLeagueStatistics();
+  ensureLoans();
   ensureRecruitment();
   ensurePlayerWorld();
   ensureLocker();
@@ -1435,6 +1436,7 @@ function startMatch(){
     return;
 
   if(!medicalMatchReady()){state.page="medical";save();render();return;}
+  depthLock();
   lockTrainingForMatch();
   markSocialPeriodStarted();
   state.live.running=true;
@@ -3187,6 +3189,7 @@ function homeView(){return managerDeskView();}
 
 /* TRUPP */
 function squadView(){
+ depthSelection();
 
 const players =
   [...managerRoster()]
@@ -3257,12 +3260,7 @@ const players =
               </strong>
 
               <span>
-                ${p.pos === "MV"
-                  ? "Målvakt"
-                  : p.pos === "B"
-                    ? "Back"
-                    : "Forward"
-                }
+                ${lineupPlayerPlace(p)}${playerLoan(p)?" · Inlånad":""}
               </span>
 
             </div>
@@ -3331,7 +3329,7 @@ const players =
 
   return `
 
-    <div class="squad-page">
+    <div class="squad-page">${rosterDatabaseNotice()}
 
 
       <div class="page-heading">
@@ -3532,7 +3530,7 @@ function toggleTransferStatus(playerId){
       p => samePlayerId(p.id, playerId)
     );
 
-  if(!player){
+  if(!player||playerLoan(player)){
     return;
   }
 
@@ -3565,7 +3563,7 @@ function toggleTransferStatus(playerId){
 function openContractNegotiation(playerId){
 
   const player = managerRoster().find(p => samePlayerId(p.id,playerId));
-  if(!player) return;
+  if(!player||playerLoan(player)) return;
 
   const raise = player.contractYears <= 1 ? 1.12 : 1.06;
 
@@ -3590,6 +3588,7 @@ function cancelContractNegotiation(){
 }
 
 function submitContractRenewal(playerId,salary,years,role){
+ if(playerLoan(playerById(playerId)))return;
 
   const negotiation = state.contractNegotiation;
   const player = managerRoster().find(p => samePlayerId(p.id,playerId));
@@ -3821,7 +3820,7 @@ ${
       <div class="player-dashboard">
 
 
-        ${assessmentPanel(player)}
+        ${assessmentPanel(player)}${loanPlayerPanel(player)}
 
         <section class="dashboard-panel">
 
@@ -4649,6 +4648,7 @@ function render(){
   ensureAssessmentData();
   ensureLeagues();
   ensureLeagueStatistics();
+  ensureLoans();
   ensureRecruitment();
   ensurePlayerWorld();
   ensureLocker();
