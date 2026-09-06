@@ -36,7 +36,7 @@ run('coachingNavigate("specialTeams")');assert.equal(run('deskArea().id'),'team'
 run('state.recruitment.filters.query="test";deskNavigate("transfers","shortlist")');assert.equal(run('state.recruitment.filters.query'),'test');
 assert.equal((get('#content').innerHTML.match(/class="desk-subnav"/g)||[]).length,1);assert.doesNotMatch(get('#content').innerHTML,/class="recruit-tabs"/);
 for(const tab of run('DESK_RECRUIT_MORE.map(t=>t[0])')){run(`deskNavigate('transfers','${tab}')`);assert.match(get('#content').innerHTML,/desk-more selected/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);}
-run('deskNavigate("scouting")');assert.match(get('#content').innerHTML,/desk-more selected/);
+run('deskNavigate("scouting")');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Scoutcentralen/);
 run('recruitOpen(state.clubRosters["AIK"][0].id)');assert.equal(run('deskArea().id'),'recruitment');
 // Decision and expiring-offer priorities are actionable; no fabricated clean bill of health.
 run('managerMessage("desk-test", "Ett samtal", "Vi behöver prata", "Spelare", {decisionType:"role"});state.recruitment.incoming.push({id:999,status:"pending",expires:state.recruitment.tick+2});deskNavigate("home")');

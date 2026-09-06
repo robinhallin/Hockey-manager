@@ -1185,7 +1185,7 @@ function effectiveRating(p,type="attack"){
 
   return Math.max(
     40,
-    base - fatiguePenalty - matchEnergyPenalty(p) - (p.health?.injury?3:0)
+    base + playerMoraleBonus(p) - fatiguePenalty - matchEnergyPenalty(p) - (p.health?.injury?3:0)
   );
 }
 function weightedPlayer(type="attack"){
@@ -3540,80 +3540,35 @@ function toggleTransferStatus(playerId){
   render();
 }
 
+function renewalWishes(p){
+ const w=recruitPlayerWishes(p),trust=p.social?.trust??60;
+ return {...w,salary:Math.round(p.salary*(p.contractYears<=1?1.10:1.04)*(trust<40?1.10:trust>=80?.97:1)/10000)*10000,role:p.age>=34&&p.social?.lastMinutes!==null&&p.social?.lastMinutes<10?'Rotation':p.promisedRole||p.squadRole};
+}
 function openContractNegotiation(playerId){
-
-  const player = managerRoster().find(p => samePlayerId(p.id,playerId));
-  if(!player||playerLoan(player)) return;
-
-  const raise = player.contractYears <= 1 ? 1.12 : 1.06;
-
-  state.contractNegotiation = {
-    playerId: player.id,
-    salaryDemand: Math.round(player.salary * raise / 10000) * 10000,
-    years: player.age >= 31 ? 2 : player.age <= 23 ? 4 : 3,
-    role: player.squadRole,
-    attempts: 0,
-    message: "Spelaren är redo att diskutera ett nytt avtal."
-  };
-
-  save();
-  render();
-
+ const p=managerRoster().find(p=>samePlayerId(p.id,playerId));if(!p||playerLoan(p)||loanLocked())return;
+ const w=renewalWishes(p),paused=p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date;
+ state.contractNegotiation={playerId:p.id,salaryDemand:w.salary,years:Math.max(w.minYears,Math.min(3,w.maxYears)),role:w.role,attempts:p.renewalAttempts||0,message:paused?`Agenten vill avvakta till ${calText(p.renewalPausedUntil)} efter de senaste avslagen.`:`Spelaren söker ${w.minYears}–${w.maxYears} år, ${w.role.toLowerCase()} och omkring ${money(w.salary)}/år. Förtroendet påverkar lönekravet.`};save();render();
 }
-
-function cancelContractNegotiation(){
-  state.contractNegotiation = null;
-  save();
-  render();
-}
-
+function cancelContractNegotiation(){state.contractNegotiation=null;save();render();}
 function submitContractRenewal(playerId,salary,years,role){
- if(playerLoan(playerById(playerId)))return;
-
-  const negotiation = state.contractNegotiation;
-  const player = managerRoster().find(p => samePlayerId(p.id,playerId));
-  if(!negotiation || !player || !samePlayerId(negotiation.playerId,playerId)) return;
-
-  if(player.futureContract){negotiation.message='Spelaren har redan ett bindande avtal med nästa klubb.';save();render();return;}
-  salary = Math.round(Number(salary) || 0);
-  years = Math.round(Number(years) || 0);
-  negotiation.attempts++;
-
-  const currentRoleRank = SQUAD_ROLES.indexOf(player.squadRole);
-  const offeredRoleRank = SQUAD_ROLES.indexOf(role);
-  const newWageCost = annualWageCost() - player.salary + salary;
-
-  if(newWageCost > wageBudget()){
-    negotiation.message = "Lönebudgeten räcker inte för det här avtalet.";
-  }else if(salary < negotiation.salaryDemand){
-    negotiation.message = `Lönen är för låg. Kravet är ${money(negotiation.salaryDemand)} per år.`;
-  }else if(years < 1 || years > 5){
-    negotiation.message = "Kontraktet måste vara mellan ett och fem år.";
-  }else if(offeredRoleRank < currentRoleRank){
-    negotiation.message = `${player.name} accepterar inte en mindre roll i laget.`;
-  }else{
-    player.salary = salary;
-    player.contractYears = years;
-    player.promisedRole = role;
-    player.happiness = Math.min(100,player.happiness + 8);
-    player.morale = Math.min(100,(player.morale || 70) + 5);
-    state.news.unshift(`${player.name} har förlängt med ${managerClub()} i ${years} år.`);
-    state.contractNegotiation = null;
-    save();
-    render();
-    return;
-  }
-
-  negotiation.salaryDemand = Math.round(negotiation.salaryDemand * 1.03 / 10000) * 10000;
-
-  if(negotiation.attempts >= 3){
-    state.news.unshift(`Kontraktsförhandlingarna med ${player.name} har pausats efter tre avslag.`);
-    state.contractNegotiation = null;
-  }
-
-  save();
-  render();
-
+ const n=state.contractNegotiation,p=managerRoster().find(p=>samePlayerId(p.id,playerId));
+ if(!n||!p||!samePlayerId(n.playerId,playerId)||playerLoan(p)||loanLocked())return;
+ const w=renewalWishes(p);salary=Math.round(Number(salary));years=Number(years);
+ const fail=message=>{n.message=message;save();render();};
+ if(p.futureContract)return fail('Spelaren har redan ett bindande avtal med nästa klubb.');
+ if(p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date)return fail(`Diskussionen kan återupptas ${calText(p.renewalPausedUntil)}.`);
+ if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return fail('Ange giltig årslön, kontraktslängd och roll.');
+ const reserve=state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future').reduce((v,d)=>v+d.salary,0)+loanReserved(managerClub());
+ if(annualWageCost()-p.salary+salary+reserve>wageBudget())return fail('Lönebudgeten räcker inte när pågående transfer- och lånebud räknas med.');
+ let reason=salary<w.salary?`Motbud: ${money(w.salary)}/år.`:years<w.minYears||years>w.maxYears?`Spelaren vill ha ${w.minYears}–${w.maxYears} år, med hänsyn till sin ålder och trygghet.`:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?`Spelaren vill ha rollen ${w.role.toLowerCase()}.`:'';
+ if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;
+  if(p.renewalAttempts>=3){p.renewalPausedUntil=calAdd(state.calendar.date,7);p.renewalAttempts=0;if(p.social)p.social.trust=trainingClamp(p.social.trust-2);reason+=` Tre avslag: agenten pausar till ${calText(p.renewalPausedUntil)}.`;}
+  return fail(reason);
+ }
+ Object.assign(p,{salary,contractYears:years,promisedRole:role,squadRole:role,renewalAttempts:0,renewalPausedUntil:null,happiness:trainingClamp(p.happiness+5),morale:trainingClamp((p.morale||70)+3)});
+ if(SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
+ state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,`${p.name} förlänger`,`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{link:'squad'});
+ state.contractNegotiation=null;save();render();
 }
 
 function setDevelopmentFocus(playerId,focus){
@@ -4019,12 +3974,12 @@ ${
 
             <div>
               <span>Moral</span>
-              <strong>${player.morale || 70}</strong>
+              <strong>${Math.round(player.morale ?? 70)}</strong>
             </div>
 
             <div>
               <span>Trivsel</span>
-              <strong>${player.happiness}%</strong>
+              <strong>${Math.round(player.happiness)}%</strong>
             </div>
 
             <div>
@@ -4529,6 +4484,7 @@ function startCareerWithClub(clubName){
   const offer = careerOffer(clubName,freshState.clubRosters);
 
   freshState.managerClub = clubName;
+  freshState.seedFreeAgents = true;
 
   freshState.roster =
     freshState.clubRosters[clubName]

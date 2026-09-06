@@ -5,7 +5,9 @@ function hockeyStyle(side){return side==='own'?(state.tacticalPlan.attackStyle||
 function hockeySetStyle(value){if(!HOCKEY_STYLES[value])return;if(state.live?.running)pauseMatch();state.tacticalPlan.attackStyle=value;state.tacticalPlan.forecheck=value==='pressure'?'aggressive':value==='counter'?'passive':'balanced';save();render();}
 function hockeySpecial(side){const m=state.live,diff=m.penaltiesOpp.length-m.penaltiesHV.length;return diff===0?'even':(side==='own'?diff:-diff)>0?'pp':'pk';}
 function hockeyRoles(side){
- const ps=rinkSkaters(side),rank=(a,keys)=>keys.reduce((n,k)=>n+rinkAttribute(a,k),0);
+ const ps=rinkSkaters(side);
+ if(side==='own'&&hockeySpecial(side)!=='even'){const key=(hockeySpecial(side)==='pp'?'pp':'pk')+((state.live.rotationIndex||0)%2+1);const rank=a=>{const i=state.specialTeams[key].findIndex(id=>samePlayerId(id,a.id));return i<0?99:i;};return [...ps].sort((a,b)=>rank(a)-rank(b));}
+ const rank=(a,keys)=>keys.reduce((n,k)=>n+rinkAttribute(a,k),0);
  const sorted=[...ps].sort((a,b)=>(b.pos==='B')-(a.pos==='B')||rank(b,['passing','vision'])-rank(a,['passing','vision']));
  const point=sorted.shift(),front=[...sorted].sort((a,b)=>rank(b,['strength','positioning'])-rank(a,['strength','positioning']))[0];
  return [point,...sorted.filter(a=>a!==front),front].filter(Boolean);
@@ -15,8 +17,8 @@ function hockeyTargets(){
  const targets={},side=r.owner,progress=rinkX(side,carrier.x),style=hockeyStyle(side),attack=rinkSkaters(side),defending=rinkOther(side),special=hockeySpecial(side),advance=style==='counter'&&r.hockey.transition>0?17:style==='control'?6:11;
  const put=(a,x,y,duty)=>{targets[a.key]={x:rinkClamp(rinkX(a.side,x),10,90),y:rinkClamp(y,14,86),duty};};
  if(special==='pp'&&progress>=66){
-  const order=hockeyRoles(side),slots=order.length>=5?[[69,50,'Spel på blålinjen'],[78,22,'Vänster sida'],[78,78,'Höger sida'],[82,50,'Centralt alternativ'],[89,50,'Framför mål'],[87,68,'Extra anfallare']]:[[69,50,'Spel på blålinjen'],[79,24,'Vänster sida'],[79,76,'Höger sida'],[89,50,'Framför mål']];
-  order.forEach((a,i)=>{const slot=slots[Math.min(i,slots.length-1)];put(a,...slot);});
+  const order=hockeyRoles(side),scheme=side==='own'?state.specialPlans.pp:'oneThreeOne',slots=SPECIAL_SLOTS[scheme];
+  order.forEach((a,i)=>{const slot=slots[i]||[87,68,'Extra anfallare'];put(a,slot[0],slot[1]+(a.key===carrier.key?0:(carrier.y-50)*.035),slot[2]);});
  }else{
   const tempo=side==='own'?(state.tacticalPlan.tempo==='high'?1.3:state.tacticalPlan.tempo==='low'?.75:1):(style==='pressure'?1.3:style==='counter'?.75:1);
   put(carrier,progress+advance*tempo,50+(carrier.y-50)*.8,'Puckförare');
@@ -33,8 +35,9 @@ function hockeyTargets(){
  }
  const defenders=rinkSkaters(defending),pk=hockeySpecial(defending)==='pk';
  if(pk&&progress>60){
-  const box=defenders.length<=3?[[17,37],[17,63],[28,50]]:[[17,36],[17,64],[29,36],[29,64]];
-  [...defenders].sort((a,b)=>(b.pos==='B')-(a.pos==='B')).forEach((a,i)=>{const slot=box[i%box.length];put(a,slot[0],slot[1]+(carrier.y-50)*.12,'Skyddar boxen');});
+  const scheme=defending==='own'?state.specialPlans.pk:'box';
+  const box=defenders.length<=3?[[17,37],[17,63],[28,50]]:SPECIAL_SLOTS[scheme];
+  hockeyRoles(defending).forEach((a,i)=>{const slot=box[i%box.length];put(a,slot[0],slot[1]+(carrier.y-50)*.12,'Skyddar boxen');});
  }else{
   let back=0,forward=0;const press=rinkPress(defending),retreat=hockeyStyle(defending)==='counter'||(defending==='own'&&state.tactic==='defense');
   for(const a of defenders){
@@ -48,7 +51,7 @@ function hockeyTargets(){
 function hockeyMoveTeam(){const r=state.live.rink,targets=hockeyTargets();for(const a of r.actors){const t=targets[a.key];if(t){rinkMove(a,t.x,t.y);a.duty=t.duty;}}const carrier=r.actors.find(a=>a.key===r.carrier);if(carrier)r.puck={x:carrier.x,y:carrier.y};}
 function hockeyWhistle(type,side,text,x,y=50){
  const r=state.live.rink;r.hockey.icingHold=type==='icing'?{side,ids:r.actors.filter(a=>a.side===side).map(a=>a.id)}:null;r.hockey.counts[type][side]++;r.hockey.stops.unshift({time:analysisClock(),type,side,text});r.hockey.stops=r.hockey.stops.slice(0,40);
- r.restart=true;r.faceoffX=x;r.faceoffY=y;r.lastPass=null;r.hockey.loose=null;rinkSay(text,type,type==='freeze');
+ r.hockey.pp=null;r.restart=true;r.faceoffX=x;r.faceoffY=y;r.lastPass=null;r.hockey.loose=null;rinkSay(text,type,type==='freeze');
 }
 function hockeyEntry(side,from,to,carrierKey){
  const r=state.live.rink;if(rinkX(side,from.x)>66||rinkX(side,to.x)<=66)return false;
@@ -60,7 +63,7 @@ function hockeyClear(actor){
  const r=state.live.rink,side=actor.side,behindRed=rinkX(side,actor.x)<50,pk=hockeySpecial(side)==='pk';
  r.puckVia={x:actor.x,y:actor.y};r.puck={x:rinkX(side,94),y:actor.y<50?18:82};r.carrier=null;r.lastPass=null;
  if(behindRed&&!pk){hockeyWhistle('icing',side,`${actor.name} rensar från egen planhalva hela vägen. Icing.`,rinkX(side,24),actor.y<50?28:72);return;}
- r.hockey.counts.clear[side]++;r.hockey.loose={type:'clear',side};rinkSay(`${actor.name} rensar pucken ur zonen${pk?' i boxplay':''}.`,'clear');
+ r.hockey.pp=null;r.zoneTicks=0;r.hockey.counts.clear[side]++;r.hockey.loose={type:'clear',side};rinkSay(`${actor.name} rensar pucken ur zonen${pk?' i boxplay':''}.`,'clear');
 }
 function hockeyRecover(){
  const r=state.live.rink,loose=r.hockey.loose||{type:'rebound'};
@@ -86,14 +89,34 @@ function hockeyDistribute(){
 }
 function hockeyPassScore(actor,target,defenders){
  const r=state.live.rink,special=hockeySpecial(actor.side),style=hockeyStyle(actor.side),progress=rinkX(actor.side,actor.x),ahead=rinkX(actor.side,target.x)-progress;
- const circulation=special==='pp'&&progress>=66?Math.abs(actor.y-target.y)/180+(target.duty==='Centralt alternativ'?.1:0):ahead/(style==='counter'&&r.hockey.transition>0?65:style==='control'?260:140);
+ const circulation=special==='pp'&&progress>=66?Math.abs(actor.y-target.y)/180+(target.duty==='Bumper'?.14:0)+(r.lastPass?.from===target.key?-.12:0):ahead/(style==='counter'&&r.hockey.transition>0?65:style==='control'?260:140);
  return rinkPassChance(actor,target,defenders)+circulation;
 }
 function hockeyShotChoice(actor){
  const r=state.live.rink,x=rinkX(actor.side,actor.x),pp=hockeySpecial(actor.side)==='pp',style=hockeyStyle(actor.side);
  if(x<=66)return 0;
- return attrClamp((pp?(r.zoneTicks<3?.12:.38):style==='control'?.24:.34)+(x-70)/160+(r.zoneTicks>7?.3:0)+(actor.side==='own'?(state.tacticalPlan.shotChoice==='shoot'?.18:state.tacticalPlan.shotChoice==='patient'?-.12:0):0),.04,.85);
+ if(pp){const setup=r.hockey.pp;if(!setup||setup.side!==actor.side||setup.ready<2||setup.passes<2){const openNet=x>85&&Math.abs(actor.y-50)<12&&!rinkSkaters(rinkOther(actor.side)).some(a=>rinkDistance(a,actor)<4);return openNet?.22:0;}}
+ return attrClamp((pp?.28:style==='control'?.24:.34)+(x-70)/160+(r.zoneTicks>7?.3:0)+(actor.side==='own'?(state.tacticalPlan.shotChoice==='shoot'?.18:state.tacticalPlan.shotChoice==='patient'?-.12:0):0),.04,.85);
 }
-function hockeyPanel(){const r=state.live.rink,h=r.hockey;return `<div class="hockey-match-plan"><label>Spelidé<select onchange="hockeySetStyle(this.value)">${Object.entries(HOCKEY_STYLES).map(([k,t])=>`<option value="${k}" ${hockeyStyle('own')===k?'selected':''}>${t}</option>`).join('')}</select></label><p>${hockeySpecial(r.owner)==='pp'?'Powerplay söker passningar mellan blålinje, sidor och målområde.':hockeyStyle(r.owner)==='counter'&&h.transition>0?'Puckvinst – laget söker en snabb omställning.':`${HOCKEY_STYLES[hockeyStyle(r.owner)]} · ${r.owner==='own'?managerClub():state.live.opponent}`}</p><span>Offside ${h.counts.offside.own}–${h.counts.offside.opponent} · Icing ${h.counts.icing.own}–${h.counts.icing.opponent} · Rensningar ${h.counts.clear.own}–${h.counts.clear.opponent}</span></div>`;}
+function hockeyPanel(){const r=state.live.rink,h=r.hockey;return `<div class="hockey-match-plan"><label>Spelidé<select onchange="hockeySetStyle(this.value)">${Object.entries(HOCKEY_STYLES).map(([k,t])=>`<option value="${k}" ${hockeyStyle('own')===k?'selected':''}>${t}</option>`).join('')}</select></label><p>${hockeySpecial(r.owner)==='pp'?(r.hockey.pp?.ready>=2?'Powerplay uppställt – cirkulerar för att öppna boxen.':'Powerplay bygger upp – etablerar zon och hittar positionerna.'):hockeySpecial(r.owner)==='pk'?'Boxplay: säkra mitten, rensa eller kontra vid fri väg.':hockeyStyle(r.owner)==='counter'&&h.transition>0?'Puckvinst – laget söker en snabb omställning.':`${HOCKEY_STYLES[hockeyStyle(r.owner)]} · ${r.owner==='own'?managerClub():state.live.opponent}`}</p><span>Offside ${h.counts.offside.own}–${h.counts.offside.opponent} · Icing ${h.counts.icing.own}–${h.counts.icing.opponent} · Rensningar ${h.counts.clear.own}–${h.counts.clear.opponent}</span></div>`;}
 function hockeyChangeBlocked(side='own'){const r=state.live?.rink;return Boolean(r?.restart&&r.hockey?.icingHold?.side===side);}
 function hockeyAllowChange(){if(!hockeyChangeBlocked())return true;state.live.rink.caption='Efter icing får laget inte byta före nedsläpp.';save();render();return false;}
+
+function hockeyUpdatePowerplay(){
+ const r=state.live.rink,carrier=r.actors.find(a=>a.key===r.carrier);
+ if(!carrier||hockeySpecial(r.owner)!=='pp'||rinkX(r.owner,carrier.x)<66){r.hockey.pp=null;return;}
+ const signature=rinkSkaters(r.owner).map(a=>a.key).sort().join('|');
+ if(!r.hockey.pp||r.hockey.pp.side!==r.owner||r.hockey.pp.unit!==signature)r.hockey.pp={side:r.owner,unit:signature,entered:r.frame,ready:0,passes:0};
+ const targets=hockeyTargets(),ready=rinkSkaters(r.owner).filter(a=>targets[a.key]&&rinkDistance(a,targets[a.key])<4).length;
+ r.hockey.pp.ready=ready>=Math.min(4,rinkSkaters(r.owner).length)?r.hockey.pp.ready+1:0;
+}
+function hockeyPKDecision(actor){
+ if(hockeySpecial(actor.side)!=='pk')return 'play';
+ const r=state.live.rink,progress=rinkX(actor.side,actor.x),defenders=rinkSkaters(rinkOther(actor.side));
+ const aggressive=actor.side==='own'?state.specialPlans.counter==='selective':true;
+ const outlet=rinkSkaters(actor.side).filter(a=>a!==actor&&rinkX(actor.side,a.x)>progress+10&&rinkLaneThreat(actor,a,defenders)<.16&&!defenders.some(d=>rinkDistance(d,a)<5)).sort((a,b)=>rinkX(actor.side,b.x)-rinkX(actor.side,a.x))[0];
+ const openIce=!defenders.some(d=>rinkX(actor.side,d.x)>progress&&rinkDistance(actor,d)<12);
+ const counter=aggressive&&r.hockey.transition>0&&rinkAttribute(actor,'decisions')>=11&&(outlet||openIce&&progress>35);
+ if(counter){r.hockey.counterOutlet=outlet?.key||null;return 'counter';}
+ return progress<66?'clear':'play';
+}

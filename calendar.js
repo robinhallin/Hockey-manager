@@ -47,11 +47,11 @@ function calendarWindowOpen(){
 function calendarDeadlineText(){return calendarWindowOpen()?`Öppet till 15 feb ${state.season.year+1}`:'Stängt för omedelbara värvningar';}
 function calendarNotify(message){state.calendar.notice=message;save();render();}
 function calendarMarketDay(){
- const c=state.calendar,r=state.recruitment;
+ const c=state.calendar,r=state.recruitment;scoutDay();
  for(const d of r.deals.filter(d=>d.status==='pending'&&d.dueDate&&d.dueDate<=c.date))resolveRecruitDeal(d);
  if(c.date>=c.marketDay){
   advanceRecruitment();c.marketDay=calAdd(c.date,7);
-  for(const [id,report] of Object.entries(state.scoutReports))if(report.dueRound&&report.observedTick!==r.tick){report.visits=Math.min(3,(report.visits||0)+1);report.observedTick=r.tick;delete report.dueRound;const p=findPlayerAnywhere(id);if(p)managerMessage(`scout:${id}:${report.visits}`,`Scoutrapport: ${p.name}`,`Observation ${report.visits} av 3 är klar.`,'Chefsscout',{link:'scouting'});}
+
  }
  if(c.date===`${state.season.year+1}-02-08`||c.date===`${state.season.year+1}-02-15`)managerMessage(`deadline:${c.date}`,'Transferdeadline närmar sig',`Sista dagen för omedelbara värvningar är 15 februari. Bud tar två kalenderdagar att behandla; en övergång måste vara klar före stängningen. Avtal inför nästa säsong kan fortfarande förhandlas.`,'Sportchefen',{link:'transfers'});
 }
@@ -205,7 +205,7 @@ function submitFutureOffer(id,salary,years,role){
  if(!managerCanPlay())return;
  const p=findPlayerAnywhere(id),seller=getPlayerClub(id),r=state.recruitment;
  if(state.live&&!state.live.finished)return recruitMessage('Avsluta matchen innan du förhandlar nästa avtal.');
- if(!p||isOwnPlayer(p)||p.contractYears!==1||p.futureContract||state.season.phase==='preseason')return recruitMessage('Förhandsavtal gäller spelare i andra klubbar med ett kontraktsår kvar, under pågående säsong.');
+ if(!p||playerLoan(p)||isOwnPlayer(p)||p.contractYears!==1||p.futureContract||state.season.phase==='preseason')return recruitMessage('Förhandsavtal gäller spelare i andra klubbar med ett kontraktsår kvar, under pågående säsong.');
  salary=Math.round(Number(salary));years=Number(years);
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return recruitMessage('Ange giltig lön, roll och avtalslängd.');
  if(r.deals.some(d=>samePlayerId(d.playerId,id)&&['pending','future_signed'].includes(d.status)))return recruitMessage('Ett erbjudande eller framtida avtal finns redan.');
@@ -215,7 +215,7 @@ function submitFutureOffer(id,salary,years,role){
 }
 function calendarResolveFuture(d){
  const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null;
- let reason=!p||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w||d.salary<w.salary||SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)||d.years<w.minYears||d.years>w.maxYears?'Lön, roll eller avtalslängd motsvarar inte spelarens krav.':calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
+ let reason=!p||playerLoan(p)||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w||d.salary<w.salary||SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)||d.years<w.minYears||d.years>w.maxYears?'Lön, roll eller avtalslängd motsvarar inte spelarens krav.':calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
  if(reason){d.status='rejected';d.reason=reason;recruitReport(`Besked om ${d.name}`,reason);return;}
  let buyer=d.buyer,terms=d;
  if(d.rival&&calendarFutureRoom(d.rival.club)>=d.rival.salary&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}

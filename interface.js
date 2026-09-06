@@ -7,11 +7,11 @@ const DESK_AREAS = [
   {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Kedjor'],['specialTeams','Powerplay & boxplay'],['tactics','Taktik'],['locker','Omklädningsrum']],details:{player:'squad'}},
   {id:'training',label:'Träning',icon:'training',pages:[['training','Träningsplan'],['juniors','Juniorer'],['medical','Medicinskt team']]},
   {id:'matches',label:'Matcher',icon:'calendar',pages:[['calendar','Kalender'],['match','Matchcenter'],['opponents','Motståndsrapport'],['statistics','Matchanalys']],details:{schedule:'calendar',round:'calendar'}},
-  {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Spelarsökning'],['scouting','Scoutrapporter']],details:{marketPlayer:'transfers'}},
+  {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Spelarsökning'],['scouting','Scoutcentralen']],details:{marketPlayer:'transfers'}},
   {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
   {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
 ];
-const DESK_RECRUIT_TABS = [['search','Spelarsökning'],['shortlist','Önskelista'],['missions','Scoutuppdrag'],['deals','Förhandlingar']];
+const DESK_RECRUIT_TABS = [['search','Spelarsökning'],['shortlist','Önskelista'],['missions','Scoutcentralen'],['deals','Förhandlingar']];
 const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['free','Kontraktslösa'],['history','Övergångar'],['world','Spelarvärlden']];
 
 function deskIcon(name){
@@ -39,9 +39,9 @@ function deskPrimaryNav(){
 function deskSubnav(){
   const area=deskArea(),page=area?.details?.[state.page]||state.page;
   if(area?.id==='recruitment'){
-    const tab=state.page==='scouting'?'reports':state.recruitment.tab;
+    const tab=state.page==='scouting'?'missions':state.recruitment.tab;
     const extra=DESK_RECRUIT_MORE.find(([id])=>id===tab),more=Boolean(extra||tab==='reports');
-    return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${tab===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}<details class="desk-more ${more?'selected':''}"><summary>${extra?extra[1]:tab==='reports'?'Scoutrapporter':'Mer'}</summary><div>${deskLink('Scoutrapporter',{page:'scouting'})}${DESK_RECRUIT_MORE.map(([id,label])=>deskLink(label,{page:'transfers',tab:id})).join('')}</div></details></nav>`;
+    return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${tab===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}<details class="desk-more ${more?'selected':''}"><summary>${extra?extra[1]:tab==='reports'?'Scoutrapporter':'Mer'}</summary><div>${DESK_RECRUIT_MORE.map(([id,label])=>deskLink(label,{page:'transfers',tab:id})).join('')}</div></details></nav>`;
   }
   const pages=area?.pages||(['inbox','news'].includes(page)?[['inbox','Inkorg'],['news','Nyheter']]:[]);
   if(pages.length<2)return '';
@@ -100,6 +100,9 @@ function deskFixtures(){
 function deskTasks(){
   const tasks=[],roster=managerRoster(),pending=pendingManagerDecision(),r=state.recruitment;
   if(pending)tasks.push({title:pending.title,detail:'Ett samtal behöver ditt svar innan kalendern kan gå vidare.',action:{messageId:pending.id},tag:'Beslut',tone:'amber'});
+  const loanReplies=(state.loans?.offers||[]).filter(o=>o.status==='counter');
+  if(loanReplies.length)tasks.push({title:`${loanReplies.length} motbud om lån`,detail:'Klubb och spelare föreslår nya villkor. Ditt svar behövs inom sju dagar.',action:{page:'transfers',tab:'loans'},tag:'Låneavtal',tone:'amber'});
+  const counters=r.deals.filter(d=>d.status==='pending'&&d.counter);if(counters.length)tasks.push({title:`${counters.length} motbud om värvningar`,detail:'Granska agentens förslag innan giltighetstiden går ut.',action:{page:'transfers',tab:'deals'},tag:'Avtal',tone:'amber'});
   const offers=r.incoming.filter(o=>o.status==='pending'&&o.expires>=r.tick);
   if(offers.length)tasks.push({title:`${offers.length} bud på dina spelare`,detail:'Granska villkoren och välj om klubben ska sälja.',action:{page:'transfers',tab:'deals'},tag:'Bud',tone:'amber'});
   if(state.season.phase==='review')tasks.push({title:'Säsongen ska utvärderas',detail:'Läs styrelsens besked och förbered nästa säsong.',action:{page:'season'},tag:'Säsong',tone:'amber'});

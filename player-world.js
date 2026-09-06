@@ -1,17 +1,26 @@
 "use strict";
 // Career simulation rules, not predictions about the real people in the database.
 const WORLD_FREE='Kontraktslös';
+// Public profiles and departure notices checked 2026-09-06; no registered 2026/27 club found.
+// A database snapshot, not a guarantee that an unannounced real-world agreement does not exist.
+const WORLD_START_FREE=[
+ {id:'ep-10051',name:'Daniel Brodin',birth:'1990-02-09',position:'RW',nationality:'SWE',height:186,weight:85,shoots:'R',previousClub:'Björklöven',source:'https://www.eliteprospects.com/player/10051/daniel-brodin',departure:'https://www.bjorkloven.com/article/6j3atjc-2e4ad/view',stats:[{season:'25-26',team:'Djurgårdens IF',league:'SHL',gp:24,goals:1,assists:0,pim:0},{season:'25-26',team:'IF Björklöven',league:'HockeyAllsvenskan',gp:17,goals:1,assists:3,pim:14},{season:'24-25',team:'Djurgårdens IF',league:'HockeyAllsvenskan',gp:38,goals:5,assists:6,pim:45}]},
+ {id:'ep-142238',name:'Oliver Kylington',birth:'1997-05-19',position:'D',nationality:'SWE',height:183,weight:83,shoots:'L',previousClub:'Djurgårdens IF',source:'https://www.eliteprospects.com/player/142238/oliver-kylington',departure:'https://www.difhockey.se/article/eoyatcg-1lead/view',stats:[{season:'25-26',team:'Djurgårdens IF',league:'SHL',gp:25,goals:2,assists:6,pim:10},{season:'24-25',team:'Colorado Avalanche',league:'NHL',gp:13,goals:1,assists:3,pim:4},{season:'24-25',team:'Anaheim Ducks',league:'NHL',gp:6,goals:0,assists:1,pim:4}]},
+ {id:'ep-43555',name:'Oula Palve',birth:'1992-02-19',position:'C',nationality:'FIN',height:183,weight:83,shoots:'L',previousClub:'Djurgårdens IF',source:'https://www.eliteprospects.com/player/43555/oula-palve',departure:'https://www.difhockey.se/article/eoyatcg-1lead/view',stats:[{season:'25-26',team:'Djurgårdens IF',league:'SHL',gp:18,goals:3,assists:7,pim:12},{season:'25-26',team:'EHC Kloten',league:'NL',gp:16,goals:1,assists:4,pim:6},{season:'24-25',team:'HC Ajoie',league:'NL',gp:32,goals:2,assists:17,pim:10},{season:'24-25',team:'Genève-Servette HC',league:'NL',gp:9,goals:1,assists:5,pim:8}]},
+ {id:'ep-155712',name:'Collin Delia',birth:'1994-06-20',position:'G',nationality:'USA',height:188,weight:91,shoots:'L',previousClub:'Kalmar HC',source:'https://www.eliteprospects.com/player/155712/collin-delia',departure:'https://www.instagram.com/p/DXMYka7iIzA/',stats:[{season:'25-26',team:'Brynäs IF',league:'SHL',gp:6,sv:.791,gaa:3.87},{season:'25-26',team:'Kalmar HC',league:'HockeyAllsvenskan',gp:2,sv:.932,gaa:1.50},{season:'24-25',team:'Bakersfield Condors',league:'AHL',gp:28,sv:.906,gaa:2.76}]}
+];
+function worldStartingFree(){return WORLD_START_FREE.map(row=>{const p=haPlayer({...row,registration:'Kontraktslös'},row.previousClub);Object.assign(p,{club:WORLD_FREE,previousClub:row.previousClub,contractYears:0,freeSince:2026});p.research.checked='2026-09-06';p.research.departure=row.departure;p.research.freeSnapshot=true;return p;});}
 function ensurePlayerWorld(){
  if(!state.careerStarted)return;
  if(!state.playerWorld){
   const employed=new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id)));
-  const pools=[...(state.season?.freeAgents||[]),...Object.values(state.managerCareer?.bank||{}).flatMap(c=>c.freeAgents||[])];
+  const pools=[...(state.seedFreeAgents?worldStartingFree():[]),...(state.season?.freeAgents||[]),...Object.values(state.managerCareer?.bank||{}).flatMap(c=>c.freeAgents||[])];
   const unique=new Map(pools.filter(p=>!employed.has(String(p.id))).map(p=>[String(p.id),p]));
   state.playerWorld={version:1,year:state.season.year,freeAgents:[...unique.values()],events:[],summaries:[],nextId:1};
   for(const p of state.playerWorld.freeAgents){p.club=WORLD_FREE;p.contractYears=0;p.freeSince=state.season.year;}
   for(const c of Object.values(state.managerCareer?.bank||{}))delete c.freeAgents;
  }
- state.season.freeAgents=state.playerWorld.freeAgents;
+ delete state.seedFreeAgents;state.season.freeAgents=state.playerWorld.freeAgents;
 }
 function worldIsFree(id){return Boolean(state.playerWorld?.freeAgents.some(p=>samePlayerId(p.id,id)));}
 function worldGroup(p){return p.pos==='MV'?'MV':p.pos==='B'?'B':'F';}
@@ -107,7 +116,7 @@ function playerWorldNewYear(){
 }
 function worldFreeView(){
  ensurePlayerWorld();const f=recruitFilters(),players=recruitCandidates({...f,maxFee:0}).filter(p=>worldIsFree(p.id));
- return `<section><h2>Kontraktslösa</h2><p>Förhandla direkt med spelaren. Ingen övergångssumma, men lön, roll och konkurrerande erbjudanden avgör. Aktuella sökfilter gäller även här.</p><button class="btn secondary" onclick="recruitTab('search')">Ändra sökfilter</button>${recruitPlayerRows(players.slice(0,60))}${players.length>60?'<p>Visar 60 spelare. Begränsa sökningen för att hitta fler.</p>':''}</section>`;
+ return `<section><h2>Kontraktslösa</h2><p>Förhandla direkt med spelaren. Ingen övergångssumma, men lön, roll och konkurrerande erbjudanden avgör. Aktuella sökfilter gäller även här. Nya karriärer börjar med fyra verkliga namn från det kontrollerade starturvalet 6 september 2026.</p><p><a href="FREE_AGENT_RESEARCH.md" target="_blank" rel="noopener noreferrer">Starturval & källor</a></p><button class="btn secondary" onclick="recruitTab('search')">Ändra sökfilter</button>${recruitPlayerRows(players.slice(0,60))}${players.length>60?'<p>Visar 60 spelare. Begränsa sökningen för att hitta fler.</p>':''}</section>`;
 }
 function worldEventFilter(value){if(!['all','retire','release','renew','intake','exit'].includes(value))return;state.playerWorld.filter=value;save();render();}
 function playerWorldView(){

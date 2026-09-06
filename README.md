@@ -1,6 +1,20 @@
 # Hockey-manager
 
-## Current release: daily calendar and matchday decisions
+## Current release: a connected hockey world
+
+The Scout Centre now brings squad needs, dated assignments and finished role reports together. Own players have 90% familiarity and exact 1–20 attributes; ability and potential stars remain staff judgements relative to the manager's roster. External estimates narrow after three paid observations, seven calendar days apart. Individual and group assignments share staff capacity and cannot double-observe a player. Reports are searchable. Four sourced free agents are present in new careers; [research, dates and exclusions](FREE_AGENT_RESEARCH.md) document the snapshot. Existing careers are preserved.
+
+Loan proposals specify wage share, duration, playing role and recall terms. Clubs and players respond after two days with agreement, a counteroffer or refusal. Counteroffers require explicit acceptance and expire after seven days. Incoming commitments reserve wage room alongside recruitment offers; a signed loan moves one player object and splits the same annual salary. Early recall respects the agreed 28-day minimum. Six eligible fixtures trigger a role review using actual ice time, with bounded morale, happiness and trust consequences. Original database loans retain their terms.
+
+Recruitment can produce an agent/club counteroffer with the original and revised terms visible. Renewal discussions consider age, trust and promised role, enforce budget reservations and pause for seven days after three rejected proposals; closing the dialog does not reset this. Loaned players cannot negotiate a permanent or future contract with the borrowing manager. Agreed senior roles are followed up against actual minutes. Actionable counteroffers appear on the manager's home page.
+
+Powerplay and penalty-kill units are composed on a half-rink board with role-specific attribute suggestions. PP offers 1–3–1, umbrella and overload; PK offers box/diamond and safe clearance or selective counters. Those exact assignments drive the live model. PP must enter the zone, establish its shape and circulate before ordinary shooting opportunities. PK protects central lanes and clears when there is no convincing outlet. Formation changes preserve the puck as a loose-puck contest if its carrier leaves; replacement players enter from the bench rather than teleporting into possession. Player momentum softens abrupt direction changes and animation uses the entire frame interval. Simulation time and outcomes remain independent of playback speed.
+
+Team talks address the selected match squad, not every registered player. Thirteen bench messages consider individual sensitivity, ambition, trust, fatigue and match contribution. Six common messages remain visible and further tactical messages expand on demand. Reactions can be positive, neutral or negative; immediate motivation is temporary, while capped morale/trust changes persist. Morale has a small bounded effect on match execution. Club palettes follow the career selection and employer across navigation, the office and rink kits, including HV71 blue and yellow. Ability/potential star colours retain their distinct meaning.
+
+`living-world.test.cjs` exercises the connected workflows, alongside the existing calendar, transfer, roster, save, rink, full-match and season suites. Static generated markup checks cover the new screens. Browser-based visual/animation review has not been performed in this environment.
+
+## Previous release: daily calendar and matchday decisions
 
 The month calendar is the manager's daily workspace. Selecting a date previews its fixture, training plan, dated reports and pending decisions without moving time. Team sessions are planned by date; individual focus and rest remain under Training. Continue advances exactly one day, stopping for conversations or the current match. Opening a match cannot skip preparation dates. Final scores, player grades and team talks stay on the match date until the manager ends it. Preseason and spectator playoff progression follow the same daily clock; regular-season launch is available from 7 September.
 

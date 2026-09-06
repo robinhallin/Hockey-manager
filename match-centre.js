@@ -11,7 +11,11 @@ const MATCH_MESSAGES={
  focus:['Nästa byte','Samla koncentrationen kring nästa uppgift.'],
  discipline:['Håll er ur utvisningsbåset','Påminn om disciplin efter en utvisning.'],
  compete:['Vinn nästa duell','Utmana arbetsviljan. Slitna spelare kan känna sig överkörda.'],
- patient:['Ha tålamod med pucken','Ge trygghet att fatta nästa beslut utan att forcera.']
+ patient:['Ha tålamod med pucken','Ge trygghet att fatta nästa beslut utan att forcera.'],
+ responsibility:['Kliv fram och led','Ansvar kan stärka ledare men pressa osäkra spelare.'],
+ simplify:['Gör det enkla','Tydliga ramar hjälper slitna eller osäkra spelare.'],
+ freedom:['Våga skapa själv','Ge spelskickliga spelare frihet; alla trivs inte utan ramar.'],
+ protect:['Ta ansvar hemåt','Bekräfta det defensiva jobbet när ni leder.']
 };
 const MATCH_PLANS={
  control:{label:'Ta kontroll',note:'Balanserat spel, lugn puckbehandling och normal belastning.',tactic:'balanced',attackStyle:'control',forecheck:'balanced',tempo:'normal'},
@@ -39,32 +43,20 @@ function matchOrder(key,value){
  matchNotice('Lagordern är uppdaterad. Fortsätt matchen när du är klar.');matchFocus('match-order-'+key);
 }
 function matchFeedbackPlayers(target=matchDesk.target){
- const skaters=managerRoster().filter(p=>p.pos!=='MV'&&medicalAvailable(p));
+ const skaters=socialMatchPlayers().filter(p=>p.pos!=='MV');
  if(target==='team')return skaters;
  if(target==='ice'){const ids=[...currentLinePlayers(),...currentDefensePlayers()].map(p=>String(p.id));return skaters.filter(p=>ids.includes(String(p.id)));}
  if(target.startsWith('player:'))return skaters.filter(p=>samePlayerId(p.id,target.slice(7)));
  return [];
 }
 function matchFeedbackWait(){const m=state.live;return Math.max(0,(m?.benchFeedback?.nextAt||0)-(m?analysisClock():0));}
-function matchFeedbackReaction(kind,p){
- const m=state.live,s=p.social,lead=m.hv-m.opp,shots=m.shotsHV-m.shotsOpp;
- const recentConceded=m.analysis?.events.some(e=>e.type==='goal'&&e.side==='opponent'&&analysisClock()-e.time<=120);
- if(kind==='discipline')return m.analysis?.events.some(e=>e.type==='penalty'&&e.side==='own'&&analysisClock()-e.time<=180)?[.65,'Tar till sig påminnelsen efter utvisningen']:[.1,'Påminns om att hålla disciplinen'];
- if(kind==='compete')return matchEnergy(p)<55?[-.5,'Är sliten och upplever kravet som för hårt']:ensurePlayerAttributes(p).workRate>=13?[.7,'Svarar på uppmaningen att vinna sin duell']:[.2,'Försöker höja arbetsinsatsen'];
- if(kind==='patient')return s.sensitivity>=12?[.6,'Vågar hålla i pucken och fatta sitt beslut']:[.25,'Behåller tålamodet i spelet'];
- if(kind==='support')return s.sensitivity>=12?[.75,'Blir tryggare av ditt stöd']:[.3,'Uppskattar förtroendet'];
- if(kind==='demand')return (lead<0||shots<-3)&&s.ambition>=12&&s.sensitivity<=12?[.9,'Vill svara på utmaningen']:[-.55,'Känner onödig press'];
- if(kind==='calm')return s.sensitivity>=12?[.65,'Slappnar av och samlar sig']:[.2,'Behåller sitt lugn'];
- if(kind==='praise')return lead>0||shots>3?[.65,'Får energi av att insatsen uppskattas']:[-.4,'Känner inte igen din bild av matchen'];
- if(kind==='reset')return recentConceded?[.7,'Lägger baklängesmålet bakom sig']:[0,'Har inget färskt baklängesmål att släppa'];
- return [.25,'Koncentrerar sig på nästa byte'];
-}
+function matchFeedbackReaction(kind,p){return socialFeedbackReaction(kind,p);}
 function matchFeedback(kind){
  const m=state.live;if(!m||m.finished||!MATCH_MESSAGES[kind]||matchFeedbackWait()>0||(!m.socialStarted?.[socialTalkSlot()]&&m.minute===0&&m.second===0))return;
  const players=matchFeedbackPlayers();if(!players.length)return;matchPause();ensureLocker();
  const previous=m.benchFeedback?.history||[],scale=Math.max(.4,1-previous.slice(0,3).filter(x=>x.kind===kind).length*.2);
  const report={kind,time:analysisClock(),slot:socialTalkSlot(),target:matchDesk.target==='team'?'Alla utespelare':matchDesk.target==='ice'?'Femman på isen':players[0].name,
- reactions:players.map(p=>{const [effect,reason]=matchFeedbackReaction(kind,p);return {id:p.id,name:p.name,effect:effect*scale,reason};})};
+ reactions:players.map(p=>{const [effect,reason]=matchFeedbackReaction(kind,p);return {id:p.id,name:p.name,effect:effect*scale,reason,...socialApplyFeedback(p,effect*scale)};})};
  m.benchFeedback={nextAt:report.time+180,history:[report,...previous].slice(0,16)};
  addEvent(`Från bänken till ${report.target}: ”${MATCH_MESSAGES[kind][0]}”.`,'strategy');
  matchNotice('Budskapet är framfört. Se spelarnas reaktioner nedan.');matchFocus('match-feedback-report');
@@ -122,12 +114,13 @@ function matchOrdersView(){
  ${select('shotChoice','Avslutsval',[['patient','Sök ett bättre läge'],['balanced','Läs situationen'],['shoot','Skjut oftare']],'Fler skott kan ge returer men avslutar uppbyggnaden tidigare.')}
  ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}</div>`;
 }
+function matchFeedbackChoices(extra,wait){return Object.entries(MATCH_MESSAGES).filter((_,i)=>extra?i>=6:i<6).map(([key,[label,note]])=>`<button class="mc-choice" onclick="matchFeedback('${key}')" ${wait?'disabled':''}><b>${label}</b><small>${note}</small></button>`).join('');}
 function matchFeedbackView(){
  const m=state.live,report=m.benchFeedback?.history?.[0],wait=matchFeedbackWait();
  if(m.finished||(!m.socialStarted?.[socialTalkSlot()]&&m.minute===0&&m.second===0))return teamTalkPanel();
  if(!matchFeedbackPlayers().length)matchDesk.target='team';
- return `${m.finished?'':`<h3>Din röst från bänken</h3><p class="mc-note">Rikta ett kort budskap till laget, femman eller en spelare.</p><label class="mc-target" for="match-feedback-target">Vem vill du nå?<select id="match-feedback-target" onchange="matchTarget(this.value)">${[['team','Alla utespelare'],['ice','Femman på isen'],...managerRoster().filter(p=>p.pos!=='MV'&&medicalAvailable(p)).map(p=>['player:'+p.id,p.name])].map(([v,label])=>`<option value="${v}" ${matchDesk.target===v?'selected':''}>${trainingSafe(label)}</option>`).join('')}</select></label><div class="mc-messages">${Object.entries(MATCH_MESSAGES).map(([key,[label,note]])=>`<button class="mc-choice" onclick="matchFeedback('${key}')" ${wait?'disabled':''}><b>${label}</b><small>${note}</small></button>`).join('')}</div><p class="mc-note">${wait?`Låt budskapet landa. Nästa rop om ${analysisTime(wait)} matchtid.`:'Ett rop var tredje matchminut. Reaktionen varar i två minuter, längst till periodslut. Upprepning minskar effekten.'}</p>`}
- ${report?`<div class="mc-response" id="match-feedback-report" tabindex="-1"><strong>${trainingSafe(MATCH_MESSAGES[report.kind]?.[0]||'Budskap')} · ${trainingSafe(report.target)}</strong><span>${report.slot===socialTalkSlot()&&analysisClock()<report.time+120&&!m.finished?'Aktivt budskap':'Budskapet har klingat av'} · ${report.reactions.filter(r=>r.effect>0).length} positiva · ${report.reactions.filter(r=>r.effect<0).length} negativa · ${report.reactions.filter(r=>r.effect===0).length} neutrala</span><details><summary>Spelarnas reaktioner</summary>${report.reactions.map(r=>`<p><b>${trainingSafe(r.name)}</b><span>${trainingSafe(r.reason)}</span></p>`).join('')}</details></div>`:''}`;
+ return `${m.finished?'':`<h3>Din röst från bänken</h3><p class="mc-note">Rikta ett kort budskap till laget, femman eller en spelare.</p><label class="mc-target" for="match-feedback-target">Vem vill du nå?<select id="match-feedback-target" onchange="matchTarget(this.value)">${[['team','Alla utespelare'],['ice','Femman på isen'],...socialMatchPlayers().filter(p=>p.pos!=='MV').map(p=>['player:'+p.id,p.name])].map(([v,label])=>`<option value="${v}" ${matchDesk.target===v?'selected':''}>${trainingSafe(label)}</option>`).join('')}</select></label><div class="mc-messages">${matchFeedbackChoices(false,wait)}</div><details class="mc-extra-feedback"><summary>Fler budskap · speluppgifter och ansvar</summary><div class="mc-messages">${matchFeedbackChoices(true,wait)}</div></details><p class="mc-note">${wait?`Låt budskapet landa. Nästa rop om ${analysisTime(wait)} matchtid.`:'Ett rop var tredje matchminut. Reaktionen varar i två minuter, längst till periodslut. Upprepning minskar effekten. Moral och förtroende påverkas försiktigt och sparas.'}</p>`}
+ ${report?`<div class="mc-response" id="match-feedback-report" tabindex="-1"><strong>${trainingSafe(MATCH_MESSAGES[report.kind]?.[0]||'Budskap')} · ${trainingSafe(report.target)}</strong><span>${report.slot===socialTalkSlot()&&analysisClock()<report.time+120&&!m.finished?'Aktivt budskap':'Budskapet har klingat av'} · ${report.reactions.filter(r=>r.effect>0).length} positiva · ${report.reactions.filter(r=>r.effect<0).length} negativa · ${report.reactions.filter(r=>r.effect===0).length} neutrala</span><details><summary>Spelarnas reaktioner</summary>${report.reactions.map(r=>`<p><b>${trainingSafe(r.name)}</b><span>${trainingSafe(r.reason)}${r.morale?` · moral ${r.morale>0?'+':''}${r.morale}`:''}</span></p>`).join('')}</details></div>`:''}`;
 }
 function matchChangesView(){
  const m=state.live,special=specialUnitOnIce(),blocked=hockeyChangeBlocked(),skaters=managerRoster().filter(p=>p.pos!=='MV'&&medicalAvailable(p));
