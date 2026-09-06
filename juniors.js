@@ -140,7 +140,7 @@ function juniorFixture(key){
 }
 function juniorNewYear(){
  ensureJuniors();const s=state.juniors,year=state.season.year;if(s.year===year)return;s.year=year;
- for(const p of s.roster){p.age++;p.fatigue=0;if(p.academy.seniorContract){p.contractYears=Math.max(0,p.contractYears-1);if(!p.contractYears)p.academy.seniorContract=false;}if(p.academy.loan){p.academy.loan=null;p.academy.path='junior';}}
+ for(const p of s.roster){developmentBirthday(p);p.fatigue=0;if(p.academy.seniorContract){p.contractYears=Math.max(0,p.contractYears-1);if(!p.contractYears)p.academy.seniorContract=false;}if(p.academy.loan){p.academy.loan=null;p.academy.path='junior';}}
  for(const p of juniorPlayers()){p.academy.baseline={...p.attributes};p.academy.games=0;p.academy.seconds=0;p.academy.goals=0;p.academy.assists=0;p.academy.missed=0;}
  const positions=['MV','B','B','C','VF','HF'],incoming=positions.slice(0,Math.max(0,30-s.roster.length)).map(pos=>createJunior(pos,true));s.roster.push(...incoming);
  s.intakes.unshift({year,names:incoming.map(p=>p.name)});s.intakes=s.intakes.slice(0,10);

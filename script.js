@@ -1084,6 +1084,8 @@ function save(){
   ensureClub();
   ensureManager();
 
+  for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
+
   localStorage.setItem(
     "hockey_manager_alpha02",
     JSON.stringify(state)

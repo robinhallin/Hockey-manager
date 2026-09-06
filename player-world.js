@@ -90,7 +90,7 @@ function playerWorldNewYear(){
  ensurePlayerWorld();const w=state.playerWorld,year=state.season.year;if(w.year>=year)return;
  w.year=year;w.countYear=year;w.counts={};
  // Club-roster ages were advanced by beginPreseason; free agents need their own step.
- for(const p of [...w.freeAgents]){p.age++;if(worldRetires(p)||year-p.freeSince>=3){worldRetire(p,WORLD_FREE,worldRetires(p)?'retire':'exit');worldRemoveFree(p.id);}}
+ for(const p of [...w.freeAgents]){developmentBirthday(p);if(worldRetires(p)||year-p.freeSince>=3){worldRetire(p,WORLD_FREE,worldRetires(p)?'retire':'exit');worldRemoveFree(p.id);}}
  for(const [club,roster] of Object.entries(state.clubRosters)){
   state.clubRosters[club]=roster.filter(p=>{if(!worldRetires(p))return true;worldRetire(p,club);return false;});
   // AI player development now accrues through actual calendar days and appearances.

@@ -65,7 +65,7 @@ function playerAssessment(p){
   const judgment=(20-ability)*.045+.12;
   const judged=roles[0].value+(attrSeed(`${p.id}:${staff.personId||staff.id}:judgment`)-.5)*2*judgment;
   const potentialError=(p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2;
-  const potentialEstimate=roles[0].value+p.attributeGrowth+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
+  const potentialEstimate=Math.max(...roleWeights(p).map(role=>attributeWeighted(ensureDevelopment(p).ceiling,PLAYER_ROLES[role])))+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
   return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(judged),low:stars(judged-uncertainty-judgment),high:stars(judged+uncertainty+judgment),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
 function starsText(value){const n=Math.max(0,Math.min(5,Math.round(value)));return '★'.repeat(n)+'☆'.repeat(5-n);}
@@ -140,6 +140,60 @@ function matchAttributeRating(p,type='attack'){
   const weights=type==='shot'?{shooting:5,composure:2,puckControl:1}:type==='pass'?{passing:4,vision:3,decisions:2}:type==='defense'?{positioning:4,checking:2,decisions:2,discipline:1}:type==='faceoff'?{faceoffs:5,decisions:1,strength:1}:{skating:2,acceleration:1,passing:2,vision:2,shooting:2,puckControl:2,workRate:1,decisions:2};
   return 45+attributeWeighted(a,weights)*2.5;
 }
-function developAttributes(p){const a=ensurePlayerAttributes(p);const map={Skott:'shooting',Passningar:'passing',Försvar:'positioning',Fysik:'stamina'};const requested=map[p.developmentFocus];const key=requested&&keyIn(a,requested)?requested:Object.keys(a).sort((x,y)=>a[x]-a[y])[0];a[key]=Math.min(20,a[key]+1);p.attributeGrowth=Math.max(0,p.attributeGrowth-.15);}
+function developAttributes(p){const a=ensurePlayerAttributes(p);const map={Skott:'shooting',Passningar:'passing',Försvar:'positioning',Fysik:'stamina'};const requested=map[p.developmentFocus];const key=requested&&keyIn(a,requested)?requested:Object.keys(a).sort((x,y)=>a[x]-a[y])[0];developmentAdvance(p,key,100);}
 function keyIn(a,k){return Object.prototype.hasOwnProperty.call(a,k);}
 function unitAssessment(ids){const ps=ids.map(playerById).filter(Boolean);if(!ps.length)return 'Ingen enhet';const avg=key=>Math.round(ps.reduce((n,p)=>n+playerAssessment(p).estimated[key],0)/ps.length);return `Pass ${avg('passing')} · Avslut ${avg('shooting')} · Pos ${avg('positioning')}`;}
+
+
+// Saved, private development profiles. Never expose ceilings as scouting facts.
+function ensureDevelopment(p){
+ const a=ensurePlayerAttributes(p);
+ if(!p.developmentModel){
+  const seed=k=>attrSeed(`${p.id}:development:${k}`),ceiling={};
+  const room=Math.max(0,Number(p.attributeGrowth)||0);
+  for(const [key,value] of Object.entries(a))ceiling[key]=Math.max(value,Math.min(20,p.academy?.ceiling?.[key]??value+Math.round(room*(.35+seed(key)*.65))));
+  p.developmentModel={version:1,ceiling,pace:.75+seed('pace')*.5,peakOffset:Math.floor(seed('peak')*5)-2,decline:{},history:[],lastBirthday:state.season?.year||2026};
+ }
+ return p.developmentModel;
+}
+function developmentPhysical(key){return ['skating','acceleration','stamina','strength','checking','movement','reflexes'].includes(key);}
+function developmentPeak(p,key){return (developmentPhysical(key)?(p.pos==='MV'?32:29):['decisions','vision','positioning','composure','discipline'].includes(key)?36:33)+ensureDevelopment(p).peakOffset;}
+function developmentRate(p,key){
+ const d=ensureDevelopment(p),room=d.ceiling[key]-p.attributes[key];if(room<=0)return 0;
+ const peak=developmentPeak(p,key),age=p.age;
+ const ageFactor=age<22?1.15:age<=peak?1:Math.max(.08,1-(age-peak)*.15);
+ // Approaching the final attainable step is slower; no rerolls on reload.
+ return d.pace*ageFactor*(room>=3?1:room===2?.65:.35);
+}
+function developmentAdvance(p,key,points){
+ const d=ensureDevelopment(p);
+ if(!Number.isFinite(points)||points<=0||!Object.hasOwn(d.ceiling,key)||p.health?.injury)return false;
+ if(!p.trainingProgress)p.trainingProgress={};
+ if(p.attributes[key]>=d.ceiling[key]){p.trainingProgress[key]=0;return false;}
+ p.trainingProgress[key]=Math.min(199,(p.trainingProgress[key]||0)+points*developmentRate(p,key));
+ if(p.trainingProgress[key]<100)return false;
+ p.trainingProgress[key]-=100;p.attributes[key]++;
+ if(p.attributes[key]>=d.ceiling[key])p.trainingProgress[key]=0;
+ p.attributeGrowth=Math.max(0,p.attributeGrowth-.12);
+ developmentRecord(p,key,1,'Träning och matchvana');return true;
+}
+function developmentRecord(p,key,change,reason){
+ const d=ensureDevelopment(p);d.history.unshift({year:state.season?.year||2026,date:state.calendar?.date||null,key,change,reason});d.history=d.history.slice(0,24);
+}
+function developmentBirthday(p){
+ const d=ensureDevelopment(p),year=state.season.year;if(d.lastBirthday>=year)return;
+ d.lastBirthday=year;p.age++;
+ for(const key of Object.keys(p.attributes)){
+  const years=p.age-developmentPeak(p,key);if(years<=0)continue;
+  const physical=developmentPhysical(key),resilience=(p.attributes.stamina||p.attributes.composure||10)/20;
+  const loss=Math.min(1.6,(physical?.22:.1)*years)*(1.15-resilience*.3);
+  d.decline[key]=(d.decline[key]||0)+loss;
+  const steps=Math.min(p.attributes[key]-1,Math.floor(d.decline[key]));
+  if(steps>0){p.attributes[key]-=steps;d.decline[key]-=steps;developmentRecord(p,key,-steps,'Åldrande');}
+ }
+}
+function developmentPanel(p){
+ const d=ensureDevelopment(p),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
+ const history=d.history.slice(0,5);
+ return `<div class="training-coach-note"><strong>Spelarens utveckling</strong><p>Utveckling sker i olika takt och kan plana ut. Ork, tränarstöd, matchvana och ålder påverkar. Personalens potentialstjärnor är en osäker bedömning.</p>${history.length?history.map(h=>`<p>${h.date?calText(h.date):seasonLabel(h.year)} · ${labels[h.key]} ${h.change>0?'+':''}${h.change} · ${h.reason}</p>`).join(''):'<p>Inga nya attributförändringar registrerade ännu.</p>'}</div>`;
+}

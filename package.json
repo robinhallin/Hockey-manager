@@ -7,7 +7,8 @@
     "data:match-lab": "node scripts/export-match-lab.cjs",
     "test:career-match": "node career-match.test.cjs && node career-match-rules.test.cjs",
     "test:match-realism": "node match-realism.test.cjs && node career-realism.test.cjs",
-    "check:match-balance": "node scripts/match-balance.cjs"
+    "check:match-balance": "node scripts/match-balance.cjs",
+    "test:development": "node development.test.cjs"
   },
   "devDependencies": {
     "vite": "8.0.13"

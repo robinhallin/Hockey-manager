@@ -86,13 +86,13 @@ function rivalInjury(p,club,rand,source){
  rivalEvent(club,'injury',`${p.name} saknas`,`${club} får klara sig utan ${p.name}. Prognosen är ${days} återhämtningsdagar före återgångsträning.`);
 }
 function rivalGrow(p,points,club){
- if(p.age>28||!p.attributeGrowth||p.health?.injury)return;
- const a=ensurePlayerAttributes(p),fields=Object.keys(a);
+ if(p.health?.injury)return;
+ const a=ensurePlayerAttributes(p),d=ensureDevelopment(p),fields=Object.keys(a).filter(k=>a[k]<d.ceiling[k]);
+ if(!fields.length)return;
  if(!fields.includes(p.aiTrainingKey))p.aiTrainingKey=fields[Math.floor(attrSeed(`${p.id}:${state.calendar.date}:growth`)*fields.length)];
  const key=p.aiTrainingKey;
- if(!p.trainingProgress)p.trainingProgress={};p.trainingProgress[key]=(p.trainingProgress[key]||0)+points;
- if(p.trainingProgress[key]<100||a[key]>=20||p.academy&&a[key]>=p.academy.ceiling[key])return;
- p.trainingProgress[key]-=100;a[key]++;p.attributeGrowth=Math.max(0,p.attributeGrowth-.12);delete p.aiTrainingKey;
+ if(!developmentAdvance(p,key,points))return;
+ delete p.aiTrainingKey;
  if(p.age<=23)rivalEvent(club,'development',`${p.name} utvecklas`,`${p.age}-åringen i ${club} tar ett steg i ${(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[key].toLowerCase()} genom träning och matchvana.`);
 }
 function rivalsDay(){
