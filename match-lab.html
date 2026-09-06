@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#081626">
+  <title>Matchstudion · Hockey Manager</title>
+  <link rel="stylesheet" href="match-lab.css?v=studio4">
+  <script defer src="match-lab-rosters.js?v=studio4"></script>
+  <script defer src="match-simulation.js?v=studio4"></script>
+  <script defer src="match-lab.js?v=studio4"></script>
+</head>
+<body>
+  <header class="studio-header"><a class="brand" href="index.html"><span>HM</span> HOCKEY MANAGER</a><span class="edition">MATCHSTUDION <b>PROTOTYP</b></span><a class="back-link" href="index.html">Till spelet</a></header>
+  <main id="studio">
+    <section class="scoreboard" aria-label="Resultattavla">
+      <div class="team home"><span class="crest">HV</span><div><small>DITT LAG</small><h1>HV71</h1></div></div>
+      <div class="score-centre"><span id="match-status">REDO FÖR NEDSLÄPP</span><strong id="score">0 <em>–</em> 0</strong><div><b id="clock">00:00</b><span>PERIOD 1</span></div></div>
+      <div class="team away"><div><small>BORTALAG</small><h2>Färjestad BK</h2></div><span class="crest">FBK</span></div>
+      <p id="goal-credit">Husqvarna Garden · En fristående testperiod på 20 minuter</p>
+    </section>
+    <div class="studio-grid">
+      <section class="broadcast" aria-label="Matchbild">
+        <div class="broadcast-top"><div><span id="phase-label">TEKNING</span><b id="strength">5 MOT 5</b></div><label>Följ matchen<select id="coverage"><option value="broadcast">Matchsändning</option><option value="full">Alla sekvenser</option></select></label></div>
+        <div class="playback"><button id="play" class="primary">Starta perioden</button><button id="replay" disabled>Visa senaste avslutet</button><label>Tempo<select id="speed"><option value="1">Lugnt</option><option value="1.7" selected>Normalt</option><option value="3">Snabbt</option></select></label></div>
+        <div class="stats-strip" id="stats" aria-label="Matchstatistik"></div>
+        <div class="ice-wrap"><canvas id="ice" width="1200" height="650" role="img" aria-label="Ishockeyrink med spelarnas och puckens aktuella positioner"></canvas><div id="between-play" class="between-play" hidden><span>MATCHEN FORTSÄTTER</span><h2 id="overview-title">Lagen bygger nästa anfall</h2><p id="overview-copy"></p><div id="overview-pressure"></div></div><span id="replay-label" hidden>REPRIS</span></div>
+        <div class="commentary"><span id="event-label">NEDSLÄPP</span><p id="commentary" role="status">Lagen är på plats. Starta perioden och följ spelet från bänken.</p></div>
+        <div class="pressure-card"><div><h2>Matchens tryck</h2><span>Senaste två minuterna</span></div><div id="pressure-chart" aria-label="Anfallszonstid per tio sekunder"></div><div class="pressure-legend"><span>HV71</span><span>Färjestad</span></div></div>
+      </section>
+      <aside class="bench" aria-label="Tränarbänken">
+        <div class="bench-heading"><span class="eyebrow">DITT PERSPEKTIV</span><h2>På bänken</h2></div>
+        <div class="assistant"><span>ASSISTERANDE TRÄNAREN</span><p id="assistant">Vi börjar med tre forwards och två backar. Backarna säkrar bakom anfallet.</p></div>
+        <form id="tactics"><label>Matchplan<select id="mentality"><option value="balanced">Balanserat</option><option value="control">Vårda pucken</option><option value="direct">Rakare mot mål</option></select></label><div class="tactical-pair"><label>Powerplay<select id="powerplay"><option value="131">1–3–1</option><option value="umbrella">Paraply</option></select></label><label>Boxplay<select id="penaltykill"><option value="box">Box</option><option value="diamond">Diamant</option></select></label></div><button class="secondary" id="apply-tactics" type="submit">Ge instruktioner</button><p id="tactic-note">Pausa när du vill hinna läsa spelet.</p></form>
+        <div class="line-heading"><h3>På isen · HV71</h3><span id="change-status">Första femman</span></div><div id="on-ice"></div><button id="change-line" class="secondary">Begär nästa femma</button><p class="small-note">Byte sker vid avblåsning eller en spelare i taget när puckläget tillåter.</p>
+      </aside>
+    </div>
+    <section class="journal"><div><h2>Periodens händelser</h2><p>Avslut, puckvinster och beslut från bänken.</p></div><ol id="events"><li>Perioden har inte startat.</li></ol></section>
+    <footer class="lab-tools"><div><strong>Prova en matchsituation</strong><p>Varje val startar en ny testperiod. Din karriär och dina sparfiler påverkas inte.</p></div><label class="scenario-label">Startläge<select id="scenario"><option value="period">Vanligt nedsläpp</option><option value="attack">Etablerat fem mot fem</option><option value="rush">Kontring två mot en</option><option value="pp">HV71 i powerplay</option><option value="pk">HV71 i boxplay</option><option value="change">Spelarbyte under spel</option></select></label><button id="restart">Starta ny testperiod</button></footer>
+  </main>
+</body>
+</html>
