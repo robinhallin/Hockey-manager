@@ -85,6 +85,7 @@ function coachingNavigate(page){
 }
 
 function benchLine(index){
+  if(studioActive()){pauseMatch();studioQueueUnit("forwards",index);return;}
   if(!hockeyAllowChange())return;
   if(!state.live||state.live.finished||!Number.isInteger(index)||index<0||index>3) return;
   pauseMatch();
@@ -107,5 +108,5 @@ function benchPanel(){
 function iceTimeView(){
   const times=state.live?.iceTime||{};
   const rows=managerRoster().filter(p=>times[String(p.id)]>0).sort((a,b)=>times[String(b.id)]-times[String(a.id)]);
-  return `<section class="card"><h2>Istid · denna match</h2><p class="muted">Registreras för spelarna som faktiskt är på isen, inklusive PP och PK.</p>${rows.length?rows.map(p=>{const seconds=times[String(p.id)];return `<div class="row"><span>${p.name} · ${p.pos}</span><b>${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</b></div>`;}).join(''):'<p>Istiden börjar räknas vid nedsläpp.</p>'}</section>`;
+  return `<section class="card"><h2>Istid · denna match</h2><p class="muted">Registreras för spelarna som faktiskt är på isen, inklusive PP och PK.</p>${rows.length?rows.map(p=>{const seconds=times[String(p.id)];return `<div class="row"><span>${p.name} · ${p.pos}</span><b>${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}</b></div>`;}).join(''):'<p>Istiden börjar räknas vid nedsläpp.</p>'}</section>`;
 }

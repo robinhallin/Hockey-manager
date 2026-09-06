@@ -8,8 +8,8 @@ const StudioHockey = (() => {
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   const progress=(side,x)=>side===0?x:60-x;
   const point=(side,x,y)=>({x:progress(side,x),y});
-  const ROLES=['LW','C','RW','LD','RD'];
-  const ROLE_NAMES={LW:'Vänsterforward',C:'Center',RW:'Högerforward',LD:'Vänsterback',RD:'Högerback',G:'Målvakt'};
+  const ROLES=['LW','C','RW','LD','RD','X'];
+  const ROLE_NAMES={LW:'Vänsterforward',C:'Center',RW:'Högerforward',LD:'Vänsterback',RD:'Högerback',G:'Målvakt',X:'Extra forward'};
   const PHASES={faceoff:'Tekning',breakout:'Uppspel',entry:'Zoninträde',attack:'Etablerat anfall',counter:'Omställning',loose:'Lös puck',clear:'Rensning',stoppage:'Avblåsning',finished:'Periodpaus'};
   function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return {d:distance(p,{x:a.x+dx*t,y:a.y+dy*t}),t};}
   function rating(p,keys){return keys.reduce((s,k)=>s+(p.attributes[k]||10),0)/keys.length;}
@@ -23,7 +23,7 @@ const StudioHockey = (() => {
         const forwards=players.filter(p=>p.pos!=='B'&&p.pos!=='MV').sort((a,b)=>rating(b,['passing','shooting','positioning'])-rating(a,['passing','shooting','positioning']));
         const defense=players.filter(p=>p.pos==='B').sort((a,b)=>rating(b,['positioning','passing','checking'])-rating(a,['positioning','passing','checking']));
         const goalies=players.filter(p=>p.pos==='MV').sort((a,b)=>rating(b,['reflexes','positioning','handling'])-rating(a,['reflexes','positioning','handling']));
-        if(forwards.length<6||defense.length<4||!goalies.length)throw new Error('Testmatchen behöver minst sex forwards, fyra backar och en målvakt per lag.');
+        if(forwards.length<3||defense.length<2||!goalies.length)throw new Error('Testmatchen behöver minst tre forwards, två backar och en målvakt per lag.');
         return {...r,players,forwards,defense,goalie:goalies[0],side,line:0,pair:0,shift:0,requested:false,change:null,changeQueue:[],tactics:{mentality:'balanced',pp:'131',pk:'box'}};
       });
       this.actors=[];this.penalty=null;this.owner=0;this.carrier=null;this.flight=null;this.lastTouches=[];
@@ -37,7 +37,7 @@ const StudioHockey = (() => {
     random(){this.rng=(Math.imul(this.rng,1664525)+1013904223)>>>0;return this.rng/4294967296;}
     skaters(side){return this.actors.filter(a=>a.side===side&&a.role!=='G');}
     actor(id){return this.actors.find(a=>a.id===id);}
-    attribute(a,key){return clamp((a.player.attributes[key]||10)*(1-(100-a.player.energy)*.0035),1,20);}
+    attribute(a,key){return clamp((a?.player.attributes[key]||10)*(1-(100-(a?.player.energy??100))*.0035),1,20);}
     unit(side,line=this.teams[side].line,pair=this.teams[side].pair){
       const t=this.teams[side],forwardCount=Math.min(4,Math.floor(t.forwards.length/3)),pairCount=Math.min(3,Math.floor(t.defense.length/2));
       const f=t.forwards.slice((line%forwardCount)*3,(line%forwardCount)*3+3);
@@ -72,9 +72,9 @@ const StudioHockey = (() => {
     }
     faceoffPositions(){
       for(const side of [0,1]){
-        const skaters=this.skaters(side),center=skaters.find(a=>a.role==='C')||skaters[0],dx=side===0?-1:1;
+        const skaters=this.skaters(side),center=skaters.find(a=>a.role==='C')||[...skaters].sort((a,b)=>this.attribute(b,'faceoffs')-this.attribute(a,'faceoffs'))[0],dx=side===0?-1:1;
         for(const a of this.actors.filter(a=>a.side===side)){
-          const offset={LW:[2,-6],C:[.65,0],RW:[2,6],LD:[8,-5],RD:[8,5]};
+          const offset={LW:[2,-6],C:[.65,0],RW:[2,6],LD:[8,-5],RD:[8,5],X:[4,3]};
           const z=a===center?[.65,0]:offset[a.role];
           const p=a.role==='G'?point(side,4.4,15):{x:clamp(this.restartSpot.x+dx*z[0],2,58),y:clamp(this.restartSpot.y+z[1],2,28)};
           a.x=p.x;a.y=p.y;a.target={...p};a.vx=0;a.vy=0;a.status='playing';
@@ -82,7 +82,7 @@ const StudioHockey = (() => {
       }
     }
     faceoff(){
-      const centers=[0,1].map(side=>this.skaters(side).find(a=>a.role==='C')||this.skaters(side)[0]);
+      const centers=[0,1].map(side=>this.skaters(side).find(a=>a.role==='C')||[...this.skaters(side)].sort((a,b)=>this.attribute(b,'faceoffs')-this.attribute(a,'faceoffs'))[0]);
       const win=this.restartSide??(this.random()<clamp(.5+(this.attribute(centers[0],'faceoffs')-this.attribute(centers[1],'faceoffs'))*.022,.25,.75)?0:1);
       this.restartSide=null;this.stats[win].faceoffs++;this.takePossession(centers[win]);
       this.say('faceoff',centers[win].player.name+' vinner tekningen.',win);
@@ -121,7 +121,7 @@ const StudioHockey = (() => {
           continue;
         }
         if(t.changeQueue.length&&this.safeToChange(side)){
-          const index=t.changeQueue.findIndex(row=>{const a=this.skaters(side).find(x=>x.role===row.role);return a&&a.id!==this.carrier&&a.player.id!==row.player.id;});
+          const index=t.changeQueue.findIndex(row=>{const a=this.skaters(side).find(x=>x.role===row.role);return a&&a.id!==this.carrier&&a.player.id!==row.player.id&&!this.skaters(side).some(b=>b.player.id===row.player.id);});
           if(index<0){t.changeQueue=t.changeQueue.filter(row=>!this.skaters(side).some(a=>a.player.id===row.player.id));continue;}
           const row=t.changeQueue.splice(index,1)[0],a=this.skaters(side).find(x=>x.role===row.role);
           a.status='leaving';t.change={stage:'out',id:a.id,row,gate:side===0?27:33};
@@ -143,12 +143,12 @@ const StudioHockey = (() => {
       for(const a of this.skaters(side)){
         let x,y,duty;
         if(this.phase==='attack'){
-          [x,y]=slots[a.role];y+=Math.sin(this.time*.28+ROLES.indexOf(a.role))*.8;
+          [x,y]=slots[a.role]||[51,21];y+=Math.sin(this.time*.28+ROLES.indexOf(a.role))*.8;
           duty=pp?({LD:'Spelar på blålinjen',LW:'Vänsterflank',RW:'Spelbar i slottet',RD:'Högerflank',C:'Skymmer framför mål'}[a.role]):a.role.endsWith('D')?'Säkrar bakom anfallet':a.role==='C'?'Söker ytan framför mål':'Breddar anfallet';
           if(a===carrier){x=Math.min(x,54);duty='Söker passning eller avslut';}
         }else{
           const isBack=a.role.endsWith('D'),index=ROLES.indexOf(a.role);
-          y=isBack?(a.role==='LD'?8:22):[6,15,24][index];
+          y=isBack?(a.role==='LD'?8:22):([6,15,24][index]??20);
           x=isBack?clamp(p-9,9,32):clamp(p+(a===carrier?7:a.role==='C'?3:5),15,47);
           if(a===carrier){x=Math.min(49,p+(t.tactics.mentality==='direct'?12:8));y=clamp(a.y,6,24);}
           else if(p<40&&x>=37.5)x=37.5; // brake before the blue line, leaving room for momentum
@@ -229,6 +229,7 @@ const StudioHockey = (() => {
       const goal=point(a.side,56.5,15),d=distance(a,goal),angle=Math.abs(a.y-15);
       const defense=this.skaters(1-a.side),pressure=Math.max(0,1-Math.min(...defense.map(b=>distance(a,b)))/2.3);
       const keeper=this.actors.find(b=>b.side!==a.side&&b.role==='G');
+      if(!keeper)return clamp(.8*Math.exp(-d/60)-pressure*.12,.15,.85);
       const lateral=this.lastTouches.length&&this.time-this.lastTouches.at(-1).time<2.4?Math.min(.06,Math.abs(this.lastTouches.at(-1).y-a.y)*.004):0;
       return clamp(.16*Math.exp(-d/13)*(1-angle/25)+(this.attribute(a,'shooting')-this.attribute(keeper,'reflexes'))*.003+lateral-pressure*.035,.012,.28);
     }
@@ -249,6 +250,7 @@ const StudioHockey = (() => {
       const quality=this.shotQuality(a),goal=point(a.side,56.5,15),risk=this.laneRisk(a,goal);
       const roll=this.random(),onTarget=clamp(.61+(this.attribute(a,'shooting')-10)*.012,.48,.79);
       let outcome=roll<risk*.23?'block':roll<risk*.23+(1-risk*.23)*(1-onTarget)?'wide':this.random()<quality?'goal':'save';
+      if(outcome==='save'&&!this.actors.some(b=>b.side!==a.side&&b.role==='G'))outcome='goal';
       let end={...goal};
       if(outcome==='wide')end.y=15+(a.y<15?-1:1)*(2.3+this.random()*2);
       if(outcome==='block'){

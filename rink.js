@@ -17,7 +17,7 @@ function rinkClamp(n,min=6,max=94){return Math.max(min,Math.min(max,n));}
 function rinkDistance(a,b){return Math.hypot((a.x-b.x)*.6,(a.y-b.y)*.3);}
 function rinkRoll(){const r=state.live.rink;r.rng=(Math.imul(r.rng,1664525)+1013904223)>>>0;return r.rng/4294967296;}
 function rinkSkaters(side){return state.live.rink.actors.filter(a=>a.side===side&&a.pos!=='MV');}
-function rinkOpponentPlayers(){return rivalLivePlayers();}
+function rinkOpponentPlayers(){return studioActive()?studioPlayers(1):rivalLivePlayers();}
 
 function rinkExtraForward(forwards,special=null){
  const m=state.live;if(!m?.goaliePulled)return forwards;
@@ -27,6 +27,7 @@ function rinkExtraForward(forwards,special=null){
 }
 function rinkOwnPlayers(){const players=[...currentLinePlayers(),...currentDefensePlayers()];if(!state.live.goaliePulled){const p=randomGoalie();if(p)players.push(p);}return [...new Map(players.map(p=>[String(p.id),p])).values()];}
 function ensureRink(){
+ if(studioActive()){studioMirror();return;}
  const m=state.live;if(!m||!state.careerStarted)return;
  if(!m.rink)m.rink={version:1,actors:[],puck:{x:50,y:50},owner:'own',carrier:null,phase:'faceoff',restart:true,faceoffX:50,frame:0,period:m.period,ot:m.overtimePeriods||1,rng:Math.floor(attrSeed(`${managerClub()}:${m.opponent}:${state.season?.year}:${state.round}:rink`)*4294967296),mode:'full',selected:null,caption:'Nedsläpp väntar.',hot:false,previous:[],puckFrom:{x:50,y:50},puckVia:null,at:0,duration:0,hold:0,zoneTicks:0,possession:{own:0,opponent:0},passes:{own:0,opponent:0},teamBonus:0,oppFatigue:{},lastPass:null};
  ensureHockey();

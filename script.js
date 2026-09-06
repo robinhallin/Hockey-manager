@@ -1251,6 +1251,7 @@ list.forEach(p=>{
 
 
 function randomGoalie(){
+  if(studioActive())return studioKeeper(0);
   ensureLines();
   const selected=playerById(state.lines.goalie);
   if(selected?.pos==="MV"&&medicalAvailable(selected)) return selected;
@@ -1406,6 +1407,8 @@ shiftSeconds:0,
 
   };
 
+  studioCreate();
+
   addEvent(
     `Nedsläpp mellan ${managerClub()} och ${opp}.`,
     "chance"
@@ -1440,6 +1443,7 @@ function startMatch(){
   lockTrainingForMatch();
   markSocialPeriodStarted();
   state.live.running=true;
+  if(studioActive())studioRestartClock();
 
   save();
 
@@ -1473,6 +1477,7 @@ function pauseMatch(){
 
 
 function scheduleTick(){
+  if(studioActive()){if(state.live.running&&!state.live.finished)matchTimer=setTimeout(studioPulse,50);return;}
 
   const m=state.live;
 
@@ -1502,7 +1507,7 @@ function scheduleTick(){
 
 function setSpeed(value){
  if(!state.live||![1,2,3].includes(Number(value)))return;
- state.live.speed=Number(value);clearTimeout(matchTimer);save();render();scheduleTick();
+ state.live.speed=Number(value);if(studioActive())studioRestartClock();clearTimeout(matchTimer);save();render();scheduleTick();
 }
 
 
@@ -1511,6 +1516,7 @@ function setSpeed(value){
    ========================================================= */
 
 function liveStep(){
+  if(studioActive())return studioStep();
 
   const m=state.live;
 
@@ -2590,7 +2596,7 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
    const e=m.energy.players[id]||(m.energy.players[id]={level:Math.max(0,100-((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0))*.35),shift:0,seconds:0});
    const active=ids.has(id),used=active?Math.max(0,Math.min(seconds,side==='own'?medicalLimit(p)-(m.iceTime?.[id]||0):seconds)):0;
    if(used>0){
-    const strain=load*(1.45-stamina/25)*(p.pos==='MV'?.025:1)*(hockeySpecial(side)==='pk'&&p.pos!=='MV'?1.12:1);
+    const strain=load*(1.45-stamina/25)*(p.pos==='MV'?.025:1)*(hockeySpecial(side)==='pk'&&p.pos!=='MV'?1.12:1)*(studioActive()?studioEffort(side,p.id):1);
     e.level=Math.max(0,e.level-used*.48*strain);e.shift+=used;e.seconds+=used;
     const longLoad=used*(p.pos==='MV'?.005:.014)*load*(1.4-stamina/25);
     if(side==='own')p.fatigue=Math.min(100,(p.fatigue||0)+longLoad);
@@ -2689,6 +2695,7 @@ function useTimeout(){
    ========================================================= */
 
 function toggleGoalie(){
+  if(studioActive())return studioRequestGoalie();
   if(!hockeyAllowChange())return;
 
   const m=
@@ -4133,6 +4140,7 @@ function lineAverage(ids){
 }
 
 function currentLinePlayers(){
+  if(studioActive())return studioPlayers(0,false).filter(p=>!(studioEngine().accountingActors||studioEngine().actors).some(a=>a.side===0&&samePlayerId(a.player.id,p.id)&&["LD","RD"].includes(a.role)));
 
   ensureLines();
 
@@ -4149,6 +4157,7 @@ function currentLinePlayers(){
 
 
 function currentDefensePlayers(){
+  if(studioActive())return studioPlayers(0,false).filter(p=>(studioEngine().accountingActors||studioEngine().actors).some(a=>a.side===0&&samePlayerId(a.player.id,p.id)&&["LD","RD"].includes(a.role)));
 
   ensureLines();
 
@@ -4763,6 +4772,7 @@ careerScreen === "files" ? saveSettingsView()
 
 
   deskRefreshShell();
+  if(studioActive()&&state.page==="match")studioMount();
 
 }
 
