@@ -48,12 +48,12 @@ run('ensureRecruitment();save();render()');assert.equal(run('Object.values(state
 // Scouting spends once, follows filters, advances with actual time and survives reload.
 run('state.recruitment.filters={country:"FIN",profile:"Defensiv center",maxAge:40,maxFee:50000000,query:""};globalThis.cashBefore=state.money;createScoutMission();globalThis.mission=state.recruitment.missions[0]');
 assert.equal(run('cashBefore-state.money'),25000);
-assert.equal(run('mission.players.every(id=>findPlayerAnywhere(id).pos==="C"&&recruitCountry(getPlayerClub(id))==="FIN")'),true);
+assert.equal(run('mission.players.every(id=>findPlayerAnywhere(id).pos==="C"&&(worldIsFree(id)?findPlayerAnywhere(id).nationality:recruitCountry(getPlayerClub(id)))==="FIN")'),true);
 run('save();render();advanceScoutReports()');assert.equal(run('mission.observations'),0);
-run('requestScoutReport(mission.players[0]);state.round++;advanceScoutReports()');
+run('requestScoutReport(mission.players[0]);for(let i=0;i<7;i++)calendarStep(true);advanceScoutReports()');
 assert.equal(run('state.scoutReports[String(mission.players[0])].visits'),1); // no double observation
 run('save()');const restored=boot(storage.value);assert.equal(restored.run('state.recruitment.missions[0].observations'),1);
-run('state.round++;advanceScoutReports();state.round++;advanceScoutReports()');
+run('for(let i=0;i<14;i++)calendarStep(true);advanceScoutReports()');
 assert.equal(run('mission.status'),'completed');
 assert.equal(run('mission.players.every(id=>state.scoutReports[String(id)].visits===3)'),true);
 // Contract process waits for time, enforces terms and transfers a single player atomically.

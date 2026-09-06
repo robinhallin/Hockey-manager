@@ -49,9 +49,9 @@ assert.equal(migrated.run('Object.keys(managerRoster()[0].attributes).length'),6
 assert.equal(migrated.run('Object.keys(managerRoster().find(p=>p.pos!=="MV").attributes).length'),15);
 run('globalThis.target=getTransferMarketPlayers()[0];globalThis.first=playerAssessment(target);requestScoutReport(target.id);requestScoutReport(target.id)');
 assert.equal(run('state.scoutReports[String(target.id)].visits'),0);
-assert.equal(run('state.scoutReports[String(target.id)].dueRound'),2);
+assert.equal(run('state.scoutReports[String(target.id)].dueDate'),run('calAdd(state.calendar.date,7)'));
 run('advanceScoutReports()');assert.equal(run('state.scoutReports[String(target.id)].visits'),0);
-run('state.round++;advanceScoutReports()');
+run('for(let i=0;i<7;i++)calendarStep(true);advanceScoutReports()');
 assert.equal(run('state.scoutReports[String(target.id)].visits'),1);
 assert.ok(run('playerAssessment(target).uncertainty<first.uncertainty'));
 run('globalThis.before=matchAttributeRating(target);state.assessorId="goalie";globalThis.other=playerAssessment(target)');

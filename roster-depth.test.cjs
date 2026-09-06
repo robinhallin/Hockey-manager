@@ -33,9 +33,9 @@ run('save()');const locked=boot(app.storage.value);assert.equal(locked.run('JSON
 // A real outgoing keeper: wage split, one host, medical/training continuity, match evidence.
 run('startCareerWithClub("HV71");globalThis.keeper=goalies().find(p=>p.name==="Olof Glifford");globalThis.destination=Object.keys(state.world.membership).find(c=>leagueOf(c)==="HA"&&loanFit(keeper,c).interested);');
 assert.ok(run('destination'),'The third HV keeper has an interested Allsvenskan club');
-run('globalThis.ownerWage=annualWageCost();globalThis.hostWage=loanWageCost(destination);globalThis.contract=keeper.contractYears;globalThis.salary=keeper.salary;loanSubmit(keeper.id,destination,28,.5);globalThis.loan=playerLoan(keeper)');
+run('globalThis.ownerWage=annualWageCost();globalThis.hostWage=loanWageCost(destination);globalThis.contract=keeper.contractYears;globalThis.salary=keeper.salary;loanSubmit(keeper.id,destination,28,.5);calendarStep(true);calendarStep(true);if(state.loans.offers[0].status==="counter")loanAnswer(state.loans.offers[0].id,true);globalThis.loan=playerLoan(keeper)');
 assert.ok(run('loan'));assert.equal(run('getPlayerClub(keeper.id)'),run('destination'));
-assert.equal(run('annualWageCost()'),run('ownerWage-salary*.5'));assert.equal(run('loanWageCost(destination)'),run('hostWage+salary*.5'));
+assert.equal(run('annualWageCost()'),run('ownerWage-salary*loan.share'));assert.equal(run('loanWageCost(destination)'),run('hostWage+salary*loan.share'));
 assert.equal(run('keeper.contractYears'),run('contract'));assert.equal(run('keeper.salary'),run('salary'));
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>samePlayerId(p.id,keeper.id)).length'),1);
 assert.equal(run('transferRecruitPlayer(keeper,destination,managerClub(),0,salary,4,"Ordinarie")'),false);
@@ -46,12 +46,12 @@ assert.ok(run('(loan.saves||0)+(loan.against||0)>0'));assert.match(run('loanProd
 assert.ok(run('Object.values(keeper.trainingProgress||{}).some(n=>n>0)||JSON.stringify(keeper.attributes)!==before'));
 run('save()');const reload=boot(app.storage.value);assert.equal(reload.run('state.loans.active.find(l=>l.name==="Olof Glifford").games'),run('loan.games'));
 assert.doesNotThrow(()=>run('validateSaveText(saveExportText())'));
-run('globalThis.savedGames=keeper.games;loanRecall(loan.id);loanRecall(loan.id)');
+run('globalThis.savedGames=keeper.games;for(let i=0;i<28;i++)calendarStep(true);loanRecall(loan.id);loanRecall(loan.id)');
 assert.equal(run('getPlayerClub(keeper.id)'),'HV71');assert.equal(run('keeper.games'),run('savedGames'));
 assert.equal(run('keeper.contractYears'),run('contract'));assert.equal(run('annualWageCost()'),run('ownerWage'));
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>samePlayerId(p.id,keeper.id)).length'),1);
 // A historic September loan returns to its real owner; external returns stay owned, never free agents.
-run('state.calendar.date="2026-09-30";loansDay()');assert.equal(run('getPlayerClub("ep-177879")'),'Örebro Hockey');
+run('startCareerWithClub("HV71");state.calendar.date="2026-09-30";loansDay()');assert.equal(run('getPlayerClub("ep-177879")'),'Örebro Hockey');
 run('state.calendar.date="2026-10-01";loansDay()');assert.equal(run('getPlayerClub("ep-177879")'),'Almtuna IS');
 assert.ok(run('state.loans.external.some(p=>p.name==="Isak Jonsson"&&p.club==="Lindlövens IF")'));
 assert.equal(run('state.playerWorld.freeAgents.some(p=>p.name==="Isak Jonsson")'),false);
@@ -65,7 +65,7 @@ run('deskNavigate("transfers","loans")');assert.match(get('#content').innerHTML,
 console.log('PASS: 680 sourced identities, all 28 match squads, locked bench substitutions/injuries, real goalkeeper loan games/growth/wages, contract and save continuity, recall/expiry/external ownership, invalid import rejection and legacy preservation.');
 
 // Incoming loans cannot become permanent signings; player contracts age at the owner once.
-run('startCareerWithClub("AIK");globalThis.borrow=state.clubRosters["HV71"].find(p=>p.pos!=="MV"&&p.contractYears>1&&loanCanLeave(p,"HV71")&&loanFit(p,"AIK").interested);globalThis.originalYears=borrow.contractYears;globalThis.originalSalary=borrow.salary;loanSubmit(borrow.id,"AIK",56,.5);globalThis.inloan=playerLoan(borrow);');
+run('startCareerWithClub("AIK");globalThis.borrow=state.clubRosters["HV71"].find(p=>p.pos!=="MV"&&p.contractYears>1&&loanCanLeave(p,"HV71")&&loanFit(p,"AIK").interested);globalThis.originalYears=borrow.contractYears;globalThis.originalSalary=borrow.salary;loanSubmit(borrow.id,"AIK",56,.5);calendarStep(true);calendarStep(true);if(state.loans.offers[0].status==="counter")loanAnswer(state.loans.offers[0].id,true);globalThis.inloan=playerLoan(borrow);');
 assert.ok(run('inloan'));
 run('openContractNegotiation(borrow.id);toggleTransferStatus(borrow.id);');
 assert.equal(run('state.contractNegotiation'),null);assert.equal(run('borrow.transferListed'),false);

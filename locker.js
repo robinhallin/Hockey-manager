@@ -93,20 +93,44 @@ function afterLockerMatch(){
 function socialTalkSlot(m=state.live){return m?.finished?'post':m?.period===4?`ot${m.overtimePeriods||1}`:`p${m?.period||1}`;}
 function canTeamTalk(){const m=state.live;if(!m||m.running)return false;const slot=socialTalkSlot(m);return !m.socialTalks?.[slot]&&(m.finished||(!m.socialStarted?.[slot]&&m.minute===0&&m.second===0));}
 function markSocialPeriodStarted(){const m=state.live;if(!m)return;if(!m.socialStarted)m.socialStarted={};m.socialStarted[socialTalkSlot(m)]=true;}
+function socialMatchPlayers(){
+ const m=state.live;if(!m)return [];
+ const selection=m.matchSquad||(()=>{const s=depthSelection();return [...state.lines.forwards,...state.lines.defense,...s.extras,state.lines.goalie,s.backup].filter(Boolean).map(String);})();
+ return managerRoster().filter(p=>selection.some(id=>samePlayerId(id,p.id))&&medicalAvailable(p));
+}
+function playerMoraleBonus(p){return attrClamp(((p.morale??70)-70)/30,-1.5,1);}
+function socialFeedbackReaction(kind,p,pre=false){
+ const m=state.live,s=p.social,a=ensurePlayerAttributes(p),lead=m.hv-m.opp,shots=m.shotsHV-m.shotsOpp;
+ const row=Object.values(m.leagueBox?.players||{}).find(r=>samePlayerId(r.playerId??r.id,p.id)),seconds=row?.seconds||m.iceTime?.[p.id]||0;
+ const points=(row?.goals||0)+(row?.assists||0),tired=matchEnergy(p)<55||p.fatigue>65,fragile=s.sensitivity>=12||(p.morale||70)<60;
+ const conceded=m.analysis?.events.some(e=>e.type==='goal'&&e.side==='opponent'&&analysisClock()-e.time<=120);
+ if(kind==='support')return s.trust<35?[-.25,'Vill se handling efter brutna löften']:fragile?[.8,'Behöver tryggheten och vågar ta sitt nästa byte']:[0,'Är redan trygg och fortsätter enligt planen'];
+ if(kind==='demand')return tired?[-.7,'Är sliten och behöver återhämtning']:(pre||lead<0||shots<-3)&&s.ambition>=12&&s.sensitivity<=12?[.9,'Vill svara på den tydliga utmaningen']:[-.55,'Upplever kravet som onödig press'];
+ if(kind==='praise')return !pre&&(lead>0||points>0||shots>3)?seconds===0?[0,'Har ännu inte bidragit på isen']:p.pos==='MV'&&(row?.against||0)>=4?[-.35,'Tycker inte berömmet speglar den egna insatsen']:[.65,'Uppskattar att du ser insatsen']:[-.4,'Känner inte igen din bild av matchen'];
+ if(kind==='calm'||kind==='focus')return fragile&&Math.abs(lead)<=1?[.6,'Samlar sig när pressen minskar']:s.ambition>=16&&lead<0?[-.25,'Vill hellre höja intensiteten och jaga ikapp']:[0,'Behåller redan sitt lugn'];
+ if(kind==='reset')return !conceded?[0,'Har inget färskt baklängesmål att släppa']:fragile?[.7,'Släpper misstaget och vågar försöka igen']:[0,'Har redan lagt baklängesmålet bakom sig'];
+ if(kind==='compete')return tired?[-.6,'Känner att du missar hur sliten spelaren är']:s.ambition>=12&&(a.workRate||10)>=12?[.7,'Tar uppmaningen att vinna nästa duell till sig']:[0,'Arbetar redan efter instruktionen'];
+ if(kind==='discipline')return (row?.pim||0)>0?s.sensitivity>=15?[-.3,'Känner sig utpekad efter utvisningen']:[.6,'Tar ansvar för sin utvisning']:[0,'Har hållit disciplinen'];
+ if(kind==='patient')return lead<0&&m.period>=3&&m.minute>=15&&s.ambition>=14?[-.4,'Tycker att laget behöver ta fler risker nu']:fragile?[.55,'Får tid att fatta ett bättre beslut']:[0,'Fortsätter läsa spelet'];
+ if(kind==='responsibility')return s.trust<40?[-.4,'Tvivlar på att förtroendet följs av verkligt ansvar']:s.leadership>=14||s.ambition>=15?[.8,'Växer av att få bära ansvar']:fragile?[-.35,'Känner att ansvaret blir för stort']:[0,'Tar emot uppgiften utan större reaktion'];
+ if(kind==='simplify')return (a.decisions||10)<12||tired?[.65,'Blir tryggare med en tydlig, enkel uppgift']:s.ambition>=15?[-.25,'Upplever att den egna spelskickligheten begränsas']:[0,'Har redan valt det enkla spelet'];
+ if(kind==='freedom')return (a.decisions||10)>=13&&(a.vision||10)>=13&&!fragile?[.65,'Ser möjligheter att skapa ett eget läge']:fragile?[-.4,'Behöver tydligare ramar']:[0,'Håller sig till den inövade rollen'];
+ if(kind==='protect')return lead>0&&(a.positioning||10)>=12?[.55,'Tar ansvar för att säkra ledningen']:lead<=0?[-.4,'Förstår inte varför laget ska bevaka resultatet']:[0,'Fortsätter täcka sin yta'];
+ return [0,'Fortsätter med sin uppgift'];
+}
+function socialApplyFeedback(p,effect){
+ const m=state.live;m.feedbackImpact??={};const impact=m.feedbackImpact[String(p.id)]??={morale:0,trust:0};
+ const mood=Math.max(-4,Math.min(4,impact.morale+effect*1.5))-impact.morale,trust=Math.max(-2,Math.min(2,impact.trust+effect*.5))-impact.trust;
+ impact.morale+=mood;impact.trust+=trust;p.morale=trainingClamp((p.morale??70)+mood);p.happiness=trainingClamp((p.happiness??70)+mood*.35);p.social.trust=trainingClamp(p.social.trust+trust);
+ return {morale:Math.round(mood*10)/10,trust:Math.round(trust*10)/10};
+}
 function teamTalk(kind){
- ensureLocker();if(!['support','demand','praise','focus'].includes(kind)||!canTeamTalk())return;
- const m=state.live,r=state.locker,slot=socialTalkSlot(),lead=m.hv-m.opp,pre=slot==='p1';
+ ensureLocker();if(!['support','demand','praise','focus','responsibility','simplify'].includes(kind)||!canTeamTalk())return;
+ const m=state.live,r=state.locker,slot=socialTalkSlot(),pre=slot==='p1';
  const repeated=r.talkHistory.slice(-3).filter(k=>k===kind).length,scale=1-repeated*.15;
- const reactions=managerRoster().map(p=>{
-   const s=p.social;let effect=0,reason='';
-   if(kind==='support'){effect=s.sensitivity>=12?1:.35;reason=s.sensitivity>=12?'Känner större trygghet':'Uppskattar stödet';}
-   if(kind==='demand'){effect=(pre||lead<0)&&s.ambition>=12&&s.sensitivity<=12?1:-.8;reason=effect>0?'Svarar på utmaningen':'Känner onödig press';}
-   if(kind==='praise'){effect=!pre&&lead>0?.8:-.7;reason=effect>0?'Stolt över insatsen':'Tycker inte berömmet stämmer med matchen';}
-   if(kind==='focus'){effect=.25;reason='Tar till sig de lugna instruktionerna';}
-   effect*=scale;s.trust=trainingClamp(s.trust+(effect>.5?1:effect<-.5?-1:0));return {id:p.id,name:p.name,effect,reason};
- });
+ const reactions=socialMatchPlayers().map(p=>{const [raw,reason]=socialFeedbackReaction(kind,p,pre),effect=raw*scale;return {id:p.id,name:p.name,effect,reason,...socialApplyFeedback(p,effect)};});
  if(!m.socialTalks)m.socialTalks={};m.socialTalks[slot]={kind,reactions};r.talkHistory.push(kind);r.talkHistory=r.talkHistory.slice(-10);
- if(m.finished)socialLog('Samtalet efter slutsignalen',`${reactions.filter(x=>x.effect>0).length} spelare tog emot budskapet positivt och ${reactions.filter(x=>x.effect<0).length} reagerade negativt.`);
+ if(m.finished)socialLog('Samtalet efter slutsignalen',`${reactions.filter(x=>x.effect>0).length} positiva, ${reactions.filter(x=>x.effect===0).length} neutrala och ${reactions.filter(x=>x.effect<0).length} negativa reaktioner. Moral och förtroende följer med till nästa dag.`);
  save();render();
 }
 function lockerMatchBonus(){
@@ -119,7 +143,7 @@ function lockerMatchBonus(){
 }
 function teamTalkPanel(){
  const m=state.live;if(!m)return '';const report=m.socialTalks?.[socialTalkSlot()],available=canTeamTalk();
- return `<section class="locker-talk"><div><span class="career-eyebrow">${m.finished?'EFTER MATCHEN':m.period===1?'FÖRE NEDSLÄPP':'PERIODSNACK'}</span><h2>Vad vill du säga till laget?</h2><p>${available?'Välj ett budskap. Spelarna reagerar utifrån personlighet och matchbild.':report?'Spelarna har hört ditt budskap.':'Nästa lagsnack kan hållas vid periodpausen.'}</p></div>${available?`<div class="locker-actions">${[['support','Ge stöd'],['demand','Kräv mer'],['praise','Beröm insatsen'],['focus','Lugna och fokusera']].map(([k,label])=>`<button class="btn secondary" onclick="teamTalk('${k}')">${label}</button>`).join('')}</div>`:''}${report?`<details><summary>${report.reactions.filter(x=>x.effect>0).length} positiva · ${report.reactions.filter(x=>x.effect<0).length} negativa reaktioner</summary>${report.reactions.map(x=>`<div class="locker-reaction"><span>${trainingSafe(x.name)}</span><span>${x.reason}</span></div>`).join('')}</details>`:''}<p class="training-note">Ett budskap per paus. Upprepade budskap får mindre effekt. Motivation gäller den aktuella perioden; attribut och taktik väger tyngre än lagsnack.</p></section>`;
+ return `<section class="locker-talk"><div><span class="career-eyebrow">${m.finished?'EFTER MATCHEN':m.period===1?'FÖRE NEDSLÄPP':'PERIODSNACK'}</span><h2>Vad vill du säga till laget?</h2><p>${available?'Välj ett budskap. Spelarna reagerar utifrån personlighet och matchbild.':report?'Spelarna har hört ditt budskap.':'Nästa lagsnack kan hållas vid periodpausen.'}</p></div>${available?`<div class="locker-actions">${[['support','Ge stöd'],['demand','Kräv mer'],['praise','Beröm insatsen'],['focus','Lugna och fokusera'],['responsibility','Visa ledarskap'],['simplify','Gör det enkla']].map(([k,label])=>`<button class="btn secondary" onclick="teamTalk('${k}')">${label}</button>`).join('')}</div>`:''}${report?`<details><summary>${report.reactions.filter(x=>x.effect>0).length} positiva · ${report.reactions.filter(x=>x.effect===0).length} neutrala · ${report.reactions.filter(x=>x.effect<0).length} negativa reaktioner</summary>${report.reactions.map(x=>`<div class="locker-reaction"><span>${trainingSafe(x.name)}</span><span>${x.reason}</span></div>`).join('')}</details>`:''}<p class="training-note">Ett budskap per paus. Upprepade budskap får mindre effekt. Matchtruppen reagerar individuellt. Motivation gäller perioden; små förändringar i moral och förtroende följer med efter matchen. Attribut och taktik väger tyngre.</p></section>`;
 }
 function lockerPlayerPanel(p){
  ensureLocker();const s=p.social;if(!s)return '';const partners=managerRoster().filter(q=>q.pos!=='MV'&&!samePlayerId(q.id,p.id)).map(q=>({p:q,pair:socialPair(p.id,q.id)})).filter(x=>x.pair).sort((a,b)=>b.pair.bond-a.pair.bond).slice(0,2);

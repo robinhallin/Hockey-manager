@@ -35,7 +35,13 @@ function validateSaveText(text){
   }
  }
  if(s.loans){
-  if(s.loans.version!==1||!Array.isArray(s.loans.active)||!Array.isArray(s.loans.history)||!Array.isArray(s.loans.external)||!Number.isInteger(s.loans.nextId))throw Error('Lånehistoriken är felaktig.');
+  if(![1,2].includes(s.loans.version)||!Array.isArray(s.loans.active)||!Array.isArray(s.loans.history)||!Array.isArray(s.loans.external)||!Number.isInteger(s.loans.nextId))throw Error('Lånehistoriken är felaktig.');
+  if(s.loans.offers!==undefined){
+   if(!Array.isArray(s.loans.offers)||!Number.isInteger(s.loans.nextOffer))throw Error('Låneförhandlingarna är felaktiga.');
+   const seen=new Set(),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d));
+   const terms=t=>t&&[0,.25,.5,.75,1].includes(t.share)&&[0,28,56].includes(t.days)&&['starter','regular','rotation'].includes(t.role)&&['anytime','day28'].includes(t.recall);
+   for(const o of s.loans.offers){if(!o||!Number.isInteger(o.id)||seen.has(o.id)||!terms(o)||o.counter&&!terms(o.counter)||!date(o.due)||!date(o.date)||o.status==='counter'&&!date(o.expires)||!['pending','counter','agreed','rejected','expired','cancelled'].includes(o.status)||!s.clubRosters[o.owner]||!s.clubRosters[o.borrower]||o.owner===o.borrower)throw Error('Ett låneförslag innehåller ogiltiga villkor.');seen.add(o.id);}
+  }
   const loanIds=new Set(),borrowed=new Set();
   for(const l of s.loans.active){
    const p=s.clubRosters[l.borrower]?.find(p=>String(p.id)===String(l.playerId));

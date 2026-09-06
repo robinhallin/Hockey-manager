@@ -2,7 +2,7 @@
 
 // Match-coaching systems. Loaded before script.js; initialized only after state exists.
 function ensureSpecialTeams(){
-  ensureLines();
+  ensureLines();ensureSpecialPlans();
   const skaters=managerRoster().filter(p=>p.pos!=="MV"&&medicalAvailable(p));
   const attack=[...skaters].sort((a,b)=>(matchAttributeRating(b,"shot")+matchAttributeRating(b,"pass"))-(matchAttributeRating(a,"shot")+matchAttributeRating(a,"pass")));
   const defense=[...skaters].sort((a,b)=>matchAttributeRating(b,"defense")-matchAttributeRating(a,"defense"));
@@ -94,16 +94,7 @@ function benchLine(index){
   save();render();
 }
 
-function specialTeamsView(){
-  ensureSpecialTeams();
-  const pool=managerRoster().filter(p=>p.pos!=="MV"&&medicalAvailable(p));
-  return `<section class="bench-hub"><div class="bench-heading"><div><span>SPECIAL TEAMS</span><h1>De avgörande minuterna</h1><p>Välj dina egna formationer. De två enheterna växlar vid byten i matchen.</p></div><button class="btn secondary" onclick="coachingNavigate('match')">Till matchen</button></div>
-    <div class="units-grid">${Object.entries(state.specialTeams).map(([key,ids])=>{
-      const power=key.startsWith("pp");
-      const players=ids.map(playerById).filter(Boolean);
-      return `<article class="unit-card ${power?'unit-attack':'unit-defense'}"><header><div><small>${power?'NUMERÄRT ÖVERLÄGE':'NUMERÄRT UNDERLÄGE'}</small><h2>${power?'Powerplay':'Boxplay'} ${key.slice(-1)}</h2></div><strong>${unitAssessment(ids)}<small>${power?'ANFALL':'FÖRSVAR'}</small></strong></header><p>${power?'Fem valfria utespelare. Prioritera skott och passningar.':'Fyra utespelare. Prioritera försvar. Vid dubbla utvisningar används de tre första.'}</p>${ids.map((id,i)=>`<label><span>${i+1}</span><select aria-label="${key} spelare ${i+1}" onchange="changeSpecialPlayer('${key}',${i},this.value)">${lineOptions(pool,id)}</select></label>`).join('')}</article>`;
-    }).join('')}</div><p class="muted">Spelare kan ingå i flera enheter, men aldrig dubbelt i samma enhet. Istiden visas på matchsidan.</p></section>`;
-}
+function specialTeamsView(){return specialBoardView();}
 
 function benchPanel(){
   const m=state.live;

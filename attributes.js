@@ -52,19 +52,21 @@ function playerAssessment(p){
   const staff=state.staff.find(x=>x.id===state.assessorId)||state.staff[0];
   const own=isOwnPlayer(p),report=state.scoutReports[String(p.id)];
   const visits=report?.visits||0;
-  const familiarity=own?.9:Math.min(.86,.12+visits*.24);
+  const familiarity=own?.9:Math.min(.9,.12+visits*.26);
   const specialized=roleWeights(p).includes(staff.specialty);
   const ability=attrClamp(staff.ability+(specialized?2:0));
-  const uncertainty=(1-familiarity)*4+(20-ability)*.08;
+  const uncertainty=own?0:(1-familiarity)*4+(20-ability)*.08*(1-familiarity);
   const attributes=ensurePlayerAttributes(p),estimated={};
   for(const key of Object.keys(attributes))estimated[key]=attrClamp(attributes[key]+(attrSeed(`${p.id}:${staff.personId||staff.id}:${key}`)-.5)*2*uncertainty);
   const roles=roleWeights(p).map(name=>({name,value:attributeWeighted(estimated,PLAYER_ROLES[name])})).sort((a,b)=>b.value-a.value);
   const peers=managerRoster().filter(x=>x.pos==='MV'?(p.pos==='MV'):(p.pos!=='MV'));
   const baseline=peers.reduce((sum,x)=>sum+Math.max(...roleWeights(x).map(name=>attributeWeighted(ensurePlayerAttributes(x),PLAYER_ROLES[name]))),0)/Math.max(1,peers.length);
   const stars=value=>Math.round(attrClamp(2.5+(value-baseline)*.65,0,5)*2)/2;
+  const judgment=(20-ability)*.045+.12;
+  const judged=roles[0].value+(attrSeed(`${p.id}:${staff.personId||staff.id}:judgment`)-.5)*2*judgment;
   const potentialError=(p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2;
   const potentialEstimate=roles[0].value+p.attributeGrowth+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
-  return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(roles[0].value),low:stars(roles[0].value-uncertainty),high:stars(roles[0].value+uncertainty),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
+  return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(judged),low:stars(judged-uncertainty-judgment),high:stars(judged+uncertainty+judgment),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
 function starsText(value){const n=Math.max(0,Math.min(5,Math.round(value)));return '★'.repeat(n)+'☆'.repeat(5-n);}
 function starRatingHTML(low,high,potential=false,assessor='Personalens bedömning'){
@@ -78,31 +80,59 @@ function attributeInterval(p,key,r){const center=r.estimated[key],spread=r.uncer
 function assessmentPanel(p){
   const r=playerAssessment(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
   const ordered=Object.keys(fields).sort((a,b)=>r.estimated[b]-r.estimated[a]);
-  const pending=state.scoutReports[String(p.id)]?.dueRound;
+  const pending=state.scoutReports[String(p.id)]?.dueDate||state.recruitment?.missions.find(m=>m.status==='active'&&m.players.some(id=>samePlayerId(id,p.id)))?.nextDate;
   return `<section class="assessment-panel"><div class="assessment-heading"><div><span class="panel-label">PERSONALENS RAPPORT</span><h2>Så kan ${p.name.split(' ')[0]} användas</h2></div><label>Bedömare<select onchange="state.assessorId=this.value;save();render()">${state.staff.map(s=>`<option value="${s.id}" ${s.id===r.staff.id?'selected':''}>${s.name}</option>`).join('')}</select></label></div>
-  <div class="assessment-summary"><div><small>Nuvarande förmåga</small>${assessmentBadge(p)}</div><div><small>Potential</small>${assessmentBadge(p,true)}</div><div><small>Rapportens säkerhet</small><strong>${r.familiarity>.8?'Hög':r.familiarity>.4?'Medel':'Låg'}</strong></div></div>
+  <div class="assessment-summary"><div><small>Nuvarande förmåga</small>${assessmentBadge(p)}</div><div><small>Potential</small>${assessmentBadge(p,true)}</div><div><small>Kunskap om spelaren</small><strong>${Math.round(r.familiarity*100)} % · ${r.own?'Tränarteamet':r.familiarity>.8?'Hög':r.familiarity>.4?'Medel':'Låg'}</strong></div></div>
   <p>${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
   <p class="muted">Guld visar förmåga, blått visar potential. Fyllda stjärnor är den säkrare delen av bedömningen; ljusa stjärnor visar möjlig nivå. Båda jämförs med din trupp. Attribut visas på skalan 1–20.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
   ${haResearchPanel(p)}
   <div class="role-reports">${r.roles.map(role=>`<span><b>${role.name}</b> · ${role.value>=14?'Tydliga styrkor':role.value>=11?'Användbar profil':'Behöver utvecklas'}</span>`).join('')}</div>
-  ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||r.visits>=3?'disabled':''}>${pending?(state.season?.phase==='preseason'?'Rapport nästa försäsongsvecka':`Rapport efter omgång ${pending-1}`):r.visits>=3?'Grundligt scoutad':'Beställ scoutobservation'}</button><span>${r.visits} av 3 observationer</span></div>`:'<p class="muted">Tränarteamet känner spelaren genom den dagliga träningen.</p>'}</section>`;
+  ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||r.visits>=3?'disabled':''}>${pending?`Nästa rapport ${calText(pending)}`:r.visits>=3?'Grundligt scoutad':`Scouta · ${money(Math.round(clubMissionFee()/3))}`}</button><span>${r.visits} av 3 observationer · rapport efter sju dagar</span></div>`:'<p class="muted">Daglig träning ger exakta attribut. Stjärnorna är fortfarande bedömarens värdering relativt truppen; potentialen är osäker.</p>'}</section>`;
 }
+// One observation per player and date window, shared by individual and group assignments.
+function scoutPending(id){return Boolean(state.scoutReports[String(id)]?.dueDate||state.recruitment?.missions.some(m=>m.status==='active'&&m.players.some(x=>samePlayerId(x,id))));}
+function scoutActiveCount(){return (state.recruitment?.missions.filter(m=>m.status==='active').length||0)+Object.values(state.scoutReports).filter(r=>r.dueDate&&!r.missionId).length;}
 function requestScoutReport(id){
-  ensureAssessmentData();const p=findPlayerAnywhere(id);if(!p||isOwnPlayer(p))return;
-  const r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
-  if(r.dueRound||r.visits>=3)return;
-  r.dueRound=state.round+1;save();render();
+ ensureAssessmentData();ensureCalendar();const p=findPlayerAnywhere(id);if(!p||isOwnPlayer(p)||!managerCanPlay()||loanLocked())return;
+ const r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
+ if(scoutPending(id)||r.visits>=3)return;
+ const fee=Math.round(clubMissionFee()/3);
+ if(scoutActiveCount()>=clubMissionLimit())return recruitMessage('Alla scouter är upptagna. Avsluta ett uppdrag eller invänta en rapport i Scoutcentralen.');
+ if(state.money-clubForecast().reserved<fee)return recruitMessage('Klubbkassan räcker inte till observationen.');
+ clubPost('scouting',-fee,'Observation · '+p.name);r.dueDate=calAdd(state.calendar.date,7);r.started=state.calendar.date;delete r.dueRound;
+ state.page='scouting';save();render();
 }
-function advanceScoutReports(){
-  ensureAssessmentData();
-  for(const [id,r] of Object.entries(state.scoutReports))if(r.dueRound&&r.dueRound<=state.round){r.visits=Math.min(3,r.visits+1);r.observedTick=(state.recruitment?.tick||0)+1;delete r.dueRound;const p=findPlayerAnywhere(id);if(p){state.news.unshift(`Scoutrapport klar: ${p.name}. Observation ${r.visits} av 3 – öppna Scouting.`);managerMessage(`scout:${id}:${r.visits}`,`Scoutrapport: ${p.name}`,`Observation ${r.visits} av 3 är klar. Rapportens säkerhet har förbättrats. Öppna Scouting för att läsa bedömningen.`, 'Chefsscout',{link:'scouting'});}}
-  advanceRecruitmentRound();
+function scoutObserve(id,date){
+ const p=findPlayerAnywhere(id),r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
+ if(!p||isOwnPlayer(p)||r.visits>=3||r.lastObserved&&calGap(r.lastObserved,date)<7)return false;
+ r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;delete r.dueRound;
+ managerMessage(`scout:${id}:${date}`,`Scoutrapport: ${p.name}`,`Observation ${r.visits} av 3. Kunskap ${Math.round(playerAssessment(p).familiarity*100)} %. Läs rollanalysen i Scoutcentralen.`,'Chefsscout',{link:'scouting'});return true;
 }
+function scoutDay(){
+ if(!state.calendar||!state.recruitment)return;const date=state.calendar.date;
+ for(const [id,r] of Object.entries(state.scoutReports)){
+  if(r.dueRound&&!r.dueDate){r.dueDate=calAdd(date,7);delete r.dueRound;}
+  if(r.dueDate&&r.dueDate<=date){scoutObserve(id,date);delete r.dueDate;}
+ }
+ for(const m of state.recruitment.missions.filter(m=>m.status==='active')){
+  if(!m.nextDate)m.nextDate=calAdd(date,7);
+  if(m.nextDate>date)continue;
+  m.players.forEach(id=>scoutObserve(id,date));m.observations++;m.nextDate=calAdd(date,7);
+  if(m.observations>=3){m.status='completed';m.completedDate=date;}
+ }
+}
+function advanceScoutReports(){scoutDay();}
+let scoutUI={query:''};
 function scoutingView(){
-  ensureAssessmentData();
-  const reports=Object.entries(state.scoutReports).map(([id,r])=>({p:findPlayerAnywhere(id),r})).filter(x=>x.p&&!isOwnPlayer(x.p));
-  return `<section class="bench-hub"><span class="panel-label">SCOUTING & TRÄNARTEAM</span><h1>Ditt beslutsunderlag</h1><p>Personalens kompetens och kunskap om spelaren påverkar rapporten. Observationer blir klara efter nästa omgång eller försäsongsvecka.</p><div class="staff-grid">${state.staff.map(s=>`<article class="unit-card"><h2>${s.name}</h2><p>Specialisering: ${s.specialty}</p><div class="row"><span>Bedöma förmåga</span><b>${s.ability}/20</b></div><div class="row"><span>Bedöma potential</span><b>${s.potential}/20</b></div></article>`).join('')}</div><h2>Bevakade spelare</h2>${reports.length?reports.map(({p,r})=>`<button class="scout-report-row" onclick="state.selectedMarketPlayer='${p.id}';state.page='marketPlayer';render()"><strong>${p.name}</strong><span>${assessmentShort(p)}</span><span>${r.dueRound?'Observation pågår':`${r.visits} observationer klara`}</span></button>`).join(''):'<p>Öppna en spelare på transfermarknaden och beställ din första observation.</p>'}<button class="btn" onclick="state.page='transfers';render()">Till rekryteringscentralen</button></section>`;
+ ensureAssessmentData();ensureRecruitment();
+ const reports=Object.entries(state.scoutReports).map(([id,r])=>({p:findPlayerAnywhere(id),r})).filter(x=>x.p&&!isOwnPlayer(x.p));
+ const pending=reports.filter(x=>x.r.dueDate),done=reports.filter(x=>x.r.visits>0&&(!scoutUI.query||`${x.p.name} ${getPlayerClub(x.p.id)}`.toLocaleLowerCase('sv').includes(scoutUI.query.toLocaleLowerCase('sv')))).sort((a,b)=>(b.r.lastObserved||'').localeCompare(a.r.lastObserved||''));
+ const missions=state.recruitment.missions.filter(m=>m.status==='active');
+ return `<section class="scout-central"><header class="daily-heading"><div><span class="career-eyebrow">FRÅN BEHOV TILL BESLUT</span><h1>Scoutcentralen</h1><p>Ditt lag känner vi. Nästa värvning lär vi känna, en observation i taget.</p></div><button class="btn" onclick="deskNavigate('transfers','search')">Hitta spelare →</button></header>
+ <div class="scout-flow"><article><small>01 · VAD SAKNAS?</small><h2>Truppens behov</h2><p>Egna attribut är exakta. Leta efter egenskaper som kompletterar laget.</p>${recruitmentNeeds().slice(0,3).map(n=>`<button class="scout-need" onclick="recruitSelectProfile('${n.name}')"><b>${n.name}</b><span>${n.priority} →</span></button>`).join('')}</article><article><small>02 · VEM FÖLJER VI?</small><h2>${scoutActiveCount()} / ${clubMissionLimit()} uppdrag</h2><p>Sju dagar per observation. Tre observationer ger cirka 90 % kunskap.</p>${pending.map(({p,r})=>`<div class="scout-queue"><b>${trainingSafe(p.name)}</b><span>${calText(r.dueDate)} · observation ${r.visits+1}/3</span></div>`).join('')}${missions.map(m=>`<div class="scout-queue"><b>${m.filters.profile==='ALL'?'Bred sökning':m.filters.profile}</b><span>${m.nextDate?calText(m.nextDate):'Nästa kalendervecka'} · ${m.observations}/3 klara</span><small>${m.players.map(id=>trainingSafe(findPlayerAnywhere(id)?.name||'Lämnat marknaden')).join(' · ')}</small><button class="mc-text-button" onclick="cancelScoutMission(${m.id})">Avsluta uppdrag</button></div>`).join('')}${!pending.length&&!missions.length?'<p>Inga aktiva uppdrag. Öppna en spelare eller scouta tre kandidater från sökningen.</p>':''}</article></div>
+ <header class="scout-report-heading"><div><small>03 · DITT BESLUTSUNDERLAG</small><h2>Färdiga observationer</h2></div><button class="btn secondary" onclick="deskNavigate('transfers','shortlist')">Önskelistan</button></header><label class="scout-report-filter">Sök bland rapporter<input type="search" value="${trainingSafe(scoutUI.query)}" onchange="scoutUI.query=this.value;render()" placeholder="Namn eller klubb"></label><div class="scout-report-grid">${done.slice(0,30).map(({p,r})=>{const a=playerAssessment(p);return `<article class="scout-report-card"><span>${trainingSafe(getPlayerClub(p.id))} · ${p.pos} · ${p.age} år</span><h3>${trainingSafe(p.name)}</h3><div>${assessmentBadge(p)} ${assessmentBadge(p,true)}</div><p>${a.roles[0].name} · ${Math.round(a.familiarity*100)} % kunskap</p><progress max="3" value="${r.visits}" aria-label="Observationer för ${trainingSafe(p.name)}"></progress><small>${r.lastObserved?calText(r.lastObserved):'Tidigare rapport'} · ${r.visits}/3 observationer</small><button class="btn secondary" onclick="recruitOpen('${p.id}')">Läs attribut & rollanalys</button></article>`;}).join('')||'<p>Rapporterna samlas här. Du väljer sedan vem som är värd ett kontraktsförslag.</p>'}</div>
+ ${done.length>30?'<p>Visar de 30 senaste. Sök på namn eller klubb för att hitta en äldre rapport.</p>':''}<details class="scout-staff"><summary>Bedömarna bakom rapporterna</summary><div class="staff-grid">${state.staff.map(s=>`<article><h3>${s.name}</h3><p>${s.specialty} · förmåga ${s.ability}/20 · potential ${s.potential}/20</p></article>`).join('')}</div><p>Attributkunskap och stjärnbedömning är olika saker. Personalens kompetens och din trupp påverkar värderingen.</p></details></section>`;
 }
 function matchAttributeRating(p,type='attack'){
   const a=ensurePlayerAttributes(p);

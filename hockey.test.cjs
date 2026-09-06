@@ -43,7 +43,7 @@ function boot(saved){
 const {run,storage}=boot();
 run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());globalThis.r=state.live.rink;r.owner="own";globalThis.a=rinkSkaters("own")[0];r.carrier=a.key;state.live.penaltiesOpp=[120];ensureRink();a=rinkSkaters("own")[0];r.carrier=a.key;a.x=78;a.y=45;globalThis.targets=hockeyTargets()');
 const duties=run('Object.values(targets).map(t=>t.duty)');
-assert.ok(duties.includes('Spel på blålinjen'));assert.ok(duties.includes('Framför mål'));assert.ok(duties.includes('Centralt alternativ'));
+assert.ok(duties.includes('Spel på blålinjen'));assert.ok(duties.includes('Framför mål'));assert.ok(duties.includes('Bumper'));
 assert.equal(run('rinkSkaters("opponent").filter(p=>targets[p.key].duty==="Skyddar boxen").length'),4);
 assert.ok(run('rinkSkaters("opponent").every(p=>rinkX("opponent",targets[p.key].x)<=30)'));
 run('state.live.penaltiesOpp=[120,120];ensureRink();targets=hockeyTargets()');assert.equal(run('rinkSkaters("opponent").filter(p=>targets[p.key].duty==="Skyddar boxen").length'),3);
