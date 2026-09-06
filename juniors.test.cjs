@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -66,7 +67,7 @@ assert.equal(run('annualWageCost()'),run('wages+p.salary'));
 run('juniorPromote(p.id);juniorReturn(p.id)');assert.equal(run('isOwnPlayer(p)'),false);assert.equal(run('annualWageCost()'),run('wages+p.salary'));
 run('juniorLoan(p.id,"local")');assert.equal(run('juniorMentor(p)'),null);assert.equal(run('managerRoster().some(q=>q.id===p.id)'),false);
 const seed=run('state.juniors.rng');run('juniorsView();save()');assert.equal(run('state.juniors.rng'),seed);
-run('createMatch();juniorRecall(p.id)');assert.equal(run('p.academy.path'),'loan');
+run('(state.calendar.date=calendarTarget(),createMatch());juniorRecall(p.id)');assert.equal(run('p.academy.path'),'loan');
 // Completed senior games progress junior fixtures and loans exactly once, without senior points.
 run('state.live.hv=3;state.live.opp=1;finishMatch(false)');
 assert.equal(run('p.academy.loan.remaining'),7);assert.equal(run('state.juniors.matches.length'),1);
@@ -80,7 +81,7 @@ run('p.health.injury={remaining:3,readiness:55};p.health.clearance="rest";global
 assert.equal(run('p.academy.history[0].seconds'),0);assert.equal(run('JSON.stringify(p.trainingProgress)'),run('injuredProgress'));
 run('medicalDay()');assert.equal(run('p.health.injury.remaining'),2);
 // Whole time flow, then annual intake and exact-once aging.
-run('p.health.injury=null;state.live=null;runTrainingSession();createMatch();state.live.hv=4;state.live.opp=1;finishMatch(false);globalThis.age=p.age;globalThis.count=state.juniors.roster.length;state.season.year++;juniorNewYear()');
+run('p.health.injury=null;state.live=null;runTrainingSession();(state.calendar.date=calendarTarget(),createMatch());state.live.hv=4;state.live.opp=1;finishMatch(false);globalThis.age=p.age;globalThis.count=state.juniors.roster.length;state.season.year++;juniorNewYear()');
 assert.equal(run('p.age'),run('age+1'));assert.equal(run('state.juniors.roster.length'),run('count+6'));
 run('juniorNewYear()');assert.equal(run('p.age'),run('age+1'));
 run('state.season.year++;juniorNewYear()');assert.equal(run('state.juniors.roster.length'),30);

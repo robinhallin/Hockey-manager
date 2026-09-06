@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -39,10 +40,10 @@ function boot(saved){
 }
 
 const {run,storage}=boot();
-run('startCareerWithClub("HV71");createMatch()');
+run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch())');
 assert.equal(run('state.live.rink.actors.length'),12);
 const before=run('JSON.stringify(state.live.rink)');run('rinkView();render();save()');assert.equal(run('JSON.stringify(state.live.rink)'),before);
-run('startMatch();liveStep()');
+run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()');
 assert.equal(run('state.live.rink.frame'),1);assert.equal(run('state.live.rink.phase'),'faceoff');
 assert.equal(run('state.live.faceoffsHV+state.live.faceoffsOpp'),1);
 // Geometry and actual attributes change the pass and shot probabilities.
@@ -77,11 +78,11 @@ run('pauseMatch();save()');const frozen=run('JSON.stringify(state.live.rink)');r
 const reload=boot(storage.value);assert.equal(reload.run('JSON.stringify(state.live.rink)'),frozen);
 assert.equal(reload.run('state.live.running'),false);
 // Full and highlights playback use identical physics and six-second game ticks.
-run('startCareerWithClub("Rögle");createMatch();save()');const seedSave=storage.value;
+run('startCareerWithClub("Rögle");(state.calendar.date=calendarTarget(),createMatch());save()');const seedSave=storage.value;
 const play=(mode,speed)=>{
  const game=boot(seedSave);let rng=12345;
  try{Math.random=()=>{rng=(Math.imul(rng,1664525)+1013904223)>>>0;return rng/4294967296;};
- game.run(`state.live.rink.mode="${mode}";state.live.speed=${speed};startMatch();for(let i=0;i<90;i++){if(!state.live.running)startMatch();liveStep()}`);
+ game.run(`state.live.rink.mode="${mode}";state.live.speed=${speed};(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<90;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}`);
  return game.run('JSON.stringify({score:[state.live.hv,state.live.opp],clock:[state.live.minute,state.live.second],shots:state.live.analysis.shots,actors:state.live.rink.actors,puck:state.live.rink.puck,ice:state.live.iceTime})');
  }finally{Math.random=random;}
 };
@@ -90,12 +91,12 @@ assert.equal(play('full',1),play('highlights',3));
 const legacy=JSON.parse(seedSave);delete legacy.live.rink;legacy.live.minute=7;legacy.live.hv=2;
 const migrated=boot(JSON.stringify(legacy));assert.equal(migrated.run('state.live.minute'),7);assert.equal(migrated.run('state.live.hv'),2);assert.equal(migrated.run('state.live.rink.actors.length'),12);
 for(const club of run('Object.keys(CLUB_DATA)')){
- run(`startCareerWithClub(${JSON.stringify(club)});createMatch();startMatch();for(let i=0;i<12;i++)liveStep()`);
+ run(`startCareerWithClub(${JSON.stringify(club)});(state.calendar.date=calendarTarget(),createMatch());(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<12;i++)liveStep()`);
  assert.ok(!/undefined|NaN/.test(run('matchView()')),club);
  assert.ok(run('state.live.rink.actors.every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y)&&a.x>=6&&a.x<=94&&a.y>=10&&a.y<=90)'),club);
 }
 // Complete spatial match keeps the score, archive and individual ice time coherent.
-run('startCareerWithClub("HV71");startMatch();for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)startMatch();liveStep()}');
+run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}');
 assert.equal(run('state.live.finished'),true);
 assert.equal(run('state.analysis.matches[0].shots.length'),run('state.live.shotsHV+state.live.shotsOpp'));
 assert.ok(run('Object.values(state.live.analysis.players).every(p=>p.seconds===(state.live.iceTime[p.id]||0))'));
@@ -103,7 +104,7 @@ assert.ok(run('state.live.shotsHV+state.live.shotsOpp')>10);
 console.log('PASS: spatial geometry/attributes, shots and assists, real PP/PK/extra skater, pause/reload, playback invariance, legacy migration, 14 club scenes and complete match.');
 console.log(run('JSON.stringify({score:[state.live.hv,state.live.opp],shots:[state.live.shotsHV,state.live.shotsOpp],passes:state.live.rink.passes,frames:state.live.rink.frame})'));
 // Team preparation contributes to decisions; tired players lose precision.
-run('startCareerWithClub("HV71");createMatch();globalThis.a=rinkSkaters("own")[0];globalThis.p=rinkPlayer(a);p.fatigue=0;state.live.rink.teamBonus=0;globalThis.fresh=rinkAttribute(a,"passing");p.fatigue=70');
+run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());globalThis.a=rinkSkaters("own")[0];globalThis.p=rinkPlayer(a);p.fatigue=0;state.live.rink.teamBonus=0;globalThis.fresh=rinkAttribute(a,"passing");p.fatigue=70');
 assert.ok(run('rinkAttribute(a,"passing")')<run('fresh'));
 run('p.fatigue=0;state.live.rink.teamBonus=4');assert.ok(run('rinkAttribute(a,"passing")')>=run('fresh'));
 // The opponent does not leave its net empty in a blowout; regular OT restores goalies.

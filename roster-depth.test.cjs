@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
 const app=boot(),{run,get}=app;
@@ -16,14 +17,14 @@ run('globalThis.normann=SHL_DATABASE.clubs["Frölunda HC"].players.find(p=>p.nam
 assert.equal(run('normann.gp'),24);assert.equal(run('normann.sv'),.923);
 // Every club has an eligible, unique match squad; the bench uses two flexible skater slots.
 for(const club of run('Object.keys(state.world.membership)')){
- run(`startCareerWithClub(${JSON.stringify(club)});depthSelection();createMatch();depthLock()`);
+ run(`startCareerWithClub(${JSON.stringify(club)});depthSelection();(state.calendar.date=calendarTarget(),createMatch());depthLock()`);
  assert.ok(run('state.live.matchSquad.length<=22'),club);
  assert.equal(run('state.live.matchSquad.length'),run('new Set(state.live.matchSquad).size'),club);
  assert.ok(run('state.live.matchSquad.map(playerById).every(p=>p&&medicalReady(p))'),club);
  assert.ok(run('state.live.matchSquad.map(playerById).filter(p=>p.pos==="MV").length<=2'),club);
  assert.doesNotMatch(run('depthBenchView()'),/undefined|NaN/,club);
 }
-run('startCareerWithClub("HV71");depthSelection();globalThis.extra=playerById(state.matchSelection.extras[0]);globalThis.kind=extra.pos==="B"?"defense":"forwards";globalThis.old=state.lines[kind][0];createMatch();depthLock();globalThis.outside=managerRoster().find(p=>!state.live.matchSquad.includes(String(p.id))&&p.pos==="MV");globalThis.goal=state.lines.goalie;changeGoalie(outside.id)');
+run('startCareerWithClub("HV71");depthSelection();globalThis.extra=playerById(state.matchSelection.extras[0]);globalThis.kind=extra.pos==="B"?"defense":"forwards";globalThis.old=state.lines[kind][0];(state.calendar.date=calendarTarget(),createMatch());depthLock();globalThis.outside=managerRoster().find(p=>!state.live.matchSquad.includes(String(p.id))&&p.pos==="MV");globalThis.goal=state.lines.goalie;changeGoalie(outside.id)');
 assert.equal(run('state.lines.goalie'),run('goal'));
 run('changeLinePlayer(kind,0,extra.id)');assert.equal(run('state.lines[kind][0]'),run('extra.id'));
 run('injurePlayer(extra,"match",4)');assert.ok(run('state.lines[kind][0]!==extra.id'));

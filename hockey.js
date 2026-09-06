@@ -92,7 +92,7 @@ function hockeyPassScore(actor,target,defenders){
 function hockeyShotChoice(actor){
  const r=state.live.rink,x=rinkX(actor.side,actor.x),pp=hockeySpecial(actor.side)==='pp',style=hockeyStyle(actor.side);
  if(x<=66)return 0;
- return attrClamp((pp?(r.zoneTicks<3?.12:.38):style==='control'?.24:.34)+(x-70)/160+(r.zoneTicks>7?.3:0),.08,.8);
+ return attrClamp((pp?(r.zoneTicks<3?.12:.38):style==='control'?.24:.34)+(x-70)/160+(r.zoneTicks>7?.3:0)+(actor.side==='own'?(state.tacticalPlan.shotChoice==='shoot'?.18:state.tacticalPlan.shotChoice==='patient'?-.12:0):0),.04,.85);
 }
 function hockeyPanel(){const r=state.live.rink,h=r.hockey;return `<div class="hockey-match-plan"><label>Spelidé<select onchange="hockeySetStyle(this.value)">${Object.entries(HOCKEY_STYLES).map(([k,t])=>`<option value="${k}" ${hockeyStyle('own')===k?'selected':''}>${t}</option>`).join('')}</select></label><p>${hockeySpecial(r.owner)==='pp'?'Powerplay söker passningar mellan blålinje, sidor och målområde.':hockeyStyle(r.owner)==='counter'&&h.transition>0?'Puckvinst – laget söker en snabb omställning.':`${HOCKEY_STYLES[hockeyStyle(r.owner)]} · ${r.owner==='own'?managerClub():state.live.opponent}`}</p><span>Offside ${h.counts.offside.own}–${h.counts.offside.opponent} · Icing ${h.counts.icing.own}–${h.counts.icing.opponent} · Rensningar ${h.counts.clear.own}–${h.counts.clear.opponent}</span></div>`;}
 function hockeyChangeBlocked(side='own'){const r=state.live?.rink;return Boolean(r?.restart&&r.hockey?.icingHold?.side===side);}

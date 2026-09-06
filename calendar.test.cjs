@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -45,7 +46,7 @@ assert.equal(run('state.calendar.date'),'2026-09-08');assert.equal(run('state.tr
 run('save();render()');assert.equal(run('state.calendar.date'),'2026-09-08');
 const reloaded=boot(storage.value);assert.equal(reloaded.run('state.calendar.date'),'2026-09-08');
 // Next event advances planned days and halts at the match, with no automatic fixture result.
-run('calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-10');assert.equal(run('state.page'),'match');assert.equal(run('state.teams.some(t=>t.gp)'),false);
+run('calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-09');run('calendarContinue();calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-10');assert.equal(run('state.page'),'match');assert.equal(run('state.teams.some(t=>t.gp)'),false);
 // Deadline applies both at submission and at completion, including incoming sales and free agents.
 run('state.live=null;state.calendar.date="2027-02-14";state.money=1000000000;state.boardPlan.offer.wageLimit=1000000000;globalThis.target=state.clubRosters["AIK"].find(p=>p.pos==="B");target.transferListed=true;submitRecruitOffer(target.id,recruitFee(target),recruitPlayerWishes(target).salary*2,2,"Nyckelspelare");globalThis.offer=state.recruitment.deals[0];calendarStep(true);calendarStep(true)');
 assert.equal(run('offer.status'),'rejected');assert.match(run('offer.reason'),/stängning/);assert.equal(run('getPlayerClub(target.id)'),'AIK');
@@ -57,7 +58,7 @@ run('state.season.phase="review";state.season.boardResult=[];beginPreseason()');
 run('globalThis.wages=annualWageCost();calendarActivateFuture()');assert.equal(run('annualWageCost()'),run('wages'));
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>samePlayerId(p.id,target.id)).length'),1);
 // A full 2D preseason game keeps season standings and player production intact.
-run('startCareerWithClub("HV71");calendarInitialPreseason();calendarBookFriendly("AIK","2026-08-04");globalThis.f=state.calendar.friendlies[0];calendarContinue();if(!state.live)calendarPlayFriendly(f.id);globalThis.table=JSON.stringify(state.teams);globalThis.prod=JSON.stringify(Object.values(state.clubRosters).flat().map(p=>[p.id,p.goals||0,p.assists||0,p.games||0]));startMatch()');
+run('startCareerWithClub("HV71");calendarInitialPreseason();calendarBookFriendly("AIK","2026-08-04");globalThis.f=state.calendar.friendlies[0];calendarContinue();calendarContinue();calendarContinue();calendarContinue();if(!state.live)calendarPlayFriendly(f.id);globalThis.table=JSON.stringify(state.teams);globalThis.prod=JSON.stringify(Object.values(state.clubRosters).flat().map(p=>[p.id,p.goals||0,p.assists||0,p.games||0]));(!state.live&&(state.calendar.date=calendarTarget()),startMatch())');
 assert.equal(run('state.live.friendly'),true);
 run('for(let i=0;i<1800&&!state.live.finished;i++){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}state.live.running=true;}liveStep()}');
 assert.equal(run('state.live.finished'),true);assert.equal(run('f.played'),true);
@@ -67,7 +68,7 @@ assert.equal(run('state.round'),1);assert.equal(run('state.analysis.matches[0].f
 assert.equal(run('analysisSamples().length'),0);assert.ok(run('Object.values(state.live.iceTime).reduce((n,x)=>n+x,0)')>0);
 // Back-to-back dates limit preparation. Existing partially played saves preserve result/time.
 run('state.season.phase="regular";state.live=null;state.round=2;state.calendar.date="2026-09-11";state.training.calendarKey=null;state.training.day=0;ensureTrainingData()');assert.equal(run('trainingDays()'),1);
-run('createMatch();state.live.minute=12;state.live.hv=2;save()');const paused=boot(storage.value);
+run('(state.calendar.date=calendarTarget(),createMatch());state.live.minute=12;state.live.hv=2;save()');const paused=boot(storage.value);
 assert.equal(paused.run('state.live.minute'),12);assert.equal(paused.run('state.live.hv'),2);assert.equal(paused.run('state.live.running'),false);
 // Export/import accepts our file, validates before changing state, and rejects injection/bad structure.
 const text=run('saveExportText()');assert.equal(run(`validateSaveText(${JSON.stringify(text)}).managerClub`),'HV71');

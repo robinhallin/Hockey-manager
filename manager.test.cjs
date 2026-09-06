@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -55,7 +56,7 @@ assert.equal(run('state.managerCareer.decision'),null);
 run('state.season.year++;managerSeasonReview()');assert.equal(run('state.managerCareer.decision'),'dismissed');
 assert.equal(run('state.managerCareer.status'),'employed');
 run('state.season.year++;state.season.phase="preseason";managerPreseason()');assert.equal(run('state.managerCareer.status'),'unemployed');
-run('launchSeason();createMatch()');assert.equal(run('state.season.phase'),'preseason');assert.equal(run('state.live'),null);
+run('(state.calendar.date=state.season.year+"-09-07",launchSeason());(state.calendar.date=calendarTarget(),createMatch())');assert.equal(run('state.season.phase'),'preseason');assert.equal(run('state.live'),null);
 const joblessCash=run('state.money');run('clubOpenOffer(state.clubOffice.market[0].personId);clubSign()');assert.equal(run('state.money'),joblessCash);
 assert.equal(run('managerSalary()'),0);
 // Rejections persist; advancing weeks eventually exposes a reachable building job.
@@ -94,9 +95,9 @@ assert.equal(run('state.juniors.roster.map(p=>p.id).join()'),run('academyIds'));
 assert.equal(run('state.staff.length'),5);
 assert.ok(!/undefined|NaN/.test(run('managerView()+clubFinanceView()+clubStaffView()')));
 // Start the new season and play the new employer's actual fixture through the engine.
-run('for(const p of managerRoster())p.contractYears=Math.max(1,p.contractYears);launchSeason()');assert.equal(run('state.season.phase'),'regular');
+run('for(const p of managerRoster())p.contractYears=Math.max(1,p.contractYears);(state.calendar.date=state.season.year+"-09-07",launchSeason())');assert.equal(run('state.season.phase'),'regular');
 assert.equal(run('state.managerCareer.startGames'),0);
-run('startMatch();for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)startMatch();liveStep()}');assert.ok(run('state.live.finished'));
+run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}');assert.ok(run('state.live.finished'));
 assert.ok(run('state.clubOffice.totals.manager')<0);
 assert.equal(run('state.analysis.matches[0].club'),'HV71');
 console.log('PASS: manager migration, check-ins, warnings/dismissal, unemployment guards, interviews, persistent world/club resources, return, renewal, save/reload and full match after job change.');

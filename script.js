@@ -1185,7 +1185,7 @@ function effectiveRating(p,type="attack"){
 
   return Math.max(
     40,
-    base - fatiguePenalty - (p.health?.injury?3:0)
+    base - fatiguePenalty - matchEnergyPenalty(p) - (p.health?.injury?3:0)
   );
 }
 function weightedPlayer(type="attack"){
@@ -1323,7 +1323,7 @@ function addEvent(
 function createMatch(){
   if(!managerCanPlay())return;
   if(state.season.phase==='preseason'&&!state.calendar?.active){state.page='calendar';save();render();return;}
-  calendarToMatch();
+  if(!calendarToMatch()){state.page='calendar';save();render();return;}
   if(!medicalMatchReady()){state.page="medical";render();return;}
   if(opponent()==="Ingen match"){state.page="season";render();return;}
 
@@ -1534,7 +1534,7 @@ function liveStep(){
   m.second+=seconds;
 m.shiftSeconds += seconds;
 
-if(m.shiftSeconds >= 45){
+if(m.shiftSeconds >= matchShiftLength()){
 
   rotateUnits();
 
@@ -1576,6 +1576,7 @@ if(m.shiftSeconds >= 45){
         "period"
       );
 
+      matchRecover(180,`period:${m.period}`);
       m.period++;
 
       m.minute=0;
@@ -1625,7 +1626,6 @@ if(m.shiftSeconds >= 45){
   m.shiftCounter++;
   rinkStep();
 
-  updateFatigue();
 
   save();
 
@@ -2578,38 +2578,28 @@ function calculateOpponentPower(
    TRÖTTHET
    ========================================================= */
 
-function updateFatigue(){
-
-  const onIce = [
-    ...currentLinePlayers(),
-    ...currentDefensePlayers()
-  ];
-
-  managerRoster().forEach(p => {
-
-    if(p.pos === "MV") return;
-
-    const isOnIce = onIce.some(player => player.id === p.id);
-
-    if(isOnIce){
-      // Spelare på isen blir tröttare
-      p.fatigue = Math.min(
-        100,
-        p.fatigue + 1.2 * (1.4-ensurePlayerAttributes(p).stamina/25) * (
-          state.tacticalPlan?.tempo==="high" ? 1.3 :
-          state.tacticalPlan?.tempo==="low" ? .8 : 1
-        )
-      );
-    } else {
-      // Spelare på bänken återhämtar sig
-      p.fatigue = Math.max(
-        0,
-        p.fatigue - 0.8
-      );
-    }
-
-  });
-
+function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
+ const m=state.live;if(!m||m.finished||!Number.isFinite(seconds)||seconds<=0)return;
+ if(!m.energy)m.energy={version:1,players:{},breaks:[]};
+ if(m.rink&&!m.rink.oppFatigue)m.rink.oppFatigue={};
+ for(const [side,roster,onIce] of [['own',managerRoster(),ownPlayers],['opponent',state.clubRosters[m.opponent]||[],otherPlayers]]){
+  const ids=new Set(onIce.map(p=>String(p.id))),tempo=side==='own'?state.tacticalPlan.tempo:m.aiTeam?.tempo;
+  const load=(tempo==='high'?1.22:tempo==='low'?.84:1)*(side==='own'&&state.tacticalPlan.forecheck==='aggressive'?1.12:1)*(side==='own'&&state.tacticalPlan.physicality==='hard'?1.06:1);
+  for(const p of roster){
+   const id=String(p.id),stamina=ensurePlayerAttributes(p).stamina||10;
+   const e=m.energy.players[id]||(m.energy.players[id]={level:Math.max(0,100-((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0))*.35),shift:0,seconds:0});
+   const active=ids.has(id),used=active?Math.max(0,Math.min(seconds,side==='own'?medicalLimit(p)-(m.iceTime?.[id]||0):seconds)):0;
+   if(used>0){
+    const strain=load*(1.45-stamina/25)*(p.pos==='MV'?.025:1)*(hockeySpecial(side)==='pk'&&p.pos!=='MV'?1.12:1);
+    e.level=Math.max(0,e.level-used*.48*strain);e.shift+=used;e.seconds+=used;
+    const longLoad=used*(p.pos==='MV'?.005:.014)*load*(1.4-stamina/25);
+    if(side==='own')p.fatigue=Math.min(100,(p.fatigue||0)+longLoad);
+    else if(m.rink)m.rink.oppFatigue[id]=Math.min(100,(m.rink.oppFatigue[id]||0)+longLoad);
+   }else e.shift=0;
+   const bench=seconds-used,fatigue=(p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0);
+   if(bench>0)e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+bench*.18*(.7+stamina/25));
+  }
+ }
 }
 
 
@@ -2675,18 +2665,7 @@ function useTimeout(){
     );
 
 
-  managerRoster().forEach(
-    p=>{
-
-      p.fatigue=
-        Math.max(
-          0,
-          p.fatigue-8
-        );
-
-    }
-  );
-
+  matchRecover(30,'timeout');
 
   addEvent(
     `${managerClub()} tar timeout. Spelarna får återhämta sig.`,
@@ -2796,6 +2775,7 @@ function startOvertime(){
   );
 
 
+  matchRecover(60,'before-overtime');
   m.overtime=true;
   m.goaliePulled=false;m.aiGoaliePulled=false;
 
@@ -2823,11 +2803,11 @@ function overtimeStep(){
  const m=state.live;if(!m||!m.running||m.finished)return;
  const limit=isPlayoffMatch()?1200:300,seconds=Math.max(0,Math.min(6,limit-m.minute*60-m.second));
  trackIceTime(seconds);tickPenalties(seconds);m.shiftSeconds+=seconds;
- if(m.shiftSeconds>=45)rotateUnits();updateFatigue();
+ if(m.shiftSeconds>=matchShiftLength())rotateUnits();
  const elapsed=m.minute*60+m.second+seconds;m.minute=Math.floor(elapsed/60);m.second=elapsed%60;
  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
  if(elapsed>=limit){
-  if(isPlayoffMatch()){m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent('Ny förlängningsperiod – nästa mål avgör.','period');save();render();return;}
+  if(isPlayoffMatch()){matchRecover(180,`ot:${m.overtimePeriods||1}`);m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent('Ny förlängningsperiod – nästa mål avgör.','period');save();render();return;}
   shootout();return;
  }
  rinkStep();

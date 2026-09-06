@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -66,7 +67,7 @@ assert.equal(run('state.staff[0].coaching'),run('candidate.coaching'));
 // Reserved funds and an unfinished match block staff changes.
 run('clubOpenOffer(state.clubOffice.market.find(c=>c.id==="goalie").personId);state.recruitment.deals.push({status:"pending",fee:state.money});clubSign()');
 assert.equal(run('state.staff.find(s=>s.id==="goalie").personId'),'goalie');
-run('state.recruitment.deals=[];createMatch();clubSign()');
+run('state.recruitment.deals=[];(state.calendar.date=calendarTarget(),createMatch());clubSign()');
 assert.equal(run('state.staff.find(s=>s.id==="goalie").personId'),'goalie');
 run('state.live=null;state.clubOffice.offer=null');
 // Explicit termination uses a reviewed compensation and retains an interim role.
@@ -82,7 +83,7 @@ run('clubSetPolicy("priority","youth")');assert.equal(run('clubJuniorFactor()'),
 run('clubSetPolicy("ticket",160);var cheapAttendance=clubGate().attendance;clubSetPolicy("ticket",340)');assert.ok(run('clubGate().attendance')<run('cheapAttendance'));
 run('clubSetPolicy("ticket",-1)');assert.equal(run('state.clubOffice.ticket'),340);
 // Real entries: away fixtures have no gate, wages and income counted exactly once.
-run('var away=state.schedule.find(g=>g.away===managerClub());state.round=away.round;createMatch();state.live.finished=true;var beforeAway=state.money;clubSettleMatch()');
+run('var away=state.schedule.find(g=>g.away===managerClub());state.round=away.round;(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;var beforeAway=state.money;clubSettleMatch()');
 assert.equal(run('state.clubOffice.totals.tickets||0'),0);
 assert.equal(run('state.clubOffice.totals.players'),-Math.round(run('annualWageCost()/52')));
 const afterAway=run('state.money');run('clubSettleMatch()');assert.equal(run('state.money'),afterAway);

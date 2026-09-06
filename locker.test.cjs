@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -44,7 +45,7 @@ assert.equal(run('Object.values(state.clubRosters).flat().every(p=>p.social&&p.s
 const traits=run('JSON.stringify(p.social)');run('ensureLocker();render();save()');assert.equal(run('JSON.stringify(p.social)'),traits);
 const reload=boot(storage.value);assert.equal(reload.run('JSON.stringify(managerRoster().find(p=>p.pos!=="MV").social)'),traits);
 // Actual simultaneous ice time develops only the active skater pairs.
-run('createMatch();globalThis.active=[...currentLinePlayers(),...currentDefensePlayers()];globalThis.a=active[0];globalThis.b=active[1];globalThis.unused=managerRoster().find(p=>p.pos!=="MV"&&!active.includes(p));trackIceTime(60)');
+run('(state.calendar.date=calendarTarget(),createMatch());globalThis.active=[...currentLinePlayers(),...currentDefensePlayers()];globalThis.a=active[0];globalThis.b=active[1];globalThis.unused=managerRoster().find(p=>p.pos!=="MV"&&!active.includes(p));trackIceTime(60)');
 assert.equal(run('socialPair(a.id,b.id).seconds'),60);
 assert.equal(run('socialPair(a.id,unused.id)'),undefined);
 assert.ok(run('socialChemistry(active)>30'));
@@ -54,10 +55,10 @@ assert.equal(run('socialPair(a.id,b.id).bond'),run('bond'));
 run('managerRoster().forEach(p=>p.trainingLoad="normal");state.training.plan[1]={type:"tactics",intensity:"normal"};runTrainingSession()');
 assert.ok(run('socialPair(a.id,b.id).bond>bond'));
 // Team talks are once per real pause and react differently to personalities.
-run('createMatch();a.social.sensitivity=20;b.social.sensitivity=1;teamTalk("support");globalThis.talk=JSON.stringify(state.live.socialTalks);globalThis.trust=a.social.trust;teamTalk("demand")');
+run('(state.calendar.date=calendarTarget(),createMatch());a.social.sensitivity=20;b.social.sensitivity=1;teamTalk("support");globalThis.talk=JSON.stringify(state.live.socialTalks);globalThis.trust=a.social.trust;teamTalk("demand")');
 assert.equal(run('JSON.stringify(state.live.socialTalks)'),run('talk'));assert.equal(run('a.social.trust'),run('trust'));
 assert.ok(run('state.live.socialTalks.p1.reactions.find(x=>x.id===a.id).effect>state.live.socialTalks.p1.reactions.find(x=>x.id===b.id).effect'));
-run('startMatch();pauseMatch()');assert.equal(run('canTeamTalk()'),false);
+run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());pauseMatch()');assert.equal(run('canTeamTalk()'),false);
 // Reach an actual intermission via the match engine, without shooting randomness.
 run('state.live.minute=19;state.live.second=59;state.live.running=true;liveStep()');
 assert.equal(run('state.live.period'),2);assert.equal(run('canTeamTalk()'),true);
@@ -76,7 +77,7 @@ run('globalThis.old=managerRoster().find(p=>samePlayerId(p.id,state.locker.capta
 assert.equal(run('state.locker.captainId'),run('next.id'));assert.equal(run('old.social.trust'),run('oldTrust-4'));
 run('appointCaptain(old.id,"rotation")');assert.equal(run('state.locker.captainId'),run('next.id'));
 // Broken promises change trust once, even if match finalisation is repeated.
-run('createMatch();state.live.finished=true;state.live.iceTime={};p.promisedRole="Breddspelare";state.training.promises.push({playerId:p.id,name:p.name,startRound:state.round,games:2,qualified:0,resolved:false});globalThis.promiseTrust=p.social.trust;afterTrainingMatch();globalThis.afterTrust=p.social.trust;afterTrainingMatch()');
+run('(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;state.live.iceTime={};p.promisedRole="Breddspelare";state.training.promises.push({playerId:p.id,name:p.name,startRound:state.round,games:2,qualified:0,resolved:false});globalThis.promiseTrust=p.social.trust;afterTrainingMatch();globalThis.afterTrust=p.social.trust;afterTrainingMatch()');
 assert.equal(run('p.social.trust'),run('afterTrust'));assert.ok(run('p.social.trust<=promiseTrust-7'));
 assert.equal(run('state.training.promises.at(-1).lockerReviewed'),true);
 // Departure of a captain leaves an explicit vacancy and retains other players' trust.
@@ -87,7 +88,7 @@ const legacy=JSON.parse(storage.value);delete legacy.locker;
 for(const roster of Object.values(legacy.clubRosters))for(const p of roster)delete p.social;
 const migrated=boot(JSON.stringify(legacy));assert.ok(migrated.run('state.locker&&managerRoster().every(p=>p.social)'));
 for(const club of run('Object.keys(CLUB_DATA)')){
- run(`startCareerWithClub(${JSON.stringify(club)});ensureLines();createMatch()`);
+ run(`startCareerWithClub(${JSON.stringify(club)});ensureLines();(state.calendar.date=calendarTarget(),createMatch())`);
  for(const view of ['lockerView()','teamTalkPanel()','lockerPlayerPanel(managerRoster()[0])'])assert.ok(!/\bOVR\b|undefined|NaN/.test(run(view)),club+view);
 }
 console.log('PASS: personalities/migration, ice-time chemistry, training/rest, evidence-based talks, captain consequences, promises, real intermission, talk cooldowns, bounded match impact and 14-club views.');

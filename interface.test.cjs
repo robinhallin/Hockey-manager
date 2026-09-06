@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -46,7 +47,7 @@ assert.match(get('#content').innerHTML,/Forma laget inför premiären/);assert.e
 run('calendarBookFriendly("AIK",calAdd(state.calendar.date,3));deskNavigate("home")');assert.match(get('#content').innerHTML,/Nästa träningsmatch/);assert.equal(run('deskFixtures().upcoming[0].opponent'),'AIK');
 run('state.season.phase="review";state.season.boardResult=[];deskNavigate("home")');assert.match(get('#content').innerHTML,/Dags att summera säsongen/);assert.equal(run('deskFixtures().upcoming.length'),0);
 // Navigation and mobile menu pause a match without changing its clock, score or date.
-run('startCareerWithClub("HV71");startMatch();state.live.hv=2;state.live.minute=12;globalThis.matchDate=state.calendar.date;deskNavigate("lines")');
+run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());state.live.hv=2;state.live.minute=12;globalThis.matchDate=state.calendar.date;deskNavigate("lines")');
 assert.equal(run('state.live.running'),false);assert.equal(run('state.live.hv'),2);assert.equal(run('state.live.minute'),12);assert.equal(run('state.calendar.date'),run('matchDate'));
 run('deskNavigate("home")');assert.match(get('#content').innerHTML,/Matchen är pausad/);assert.match(get('#content').innerHTML,/2 – 0/);
 run('state.live.running=true;toggleManagerMenu()');assert.equal(run('state.live.running'),false);assert.equal(get('#mobileMenu').attrs['aria-expanded'],'true');assert.equal(get('.game-area').inert,true);

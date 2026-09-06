@@ -46,12 +46,20 @@ function leagueTrackShot(side,id,name,outcome){
  const row=leagueLivePlayer(side,id,name);if(row)row.shots++;
  const other=side==='own'?'opponent':'own',p=leagueKeeper(other);
  if(p){const keeper=leagueLivePlayer(other,p.id);if(keeper)keeper[outcome==='goal'?'against':'saves']++;}
+ if(analysisSituation()==='even'){
+  for(const [teamSide,players] of [['own',[...currentLinePlayers(),...currentDefensePlayers()]],['opponent',rinkOpponentPlayers()]])for(const skater of players.filter(p=>p.pos!=='MV')){
+   const r=leagueLivePlayer(teamSide,skater.id);if(!r)continue;
+   if(!r.evenIce)r.evenIce={shotsFor:0,shotsAgainst:0,goalsFor:0,goalsAgainst:0};
+   r.evenIce[teamSide===side?'shotsFor':'shotsAgainst']++;
+   if(outcome==='goal')r.evenIce[teamSide===side?'goalsFor':'goalsAgainst']++;
+  }
+ }
 }
 function leagueTrackEvent(type,side,id,name){
  const row=leagueLivePlayer(side,id,name);if(!row)return;
  if(type==='goal')row.goals++;
  if(type==='penalty')row.pim+=2;
- if(type==='assist')row.assists++;
+ if(type==='assist'){row.assists++;const goal=state.live.analysis?.events.at(-1);if(goal?.type==='goal'&&goal.side===side&&goal.time===analysisClock()&&Array.isArray(goal.assists)&&!samePlayerId(goal.scorerId,id)&&!goal.assists.some(p=>samePlayerId(p.id,id)))goal.assists.push({id:row.id,name:row.name});}
 }
 function leagueCommitRows(game,rows,partial=false,live=false){
  ensureLeagueStatistics();const s=state.leagueStatistics;

@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -68,9 +69,9 @@ assert.equal(run('target.promisedRole'),'Nyckelspelare');
 assert.equal(run('target.recruitmentPromise.minutes'),15);
 const signedCash=run('state.money');run('advanceScoutReports()');assert.equal(run('state.money'),signedCash);
 // Promised role is checked against actual minutes once per completed match.
-run('globalThis.happy=target.happiness;createMatch();state.live.finished=true;state.live.iceTime={[target.id]:0};afterTrainingMatch();afterTrainingMatch()');
+run('globalThis.happy=target.happiness;(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;state.live.iceTime={[target.id]:0};afterTrainingMatch();afterTrainingMatch()');
 assert.equal(run('target.recruitmentPromise.games'),1);
-run('for(let i=0;i<2;i++){state.round++;state.live=null;createMatch();state.live.finished=true;state.live.iceTime={[target.id]:0};afterTrainingMatch()}state.live=null');
+run('for(let i=0;i<2;i++){state.round++;state.live=null;(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;state.live.iceTime={[target.id]:0};afterTrainingMatch()}state.live=null');
 assert.equal(run('target.recruitmentPromise.resolved'),true);
 assert.equal(run('target.happiness'),run('happy-12'));
 // A weak salary offer fails; no fee deducted and the reason is explicit.
@@ -87,7 +88,7 @@ assert.equal(run('state.recruitment.deals.length'),run('count'));
 run('state.boardPlan.offer.wageLimit=1000000000;state.money=100;submitRecruitOffer(budgetTarget.id,recruitFee(budgetTarget),1000000,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals.length'),run('count'));
 // Own player sales require a decision, protect squad size and cannot mutate a live team.
-run('state.money=1000000000;target.transferListed=true;generateIncomingOffer();globalThis.incoming=state.recruitment.incoming.find(o=>samePlayerId(o.playerId,target.id));createMatch();answerIncomingOffer(incoming.id,true)');
+run('state.money=1000000000;target.transferListed=true;generateIncomingOffer();globalThis.incoming=state.recruitment.incoming.find(o=>samePlayerId(o.playerId,target.id));(state.calendar.date=calendarTarget(),createMatch());answerIncomingOffer(incoming.id,true)');
 assert.equal(run('getPlayerClub(target.id)'),'HV71');
 run('state.live=null;globalThis.saleCash=state.money;answerIncomingOffer(incoming.id,true)');
 assert.equal(run('incoming.status'),'accepted');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
@@ -98,7 +99,7 @@ assert.ok(run('state.recruitment.history.length>historyBefore'));
 assert.equal(run('new Set([...Object.values(state.clubRosters).flat(),...state.loans.external].map(p=>String(p.id))).size'),allPlayers);
 assert.equal(run('Object.values(state.clubRosters).every(ps=>ps.filter(p=>p.pos==="MV").length>=2&&ps.filter(p=>p.pos==="B").length>=6&&ps.filter(p=>!["MV","B"].includes(p.pos)).length>=12)'),true);
 // Offseason weeks advance work and bids; ordinary pages never advance time.
-run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.training.messages.forEach(m=>m.resolved=true);state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;recruitmentWeek()');
+run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.training.messages.forEach(m=>m.resolved=true);state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;Array.from({length:7},()=>recruitmentWeek())');
 assert.equal(run('state.recruitment.tick'),run('tick+1'));
 const tick=run('state.recruitment.tick');run('save();render()');assert.equal(run('state.recruitment.tick'),tick);
 run('save()');const reload=boot(storage.value);assert.equal(reload.run('state.recruitment.tick'),tick);
@@ -117,7 +118,7 @@ assert.ok(migrated.run('recruitmentPlayerView().includes("1500000")'));
 // Pending offers reserve room; cancellation releases it and season launch waits for decisions.
 run('globalThis.reserveTarget=state.clubRosters[RECRUIT_CLUBS[4][0]][5];reserveTarget.transferListed=true;state.money=recruitFee(reserveTarget)+1000;state.season.nextWageLimit=1000000000;submitRecruitOffer(reserveTarget.id,recruitFee(reserveTarget),recruitPlayerWishes(reserveTarget).salary,2,"Nyckelspelare");globalThis.pendingCount=state.recruitment.deals.length;globalThis.reserveOther=state.clubRosters[RECRUIT_CLUBS[5][0]][5];submitRecruitOffer(reserveOther.id,1001,1000000,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals.length'),run('pendingCount'));
-run('launchSeason()');assert.equal(run('state.season.phase'),'preseason');
+run('(state.calendar.date=state.season.year+"-09-07",launchSeason())');assert.equal(run('state.season.phase'),'preseason');
 run('cancelRecruitOffer(state.recruitment.deals[0].id)');assert.equal(run('state.recruitment.deals[0].status'),'cancelled');
 // Every club and all working views render without leaking the old overall statistic.
 for(const club of run('Object.keys(CLUB_DATA)')){

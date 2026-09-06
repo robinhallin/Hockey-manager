@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -40,7 +41,7 @@ function boot(saved){
 
 
 const {run,storage}=boot();
-run('startCareerWithClub("HV71");createMatch();globalThis.r=state.live.rink;r.owner="own";globalThis.a=rinkSkaters("own")[0];r.carrier=a.key;state.live.penaltiesOpp=[120];ensureRink();a=rinkSkaters("own")[0];r.carrier=a.key;a.x=78;a.y=45;globalThis.targets=hockeyTargets()');
+run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());globalThis.r=state.live.rink;r.owner="own";globalThis.a=rinkSkaters("own")[0];r.carrier=a.key;state.live.penaltiesOpp=[120];ensureRink();a=rinkSkaters("own")[0];r.carrier=a.key;a.x=78;a.y=45;globalThis.targets=hockeyTargets()');
 const duties=run('Object.values(targets).map(t=>t.duty)');
 assert.ok(duties.includes('Spel på blålinjen'));assert.ok(duties.includes('Framför mål'));assert.ok(duties.includes('Centralt alternativ'));
 assert.equal(run('rinkSkaters("opponent").filter(p=>targets[p.key].duty==="Skyddar boxen").length'),4);
@@ -78,5 +79,5 @@ const legacy=JSON.parse(storage.value);delete legacy.live.rink.hockey;
 assert.ok(boot(JSON.stringify(legacy)).run('state.live.rink.hockey.counts'));
 // An empty-net miss is never a fictional goalkeeper save.
 const random=Math.random;try{Math.random=()=>.99;run('state.live.aiGoaliePulled=true;ensureRink();a=rinkSkaters("own")[0];rinkTakeShot(a)');assert.equal(run('state.live.analysis.shots.at(-1).outcome'),'wide');assert.ok(!/undefined|NaN/.test(run('statisticsView()')));}finally{Math.random=random;}
-for(const club of run('Object.keys(CLUB_DATA)')){run(`startCareerWithClub(${JSON.stringify(club)});createMatch();state.live.penaltiesOpp=[120];ensureRink()`);assert.ok(!/undefined|NaN/.test(run('matchView()')),club);}
+for(const club of run('Object.keys(CLUB_DATA)')){run(`startCareerWithClub(${JSON.stringify(club)});(state.calendar.date=calendarTarget(),createMatch());state.live.penaltiesOpp=[120];ensureRink()`);assert.ok(!/undefined|NaN/.test(run('matchView()')),club);}
 console.log('PASS: PP/PK roles, positional offside, icing/no-change/PK exemption, real loose-puck recovery, goalie control, styles, persistence/migration and 14 clubs.');

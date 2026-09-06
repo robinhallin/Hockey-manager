@@ -23,6 +23,7 @@ function deskNavigate(page,tab){
   if(!DESK_AREAS.some(a=>a.pages.some(([p])=>p===page)||a.details?.[page])&&!['inbox','news','settings'].includes(page))return;
   if(state.live?.running)pauseMatch();
   if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
+  if(page==='inbox'&&state.page!=='inbox')inboxUI.detail=false;
   state.page=page;save();render();
   const content=document.getElementById('content');
   if(content){content.scrollTop=0;content.focus?.({preventScroll:true});}
@@ -83,7 +84,7 @@ function deskRefreshShell(){
   const unread=state.training?.messages.filter(m=>!m.read).length||0,mail=document.getElementById('deskInbox');
   if(mail){mail.innerHTML=`${deskIcon('mail')}<span class="desk-inbox-label">Inkorg</span>${unread?`<span class="desk-count">${unread>99?'99+':unread}</span>`:''}`;mail.setAttribute?.('aria-label',`Inkorg, ${unread} olästa meddelanden`);mail.setAttribute?.('aria-current',state.page==='inbox'?'page':'false');}
   const menu=document.getElementById('mobileMenu');if(menu)menu.innerHTML=deskIcon('menu')+'<span>Meny</span>';
-  const next=document.getElementById('continueGame');if(next){next.disabled=Boolean(careerScreen||!state.careerStarted);next.title='Gå till nästa händelse, match eller beslut';}
+  const next=document.getElementById('continueGame');if(next){next.disabled=Boolean(careerScreen||!state.careerStarted);next.textContent=calendarActionLabel();next.title=state.calendar?`${calText(state.calendar.date)} · ${calendarActionLabel()}`:'Fortsätt';}
 }
 
 function deskFixtures(){
@@ -131,8 +132,8 @@ function managerDeskView(){
     {label:'Klubbkassa',value:careerMoney(state.money),detail:`${careerMoney(wageBudget()-annualWageCost())} i löneutrymme / år`,page:'finance'}];
   return `<section class="manager-desk">
     <header class="desk-heading"><div><span class="desk-kicker">${trainingSafe(club)} · ${seasonLabel()}</span><h1>Tränarkontoret</h1><p>Din dag, laget och besluten som väntar.</p></div><span class="desk-phase">${({regular:'Grundserie',playoffs:'Slutspel',review:'Säsongsavslutning',preseason:'Försäsong'})[state.season.phase]||'Karriär'}</span></header>
-    <div class="desk-main-grid">
-      <article class="desk-fixture-hero"><div class="desk-fixture-top"><span class="desk-kicker">${next.eyebrow}</span><span class="desk-club-monogram" style="--club-color:${careerIdentity(club).color}">${trainingSafe(careerIdentity(club).code)}</span></div><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="desk-live-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p><div class="desk-fixture-bottom">${deskLink(next.label,next.action,'desk-primary')}<span>Fortsätt i toppraden för nästa händelse.</span></div></article>
+    ${state.calendar?`<section class="desk-day-ribbon"><div><span class="desk-kicker">IDAG · ${calText(state.calendar.date)}</span><strong>${state.calendar.completedMatchDate===state.calendar.date?'Följ upp matchen innan du avslutar dagen':calendarFixtures().some(f=>f.date===state.calendar.date)?'Matchdag – förbered laget':TRAINING_SESSIONS[calendarSession(state.calendar.date).type].name}</strong></div><button class="btn" onclick="deskNavigate('calendar')">Dagens program →</button></section>`:''}<div class="desk-main-grid">
+      <article class="desk-fixture-hero"><div class="desk-fixture-top"><span class="desk-kicker">${next.eyebrow}</span><span class="desk-club-monogram" style="--club-color:${careerIdentity(club).color}">${trainingSafe(careerIdentity(club).code)}</span></div><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="desk-live-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p><div class="desk-fixture-bottom">${deskLink(next.label,next.action,'desk-primary')}<span>Kalendern leder dig en dag i taget.</span></div></article>
       <section class="desk-panel desk-agenda"><header><h2>Att ta ställning till</h2><span class="desk-total">${tasks.length}</span></header>${tasks.length?`<div class="desk-task-list">${tasks.slice(0,3).map(t=>`<button class="desk-task" onclick="${trainingSafe(deskAction(t.action))}"><span class="desk-task-tag ${t.tone}">${t.tag}</span><strong>${trainingSafe(t.title)}</strong><span>${trainingSafe(t.detail)}</span>${deskIcon('arrow')}</button>`).join('')}</div>${tasks.length>3?`<details class="desk-extra-tasks"><summary>${tasks.length-3} fler att följa upp</summary>${tasks.slice(3).map(t=>deskLink(t.title,t.action)).join('')}</details>`:''}`:'<div class="desk-clear"><span aria-hidden="true">✓</span><h3>Utrymme att förbereda laget</h3><p>Inga prioriterade åtgärder just nu. Se över kedjorna och träningsplanen inför nästa match.</p></div>'}</section>
     </div>
     ${storiesDeskView()}${rivalsDeskView()}

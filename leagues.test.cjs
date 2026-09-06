@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -49,7 +50,7 @@ for(const name of run('Object.keys(CLUB_DATA)')){
 assert.ok(run('state.schedule.every(g=>leagueOf(g.home)===leagueOf(g.away))'));
 assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),run('Object.values(state.clubRosters).flat().length'));
 // A full HA match uses the real manager engine and advances both leagues once.
-run('startMatch();for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)startMatch();liveStep()}');
+run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}');
 assert.ok(run('state.live.finished'));assert.ok(run('state.teams.every(t=>t.gp===1)'));
 assert.equal(run('state.analysis.matches[0].club'),'AIK');
 assert.ok(!/undefined|NaN/.test(run('tableView()+roundView()+leaguesView()+managerView()')));
@@ -68,7 +69,7 @@ assert.equal(run('state.season.series.filter(s=>s.stage==="playout")[0].bestOf')
 assert.ok(run('state.world.cups.HA&&state.world.cups.SHL'));
 const ownRoster=run('JSON.stringify(managerRoster().map(p=>[p.id,p.attributes]))');
 for(let i=0;i<40&&run('state.season.phase')==='playoffs';i++){
- if(run('Boolean(currentSeasonFixture())'))run('createMatch();state.live.hv=5;state.live.opp=1;finishMatch(false)');else run('watchRemainingPlayoffs()');
+ if(run('Boolean(currentSeasonFixture())'))run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=5;state.live.opp=1;finishMatch(false)');else run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 }
 assert.equal(run('state.season.phase'),'review');assert.equal(run('state.world.movement.up'),'AIK');
 assert.ok(run('state.world.movement.down'));
@@ -83,18 +84,18 @@ assert.ok(run('state.clubRosters[relegated].some(p=>p.leagueRequest&&p.transferL
 const promotionCash=run('state.money'),sponsor=run('state.clubOffice.sponsor');run('leagueApplyMovement();beginPreseason()');
 assert.equal(run('state.money'),promotionCash);assert.equal(run('state.clubOffice.sponsor'),sponsor);
 assert.equal(run('state.world.history.length'),1);
-run('managerRoster().forEach(p=>p.contractYears=Math.max(1,p.contractYears));launchSeason()');
+run('managerRoster().forEach(p=>p.contractYears=Math.max(1,p.contractYears));(state.calendar.date=state.season.year+"-09-07",launchSeason())');
 assert.equal(run('state.schedule.length'),728);
 assert.ok(run('state.schedule.filter(g=>g.home==="AIK"||g.away==="AIK").every(g=>leagueOf(g.home)==="SHL"&&leagueOf(g.away)==="SHL")'));
 assert.ok(run('state.teams.every(t=>t.gp===0)'));
 assert.equal(run('state.boardPlan.offer.place'),12);
 // SHL bottom club plays survival itself: never auto-simulate its fixture.
-run('startCareerWithClub("HV71");state.schedule.forEach(g=>g.played=true);state.teams.forEach((t,i)=>{t.gp=52;t.pts=100-i});team("HV71").pts=-1;state.round=53;enterPlayoffs();var fixture=JSON.stringify(currentSeasonFixture());watchRemainingPlayoffs()');
+run('startCareerWithClub("HV71");state.schedule.forEach(g=>g.played=true);state.teams.forEach((t,i)=>{t.gp=52;t.pts=100-i});team("HV71").pts=-1;state.round=53;enterPlayoffs();var fixture=JSON.stringify(currentSeasonFixture());(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 assert.equal(run('currentSeasonFixture().stage'),'playout');assert.equal(run('JSON.stringify(currentSeasonFixture())'),run('fixture'));
-run('createMatch();state.live.period=4;state.live.minute=5;state.live.hv=1;state.live.opp=1');assert.equal(run('currentLinePlayers().length+currentDefensePlayers().length'),5);
+run('(state.calendar.date=calendarTarget(),createMatch());state.live.period=4;state.live.minute=5;state.live.hv=1;state.live.opp=1');assert.equal(run('currentLinePlayers().length+currentDefensePlayers().length'),5);
 run('state.live.hv=1;state.live.opp=4;finishMatch(false)');assert.equal(run('state.analysis.matches[0].stage'),'SHL-kval');
 for(let i=0;i<40&&run('state.season.phase')==='playoffs';i++){
- if(run('Boolean(currentSeasonFixture())'))run('createMatch();state.live.hv=1;state.live.opp=4;finishMatch(false)');else run('watchRemainingPlayoffs()');
+ if(run('Boolean(currentSeasonFixture())'))run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=1;state.live.opp=4;finishMatch(false)');else run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 }
 assert.equal(run('state.world.movement.down'),'HV71');run('beginPreseason()');assert.equal(run('leagueOf()'),'HA');
 assert.equal(run('state.clubOffice.operations'),5000000);
@@ -105,11 +106,11 @@ run('startCareerWithClub("HV71");state.schedule.forEach(g=>g.played=true);state.
 const cupOld=JSON.parse(storage.value);delete cupOld.world;
 cupOld.teams=cupOld.teams.filter(t=>!lower.includes(t.name));cupOld.schedule=cupOld.schedule.filter(g=>!lower.includes(g.home)&&g.stage!=="playout");cupOld.season.series=cupOld.season.series.filter(s=>s.league==='SHL'&&s.stage!=='playout');
 for(const name of lower){delete cupOld.clubRosters[name];delete cupOld.recruitment.ai[name];}
-const late=boot(JSON.stringify(cupOld));assert.equal(late.run('state.world.legacyCup'),true);
+const late=boot(JSON.stringify(cupOld));late.run('resumeCareer()');assert.equal(late.run('state.world.legacyCup'),true);
 for(let i=0;i<40&&late.run('state.season.phase')==='playoffs';i++){
- if(late.run('Boolean(currentSeasonFixture())'))late.run('createMatch();state.live.hv=5;state.live.opp=1;finishMatch(false)');else late.run('watchRemainingPlayoffs()');
+ if(late.run('Boolean(currentSeasonFixture())'))late.run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=5;state.live.opp=1;finishMatch(false)');else late.run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 }
 assert.equal(late.run('state.season.phase'),'review');assert.equal(late.run('state.world.movement'),null);
-late.run('beginPreseason();managerRoster().forEach(p=>p.contractYears=Math.max(1,p.contractYears));launchSeason()');
+late.run('beginPreseason();managerRoster().forEach(p=>p.contractYears=Math.max(1,p.contractYears));(state.calendar.date=state.season.year+"-09-07",launchSeason())');
 assert.equal(late.run('state.world.legacyCup'),false);assert.equal(late.run('state.schedule.length'),728);
 console.log('PASS: 28 clubs, 728 fixtures, unique researched rosters, full HA match, midseason and playoff migration, parallel playoffs, own survival/OT, promotion and relegation budgets/reactions, idempotent rollover and save/reload.');

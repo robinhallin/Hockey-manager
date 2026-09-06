@@ -47,7 +47,7 @@ assert.equal(run('getPlayerClub(p.id)'), 'Kontraktslös');
 assert.equal(run('findPlayerAnywhere(p.id)===p'),true);
 assert.equal(run('getTransferMarketPlayers().filter(q=>samePlayerId(q.id,p.id)).length'),1);
 assert.equal(run('recruitFee(p)'),0);
-run('requestScoutReport(p.id);recruitmentWeek()');
+run('requestScoutReport(p.id);Array.from({length:7},()=>recruitmentWeek())');
 assert.equal(run('state.scoutReports[String(p.id)].visits'),1);
 run('submitRecruitOffer(p.id,1,recruitPlayerWishes(p).salary,2,"Nyckelspelare")');assert.equal(run('state.recruitment.deals.length'),0);
 run('submitRecruitOffer(p.id,0,recruitPlayerWishes(p).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;globalThis.cash=state.money;calendarStep(true);calendarStep(true)');
