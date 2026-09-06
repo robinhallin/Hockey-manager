@@ -1,6 +1,6 @@
-# Matchstudion — independent match presentation prototype
+# Matchstudion — shared simulation and career integration
 
-Open `match-lab.html` for one 20-minute HV71–Färjestad period. It is an additive test route: the existing career, match renderer, statistics and saves are untouched. The page never reads or writes career storage. Both clubs use a reproducible snapshot of their existing researched game attributes, exported by `npm run data:match-lab`.
+Open `match-lab.html` for one 20-minute HV71–Färjestad period. This test route never reads or writes career storage. The integration used by the main game is documented below. Both clubs use a reproducible snapshot of their existing researched game attributes, exported by `npm run data:match-lab`.
 
 ## What to try
 
@@ -26,8 +26,22 @@ Stats count actual attempts, shots on goal, saves, faceoffs and time in the atta
 
 Browser playtesting covers desktop and a 390 px embedded mobile viewport: startup, playing/pausing, counter and PP sequences, replay, instructions and readable controls. This is not a physical iPhone/Safari test.
 
-This intentionally remains a prototype of one period and two fixed teams. It does not replace the career engine, import career formations, simulate a full season, implement icing, coincidental/double penalties, empty-net play, injuries or overtime. Movement and marking remain simplified hockey AI. Results and difficulty need broader playtesting before integration. Reusing the same scenario seed allows tactical comparisons from the same starting situation.
+This intentionally remains a prototype of one period and two fixed teams. It does not replace the career engine, import career formations, simulate a full season, implement icing, coincidental/double penalties, empty-net play, injuries or overtime. Movement and marking remain simplified hockey AI. Results and difficulty benefit from continued playtesting. Reusing the same scenario seed allows tactical comparisons from the same starting situation.
 
 ## Development
 
 The tracked HTML, JS and CSS remain buildless on GitHub Pages. Vite is only a local preview dependency; `npm ci` then `npm run dev` runs the existing static game and prototype without rewriting either entrypoint. The supervised Sites preview uses that same development script for browser QA.
+
+## Career integration (career5)
+
+New fixtures in `index.html` now use `CareerBroadcastMatch` in `career-match.js` and the shared `match-renderer.js`. The original test route remains isolated from saves. Saved unfinished legacy matches finish with their original engine; the next fixture automatically uses the broadcast engine.
+
+The adapter uses the career's actual club rosters and attributes, locked match squad (including eligible extras), selected forward lines, defense pairs, goalkeeper and two PP/PK units. The rival coach supplies the opponent lineup. Formation orders wait for a safe change or stoppage; the ice list always shows the actual players, including a mixed formation during a sequential change. Goalie changes and goalie extraction are queued for a stoppage. Three-on-three overtime uses four-on-three powerplay, then four-on-four until the next whistle; playoffs continue in twenty-minute five-on-five sudden-death periods. The existing shootout and season completion paths remain in charge of deciding and recording a finished fixture.
+
+Resolved puck flights write to the existing analysis and league ledger exactly once. Goals, both assists, the keeper's saves/goals against, on-ice shot shares and PP goal attribution use the actual participants and strength at impact. Ice time uses the players present during each fixed step. The existing workload, medical exposure, morale, feedback, training familiarity, team chemistry and recovery systems remain connected. Shot choice, forecheck, tempo, physicality, mentality, shift length, line usage, all three PP shapes and both PK shapes affect the shared simulation through the adapter.
+
+The renderer never advances the match or awards statistics. Live playback keeps controls mounted and runs fixed steps independently of canvas refresh; the career autosaves every five seconds and immediately on pause, period boundaries and match completion. Saving preserves RNG, puck flight, substitutions, energy and the last actual replay; interpolation history is excluded. Resuming a save restores player references and methods without replaying previously credited events. Hidden tabs pause the match. Replays pause the career clock and read captured positions only.
+
+Validation: `npm run test:career-match` exercises a full three-period game, saved-flight continuity through the real start action, both sides' scoring and ice-time ledgers, no duplicate completion, chosen PP/PK players, exclusion and return of the penalized skater, goalie substitutions/extraction, 28 Swedish clubs, regular/playoff overtime boundaries, shootouts, friendly reporting and a PP goal with two assists. `npm run test:match-lab` protects the prototype's movement and event invariants. Browser checks cover career navigation into a match, pause, tactical orders, queued units, replay and a 390 px viewport. Native iOS/Safari is not covered.
+
+This remains simplified hockey AI: one active minor penalty at a time, no coincidental/double penalties or icing in broadcast fixtures. The broadcast's shot probabilities are game mechanics rather than calibrated xG. Those limitations belong to the simulation and are not papered over with unrelated text events.

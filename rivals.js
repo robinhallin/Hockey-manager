@@ -132,6 +132,7 @@ function rivalPreparationBonus(){
  return bonus;
 }
 function rivalLiveKeeper(){
+ if(studioActive())return studioKeeper(1);
  rivalLiveSetup();const m=state.live;if(!m||m.aiGoaliePulled)return null;
  const pool=state.clubRosters[m.opponent]||[];
  const available=p=>medicalReady(p)&&(m.leagueBox?.players[m.opponent+':'+p.id]?.seconds||0)<medicalLimit(p);
