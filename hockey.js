@@ -1,7 +1,7 @@
 "use strict";
 const HOCKEY_STYLES={control:'Kontrollerat anfall',counter:'Kontringshockey',pressure:'Hög press'};
 function ensureHockey(){const r=state.live?.rink;if(!r)return;if(!r.hockey)r.hockey={version:1,transition:0,loose:null,stops:[],counts:Object.fromEntries(['offside','icing','clear','freeze'].map(k=>[k,{own:0,opponent:0}]))};}
-function hockeyStyle(side){return side==='own'?(state.tacticalPlan.attackStyle||'control'):['control','counter','pressure'][Math.floor(attrSeed(`${state.live.opponent}:style`)*3)];}
+function hockeyStyle(side){return side==='own'?(state.tacticalPlan.attackStyle||'control'):(state.live.aiTeam?.style||rivalPlan(state.live.opponent).style);}
 function hockeySetStyle(value){if(!HOCKEY_STYLES[value])return;if(state.live?.running)pauseMatch();state.tacticalPlan.attackStyle=value;state.tacticalPlan.forecheck=value==='pressure'?'aggressive':value==='counter'?'passive':'balanced';save();render();}
 function hockeySpecial(side){const m=state.live,diff=m.penaltiesOpp.length-m.penaltiesHV.length;return diff===0?'even':(side==='own'?diff:-diff)>0?'pp':'pk';}
 function hockeyRoles(side){
@@ -18,7 +18,7 @@ function hockeyTargets(){
   const order=hockeyRoles(side),slots=order.length>=5?[[69,50,'Spel på blålinjen'],[78,22,'Vänster sida'],[78,78,'Höger sida'],[82,50,'Centralt alternativ'],[89,50,'Framför mål'],[87,68,'Extra anfallare']]:[[69,50,'Spel på blålinjen'],[79,24,'Vänster sida'],[79,76,'Höger sida'],[89,50,'Framför mål']];
   order.forEach((a,i)=>{const slot=slots[Math.min(i,slots.length-1)];put(a,...slot);});
  }else{
-  const tempo=side==='own'?(state.tacticalPlan.tempo==='high'?1.3:state.tacticalPlan.tempo==='low'?.75:1):1;
+  const tempo=side==='own'?(state.tacticalPlan.tempo==='high'?1.3:state.tacticalPlan.tempo==='low'?.75:1):(style==='pressure'?1.3:style==='counter'?.75:1);
   put(carrier,progress+advance*tempo,50+(carrier.y-50)*.8,'Puckförare');
   const claimed=[];let back=0,forward=0;
   for(const a of attack.filter(a=>a.key!==carrier.key)){

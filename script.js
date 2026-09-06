@@ -607,56 +607,10 @@ function getTeamRoster(teamName) {
   };
 }
 
-function getRandomOpponentForward(teamName) {
-  const roster = getTeamRoster(teamName);
+function getRandomOpponentForward(teamName){return rivalRandomSkater(teamName,'forward');}
+function getRandomOpponentDefense(teamName){return rivalRandomSkater(teamName,'defense');}
+function getRandomOpponentSkater(teamName){return rivalRandomSkater(teamName);}
 
-  if (!roster.F.length) {
-    return teamName;
-  }
-
-  return roster.F[
-    Math.floor(Math.random() * roster.F.length)
-  ];
-}
-
-function getRandomOpponentDefense(teamName) {
-  const roster = getTeamRoster(teamName);
-
-  if (!roster.D.length) {
-    return teamName;
-  }
-
-  return roster.D[
-    Math.floor(Math.random() * roster.D.length)
-  ];
-}
-
-function getRandomOpponentSkater(teamName) {
-  const roster = getTeamRoster(teamName);
-
-  const players = [
-    ...roster.D,
-    ...roster.F
-  ];
-
-  if (!players.length) {
-    return teamName;
-  }
-
-  return players[
-    Math.floor(Math.random() * players.length)
-  ];
-}
-
-function getOpponentGoalie(teamName) {
-  const roster = getTeamRoster(teamName);
-
-  if (!roster.G.length) {
-    return teamName;
-  }
-
-  return roster.G[0];
-}
 /* =========================================================
    NY KARRIÄR
    ========================================================= */
@@ -1048,98 +1002,7 @@ function createLeagueSchedule(teams){
   return games;
 }
 function simulateOtherGames(){
-
-
-
- state.schedule
-  .filter(game => game.round === state.round)
-  .forEach(game => {
-
-    if(game.played) return;
-
-   if(game.home === managerClub() || game.away === managerClub()) return;
-
-    const homeTeam = team(game.home);
-    const awayTeam = team(game.away);
-
-    if(!homeTeam || !awayTeam) return;
-
-    const homeStrength = homeTeam.strength + 2;
-    const awayStrength = awayTeam.strength;
-
-    let homeGoals = 0;
-    let awayGoals = 0;
-
-    for(let i = 0; i < 8; i++){
-
-      if(Math.random() < homeStrength / 420){
-        homeGoals++;
-      }
-
-      if(Math.random() < awayStrength / 420){
-        awayGoals++;
-      }
-
-    }
-    const overtime = homeGoals === awayGoals;
-    if(homeGoals === awayGoals){
-
-      if(Math.random() < homeStrength / (homeStrength + awayStrength)){
-        homeGoals++;
-      }else{
-        awayGoals++;
-      }
-
-    }
-
-    game.homeGoals = homeGoals;
-    game.awayGoals = awayGoals;
-    game.played = true;
-game.overtime = overtime;
-leagueRecordBackground(game);
-
-homeTeam.gp++;
-awayTeam.gp++;
-
-homeTeam.gf += homeGoals;
-homeTeam.ga += awayGoals;
-
-awayTeam.gf += awayGoals;
-awayTeam.ga += homeGoals;
-
-if(overtime){
-
-  if(homeGoals > awayGoals){
-    homeTeam.otw++;
-    homeTeam.pts += 2;
-
-    awayTeam.otl++;
-    awayTeam.pts += 1;
-  }else{
-    awayTeam.otw++;
-    awayTeam.pts += 2;
-
-    homeTeam.otl++;
-    homeTeam.pts += 1;
-  }
-
-}else{
-
-  if(homeGoals > awayGoals){
-    homeTeam.w++;
-    homeTeam.pts += 3;
-
-    awayTeam.l++;
-  }else{
-    awayTeam.w++;
-    awayTeam.pts += 3;
-
-    homeTeam.l++;
-  }
-
-}
-  });
-
+ for(const game of state.schedule.filter(g=>g.round===state.round&&!g.played&&!g.seriesId&&g.home!==managerClub()&&g.away!==managerClub()))leagueBackground(game);
 }
 /* =========================================================
    LADDA / SPARA
@@ -1215,6 +1078,7 @@ function save(){
   ensureCalendar();
   ensureTrainingData();
   ensureJuniors();
+  ensureRivals();
   ensureRink();
   ensureClub();
   ensureManager();
@@ -1962,8 +1826,9 @@ function hvShot(
   shooter.shots++;
 
 
-  const opponentGoalie=(state.clubRosters[m.opponent]||[]).filter(p=>p.pos==="MV").sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a))[0];
-  const goalieStrength=opponentGoalie?matchAttributeRating(opponentGoalie):team(m.opponent).strength;
+  const opponentGoalie=rivalLiveKeeper();
+  const goalieStrength=opponentGoalie?rivalLiveRating(opponentGoalie,"goalie"):40;
+  const emptyOpponentNet=m.aiGoaliePulled||!opponentGoalie;
 
 
   let goalChance=
@@ -1998,14 +1863,14 @@ function hvShot(
 
 
   goalChance-=(goalieStrength-75)/600;
-  if(m.aiGoaliePulled)goalChance=.58;
+  if(emptyOpponentNet)goalChance=.58;
 
 
   const location=context?.location||shotLocation(dangerous);
-  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !m.aiGoaliePulled ? 0.52 : 1)));
+  goalChance=Math.max(.01,Math.min(.95,goalChance*location.factor*(context && !emptyOpponentNet ? 0.52 : 1)));
   const result=Math.random();
-  recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result,context&&m.aiGoaliePulled&&result>=goalChance?'wide':null);
-  if(context&&m.aiGoaliePulled&&result>=goalChance){addEvent(`${shooter.name} skjuter utanför det tomma målet.`,'shot');return;}
+  recordAnalysisShot('own',shooter.name,shooter.id,dangerous,location,goalChance,result,context&&emptyOpponentNet&&result>=goalChance?'wide':null);
+  if(context&&emptyOpponentNet&&result>=goalChance){addEvent(`${shooter.name} skjuter utanför det tomma målet.`,'shot');return;}
 
 
   if(
@@ -2196,8 +2061,7 @@ function opponentShot(
 
   goalChance+=
     (
-      team(m.opponent)
-      .strength-78
+      rivalLiveRating((state.clubRosters[m.opponent]||[]).find(p=>p.name===shooterName),"shot")-78
     )/550;
 
 
@@ -2752,6 +2616,7 @@ function updateFatigue(){
    ========================================================= */
 
 function aiDecisions(){
+  rivalLiveDecision();
   if(hockeyChangeBlocked("opponent"))return;
 
   const m=
@@ -4792,6 +4657,7 @@ function render(){
   ensureCalendar();
   ensureTrainingData();
   ensureJuniors();
+  ensureRivals();
   ensureRink();
   ensureClub();
   ensureManager();
@@ -4845,6 +4711,9 @@ careerScreen === "files" ? saveSettingsView()
 : state.page==="round"
 
 ? roundView()
+
+: state.page==="opponents"
+? rivalsView()
 
 : state.page==="stories"
 ? storiesView()
