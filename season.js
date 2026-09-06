@@ -100,9 +100,9 @@ function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
  loansNewYear();s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
-  p.age++;p.contractYears=Math.max(0,(p.contractYears||1)-1);
+  developmentBirthday(p);p.contractYears=Math.max(0,(p.contractYears||1)-1);
 
-  if(p.age>=33){const a=ensurePlayerAttributes(p);const key=p.pos==='MV'?'movement':'acceleration';a[key]=Math.max(1,a[key]-1);}
+
   p.fatigue=0;
  }
  const fulfilled=s.boardResult.filter(g=>g.met).length/Math.max(1,s.boardResult.length);

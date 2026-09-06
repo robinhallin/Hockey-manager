@@ -88,12 +88,8 @@ function trainingTarget(p,session='skills'){
   return available.length?available[(state.round+state.training.day+Math.floor(attrSeed(p.id)*10))%available.length]:Object.keys(a)[0];
 }
 function trainingGrowth(p,key,points){
-  if(p.academy&&p.attributes[key]>=p.academy.ceiling[key])return false;
-  if(!Number.isFinite(points)||points<=0||!Object.hasOwn(p.attributes,key)||p.attributes[key]>=20)return false;
   if(p.academy)p.academy.cursor++;
-  p.trainingProgress[key]=(p.trainingProgress[key]||0)+points;
-  if(p.trainingProgress[key]<100)return false;
-  p.trainingProgress[key]-=100;p.attributes[key]++;p.attributeGrowth=Math.max(0,p.attributeGrowth-.12);
+  if(!developmentAdvance(p,key,points))return false;
   const label=(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[key];
   managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,`${p.name} tar ett steg framåt`,`${p.name} har utvecklat ${label.toLowerCase()} genom träning och matchvana. Öppna spelarprofilen för tränarteamets aktuella bedömning.`,'Utvecklingsrapport',p.academy&&!isOwnPlayer(p)?{link:'juniors'}:{playerId:p.id});
   return true;
@@ -244,7 +240,7 @@ function trainingSafe(text){return String(text).replace(/[&<>"']/g,c=>({'&':'&am
 function trainingPlayerPanel(p){
   ensureTrainingData();const key=trainingTarget(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
   const changes=Object.keys(p.attributes).filter(k=>p.attributes[k]>(p.trainingBaseline[k]||p.attributes[k]));
-  return `${p.lastPerformance?`<div class="player-last-performance"><strong>Senaste matchinsats</strong> ${performanceStars(p.lastPerformance.stars)}<p>${calText(p.lastPerformance.date)} · ${trainingSafe(p.lastPerformance.opponent)} · ${trainingSafe(p.lastPerformance.reason)}</p></div>`:''}<div class="individual-training"><div class="training-individual-fields"><label>Individuellt fokus<select onchange="setDevelopmentFocus('${p.id}',this.value)">${focusOptions(p).map(f=>`<option ${p.developmentFocus===f?'selected':''}>${f}</option>`).join('')}</select></label><label>Träningsbelastning<select onchange="setIndividualLoad('${p.id}',this.value)">${[['normal','Följ lagets pass'],['light','Lätt träning'],['rest','Individuell vila']].map(([v,l])=>`<option value="${v}" ${p.trainingLoad===v?'selected':''}>${l}</option>`).join('')}</select></label></div><div class="training-progress-label"><span>Nästa fokus: ${fields[key]}</span><strong>${Math.floor(p.trainingProgress[key]||0)} %</strong></div><progress max="100" value="${p.trainingProgress[key]||0}" aria-label="Utvecklingsarbete inom ${fields[key]}"></progress><p>Framsteg mot nästa attributsteg. Utvecklingstakten beror på ålder, ork och tränarstöd. Individuell vila gäller tills du ändrar den.</p>${changes.length?`<p class="training-growth">Utvecklat sedan uppföljningen började: ${changes.map(k=>`${fields[k]} +${p.attributes[k]-p.trainingBaseline[k]}`).join(', ')}.</p>`:''}</div>`;
+  return `${developmentPanel(p)}${p.lastPerformance?`<div class="player-last-performance"><strong>Senaste matchinsats</strong> ${performanceStars(p.lastPerformance.stars)}<p>${calText(p.lastPerformance.date)} · ${trainingSafe(p.lastPerformance.opponent)} · ${trainingSafe(p.lastPerformance.reason)}</p></div>`:''}<div class="individual-training"><div class="training-individual-fields"><label>Individuellt fokus<select onchange="setDevelopmentFocus('${p.id}',this.value)">${focusOptions(p).map(f=>`<option ${p.developmentFocus===f?'selected':''}>${f}</option>`).join('')}</select></label><label>Träningsbelastning<select onchange="setIndividualLoad('${p.id}',this.value)">${[['normal','Följ lagets pass'],['light','Lätt träning'],['rest','Individuell vila']].map(([v,l])=>`<option value="${v}" ${p.trainingLoad===v?'selected':''}>${l}</option>`).join('')}</select></label></div><div class="training-progress-label"><span>Nästa fokus: ${fields[key]}</span><strong>${Math.floor(p.trainingProgress[key]||0)} %</strong></div><progress max="100" value="${p.trainingProgress[key]||0}" aria-label="Utvecklingsarbete inom ${fields[key]}"></progress><p>Framsteg mot nästa attributsteg. Utvecklingstakten beror på ålder, ork och tränarstöd. Individuell vila gäller tills du ändrar den.</p>${changes.length?`<p class="training-growth">Utvecklat sedan uppföljningen började: ${changes.map(k=>`${fields[k]} +${p.attributes[k]-p.trainingBaseline[k]}`).join(', ')}.</p>`:''}</div>`;
 }
 function trainingAdvice(){
   const t=state.training,roster=managerRoster(),tired=roster.filter(p=>p.fatigue>=60),resting=roster.filter(p=>p.trainingLoad==='rest');
