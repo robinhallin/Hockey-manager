@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -80,7 +81,7 @@ legacy.run('resumeCareer()');assert.equal(legacy.run('state.page'),'squad');
 assert.equal(legacy.run('state.money'),old.money);
 legacy.run('initializeBoardPlan()');assert.equal(legacy.run('wageBudget()'),legacy.run('getClub().wageBudget'));
 // Only actual youth ice time counts, and one match cannot be counted twice.
-run('careerDraft=null;startCareerWithClub("HV71");createMatch();globalThis.young=managerRoster().find(p=>p.age<=23);state.live.finished=true;state.live.iceTime={[young.id]:299};recordBoardMatch()');
+run('careerDraft=null;startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());globalThis.young=managerRoster().find(p=>p.age<=23);state.live.finished=true;state.live.iceTime={[young.id]:299};recordBoardMatch()');
 assert.equal(run('Object.keys(state.boardPlan.youthAppearances).length'),0);
 run('state.round++;state.live.iceTime[young.id]=300;recordBoardMatch();recordBoardMatch()');
 assert.equal(run('state.boardPlan.youthAppearances[String(young.id)].games'),1);
@@ -93,6 +94,6 @@ assert.equal(run('boardProgress().find(g=>g.id==="league").status'),'Ej bedömt'
 run('team(managerClub()).gp=52;team(managerClub()).pts=156');
 assert.equal(run('boardProgress().find(g=>g.id==="league").status'),'Uppnått');
 // Opening the menu safely pauses a live game.
-run('careerDraft=null;startCareerWithClub("HV71");startMatch();showCareerMenu()');
+run('careerDraft=null;startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());showCareerMenu()');
 assert.equal(run('state.live.running'),false);assert.equal(run('careerScreen'),'menu');
 console.log('PASS: 28 career offers, exact budgets, menu/resume, legacy saves, prior-career recovery, real ice-time goals, financial and table objectives.');

@@ -10,7 +10,7 @@ function rinkAttribute(actor,key){
  const p=rinkPlayer(actor);if(!p)return 10;
  const fatigue=actor.side==='own'?p.fatigue:((p.fatigue||0)+(state.live.rink.oppFatigue?.[p.id]||0));
  const teamwork=actor.side==='own'&&['passing','vision','decisions','positioning','faceoffs'].includes(key)?(state.live.rink.teamBonus||0)/4:actor.side==='opponent'&&['passing','vision','decisions','positioning','faceoffs'].includes(key)?((rivalsClubState(state.live.opponent)?.familiarity||45)-45)/100:0;
- return attrClamp((ensurePlayerAttributes(p)[key]||10)-fatigue/25+teamwork,1,20);
+ return attrClamp((ensurePlayerAttributes(p)[key]||10)-fatigue/25-(100-matchEnergy(p))/35+teamwork,1,20);
 }
 function rinkClamp(n,min=6,max=94){return Math.max(min,Math.min(max,n));}
 function rinkDistance(a,b){return Math.hypot((a.x-b.x)*.6,(a.y-b.y)*.3);}
@@ -55,11 +55,7 @@ function rinkMode(value){if(!state.live||!['full','highlights'].includes(value))
 function rinkSelect(key){ensureRink();state.live.rink.selected=key;pauseMatch();}
 function rinkSay(text,phase,hot=false){const r=state.live.rink;r.caption=text;r.phase=phase;r.hot=hot;addEvent(text,phase==='goal'?'goal':['shot','save','post','rebound','block'].includes(phase)?'shot':phase==='penalty'?'penalty':'chance');}
 function rinkBeginFrame(){const r=state.live.rink;r.previous=r.actors.map(a=>({key:a.key,x:a.x,y:a.y}));r.puckFrom={...r.puck};r.puckVia=null;r.frame++;r.at=Date.now();r.hold=0;r.teamBonus=attrClamp(trainingMatchBonus()+lockerMatchBonus()+rivalPreparationBonus(),-6,6);}
-function rinkEndFrame(){
- const r=state.live.rink;r.hockey.transition=Math.max(0,r.hockey.transition-1);r.duration=Math.max(80,rinkDelay()*.88);if(!r.oppFatigue)r.oppFatigue={};
- const onIce=rinkSkaters('opponent');
- for(const p of (state.clubRosters[state.live.opponent]||[]).filter(p=>p.pos!=='MV'))r.oppFatigue[p.id]=attrClamp((r.oppFatigue[p.id]||0)+(onIce.some(a=>samePlayerId(a.id,p.id))?1.2*(1.4-ensurePlayerAttributes(p).stamina/25):-.8),0,100);
-}
+function rinkEndFrame(){const r=state.live.rink;r.hockey.transition=Math.max(0,r.hockey.transition-1);r.duration=Math.max(80,rinkDelay()*.88);}
 function rinkFaceoff(){
  const m=state.live,r=m.rink;
  const centers=['own','opponent'].map(side=>rinkSkaters(side).sort((a,b)=>rinkAttribute(b,'faceoffs')-rinkAttribute(a,'faceoffs'))[0]);

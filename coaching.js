@@ -56,9 +56,27 @@ function trackIceTime(seconds){
   const shared=Math.min(seconds,...players.map(p=>medicalLimit(p)-(m.iceTime[p.id]||0)));
   analysisIce(players,seconds);
   leagueTrackIce(players,seconds);
+  updateFatigue(seconds,players,rinkOpponentPlayers());
   trackSocialIce(skaters,Math.max(0,shared));
   for(const p of players)m.iceTime[p.id]=(m.iceTime[p.id]||0)+Math.max(0,Math.min(seconds,medicalLimit(p)-(m.iceTime[p.id]||0)));
   medicalExposure(players,seconds);
+}
+
+function matchEnergy(p){
+ const e=state.live?.energy?.players?.[String(p.id)];
+ return e?.level??Math.max(0,100-(p.fatigue||0)*.35);
+}
+function matchEnergyPenalty(p){return state.live&&!state.live.finished?(100-matchEnergy(p))/12:0;}
+function matchRecover(seconds,key){
+ const m=state.live;if(!m||m.finished||!m.energy)return;
+ if(!m.energy.breaks)m.energy.breaks=[];
+ if(m.energy.breaks.includes(key))return;m.energy.breaks.push(key);
+ for(const [id,e] of Object.entries(m.energy.players)){
+  const p=findPlayerAnywhere(id);if(!p)continue;
+  const fatigue=(p.fatigue||0)+(isOwnPlayer(p)?0:(m.rink?.oppFatigue?.[id]||0));
+  e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+seconds*.18*(.7+(ensurePlayerAttributes(p).stamina||10)/25));
+  e.shift=0;
+ }
 }
 
 function coachingNavigate(page){

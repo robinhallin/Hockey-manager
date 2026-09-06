@@ -1,6 +1,18 @@
 # Hockey-manager
 
-## Current release: researched rosters, match squads and club loans
+## Current release: daily calendar and matchday decisions
+
+The month calendar is the manager's daily workspace. Selecting a date previews its fixture, training plan, dated reports and pending decisions without moving time. Team sessions are planned by date; individual focus and rest remain under Training. Continue advances exactly one day, stopping for conversations or the current match. Opening a match cannot skip preparation dates. Final scores, player grades and team talks stay on the match date until the manager ends it. Preseason and spectator playoff progression follow the same daily clock; regular-season launch is available from 7 September.
+
+The inbox has unread, actionable and report filters, independently scrolling list/detail panes on desktop and a list-to-letter flow with a back button on mobile. Reading retains list position. New messages carry their actual career date; older messages retain round labels. No routine report automatically replaces the day's agenda.
+
+Match energy is tracked per player using actual ice seconds, stamina, tempo, forecheck and physical load. Bench time recovers short-term energy while accumulated fatigue remains for later days. Period breaks and a single timeout grant bounded recovery; substitutions, pause, playback speed and rendering cannot generate recovery. The same clock drives both teams. The bench adds 30/45/60-second automatic shifts, patient/balanced/frequent shooting choices and three contextual feedback options alongside the existing tactics and targeted messages. Feedback remains bounded, non-stacking and subject to the existing match-time cooldown.
+
+Registered goal events expose scorer, assists, period/time and score beneath the scoreboard, with the latest two goals and an expandable full list. Only actually credited assists are shown; shootout deciders do not acquire a fictional goal scorer. The match report includes persistent 1–5 performance stars with half steps, separate from ability/potential: goals, assists, on-target shots, penalties and even-strength on-ice context inform skater grades; goalkeepers use saves and goals against with small samples moderated. Fewer than three skater minutes, ten goalie minutes/five shots faced, or partial/abandoned records produce no grade. Unused reserves receive none. Reports cover both sides of managed matches, including friendlies, and store their original evidence.
+
+Existing careers, attributes, fixtures, loan ownership and paused matches are retained. New fields initialize lazily; historical match ratings or missing assists are not fabricated. The archive remains bounded by the existing storage budget. `daily-manager.test.cjs` covers genuine daily UI actions, date plans, old saves, message scroll/filter state, timed energy, goal assists, coaching, ratings, a complete match and all 28 clubs. Existing match unit tests now set their fixture dates explicitly; weekly tests perform seven daily actions. Run `node --test --test-concurrency=3 *.test.cjs`. All 26 integration suites pass, including 728 background fixtures, both playoffs, transfers, loans and complete live matches. Static inspection checked eight rendered views and compiled 269 event handlers. Browser visual QA has not been performed.
+
+## Previous release: researched rosters, match squads and club loans
 
 New careers use 680 sourced players across all 28 Swedish clubs, including 25 HV71 players and 23 initial loans. Each player has a dated source profile and prior-season statistics; all attributes are conservative game estimates derived from that evidence. See [PLAYER_RESEARCH.md](PLAYER_RESEARCH.md) for the roster counts, sources, loan exceptions and full method.
 

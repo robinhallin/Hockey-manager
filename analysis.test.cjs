@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -38,7 +39,7 @@ function boot(saved){
   return {run:code=>vm.runInContext(code,context),storage};
 }
 const {run,storage}=boot();
-run('startCareerWithClub("HV71");createMatch();trackIceTime(60)');
+run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());trackIceTime(60)');
 assert.equal(run('state.live.analysis.partial'),false);
 assert.equal(run('Object.values(state.live.analysis.players).reduce((n,p)=>n+p.seconds,0)'),360);
 assert.equal(run('Object.values(state.live.analysis.units).length'),2);
@@ -82,17 +83,17 @@ assert.equal(reload.run('JSON.stringify(state.analysis.matches[0])'),archived);
 assert.ok(!/undefined|NaN|\bOVR\b/.test(reload.run('statisticsView()')));
 run('state.season.year++;state.analysis.window="season"');assert.equal(run('analysisSamples().length'),0);
 // A pre-update save records only subsequent events, explicitly marked partial.
-run('startCareerWithClub("Rögle");createMatch();state.live.minute=5;state.live.shotsHV=2;save()');
+run('startCareerWithClub("Rögle");(state.calendar.date=calendarTarget(),createMatch());state.live.minute=5;state.live.shotsHV=2;save()');
 const legacy=JSON.parse(storage.value);delete legacy.analysis;delete legacy.live.analysis;
 const migrated=boot(JSON.stringify(legacy));
 assert.equal(migrated.run('state.live.analysis.partial'),true);
 assert.equal(migrated.run('state.live.analysis.shots.length'),0);
 for(const club of run('Object.keys(CLUB_DATA)')){
- run(`startCareerWithClub(${JSON.stringify(club)});createMatch();trackIceTime(15);hvShot(currentLinePlayers()[0],true);state.analysis.selected="live"`);
+ run(`startCareerWithClub(${JSON.stringify(club)});(state.calendar.date=calendarTarget(),createMatch());trackIceTime(15);hvShot(currentLinePlayers()[0],true);state.analysis.selected="live"`);
  assert.ok(!/undefined|NaN|\bOVR\b/.test(run('statisticsView()')),club);
 }
 // A whole engine-driven game must balance shot and minute ledgers.
-run('startCareerWithClub("HV71");startMatch();for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)startMatch();liveStep()}');
+run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}');
 assert.equal(run('state.live.finished'),true);
 assert.equal(run('state.analysis.matches.length'),1);
 assert.equal(run('state.analysis.matches[0].shots.length'),run('state.live.shotsHV+state.live.shotsOpp'));
@@ -101,7 +102,7 @@ assert.ok(!/undefined|NaN/.test(run('statisticsView()')));
 console.log('PASS: shot outcomes and rebounds, goals/assists, real unit minutes, PP, archive/reload, partial migration, 14 clubs and complete match.');
 
 // Penalties and shootouts retain their own semantics, without invented shot totals.
-run('startCareerWithClub("HV71");createMatch();state.live.penaltiesHV=[120];trackIceTime(30)');
+run('startCareerWithClub("HV71");(state.calendar.date=calendarTarget(),createMatch());state.live.penaltiesHV=[120];trackIceTime(30)');
 assert.equal(run('Object.values(state.live.analysis.units)[0].kind'),'pk');
 try{Math.random=()=>0;run('simulatePenalty()');}finally{Math.random=random;}
 assert.equal(run('state.live.analysis.events.at(-1).type'),'penalty');
@@ -113,7 +114,7 @@ assert.equal(run('state.analysis.matches[0].shootout'),true);
 assert.equal(run('state.analysis.matches[0].shots.length'),0);
 assert.equal(run('state.analysis.matches[0].events.filter(e=>e.type==="decider").length'),1);
 // The cap preserves the latest 80 real reports when the next match is archived.
-run('state.analysis.matches=Array.from({length:80},(_,i)=>({...state.analysis.matches[0],players:[],events:[],units:[],shots:[],id:"old"+i}));createMatch();goalHV(currentLinePlayers()[0]);finishMatch(false)');
+run('state.analysis.matches=Array.from({length:80},(_,i)=>({...state.analysis.matches[0],players:[],events:[],units:[],shots:[],id:"old"+i}));(state.calendar.date=calendarTarget(),createMatch());goalHV(currentLinePlayers()[0]);finishMatch(false)');
 assert.equal(run('state.analysis.matches.length'),80);
 assert.equal(run('state.analysis.matches.at(-1).id'),'old78');
 console.log('PASS: PK, penalties, shootout exclusion and bounded archive.');

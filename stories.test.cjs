@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
 function game(club='HV71'){
@@ -26,7 +27,7 @@ for(const [choice,won,expected] of [['revenge',true,3],['revenge',false,-3],['ca
  rival.run(`storiesAfterMatch(sample(600,{opponent:'AIK',own:${won?3:1},against:${won?1:3}}))`);assert.equal(rival.run('state.morale'),60+expected);assert.equal(rival.run('s.status'),'closed');assert.ok(rival.run('state.stories.memory.rivals[managerClub()+"|AIK"]'));
 }
 // No actions during a live match, no late/repeated choices, no rewards for decline or expiry.
-const guard=game();guard.run('globalThis.s=storiesCreate("talent",[testPlayer.id],"Chansen","Beslut");createMatch();storiesChoose(s.id,"trust")');assert.equal(guard.run('s.status'),'decision');
+const guard=game();guard.run('globalThis.s=storiesCreate("talent",[testPlayer.id],"Chansen","Beslut");(state.calendar.date=calendarTarget(),createMatch());storiesChoose(s.id,"trust")');assert.equal(guard.run('s.status'),'decision');
 guard.run('state.live=null;storiesChoose(s.id,"invalid")');assert.equal(guard.run('s.status'),'decision');
 guard.run('globalThis.trust=testPlayer.social.trust;for(let i=0;i<3;i++)storiesAfterMatch(sample())');assert.equal(guard.run('s.status'),'closed');assert.equal(guard.run('testPlayer.social.trust'),guard.run('trust'));
 // Detection uses actual young participants, close losses with another fixture, injuries and repeated combinations.
@@ -47,5 +48,5 @@ const cap=game();cap.run('for(let i=0;i<4;i++)storiesCreate(Object.keys(STORY_TY
 // Every Swedish club can enter, follow and display a story using its own player IDs.
 const all=game();for(const club of all.run('Object.keys(CLUB_DATA)')){all.run(`startCareerWithClub(${JSON.stringify(club)});deskNavigate('stories')`);assert.equal(all.run('managerClub()'),club);assert.doesNotMatch(all.get('#content').innerHTML,/undefined|NaN/);}
 // A full live match reaches the story hook exactly once through the real season pipeline.
-const full=game('Rögle BK');full.run('globalThis.s=storiesCreate("talent",[testPlayer.id],"Chansen","Beslut");storiesChoose(s.id,"ease");createMatch();globalThis.steps=0;while(!state.live.finished&&steps++<1600){if(!state.live.running)startMatch();liveStep();}globalThis.count=state.stories.matchCount;finishAnalysis();');assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.stories.matchCount'),1);assert.equal(full.run('state.stories.matchCount'),full.run('count'));assert.equal(full.run('state.stories.seen.includes(state.live.analysis.id)'),true);
+const full=game('Rögle BK');full.run('globalThis.s=storiesCreate("talent",[testPlayer.id],"Chansen","Beslut");storiesChoose(s.id,"ease");(state.calendar.date=calendarTarget(),createMatch());globalThis.steps=0;while(!state.live.finished&&steps++<1600){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep();}globalThis.count=state.stories.matchCount;finishAnalysis();');assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.stories.matchCount'),1);assert.equal(full.run('state.stories.matchCount'),full.run('count'));assert.equal(full.run('state.stories.seen.includes(state.live.analysis.id)'),true);
 console.log('PASS: four fact-driven story types, choices and real ice time, lasting trust/morale, stages and deadlines, medical/partial-data exemptions, duplicate/friendly isolation, save migration, 28 clubs, transfer/year/club boundaries, escaped names and complete 2D match.');

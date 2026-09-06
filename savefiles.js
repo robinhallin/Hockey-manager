@@ -49,6 +49,7 @@ function validateSaveText(text){
  if(s.season&&!['regular','playoffs','review','preseason'].includes(s.season.phase))throw Error('Ogiltig säsongsfas.');
  for(const g of s.schedule)if(!Number.isInteger(g.round)||g.round<1||!s.clubRosters[g.home]||!s.clubRosters[g.away])throw Error('Spelschemat är felaktigt.');
  if(s.calendar&&(!/^\d{4}-\d{2}-\d{2}$/.test(s.calendar.date)||!Number.isFinite(Date.parse(s.calendar.date))))throw Error('Ogiltigt kalenderdatum.');
+ if(s.calendar?.plans&&(!s.calendar.plans||typeof s.calendar.plans!=='object'||Array.isArray(s.calendar.plans)||Object.entries(s.calendar.plans).some(([date,p])=>!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date))||!p||!TRAINING_SESSIONS[p.type]||!['light','normal','hard'].includes(p.intensity))))throw Error('Ogiltig daterad träningsplan.');
  if(s.live)s.live.running=false;
  return s;
 }

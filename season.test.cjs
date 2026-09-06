@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -46,10 +47,10 @@ assert.equal(run('state.season.phase'),'playoffs');
 assert.equal(run('state.season.series.length'),5);
 assert.equal(run('state.season.series[0].high'),'HV71');
 assert.equal(run('currentSeasonFixture().away'),'HV71');
-const fixture=run('JSON.stringify(currentSeasonFixture())');run('watchRemainingPlayoffs()');
+const fixture=run('JSON.stringify(currentSeasonFixture())');run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 assert.equal(run('JSON.stringify(currentSeasonFixture())'),fixture);
 const table=run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))');
-run('createMatch();state.live.hv=4;state.live.opp=1;finishMatch(false)');
+run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=4;state.live.opp=1;finishMatch(false)');
 assert.equal(run('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),table);
 assert.equal(run('state.season.series[0].winsHigh'),1);
 assert.equal(run('state.analysis.matches[0].stage'),'Åttondelsfinal');
@@ -59,8 +60,8 @@ run('save()');const reload=boot(storage.value);
 assert.equal(reload.run('state.season.series[0].winsHigh'),1);
 // Win each manager game; simulate only other teams between stages.
 for(let i=0;i<40&&run('state.season.phase')==='playoffs';i++){
- if(run('Boolean(currentSeasonFixture())'))run('createMatch();state.live.hv=5;state.live.opp=1;finishMatch(false)');
- else run('watchRemainingPlayoffs()');
+ if(run('Boolean(currentSeasonFixture())'))run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=5;state.live.opp=1;finishMatch(false)');
+ else run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 }
 assert.equal(run('state.season.champion'),'HV71');
 assert.equal(run('state.season.phase'),'review');
@@ -74,10 +75,10 @@ assert.equal(run(`managerRoster().find(p=>samePlayerId(p.id,${JSON.stringify(ori
 assert.equal(run('managerRoster()[0].contractYears'),0);
 assert.equal(run('seasonLabel()'),'2027/28');
 const cash=run('state.money');run('beginPreseason()');assert.equal(run('state.money'),cash);
-run('launchSeason()');assert.equal(run('state.season.phase'),'preseason');
+run('(state.calendar.date=state.season.year+"-09-07",launchSeason())');assert.equal(run('state.season.phase'),'preseason');
 run('globalThis.expired=managerRoster().find(p=>p.contractYears===0);releaseExpiredPlayer(expired.id);signSeasonFreeAgent(expired.id);state.money=1000000000;state.season.nextWageLimit=1000000000;submitRecruitOffer(expired.id,0,recruitPlayerWishes(expired).salary*2,2,"Nyckelspelare");state.recruitment.deals[0].rival=null;calendarStep(true);calendarStep(true)');
 assert.equal(run('managerRoster().find(p=>samePlayerId(p.id,expired.id)).contractYears'),2);
-run('managerRoster().forEach(p=>{if(p.contractYears===0)p.contractYears=2});launchSeason()');
+run('managerRoster().forEach(p=>{if(p.contractYears===0)p.contractYears=2});(state.calendar.date=state.season.year+"-09-07",launchSeason())');
 assert.equal(run('state.season.phase'),'regular');
 assert.equal(run('state.round'),1);
 assert.equal(run('state.schedule.length'),728);
@@ -86,26 +87,26 @@ assert.equal(run('JSON.stringify(state.season.archive)'),archive);
 assert.equal(run(`managerRoster().find(p=>samePlayerId(p.id,${JSON.stringify(originalId)})).age`),age+1);
 assert.ok(run('Boolean(state.training)&&Boolean(state.boardPlan)'));
 // The final regular fixture transitions through the real finish/continue path.
-run('state.schedule.forEach(g=>{g.played=g.round<52;g.homeGoals=g.played?2:null;g.awayGoals=g.played?1:null});state.teams.forEach((t,i)=>{t.gp=51;t.pts=100-i});state.round=52;state.live=null;createMatch();state.live.hv=3;state.live.opp=1;finishMatch(false)');
+run('state.schedule.forEach(g=>{g.played=g.round<52;g.homeGoals=g.played?2:null;g.awayGoals=g.played?1:null});state.teams.forEach((t,i)=>{t.gp=51;t.pts=100-i});state.round=52;state.live=null;(state.calendar.date=calendarTarget(),createMatch());state.live.hv=3;state.live.opp=1;finishMatch(false)');
 assert.equal(run('state.round'),53);
 assert.equal(run('state.schedule.every(g=>g.played)'),true);
-run('managerContinue()');assert.equal(run('state.season.phase'),'playoffs');
+run('if(pendingManagerDecision())answerPlayerConversation(pendingManagerDecision().id,"honest");managerContinue();if(pendingManagerDecision())answerPlayerConversation(pendingManagerDecision().id,"honest");managerContinue()');assert.equal(run('state.season.phase'),'playoffs');
 for(let i=0;i<40&&run('state.season.phase')==='playoffs';i++){
- if(run('Boolean(currentSeasonFixture())'))run('createMatch();state.live.hv=1;state.live.opp=4;finishMatch(false)');
- else run('watchRemainingPlayoffs()');
+ if(run('Boolean(currentSeasonFixture())'))run('(state.calendar.date=calendarTarget(),createMatch());state.live.hv=1;state.live.opp=4;finishMatch(false)');
+ else run('(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 }
 assert.equal(run('state.season.archive.length'),2);
 assert.equal(run('state.season.archive[0].year'),2027);
 assert.equal(run('JSON.stringify(state.season.archive.slice(1))'),archive);
 // No-playoff teams can finish a season too.
-endRegular('Björklöven',11);run('watchRemainingPlayoffs()');
+endRegular('Björklöven',11);run('for(let day=0;day<60&&state.season.phase==="playoffs";day++)(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 assert.equal(run('state.season.phase'),'review');
 assert.ok(run('state.season.champion'));
 // A top-six seed waits for the preliminary round, then gets a quarterfinal.
-endRegular('Rögle BK',1);run('watchRemainingPlayoffs()');
+endRegular('Rögle BK',1);run('for(let day=0;day<12&&!currentSeasonFixture();day++)(pendingManagerDecision()&&answerPlayerConversation(pendingManagerDecision().id,"honest"),state.calendar.date=calendarTarget(),watchRemainingPlayoffs())');
 assert.equal(run('state.season.stage'),'quarter');assert.ok(run('Boolean(currentSeasonFixture())'));
 // Sudden death continues beyond five minutes and uses five skaters.
-run('createMatch();state.live.period=4;state.live.minute=5;state.live.hv=1;state.live.opp=1');
+run('(state.calendar.date=calendarTarget(),createMatch());state.live.period=4;state.live.minute=5;state.live.hv=1;state.live.opp=1');
 assert.equal(run('currentLinePlayers().length+currentDefensePlayers().length'),5);
 run('globalThis.originalAttack=simulateAttack;simulateAttack=()=>{};state.live.running=true;overtimeStep()');
 assert.equal(run('state.live.finished'),false);

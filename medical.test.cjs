@@ -1,3 +1,4 @@
+// Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
@@ -59,17 +60,17 @@ run('save()');const reload=boot(storage.value);assert.equal(reload.run(`findPlay
 run('medicalDay();medicalDay()');assert.equal(run('medicalStatus(p)'),'Återgångsträning');assert.equal(run('medicalReady(p)'),false);
 // Early full return is rejected. Limited return is capped at exactly ten minutes.
 run('setMedicalClearance(p.id,"full")');assert.equal(run('p.health.clearance'),'rest');
-run('setMedicalClearance(p.id,"limited");createMatch();changeLinePlayer("forwards",0,p.id);state.live.currentLine=0;state.live.iceTime={[p.id]:590};trackIceTime(15)');
+run('setMedicalClearance(p.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeLinePlayer("forwards",0,p.id);state.live.currentLine=0;state.live.iceTime={[p.id]:590};trackIceTime(15)');
 assert.equal(run('state.live.iceTime[p.id]'),600);
 assert.equal(run('medicalAvailable(p)'),false);
 assert.equal(run('currentLinePlayers().some(q=>q.id===p.id)'),false);
 run('setMedicalClearance(p.id,"full")');assert.equal(run('p.health.clearance'),'limited');
 // Goalkeeper comeback has its own exact 30-minute cap and replacement.
-run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();ensureLines();globalThis.returnGoalie=playerById(state.lines.goalie);injurePlayer(returnGoalie,"träning",1);medicalDay();setMedicalClearance(returnGoalie.id,"limited");createMatch();changeGoalie(returnGoalie.id);state.live.iceTime={[returnGoalie.id]:1795};trackIceTime(15)');
+run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();ensureLines();globalThis.returnGoalie=playerById(state.lines.goalie);injurePlayer(returnGoalie,"träning",1);medicalDay();setMedicalClearance(returnGoalie.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeGoalie(returnGoalie.id);state.live.iceTime={[returnGoalie.id]:1795};trackIceTime(15)');
 assert.equal(run('state.live.iceTime[returnGoalie.id]'),1800);
 assert.notEqual(run('randomGoalie().id'),run('returnGoalie.id'));
 // A genuine engine tick can cause an injury, pauses the clock and substitutes eligible players.
-run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();startMatch();medicalRoll=()=>0;liveStep()');
+run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();(!state.live&&(state.calendar.date=calendarTarget()),startMatch());medicalRoll=()=>0;liveStep()');
 assert.equal(run('state.live.running'),false);
 assert.ok(run('state.live.medicalInjured.length>0'));
 assert.ok(run('state.live.second>0'));
@@ -78,20 +79,20 @@ assert.equal(run('new Set([...currentLinePlayers(),...currentDefensePlayers()].m
 run('medicalRoll=()=>.999;goalHV(currentLinePlayers()[0])');
 assert.equal(run('managerRoster().filter(p=>state.live.medicalInjured.includes(String(p.id))).every(p=>p.assists===0)'),true);
 // Medically excused absence does not burn ordinary or recruitment promises.
-run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();globalThis.promised=forwards()[0];injurePlayer(promised,"träning",8);createMatch();state.live.finished=true;state.live.iceTime={};state.training.promises.push({playerId:promised.id,startRound:state.round,games:0,qualified:0,resolved:false});promised.recruitmentPromise={role:"Ordinarie",minutes:12,games:0,qualified:0,resolved:false};globalThis.trust=promised.social.trust;afterTrainingMatch();afterTrainingMatch()');
+run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();globalThis.promised=forwards()[0];injurePlayer(promised,"träning",8);(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;state.live.iceTime={};state.training.promises.push({playerId:promised.id,startRound:state.round,games:0,qualified:0,resolved:false});promised.recruitmentPromise={role:"Ordinarie",minutes:12,games:0,qualified:0,resolved:false};globalThis.trust=promised.social.trust;afterTrainingMatch();afterTrainingMatch()');
 assert.equal(run('state.training.promises.at(-1).games'),0);
 assert.equal(run('promised.recruitmentPromise.games'),0);
 assert.equal(run('promised.social.trust'),run('trust'));
 assert.equal(run('promised.health.injury.remaining'),7);
 // Preseason weeks heal once per day; the medical record survives season changes.
-run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";globalThis.medDay=state.medical.day;recruitmentWeek()');
+run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";globalThis.medDay=state.medical.day;Array.from({length:7},()=>recruitmentWeek())');
 assert.equal(run('state.medical.day'),run('medDay+7'));assert.equal(run('promised.health.injury.remaining'),0);
 run('medicalDay();medicalDay();medicalDay()');assert.equal(run('promised.health.injury'),null);
 // Full comeback can suffer a setback and lose clearance.
-run('state.season.phase="regular";state.calendar.date=calendarTarget();state.live=null;injurePlayer(promised,"träning",1);medicalDay();medicalDay();medicalDay();setMedicalClearance(promised.id,"full");createMatch();changeLinePlayer("forwards",0,promised.id);state.live.currentLine=0;medicalRoll=()=>0;trackIceTime(6)');
+run('state.season.phase="regular";state.calendar.date=calendarTarget();state.live=null;injurePlayer(promised,"träning",1);medicalDay();medicalDay();medicalDay();setMedicalClearance(promised.id,"full");(state.calendar.date=calendarTarget(),createMatch());changeLinePlayer("forwards",0,promised.id);state.live.currentLine=0;medicalRoll=()=>0;trackIceTime(6)');
 assert.equal(run('promised.health.injury.name'),'Bakslag i återgången');assert.equal(run('promised.health.clearance'),'rest');
 // All unavailable goalies cannot crash the engine; a loss and junior route remain available.
-run('medicalRoll=()=>.999;goalies().forEach(p=>{p.health.injury=null;injurePlayer(p,"träning",8)});startMatch()');assert.equal(run('state.page'),'medical');
+run('medicalRoll=()=>.999;goalies().forEach(p=>{p.health.injury=null;injurePlayer(p,"träning",8)});(!state.live&&(state.calendar.date=calendarTarget()),startMatch())');assert.equal(run('state.page'),'medical');
 run('medicalConcede()');assert.equal(run('state.live.finished'),true);assert.ok(run('state.live.opp>state.live.hv'));
 run('globalThis.total=managerRoster().length;medicalCallUp("MV");medicalCallUp("MV");medicalCallUp("MV")');
 assert.equal(run('managerRoster().length'),run('total+2'));assert.equal(run('medicalMatchReady()'),true);
