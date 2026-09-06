@@ -2603,7 +2603,12 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
     else if(m.rink)m.rink.oppFatigue[id]=Math.min(100,(m.rink.oppFatigue[id]||0)+longLoad);
    }else e.shift=0;
    const bench=seconds-used,fatigue=(p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0);
-   if(bench>0)e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+bench*.18*(.7+stamina/25));
+   if(bench>0){
+    // Recover the short burst of match energy faster when depleted, tapering near
+    // a full tank. Long-term workload still limits the ceiling; stamina matters.
+    const recovery=studioActive()?.2+Math.max(0,80-e.level)*.006:.18;
+    e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+bench*recovery*(.7+stamina/25));
+   }
   }
  }
 }

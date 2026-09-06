@@ -24,7 +24,10 @@ test('A whole period preserves player counts, puck ownership, bounded motion and
         if(before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(distance(a,before)<.72,'normal movement cannot teleport: '+a.player.name);
         if(!before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(a.y<1.5,'incoming replacement enters at the actual bench gate');
       }
-      if(m.events.slice(oldEvents).some(e=>e.type==='shot')&&m.penalty?.side!==m.owner&&m.penalty){assert.ok(m.attackPasses>=2);assert.ok(m.setupTime>2.5);}
+      if(m.events.slice(oldEvents).some(e=>e.type==='shot')&&m.penalty?.side!==m.owner&&m.penalty){
+        const c=m.flight.shot.context,open=c.d<11&&c.angle<.6&&c.pressure<.45;
+        assert.ok(c.oneTimer||c.rebound||open||m.attackPasses>=2&&m.setupTime>1.2,'PP establishes its shape unless a genuine immediate chance is available');
+      }
       previous=m.actors.map(a=>({...a}));lastPhase=m.phase;
     }
     assert.equal(m.time,1200);
@@ -72,7 +75,8 @@ test('Losing possession cancels the outgoing change; replacing a skater does not
 
 test('The boxplay team clears a controlled puck and the fifth player returns from the penalty gate',()=>{
   const m=new Match(rosters,{scenario:'pk'}),pk=m.skaters(0)[0];pk.x=12;pk.y=10;m.takePossession(pk);m.decide();
-  assert.equal(m.flight.kind,'clear');assert.equal(m.stats[0].clears,1);assert.equal(m.carrier,null);
+  assert.equal(m.flight.kind,'clear');assert.equal(m.carrier,null);
+  assert.equal(m.stats[0].clears,progress(0,m.flight.end.x)>40?1:0,'only a clearance that leaves the zone counts as successful');
   m.penalty.remaining=.05;m.step();assert.equal(m.penalty,null);assert.equal(m.skaters(0).length,5);
   const returning=m.skaters(0).find(a=>a.status==='returning');assert.ok(returning);assert.ok(returning.y>28);
 });
