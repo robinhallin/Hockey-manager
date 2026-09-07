@@ -1014,7 +1014,7 @@ let state;
 try{
 
   const saved=
-    JSON.parse(
+    careerRead(
       localStorage.getItem("hockey_manager_alpha02")
     );
 
@@ -1066,10 +1066,11 @@ if(
   state.schedule = createSchedule();
 }
 
-let careerSaveError=false;
+let careerSaveError=false,careerSaveErrorCode="";
 function renderSaveStatus(){
  const root=document.getElementById("save-status-root");if(!root)return;
- root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>Karriären kunde inte sparas i webbläsaren.</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
+ const detail=careerSaveErrorCode==='SecurityError'?'Webbläsaren blockerar lagring för spelet.':['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(careerSaveErrorCode)?'Webbläsarens sparutrymme räcker inte, även med komprimering.':'Karriären kunde inte sparas i webbläsaren.';
+ root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>'+detail+'</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
 }
 function save(){
   haRepairClubIdentity(state);
@@ -1094,12 +1095,12 @@ function save(){
   for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
 
   try{
-    localStorage.setItem("hockey_manager_alpha02",JSON.stringify(state));
-    careerSaveError=false;
-  }catch{
+    careerStore("hockey_manager_alpha02",JSON.stringify(state));
+    careerSaveError=false;careerSaveErrorCode="";
+  }catch(error){
     // A blocked/full store must never interrupt controls or the next match tick.
     // The previous saved career stays intact; the current state remains exportable.
-    careerSaveError=true;
+    careerSaveError=true;careerSaveErrorCode=error?.name||"";
   }
   renderSaveStatus();
   return !careerSaveError;
