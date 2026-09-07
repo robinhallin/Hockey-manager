@@ -81,7 +81,7 @@ function matchRecover(seconds,key){
 
 function coachingNavigate(page){
   if(state.live&&!state.live.finished) pauseMatch();
-  state.page=page;save();render();
+  deskNavigate(page);
 }
 
 function benchLine(index){
@@ -95,7 +95,7 @@ function benchLine(index){
   save();render();
 }
 
-function specialTeamsView(){return specialBoardView();}
+function specialTeamsView(){lineupWorkspace='special';return lineupBoardView();}
 
 function benchPanel(){
   const m=state.live;
