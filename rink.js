@@ -53,7 +53,12 @@ function rinkSync(){
   }
  }finally{rinkSyncBusy=false;}
 }
-function rinkDelay(){const m=state.live,base=m?.speed===3?300:m?.speed===2?700:1400;return m?.rink?.mode==='highlights'&&!m.rink.hot?100:base*(m?.rink?.phase==='goal'?1.5:m?.rink?.hot?1.12:1);}
+function rinkDelay(){
+ const m=state.live,speed=Number(m?.speed)||1,base=({1:1500,2:750,3:375,4:187.5})[speed]||1500,mode=m?.rink?.mode;
+ const show=mode==='full'||mode==='extended'&&m?.rink?.hot||mode==='highlights'&&['goal','shot','save','post','rebound','block'].includes(m?.rink?.phase);
+ return show?base*(m?.rink?.phase==='goal'?1.5:1):100/speed;
+}
+
 function rinkMode(value){if(!state.live||!Object.hasOwn(MATCH_VIEW_MODES,value))return;ensureRink();state.live.rink.mode=value;clearTimeout(matchTimer);save();render();scheduleTick();}
 function rinkSelect(key){ensureRink();state.live.rink.selected=key;pauseMatch();}
 function rinkSay(text,phase,hot=false){const r=state.live.rink;r.caption=text;r.phase=phase;r.hot=hot;addEvent(text,phase==='goal'?'goal':['shot','save','post','rebound','block'].includes(phase)?'shot':phase==='penalty'?'penalty':'chance');}
