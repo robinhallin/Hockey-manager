@@ -25,6 +25,7 @@ function validateSaveText(text){
   if(value&&typeof value==='object')for(const [k,v] of Object.entries(value)){if(/^(id|playerId|selectedPlayer|selectedMarketPlayer|personId)$/.test(k)&&typeof v==='string'&&!/^[-\p{L}\p{N} _.:/]+$/u.test(v))throw Error('Ogiltig identitet i sparfilen.');if(['__proto__','prototype','constructor'].includes(k))throw Error('Ogiltig struktur i sparfilen.');walk(v,depth+1);}
  };
  walk(s);
+ haRepairClubIdentity(s);
  const ids=new Set();
  for(const [club,roster] of [...Object.entries(s.clubRosters),...(s.playerWorld?[[WORLD_FREE,s.playerWorld.freeAgents]]:[])]){
   if(!/^[\p{L}\p{N} .&/-]+$/u.test(club)||!Array.isArray(roster)||roster.length>(club===WORLD_FREE?1000:200))throw Error('Ogiltig klubb eller trupp.');
@@ -71,7 +72,7 @@ function applyCareerImport(){
  const oldRaw=localStorage.getItem(CAREER_SAVE_KEY),oldBackup=localStorage.getItem(PREVIOUS_CAREER_KEY);
  try{
   if(state.live?.running)pauseMatch();
-  state=saveFilePreview;syncManagerRoster();ensureManagementData();ensureSeason();ensureAssessmentData();ensureLeagues();ensureRecruitment();ensureCalendar();ensureTrainingData();ensureLocker();ensureMedical();ensureJuniors();ensureClub();ensureManager();
+  state=saveFilePreview;haRepairClubIdentity(state);syncManagerRoster();ensureManagementData();ensureSeason();ensureAssessmentData();ensureLeagues();ensureRecruitment();ensureCalendar();ensureTrainingData();ensureLocker();ensureMedical();ensureJuniors();ensureClub();ensureManager();
   // Validate the primary views before replacing the device's active save.
   state.page='settings';saveSettingsView();calendarView();
   const encoded=JSON.stringify(state);

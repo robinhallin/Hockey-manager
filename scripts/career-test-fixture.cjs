@@ -6,7 +6,7 @@ function boot(saved){
   const storage={value:saved,extra:{}},nodes=new Map(),events={};
   const node=()=>{const classes=new Set();return {innerHTML:'',textContent:'',attrs:{},style:{},scrollTop:0,inert:false,
     classList:{toggle(k,value){const on=value??!classes.has(k);if(on)classes.add(k);else classes.delete(k);return on;},contains:k=>classes.has(k)},
-    setAttribute(k,v){this.attrs[k]=v;},addEventListener(){},focus(){this.focused=true;}};};
+    setAttribute(k,v){this.attrs[k]=v;},addEventListener(){},focus(){this.focused=true;},scrollIntoView(options){this.scrolledIntoView=options;}};};
   const get=k=>{if(!nodes.has(k))nodes.set(k,node());return nodes.get(k);};
   const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},
     localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value||null:storage.extra[k]||null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;}},
@@ -15,4 +15,16 @@ function boot(saved){
   for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
   return {run:code=>vm.runInContext(code,context),storage,nodes,get,events};
 }
-module.exports={boot};
+// Exercise the retained pre-broadcast engine as a legacy-save compatibility path.
+// Production modules and public actions still run; only the new match's serialized
+// broadcast is removed, exactly as in an older save. Modern suites use boot().
+function bootLegacy(saved){
+ const app=boot(saved);
+ app.run(`globalThis.currentCreateMatch=createMatch;createMatch=function(...args){
+  const previous=state.live,result=currentCreateMatch(...args);
+  if(state.live&&state.live!==previous){delete state.live.broadcast;state.live.rink=null;ensureRink();save();render();}
+  return result;
+ };`);
+ return app;
+}
+module.exports={boot,bootLegacy};

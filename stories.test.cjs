@@ -1,6 +1,7 @@
 // Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+// Legacy saved matches remain supported; current broadcast coverage is in career-match suites.
+const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 function game(club='HV71'){
  const app=boot();app.run(`startCareerWithClub(${JSON.stringify(club)});ensureLines();state.stories.active=[];state.stories.started=[];state.stories.lastStart=-10;globalThis.storySeq=0;globalThis.testPlayer=managerRoster().find(p=>p.pos!=="MV");globalThis.sample=(seconds=600,extra={})=>({id:"test-"+(++storySeq),year:state.season.year,club:managerClub(),opponent:opponent(),date:state.calendar.date,finished:true,own:2,against:1,players:[{id:testPlayer.id,seconds,goals:1,assists:0}],units:[],...extra});`);return app;
 }

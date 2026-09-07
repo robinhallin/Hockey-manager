@@ -34,6 +34,7 @@ function ensureRink(){
  if(!m.finished)rinkSync();
 }
 function rinkSync(){
+ if(studioActive()){studioSyncPlans();studioMirror();return;}
  const m=state.live,r=m?.rink;if(!r||rinkSyncBusy)return;rinkSyncBusy=true;
  try{
   const old=r.actors,actors=[],borrowed=new Set();

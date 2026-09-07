@@ -1,6 +1,6 @@
 // Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 run('startCareerWithClub("HV71")');
 // Deterministic box scores for all AI teams, without consuming the match RNG.
@@ -51,7 +51,7 @@ run('setLeagueStats("year","current")');assert.equal(run('leagueStatPlayers().le
 const old=boot();old.run('startCareerWithClub("HV71");simulateOtherGames();(!state.live&&(state.calendar.date=calendarTarget()),startMatch());state.live.minute=12;delete state.leagueStatistics;delete state.live.leagueBox;globalThis.legacy=JSON.stringify(state)');
 const migrated=boot(old.run('legacy'));assert.ok(migrated.run('state.leagueStatistics.missing.HA')>0);assert.equal(migrated.run('Object.keys(state.leagueStatistics.rows).length'),0);assert.equal(migrated.run('state.live.leagueBox.partial'),true);assert.equal(migrated.run('state.live.minute'),12);
 // A real full match conserves recorded goals, registered minutes and once-only ledger writes.
-const full=boot();full.run('startCareerWithClub("AIK");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let n=0;n<1900&&!state.live.finished;n++){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}state.live.running=true;}liveStep()}');
+const full=boot();full.run('startCareerWithClub("AIK");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let n=0;n<100000&&!state.live.finished;n++){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}state.live.running=true;}liveStep()}');
 assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.leagueStatistics.recorded.regular.HA'),7);
 if(!full.run('state.live.analysisAbandoned'))assert.equal(full.run('Object.values(state.live.leagueBox.players).reduce((n,p)=>n+p.goals,0)'),full.run('state.live.hv+state.live.opp-(state.live.analysisShootout?1:0)'));
 assert.equal(full.run('Object.values(state.live.leagueBox.players).filter(p=>p.club===managerClub()).reduce((n,p)=>n+p.seconds,0)'),full.run('Object.values(state.live.iceTime).reduce((n,s)=>n+s,0)'));

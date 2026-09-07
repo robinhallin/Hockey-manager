@@ -1,6 +1,6 @@
 // Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+const {boot}=require('./scripts/career-test-fixture.cjs');
 function game(club='HV71'){const app=boot();app.run(`startCareerWithClub(${JSON.stringify(club)})`);return app;}
 const app=game(),{run,get}=app;
 assert.equal(run('Object.keys(state.rivals.clubs).length'),28);
@@ -19,7 +19,7 @@ for(const club of clubs){
  assert.equal(run('JSON.stringify(rinkOpponentPlayers().map(p=>p.id))'),run('line'));
 }
 // A limited comeback is capped, and actual shot probability uses the selected keeper.
-run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());globalThis.limited=rivalLiveKeeper();limited.health.injury={remaining:0};limited.health.clearance="limited";leagueLivePlayer("opponent",limited.id).seconds=1800');
+run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());globalThis.limited=rivalLiveKeeper();limited.health.injury={remaining:0};limited.health.clearance="limited";leagueLivePlayer("opponent",limited.id).seconds=1800;rinkSync()');
 assert.notEqual(run('rivalLiveKeeper().id'),run('limited.id'));
 run('globalThis.k=rivalLiveKeeper();globalThis.shooter=currentLinePlayers()[0];globalThis.context={location:{x:85,y:50,factor:1},suppressRebound:true};for(const v of Object.keys(k.attributes))k.attributes[v]=1;hvShot(shooter,true,context);globalThis.lowKeeper=state.live.analysis.shots.at(-1).probability;for(const v of Object.keys(k.attributes))k.attributes[v]=20;hvShot(shooter,true,context)');
 assert.ok(run('state.live.analysis.shots.at(-1).probability')<run('lowKeeper'));
@@ -49,7 +49,7 @@ run('globalThis.c=rivalsClubState(fixture.home);globalThis.oldCoach=c.coach.id;c
 assert.notEqual(run('c.coach.id'),run('oldCoach'));assert.equal(run('c.tenure'),0);assert.equal(run('c.history[0].id'),run('oldCoach'));
 run('globalThis.newCoach=c.coach.id;rivalAfterFixture({...fixture,rivalsRecorded:false,homeGoals:0,awayGoals:3},[],[])');assert.equal(run('c.coach.id'),run('newCoach'));
 // Daily work advances once per date and develops players during the season.
-run('startCareerWithClub("HV71");globalThis.prospect=state.clubRosters[opponent()].find(p=>p.pos!=="MV");prospect.age=19;prospect.attributeGrowth=5;globalThis.attributesBefore=JSON.stringify(prospect.attributes);for(let i=0;i<50;i++){medicalDay();state.calendar.date=calAdd(state.calendar.date,1);rivalsDay();}globalThis.daily=JSON.stringify([state.rivals,state.clubRosters]);rivalsDay()');
+run('startCareerWithClub("HV71");globalThis.prospect=state.clubRosters[opponent()].find(p=>p.pos!=="MV");prospect.age=19;prospect.attributeGrowth=5;delete prospect.developmentModel;ensureDevelopment(prospect);globalThis.attributesBefore=JSON.stringify(prospect.attributes);for(let i=0;i<50;i++){medicalDay();state.calendar.date=calAdd(state.calendar.date,1);rivalsDay();}globalThis.daily=JSON.stringify([state.rivals,state.clubRosters]);rivalsDay()');
 assert.equal(run('JSON.stringify([state.rivals,state.clubRosters])'),run('daily'));assert.notEqual(run('JSON.stringify(prospect.attributes)'),run('attributesBefore'));
 // Tactical adjustments and a timeout apply once and survive a saved match.
 run('startCareerWithClub("HV71");(!state.live&&(state.calendar.date=calendarTarget()),startMatch());state.live.period=3;state.live.minute=15;state.live.hv=3;state.live.opp=1;aiDecisions();globalThis.count=state.live.events.length;aiDecisions()');
@@ -70,7 +70,7 @@ s('state.live.opponent="Not our target"');assert.equal(s('rivalPreparationBonus(
 s('state.live.opponent=arc.opponent;rivalPreparationBonus();globalThis.sample={id:"coach-story",year:state.season.year,club:managerClub(),opponent:arc.opponent,date:state.calendar.date,finished:true,own:2,against:1,players:[],units:[]};storiesAfterMatch(sample)');
 assert.equal(s('arc.status'),'closed');assert.equal(s('rivalPreparationBonus()'),0);assert.equal(s('state.stories.memory.rivals[managerClub()+"|"+arc.opponent].outcome'),'Du vann mötet');
 // A full live fixture commits the opponent's real participation and world history once.
-const full=game('AIK');full.run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());globalThis.guard=0;while(!state.live.finished&&guard++<1000){state.live.running=true;liveStep();}');
+const full=game('AIK');full.run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());globalThis.guard=0;while(!state.live.finished&&guard++<100000){state.live.running=true;liveStep();}');
 assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.rivals.duels[managerClub()+"|"+state.live.opponent].length'),1);assert.ok(full.run('rivalsClubState(state.live.opponent).recent.length')>0);
 full.run('globalThis.done=JSON.stringify(state.rivals);finishAnalysis();finishMatch(false)');assert.equal(full.run('JSON.stringify(state.rivals)'),full.run('done'));
 console.log('PASS: 28 clubs, injury-aware independent lineups, goalie rotation, coherent box scores, attribute-driven results, daily growth, coaching changes, live adaptations, stories, legacy saves and full live fixture.');

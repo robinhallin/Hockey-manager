@@ -2,42 +2,8 @@
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
-const node=()=>({innerHTML:'',textContent:'',classList:{toggle(){}},addEventListener(){}});
-function boot(saved){
-  const storage={value:saved,extra:{}};
-  const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},
-    localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value||null:storage.extra[k]||null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;}},
-    document:{getElementById:()=>node(),querySelector:()=>node(),querySelectorAll:()=>[]}});
-  vm.runInContext(fs.readFileSync('season.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('training.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('career.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('attributes.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('recruitment.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('locker.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('medical.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('coaching.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('analysis.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('juniors.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('rink.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('hockey.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('club.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('manager.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('allsvenskan-data.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('allsvenskan.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('leagues.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('player-world.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('calendar.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('savefiles.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('interface.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('league-statistics.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('lineup-board.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('match-centre.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('stories.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('rivals.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('roster-depth.js','utf8'),context);
-  vm.runInContext(fs.readFileSync('script.js','utf8'),context);
-  return {run:code=>vm.runInContext(code,context),storage};
-}
+// Legacy saved matches remain supported; current broadcast coverage is in career-match suites.
+const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 
 const {run,storage}=boot();
 run('startCareerWithClub("HV71")');

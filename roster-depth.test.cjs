@@ -1,6 +1,6 @@
 // Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 run('startCareerWithClub("HV71")');
 assert.equal(run('managerRoster().length'),25);assert.equal(run('goalies().length'),3);

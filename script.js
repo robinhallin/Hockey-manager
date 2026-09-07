@@ -761,6 +761,7 @@ function ensureManagementData(){
       }
 
       if(!player.promisedRole) player.promisedRole = player.squadRole;
+      if(player.recruitmentPromise&&['Breddspelare','Rotation'].includes(player.promisedRole))delete player.recruitmentPromise;
       if(typeof player.happiness !== "number") player.happiness = player.morale || 70;
       if(!player.developmentFocus) player.developmentFocus = "Balanserad";
       if(typeof player.developmentProgress !== "number") player.developmentProgress = 0;
@@ -1066,6 +1067,7 @@ if(
 }
 
 function save(){
+  haRepairClubIdentity(state);
   ensureSeason();
   ensureAssessmentData();
   ensureLeagues();
@@ -1129,7 +1131,7 @@ function opponent(){
 
 function samePlayerId(a,b){
 
-  return String(a) === String(b);
+  return (state?.playerIdentityAliases?.[String(a)]||String(a)) === (state?.playerIdentityAliases?.[String(b)]||String(b));
 
 }
 
@@ -3207,7 +3209,7 @@ const players =
 
   const wageCost = annualWageCost();
   const availableWages = wageBudget() - wageCost;
-  const expiringContracts = players.filter(player => player.contractYears <= 1);
+  const expiringContracts = players.filter(contractNeedsDecision);
   const unhappyPlayers = players.filter(player => player.happiness < 60);
 
   const rows =
@@ -3480,7 +3482,7 @@ const players =
         </div>
 
       </section>
-<details class="desk-fold" data-desk-fold="contracts" ${deskFolds.contracts?'open':''} ontoggle="deskFolds.contracts=this.open"><summary>Kontrakt och löner · ${expiringContracts.length} utgående avtal</summary>      <section class="dashboard-panel squad-management-panel">
+<details class="desk-fold" id="squad-contracts" data-desk-fold="contracts" ${deskFolds.contracts?'open':''} ontoggle="deskFolds.contracts=this.open"><summary>Kontrakt och löner · ${expiringContracts.length} utgående avtal</summary>      <section class="dashboard-panel squad-management-panel">
         <div class="panel-header">
           <div>
             <span class="panel-label">TRUPPLANERING</span>
@@ -3552,6 +3554,7 @@ function toggleTransferStatus(playerId){
   render();
 }
 
+function contractNeedsDecision(p){return p.contractYears<=1&&!p.futureContract&&!playerLoan(p);}
 function renewalWishes(p){
  const w=recruitPlayerWishes(p),trust=p.social?.trust??60;
  return {...w,salary:Math.round(p.salary*(p.contractYears<=1?1.10:1.04)*(trust<40?1.10:trust>=80?.97:1)/10000)*10000,role:p.age>=34&&p.social?.lastMinutes!==null&&p.social?.lastMinutes<10?'Rotation':p.promisedRole||p.squadRole};
@@ -3579,6 +3582,7 @@ function submitContractRenewal(playerId,salary,years,role){
  }
  Object.assign(p,{salary,contractYears:years,promisedRole:role,squadRole:role,renewalAttempts:0,renewalPausedUntil:null,happiness:trainingClamp(p.happiness+5),morale:trainingClamp((p.morale||70)+3)});
  if(SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
+ else delete p.recruitmentPromise;
  state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,`${p.name} förlänger`,`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{link:'squad'});
  state.contractNegotiation=null;save();render();
 }

@@ -184,6 +184,8 @@ function studioSyncPlans(e=studioEngine()){
   if(e.actors.some(a=>a.side===side&&a.player.available===false))t.needsSetup=true;
   for(const p of t.players)if(m.energy?.players[p.id])p.energy=m.energy.players[p.id].level;
  }
+ // An unavailable participant cannot stay on the ice until a routine shift.
+ if(e.actors.some(a=>a.player.available===false)&&e.stoppage<=0)e.stop('stoppage','Spelet stoppas för spelarbyte.',{...e.puck});
  if(e.stoppage>0){e.changeAtStoppage();e.faceoffPositions();}
 
 }
