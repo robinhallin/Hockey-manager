@@ -98,7 +98,7 @@ const StudioHockey = (() => {
       const c=[...f].sort((a,b)=>rating(b,['faceoffs'])-rating(a,['faceoffs']))[0];
       const wings=f.filter(p=>p.id!==c.id);
       const rows=[{role:'LW',player:wings[0]},{role:'C',player:c},{role:'RW',player:wings[1]},...t.defense.slice((pair%pairCount)*2,(pair%pairCount)*2+2).map((player,i)=>({role:i?'RD':'LD',player}))];
-      return this.penalty?.side===side?rows.filter(p=>p.role!=='C'):rows;
+      return this.isShortHanded(side)?rows.filter(p=>p.role!=='C'):rows;
     }
     makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,shift:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
     installUnit(side){
@@ -203,7 +203,7 @@ const StudioHockey = (() => {
     }
     assign(a,p,duty){a.target={x:clamp(p.x,1.2,58.8),y:clamp(p.y,1.1,28.9)};a.duty=duty;}
     attackTargets(side){
-      const t=this.teams[side],carrier=this.actor(this.carrier),p=progress(side,this.puck.x),pp=this.penalty&&this.penalty.side!==side;
+      const t=this.teams[side],carrier=this.actor(this.carrier),p=progress(side,this.puck.x),pp=this.hasPowerPlay(side);
       const slots=pp?(t.tactics.pp==='131'?{LD:[42,15],LW:[48,5.5],RW:[49,15],RD:[48,24.5],C:[54,15]}:{LD:[42,15],LW:[44,6],RD:[44,24],C:[53,12],RW:[53,19]}):{LW:[49,5.5],C:[53,15],RW:[49,24.5],LD:[42,8],RD:[42,22]};
       for(const a of this.skaters(side)){
         let x,y,duty;
@@ -232,7 +232,7 @@ const StudioHockey = (() => {
       if(!carrier&&this.flight?.kind==='pass'){const receiver=this.actor(this.flight.to);if(receiver)this.assign(receiver,this.flight.end,'Möter passningen');}
     }
     defenseTargets(side){
-      const attackers=this.skaters(1-side),defenders=this.skaters(side),carrier=this.actor(this.carrier),pk=this.penalty?.side===side;
+      const attackers=this.skaters(1-side),defenders=this.skaters(side),carrier=this.actor(this.carrier),pk=this.isShortHanded(side);
       const enemyProgress=progress(1-side,this.puck.x);
       if(pk&&enemyProgress>40){
         const box=this.teams[side].tactics.pk==='box',slots=box?[[10,10],[10,20],[16,10],[16,20]]:[[7.5,15],[12.5,9],[12.5,21],[18,15]];
@@ -308,7 +308,7 @@ const StudioHockey = (() => {
       return clamp(.68+this.attribute(a,'passing')*.009+this.attribute(b,'puckControl')*.005-this.laneRisk(a,b)*.45-distance(a,b)*.0035-pressure*(.2-calm*.12),.15,.97);
     }
     passingOptions(a){
-      const p=progress(a.side,a.x),pp=this.penalty&&this.penalty.side!==a.side;
+      const p=progress(a.side,a.x),pp=this.hasPowerPlay(a.side);
       return this.skaters(a.side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status)&&distance(a,b)>3).map(b=>{
         const free=1-this.pressureAt(b),forward=progress(a.side,b.x)-p;
         let score=this.passChance(a,b)+free*.19+this.shotQuality(b)*1.8+(pp?Math.abs(b.y-a.y)/90:clamp(forward/65,-.18,.2));
@@ -393,7 +393,7 @@ const StudioHockey = (() => {
       const chance=clamp(.77+this.attribute(a,'passing')*.006+this.attribute(a,'composure')*.003-this.pressureAt(a)*.22,.5,.98);
       const success=this.random()<chance,end=point(a.side,success?59:clamp(progress(a.side,a.x)+8,22,38),a.y<15?4:26);
       if(success)this.stats[a.side].clears++;
-      this.icingCandidate=success&&progress(a.side,a.x)<30&&this.penalty?.side!==a.side?{side:a.side}:null;
+      this.icingCandidate=success&&progress(a.side,a.x)<30&&!this.isShortHanded(a.side)?{side:a.side}:null;
       this.flight={kind:'clear',side:a.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(a,end)/18)};
       this.carrier=null;this.lastTouches=[];this.setPhase('clear');
       this.say('clear',a.player.name+(success?' rensar ur zonen. Boxplayenheten får andrum.':' pressas och får inte ut pucken ur zonen.'),a.side,true);
@@ -472,7 +472,7 @@ const StudioHockey = (() => {
         if(['goal','save'].includes(shot.outcome))this.stats[f.side].shots++;
         if(shot.outcome==='goal'){
           this.score[f.side]++;this.goals.push(shot);
-          if(this.penalty&&this.penalty.side!==f.side)this.endPenalty(true);
+          this.goalPenalty(f.side);
           this.stop('goal','MÅL! '+shot.player+' gör '+this.score.join('–')+'.');
         }else if(shot.outcome==='save'){
           this.stats[1-f.side].saves++;
@@ -514,12 +514,12 @@ const StudioHockey = (() => {
     decide(){
       const a=this.actor(this.carrier);if(!a)return;
       const t=this.teams[a.side],p=progress(a.side,a.x),opponents=this.skaters(1-a.side),nearest=[...opponents].sort((b,c)=>distance(a,b)-distance(a,c))[0];
-      const pk=this.penalty?.side===a.side,pp=this.penalty&&this.penalty.side!==a.side;
+      const pk=this.isShortHanded(a.side),pp=this.hasPowerPlay(a.side);
       this.decision=this.readDelay(a)+.2+this.random()*.35;
       if(nearest&&distance(a,nearest)<2&&this.time>(a.contactUntil||0)){
         const reaching=distance(a,nearest)>1.5?1.35:1;
         const penaltyRisk=(.003+(20-this.attribute(nearest,'discipline'))*.0012)*reaching;
-        if(!this.penalty&&this.random()<penaltyRisk){this.givePenalty(nearest.side,nearest.player.name);return;}
+        if(this.canGivePenalty(nearest.side)&&this.random()<penaltyRisk){this.givePenalty(nearest.side,nearest.player.name);return;}
         if(this.random()<this.battleChance(nearest,a)&&this.startBattle(a,nearest))return;
       }
       if(pk&&p<32){
@@ -546,6 +546,11 @@ const StudioHockey = (() => {
       // skating/acceleration, offside, defensive gaps and the next physical contest.
       a.duty=this.pressureAt(a)>.4?'Skyddar pucken och söker understöd':'Utnyttjar fri is med pucken';
     }
+    isShortHanded(side){return this.penalty?.side===side;}
+    hasPowerPlay(side){return Boolean(this.penalty&&this.penalty.side!==side);}
+    canGivePenalty(){return !this.penalty;}
+    tickPenalties(dt){if(this.penalty){this.penalty.remaining-=dt;if(this.penalty.remaining<=0)this.endPenalty();}}
+    goalPenalty(side){if(this.hasPowerPlay(side))this.endPenalty(true);}
     givePenalty(side,name){
       this.penalty={side,remaining:120,name};
       // Stoppage is the only place where the short-handed unit is installed instantly.
@@ -570,7 +575,7 @@ const StudioHockey = (() => {
       }
       this.time=Math.min(this.duration,this.time+dt);this.phaseTime+=dt;
       if(this.time>=this.duration-1e-7){this.time=this.duration;this.finished=true;this.setPhase('finished');this.say('finished','Periodpaus. '+this.teams[0].name+' '+this.score.join('–')+' '+this.teams[1].name+'.',0,true);this.capture();return;}
-      if(this.penalty){this.penalty.remaining-=dt;if(this.penalty.remaining<=0)this.endPenalty();}
+      this.tickPenalties(dt);
       for(const t of this.teams){t.shift+=dt;for(const p of t.players){const a=this.actors.find(a=>a.player===p);if(a){a.shift=(a.shift||0)+dt;p.ice+=dt;if(a.role!=='G')p.energy=clamp(p.energy-dt*(.20+(Math.hypot(a.vx,a.vy)>3?.08:0))*(1.4-rating(p,['stamina'])/35),15,100);}else p.energy=clamp(p.energy+dt*.31,15,100);}}
       const puckBefore={...this.puck};
       if(this.delayedOffside!=null&&this.skaters(this.delayedOffside).every(a=>progress(this.delayedOffside,a.x)<=40))this.delayedOffside=null;

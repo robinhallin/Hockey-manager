@@ -3,7 +3,7 @@ const HOCKEY_STYLES={control:'Kontrollerat anfall',counter:'Kontringshockey',pre
 function ensureHockey(){const r=state.live?.rink;if(!r)return;if(!r.hockey)r.hockey={version:1,transition:0,loose:null,stops:[],counts:Object.fromEntries(['offside','icing','clear','freeze'].map(k=>[k,{own:0,opponent:0}]))};}
 function hockeyStyle(side){return side==='own'?(state.tacticalPlan.attackStyle||'control'):(state.live.aiTeam?.style||rivalPlan(state.live.opponent).style);}
 function hockeySetStyle(value){if(!HOCKEY_STYLES[value])return;if(state.live?.running)pauseMatch();state.tacticalPlan.attackStyle=value;state.tacticalPlan.forecheck=value==='pressure'?'aggressive':value==='counter'?'passive':'balanced';save();render();}
-function hockeySpecial(side){const m=state.live,diff=m.penaltiesOpp.length-m.penaltiesHV.length;return diff===0?'even':(side==='own'?diff:-diff)>0?'pp':'pk';}
+function hockeySpecial(side){const m=state.live,diff=Math.min(2,m.penaltiesOpp.length)-Math.min(2,m.penaltiesHV.length);return diff===0?'even':(side==='own'?diff:-diff)>0?'pp':'pk';}
 function hockeyRoles(side){
  const ps=rinkSkaters(side);
  if(side==='own'&&hockeySpecial(side)!=='even'){const key=(hockeySpecial(side)==='pp'?'pp':'pk')+((state.live.rotationIndex||0)%2+1);const rank=a=>{const i=state.specialTeams[key].findIndex(id=>samePlayerId(id,a.id));return i<0?99:i;};return [...ps].sort((a,b)=>rank(a)-rank(b));}

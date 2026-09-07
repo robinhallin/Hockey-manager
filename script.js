@@ -1072,7 +1072,8 @@ function renderSaveStatus(){
  const detail=careerSaveErrorCode==='SecurityError'?'Webbläsaren blockerar lagring för spelet.':['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(careerSaveErrorCode)?'Webbläsarens sparutrymme räcker inte, även med komprimering.':'Karriären kunde inte sparas i webbläsaren.';
  root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>'+detail+'</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
 }
-function save(){
+function save({normalize=true}={}){
+  if(normalize){
   haRepairClubIdentity(state);
   ensureSeason();
   ensureAssessmentData();
@@ -1094,6 +1095,7 @@ function save(){
 
   for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
 
+  }
   try{
     careerStore("hockey_manager_alpha02",JSON.stringify(state));
     careerSaveError=false;careerSaveErrorCode="";
@@ -1308,6 +1310,7 @@ function addEvent(
   if(!state.live)
     return;
 
+  if(state.live.running&&['goal','penalty'].includes(type)&&matchPreferences()[type])state.live.autoPauseWanted=type;
   state.live.events.unshift({
 
     period:
@@ -1457,7 +1460,7 @@ function startMatch(){
   depthLock();
   lockTrainingForMatch();
   markSocialPeriodStarted();
-  state.live.running=true;
+  state.live.running=true;state.live.pauseReason='';delete state.live.autoPauseWanted;
   if(studioActive())studioRestartClock();
 
   save();
@@ -1473,12 +1476,13 @@ function startMatch(){
 }
 
 
-function pauseMatch(){
+function pauseMatch(reason="Du pausade matchen."){
 
   if(!state.live)
     return;
 
   state.live.running=false;
+  state.live.pauseReason=reason;
 
   clearTimeout(
     matchTimer
@@ -1492,6 +1496,7 @@ function pauseMatch(){
 
 
 function scheduleTick(){
+  if(matchApplyAutoPause()){save();render();return;}
   if(studioActive()){if(state.live.running&&!state.live.finished)matchTimer=setTimeout(studioPulse,50);return;}
 
   const m=state.live;
@@ -1571,7 +1576,7 @@ if(m.shiftSeconds >= matchShiftLength()){
   }
 
 
-  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
+  if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch('Spelarbesked måste hanteras.');return;}
   /* ---------- UTVISNINGAR ---------- */
 
   tickPenalties(seconds);
@@ -1604,7 +1609,7 @@ if(m.shiftSeconds >= matchShiftLength()){
 
       m.second=0;
 
-      m.running=false;
+      matchPeriodPause();
 
       m.momentum=
         50+
@@ -2682,7 +2687,7 @@ function useTimeout(){
 
   m.timeoutUsed=true;
 
-  m.running=false;
+  m.running=false;m.pauseReason='Timeout.';
 
   m.momentum=
     Math.min(
@@ -2812,7 +2817,7 @@ function startOvertime(){
 
   m.second=0;
 
-  m.running=false;
+  matchPeriodPause();
 
 
   save();
@@ -2832,9 +2837,9 @@ function overtimeStep(){
  trackIceTime(seconds);tickPenalties(seconds);m.shiftSeconds+=seconds;
  if(m.shiftSeconds>=matchShiftLength())rotateUnits();
  const elapsed=m.minute*60+m.second+seconds;m.minute=Math.floor(elapsed/60);m.second=elapsed%60;
- if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch();return;}
+ if(m.medicalPauseWanted){m.medicalPauseWanted=false;pauseMatch('Spelarbesked måste hanteras.');return;}
  if(elapsed>=limit){
-  if(isPlayoffMatch()){matchRecover(180,`ot:${m.overtimePeriods||1}`);m.minute=0;m.second=0;m.running=false;m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent('Ny förlängningsperiod – nästa mål avgör.','period');save();render();return;}
+  if(isPlayoffMatch()){matchRecover(180,`ot:${m.overtimePeriods||1}`);m.minute=0;m.second=0;matchPeriodPause();m.overtimePeriods=(m.overtimePeriods||1)+1;addEvent('Ny förlängningsperiod – nästa mål avgör.','period');save();render();return;}
   shootout();return;
  }
  rinkStep();
