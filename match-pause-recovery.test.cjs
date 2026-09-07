@@ -1,0 +1,32 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+for(const name of ['QuotaExceededError','SecurityError']){
+ const a=boot(),r=a.run;
+ r(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';medicalRoll=()=>.999;pauseMatch();globalThis.savedBeforeFailure=localStorage.getItem('hockey_manager_alpha02');globalThis.originalSetItem=localStorage.setItem;globalThis.scheduled=[];setTimeout=(fn)=>{scheduled.push(fn);return scheduled.length;};localStorage.setItem=()=>{const error=new Error('Storage unavailable');error.name='${name}';throw error;};`);
+ assert.doesNotThrow(()=>r('matchPlay()'));
+ assert.equal(r('state.live.running'),true);
+ assert.equal(r('scheduled.at(-1)===studioPulse'),true,'resume schedules the clock despite save failure');
+ assert.equal(r('careerSaveError'),true);
+ assert.ok(a.get('#save-status-root').innerHTML.includes('Ladda ner sparfil'));
+ const before=r('studioEngine().time');
+ r('studioLastPulse=Date.now()-100;studioLastSave=0;studioPulse()');
+ assert.ok(r('studioEngine().time')>before);
+ assert.equal(r('scheduled.at(-1)===studioPulse'),true,'autosave failure does not kill the next tick');
+ assert.doesNotThrow(()=>r('pauseMatch();matchPlay()'));
+ assert.equal(r('state.live.running'),true);
+ assert.equal(r("localStorage.getItem('hockey_manager_alpha02')===savedBeforeFailure"),true);
+ const exported=JSON.parse(r('saveExportText()'));
+ assert.equal(exported.career.live.finished,false);
+ r('localStorage.setItem=originalSetItem;save()');
+ assert.equal(r('careerSaveError'),false);
+ assert.equal(a.get('#save-status-root').innerHTML,'');
+}
+const b=boot(),r=b.run;
+r(`document.documentElement={requestFullscreen:()=>{globalThis.fullscreenTarget='document';return Promise.resolve();}};document.querySelector('.game-shell').requestFullscreen=()=>{throw Error('Would hide sibling dialogs')};matchFullscreen();`);
+assert.equal(r('fullscreenTarget'),'document');
+r(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();injurePlayer(playerById(state.lines.defense[0]),'match',5);document.getElementById('medical-decision-dialog').showModal=()=>{throw Error('Modal unavailable')};`);
+assert.doesNotThrow(()=>r('render()'));
+assert.equal(b.get('#medical-decision-dialog').attrs.open,'');
+assert.ok(r('matchCentreView()').includes('Hantera spelarbesked'));
+r('medicalDecisionAccept();startMatch()');assert.equal(r('state.live.running'),true);
+console.log('PASS: storage failure during resume and autosave, repeated pause/resume, export and storage recovery; fullscreen includes dialogs; modal fallback and injury acknowledgement.');

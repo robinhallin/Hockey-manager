@@ -1066,6 +1066,11 @@ if(
   state.schedule = createSchedule();
 }
 
+let careerSaveError=false;
+function renderSaveStatus(){
+ const root=document.getElementById("save-status-root");if(!root)return;
+ root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>Karriären kunde inte sparas i webbläsaren.</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
+}
 function save(){
   haRepairClubIdentity(state);
   ensureSeason();
@@ -1088,10 +1093,16 @@ function save(){
 
   for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
 
-  localStorage.setItem(
-    "hockey_manager_alpha02",
-    JSON.stringify(state)
-  );
+  try{
+    localStorage.setItem("hockey_manager_alpha02",JSON.stringify(state));
+    careerSaveError=false;
+  }catch{
+    // A blocked/full store must never interrupt controls or the next match tick.
+    // The previous saved career stays intact; the current state remains exportable.
+    careerSaveError=true;
+  }
+  renderSaveStatus();
+  return !careerSaveError;
 
 }
 
@@ -4751,6 +4762,7 @@ careerScreen === "files" ? saveSettingsView()
 
   deskRefreshShell();
   medicalRenderDecision();
+  renderSaveStatus();
   if(studioActive()&&state.page==="match")studioMount();
 
 }

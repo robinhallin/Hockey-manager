@@ -100,4 +100,4 @@ function studioShouldShow(e,m=state.live){
  return e.flight?.kind==='shot'||e.flight?.kind==='rebound'||e.wall<(e.highlightUntil||0)||Boolean(carrier&&StudioHockey.progress(carrier.side,carrier.x)>44&&e.shotQuality(carrier)>.075);
 }
 function studioPlaybackRate(e,m=state.live){return studioShouldShow(e,m)?({1:4,2:8,3:16,4:32}[m.speed]||8):({1:90,2:150,3:240,4:360}[m.speed]||150);}
-function matchFullscreen(){const root=document.querySelector('.game-shell');if(typeof document==='undefined')return;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
+function matchFullscreen(){if(typeof document==='undefined')return;const root=document.documentElement;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
