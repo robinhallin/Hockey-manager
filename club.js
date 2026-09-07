@@ -2,6 +2,19 @@
 // Fictional operating model. One annual budget is settled over 52 regular fixtures.
 const CLUB_ROLES={assistant:'Assisterande tränare',scout:'Chefsscout',goalie:'Målvaktstränare',junior:'Junioransvarig',physio:'Fysioterapeut'};
 const CLUB_PRIORITIES={balanced:{name:'Håll marginalerna',cost:0,text:'Ingen extra satsning. Behåll utrymme för värvningar och oväntade utgifter.'},youth:{name:'Talangfabriken',cost:1200000,text:'15 % mer utveckling i klubbens juniorträning. Lån påverkas inte.'},scouting:{name:'Bredare nätverk',cost:900000,text:'Ett extra samtidigt scoutuppdrag och 20 % lägre uppdragsavgift.'},first:{name:'Vässa A-laget',cost:1500000,text:'10 % mer träningsutveckling i A-laget. Vila ger ingen utveckling.'}};
+Object.assign(CLUB_PRIORITIES,{
+ recovery:{name:'Håll laget friskt',cost:1300000,text:'Två steg högre fysioterapeutkompetens och 10 % bättre återhämtning i matchpauser.',physio:2,recovery:1.1},
+ goalies:{name:'Målvaktsakademin',cost:1000000,text:'20 % bättre träningsutveckling för målvakterna i A-laget.',goalieTraining:1.2},
+ chemistry:{name:'En samspelt trupp',cost:800000,text:'25 % snabbare uppbyggnad av samspel genom gemensam matchtid.',chemistry:1.25},
+ discipline:{name:'Disciplin och detaljer',cost:750000,text:'Ett steg bättre disciplin i match. Kostar utrymme som annars kan gå till värvningar.',discipline:1},
+ local:{name:'Fyll läktarna',cost:850000,text:'8 % högre efterfrågan på biljetter, inom arenans kapacitet.',attendance:1.08},
+ commercial:{name:'Stärk sponsorleden',cost:600000,text:'6 % högre sponsorintäkter under säsongen.',sponsor:1.06},
+ efficiency:{name:'Smartare klubbdrift',cost:350000,text:'7 % lägre löpande driftkostnader; spelarlöner påverkas inte.',operations:.93},
+ development:{name:'Individuell spets',cost:1900000,text:'15 % bättre träningsutveckling i A-laget.',training:1.15},
+ academy:{name:'Nästa generation',cost:2000000,text:'25 % bättre juniorutveckling och 5 % bättre träning i A-laget.',junior:1.25,training:1.05},
+ international:{name:'Internationell scouting',cost:1800000,text:'Två extra scoutuppdrag samtidigt och 30 % lägre uppdragsavgift.',missions:2,scoutFee:.7}
+});
+
 function clubYear(){return state.season?.year||2026;}
 function ensureClub(){
  if(!state.careerStarted)return;
@@ -14,9 +27,10 @@ function ensureClub(){
   state.staff.push({id:'junior',personId:'initial-junior',name:'Sara Holm',ability:12,potential:15,specialty:'Tvåvägsforward',coaching:12,salary:420000,expires:clubYear()+2});
   state.staff.push({id:'physio',personId:'initial-physio',name:'Mikael Ek',ability:10,potential:10,specialty:'Tvåvägsforward',coaching:15,salary:420000,expires:clubYear()+2});
  }
+ if(!state.clubOffice.priorityVersion){state.clubOffice.priorityVersion=1;state.clubOffice.priorityLockedYear=state.clubOffice.priority!=='balanced'?state.clubOffice.year:null;}
  for(const role of Object.keys(CLUB_ROLES))if(!state.staff.some(s=>s.id===role))state.staff.push(clubInterim(role));
  if(!state.clubOffice.market.length)clubMakeMarket();
- if(state.medical){const s=state.staff.find(s=>s.id==='physio');state.medical.staff.physio=s.name;state.medical.staff.skill=s.coaching;}
+ if(state.medical){const s=state.staff.find(s=>s.id==='physio');state.medical.staff.physio=s.name;state.medical.staff.skill=Math.min(20,s.coaching+clubPriorityValue('physio',0));}
 }
 function clubMakeMarket(){
  const o=state.clubOffice,first=['Elin','Oskar','Maria','Daniel','Emma','Viktor','Sofia','Anton','Karin','Fredrik'],last=['Sjöberg','Lund','Ekström','Björk','Nyberg','Strand','Wallin','Bergman','Holmström','Dahl'];
@@ -31,14 +45,14 @@ function clubPost(category,amount,label){
  o.ledger.unshift({year:clubYear(),round:state.round,category,label,amount,balance:state.money});o.ledger=o.ledger.slice(0,240);
 }
 function clubStaffCost(){return (state.staff||[]).reduce((n,s)=>n+(s.salary||0),0);}
-function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:0);}
-function clubMissionFee(){return state.clubOffice?.priority==='scouting'?20000:25000;}
-function clubTrainingFactor(){return state.clubOffice?.priority==='first'?1.1:1;}
-function clubJuniorFactor(){return state.clubOffice?.priority==='youth'?1.15:1;}
+function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0));}
+function clubMissionFee(){return Math.round(25000*(state.clubOffice?.priority==='scouting'?.8:clubPriorityValue('scoutFee')));}
+function clubTrainingFactor(){return state.clubOffice?.priority==='first'?1.1:clubPriorityValue('training');}
+function clubJuniorFactor(){return state.clubOffice?.priority==='youth'?1.15:clubPriorityValue('junior');}
 function clubGate(playoff=false){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
  const demand=.9+(8-rank)*.012+(playoff?.12:0)-(o.ticket-220)/700;
- const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*Math.max(.45,Math.min(1.2,demand))));
+ const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubPriorityValue('attendance')*Math.max(.45,Math.min(1.2,demand))));
  return {attendance,revenue:attendance*o.ticket};
 }
 function clubSettleMatch(){
@@ -49,11 +63,11 @@ function clubSettleMatch(){
  if(home)clubPost('tickets',gate.revenue,`${gate.attendance.toLocaleString('sv-SE')} åskådare × ${o.ticket} kr · ${g.away}`);
  clubPost('matchday',home?-150000:-90000,home?'Arena & matcharrangemang':'Bortaresa & logi');
  if(!g.seriesId){
-  clubPost('sponsor',o.sponsor/52,'Sponsor & centrala avtal · 1/52');
+  clubPost('sponsor',o.sponsor*clubPriorityValue('sponsor')/52,'Sponsor & centrala avtal · 1/52');
   clubPost('players',-annualWageCost()/52,'Spelarlöner · 1/52 av nuvarande årslön');
   clubPost('staff',-clubStaffCost()/52,'Personallöner · 1/52');
   if(managerSalary())clubPost('manager',-managerSalary()/52,'Huvudtränarens lön · 1/52');
-  clubPost('operations',-o.operations/52,'Klubbdrift & ungdomsverksamhet · 1/52');
+  clubPost('operations',-o.operations*clubPriorityValue('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
   const p=CLUB_PRIORITIES[o.priority];if(p.cost)clubPost('priority',-p.cost/52,p.name+' · 1/52');
  }
  managerMessage(`finance:${key}`,'Ekonomirapport efter matchen',`${home?`Publikintäkt ${money(gate.revenue)}.`:'Bortamatch: ingen biljettintäkt.'} Kassa: ${money(state.money)}. ${state.money<0?'Kassan är negativ. Försäljningar och lägre kostnader behövs.':'Se återstående säsongsprognos och kostnader under Ekonomi.'}`,'Klubbekonomi',{link:'finance'});
@@ -62,8 +76,8 @@ function clubForecast(){
  const o=state.clubOffice,remaining=state.schedule.filter(g=>!g.played&&!g.seriesId&&(g.home===managerClub()||g.away===managerClub())),home=remaining.filter(g=>g.home===managerClub()).length;
  // During preseason the old schedule remains; project the next 52-fixture season.
  const preseason=state.season.phase==='preseason',games=preseason?52:remaining.length,homes=preseason?26:home;
- const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations+CLUB_PRIORITIES[o.priority].cost;
- const income=homes*clubGate().revenue+games*o.sponsor/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
+ const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations*clubPriorityValue('operations')+CLUB_PRIORITIES[o.priority].cost;
+ const income=homes*clubGate().revenue+games*o.sponsor*clubPriorityValue('sponsor')/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
  const reserved=(state.recruitment?.deals||[]).filter(d=>d.status==='pending').reduce((n,d)=>n+d.fee,0);
  return {games,homes,income,cost,reserved,cash:Math.round(state.money+income-cost-reserved)};
 }
@@ -73,8 +87,10 @@ function clubSetPolicy(key,value){
  if(!managerCanPlay())return;
  ensureClub();if(clubLocked())return clubNotice('Ändra klubbens plan mellan matcher.');
  if(key==='priority'&&Object.hasOwn(CLUB_PRIORITIES,value)){
+  if(state.clubOffice.priorityLockedYear===clubYear())return clubNotice('Satsningen är låst för hela säsongen. Nya förslag kommer inför nästa säsong.');
+  if(!clubPriorityChoices().includes(value))return clubNotice('Det förslaget erbjuds inte den här säsongen.');
   if(CLUB_PRIORITIES[value].cost>CLUB_PRIORITIES[state.clubOffice.priority].cost&&state.money-clubForecast().reserved<=0)return clubNotice('Kassan saknar utrymme för en större satsning.');
-  state.clubOffice.priority=value;
+  state.clubOffice.priority=value;state.clubOffice.priorityLockedYear=clubYear();
  }
  else if(key==='ticket'&&[160,220,280,340].includes(Number(value)))state.clubOffice.ticket=Number(value);
  else return;
@@ -135,7 +151,7 @@ function clubSign(){
 function clubNewYear(){
  ensureClub();const o=state.clubOffice;if(o.year===clubYear())return;
  o.archives.unshift({year:o.year,opening:o.opening,closing:state.money,totals:{...o.totals}});o.archives=o.archives.slice(0,10);
- o.year=clubYear();o.opening=state.money;o.totals={};o.settled=[];o.taken=[];o.offer=null;
+ o.priority='balanced';o.priorityLockedYear=null;o.year=clubYear();o.opening=state.money;o.totals={};o.settled=[];o.taken=[];o.offer=null;
  const expired=[];state.staff=state.staff.map(s=>{if(s.salary&&s.expires<=o.year){expired.push(s.name);return clubInterim(s.id);}return s;});
  const goals=state.season.boardResult||[],met=goals.filter(g=>g.met).length/Math.max(1,goals.length);
  o.sponsor=Math.round(o.sponsor*(.96+.08*met));clubMakeMarket();
@@ -147,7 +163,7 @@ const CLUB_CATEGORIES={manager:'Huvudtränarens lön',tickets:'Biljetter',matchd
 function clubNavigation(){return '';}
 function clubFinanceView(){
  ensureClub();const o=state.clubOffice,f=clubForecast(),priority=CLUB_PRIORITIES[o.priority];
- return `<section class="club-office"><header class="daily-heading"><div><span class="career-eyebrow">KLUBBHUSET · ${seasonLabel()}</span><h1>Bygg med framförhållning.</h1><p>Varje satsning behöver rymmas både i budgeten och i kassan.</p></div>${careerBadge(managerClub(),'large')}</header>${clubNavigation('finance')}<div class="club-metrics"><article><span>Klubbkassa</span><strong>${money(state.money)}</strong></article><article class="${f.cash<0?'club-warning':''}"><span>Prognos efter ${f.games} grundseriematcher</span><strong>${money(f.cash)}</strong></article><article><span>Spelarlöner / budget per år</span><strong>${careerMoney(annualWageCost())} / ${careerMoney(wageBudget())}</strong></article><article><span>Personallöner / budget per år</span><strong>${careerMoney(clubStaffCost())} / ${careerMoney(o.staffLimit)}</strong></article></div><p role="status">${trainingSafe(o.message)}</p><div class="club-columns"><section class="club-panel"><h2>Välj klubbens satsning</h2><p>En satsning åt gången. Kostnaden betalas över grundserien och effekten gäller kommande aktiviteter.</p><div class="club-priorities">${Object.entries(CLUB_PRIORITIES).map(([id,p])=>`<button class="club-priority ${o.priority===id?'selected':''}" aria-pressed="${o.priority===id}" onclick="clubSetPolicy('priority','${id}')"><strong>${p.name}</strong><span>${p.text}</span><b>${p.cost?money(p.cost)+' / säsong':'Ingen extra kostnad'}</b></button>`).join('')}</div></section><section class="club-panel"><h2>Publik & avtal</h2><label>Biljettpris<select onchange="clubSetPolicy('ticket',this.value)">${[160,220,280,340].map(n=>`<option value="${n}" ${o.ticket===n?'selected':''}>${n} kr</option>`).join('')}</select></label><p>Högre pris minskar efterfrågan. Resultat och slutspel påverkar också publiken.</p><div class="row"><span>Beräknad publik nästa hemmamatch</span><b>${clubGate().attendance.toLocaleString('sv-SE')} / ${o.capacity.toLocaleString('sv-SE')}</b></div><div class="row"><span>Sponsor & centrala avtal / år</span><b>${money(o.sponsor)}</b></div><div class="row"><span>Klubbdrift / år</span><b>${money(o.operations)}</b></div><p>Avtalen omprövas inför säsongen utifrån uppfyllda styrelsemål (−4 till +4 %). Arenans kapacitet och beloppen är fiktiva speldata.</p><h3>Återstående prognos</h3><div class="row"><span>Intäkter</span><b>${money(f.income)}</b></div><div class="row"><span>Kostnader</span><b>${money(f.cost)}</b></div><div class="row"><span>Reserverade transferbud</span><b>${money(f.reserved)}</b></div><p>Oförändrad trupp, publiknivå och satsning antas. Framtida slutspel, nya värvningar och styrelsetilldelning ingår inte. Budens framtida löner ingår först när spelaren ansluter.</p></section></div><section class="club-panel"><h2>Pengarna hittills denna säsong</h2><div class="club-totals">${Object.entries(o.totals).map(([k,n])=>`<div><span>${CLUB_CATEGORIES[k]||k}</span><strong>${n>0?'+':''}${money(n)}</strong></div>`).join('')||'<p>Inga nya transaktioner ännu.</p>'}</div><h3>Senaste transaktionerna</h3>${o.ledger.slice(0,35).map(e=>`<div class="club-ledger"><span>${seasonLabel(e.year)} · omg ${e.round}<small>${trainingSafe(e.label)}</small></span><strong class="${e.amount<0?'':'club-income'}">${e.amount>0?'+':''}${money(e.amount)}</strong><span>Kassa ${money(e.balance)}</span></div>`).join('')||'<p>Historiken börjar med den här uppdateringen. Tidigare affärer har inte återskapats.</p>'}<p>Årslöner, drift och sponsoravtal fördelas över 52 grundserieomgångar; de omfattar även försäsong och slutspel. Slutspel ger bara extra matchintäkter och matchkostnader. Tillfälligt minus stoppar nya ekonomiska åtaganden, men avbryter inte karriären.</p>${o.archives.length?`<h3>Tidigare ekonomiår</h3>${o.archives.map(a=>`<div class="row"><span>${seasonLabel(a.year)}</span><b>${money(a.opening)} → ${money(a.closing)}</b></div>`).join('')}`:''}</section></section>`;
+ return `<section class="club-office"><header class="daily-heading"><div><span class="career-eyebrow">KLUBBHUSET · ${seasonLabel()}</span><h1>Bygg med framförhållning.</h1><p>Varje satsning behöver rymmas både i budgeten och i kassan.</p></div>${careerBadge(managerClub(),'large')}</header>${clubNavigation('finance')}<div class="club-metrics"><article><span>Klubbkassa</span><strong>${money(state.money)}</strong></article><article class="${f.cash<0?'club-warning':''}"><span>Prognos efter ${f.games} grundseriematcher</span><strong>${money(f.cash)}</strong></article><article><span>Spelarlöner / budget per år</span><strong>${careerMoney(annualWageCost())} / ${careerMoney(wageBudget())}</strong></article><article><span>Personallöner / budget per år</span><strong>${careerMoney(clubStaffCost())} / ${careerMoney(o.staffLimit)}</strong></article></div><p role="status">${trainingSafe(o.message)}</p><div class="club-columns"><section class="club-panel"><h2>Välj klubbens satsning</h2><p>${o.priorityLockedYear===clubYear()?'Säsongens satsning är beslutad och låst. Nya förslag kommer inför nästa säsong.':'Ditt val låses hela säsongen. Välj med framförhållning. Kostnaden fördelas över grundserien.'}</p><div class="club-priorities">${clubPriorityChoices().map(id=>{const p=CLUB_PRIORITIES[id];return `<button class="club-priority ${o.priority===id?'selected':''}" aria-pressed="${o.priority===id}" ${o.priorityLockedYear===clubYear()?'disabled':''} onclick="clubSetPolicy('priority','${id}')"><strong>${p.name}</strong><span>${p.text}</span><b>${p.cost?money(p.cost)+' / säsong':'Ingen extra kostnad'}</b></button>`;}).join('')}</div></section><section class="club-panel"><h2>Publik & avtal</h2><label>Biljettpris<select onchange="clubSetPolicy('ticket',this.value)">${[160,220,280,340].map(n=>`<option value="${n}" ${o.ticket===n?'selected':''}>${n} kr</option>`).join('')}</select></label><p>Högre pris minskar efterfrågan. Resultat och slutspel påverkar också publiken.</p><div class="row"><span>Beräknad publik nästa hemmamatch</span><b>${clubGate().attendance.toLocaleString('sv-SE')} / ${o.capacity.toLocaleString('sv-SE')}</b></div><div class="row"><span>Sponsor & centrala avtal / år</span><b>${money(o.sponsor)}</b></div><div class="row"><span>Klubbdrift / år</span><b>${money(o.operations)}</b></div><p>Avtalen omprövas inför säsongen utifrån uppfyllda styrelsemål (−4 till +4 %). Arenans kapacitet och beloppen är fiktiva speldata.</p><h3>Återstående prognos</h3><div class="row"><span>Intäkter</span><b>${money(f.income)}</b></div><div class="row"><span>Kostnader</span><b>${money(f.cost)}</b></div><div class="row"><span>Reserverade transferbud</span><b>${money(f.reserved)}</b></div><p>Oförändrad trupp, publiknivå och satsning antas. Framtida slutspel, nya värvningar och styrelsetilldelning ingår inte. Budens framtida löner ingår först när spelaren ansluter.</p></section></div><section class="club-panel"><h2>Pengarna hittills denna säsong</h2><div class="club-totals">${Object.entries(o.totals).map(([k,n])=>`<div><span>${CLUB_CATEGORIES[k]||k}</span><strong>${n>0?'+':''}${money(n)}</strong></div>`).join('')||'<p>Inga nya transaktioner ännu.</p>'}</div><h3>Senaste transaktionerna</h3>${o.ledger.slice(0,35).map(e=>`<div class="club-ledger"><span>${seasonLabel(e.year)} · omg ${e.round}<small>${trainingSafe(e.label)}</small></span><strong class="${e.amount<0?'':'club-income'}">${e.amount>0?'+':''}${money(e.amount)}</strong><span>Kassa ${money(e.balance)}</span></div>`).join('')||'<p>Historiken börjar med den här uppdateringen. Tidigare affärer har inte återskapats.</p>'}<p>Årslöner, drift och sponsoravtal fördelas över 52 grundserieomgångar; de omfattar även försäsong och slutspel. Slutspel ger bara extra matchintäkter och matchkostnader. Tillfälligt minus stoppar nya ekonomiska åtaganden, men avbryter inte karriären.</p>${o.archives.length?`<h3>Tidigare ekonomiår</h3>${o.archives.map(a=>`<div class="row"><span>${seasonLabel(a.year)}</span><b>${money(a.opening)} → ${money(a.closing)}</b></div>`).join('')}`:''}</section></section>`;
 }
 function clubStaffView(){
  ensureClub();const o=state.clubOffice;
@@ -162,4 +178,10 @@ function clubOfferView(){
  const c=d.type==='hire'?o.market.find(c=>c.personId===d.personId):state.staff.find(s=>s.personId===d.personId);if(!c)return '';
  const old=state.staff.find(s=>s.id===c.id),buyout=d.type==='renew'?0:clubBuyout(old);
  return `<section class="club-offer" aria-label="Granska personalavtal"><span class="career-eyebrow">${d.type==='release'?'AVSLUTA AVTAL':'AVTALSFÖRSLAG'}</span><h2>${c.name}</h2><p>${CLUB_ROLES[c.id]} · ${d.type==='hire'?`ersätter ${old.name}`:d.type==='renew'?'förlängning från nuvarande säsong':'en tillförordnad tar över'}</p>${d.type!=='release'?`<div class="club-actions"><label>Årslön i kronor<input type="number" min="${c.salary}" step="10000" value="${d.salary}" onchange="clubOfferEdit('salary',this.value)"></label><label>Avtalets slut<select onchange="clubOfferEdit('years',this.value)">${[1,2,3].map(y=>`<option value="${y}" ${d.years===y?'selected':''}>Sommaren ${clubYear()+y}</option>`).join('')}</select></label></div><p>Ny total personallön: <span class="club-offer-total">${money(clubStaffCost()-old.salary+d.salary)}</span>/år. Budget: ${money(o.staffLimit)}.</p>`:''}<p>Avgångsersättning nu: <b>${money(buyout)}</b> (hälften av uppskattad återstående lön). ${d.type==='renew'?'Ingen avgångsersättning vid förlängning.':''}</p><div class="club-actions"><button class="btn" onclick="clubSign()">${d.type==='release'?'Avsluta och betala ersättning':'Godkänn avtalet'}</button><button class="btn secondary" onclick="state.clubOffice.offer=null;save();render()">Avbryt</button></div></section>`;
+}
+function clubPriorityValue(key,fallback=1){return CLUB_PRIORITIES[state.clubOffice?.priority]?.[key]??fallback;}
+function clubPriorityChoices(){
+ const all=Object.keys(CLUB_PRIORITIES).filter(k=>k!=='balanced'),year=clubYear();
+ const ranked=all.sort((a,b)=>attrSeed(`${managerClub()}:${year}:${a}`)-attrSeed(`${managerClub()}:${year}:${b}`));
+ return [...new Set(['balanced',...ranked.slice(0,7),state.clubOffice.priority])];
 }

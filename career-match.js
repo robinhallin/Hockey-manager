@@ -29,9 +29,10 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    if(!pp&&!short){const f=players.filter(x=>x.pos!=='B'),d=players.filter(x=>x.pos==='B');players=[...f.slice(0,2),...d.slice(0,2),...players];players=[...new Map(players.map(x=>[String(x.id),x])).values()];}
    roles=pp?['LD','LW','RW','C']:short?['LD','RD','LW']:['LW','C','LD','RD'];
   }else if(!pp&&!short){
-   const fs=players.filter(x=>x.pos!=='B').slice(0,3),ds=players.filter(x=>x.pos==='B').slice(0,2);
-   const c=fs.find(x=>x.pos==='C')||fs[1]||fs[0];const wings=fs.filter(x=>x!==c);players=[wings[0],c,wings[1],...ds].filter(Boolean);
+   // The three forward and two defensive slots are the coach's actual roles.
+   // Preserve order, including deliberately unfamiliar positions.
   }
+
   let rows=players.slice(0,count).map((player,i)=>({role:roles[i],player}));
   if(t.pulled){const extra=pool.find(x=>!rows.some(r=>r.player===x));if(extra)rows.push({role:'X',player:extra});}
   return rows;
@@ -64,8 +65,11 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  }
  attribute(a,key){
   if(!a)return 10;const p=studioPlayer(a.side,a.player.id),energy=p?matchEnergy(p):a.player.energy;
-  let value=(a.player.attributes[key]||10)*(1-(100-energy)*.0035);
+  const rawFit=p?positionFit(p,a.role||'X'):1,fit=this.penalty&&a.role!=='G'?Math.max(.82,rawFit):rawFit;
+  let value=(a.player.attributes[key]||10)*(1-(100-energy)*.0035)*fit;
+  if(['passing','vision','positioning','decisions'].includes(key))value*=1+(((['LD','RD'].includes(a.role)?this.teams[a.side].defenseChemistry:this.teams[a.side].chemistry)??50)-50)/500;
   if(a.side===0&&key==='discipline')value+=state.tacticalPlan.physicality==='hard'?-4:state.tacticalPlan.physicality==='safe'?3:0;
+  if(a.side===0&&key==='discipline')value+=clubPriorityValue('discipline',0);
   if(a.side===0&&key==='checking')value+=state.tacticalPlan.physicality==='hard'?1:state.tacticalPlan.physicality==='safe'?-.6:0;
   if(a.side===0&&['passing','vision','positioning','faceoffs'].includes(key))value+=(this.teamBonus||0)/4;
   if(p&&['decisions','composure','vision','positioning','passing'].includes(key))value+=playerMoraleBonus(p)*.25+(a.side===0?matchFeedbackBonus([p]):0)*.15;
@@ -117,6 +121,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(this.otExpanded&&!this.penalty){this.otExpanded=false;for(const side of [0,1])this.installUnit(side);}
   for(const side of [0,1]){
    const t=this.teams[side];
+   if(this.icingHold===side)continue;
    if(t.requested||t.shift>32||t.change||t.changeQueue.length||t.needsSetup){
     if(t.requested&&!t.change&&!t.changeQueue.length)this.nextUnit(side);
     else if(t.shift>32&&!t.needsSetup&&!t.change&&!t.changeQueue.length)this.nextUnit(side);
@@ -173,7 +178,9 @@ function studioSyncPlans(e=studioEngine()){
   const signature=JSON.stringify(nextPlan);if(t.planSignature&&t.planSignature!==signature)t.needsSetup=true;t.planSignature=signature;t.plan=nextPlan;
   const plan=state.tacticalPlan||{},style=side===0?(plan.attackStyle||'control'):m.aiTeam?.style;
   t.tactics={mentality:style==='control'||side===0&&plan.shotChoice==='patient'?'control':style==='pressure'||style==='counter'||side===0&&plan.shotChoice==='shoot'?'direct':'balanced',pp:side===0&&['umbrella','overload'].includes(state.specialPlans?.pp)?state.specialPlans.pp:'131',pk:state.specialPlans?.pk==='diamond'&&side===0?'diamond':'box'};
-  t.posture=side===0?state.tactic:'balanced';t.tempo=side===0?plan.tempo:'normal';t.forecheck=side===0?plan.forecheck:style==='pressure'?'aggressive':'balanced';
+  t.defenseChemistry=lineChemistry((t.plan.defense||[]).slice(t.pair*2,t.pair*2+2),side===0?managerClub():m.opponent).value;
+  t.chemistry=lineChemistry((t.plan.forwards||[]).slice(t.line*3,t.line*3+3),side===0?managerClub():m.opponent).value;
+  t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:style==='pressure'?'aggressive':'balanced';
   t.safeCounter=side===0&&state.specialPlans?.counter==='safe';
   t.rotation=side===0?(plan.lineUsage==='topHeavy'?[0,1,0,2,0,1,3]:plan.lineUsage==='rollFour'?[0,1,2,3]:[0,1,2,0,1,3]):RIVAL_ROTATIONS[m.aiTeam?.rotation]||[0,1,2,3];
   t.shiftLimit=side===0?(plan.shiftLength==='short'?30:plan.shiftLength==='long'?60:45):43;
@@ -197,6 +204,7 @@ function studioMirror(e=studioEngine()){
  r.hockey=r.hockey||{counts:{offside:{own:0,opponent:0},icing:{own:0,opponent:0},clear:{own:0,opponent:0}},icingHold:null,loose:null,stops:[]};
  r.hockey.counts.clear={own:e.stats[0].clears,opponent:e.stats[1].clears};
  m.goaliePulled=!(e.accountingActors||e.actors).some(a=>a.side===0&&a.role==='G');m.aiGoaliePulled=!(e.accountingActors||e.actors).some(a=>a.side===1&&a.role==='G');
+ m.shotsHV=e.stats[0].shots;m.shotsOpp=e.stats[1].shots;
  m.faceoffsHV=e.stats[0].faceoffs;m.faceoffsOpp=e.stats[1].faceoffs;
  m.hitsHV=e.stats[0].hits||0;m.hitsOpp=e.stats[1].hits||0;
  m.currentLine=e.teams[0].line;m.currentDefensePair=e.teams[0].pair;m.rotationIndex=e.teams[0].specialIndex||0;m.shiftSeconds=e.teams[0].shift;
@@ -210,13 +218,15 @@ function studioRecordShot(e,shot,penalty){
  studioMirror(e);
  // A PP goal ends the penalty in the simulation before the ledger is written. Use impact strength.
  m.penaltiesHV=penalty?.side===0?[penalty]:[];m.penaltiesOpp=penalty?.side===1?[penalty]:[];
- m[own?'shotsHV':'shotsOpp']++;if(shot.quality>=.09)m[own?'chancesHV':'chancesOpp']++;
+ if(shot.quality>=.09)m[own?'chancesHV':'chancesOpp']++;
+ e.highlightUntil=e.wall+(shot.outcome==='goal'?5:1.5);
  const result=shot.outcome;
  recordAnalysisShot(side,shot.player,id,shot.quality>=.09,{x:StudioHockey.progress(shot.side,shot.x)/60*100,y:shot.y/30*100},shot.quality,result,result);
  const record=m.analysis?.shots.at(-1);if(record&&shot.context){record.shotType=shot.context.type;record.explanation=studioShotReasons(shot).join(' · ');}
  if(own&&['goal','save'].includes(shot.outcome)){const p=studioPlayer(0,id);p.shots=(p.shots||0)+1;}
  if(shot.outcome==='block')m[own?'blocksOpp':'blocksHV']++;
  if(shot.outcome==='goal'){
+  e.pairResults??=[{},{}];for(const teamSide of [0,1]){const ps=(e.accountingActors||e.actors).filter(a=>a.side===teamSide&&a.role!=='G');for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const key=dynamicsKey(ps[i].player.id,ps[j].player.id);e.pairResults[teamSide][key]=(e.pairResults[teamSide][key]||0)+(teamSide===shot.side?1:-1);}}
   m.hv=e.score[0];m.opp=e.score[1];analysisEvent('goal',side,shot.player,id);
   if(own){const p=studioPlayer(0,id);p.goals=(p.goals||0)+1;}
   if(penalty&&penalty.side!==shot.side)m[own?'ppGoalsHV':'ppGoalsOpp']++;
@@ -234,11 +244,13 @@ function studioStep(){
  const before=e.time,actors=e.actors.slice();e.step();const seconds=Math.max(0,e.time-before);
  const local=e.time-(e.periodStart||0);m.minute=Math.floor((local+1e-6)/60);m.second=Math.floor((local+1e-6)%60);
  if(seconds>0){
+  e.pairSeconds??=[{},{}];
+  for(const side of [0,1]){const skaters=actors.filter(a=>a.side===side&&a.role!=='G');for(let i=0;i<skaters.length;i++){const a=skaters[i],p=studioPlayer(side,a.player.id);if(p){p.positionExperience??={};p.positionExperience[a.role]=(p.positionExperience[a.role]||0)+seconds;}for(let j=i+1;j<skaters.length;j++){const key=dynamicsKey(a.player.id,skaters[j].player.id);e.pairSeconds[side][key]=(e.pairSeconds[side][key]||0)+seconds;}}}
   e.accountingActors=actors;studioMirror(e);trackIceTime(seconds);delete e.accountingActors;
   e.possession=e.possession||{own:0,opponent:0};e.possession[e.owner===0?'own':'opponent']+=seconds;
  }
  // Drain events once. Reloading cannot award a goal or penalty a second time.
- for(const event of e.events){if(!['pass','loose','shot','finished','change'].includes(event.type))addEvent(event.text,event.type==='goal'?'goal':event.type==='penalty'?'penalty':event.type==='save'?'save':'strategy');if(event.type==='offside')m.rink.hockey.counts.offside[event.side===0?'own':'opponent']++;}
+ for(const event of e.events){if(!['pass','loose','shot','finished','change'].includes(event.type))addEvent(event.text,event.type==='goal'?'goal':event.type==='penalty'?'penalty':event.type==='save'?'save':'strategy');if(['offside','icing'].includes(event.type))m.rink.hockey.counts[event.type][event.side===0?'own':'opponent']++;}
  e.events=[];e.shots=[];
  studioMirror(e);
  if(m.medicalPauseWanted){m.medicalPauseWanted=false;m.running=false;studioSyncPlans(e);e.stop('stoppage','Spelet pausas för medicinsk bedömning.',{...e.puck});}
@@ -271,11 +283,11 @@ function studioRestartClock(){studioLastPulse=Date.now();studioAccumulator=0;stu
 function studioPulse(){
  const m=state.live,e=studioEngine();if(!e||!m.running||m.finished)return;
  const now=Date.now(),real=Math.min(.1,Math.max(0,(now-studioLastPulse)/1000));studioLastPulse=now;
- const speed=[0,1,2,3][m.speed]||1;studioAccumulator+=real*speed*(m.rink.mode==='highlights'&&!e.focus?12:1);
- const goals=m.hv+m.opp,period=m.period;
- for(let i=0;studioAccumulator>=StudioHockey.STEP&&i<40&&m.running&&!m.finished;i++){
-  const focus=e.focus;studioPrevious=studioFrame(e);studioStep();studioAccumulator-=StudioHockey.STEP;
-  if(!focus&&e.focus&&m.rink.mode==='highlights'){studioAccumulator=0;break;}
+ studioAccumulator=Math.min(60,studioAccumulator+real*studioPlaybackRate(e,m));
+ const goals=m.hv+m.opp,period=m.period,budget=Date.now();
+ for(let i=0;studioAccumulator>=StudioHockey.STEP&&i<600&&m.running&&!m.finished&&Date.now()-budget<24;i++){
+  const focus=studioShouldShow(e,m);studioPrevious=studioFrame(e);studioStep();studioAccumulator-=StudioHockey.STEP;
+  if(!focus&&studioShouldShow(e,m)&&m.rink.mode!=='full'){studioAccumulator=0;break;}
  }
  if(goals!==m.hv+m.opp||period!==m.period||!m.running){render();studioLastPaint=now;}
  else if(now-studioLastPaint>500){studioRefresh();studioLastPaint=now;}
@@ -301,7 +313,7 @@ function studioShotView(){
 function studioView(){
  const e=studioEngine(),m=state.live,t=e.teams[0];
  const changing=t.requested||t.change||t.changeQueue.length||t.needsSetup;
- return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioReplayState?'REPRIS · MATCHEN PAUSAD':m.finished?'SLUTSIGNAL':m.running?'MATCHSÄNDNING':'PAUSAT · COACHA LAGET'}</strong></div><span>${changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header><div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och istid finns under rinken."></canvas><div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHEN FORTSÄTTER</span><h3 id="broadcast-overview-title"></h3><p>Nästa farliga sekvens visas på rinken.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><div class="broadcast-shot" aria-label="Analys av senaste avslutet">${studioShotView()}</div><footer><span>${m.rink.mode==='highlights'?'Lugna sekvenser passerar snabbare.':'Du följer varje sekvens.'} Klicka på en spelare för att pausa och läsa uppgiften.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
+ return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioReplayState?'REPRIS · MATCHEN PAUSAD':m.finished?'SLUTSIGNAL':m.running?'MATCHSÄNDNING':'PAUSAT · COACHA LAGET'}</strong></div><span>${changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header><div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och istid finns under rinken."></canvas><div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHEN FORTSÄTTER</span><h3 id="broadcast-overview-title"></h3><p>Nästa farliga sekvens visas på rinken.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><div class="broadcast-shot" aria-label="Analys av senaste avslutet">${studioShotView()}</div><footer><span>${MATCH_VIEW_MODES[m.rink.mode]||'Matchsändning'} · välj visning och hastighet ovan. Klicka på en spelare för att pausa och läsa uppgiften.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
 }
 function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseMatch();studioReplayState={frames:e.latestReplay.frames,started:0};render();}
 function studioExitReplay(){studioReplayState=null;render();}
@@ -312,7 +324,7 @@ function studioMount(){
   const canvas=document.getElementById('career-ice'),e=studioEngine(),m=state.live;
   if(!canvas?.getContext){studioRAF=false;return;}
   if(canvas!==studioCanvas){studioCanvas=canvas;canvas.addEventListener('click',event=>{
-   if(studioReplayState)return;const rect=canvas.getBoundingClientRect(),x=(event.clientX-rect.left)/rect.width*1200,y=(event.clientY-rect.top)/rect.height*650,scale=1112/60;
+   if(studioReplayState)return;const rect=canvas.getBoundingClientRect(),fit=Math.min(rect.width/1200,rect.height/650),x=(event.clientX-rect.left-(rect.width-1200*fit)/2)/fit,y=(event.clientY-rect.top-(rect.height-650*fit)/2)/fit,scale=1112/60;
    const point={x:(x-44)/scale,y:(y-(650-30*scale)/2)/scale};const a=e.actors.find(a=>StudioHockey.distance(a,point)<1.6);
   if(a){pauseMatch();matchNotice(a.player.name+' · '+a.duty+'. '+(a.role==='G'?'Förflyttning, positionering och reflexer avgör räddningen; puckhantering och returkontroll avgör vad som händer sedan.':a.role.endsWith('D')?'Positionering och beslut styr täckningen. Tacklingar, styrka och arbetskapacitet hjälper i puckduellerna.':'Spelförståelse och beslut hjälper spelaren välja. Passningar, puckkontroll och skott avgör utförandet.'));}
   });}
@@ -320,7 +332,7 @@ function studioMount(){
   if(studioReplayState){const r=studioReplayState;if(!r.started)r.started=now;const elapsed=(now-r.started)/1000,index=Math.min(r.frames.length-1,Math.floor(elapsed/.2));frame=r.frames[Math.min(index+1,r.frames.length-1)];previous=r.frames[index];blend=index===r.frames.length-1?1:(elapsed%.2)/.2;}
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)blend=1;
   const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));MatchBroadcastRenderer.draw(canvas,frame,previous,blend,{teams});
-  const overview=document.getElementById('broadcast-overview');if(overview){overview.hidden=Boolean(studioReplayState)||!m.running||m.rink.mode!=='highlights'||e.focus;document.getElementById('broadcast-overview-title').textContent=e.teams[e.owner].name+' söker nästa öppning';}
+  const overview=document.getElementById('broadcast-overview');if(overview){overview.hidden=Boolean(studioReplayState)||!m.running||studioShouldShow(e,m);document.getElementById('broadcast-overview-title').textContent=e.teams[e.owner].name+' söker nästa öppning';}
   document.getElementById('broadcast-phase').textContent=studioReplayState?'REPRIS · '+analysisTime(frame.time):StudioHockey.PHASES[e.phase];
   document.getElementById('broadcast-caption').textContent=frame.caption;
   requestAnimationFrame(draw);

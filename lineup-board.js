@@ -13,7 +13,7 @@ function lineupPickSlot(type,index){
 }
 function lineupPlace(id){
  const slot=lineupUI.slot,p=playerById(id);if(!slot||!p||!medicalAvailable(p))return;
- if(slot.type==='goalie'&&p.pos!=='MV'||slot.type==='defense'&&p.pos!=='B'||slot.type==='forwards'&&['B','MV'].includes(p.pos))return;
+ if(slot.type==='goalie'?p.pos!=='MV':p.pos==='MV')return;
  if(!hockeyAllowChange())return;
  if(state.live?.running)pauseMatch();
  if(slot.type==='goalie')changeGoalie(p.id);else changeLinePlayer(slot.type,slot.index,p.id);
@@ -30,7 +30,7 @@ function lineupSlot(type,index,label,position){
  const id=type==='goalie'?state.lines.goalie:state.lines[type][index],p=playerById(id),selected=lineupUI.slot?.type===type&&lineupUI.slot?.index===index;
  return `<button class="lineup-slot ${position} ${selected?'selected':''} ${!p?'vacant':''}" aria-pressed="${selected}" onclick="lineupPickSlot('${type}',${index})" aria-label="${trainingSafe(label+(p?': '+p.name:': välj spelare'))}"><span class="lineup-position">${label}</span><strong>${p?trainingSafe(p.name):'Välj spelare'}</strong>${p?assessmentBadge(p):'<span class="lineup-plus">+</span>'}<small>${p?`${Math.round(100-(p.fatigue||0))}% beredskap`:'Tryck på platsen'}</small></button>`;
 }
-function lineupBoardView(){
+function lineupRinkView(){
  if(lineupWorkspace==='special')return lineupWorkspaceNav()+specialBoardView();
  if(lineupWorkspace==='squad')return lineupWorkspaceNav()+lineupSquadSummary()+depthBenchView();
  ensureLines();const u=lineupUI,fw=u.line*3,d=u.pair*2,players=state.lines.forwards.slice(fw,fw+3).map(playerById).filter(Boolean),backs=state.lines.defense.slice(d,d+2).map(playerById).filter(Boolean);

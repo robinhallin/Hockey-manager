@@ -1131,7 +1131,7 @@ function opponent(){
 
 function samePlayerId(a,b){
 
-  return (state?.playerIdentityAliases?.[String(a)]||String(a)) === (state?.playerIdentityAliases?.[String(b)]||String(b));
+  if(a===b)return true;const x=String(a),y=String(b),aliases=state?.playerIdentityAliases;return (aliases?.[x]||x)===(aliases?.[y]||y);
 
 }
 
@@ -1509,7 +1509,7 @@ function scheduleTick(){
 
 
 function setSpeed(value){
- if(!state.live||![1,2,3].includes(Number(value)))return;
+ if(!state.live||![1,2,3,4].includes(Number(value)))return;
  state.live.speed=Number(value);if(studioActive())studioRestartClock();clearTimeout(matchTimer);save();render();scheduleTick();
 }
 
@@ -2595,7 +2595,7 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
   const ids=new Set(onIce.map(p=>String(p.id))),tempo=side==='own'?state.tacticalPlan.tempo:m.aiTeam?.tempo;
   const load=(tempo==='high'?1.22:tempo==='low'?.84:1)*(side==='own'&&state.tacticalPlan.forecheck==='aggressive'?1.12:1)*(side==='own'&&state.tacticalPlan.physicality==='hard'?1.06:1);
   for(const p of roster){
-   const id=String(p.id),stamina=ensurePlayerAttributes(p).stamina||10;
+   const id=String(p.id),stamina=p.pos==='MV'?10:(p.attributes?.stamina??ensurePlayerAttributes(p).stamina??10);
    const e=m.energy.players[id]||(m.energy.players[id]={level:Math.max(0,100-((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0))*.35),shift:0,seconds:0});
    const active=ids.has(id),used=active?Math.max(0,Math.min(seconds,side==='own'?medicalLimit(p)-(m.iceTime?.[id]||0):seconds)):0;
    if(used>0){
@@ -4074,42 +4074,12 @@ function lineOptions(players, selectedId){
 
 
 function changeLinePlayer(type,index,newId){
-  if(!hockeyAllowChange())return;
-  if(!["forwards","defense"].includes(type)||!Number.isInteger(index)||index<0||index>=(type==="forwards"?12:6))return;
-  const chosen=playerById(newId);if(!medicalAvailable(chosen)||type==="defense"&&chosen.pos!=="B"||type==="forwards"&&["B","MV"].includes(chosen.pos))return;
-
-  ensureLines();
-
-  const list=state.lines[type];
-
-  const existingIndex=
-    list.findIndex(id => samePlayerId(id,newId));
-
-  /*
-     Om spelaren redan finns på en annan plats
-     byter spelarna plats med varandra.
-     Därmed kan samma spelare aldrig finnas
-     i två kedjor samtidigt.
-  */
-
-  if(existingIndex!==-1){
-
-    const oldId=list[index];
-
-    list[index]=newId;
-
-    list[existingIndex]=oldId;
-
-  }else{
-
-    list[index]=newId;
-
-  }
-
-  save();
-
-  render();
-
+ if(!hockeyAllowChange()||!['forwards','defense'].includes(type)||!Number.isInteger(index)||index<0||index>=(type==='forwards'?12:6))return;
+ const p=playerById(newId);if(!medicalAvailable(p)||p.pos==='MV')return;
+ if(state.live?.running)pauseMatch();ensureLines();
+ const old=state.lines[type][index];
+ for(const key of ['forwards','defense']){const other=state.lines[key].findIndex(id=>samePlayerId(id,p.id));if(other>=0){state.lines[key][other]=old;break;}}
+ state.lines[type][index]=p.id;save();render();
 }
 
 

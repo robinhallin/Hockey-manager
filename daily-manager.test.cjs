@@ -58,7 +58,7 @@ assert.equal(r('state.live.analysis.events.filter(e=>e.type==="goal")[1].assists
 assert.match(r('matchScoringView()'),new RegExp(r('helper.name')));assert.match(r('matchScoringView()'),new RegExp(r('other[1].name')));
 r('goalHV(scorer,{assistId:null});state.live.analysisShootout=true;analysisEvent("decider","own","Straffavgörande")');
 assert.equal(r('state.live.analysis.events.filter(e=>e.type==="goal").at(-1).assists.length'),0);
-assert.match(r('matchScoringView()'),/Utan assist/);assert.match(r('matchScoringView()'),/Alla 3 mål/);assert.match(r('matchScoringView()'),/inte som ett spelarmål/);
+assert.match(r('matchScoringView()'),/Utan assist/);assert.equal((r('matchScoringView()').match(/<b>/g)||[]).length,3);assert.match(r('matchScoringView()'),/inte som ett spelarmål/);
 // Tactical instructions change the simulated duration and shooting decision; feedback cannot stack.
 r('matchOrder("shiftLength","short");matchOrder("shotChoice","patient");globalThis.actor=state.live.rink.actors.find(a=>a.side==="own"&&a.pos!=="MV");actor.x=80;globalThis.patient=hockeyShotChoice(actor);matchOrder("shotChoice","shoot")');
 assert.equal(r('matchShiftLength()'),30);assert.ok(r('hockeyShotChoice(actor)')>r('patient'));

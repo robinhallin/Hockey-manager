@@ -184,7 +184,7 @@ function generateIncomingOffer(){
  if(!calendarWindowOpen())return;
  const r=state.recruitment,p=managerRoster().find(p=>p.transferListed&&recruitCanSell(p,managerClub())&&!r.incoming.some(o=>samePlayerId(o.playerId,p.id)&&o.status==='pending'));
  if(!p)return;
- const fee=recruitFee(p),buyer=Object.keys(r.ai).find(c=>recruitCanAfford(c,p,fee,recruitPlayerWishes(p,c).salary));if(!buyer)return;
+ const fee=recruitFee(p),buyer=Object.keys(r.ai).find(c=>rivalRecruitNeeds(c)[0].kind===(p.pos==='MV'?'MV':p.pos==='B'?'B':'F')&&recruitCanAfford(c,p,fee,recruitPlayerWishes(p,c).salary));if(!buyer)return;
  const w=recruitPlayerWishes(p,buyer);
  r.incoming.unshift({id:r.nextId++,playerId:p.id,name:p.name,buyer,fee,salary:w.salary,role:w.role,years:Math.min(3,w.maxYears),expires:r.tick+3,status:'pending'});
  recruitReport(`Bud på ${p.name}`,`${buyer} erbjuder ${money(fee)}. Du avgör om spelaren ska säljas. Budet gäller i tre marknadsomgångar.`);
@@ -200,15 +200,8 @@ function answerIncomingOffer(id,accept){
  o.status='accepted';recruitMessage(`${p.name} lämnar för ${o.buyer}. ${money(o.fee)} har tillförts kassan.`);
 }
 function aiRecruitTransfer(){
- if(!calendarWindowOpen())return;
- const r=state.recruitment,clubs=Object.keys(r.ai),buyer=clubs[Math.floor(r.tick/3-1)%clubs.length];
- const activeTargets=r.deals.filter(d=>d.status==='pending').map(d=>String(d.playerId));
- const roster=state.clubRosters[buyer],groups=['MV','B','F'],group=p=>p.pos==='MV'?'MV':p.pos==='B'?'B':'F';
- const weakest=groups.map(g=>({g,value:roster.filter(p=>group(p)===g).reduce((n,p)=>n+matchAttributeRating(p),0)/Math.max(1,roster.filter(p=>group(p)===g).length)})).sort((a,b)=>a.value-b.value)[0];
- const candidates=getTransferMarketPlayers().filter(p=>p.team!==buyer&&!activeTargets.includes(String(p.id))&&group(p)===weakest.g&&recruitWillingToSell(p,p.team)&&recruitCanAfford(buyer,p,recruitFee(p),recruitPlayerWishes(p,buyer).salary)).sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a));
- const p=candidates.find(p=>matchAttributeRating(p)>weakest.value+1);if(!p||roster.length>=30)return;
- const actual=findPlayerAnywhere(p.id),w=recruitPlayerWishes(actual,buyer);
- transferRecruitPlayer(actual,p.team,buyer,recruitFee(actual),w.salary,Math.min(3,w.maxYears),w.role);
+ if(!calendarWindowOpen()||state.live&&!state.live.finished)return;
+ ensureRivals();for(const club of Object.keys(state.recruitment.ai))rivalScoutMarket(club);
 }
 
 function followRecruitmentPromises(m){

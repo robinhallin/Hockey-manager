@@ -74,7 +74,7 @@ function matchRecover(seconds,key){
  for(const [id,e] of Object.entries(m.energy.players)){
   const p=findPlayerAnywhere(id);if(!p)continue;
   const fatigue=(p.fatigue||0)+(isOwnPlayer(p)?0:(m.rink?.oppFatigue?.[id]||0));
-  e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+seconds*.18*(.7+(ensurePlayerAttributes(p).stamina||10)/25));
+  e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+seconds*.18*(isOwnPlayer(p)?clubPriorityValue('recovery'):1)*(.7+(ensurePlayerAttributes(p).stamina||10)/25));
   e.shift=0;
  }
 }

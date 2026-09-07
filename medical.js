@@ -50,28 +50,26 @@ function medicalAfterMatch(){
 }
 function medicalExposure(players,seconds){
  const m=state.live;if(!m||m.finished||!Number.isFinite(seconds)||seconds<=0)return;
+ let availabilityChanged=false;
  for(const p of players){
    if(!p.health||p.health.injury?.remaining>0)continue;
    p.health.load=trainingClamp(p.health.load+seconds/240);
    if(medicalRoll()<.00018*seconds/60*medicalRisk(p))injurePlayer(p,'match');
    else if((m.iceTime?.[p.id]||0)>=medicalLimit(p)){
      if(!m.medicalLimited)m.medicalLimited=[];
-     if(!m.medicalLimited.includes(String(p.id))){medicalQueueDecision(p,'limit');m.medicalLimited.push(String(p.id));m.medicalPauseWanted=true;addEvent(`${p.name} har nått comebackens istidsgräns och vilar resten av matchen.`,'strategy');}
+     if(!m.medicalLimited.includes(String(p.id))){availabilityChanged=true;medicalQueueDecision(p,'limit');m.medicalLimited.push(String(p.id));m.medicalPauseWanted=true;addEvent(`${p.name} har nått comebackens istidsgräns och vilar resten av matchen.`,'strategy');}
    }
  }
- repairMedicalLines();
+ if(availabilityChanged)repairMedicalLines();
 }
 function repairMedicalLines(){
- if(!state.lines)return;
- for(const [key,size,accept] of [['forwards',12,p=>!['MV','B'].includes(p.pos)],['defense',6,p=>p.pos==='B']]){
-   const pool=managerRoster().filter(p=>accept(p)&&medicalAvailable(p)),used=new Set();
-   const old=state.lines[key]||[],ids=Array.from({length:size},(_,i)=>{const p=pool.find(p=>samePlayerId(p.id,old[i]));if(!p||used.has(String(p.id)))return null;used.add(String(p.id));return p.id;});
-   for(let i=0;i<size;i++)if(ids[i]===null){const p=pool.find(p=>!used.has(String(p.id)));if(p){ids[i]=p.id;used.add(String(p.id));}}
-   state.lines[key]=ids;
- }
+ if(!state.lines)return;const used=new Set(),pool=managerRoster().filter(p=>p.pos!=='MV'&&medicalAvailable(p));
+ for(const [key,size] of [['forwards',12],['defense',6]])state.lines[key]=Array.from({length:size},(_,i)=>{const p=pool.find(p=>samePlayerId(p.id,state.lines[key]?.[i]));if(!p||used.has(String(p.id)))return null;used.add(String(p.id));return p.id;});
+ for(const key of ['forwards','defense'])for(let i=0;i<state.lines[key].length;i++)if(state.lines[key][i]===null){const p=pool.find(p=>!used.has(String(p.id))&&(key==='defense'?p.pos==='B':p.pos!=='B'));if(p){state.lines[key][i]=p.id;used.add(String(p.id));}}
  const selected=managerRoster().find(p=>samePlayerId(p.id,state.lines.goalie));
  if(!selected||selected.pos!=='MV'||!medicalAvailable(selected))state.lines.goalie=managerRoster().find(p=>p.pos==='MV'&&medicalAvailable(p))?.id??null;
 }
+
 function medicalUnit(players,size,position){
  const result=players.filter(medicalAvailable);
  if(result.length>=size)return result.slice(0,size);
