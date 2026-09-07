@@ -11,7 +11,8 @@ const a=start('Rögle BK');
 a.run('for(let i=0;i<1500;i++)studioStep();');check(a);
 assert.equal(a.run('state.live.hv'),a.run('studioEngine().score[0]'));
 // Save during a real puck flight / unit change and resume the identical simulation.
-a.run('while(!studioEngine().flight)studioStep();save();');
+a.run('for(let i=0;i<5000&&!studioEngine().flight;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}save();');
+assert.ok(a.run('Boolean(studioEngine().flight)'), 'a puck flight occurs within the simulation budget');
 const b=boot(a.storage.value);
 assert.equal(b.run('state.live.running'),false);
 assert.equal(b.run('studioEngine() instanceof CareerBroadcastMatch'),true);
@@ -37,7 +38,7 @@ console.log('PASS: selected special teams, penalized player, penalty-box return,
 // Full uninterrupted periods use the regular career end-of-match path and ledger.
 const full=start('HV71');
 full.run(`globalThis.initialRound=state.round;globalThis.periods=new Set();globalThis.steps=0;
- while(!state.live.finished&&steps++<65000){periods.add(state.live.period);if(!state.live.running)startMatch();studioStep();}
+ while(!state.live.finished&&steps++<65000){periods.add(state.live.period);if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}
 `);
 assert.equal(full.run('state.live.finished'),true);check(full);
 assert.ok(full.run('periods.has(1)&&periods.has(2)&&periods.has(3)'));
