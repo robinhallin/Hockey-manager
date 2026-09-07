@@ -18,6 +18,7 @@ function medicalReport(title,body){const s=state.medical;s.history.unshift({id:s
 function medicalNotice(text){state.medical.message=text;save();render();}
 function injurePlayer(p,source='match',days=null){
  ensureMedical();if(!p||p.health.injury?.remaining>0)return false;
+ if(source==='match')medicalQueueDecision(p,'injury');
  const setback=Boolean(p.health.injury),duration=days??(3+Math.floor(medicalRoll()*10));
  p.health.injury={name:setback?'Bakslag i återgången':['Muskelbesvär','Ledbesvär','Kontusionsskada'][Math.floor(medicalRoll()*3)],remaining:duration,initial:duration,readiness:55,source};p.health.clearance='rest';
  if(state.live&&!state.live.finished&&source==='match'){
@@ -55,7 +56,7 @@ function medicalExposure(players,seconds){
    if(medicalRoll()<.00018*seconds/60*medicalRisk(p))injurePlayer(p,'match');
    else if((m.iceTime?.[p.id]||0)>=medicalLimit(p)){
      if(!m.medicalLimited)m.medicalLimited=[];
-     if(!m.medicalLimited.includes(String(p.id))){m.medicalLimited.push(String(p.id));m.medicalPauseWanted=true;addEvent(`${p.name} har nått comebackens istidsgräns och vilar resten av matchen.`,'strategy');}
+     if(!m.medicalLimited.includes(String(p.id))){medicalQueueDecision(p,'limit');m.medicalLimited.push(String(p.id));m.medicalPauseWanted=true;addEvent(`${p.name} har nått comebackens istidsgräns och vilar resten av matchen.`,'strategy');}
    }
  }
  repairMedicalLines();
@@ -104,4 +105,60 @@ function medicalPlayerPanel(p){
 function medicalView(){
  ensureMedical();const ps=managerRoster(),injured=ps.filter(p=>p.health.injury),s=state.medical;
  return `<section class="medical-page"><header class="daily-heading"><div><span class="career-eyebrow">MEDICINSKT TEAM</span><h1>Tillbaka till isen.</h1><p>${s.staff.doctor} och ${s.staff.physio} följer belastning, rehabilitering och comeback.</p></div><button class="btn secondary" onclick="trainingOpen('training')">Planera återhämtning</button></header><div class="medical-summary"><div><span>Tillgängliga</span><strong>${ps.filter(medicalReady).length} / ${ps.length}</strong></div><div><span>Skada eller återgång</span><strong>${injured.length}</strong></div><div><span>Hög belastningsrisk</span><strong>${ps.filter(p=>medicalRiskLabel(p)==='Hög').length}</strong></div></div>${s.message?`<p class="medical-notice" role="status">${trainingSafe(s.message)}</p>`:''}<p>Rehabiliteringen går framåt med träningsdagar, matchdagar och försäsongsveckor. Prognoserna är ungefärliga. Spelare i rehabilitering följer ett eget lätt program i stället för lagets hårda pass.</p>${state.live&&!state.live.finished&&!medicalMatchReady()?'<div class="medical-notice"><p>För få tillgängliga spelare för att fortsätta: minst en målvakt, två backar och tre forwards krävs.</p><button class="btn" onclick="medicalConcede()">Avbryt matchen – registrera förlust</button></div>':''}<h2>Skador & comeback</h2>${injured.map(p=>`<article class="medical-case"><header><h3>${trainingSafe(p.name)} · ${p.pos}</h3><button class="btn secondary" onclick="selectPlayer('${p.id}')">Spelarprofil</button></header>${medicalPlayerPanel(p)}</article>`).join('')||'<p>Ingen spelare är skadad eller under återgång just nu.</p>'}<h2>Belastningsöversikt</h2><div class="medical-workload">${[...ps].sort((a,b)=>medicalRisk(b)-medicalRisk(a)).map(p=>`<div><button onclick="selectPlayer('${p.id}')">${trainingSafe(p.name)}</button><span>${Math.round(100-p.fatigue)} % ork</span><span>${Math.round(p.health.load)}/100 belastning</span><strong>${medicalRiskLabel(p)}</strong></div>`).join('')}</div><section class="medical-reserves"><h2>Ge juniorerna chansen</h2><p>Vid färre än två tillgängliga målvakter, sex backar eller tolv forwards kan du flytta upp en tillgänglig spelare ur ditt juniorlag. Avtal och löneutrymme kontrolleras under Juniorer & talanger. Ett kortare lag kan spela, men belastningen fördelas på färre spelare.</p><div class="medical-actions">${['MV','B','C','VF','HF'].map(pos=>`<button class="btn secondary" onclick="medicalCallUp('${pos}')">Flytta upp ${pos}</button>`).join('')}</div><button class="btn secondary" onclick="trainingOpen('lines')">Se över kedjorna</button></section><h2>Medicinska rapporter</h2>${s.history.slice(0,15).map(e=>`<article class="medical-report"><span>Återhämtningsdag ${e.day}</span><h3>${trainingSafe(e.title)}</h3><p>${trainingSafe(e.body)}</p></article>`).join('')||'<p>Här samlas skadebesked och uppföljningar.</p>'}<p class="training-note">Skador, tidsprognoser och risknivåer är förenklade speldata. Även motståndarnas skador simuleras.</p></section>`;
+}
+
+// Keep the coach's decision across navigation and saved matches. Line repair is
+// provisional: the clock cannot restart until every incident is acknowledged.
+function medicalPending(){return !state.live?.finished?state.live?.medicalDecisions?.[0]:null;}
+function medicalQueueDecision(p,reason){
+ const m=state.live;if(!m||m.finished||!isOwnPlayer(p))return;
+ const slots=[];
+ for(const key of ['forwards','defense'])for(const [index,id] of (state.lines?.[key]||[]).entries())if(samePlayerId(id,p.id))slots.push({key,index});
+ if(samePlayerId(state.lines?.goalie,p.id))slots.push({key:'goalie',index:0});
+ const used=new Set([...(state.lines?.forwards||[]),...(state.lines?.defense||[]),state.lines?.goalie].map(String));
+ const special={};for(const key of ['pp1','pp2','pk1','pk2'])if((state.specialTeams?.[key]||[]).some(id=>samePlayerId(id,p.id)))special[key]=[...state.specialTeams[key]];
+ m.medicalDecisions??=[];
+ if(!m.medicalDecisions.some(d=>samePlayerId(d.playerId,p.id)))m.medicalDecisions.push({playerId:p.id,name:p.name,pos:p.pos,reason,slots,special,bench:managerRoster().filter(q=>!used.has(String(q.id))&&medicalAvailable(q)).map(q=>q.id)});
+ m.medicalEditing=false;m.medicalPauseWanted=true;
+}
+function medicalDecisionCandidates(d){return managerRoster().filter(p=>medicalAvailable(p)&&!samePlayerId(p.id,d.playerId)&&(d.pos==='MV'?p.pos==='MV':d.pos==='B'?p.pos==='B':!['MV','B'].includes(p.pos)));}
+function medicalDecisionOpen(){if(!medicalPending())return;state.live.running=false;clearTimeout(matchTimer);state.live.medicalEditing=false;save();render();}
+function medicalDecisionEdit(page){if(!['lines','tactics'].includes(page)||!medicalPending())return;state.live.running=false;state.live.medicalEditing=true;deskNavigate(page);}
+function medicalDecisionAccept(id=null){
+ const d=medicalPending();if(!d)return;
+ if(id!==null){
+  const p=medicalDecisionCandidates(d).find(p=>samePlayerId(p.id,id));if(!p)return;
+  for(const slot of d.slots){
+   if(slot.key==='goalie'){state.lines.goalie=p.id;continue;}
+   const row=state.lines[slot.key],other=row.findIndex(v=>samePlayerId(v,p.id));
+   if(other>=0)[row[slot.index],row[other]]=[row[other],row[slot.index]];else row[slot.index]=p.id;
+  }
+  // Keep other coaching edits. Replace the injured role when still present,
+  // otherwise replace the provisional addition made by special-unit repair.
+  for(const [key,before] of Object.entries(d.special||{})){
+   const row=state.specialTeams[key];if(!row||row.some(v=>samePlayerId(v,p.id)))continue;
+   let index=row.findIndex(v=>samePlayerId(v,d.playerId));
+   if(index<0)index=row.findIndex(v=>!before.some(id=>samePlayerId(id,v)));
+   if(index<0)index=Math.min(before.findIndex(v=>samePlayerId(v,d.playerId)),row.length-1);
+   if(index>=0)row[index]=p.id;
+  }
+ }
+ repairMedicalLines();ensureSpecialTeams();
+ state.live.medicalDecisions.shift();state.live.medicalEditing=false;state.live.running=false;state.live.medicalPauseWanted=false;
+ if(studioActive())studioSyncPlans();
+ save();render();
+}
+function medicalRenderDecision(){
+ const root=document.getElementById('medical-decision-root');if(!root)return;
+ const previous=document.getElementById('medical-decision-dialog');if(previous?.open&&previous.close)previous.close();
+ const d=medicalPending();root.innerHTML='';if(!d||careerScreen)return;
+ state.live.running=false;
+ if(state.live.medicalEditing){root.innerHTML='<aside class="medical-decision-reminder"><strong>Matchen är pausad – spelarbyte behöver bekräftas.</strong> <button onclick="medicalDecisionOpen()">Tillbaka till skaderutan</button></aside>';return;}
+ const p=managerRoster().find(p=>samePlayerId(p.id,d.playerId)),candidates=medicalDecisionCandidates(d);
+ const slots=d.slots.map(s=>s.key==='goalie'?'Målvakt':s.key==='defense'?`Backpar ${Math.floor(s.index/2)+1}`:`Kedja ${Math.floor(s.index/3)+1}`).join(', ');
+ const current=d.slots.map(s=>s.key==='goalie'?state.lines.goalie:state.lines[s.key][s.index]).map(id=>managerRoster().find(p=>samePlayerId(p.id,id))?.name||'Tom plats').join(', ');
+ const bench=candidates.filter(p=>d.bench.some(id=>samePlayerId(id,p.id)));
+ const choice=bench.length?`<label for="medical-replacement">Välj en bänkspelare</label><select id="medical-replacement">${bench.map(p=>`<option value="${haEscape(p.id)}">${haEscape(p.name)} · ${haEscape(p.pos)}</option>`).join('')}</select><button class="primary" onclick="medicalDecisionAccept(document.getElementById('medical-replacement').value)">Sätt in vald spelare</button>`:'<p>Ingen tillgänglig bänkspelare på samma position. Du kan ändra kedjorna och fördela om istiden.</p>';
+ root.innerHTML=`<dialog id="medical-decision-dialog" class="medical-decision" aria-labelledby="medical-decision-title" oncancel="event.preventDefault()"><p class="medical-decision-kicker">MATCHEN ÄR PAUSAD</p><h2 id="medical-decision-title">${haEscape(d.name)} ${d.reason==='limit'?'måste vila':'är skadad'}</h2><p>${d.reason==='limit'?'Spelaren har nått comebackens istidsgräns.':haEscape(p?.health?.injury?.name||'Medicinsk bedömning pågår')+'.'} Spelaren kan inte fortsätta matchen.</p><p>${haEscape(slots||'Matchtruppen')}. ${current?'Nuvarande ersättare: '+haEscape(current)+'.':''}</p>${choice}<div class="medical-decision-actions"><button onclick="medicalDecisionEdit('lines')">Ändra kedjor och laguppställning</button><button onclick="medicalDecisionEdit('tactics')">Ändra taktik</button><button onclick="medicalDecisionAccept()">Bekräfta nuvarande uppställning</button></div><p>Matchen förblir pausad efter ditt val. ${state.live.medicalDecisions.length>1?`${state.live.medicalDecisions.length} spelarbesked behöver hanteras.`:''}</p></dialog>`;
+ const dialog=document.getElementById('medical-decision-dialog');if(dialog?.showModal)dialog.showModal();else dialog?.setAttribute('open','');
 }

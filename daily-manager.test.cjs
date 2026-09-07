@@ -15,7 +15,7 @@ run('calendarContinue();calendarContinue()');assert.equal(run('state.calendar.da
 assert.equal(run('state.training.history[0].type'),'penaltykill');
 run('calendarContinue();startMatch();globalThis.planHistory=state.training.history.length;pauseMatch();calendarContinue()');
 assert.equal(run('state.calendar.date'),'2026-09-10');assert.equal(run('state.page'),'match');assert.equal(run('runTrainingSession()'),false);assert.equal(run('state.training.history.length'),run('planHistory'));
-run('globalThis.steps=0;while(!state.live.finished&&steps++<100000){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}startMatch();}liveStep()}');
+run('globalThis.steps=0;while(!state.live.finished&&steps++<100000){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}while(medicalPending())medicalDecisionAccept();startMatch();}liveStep()}');
 assert.equal(run('state.live.finished'),true);assert.equal(run('state.calendar.date'),'2026-09-10');assert.equal(run('state.calendar.completedMatchDate'),'2026-09-10');assert.equal(run('state.round'),2);
 assert.ok(run('state.analysis.matches[0].performance.rows.length')>0);
 assert.equal(run('state.analysis.matches[0].performance.date'),'2026-09-10');

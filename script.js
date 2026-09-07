@@ -1441,6 +1441,7 @@ function startMatch(){
     return;
 
   if(!medicalMatchReady()){state.page="medical";save();render();return;}
+  if(medicalPending()){medicalDecisionOpen();return;}
   depthLock();
   lockTrainingForMatch();
   markSocialPeriodStarted();
@@ -4779,6 +4780,7 @@ careerScreen === "files" ? saveSettingsView()
 
 
   deskRefreshShell();
+  medicalRenderDecision();
   if(studioActive()&&state.page==="match")studioMount();
 
 }
