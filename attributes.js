@@ -17,9 +17,10 @@ function ensurePlayerAttributes(p){
   if(!p.attributes)p.attributes={};
   const seed=key=>attrSeed(`${p.id}:${p.name}:${key}`);
   const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
-  const archetype=Math.floor(seed('archetype')*3);
+  let archetype; // Only derive generated defaults when an attribute is actually missing.
   for(const key of Object.keys(fields)){
     if(Number.isFinite(p.attributes[key]))continue;
+    archetype??=Math.floor(seed('archetype')*3);
     const source=['shooting','composure'].includes(key)?p.shooting:['passing','vision','puckControl'].includes(key)?p.passing:['positioning','checking','discipline'].includes(key)?p.defense:p.physical;
     let bias=0;
     if(p.pos==='MV')bias=seed('goalie:'+key)*4-2;

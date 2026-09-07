@@ -52,18 +52,19 @@ function rivalRating(p,kind='general'){
 }
 function rivalLineup(club){
  const c=rivalsClubState(club),pool=(state.clubRosters[club]||[]).filter(medicalReady),plan=rivalPlan(club);
- const score=p=>rivalRating(p,p.pos==='B'?'defense':plan.style==='counter'?'defense':'attack')+(p.aiForm||0)*.18+(c?.coach.youth&&p.age<=23?.4:0);
+ const scores=new Map(pool.map(p=>[p,rivalRating(p,p.pos==='B'?'defense':plan.style==='counter'?'defense':'attack')+(p.aiForm||0)*.18+(c?.coach.youth&&p.age<=23?.4:0)])),score=p=>scores.get(p)||0;
  const forwards=pool.filter(p=>!['B','MV'].includes(p.pos)).sort((a,b)=>score(b)-score(a)).slice(0,12);
  const defense=pool.filter(p=>p.pos==='B').sort((a,b)=>score(b)-score(a)).slice(0,6);
  const centers=forwards.filter(p=>p.pos==='C').sort((a,b)=>rivalAttribute(b,'faceoffs')-rivalAttribute(a,'faceoffs'));
  const lines=Array.from({length:4},()=>[]),used=new Set();
  centers.slice(0,4).forEach((p,i)=>{lines[i].push(p);used.add(String(p.id));});
- for(const line of lines)for(const p of forwards)if(line.length<3&&!used.has(String(p.id))){line.push(p);used.add(String(p.id));}
+ for(const line of lines){const ranked=forwards.map(p=>({p,value:score(p)+lineChemistry([...line.map(q=>q.id),p.id],club).value*.015})).sort((a,b)=>b.value-a.value);for(const {p} of ranked)if(line.length<3&&!used.has(String(p.id))){line.push(p);used.add(String(p.id));}}
  const keepers=pool.filter(p=>p.pos==='MV').sort((a,b)=>rivalRating(b)-rivalRating(a));
  const keeperScore=p=>rivalRating(p)+(p.aiForm||0)*.25-(c?.recent.slice(-3).filter(g=>samePlayerId(g.keeper,p.id)).length||0)*.65;
  keepers.sort((a,b)=>keeperScore(b)-keeperScore(a));
  const selected=new Set([...forwards,...defense].map(p=>String(p.id)));
  const extras=pool.filter(p=>p.pos!=='MV'&&!selected.has(String(p.id))).sort((a,b)=>score(b)-score(a)).slice(0,2);
+ for(const line of lines){const center=line.find(p=>p.pos==='C')||line[1];if(center){const wings=line.filter(p=>p!==center);line.splice(0,line.length,...[wings[0],center,wings[1]].filter(Boolean));}}
  return {club,plan,forwards:lines.flat(),lines,defense,extras,keepers:keepers.slice(0,2),keeper:keepers[0]||null};
 }
 function rivalEvent(club,kind,title,text){
@@ -89,7 +90,7 @@ function rivalGrow(p,points,club){
  if(p.health?.injury)return;
  const a=ensurePlayerAttributes(p),d=ensureDevelopment(p),fields=Object.keys(a).filter(k=>a[k]<d.ceiling[k]);
  if(!fields.length)return;
- if(!fields.includes(p.aiTrainingKey))p.aiTrainingKey=fields[Math.floor(attrSeed(`${p.id}:${state.calendar.date}:growth`)*fields.length)];
+ if(!fields.includes(p.aiTrainingKey)){const priorities=p.pos==='MV'?['positioning','reflexes','reboundControl','movement']:p.pos==='B'?['positioning','decisions','passing','checking']:rivalPlan(club).style==='counter'?['positioning','decisions','skating','passing']:['shooting','passing','vision','puckControl'];const useful=fields.filter(k=>priorities.includes(k));p.aiTrainingKey=(useful.length?useful:fields).sort((x,y)=>(d.ceiling[y]-a[y])-(d.ceiling[x]-a[x])||a[x]-a[y])[0];}
  const key=p.aiTrainingKey;
  if(!developmentAdvance(p,key,points))return;
  delete p.aiTrainingKey;
@@ -162,20 +163,23 @@ function rivalLivePlayers(){
  const keeper=rivalLiveKeeper();if(keeper)selected.push(keeper);return selected;
 }
 function rivalLiveDecision(){
- rivalLiveSetup();const m=state.live,a=m?.aiTeam;if(!a||m.period!==3||m.minute<10)return;
- const style=m.opp<m.hv?'pressure':m.opp>m.hv?'counter':a.baseStyle;
- if(a.style!==style){a.style=style;a.adjustment=style;addEvent(`${a.coachName} ställer om ${m.opponent} till ${RIVAL_STYLES[style].toLowerCase()}.`,'strategy');}
- if(!a.timeout&&m.opp<m.hv&&m.hv-m.opp<=3&&m.minute>=14){
-  a.timeout=true;for(const id of Object.keys(m.rink?.oppFatigue||{}))m.rink.oppFatigue[id]=Math.max(0,m.rink.oppFatigue[id]-8);
-  addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');
- }
+ rivalLiveSetup();const m=state.live,a=m?.aiTeam;if(!a)return;
+ const elapsed=(m.period-1)*1200+m.minute*60+m.second,bucket=Math.floor(elapsed/120);if(a.lastDecisionBucket===bucket)return;a.lastDecisionBucket=bucket;
+ const late=m.period>=3&&m.minute>=10,behind=m.opp<m.hv,ahead=m.opp>m.hv;
+ const e=studioActive()?studioEngine():null,outplayed=e&&e.stats[0].shots>e.stats[1].shots*1.6+4;
+ const adaptive=(rivalsClubState(m.opponent)?.coach.adaptability||10)>=12;
+ const style=late?(behind?'pressure':ahead?'counter':a.baseStyle):adaptive&&outplayed?'counter':a.baseStyle;
+ a.posture=late?(behind?'attack':ahead?'defense':'balanced'):'balanced';a.tempo=late&&behind?'high':late&&ahead?'low':'normal';
+ if(a.style!==style){a.style=style;a.adjustment=style;addEvent(`${a.coachName} ändrar matchplan: ${RIVAL_STYLES[style].toLowerCase()}${outplayed?' för att komma ur motståndarnas tryck':''}.`,'strategy');}
+ if(!a.timeout&&late&&behind&&m.hv-m.opp<=3&&m.minute>=14){a.timeout=true;matchRecover(60,'opponent-timeout');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}
 }
+
 function rivalSimulate(game){
  ensureRivals();const rand=rivalRandom(`${state.season.year}:${game.round}:${game.home}:${game.away}:${game.seriesId||'regular'}:match`);
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club);
   const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
-  return {l,rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
+  return {l,pairSeconds:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
  });
  // Attributes do not change during a background fixture: snapshot once per player.
  const values=new Map(),ratings=new Map();
@@ -184,7 +188,8 @@ function rivalSimulate(game){
   const average=keys=>keys.reduce((n,k)=>n+(a[k]||10),0)/keys.length;
   ratings.set(p,{attack:average(['shooting','passing','vision','skating']),defense:average(['positioning','decisions','workRate','discipline']),goalie:average(['reflexes','positioning','reboundControl','movement'])});
  }
- const attribute=(p,k)=>values.get(p)?.[k]||10;
+ const chemistry=new Map();for(const side of sides)for(const line of [...side.l.lines,...[0,1,2].map(i=>side.l.defense.slice(i*2,i*2+2))]){const factor=1+(lineChemistry(line.map(p=>p.id),side.l.club).value-50)/500;for(const p of line)chemistry.set(p,factor);}
+ const attribute=(p,k)=>(values.get(p)?.[k]||10)*(['passing','positioning','decisions'].includes(k)?chemistry.get(p)||1:1);
  const rating=(p,kind='goalie')=>ratings.get(p)?.[kind]||1;
  let time=0,overtime=false,shootout=false;
  const weighted=(players,keys)=>{
@@ -223,6 +228,7 @@ function rivalSimulate(game){
    const l=sides[side].l;
    if(l.keeper&&row(side,l.keeper).seconds>=medicalLimit(l.keeper))l.keeper=l.keepers.filter(p=>row(side,p).seconds<medicalLimit(p)).sort((a,b)=>rating(b)-rating(a))[0]||null;
    for(const p of ice[side])row(side,p).seconds+=20;
+   for(let i=0;i<ice[side].length;i++)for(let j=i+1;j<ice[side].length;j++){const key=dynamicsKey(ice[side][i].id,ice[side][j].id);sides[side].pairSeconds[key]=(sides[side].pairSeconds[key]||0)+20;}
    if(sides[side].l.keeper)row(side,sides[side].l.keeper).seconds+=20;
   }
   time+=20;
@@ -253,7 +259,7 @@ function rivalSimulate(game){
   }
  }
  return {homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
-  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,keeper:b.l.keeper?.id??null,shots:b.shots,pp:b.pp,ppGoals:b.ppGoals}))};
+  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,keeper:b.l.keeper?.id??null,shots:b.shots,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds}))};
 }
 function rivalAfterFixture(game,rows,reports,partial=false){
  if(!game||game.rivalsRecorded||!state.rivals)return;game.rivalsRecorded=true;
@@ -266,6 +272,7 @@ function rivalAfterFixture(game,rows,reports,partial=false){
  for(const club of [game.home,game.away]){
   const c=rivalsClubState(club);if(!c)continue;
   const own=club===game.home,gf=own?game.homeGoals:game.awayGoals,ga=own?game.awayGoals:game.homeGoals,report=reports.find(r=>r.club===club)||{};
+  if(report.pairSeconds){const d=dynamicsClub(club);for(const [key,seconds] of Object.entries(report.pairSeconds)){const row=d.pairs[key]??={seconds:0,form:0};row.seconds+=seconds;row.form=Math.max(-10,Math.min(12,row.form*.96+Math.sign(gf-ga)*.4));}delete report.pairSeconds;}
   const entries=rows.filter(r=>r.club===club),keeper=entries.filter(r=>r.pos==='MV').sort((a,b)=>b.seconds-a.seconds)[0];
   const best=entries.filter(r=>r.pos!=='MV').sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
   c.recent.push({date:game.date||state.calendar.date,year:state.season.year,opponent:own?game.away:game.home,gf,ga,partial,...report,keeper:keeper?.id??report.keeper??null,shots:entries.reduce((n,r)=>n+r.shots,0),againstShots:rows.filter(r=>r.club!==club).reduce((n,r)=>n+r.shots,0),star:best&&best.goals+best.assists?{id:best.id,name:best.name,points:best.goals+best.assists}:null});
@@ -315,7 +322,7 @@ function rivalsView(){
  const pressure=c.confidence<30?'Nära ett tränarbyte':c.confidence<45?'Under press':c.confidence>=75?'Starkt stöd':'Arbetsro';
  return `<section class="rivals-page"><header class="desk-heading"><div><span class="desk-kicker">MATCHFÖRBEREDELSER · ${leagueName(club)}</span><h1>Motståndsrapport</h1><p>Tränaren, laget och det som förändrats sedan sist.</p></div><label>Granska klubb<select onchange="rivalsOpen(this.value)">${['SHL','HA'].map(id=>`<optgroup label="${LEAGUE_NAMES[id]}">${clubs.filter(n=>leagueOf(n)===id).map(n=>`<option value="${trainingSafe(n)}" ${n===club?'selected':''}>${trainingSafe(n)}</option>`).join('')}</optgroup>`).join('')}</select></label></header>
  <section class="rival-identity"><div>${careerBadge(club)}<span class="desk-kicker">${trainingSafe(club)}</span><h2>${trainingSafe(c.coach.name)}</h2><p>Fiktiv tränare i din karriär · Tillträdde ${c.coach.appointed?calText(c.coach.appointed):'vid starten'}</p></div><div><span class="rival-status">${pressure}</span><h3>${RIVAL_STYLES[l.plan.style]}</h3><p>${c.coach.youth?'Ger unga spelare en fördel vid jämna uttagningar.':'Låter prestation och ork avgöra uttagningen.'} ${l.plan.rotation==='topHeavy'?'Ger toppkedjorna mer istid.':l.plan.rotation==='rollFour'?'Rullar fyra kedjor.':'Fördelar istiden med tyngd på de två första kedjorna.'}</p>${l.plan.style!==c.coach.style?'<p class="rival-update">Den svaga formen har fått tränaren att pröva en annan spelidé.</p>':''}</div></section>
- <div class="rival-columns"><section class="rival-panel"><h2>Vad vi behöver förbereda</h2><p>${trainingSafe(rivalBriefText(club)).replace(/\n/g,'</p><p>')}</p><button class="btn secondary" onclick="deskNavigate('training')">Planera träningen</button> <button class="btn secondary" onclick="deskNavigate('tactics')">Se vår matchplan</button></section>
+ <div class="rival-columns"><section class="rival-panel"><h2>Vad vi behöver förbereda</h2>${c.recruitmentNote?`<p><strong>Sportchefens arbete:</strong> ${trainingSafe(c.recruitmentNote)}</p>`:''}<p>${trainingSafe(rivalBriefText(club)).replace(/\n/g,'</p><p>')}</p><button class="btn secondary" onclick="deskNavigate('training')">Planera träningen</button> <button class="btn secondary" onclick="deskNavigate('tactics')">Se vår matchplan</button></section>
  <section class="rival-panel"><h2>Senaste ${recent.length||'registrerade'} matcherna</h2>${rivalFormHTML(recent)}<div class="rival-numbers"><div><span>Mål</span><strong>${recent.reduce((n,g)=>n+g.gf,0)}–${recent.reduce((n,g)=>n+g.ga,0)}</strong></div><div><span>Skott / match</span><strong>${recent.length?Math.round(recent.reduce((n,g)=>n+g.shots,0)/recent.length):'–'}</strong></div><div><span>Powerplay</span><strong>${pp?Math.round(ppGoals/pp*100)+' %':'–'}</strong><small>${ppGoals} mål / ${pp} lägen</small></div></div>${recent.some(g=>g.partial)?'<p>En del matchdata är ofullständig från en äldre sparning.</p>':''}${hot?`<p><strong>${trainingSafe(hot.name)}</strong> har varit lagets främsta poängspelare i minst en av dessa matcher.</p>`:''}<button class="rival-text-button" onclick="leagueStatsClub('${trainingSafe(club)}')">Hela lagets spelarstatistik →</button></section></div>
  <div class="rival-columns"><section class="rival-panel"><h2>Målvaktsläget</h2>${l.keeper?`<h3>${trainingSafe(l.keeper.name)}</h3><p>Trolig start · ${Math.round(100-(l.keeper.fatigue||0))} % ork</p><p>${c.recent.slice(-3).filter(g=>samePlayerId(g.keeper,l.keeper.id)).length} starter i de senaste tre registrerade matcherna. Tränaren väger förmåga, räddningsform och belastning.</p>`:'<p>Klubben saknar en spelklar målvakt.</p>'}<h3>Skadeavbräck</h3>${unavailable.length?unavailable.map(p=>`<p><strong>${trainingSafe(p.name)}</strong> · ${medicalStatus(p)}${p.health?.injury?.remaining?' · '+p.health.injury.remaining+' dagar till återgångsträning':''}</p>`).join(''):'<p>Alla spelare är medicinskt tillgängliga.</p>'}</section>
  <section class="rival-panel"><h2>Våra möten</h2>${meetings.length?[...meetings].reverse().slice(0,5).map(g=>`<div class="rival-meeting"><span>${g.date?calText(g.date):seasonLabel(g.year)}</span><strong>${managerClub()} ${g.gf}–${g.ga} ${trainingSafe(club)}</strong></div>`).join(''):'<p>Nästa möte blir ert första registrerade kapitel. Historiken följer med mellan säsongerna.</p>'}${c.history.length?`<details><summary>Tidigare tränare</summary>${c.history.map(h=>`<p><strong>${trainingSafe(h.name)}</strong> · ${calText(h.left)}<br>${trainingSafe(h.reason)}</p>`).join('')}</details>`:''}</section></div>
@@ -357,4 +364,31 @@ function rivalStoryAdvance(s,sample){
  const current=rivalsClubState(s.opponent)?.coach;
  const applied=prepared?.applied;
  storiesClose(s,won?'Du vann mötet':'Ett nytt kapitel i rivaliteten',`${managerClub()} ${sample.own}–${sample.against} ${s.opponent}. ${current?.id!==s.coachId?'Tränarbänken hann förändras igen före mötet. ':''}${sample.partial?'Matchdata är ofullständig. ':''}${applied?'Träningsarbetet eller kontinuiteten gav stöd i matchen.':'Förberedelsevillkoret var inte uppfyllt; inget extra stöd användes.'} Resultatet avgjordes på isen. Mötet finns kvar i motståndsrapporten.`);
+}
+function rivalRecruitNeeds(club){
+ const roster=(state.clubRosters[club]||[]).filter(medicalReady),group=p=>p.pos==='MV'?'MV':p.pos==='B'?'B':'F';
+ return ['MV','B','F'].map(kind=>{const ps=roster.filter(p=>group(p)===kind),target={MV:2,B:7,F:13}[kind],value=ps.reduce((n,p)=>n+matchAttributeRating(p),0)/Math.max(1,ps.length);return {kind,target,count:ps.length,value,urgency:Math.max(0,target-ps.length)*12+(80-value)*.15};}).sort((a,b)=>b.urgency-a.urgency);
+}
+function rivalScoutMarket(club){
+ const r=state.recruitment,budget=r.ai[club],c=rivalsClubState(club);if(!budget||!c||club===managerClub())return;
+ if(c.lastRecruitTick===r.tick)return;c.lastRecruitTick=r.tick;
+ c.scouting??={reports:{},lastSigning:-99};
+ if(r.tick-c.scouting.lastSigning<3)return;
+ const needs=rivalRecruitNeeds(club),need=needs[0],group=p=>p.pos==='MV'?'MV':p.pos==='B'?'B':'F';
+ const active=new Set(r.deals.filter(d=>d.status==='pending').map(d=>String(d.playerId)));
+ const reserve=Math.min(600000,budget.cash*.12);
+ const candidates=getTransferMarketPlayers().filter(p=>p.team!==club&&p.team!==managerClub()&&!active.has(String(p.id))&&group(p)===need.kind&&medicalReady(p)&&!p.futureContract&&!playerLoan(p)&&recruitWillingToSell(p,p.team)&&recruitFee(p)<=budget.cash-reserve&&recruitCanAfford(club,p,recruitFee(p),recruitPlayerWishes(p,club).salary));
+ const estimate=p=>{const visits=c.scouting.reports[p.id]?.visits||0;return matchAttributeRating(p)+(attrSeed(`${club}:${p.id}:scout`)-.5)*Math.max(.5,8-visits*3)+(c.coach.youth&&p.age<24?1.2:0);};
+ candidates.sort((a,b)=>(estimate(b)-recruitFee(b)/3000000)-(estimate(a)-recruitFee(a)/3000000));
+ const candidate=candidates.find(p=>need.count<need.target||estimate(p)>need.value+2);if(!candidate){c.recruitmentNote='Inget scoutat alternativ förbättrar ett prioriterat behov inom budgeten.';return;}
+ const report=c.scouting.reports[candidate.id]??={visits:0};report.visits++;report.date=state.calendar.date;report.need=need.kind;
+ c.recruitmentNote=`Scoutar ${candidate.name}: ${need.kind}, ${need.count}/${need.target} spelklara på positionen. Observation ${report.visits}/2.`;
+ // Recheck ownership, seller depth, wages and transfer window at the decision.
+ if(report.visits>=2){const p=findPlayerAnywhere(candidate.id),seller=getPlayerClub(candidate.id);if(!p||seller!==candidate.team||!recruitWillingToSell(p,seller))return;const w=recruitPlayerWishes(p,club);
+  if(transferRecruitPlayer(p,seller,club,recruitFee(p),w.salary,Math.min(w.maxYears,p.age>=30?2:3),w.role)){
+   c.scouting.lastSigning=r.tick;c.recruitmentNote=`Värvade ${p.name} efter ${report.visits} observationer: behov av ${need.kind}, lön och övergångssumma ryms i budgeten.`;
+   rivalEvent(club,'transfer',`${club} förstärker ${need.kind==='MV'?'målvaktssidan':need.kind==='B'?'försvaret':'anfallet'}`,c.recruitmentNote);
+  }
+ }
+ const recent=Object.entries(c.scouting.reports).sort((a,b)=>b[1].date.localeCompare(a[1].date)).slice(0,12);c.scouting.reports=Object.fromEntries(recent);
 }
