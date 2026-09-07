@@ -26,3 +26,5 @@
 }
 @media(max-width:999px){.lineup-all-grid{grid-template-columns:1fr}.mc-utility button{min-height:44px}.mc-scorers{max-height:64px}.lineup-name{min-height:104px}.mc-tabs{position:sticky;top:0}}
 @media(max-width:420px){.lineup-name strong{font-size:11px}.lineup-name{padding:5px}.chemistry meter{width:35px}.lineup-group{padding:7px}.lineup-all h1{font-size:22px}}
+
+@media(min-width:1000px){.lineup-name{padding:6px;gap:2px;line-height:1.1}.lineup-name strong{font-size:12px;line-height:1.15}.lineup-name small{line-height:1.1}.lineup-name .star-rating{font-size:14px;line-height:1}.lineup-group{padding:8px;margin-bottom:8px}.lineup-group header{margin-bottom:6px}.lineup-all>header h1{margin:10px 0 6px}.lineup-all>header p{margin:6px 0 12px}}

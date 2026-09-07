@@ -29,7 +29,7 @@ function positionFit(p,role){
 function lineupRole(type,index){return type==='goalie'?'G':type==='defense'?(index%2?'RD':'LD'):['LW','C','RW'][index%3];}
 function positionBadge(p,role){
  const fit=positionFit(p,role),a=playerAssessment(p);
- return `${starRatingHTML(Math.max(0,a.low*fit),Math.max(0,a.high*fit),false,a.staff.name)}<small class="position-fit ${fit<.8?'unfamiliar':''}">${Math.round(fit*100)} % positionsvana${fit<.8?' · ovan position':''}</small>`;
+ return `${starRatingHTML(Math.round(Math.max(0,a.low*fit)*10)/10,Math.round(Math.max(0,a.high*fit)*10)/10,false,a.staff.name)}<small class="position-fit ${fit<.8?'unfamiliar':''}">${Math.round(fit*100)} % positionsvana${fit<.8?' · ovan position':''}</small>`;
 }
 function lineChemistry(ids,club=managerClub()){
  const ps=ids.map(id=>(state.clubRosters[club]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean),d=dynamicsClub(club);let total=0,pairs=0,minutes=0;
@@ -64,10 +64,11 @@ function lineupBoardPick(type,index){
  const from=lineupUI.slot;
  if(from&&(from.type!==type||from.index!==index)){
   const id=from.type==='goalie'?state.lines.goalie:state.lines[from.type][from.index];
-  if(type==='goalie'||from.type==='goalie'){lineupPickSlot(type,index);return;}
+  if(type==='goalie'||from.type==='goalie'){lineupUI.slot=null;lineupBoardPick(type,index);return;}
   lineupUI.slot=null;changeLinePlayer(type,index,id);return;
  }
- lineupPickSlot(type,index);
+ if(state.live?.running)pauseMatch();lineupUI.slot={type,index};lineupUI.query='';render();
+ document.querySelector('.lineup-name.selected')?.focus?.({preventScroll:true});
 }
 function lineupDrag(event,type,index){
  const id=type==='goalie'?state.lines.goalie:state.lines[type][index];
