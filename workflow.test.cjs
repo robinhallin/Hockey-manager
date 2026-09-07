@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');const a=boot(),r=a.run;
+r(`startCareerWithClub('HV71');deskNavigate('transfers','search');setRecruitFilter('query','a');globalThis.candidate=recruitCandidates()[0];document.getElementById('content').scrollTop=420;recruitOpen(candidate.id);deskBack();`);
+assert.equal(r('state.page'),'transfers');assert.equal(r('state.recruitment.tab'),'search');assert.equal(r('recruitFilters().query'),'a');assert.equal(r("document.getElementById('content').scrollTop"),420);
+r(`deskNavigate('transfers','shortlist');recruitOpen(candidate.id);deskBack();`);assert.equal(r('state.recruitment.tab'),'shortlist');
+r(`deskNavigate('specialTeams');selectPlayer(managerRoster()[0].id);deskBack();`);assert.equal(r('state.page'),'lines');assert.equal(r('lineupWorkspace'),'special');
+r(`deskNavigate('transfers','free')`);assert.equal(r('state.recruitment.tab'),'search');assert.equal(r('recruitCandidates().every(p=>worldIsFree(p.id))'),true);
+r(`deskNavigate('scouting')`);assert.equal(r('state.page'),'transfers');assert.equal(r('state.recruitment.tab'),'missions');
+r(`globalThis.msg={id:777,key:'analysis:old-match',link:'statistics',title:'Test',body:'Test',date:state.calendar.date};state.training.messages.unshift(msg);state.analysis.matches.unshift({id:'old-match',club:managerClub(),year:state.season.year,finished:true,units:[],players:[],shots:[],events:[]});messageOpenContext(777);`);assert.equal(r('state.analysis.selected'),'old-match');
+r(`state.recruitment.deals.push({id:991,name:'Test',status:'pending',fee:0,salary:1,years:1,role:'Rotation'});state.training.messages.unshift({id:778,dealId:991,link:'transfers'});messageOpenContext(778);`);assert.equal(r('state.recruitment.focusDeal'),991);
+r(`state.recruitment.focusDeal=null;for(const area of DESK_AREAS)for(const [page] of area.pages)deskNavigate(page);for(const [tab] of [...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE])deskNavigate('transfers',tab);for(const view of ['even','squad','special']){lineupWorkspace=view;deskNavigate('lines');}`);
+assert.equal(r("(managerDeskView().match(/Öppna dagens program/g)||[]).length"),1);
+assert.equal(r("trainingView().includes('coachAdopt(')"),false);
+r(`state.calendar.date=calendarTarget();startMatch();studioStep();trainingOpen('training');`);assert.equal(r('state.live.running'),false);
+const clock=r('state.live.minute*60+state.live.second');r(`coachingNavigate('lines');deskBack();`);assert.equal(r('state.live.minute*60+state.live.second'),clock);
+r('save()');const b=boot(a.storage.value);b.run("deskNavigate('lines');deskNavigate('transfers','missions');deskNavigate('home');");
+console.log('PASS: player back/scroll/filter, shortlist origin, lineup origin, canonical scouting/free search, exact report and deal, all routes/tabs, one daily CTA, distinct follow-up, pause/clock isolation and saved career.');

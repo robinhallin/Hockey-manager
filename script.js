@@ -1135,9 +1135,7 @@ function samePlayerId(a,b){
 
 function selectPlayer(playerId){
 
-  state.selectedPlayer = playerId;
-  state.page = "player";
-  render();
+  deskOpenPlayer(playerId);
 
 }
 
@@ -3610,8 +3608,7 @@ function playerView(){
         <button
           class="btn"
           onclick="
-            state.page='squad';
-            render();
+            deskBack('squad');
           "
         >
           Tillbaka till truppen
@@ -3676,11 +3673,10 @@ function playerView(){
       <button
         class="player-back-button"
         onclick="
-          state.page='squad';
-          render();
+          deskBack('squad');
         "
       >
-        ← Tillbaka till truppen
+        ← Tillbaka
       </button>
 
 
