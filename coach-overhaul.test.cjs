@@ -52,3 +52,5 @@ q(`e.penalty=null;e.stoppage=0;globalThis.p=studioPlayer(0,a.player.id);globalTh
 assert.equal(q('matchStats().shots[0]'),q('missed+1'));assert.equal(q('state.live.shotsHV'),q('matchStats().shots[0]'));assert.equal(q('state.live.analysis.players[p.id].shots'),1);
 assert.ok(q('statisticsView()').includes('Skott på mål'));assert.ok(q('statisticsView()').includes('Alla skottförsök'));
 console.log('PASS: dump rims to the far side, delayed offside, shorthanded icing exemption and consistent attempt/on-target reporting.');
+
+const {bootLegacy}=require('./scripts/career-test-fixture.cjs');const legacy=bootLegacy();legacy.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();createMatch();state.live.rink.mode='full';state.live.rink.phase='pass';state.live.speed=1;globalThis.baseDelay=rinkDelay();state.live.speed=4");assert.ok(legacy.run('rinkDelay()')<legacy.run('baseDelay'));legacy.run("state.live.rink.mode='commentary'");assert.ok(legacy.run('rinkDelay()')<100);console.log('PASS: legacy saves support all playback speeds and commentary mode.');
