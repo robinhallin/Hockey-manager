@@ -76,8 +76,8 @@ function applyCareerImport(){
   // Validate the primary views before replacing the device's active save.
   state.page='settings';saveSettingsView();calendarView();
   const encoded=JSON.stringify(state);
-  if(old.careerStarted)localStorage.setItem(PREVIOUS_CAREER_KEY,JSON.stringify(old));
-  try{localStorage.setItem(CAREER_SAVE_KEY,encoded);}catch(error){if(oldBackup!==null)localStorage.setItem(PREVIOUS_CAREER_KEY,oldBackup);else localStorage.removeItem(PREVIOUS_CAREER_KEY);throw error;}
+  if(old.careerStarted)careerStore(PREVIOUS_CAREER_KEY,JSON.stringify(old));
+  try{careerStore(CAREER_SAVE_KEY,encoded);}catch(error){if(oldBackup!==null)localStorage.setItem(PREVIOUS_CAREER_KEY,oldBackup);else localStorage.removeItem(PREVIOUS_CAREER_KEY);throw error;}
   careerScreen=null;careerDraft=null;saveFilePreview=null;saveFileNotice='Karriären är inläst.'+(old.careerStarted?' Din tidigare karriär finns kvar som föregående sparning i huvudmenyn.':'');render();
  }catch(e){state=old;careerScreen=oldScreen;saveFileNotice='Importen avbröts. Din nuvarande karriär behålls. '+e.message;saveFilePreview=null;try{if(oldRaw!==null)localStorage.setItem(CAREER_SAVE_KEY,oldRaw);}catch{}render();}
 }

@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const a=boot(),r=a.run;
+r(`globalThis.samples=['', 'HV71 – Björklöven 🏒 åäö',String.fromCharCode(0,0xd800,0xdc00,65535),'abc'.repeat(50000),Array.from({length:100000},(_,i)=>String.fromCharCode((Math.imul(i,1103515245)>>>8)&65535)).join('')];`);
+assert.equal(r('samples.every(text=>careerRead(careerPack(JSON.stringify(text)))===text)'),true,'all UTF-16 values and saturated dictionary round trip');
+assert.throws(()=>r(`globalThis.bad=JSON.parse(careerPack(JSON.stringify('hello')));bad.hash++;careerRead(JSON.stringify(bad))`));
+r(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';medicalRoll=()=>.999;for(let i=0;i<150;i++)studioStep();save();globalThis.raw=JSON.stringify(state);globalThis.originalStore=localStorage.setItem;globalThis.quota=Math.floor(raw.length*.65);localStorage.setItem=(key,text)=>{if(text.length>quota){const error=new Error('Quota');error.name='QuotaExceededError';throw error;}originalStore(key,text);};`);
+const start=Date.now();r('save()');console.log('Packing time ms:',Date.now()-start);
+assert.equal(r('careerSaveError'),false,'quota fallback succeeds');
+assert.equal(r('JSON.parse(localStorage.getItem(CAREER_SAVE_KEY)).format'), 'hockey-manager-lzw16-v1');
+assert.equal(r('JSON.stringify(careerRead(localStorage.getItem(CAREER_SAVE_KEY)))===raw'),true,'entire career preserved');
+console.log('Storage characters:',r('raw.length'),'->',a.storage.value.length);
+const b=boot(a.storage.value);
+assert.equal(b.run('state.live.running'),false);
+assert.equal(b.run('studioEngine().time'),r('studioEngine().time'));
+assert.equal(b.run('JSON.stringify(state.live.analysis)'),r('JSON.stringify(state.live.analysis)'));
+b.run('resumeCareer();medicalRoll=()=>.999;startMatch();');r('startMatch();');
+b.run('for(let i=0;i<50;i++)studioStep()');r('for(let i=0;i<50;i++)studioStep()');
+assert.equal(b.run('JSON.stringify([studioEngine().rng,studioEngine().puck,studioEngine().score])'),r('JSON.stringify([studioEngine().rng,studioEngine().puck,studioEngine().score])'));
+r('careerStore(PREVIOUS_CAREER_KEY,raw)');assert.equal(r('previousCareerName()'),'HV71');
+const exported=r('saveExportText()');assert.equal(JSON.parse(exported).format,'hockey-manager-career');
+assert.equal(b.run(`validateSaveText(${JSON.stringify(exported)}).managerClub`),'HV71');
+// Failed compression writes must preserve the last successful save.
+const previous=a.storage.value;
+r(`localStorage.setItem=()=>{const e=new Error('Quota');e.name='QuotaExceededError';throw e;};save()`);
+assert.equal(r('careerSaveError'),true);assert.equal(a.storage.value,previous);
+console.log('PASS: lossless compression, corruption check, quota recovery, exact live resume, previous career, ordinary export/import and failed-write preservation.');
