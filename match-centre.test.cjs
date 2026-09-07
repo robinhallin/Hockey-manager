@@ -1,6 +1,7 @@
 // Match fixtures below explicitly set match day; daily progression is tested in daily-manager.test.cjs.
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+// Legacy saved matches remain supported; current broadcast coverage is in career-match suites.
+const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 run('startCareerWithClub("AIK");deskNavigate("match")');
 assert.match(get('#content').innerHTML,/mc-prematch/);

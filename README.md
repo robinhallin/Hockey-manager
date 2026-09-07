@@ -1,5 +1,35 @@
 # Hockey-manager
 
+## Review fixes: club identity, contracts and integration tests
+
+Luleå's sourced roster and initial loan ownership now use the league's canonical
+`Luleå Hockey` identity. A new career has one Luleå club and one Anton Levtchi.
+Existing saves consolidate the accidental `Luleå HF` roster once. Established
+career players retain their attributes and contracts; an already transferred
+source player retains his destination. Removed duplicate snapshots are retained
+inside the save, and old player IDs resolve through an alias map. Historical
+match reports are not rewritten. An unfinished match defers consolidation until
+it has finished. Save-file import uses the same repair.
+
+Accepted renewal roles now replace earlier ice-time promises. A rotation or depth
+contract clears the old key-player promise; rejected offers do not create a new
+promise. Existing stale low-role promises are cleared on load. Expiring-contract
+counts exclude borrowed players and players committed elsewhere. The office task
+opens and scrolls to the same eligible contract list in the squad screen.
+
+The broadcast engine now handles rink synchronization through its own plan and
+actor model. Medical unavailability stops play for replacement instead of leaving
+an ineligible actor on the ice until the next routine shift.
+
+Run `npm test` for all suites. Tests share the actual `index.html` script load
+order. `bootLegacy` explicitly exercises retained pre-broadcast saved matches;
+modern daily, league, opponent and career-match suites use the current broadcast
+engine at its real 0.1-second time step. Development fixtures initialize their
+saved growth model instead of changing only the obsolete growth hint. The new
+`review-integration.test.cjs` covers club repair, imports, acquired players,
+paused matches, contract promises and the focused contract task.
+
+
 ## Current release: a connected hockey world
 
 The Scout Centre now brings squad needs, dated assignments and finished role reports together. Own players have 90% familiarity and exact 1–20 attributes; ability and potential stars remain staff judgements relative to the manager's roster. External estimates narrow after three paid observations, seven calendar days apart. Individual and group assignments share staff capacity and cannot double-observe a player. Reports are searchable. Four sourced free agents are present in new careers; [research, dates and exclusions](FREE_AGENT_RESEARCH.md) document the snapshot. Existing careers are preserved.

@@ -1,5 +1,6 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const boot=new Function('require',fs.readFileSync('interface.test.cjs','utf8').split('const app=boot(),')[0]+'\nreturn boot;')(require);
+// Legacy saved matches remain supported; current broadcast coverage is in career-match suites.
+const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run:r,get}=app;
 r('startCareerWithClub("HV71")');
 assert.equal(r('state.playerWorld.freeAgents.length'),4);

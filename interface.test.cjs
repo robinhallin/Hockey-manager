@@ -2,24 +2,12 @@
 const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
-function boot(saved){
-  const storage={value:saved,extra:{}},nodes=new Map(),events={};
-  const node=()=>{const classes=new Set();return {innerHTML:'',textContent:'',attrs:{},style:{},scrollTop:0,inert:false,
-    classList:{toggle(k,value){const on=value??!classes.has(k);if(on)classes.add(k);else classes.delete(k);return on;},contains:k=>classes.has(k)},
-    setAttribute(k,v){this.attrs[k]=v;},addEventListener(){},focus(){this.focused=true;}};};
-  const get=k=>{if(!nodes.has(k))nodes.set(k,node());return nodes.get(k);};
-  const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},
-    localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value||null:storage.extra[k]||null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;}},
-    document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:(key,handler)=>events[key]=handler}});
-  // Use the actual entrypoint order so this suite also catches missing modules.
-  for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
-  return {run:code=>vm.runInContext(code,context),storage,nodes,get,events};
-}
+const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 assert.doesNotMatch(get('#content').innerHTML,/desk-subnav/);
 run('startCareerWithClub("HV71");deskNavigate("home")');
 assert.match(get('#content').innerHTML,/Tränarkontoret/);
-assert.match(get('#content').innerHTML,/Ej startad/);
+assert.match(get('#content').innerHTML,/Nästa match/);
 assert.match(get('#content').innerHTML,/Återhämtning/);
 assert.equal((get('.manager-nav').innerHTML.match(/class="nav-item/g)||[]).length,7);
 assert.equal((get('.manager-nav').innerHTML.match(/aria-current="true"/g)||[]).length,1);
@@ -31,12 +19,12 @@ for(const page of run('routes')){
   assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/,page);
 }
 assert.equal(run('JSON.stringify([state.calendar.date,state.round,state.money,state.teams,managerRoster().map(p=>[p.id,p.goals,p.assists,p.contractYears,p.fatigue])])'),run('before'));
-run('selectPlayer(managerRoster()[0].id)');assert.equal(run('deskArea().id'),'team');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*squad/);
+run('selectPlayer(managerRoster()[0].id)');assert.equal(run('deskArea().id'),'team');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Trupp/);
 run('coachingNavigate("specialTeams")');assert.equal(run('deskArea().id'),'team');
 run('state.recruitment.filters.query="test";deskNavigate("transfers","shortlist")');assert.equal(run('state.recruitment.filters.query'),'test');
 assert.equal((get('#content').innerHTML.match(/class="desk-subnav"/g)||[]).length,1);assert.doesNotMatch(get('#content').innerHTML,/class="recruit-tabs"/);
 for(const tab of run('DESK_RECRUIT_MORE.map(t=>t[0])')){run(`deskNavigate('transfers','${tab}')`);assert.match(get('#content').innerHTML,/desk-more selected/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);}
-run('deskNavigate("scouting")');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Scoutcentralen/);
+run('deskNavigate("scouting")');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Scouting/);
 run('recruitOpen(state.clubRosters["AIK"][0].id)');assert.equal(run('deskArea().id'),'recruitment');
 // Decision and expiring-offer priorities are actionable; no fabricated clean bill of health.
 run('managerMessage("desk-test", "Ett samtal", "Vi behöver prata", "Spelare", {decisionType:"role"});state.recruitment.incoming.push({id:999,status:"pending",expires:state.recruitment.tick+2});deskNavigate("home")');

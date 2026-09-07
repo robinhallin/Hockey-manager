@@ -32,10 +32,12 @@ function deskNavigate(page,tab,record=true){
  if(state.live?.running)pauseMatch();
  if(record&&(page!==state.page||tab&&tab!==state.recruitment?.tab)){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
  if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
+ if(page==='squad'&&tab==='contracts')deskFolds.contracts=true;
  if(page==='inbox'&&state.page!=='inbox')inboxUI.detail=false;
  state.page=page;save();render();
  const content=document.getElementById('content');if(content){content.scrollTop=0;content.focus?.({preventScroll:true});}
  if(typeof window!=='undefined')window.scrollTo?.({top:0,behavior:'instant'});
+ if(page==='squad'&&tab==='contracts')document.getElementById('squad-contracts')?.scrollIntoView?.({block:'start'});
 }
 function deskBack(fallback='home'){
  deskHistorySync();
@@ -133,8 +135,8 @@ function deskTasks(){
   if(wageRoom<0||state.money<0)tasks.push({title:'Ekonomin behöver åtgärdas',detail:wageRoom<0?'Lönekostnaden överstiger styrelsens lönebudget.':'Klubbkassan är negativ.',action:{page:'finance'},tag:'Ekonomi',tone:'amber'});
   const tired=roster.filter(p=>medicalReady(p)&&p.fatigue>=35);
   if(tired.length)tasks.push({title:`${tired.length} spelare har hög belastning`,detail:'Se över återhämtning och planera kommande pass.',action:{page:'training'},tag:'Träning',tone:'blue'});
-  const expiring=roster.filter(p=>p.contractYears<=1&&!p.futureContract);
-  if(expiring.length)tasks.push({title:`${expiring.length} kontrakt på sista året`,detail:'Ta ställning till vilka spelare du vill behålla.',action:{page:'squad'},tag:'Trupp',tone:'blue'});
+  const expiring=roster.filter(contractNeedsDecision);
+  if(expiring.length)tasks.push({title:`${expiring.length} kontrakt på sista året`,detail:'Ta ställning till vilka spelare du vill behålla.',action:{page:'squad',tab:'contracts'},tag:'Trupp',tone:'blue'});
   return tasks;
 }
 function deskNextMatch(next){
