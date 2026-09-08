@@ -112,9 +112,6 @@ function managerStoreClub(){
 
  c.bank[managerClub()]=snapshot;
  state.recruitment.ai[managerClub()]={cash:state.money,wageLimit:wageBudget(),year:clubYear()};
- // Outgoing expiring player contracts become AI-managed after the departure.
- worldAIContracts(managerClub());
- worldFillClub(managerClub());
 }
 function managerAcceptJob(){
  ensureManager();const c=state.managerCareer,i=c.interview,j=c.jobs.find(j=>j.id===i?.id);
@@ -123,10 +120,11 @@ function managerAcceptJob(){
  const offer=managerJobOffer(j.club);
  // Re-present changed budgets rather than silently accepting different terms.
  if(offer.cash!==i.offer.cash||offer.wageLimit!==i.offer.wageLimit){i.offer=offer;return managerNotify('Klubbens resurser har ändrats. Granska det uppdaterade erbjudandet och acceptera igen.');}
- const old=managerClub();managerStoreClub();
+ const old=managerClub();managerStoreClub();aiStoreManagedAcademy(old);
  const saved=c.bank[j.club];delete c.bank[j.club];
  state.managerClub=j.club;state.money=offer.cash;
  for(const field of MANAGER_CLUB_FIELDS)state[field]=saved?.[field]??null;
+ aiTakeManagedAcademy(j.club);
  state.fans=saved?.fans??CLUB_DATA[j.club].fans;state.morale=saved?.morale??65;
  state.tactic=saved?.tactic||'balanced';state.tacticalPlan=saved?.tacticalPlan||{forecheck:'balanced',tempo:'normal',physicality:'balanced',lineUsage:'balanced'};
  state.live=null;state.lines=null;state.specialTeams=null;state.selectedPlayer=null;state.selectedMarketPlayer=null;state.assessorId='assistant';
@@ -142,7 +140,9 @@ function managerAcceptJob(){
  }
  if(saved?.staff)state.staff=state.staff.map(s=>s.salary&&s.expires<=clubYear()?clubInterim(s.id):s);
  if(state.clubOffice){state.clubOffice.opening=state.money;state.clubOffice.totals={};state.clubOffice.year=clubYear();state.clubOffice.offer=null;state.clubOffice.settled=[];state.clubOffice.market=[];state.clubOffice.taken=[];}
- syncManagerRoster();ensureManagementData();initializeBoardPlan(offer);ensureAssessmentData();ensureLocker();ensureMedical();ensureTrainingData();ensureJuniors();ensureClub();
+ syncManagerRoster();ensureManagementData();initializeBoardPlan(offer);ensureAssessmentData();ensureLocker();ensureMedical();ensureTrainingData();ensureJuniors();ensureClub();aiTakeClubFinance(j.club);
+ // Resolve the old club only after ownership of its real academy has moved.
+ worldAIContracts(old);worldFillClub(old);
  c.status='employed';c.expires=i.expires;c.salary=i.salary;c.confidence=60;c.badSeasons=0;c.decision=null;c.renewal=null;c.joined=clubYear();c.startGames=0;c.lastReview=null;c.moveYear=clubYear();
  c.history.unshift({year:clubYear(),kind:'appointment',club:j.club,from:old,expires:c.expires});c.history=c.history.slice(0,60);j.status='filled';c.interview=null;
  state.news=[`Du har tillträtt som huvudtränare för ${managerClub()}.`,...state.news.slice(0,30)];

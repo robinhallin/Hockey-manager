@@ -48,6 +48,7 @@ function worldRetire(p,club,type='retire'){
  }
 }
 function worldAIContracts(club){
+ if(clubAIState(club))return aiRenewContracts(club,true);
  const roster=state.clubRosters[club],budget=state.recruitment.ai[club];if(!roster||!budget)return;
  const retained=roster.filter(p=>p.contractYears>0);let wage=retained.reduce((n,p)=>n+p.salary,0);
  const candidates=roster.filter(p=>p.contractYears<=0).sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a));
@@ -77,12 +78,17 @@ function worldFillClub(club){
  const roster=state.clubRosters[club],budget=state.recruitment.ai[club];if(!roster||!budget)return;
  for(const [group,target] of Object.entries({MV:2,B:6,F:12}))while(roster.filter(p=>worldGroup(p)===group).length<target){
   const wage=roster.reduce((n,p)=>n+p.salary,0);
+  const academy=clubAIState(club)?.academy.roster.filter(p=>worldGroup(p)===group&&medicalReady(p)).sort((a,b)=>rivalRating(b)-rivalRating(a))||[];
+  if(academy[0]&&aiPromote(club,academy[0],'Täcker en ledig plats i seniortruppen.'))continue;
   const options=state.playerWorld.freeAgents.filter(p=>worldGroup(p)===group&&p.previousClub!==club&&!state.recruitment.deals.some(d=>samePlayerId(d.playerId,p.id)&&d.status==='pending'));
   options.sort((a,b)=>matchAttributeRating(b)-matchAttributeRating(a));
   const candidate=options.find(p=>wage+recruitPlayerWishes(p,club).salary<=budget.wageLimit);
   if(candidate){const wishes=recruitPlayerWishes(candidate,club);if(transferRecruitPlayer(candidate,WORLD_FREE,club,0,wishes.salary,Math.min(2,wishes.maxYears),wishes.role))continue;}
   const pos=group==='F'?['C','VF','HF'][roster.filter(p=>worldGroup(p)==='F').length%3]:group;
-  const p=worldProspect(club,pos);roster.push(p);worldLog('intake',p,club,'Fiktiv akademispelare får chansen när seniortruppen saknar täckning');
+  const p=academy[0]||worldProspect(club,pos);
+  if(academy[0]){clubAIState(club).academy.roster=clubAIState(club).academy.roster.filter(q=>q!==p);p.academy.path='senior';p.academy.seniorContract=true;p.contractYears=Math.max(1,p.contractYears);}
+  roster.push(p);worldLog('intake',p,club,'Akademispelare täcker seniortruppens minimibemanning');
+  if(clubAIState(club))aiDecision(club,'academy',`${p.name} behövs för en spelbar minimitrupp. ${loanWageCost(club)>budget.wageLimit?'Lönebudgeten överskrids; externa värvningar stoppas tills utrymme frigörs.':'Klubben använder sin egen återväxt.'}`);
   // Academy registration preserves a playable squad even for a financially troubled AI club.
  }
 }
@@ -97,11 +103,13 @@ function playerWorldNewYear(){
 
  }
  calendarActivateFuture();
+ aiWorldNewYear();
  // All clubs decide before any replacement hiring, so the shared pool is available to everyone.
  for(const club of Object.keys(state.recruitment.ai))worldAIContracts(club);
  for(const club of Object.keys(state.recruitment.ai)){
   worldFillClub(club);
   const roster=state.clubRosters[club];
+  if(clubAIState(club))continue;
   for(let i=0;i<2;i++){
    const pos=['MV','B','C','VF','HF'][Math.floor(attrSeed(`${club}:${year}:${i}:intake`)*5)],p=worldProspect(club,pos);
    if(roster.length<26&&roster.reduce((n,p)=>n+p.salary,0)+p.salary<=state.recruitment.ai[club].wageLimit){roster.push(p);worldLog('intake',p,club,'Fiktiv talang får sitt första senioravtal');}

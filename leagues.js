@@ -81,7 +81,7 @@ function leagueApplyMovement(){
  const w=state.world,m=w?.movement;if(!m||w.appliedYear===m.year)return;w.appliedYear=m.year;
  w.membership[m.up]='SHL';w.membership[m.down]='HA';w.history.unshift({...m});w.history=w.history.slice(0,30);
  for(const [name,up] of [[m.up,true],[m.down,false]]){
-  const factor=up?1.5:.7,ai=state.recruitment?.ai[name];if(ai){ai.wageLimit=Math.round(ai.wageLimit*factor);ai.cash=Math.round(ai.cash*(up?1.2:.85));}
+  const factor=up?1.5:.7,ai=state.recruitment?.ai[name];if(ai&&!clubAIState(name)){ai.wageLimit=Math.round(ai.wageLimit*factor);ai.cash=Math.round(ai.cash*(up?1.2:.85));}
   const stored=state.managerCareer?.bank[name];if(stored?.clubOffice)stored.clubOffice.sponsor=Math.round(stored.clubOffice.sponsor*(up?1.7:.55));
   const reactions=[];
   for(const p of state.clubRosters[name]){

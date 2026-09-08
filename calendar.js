@@ -58,7 +58,7 @@ function calendarMarketDay(){
 function calendarStep(recovered=false){
  const c=state.calendar;if(!c)return;
  if(!recovered){medicalDay();managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
- c.date=calAdd(c.date,1);for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();calendarMarketDay();
+ c.date=calAdd(c.date,1);for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();
 }
 function calendarToMatch(){
  ensureCalendar();if(state.calendar.active)return true;
@@ -196,10 +196,13 @@ function calendarView(){
  return `<section class="calendar-page cal-journal"><header class="daily-heading"><div><span class="career-eyebrow">TRÄNARENS KALENDER · ${trainingSafe(managerClub())}</span><h1>En dag. Ett tydligt fokus.</h1><p>Idag ${calText(c.date)} · ${calendarDeadlineText()}</p></div><button class="btn secondary" onclick="deskNavigate('training')">Individuell träning →</button></header>${c.notice?`<p class="cal-notice" role="status">${trainingSafe(c.notice)}</p>`:''}<div class="cal-layout"><section class="cal-month" aria-label="Månadskalender"><header><h2>${name}</h2><nav aria-label="Välj månad"><button aria-label="Föregående månad" onclick="calendarMonthMove(-1)">←</button><button onclick="calendarPick('${c.date}')">Idag</button><button aria-label="Nästa månad" onclick="calendarMonthMove(1)">→</button></nav></header><div class="cal-weekdays" aria-hidden="true">${['Mån','Tis','Ons','Tor','Fre','Lör','Sön'].map(s=>`<span>${s}</span>`).join('')}</div><div class="cal-grid">${Array.from({length:cells},(_,i)=>{const date=calAdd(start,i),f=fixtures.find(f=>f.date===date),log=state.training.history.find(l=>l.date===date),session=calendarSession(date),label=f?`${f.opponent} · ${f.played?f.result:f.kind}`:log?TRAINING_SESSIONS[log.type].name:date>=c.date?TRAINING_SESSIONS[session.type].name:'',markers=state.training.messages.filter(m=>m.date===date&&!m.read).length;return `<button class="cal-day ${date.slice(0,7)!==month?'outside':''} ${f?'fixture':''} ${date===c.date?'today':''} ${date===selected?'selected':''}" aria-pressed="${date===selected}" ${date===c.date?'aria-current="date"':''} aria-label="${trainingSafe(calText(date)+' · '+label+(markers?' · '+markers+' olästa rapporter':''))}" onclick="calendarPick('${date}')"><time datetime="${date}">${Number(date.slice(8))}</time>${f?`<b>${trainingSafe(careerIdentity(f.opponent).code)}</b><small>${f.played?f.result:f.venue}</small>`:`<small>${label}</small>`}${markers?'<span class="cal-dot" aria-hidden="true"></span>':''}</button>`;}).join('')}</div><p class="cal-legend"><span>● Matchdag</span><span>• Olästa rapporter</span><span>Klicka på en dag för dess plan</span></p>${state.season.phase==='preseason'?`<details class="cal-booking"><summary>Boka & hantera träningsmatcher</summary><form class="calendar-booking" onsubmit="event.preventDefault();calendarBookFriendly(this.elements.opponent.value,this.elements.date.value)"><label>Motståndare<select name="opponent">${Object.keys(state.world.membership).filter(n=>n!==managerClub()).map(n=>`<option>${trainingSafe(n)}</option>`).join('')}</select></label><label>Matchdatum<input name="date" type="date" required min="${calAdd(c.date,1)}" max="${state.season.year}-09-09" value="${calAdd(c.date,3)}"></label><button class="btn">Boka match</button></form>${c.friendlies.filter(f=>!f.played&&f.club===managerClub()).map(f=>`<p>${calText(f.date)} · ${trainingSafe(f.opponent)} <button class="btn secondary" onclick="calendarCancelFriendly(${f.id})">Avboka</button></p>`).join('')}</details>`:!c.initialPreseasonUsed&&state.round===1&&!state.teams.some(t=>t.gp)?'<button class="btn secondary" onclick="calendarInitialPreseason()">Börja med försäsong</button>':''}<p class="cal-hint">Speldatum genereras för karriären. Lagpass kan planeras ett år framåt. Individuell vila och fokus ställs in under Träning.</p></section>${calendarAgenda(selected)}</div></section>`;
 }
 function calendarFutureRoom(club=managerClub()){
- const wages=(state.clubRosters[club]||[]).filter(p=>p.contractYears>1&&!p.futureContract).reduce((n,p)=>n+p.salary,0);
+ const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(Boolean);
+ const academy=club===managerClub()?(state.juniors?.roster||[]):(clubAIState(club)?.academy.roster||[]);
+ const contracted=[...(state.clubRosters[club]||[]).filter(p=>!playerLoan(p)),...returning,...academy.filter(p=>p.academy.seniorContract)];
+ const wages=contracted.filter(p=>p.contractYears>1&&!p.futureContract).reduce((n,p)=>n+p.salary,0);
  const committed=Object.values(state.clubRosters).flat().filter(p=>p.futureContract?.buyer===club).reduce((n,p)=>n+p.futureContract.salary,0);
  const pending=state.recruitment.deals.filter(d=>d.status==='pending'&&(d.kind==='future'?d.buyer===club:club===managerClub()&&d.years>1)).reduce((n,d)=>n+d.salary,0);
- return (club===managerClub()?wageBudget():state.recruitment.ai[club]?.wageLimit||0)-wages-committed-pending;
+ return (club===managerClub()?wageBudget():state.recruitment.ai[club]?.wageLimit||0)-wages-committed-pending-aiFutureReserved(club);
 }
 function submitFutureOffer(id,salary,years,role){
  if(!managerCanPlay())return;
@@ -210,17 +213,19 @@ function submitFutureOffer(id,salary,years,role){
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return recruitMessage('Ange giltig lön, roll och avtalslängd.');
  if(r.deals.some(d=>samePlayerId(d.playerId,id)&&['pending','future_signed'].includes(d.status)))return recruitMessage('Ett erbjudande eller framtida avtal finns redan.');
  if(salary>calendarFutureRoom())return recruitMessage('Nästa säsongs beräknade löneutrymme räcker inte.');
- r.deals.unshift({id:r.nextId++,kind:'future',playerId:p.id,name:p.name,buyer:managerClub(),seller,fee:0,salary,years,role,due:r.tick+1,dueDate:calAdd(state.calendar.date,2),joinYear:state.season.year+1,status:'pending',rival:recruitRival(p,seller)});
+ r.deals.unshift({id:r.nextId++,kind:'future',playerId:p.id,name:p.name,buyer:managerClub(),seller,fee:0,salary,years,role,due:r.tick+1,dueDate:calAdd(state.calendar.date,2),joinYear:state.season.year+1,status:'pending',rival:aiCompetitionFor(p,seller,'future')});
  r.tab='deals';state.page='transfers';recruitMessage('Erbjudandet gäller från nästa säsong. Spelaren stannar i nuvarande klubb tills dess. Besked om två kalenderdagar.');
 }
 function calendarResolveFuture(d){
  const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null;
+ if(p)d.rival=aiCompetitionFor(p,d.seller,'future')||(d.rival?.aiOfferId?null:d.rival);
  let reason=!p||playerLoan(p)||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w||d.salary<w.salary||SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)||d.years<w.minYears||d.years>w.maxYears?'Lön, roll eller avtalslängd motsvarar inte spelarens krav.':calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
  if(reason){d.status='rejected';d.reason=reason;recruitReport(`Besked om ${d.name}`,reason);return;}
  let buyer=d.buyer,terms=d;
- if(d.rival&&calendarFutureRoom(d.rival.club)>=d.rival.salary&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}
+ if(d.rival&&aiCanCommit(d.rival.club,p,0,d.rival.salary,{future:true,years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}
  else {d.status='future_signed';d.reason=`Klart för ${d.joinYear}/${String(d.joinYear+1).slice(-2)}. Spelaren ansluter vid säsongsskiftet.`;}
  p.futureContract={buyer,seller:d.seller,joinYear:d.joinYear,salary:terms.salary,years:terms.years,role:terms.role};
+ aiMarkMarketPlayer(p.id,buyer);
  recruitReport(`Framtidsbesked: ${p.name}`,d.reason);
 }
 function calendarActivateFuture(){

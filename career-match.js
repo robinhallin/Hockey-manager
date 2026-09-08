@@ -25,6 +25,17 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   const count=this.strength(side);
   // Respect the rink editor's PP/PK slot order. Normal units keep center and defense roles.
   let roles=pp?['LD','LW','RW','RD','C']:short?['LD','RD','LW','RW']:['LW','C','RW','LD','RD'];
+  if(side===1&&(pp||short)){
+   const used=new Set();
+   players=roles.map((role,i)=>{
+    const candidates=pool.filter(p=>!used.has(String(p.id))).map(player=>({player,real:studioPlayer(side,player.id)}));
+    const natural=candidates.filter(x=>x.real&&positionFit(x.real,role)>=.9);
+    const ranked=(natural.length?natural:candidates).sort((a,b)=>
+     (aiUnitScore(b.real,role,pp?'pp':'pk')+(samePlayerId(b.player.id,ids[i])?2:0))-
+     (aiUnitScore(a.real,role,pp?'pp':'pk')+(samePlayerId(a.player.id,ids[i])?2:0)));
+    const p=ranked[0]?.player;if(p)used.add(String(p.id));return p;
+   }).filter(Boolean);
+  }
   if(this.threeOnThree){
    if(!pp&&!short){const f=players.filter(x=>x.pos!=='B'),d=players.filter(x=>x.pos==='B');players=[...f.slice(0,2),...d.slice(0,2),...players];players=[...new Map(players.map(x=>[String(x.id),x])).values()];}
    roles=pp?['LD','LW','RW','C','RD']:short?['LD','RD','LW']:['LW','C','LD','RD','RW'];
@@ -49,7 +60,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   }else{
    t.rotationIndex=(t.rotationIndex||0)+1;
    const energy=ids=>{const ps=(ids||[]).map(id=>studioPlayer(side,id)).filter(Boolean);return ps.length?ps.reduce((n,p)=>n+matchEnergy(p),0)/ps.length:0;};
-   const preferred=seq[t.rotationIndex%seq.length],lineEnergy=i=>energy((t.plan?.forwards||[]).slice(i*3,i*3+3));
+   const preferred=t.plan?.matchup&&this.teams[1-side].line===0?t.plan.checkingLine??seq[t.rotationIndex%seq.length]:seq[t.rotationIndex%seq.length],lineEnergy=i=>energy((t.plan?.forwards||[]).slice(i*3,i*3+3));
    t.line=lineEnergy(preferred)>=50?preferred:[...new Set(seq)].sort((a,b)=>lineEnergy(b)-lineEnergy(a))[0];
    const pair=(t.pair+1)%3,pairEnergy=i=>energy((t.plan?.defense||[]).slice(i*2,i*2+2));
    t.pair=pairEnergy(pair)>=50?pair:[0,1,2].sort((a,b)=>pairEnergy(b)-pairEnergy(a))[0];
@@ -215,18 +226,19 @@ function studioCreate(){
 }
 function studioSyncPlans(e=studioEngine()){
  if(!e)return;const m=state.live;ensureSpecialTeams();
+ aiRepairMatchUnits(m);
  for(const t of e.teams){
   const side=t.side;for(const p of t.players){const real=studioPlayer(side,p.id);p.available=Boolean(real&&(side===0?medicalAvailable(real):medicalReady(real)&&(m.leagueBox?.players[m.opponent+':'+p.id]?.seconds||0)<medicalLimit(real)));}
   const nextPlan=side===0?{...state.lines,...state.specialTeams}:{...m.aiTeam};
   const signature=JSON.stringify(nextPlan);if(t.planSignature&&t.planSignature!==signature)t.needsSetup=true;t.planSignature=signature;t.plan=nextPlan;
   const plan=state.tacticalPlan||{},style=side===0?(plan.attackStyle||'control'):m.aiTeam?.style;
-  t.tactics={mentality:style==='control'||side===0&&plan.shotChoice==='patient'?'control':style==='pressure'||style==='counter'||side===0&&plan.shotChoice==='shoot'?'direct':'balanced',pp:side===0&&['umbrella','overload'].includes(state.specialPlans?.pp)?state.specialPlans.pp:'131',pk:state.specialPlans?.pk==='diamond'&&side===0?'diamond':'box'};
+  t.tactics={mentality:style==='control'||side===0&&plan.shotChoice==='patient'?'control':style==='pressure'||style==='counter'||side===0&&plan.shotChoice==='shoot'?'direct':'balanced',pp:side===0?(['umbrella','overload'].includes(state.specialPlans?.pp)?state.specialPlans.pp:'131'):(m.aiTeam?.pp||'131'),pk:side===0?(state.specialPlans?.pk==='diamond'?'diamond':'box'):(m.aiTeam?.pk||'box')};
   t.defenseChemistry=lineChemistry((t.plan.defense||[]).slice(t.pair*2,t.pair*2+2),side===0?managerClub():m.opponent).value;
   t.chemistry=lineChemistry((t.plan.forwards||[]).slice(t.line*3,t.line*3+3),side===0?managerClub():m.opponent).value;
-  t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:style==='pressure'?'aggressive':'balanced';
+  t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:(m.aiTeam?.forecheck||'balanced');
   t.safeCounter=side===0&&state.specialPlans?.counter==='safe';
   t.rotation=side===0?(plan.lineUsage==='topHeavy'?[0,1,0,2,0,1,3]:plan.lineUsage==='rollFour'?[0,1,2,3]:[0,1,2,0,1,3]):RIVAL_ROTATIONS[m.aiTeam?.rotation]||[0,1,2,3];
-  t.shiftLimit=side===0?(plan.shiftLength==='short'?30:plan.shiftLength==='long'?60:45):43;
+  t.shiftLimit=side===0?(plan.shiftLength==='short'?30:plan.shiftLength==='long'?60:45):(m.aiTeam?.shiftLimit||43);
   const goalie=t.players.find(p=>p.pos==='MV'&&p.available&&samePlayerId(p.id,side===0?state.lines.goalie:m.aiTeam?.keeper))||t.players.find(p=>p.pos==='MV'&&p.available);
   if(goalie&&t.goalie!==goalie){t.goalie=goalie;t.needsSetup=true;}
   const pulled=side===0?(t.wantPulled??m.goaliePulled):m.aiGoaliePulled;
