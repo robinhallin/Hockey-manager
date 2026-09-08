@@ -145,13 +145,18 @@ function aiSquadNeeds(club){
   const target=def.target+(role==='creator'&&rivalsClubState(club)?.coach.style==='control'?1:0);
   const missing=Math.max(0,target-available.length),futureNeed=Math.max(0,target-future.size);
   const temporary=missing>0&&all.length>=target;
+  // AI rehabilitation uses the same remaining days and daily readiness gain as medicalDay.
+  const returns=all.filter(p=>!medicalReady(p)).map(p=>Math.max(0,p.health?.injury?.remaining||0)+Math.max(1,Math.ceil(Math.max(0,100-(p.health?.injury?.readiness??55))/15))).sort((a,b)=>a-b);
+  const returnDays=temporary?returns[missing-1]??null:null;
+  const coverage=({goalie:1,defense:4,forward:9,center:2})[role]??0;
+  const shortTerm=temporary&&returnDays!==null&&returnDays<=14&&available.length>=coverage;
   const alternatives=(c?.academy.roster||[]).filter(p=>fits(p)&&medicalReady(p)&&aiRoleValue(p,role)>=threshold-1.5);
   const value=all.reduce((n,p)=>n+matchAttributeRating(p),0)/Math.max(1,all.length);
   const urgent=(role==='goalie'&&available.length===0?100:role==='center'&&available.length===0?70:0);
   const urgency=urgent+missing*(specialist?8:role==='center'?15:12)+futureNeed*3+old.length*1.2+(80-value)*.1;
   return {role,label:def.label,kind:def.kind,target,count:available.length,total:all.length,value,missing,futureNeed,minimumAbility,
-   temporary,old:old.length,arrivals:arrivals.filter(fits).length,alternatives:alternatives.map(p=>p.id),urgency,
-   reason:missing?`${available.length}/${target} spelklara ${def.label.toLowerCase()}${temporary?' – tillfälligt skadebehov':''}.`:
+   temporary,returnDays,shortTerm,old:old.length,arrivals:arrivals.filter(fits).length,alternatives:alternatives.map(p=>p.id),urgency,
+   reason:shortTerm?`Avvaktar återgång: ${available.length}/${target} spelklara ${def.label.toLowerCase()}, tillräcklig täckning väntas om cirka ${returnDays} dagar.`:missing?`${available.length}/${target} spelklara ${def.label.toLowerCase()}${temporary?' – tillfälligt skadebehov':''}.`:
     futureNeed?`${futureNeed} platser behöver säkras till nästa säsong.`:old.length?'Planerar generationsväxling.':'God täckning.'};
  }).sort((a,b)=>b.urgency-a.urgency||a.role.localeCompare(b.role));
 }
