@@ -61,9 +61,10 @@ assert.equal(r('JSON.stringify(p.recruitmentPromise)'),r('promise'));
 r("startCareerWithClub('HV71');globalThis.loanee=managerRoster().find(p=>playerLoan(p));loanee.contractYears=1;globalThis.future=managerRoster().find(p=>!playerLoan(p));future.contractYears=1;future.futureContract={club:'AIK'};deskNavigate('home')");
 assert.equal(r('contractNeedsDecision(loanee)'),false);assert.equal(r('contractNeedsDecision(future)'),false);
 assert.equal(r("deskTasks().find(t=>t.tag==='Trupp').title"),r("managerRoster().filter(contractNeedsDecision).length+' kontrakt på sista året'"));
-r("deskNavigate('squad','contracts')");assert.equal(r('deskFolds.contracts'),true);
-assert.match(app.get('#content').innerHTML,/id="squad-contracts"[^>]* open/);
-assert.equal(app.get('#squad-contracts').scrolledIntoView.block,'start');
+r("deskNavigate('squad','contracts')");assert.equal(r('squadUI.tab'),'contracts');assert.equal(r('squadUI.status'),'expiring');
+assert.equal(r('squadPlayers().every(contractNeedsDecision)'),true);
+assert.equal(r('squadPlayers().length'),r('managerRoster().filter(contractNeedsDecision).length'));
+assert.match(app.get('#content').innerHTML,/Avtalad roll/);
 console.log('PASS: canonical sourced Luleå, loan ownership, old saves/import/transferred players/paused matches, idempotent repair, contract promises and focused eligible contract tasks.');
 
 // Reproduce the entire old start database, including the misspelled Casper and

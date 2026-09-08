@@ -67,7 +67,7 @@ const friendly=boot();friendly.run('startCareerWithClub("HV71");calendarInitialP
 assert.equal(friendly.run('Object.keys(state.leagueStatistics.rows).length'),0);assert.equal(friendly.run('state.leagueStatistics.recorded.regular.SHL'),0);
 // Rink selection: all positions, swapping, injured exclusions, goalie validation and icing guard.
 run('startCareerWithClub("HV71");deskNavigate("lines");globalThis.originalLines=JSON.stringify(state.lines);lineupSelectUnit("line",2);lineupSelectUnit("pair",1)');
-assert.equal(run('JSON.stringify(state.lines)'),run('originalLines'));assert.equal((get('#content').innerHTML.match(/class="lineup-name /g)||[]).length,19);
+assert.equal(run('JSON.stringify(state.lines)'),run('originalLines'));assert.equal((get('#content').innerHTML.match(/class="lineup-slot /g)||[]).length,6);assert.match(get('#content').innerHTML,/aria-label="Kedja 3, backpar 2 och startande målvakt"/);
 run('lineupPickSlot("forwards",6);globalThis.a=state.lines.forwards[6];globalThis.b=state.lines.forwards[0];lineupPlace(b)');assert.equal(run('state.lines.forwards[6]'),run('b'));assert.equal(run('state.lines.forwards[0]'),run('a'));assert.equal(run('new Set(state.lines.forwards.map(String)).size'),12);
 run('globalThis.validLines=JSON.stringify(state.lines);lineupPlace(state.lines.goalie);changeLinePlayer("forwards",0,state.lines.goalie);changeGoalie(state.lines.forwards[0]);changeLinePlayer("forwards",99,state.lines.forwards[0])');assert.equal(run('JSON.stringify(state.lines)'),run('validLines'));
 run('lineupPickSlot("goalie",0);globalThis.backup=goalies().find(p=>!samePlayerId(p.id,state.lines.goalie));lineupPlace(backup.id)');assert.equal(run('String(state.lines.goalie)'),run('String(backup.id)'));
