@@ -10,7 +10,7 @@ for(const make of [boot,bootLegacy]){
  const clock=r('JSON.stringify([state.live.minute,state.live.second])');
  r('startMatch();liveStep()');assert.equal(r('JSON.stringify([state.live.minute,state.live.second])'),clock);
  assert.equal(r('state.live.running'),false);
- r(`medicalDecisionEdit('tactics')`);assert.equal(r('state.page'),'tactics');assert.ok(a.get('#medical-decision-root').innerHTML.includes('Tillbaka till skaderutan'));
+ r(`medicalDecisionEdit('tactics')`);assert.equal(r('state.page'),'lines');assert.equal(r('lineupWorkspace'),'even');assert.ok(a.get('#medical-decision-root').innerHTML.includes('Tillbaka till skaderutan'));
  r('save()');const b=make(a.storage.value);assert.equal(b.run('Boolean(medicalPending())'),true);b.run('resumeCareer();startMatch()');assert.equal(b.run('state.live.running'),false);assert.ok(b.get('#medical-decision-root').innerHTML.includes('är skadad'));
  // Reject an undressed/unknown player without consuming the decision.
  r(`medicalDecisionAccept('not-in-match')`);assert.equal(r('Boolean(medicalPending())'),true);

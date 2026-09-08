@@ -117,14 +117,14 @@ function applyTrainingPreset(name){
 function setIndividualLoad(id,value){
   if(!['normal','light','rest'].includes(value))return;
   const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p)return;
-  p.trainingLoad=value;delete p.trainingReturn;save();render();
+  p.trainingLoad=value;p.trainingManualDate=state.calendar?.date;delete p.trainingReturn;save();render();
 }
 function pendingManagerDecision(){return state.training?.messages.find(m=>m.decisionType&&!m.resolved);}
 function runTrainingSession(){
   if(!managerEmployed())return false;
   ensureTrainingData();const t=state.training;
   if(!t||t.day>=trainingDays()||t.lockedRound===state.round||state.live&&!state.live.finished||state.calendar?.completedMatchDate===state.calendar?.date||(opponent()==='Ingen match'&&state.season.phase!=='preseason')||pendingManagerDecision())return false;
-  trainingReturnDay();
+  trainingReturnDay();trainingDelegateRecovery();
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
   let fatigueChange=0,trained=0,resting=0,improvements=0;
   const before=managerRoster().reduce((n,p)=>n+p.fatigue,0)/managerRoster().length;

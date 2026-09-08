@@ -195,12 +195,12 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  if(buyer===managerClub())clubPost('transfer',-fee,'Värvning · '+p.name);else if(clubAIState(buyer))aiFinancePost(buyer,'transfer',-fee,'Värvning · '+p.name);else r.ai[buyer].cash-=fee;
  if(seller===managerClub())clubPost('transfer',fee,'Försäljning · '+p.name);else if(clubAIState(seller))aiFinancePost(seller,'transfer',fee,'Försäljning · '+p.name);else if(r.ai[seller])r.ai[seller].cash+=fee;
  delete p.freeSince;delete p.previousClub;
- Object.assign(p,{club:buyer,salary,contractYears:years,squadRole:role,promisedRole:role,transferListed:false,askingPrice:null,happiness:78,morale:78,fatigue:0});
+ Object.assign(p,{club:buyer,salary,contractYears:years,squadRole:role,promisedRole:role,transferListed:false,askingPrice:null,happiness:78,morale:78});
  delete p.aiListed;delete p.aiRoleReview;aiMarkMarketPlayer(p.id,buyer);
  if(buyer===managerClub()&&SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
  else delete p.recruitmentPromise;
  r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
- if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();state.lines=null;state.specialTeams=null;}
+ if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();repairMedicalLines();ensureSpecialTeams();}
  feedbackArrival(p,feedbackPlan,'transfer');
  feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',p.name+' klar för '+buyer,seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
  // Rebuild team strength so background results respond to roster changes too.

@@ -75,10 +75,10 @@ function afterLockerMatch(){
  ensureLocker();const r=state.locker,m=state.live,key=`${state.season?.year||2026}:${state.round}`;
  if(!m?.finished||r.lastMatch===key)return;r.lastMatch=key;r.turn++;
  for(const p of managerRoster()){
-   const s=p.social,seconds=m.iceTime?.[p.id]||0,expected=p.pos==='MV'?1800:p.promisedRole==='Nyckelspelare'?900:p.promisedRole==='Ordinarie'?720:0;
-   s.lastMinutes=seconds/60;
-   const missed=expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
-   if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(`${p.name} undrar över sin roll`,`${p.name} har fått mindre istid än sin utlovade roll i två matcher. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked.`);}
+   const s=p.social,seconds=m.iceTime?.[p.id]||0,expected=playerLoan(p)?0:p.pos==='MV'?1800:p.promisedRole==='Nyckelspelare'?900:p.promisedRole==='Ordinarie'?720:0;
+   squadRecordRole(p,m);s.lastMinutes=seconds/60;
+   const missed=p.pos==='MV'?squadGoalieMissed(p):expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
+   if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(`${p.name} undrar över sin roll`,`${p.name} har fått mindre istid än sin utlovade roll under de senaste tillgängliga matcherna. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked.`);}
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
      const neutral=promise.result&&!['Uppfyllt','Brutet'].includes(promise.result);
