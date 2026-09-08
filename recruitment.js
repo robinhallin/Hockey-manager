@@ -49,15 +49,17 @@ function recruitmentNeeds(){
   const value=p=>attributeWeighted(playerAssessment(p).estimated,def.weights)*(name==='Defensiv center'?positionFit(p,'C'):1);
   const ps=roster.filter(eligible).map(p=>({p,value:value(p)})).sort((a,b)=>b.value-a.value);
   const capable=ps.filter(x=>x.value>=threshold),available=capable.filter(x=>medicalReady(x.p));
-  const absent=capable.filter(x=>!medicalReady(x.p)),secure=capable.filter(x=>(x.p.contractYears>1&&!x.p.futureContract)||(x.p.futureContract?.buyer===club));
+  const absent=capable.filter(x=>!medicalReady(x.p)),secure=capable.filter(x=>!playerLoan(x.p)&&((x.p.contractYears>1&&!x.p.futureContract)||(x.p.futureContract?.buyer===club)));
   const arrivals=[...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[]].flat().filter(p=>p.futureContract?.buyer===club&&!roster.some(q=>samePlayerId(p.id,q.id))&&p.futureContract.joinYear<=recruitmentYear()+1&&eligible(p)&&value(p)>=threshold);
+  const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(p=>p&&p.contractYears>1&&!p.futureContract&&eligible(p)&&value(p)>=threshold);
   const youth=(state.juniors?.roster||[]).filter(p=>medicalReady(p)&&eligible(p)&&value(p)>=threshold);
-  const need=Math.max(0,target-available.length),futureNeed=Math.max(0,target-secure.length-arrivals.length);
+  const need=Math.max(0,target-available.length),futureNeed=Math.max(0,target-secure.length-arrivals.length-returning.length);
   const temporary=need>0&&capable.length>=target&&absent.length>0;
   const priority=need?(youth.length?'Pröva junior':temporary?'Överväg lån':'Förstärk nu'):futureNeed?'Planera efterträdare':'God täckning';
   const reasons=[`${available.length} spelklara av ${target} önskade för din matchplan.`];
   if(absent.length)reasons.push(`${absent.length} saknas: ${absent.map(x=>x.p.name+' ('+(x.p.health?.injury?.remaining||0)+' dagar till återgångsträning)').join(', ')}.`);
   if(youth.length)reasons.push(`Junioralternativ: ${youth.map(p=>p.name).join(', ')}. Bedömd nivå räcker; jämför positionsvana och ork före uppflyttning.`);
+  if(returning.length)reasons.push(`${returning.length} egna spelare på lån räknas in i nästa säsongs täckning.`);
   if(arrivals.length)reasons.push(`${arrivals.length} redan kontrakterade förstärkningar till nästa säsong.`);
   if(temporary)reasons.push('Luckan beror på frånvaro. Jämför ett lån med återstående rehabiliteringstid.');
   if(futureNeed)reasons.push(`${futureNeed} roller behöver säkras inför nästa säsong.`);
@@ -186,6 +188,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  if(!calendarWindowOpen()||p.futureContract)return false;
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
+ const feedbackPlan=feedbackBeforeArrival(p,buyer);
  if(seller===managerClub())state.scoutReports[String(p.id)]={visits:3,lastObserved:state.calendar.date};
  if(seller===WORLD_FREE){worldRemoveFree(p.id);}else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
  state.clubRosters[buyer].push(p);
@@ -198,6 +201,8 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  else delete p.recruitmentPromise;
  r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();state.lines=null;state.specialTeams=null;}
+ feedbackArrival(p,feedbackPlan,'transfer');
+ feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',p.name+' klar för '+buyer,seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
  // Rebuild team strength so background results respond to roster changes too.
  for(const club of [seller,buyer]){const t=team(club);if(t)t.strength=Math.round(state.clubRosters[club].reduce((n,q)=>n+matchAttributeRating(q),0)/state.clubRosters[club].length);}
  return true;
@@ -231,7 +236,7 @@ function followRecruitmentPromises(m){
    const promise=p.recruitmentPromise;if(!promise||promise.resolved)continue;
    if(medicalExcused(p,promise.minutes*60))continue;
    promise.games++;if((m.iceTime?.[p.id]||0)>=promise.minutes*60)promise.qualified++;
-   if(promise.games>=3){promise.resolved=true;const met=promise.qualified>=2;p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
+   if(promise.games>=3){promise.resolved=true;const met=promise.qualified>=2;promise.result=met?'Uppfyllt':'Brutet';p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
      recruitReport(`${p.name}: uppföljning av rollen`,`${promise.role}: minst ${promise.minutes} minuter i två av tre matcher. Utfallet blev ${promise.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`);
    }
  }

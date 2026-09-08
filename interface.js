@@ -3,13 +3,13 @@
 // Presentation only: routes share the existing career state and game actions.
 const deskFolds = {iceTime:false,contracts:false};
 const DESK_AREAS = [
-  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['stories','Säsongens historier']]},
+  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['staffReview','Stab & uppföljning'],['stories','Säsongens historier']]},
   {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Laguttagning'],['tactics','Taktik'],['locker','Omklädningsrum']],details:{player:'squad',specialTeams:'lines'}},
   {id:'training',label:'Utveckling',icon:'training',pages:[['training','Spelarutveckling'],['juniors','Juniorer'],['medical','Medicinskt team']]},
   {id:'matches',label:'Matcher',icon:'calendar',pages:[['calendar','Kalender'],['match','Matchcenter'],['opponents','Motståndsrapport'],['statistics','Matchanalys']],details:{schedule:'calendar',round:'calendar'}},
   {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Rekrytering']],details:{marketPlayer:'transfers',scouting:'transfers'}},
   {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
-  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
+  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
 ];
 const DESK_RECRUIT_TABS = [['needs','Behov'],['search','Sökning'],['missions','Scouting'],['shortlist','Önskelista'],['deals','Förhandlingar']];
 const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
@@ -43,6 +43,7 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ if(state.managerFeedback){state.managerFeedback.selectedBrief=previous.feedbackBrief;state.managerFeedback.filter=previous.feedbackFilter||'all';}
  state.selectedPlayer=previous.player;state.selectedMarketPlayer=previous.market;lineupWorkspace=previous.lineup;
  if(previous.filters)state.recruitment.filters={...previous.filters};
  deskNavigate(previous.page,previous.tab,false);inboxUI.detail=previous.inboxDetail;render();
@@ -57,7 +58,7 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();
  if(page==='specialTeams'){page='lines';lineupWorkspace='special';}
@@ -188,5 +189,5 @@ function managerDeskView(){
  <section class="desk-panel"><span class="desk-kicker">IDAG</span><h2>${c.completedMatchDate===c.date?'Följ upp dagens match':calendarFixtures().some(f=>f.date===c.date)?'Matchdag':TRAINING_SESSIONS[calendarSession(c.date).type].name}</h2><p>${trainingSafe(trainingAdvice())}</p>${deskLink('Öppna dagens program',{page:'calendar'},'btn')}</section>
  <section class="desk-panel"><span class="desk-kicker">BESLUT SOM VÄNTAR · ${tasks.length}</span><h2>Att ta ställning till</h2>${tasks.length?tasks.slice(0,3).map(t=>`<button class="desk-task" onclick="${trainingSafe(deskAction(t.action))}"><span>${t.tag}</span><strong>${trainingSafe(t.title)}</strong><small>${trainingSafe(t.detail)}</small></button>`).join(''):'<p>Inga prioriterade beslut just nu.</p>'}${tasks.length>3?`<details><summary>${tasks.length-3} fler ärenden</summary>${tasks.slice(3).map(t=>deskLink(t.title,t.action)).join('')}</details>`:''}</section>
  <section class="desk-panel"><span class="desk-kicker">${next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="desk-live-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${next.action.page==='calendar'?'':deskLink(next.label,next.action,'btn secondary')}</section></div>
- <details class="desk-panel desk-context"><summary>Laget, motståndet och säsongens historier</summary>${coachFocus()?`<p>Träningsfokus: ${COACH_FOCUSES[coachFocus().key].name} · ${coachFocus().results.length}/${coachFocus().target||3} matcher. ${deskLink('Visa uppföljning',{page:'training'})}</p>`:''}${rivalsDeskView()}${storiesDeskView()}<p>Kassa: ${careerMoney(state.money)} · Återstående löneutrymme: ${careerMoney(wageBudget()-annualWageCost())}</p></details></section>`;
+ <p class="desk-panel">${deskLink('Stabens råd och uppföljning av dina beslut',{page:'staffReview'})} · ${deskLink('Liganyheter',{page:'news'})}</p><details class="desk-panel desk-context"><summary>Laget, motståndet och säsongens historier</summary>${coachFocus()?`<p>Träningsfokus: ${COACH_FOCUSES[coachFocus().key].name} · ${coachFocus().results.length}/${coachFocus().target||3} matcher. ${deskLink('Visa uppföljning',{page:'training'})}</p>`:''}${rivalsDeskView()}${storiesDeskView()}<p>Kassa: ${careerMoney(state.money)} · Återstående löneutrymme: ${careerMoney(wageBudget()-annualWageCost())}</p></details></section>`;
 }

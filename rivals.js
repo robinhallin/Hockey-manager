@@ -73,6 +73,7 @@ function rivalLineup(club,opponentName=null){
 function rivalEvent(club,kind,title,text){
  const w=state.rivals;if(!w)return;
  const item={id:`world-${w.nextEvent++}`,date:state.calendar.date,year:w.year,club,kind,title,text};
+ feedbackRivalEvent(item);
  w.events.unshift(item);w.events=w.events.slice(0,80);
  if(leagueOf(club)===leagueOf()&&kind==='coach')managerMessage(`rival:${club}:${rivalsClubState(club).coach.id}`,title,text,'Ligavärlden',{link:'opponents'});
 }
@@ -312,6 +313,7 @@ function rivalAfterFixture(game,rows,reports,partial=false){
   aiRecordMeeting(club,own?game.away:game.home,game,{...report,shots:entries.reduce((n,r)=>n+r.shots,0)},
    {...reports.find(r=>r.club!==club),shots:rows.filter(r=>r.club!==club).reduce((n,r)=>n+r.shots,0)});
   if(club===managerClub())continue;
+  if(!partial)for(const row of entries){const p=(state.clubRosters[club]||[]).find(p=>samePlayerId(p.id,row.id));if(p?.age<=21&&(row.goals||0)+(row.assists||0)>=3&&p.feedbackBreakoutYear!==state.season.year){p.feedbackBreakoutYear=state.season.year;feedbackNews('breakout:'+p.id+':'+state.season.year,club,'development',p.name+' kliver fram',`${row.goals||0} mål och ${row.assists||0} assist mot ${own?game.away:game.home}. En stark tävlingsmatch av ${p.age}-åringen; följ fortsättningen i ligans spelarstatistik.`);}}
   aiSettleFixture(club,game);
   if(!partial)aiAfterPlayerFixture(club,entries,gf,ga);
   if(report.decisions?.length)aiDecision(club,'tactics',report.decisions.at(-1).reason);

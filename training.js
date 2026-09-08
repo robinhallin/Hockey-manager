@@ -278,6 +278,7 @@ function dailyOverview(){
 function messageActionView(m){return `<button class="btn secondary" onclick="messageOpenContext(${m.id})">Öppna ärendet →</button>`;}
 function messageOpenContext(id){
  const m=state.training.messages.find(m=>m.id===id);if(!m)return;
+ if(m.feedbackBriefId){ensureManagerFeedback().selectedBrief=m.feedbackBriefId;deskNavigate('staffReview');return;}
  if(m.matchId||(m.key||'').startsWith('analysis:')){const match=state.analysis.matches.find(x=>x.id===(m.matchId||m.key.slice(9)));if(match){state.analysis.selected=match.id;deskNavigate('statistics');return;}}
  if(m.dealId&&state.recruitment.deals.some(d=>d.id===m.dealId)){state.recruitment.focusDeal=m.dealId;deskNavigate('transfers','deals');return;}
  if(m.storyId){storiesOpen(m.storyId);return;}

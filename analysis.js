@@ -58,7 +58,7 @@ function analysisSnapshot(){
 }
 function finishAnalysis(){
  ensureAnalysis();leagueCommitLive();finishPerformance();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
- const snapshot=analysisSnapshot();dynamicsRecordMatch(snapshot);a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest'; storiesAfterMatch(snapshot);coachMatchDone(snapshot);
+ const snapshot=analysisSnapshot();dynamicsRecordMatch(snapshot);a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest'; storiesAfterMatch(snapshot);coachMatchDone(snapshot);feedbackAfterMatch(snapshot);
  managerMessage(`analysis:${a.id}`,'Matchanalysen är klar',`${snapshot.club} ${snapshot.own}–${snapshot.against} ${snapshot.opponent}. Skott, formationer och spelarnas minuter finns under Statistik & analys.`,'Matchanalytiker',{link:'statistics'});
 }
 
@@ -165,6 +165,7 @@ function coachEvidence(){return (state.analysis?.matches||[]).filter(coachEligib
 function coachFocus(){const f=state.analysis?.coachFocus;return f&&f.club===managerClub()&&f.year===state.season?.year?f:null;}
 function coachAdopt(key){
  ensureAnalysis();const matches=coachEvidence();if(!COACH_FOCUSES[key]||!matches.length||state.live&&!state.live.finished)return;
+ feedbackArchiveCoach();
  state.analysis.coachFocus={key,club:managerClub(),year:state.season.year,date:state.calendar.date,target:state.analysis.coachWindow||3,baseline:matches.map(m=>({id:m.id,value:coachMeasure(m,key),rates:analysisStrengthSummary(m,key)})),seen:(state.analysis.matches||[]).map(m=>m.id),sessions:[],results:[]};
  save();render();
 }
