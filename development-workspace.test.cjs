@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');const {run:r}=boot();
+r("startCareerWithClub('HV71');trainingView();juniorsView();medicalView();globalThis.p=managerRoster()[0]");const before=r('JSON.stringify(state)');r('trainingView();juniorsView();medicalView()');assert.equal(r('JSON.stringify(state)'),before);
+r("developmentSet('filter','goalies')");assert.equal(r("developmentPlayers().every(p=>p.pos==='MV')"),true);
+r("developmentSet('query','zzzzzz')");assert.match(r('trainingView()'),/Inga spelare matchar/);
+r("developmentUI.query='';developmentUI.filter='all';deskNavigate('training');developmentSet('player',p.id);setIndividualLoad(p.id,'rest')");assert.equal(r('p.trainingLoad'),'rest');
+r("globalThis.focus=focusOptions(p).find(f=>f!==p.developmentFocus);setDevelopmentFocus(p.id,focus)");assert.equal(r('p.developmentFocus'),r('focus'));
+r("selectPlayer(p.id);deskBack()");assert.equal(r('state.page'),'training');assert.equal(r('developmentUI.player'),r('p.id'));
+r("developmentSet('tab','history')");assert.match(r('trainingView()'),/Genomförda lagpass/);
+r("developmentSet('juniorTab','history')");assert.match(r('juniorsView()'),/Utvecklingsmatcher & rapporter/);
+r("developmentSet('medicalTab','history')");assert.match(r('medicalView()'),/Medicinska rapporter/);
+console.log('PASS: all development views read-only, player filtering, real focus/load changes, profile return and separate reports.');

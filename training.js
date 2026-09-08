@@ -249,7 +249,8 @@ function trainingAdvice(){
   if(currentTrainingFamiliarity()<40)return 'Matchplanen är fortfarande ovan för laget. Taktiskt samspel eller matchförberedelse hjälper spelarna att bli tryggare i den.';
   return 'Truppen har utrymme att utvecklas. Varva individuellt arbete med lättare pass inför match och ge talangerna riktig istid.';
 }
-function trainingView(){
+function trainingView(){return developmentWorkspaceView();}
+function legacyTrainingView(){
   ensureTrainingData();const t=state.training;
   const roster=managerRoster(),filtered=roster.filter(p=>trainingPosition==='all'||(trainingPosition==='skater'?p.pos!=='MV':p.pos==='MV'));
   const condition=Math.round(roster.reduce((n,p)=>n+100-p.fatigue,0)/roster.length);
