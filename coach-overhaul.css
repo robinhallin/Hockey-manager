@@ -47,3 +47,10 @@
 .chemistry-table-scroll tbody tr:hover{background:#1c3b4b}
 .chemistry-table-scroll td:nth-child(2){min-width:220px}
 .chemistry-analysis summary:focus-visible,.chemistry-table-scroll:focus-visible{outline:2px solid #79cfe2;outline-offset:2px}
+
+.mc-evidence{margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #365365}
+.mc-evidence h3{font-size:15px!important;margin:0 0 8px}
+.mc-evidence article{padding:12px;margin:10px 0;border:1px solid #365365;border-radius:8px;background:#163342}
+.mc-evidence article>strong{color:#e9d97c;font-size:13px}
+.mc-evidence p{font-size:12px;line-height:1.5}
+.mc-evidence .btn{width:100%;font-size:12px;min-height:36px}

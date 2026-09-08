@@ -134,3 +134,36 @@ efter bokföring och sparas inte i klubbens rapportarkiv.
 Åtta riktade testfiler passerade för detta steg: match-readiness,
 chemistry-foundation, career-match, career-match-rules, adaptive-coaches,
 workflow, coaching och rivals. Full flersäsongskalibrering återstår.
+
+## Grundsteg 3: tränarråd med synligt underlag
+
+Implementerat i match-evidence.js och den befintliga coachbänkens Feedback-vy.
+Assistenten granskar de senaste fem spelminuterna, högst två observationer åt
+gången. Energiläget gäller spelarna som faktiskt är på isen.
+
+- Farliga avslut bakåt och egna skottförsök med låg farlighet behandlas
+  separat. Skottmönster analyseras endast vid lika styrka och efter minst tre
+  spelminuter, med minimiantal observationer. Farlighet är matchmotorns
+  befintliga klassificering, inte en ny extern xG-modell.
+- Upprepade egna utvisningar och minst två slitna aktiva utespelare kan ge
+  egna observationer. Special teams blandas inte in i fem-mot-fem-analysen.
+- Varje råd visar observation, handlingsalternativ och avvägning. Det gör
+  ingen säker orsaksbedömning av ett statistiskt mönster.
+- Redan avvaktande press, tålmodiga avslut eller disciplinerad fysisk nivå
+  leder till att assistenten hänvisar till formationer eller matchloggen,
+  i stället för att föreslå samma taktiska val igen.
+- Befintliga coachflikar används för granskning. Taktik och byten pausar
+  matchen, medan logg följer spelarens befintliga pausinställning. Inget råd
+  ändrar taktiken automatiskt eller ger en dold prestationsbonus.
+- Underlaget uppdateras var 30:e spelad sekund i direktsänd match. En
+  fokuserad knapp byts inte ut under tangentbordsanvändning. Ett nytt
+  renderat pausläge läser aktuella värden.
+- Äldre delvis registrerade matcher får inga automatiska slutsatser från
+  skottmönster eller utvisningar. Det aktuella energiläget kan fortfarande
+  bedömas. Ingen historik eller slump skapas av att läsa råden.
+
+Gränser: detta är fyra avgränsade regelbaserade observationer. Zoninträden,
+uppspelsvägar, forecheckens faktiska genomslag och utfall efter en vald
+åtgärd behöver mer registrering och uppföljning innan assistenten kan
+diagnostisera dem. Ingen effekt av tränarråd eller taktik på vinstsannolikhet
+har kalibrerats i detta steg.
