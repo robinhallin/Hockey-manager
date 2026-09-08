@@ -3,6 +3,7 @@
 // Legacy unfinished saves retain their engine; every newly created fixture uses this adapter.
 function studioActive(){return Boolean(state.live?.broadcast);}
 let studioRosterCache=null;
+const studioChemistryCache=new WeakMap();
 function studioPlayer(side,id){
  if(studioRosterCache?.match!==state.live)studioRosterCache={match:state.live,maps:[managerRoster(),state.clubRosters[state.live.opponent]||[]].map(ps=>new Map(ps.map(p=>[String(p.id),p])))};
  return studioRosterCache.maps[side].get(String(id));
@@ -50,7 +51,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   return rows;
  }
  installUnit(side){
-  super.installUnit(side);
+  super.installUnit(side);studioChemistryCache.delete(this);
   if(this.teams[side].pulled)this.actors=this.actors.filter(a=>a.side!==side||a.role!=='G');
  }
  nextUnit(side){
@@ -79,7 +80,20 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(!a)return 10;const p=studioPlayer(a.side,a.player.id),energy=p?matchEnergy(p):a.player.energy;
   const rawFit=p?positionFit(p,a.role||'X'):1,fit=this.penalty&&a.role!=='G'?Math.max(.82,rawFit):rawFit;
   let value=(a.player.attributes[key]||10)*(1-(100-energy)*.0035)*fit;
-  if(['passing','vision','positioning','decisions'].includes(key))value*=1+(((['LD','RD'].includes(a.role)?this.teams[a.side].defenseChemistry:this.teams[a.side].chemistry)??50)-50)/500;
+  if(CHEMISTRY_ATTRIBUTES.has(key)){
+   let cache=studioChemistryCache.get(this);
+   if(!cache||cache.tick!==this.tick){
+    const signature=this.actors.map(x=>x.side+':'+x.role+':'+x.player.id).join('|');
+    if(!cache||cache.signature!==signature){
+     const values=[0,1].map(side=>{
+      const rows=this.actors.filter(x=>x.side===side&&x.role!=='G'),club=side===0?managerClub():state.live.opponent;
+      return ['forward','defense'].map(group=>lineChemistry(rows.filter(x=>(['LD','RD'].includes(x.role)?'defense':'forward')===group).map(x=>x.player.id),club).value);
+     });cache={signature,values};
+    }
+    cache.tick=this.tick;studioChemistryCache.set(this,cache);
+   }
+   value*=chemistryFactor(a.role==='G'?50:cache.values[a.side][['LD','RD'].includes(a.role)?1:0],key);
+  }
   if(a.side===0&&key==='discipline')value+=state.tacticalPlan.physicality==='hard'?-4:state.tacticalPlan.physicality==='safe'?3:0;
   if(a.side===0&&key==='discipline')value+=clubPriorityValue('discipline',0);
   if(a.side===0&&key==='checking')value+=state.tacticalPlan.physicality==='hard'?1:state.tacticalPlan.physicality==='safe'?-.6:0;
