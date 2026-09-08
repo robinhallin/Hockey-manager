@@ -19,7 +19,7 @@ function deskActionReason(action,id,choice){
  }
  if(action==='requestScoutReport'&&p){
   if(scoutPending(id))return 'En scoutrapport är redan beställd. Beskedet kommer i inkorgen.';
-  if((state.scoutReports[String(id)]?.visits||0)>=3)return 'Spelaren är redan grundligt scoutad med tre observationer.';
+  if(!scoutNeedsObservation(p))return 'Spelaren har en aktuell rapport. En uppdatering kan beställas efter 60 dagar.';
  }
  if(action==='clubRenew'){
   const staff=state.staff.find(s=>s.id===id);
