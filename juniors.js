@@ -35,7 +35,7 @@ function createJunior(pos,intake){
 function juniorNotice(text){state.juniors.message=text;save();render();}
 function juniorReport(title,body){const s=state.juniors;s.reports.unshift({year:s.year,round:state.round,title,body});s.reports=s.reports.slice(0,50);managerMessage(`junior:${s.year}:${state.round}:${state.training?.nextMessageId}`,title,body,'Junioransvarig',{link:'juniors'});}
 function juniorLocked(){return Boolean(state.live&&!state.live.finished);}
-function juniorSelect(id){if(!juniorById(id))return;state.juniors.selected=id;state.page='juniors';save();render();}
+function juniorSelect(id){if(!juniorById(id))return;deskNavigate('juniors');state.juniors.selected=id;save();render();deskBrowserBefore();}
 function juniorSet(id,key,value){
  const p=juniorById(id);if(!p)return;if(juniorLocked())return juniorNotice('Ändra utvecklingsplaner mellan matcher.');
  if(key==='role'&&juniorRoles(p).includes(value)){p.academy.role=value;p.developmentFocus='Balanserad';}
