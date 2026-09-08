@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');const {run:r}=boot();
+r("startCareerWithClub('HV71');squadWorkspaceView()");const before=r('JSON.stringify(state)');r('squadWorkspaceView()');assert.equal(r('JSON.stringify(state)'),before);
+r("squadSet('position','MV')");assert.equal(r("squadPlayers().every(p=>p.pos==='MV')"),true);
+r("squadReset();squadSort('salary')");assert.equal(r('squadPlayers().every((p,i,a)=>!i||a[i-1].salary<=p.salary)'),true);
+r("squadSort('salary')");assert.equal(r('squadPlayers().every((p,i,a)=>!i||a[i-1].salary>=p.salary)'),true);
+r("deskNavigate('squad','contracts')");assert.equal(r('squadUI.tab'),'contracts');assert.equal(r('squadPlayers().every(contractNeedsDecision)'),true);
+r("squadReset();squadSet('position','B');deskNavigate('squad');selectPlayer(squadPlayers()[0].id);deskBack()");assert.equal(r('state.page'),'squad');assert.equal(r('squadUI.position'),'B');assert.equal(r('squadUI.tab'),'contracts');
+r("squadSet('query','zzzzzzzz')");assert.match(r('squadWorkspaceView()'),/Inga spelare matchar/);
+r('squadReset()');assert.equal(r('squadPlayers().length'),r('managerRoster().length'));
+console.log('PASS: read-only squad, position/search/contract filters, ascending and descending numeric sorting, profile return and reset.');

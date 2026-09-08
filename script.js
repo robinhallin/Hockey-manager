@@ -3200,7 +3200,8 @@ calendarAfterFixture();
 function homeView(){return managerDeskView();}
 
 /* TRUPP */
-function squadView(){
+function squadView(){return squadWorkspaceView();}
+function legacySquadView(){
  depthSelection();
 
 const players =

@@ -43,6 +43,7 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ if(previous.squadUI)Object.assign(squadUI,previous.squadUI);
  if(previous.recruitHub)Object.assign(recruitHub,previous.recruitHub);
  if(previous.lineupUI)lineupUI={...previous.lineupUI,slot:previous.lineupUI.slot?{...previous.lineupUI.slot}:null};
  if(previous.specialUI)specialUI={...previous.specialUI};
@@ -66,7 +67,7 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();deskActionNotice='';let nextLineup,nextAvailability;
  if(page==='tactics'){page='lines';nextLineup='even';}
@@ -82,7 +83,7 @@ function deskNavigate(page,tab,record=true){
  if(nextLineup!==undefined)lineupWorkspace=nextLineup;
  if(nextAvailability!==undefined)recruitFilters().availability=nextAvailability;
  if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
- if(page==='squad'&&tab==='contracts')deskFolds.contracts=true;
+ if(page==='squad'&&tab==='contracts'){squadUI.tab='contracts';squadUI.status='expiring';squadUI.query='';squadUI.position='all';}
  if(page==='inbox'&&state.page!=='inbox')inboxUI.detail=false;
  state.page=page;queueInterfaceSave();render();
  const content=document.getElementById('content');if(content){content.scrollTop=0;content.focus?.({preventScroll:true});}
