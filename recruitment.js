@@ -197,8 +197,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  delete p.freeSince;delete p.previousClub;
  Object.assign(p,{club:buyer,salary,contractYears:years,squadRole:role,promisedRole:role,transferListed:false,askingPrice:null,happiness:78,morale:78});
  delete p.aiListed;delete p.aiRoleReview;aiMarkMarketPlayer(p.id,buyer);
- if(buyer===managerClub()&&SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
- else delete p.recruitmentPromise;
+ if(buyer===managerClub())rolePromiseAssign(p,role);else delete p.recruitmentPromise;
  r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();repairMedicalLines();ensureSpecialTeams();}
  feedbackArrival(p,feedbackPlan,'transfer');
@@ -232,12 +231,16 @@ function aiRecruitTransfer(){
 }
 
 function followRecruitmentPromises(m){
+ if(!m?.finished||m.friendly)return;
+ const key=m.analysis?.id||`${state.season.year}:${state.round}`;
  for(const p of managerRoster()){
-   const promise=p.recruitmentPromise;if(!promise||promise.resolved)continue;
-   if(medicalExcused(p,promise.minutes*60))continue;
-   promise.games++;if((m.iceTime?.[p.id]||0)>=promise.minutes*60)promise.qualified++;
-   if(promise.games>=3){promise.resolved=true;const met=promise.qualified>=2;promise.result=met?'Uppfyllt':'Brutet';p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
-     recruitReport(`${p.name}: uppföljning av rollen`,`${promise.role}: minst ${promise.minutes} minuter i två av tre matcher. Utfallet blev ${promise.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`);
+   const q=p.recruitmentPromise;if(!q||q.resolved||q.lastFixture===key||q.evidence?.some(g=>g.key===key))continue;
+   const rule=rolePromiseRule(q);if(medicalExcused(p,rule.minutes*60))continue;
+   const seconds=m.iceTime?.[p.id]||0,qualified=seconds>=rule.minutes*60;
+   q.lastFixture=key;q.games++;if(qualified)q.qualified++;
+   q.evidence=[...(q.evidence||[]),{key,date:state.calendar.date,opponent:m.opponent,seconds,qualified}].slice(-6);
+   if(q.games>=rule.total){q.resolved=true;const met=q.qualified>=rule.required;q.result=met?'Uppfyllt':'Brutet';p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
+     recruitReport(`${p.name}: uppföljning av rollen`,`${q.role}: minst ${rule.minutes} minuter i ${rule.required} av ${rule.total} tillgängliga tävlingsmatcher. Utfallet blev ${q.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`);
    }
  }
 }

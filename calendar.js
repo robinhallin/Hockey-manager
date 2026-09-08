@@ -214,7 +214,7 @@ function submitFutureOffer(id,salary,years,role){
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return recruitMessage('Ange giltig lön, roll och avtalslängd.');
  if(r.deals.some(d=>samePlayerId(d.playerId,id)&&['pending','future_signed'].includes(d.status)))return recruitMessage('Ett erbjudande eller framtida avtal finns redan.');
  if(salary>calendarFutureRoom())return recruitMessage('Nästa säsongs beräknade löneutrymme räcker inte.');
- r.deals.unshift({id:r.nextId++,kind:'future',playerId:p.id,name:p.name,buyer:managerClub(),seller,fee:0,salary,years,role,due:r.tick+1,dueDate:calAdd(state.calendar.date,2),joinYear:state.season.year+1,status:'pending',rival:aiCompetitionFor(p,seller,'future')});
+ r.deals.unshift({id:r.nextId++,kind:'future',rolePromiseVersion:2,playerId:p.id,name:p.name,buyer:managerClub(),seller,fee:0,salary,years,role,due:r.tick+1,dueDate:calAdd(state.calendar.date,2),joinYear:state.season.year+1,status:'pending',rival:aiCompetitionFor(p,seller,'future')});
  r.tab='deals';state.page='transfers';recruitMessage('Erbjudandet gäller från nästa säsong. Spelaren stannar i nuvarande klubb tills dess. Besked om två kalenderdagar.');
 }
 function calendarResolveFuture(d){
@@ -225,7 +225,7 @@ function calendarResolveFuture(d){
  let buyer=d.buyer,terms=d;
  if(d.rival&&aiCanCommit(d.rival.club,p,0,d.rival.salary,{future:true,years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}
  else {d.status='future_signed';d.reason=`Klart för ${d.joinYear}/${String(d.joinYear+1).slice(-2)}. Spelaren ansluter vid säsongsskiftet.`;}
- p.futureContract={buyer,seller:d.seller,joinYear:d.joinYear,salary:terms.salary,years:terms.years,role:terms.role};
+ p.futureContract={buyer,seller:d.seller,joinYear:d.joinYear,salary:terms.salary,years:terms.years,role:terms.role,rolePromiseVersion:d.rolePromiseVersion};
  aiMarkMarketPlayer(p.id,buyer);
  recruitReport(`Framtidsbesked: ${p.name}`,d.reason);
 }
@@ -237,7 +237,7 @@ function calendarActivateFuture(){
   const feedbackPlan=feedbackBeforeArrival(p,f.buyer);
   const seller=getPlayerClub(p.id);if(seller===WORLD_FREE)worldRemoveFree(p.id);else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
   state.clubRosters[f.buyer].push(p);Object.assign(p,{club:f.buyer,salary:f.salary,contractYears:f.years,squadRole:f.role,promisedRole:f.role,transferListed:false});delete p.futureContract;
-  if(f.buyer===managerClub())p.recruitmentPromise={role:f.role,minutes:p.pos==='MV'?30:f.role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
+  if(f.buyer===managerClub())rolePromiseAssign(p,f.role,f.rolePromiseVersion!==2);
   state.recruitment.history.unshift({id:state.recruitment.nextId++,year:state.season.year,tick:state.recruitment.tick,name:p.name,playerId:p.id,seller,buyer:f.buyer,fee:0});state.recruitment.history=state.recruitment.history.slice(0,250);
   feedbackArrival(p,feedbackPlan,'future');feedbackNews('future-arrival:'+state.season.year+':'+p.id,f.buyer,'transfer',p.name+' ansluter till '+f.buyer,'Förhandsavtalet träder i kraft. Spelaren kommer från '+seller+'.');
   for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&d.status==='future_signed'){d.status='signed';d.reason='Spelaren har anslutit enligt förhandsavtalet.';}
@@ -248,5 +248,5 @@ function calendarFuturePanel(p){
  if(p.futureContract)return `<section class="calendar-future"><h2>Nästa säsong</h2><p>Avtal med ${trainingSafe(p.futureContract.buyer)} från ${seasonLabel(p.futureContract.joinYear)}. Spelaren stannar i sin nuvarande klubb fram till säsongsskiftet.</p></section>`;
  if(p.contractYears!==1||isOwnPlayer(p)||state.season.phase==='preseason')return '';
  const w=recruitPlayerWishes(p);
- return `<details class="calendar-future"><summary>Värva till nästa säsong</summary><p>Ingen övergångssumma. Beräknat ledigt löneutrymme: ${careerMoney(calendarFutureRoom())}/år. Prognosen utgår från dagens lönebudget. Avtalet är bindande även om budgeten senare minskar.</p><form onsubmit="event.preventDefault();submitFutureOffer('${p.id}',this.elements.salary.value,this.elements.years.value,this.elements.role.value)"><label>Årslön<input name="salary" type="number" min="1" step="1" required value="${w.salary}"></label><label>Avtalslängd<select name="years">${recruitOptions({1:'1 år',2:'2 år',3:'3 år',4:'4 år',5:'5 år'},Math.min(2,w.maxYears))}</select></label><label>Spelarens roll<select name="role">${recruitOptions(Object.fromEntries(SQUAD_ROLES.map(r=>[r,r])),w.role)}</select></label><button class="btn">Erbjud avtal inför nästa säsong</button></form></details>`;
+ return `<details class="calendar-future"><summary>Värva till nästa säsong</summary>${rolePromiseOfferView(p)}<p>Ingen övergångssumma. Beräknat ledigt löneutrymme: ${careerMoney(calendarFutureRoom())}/år. Prognosen utgår från dagens lönebudget. Avtalet är bindande även om budgeten senare minskar.</p><form onsubmit="event.preventDefault();submitFutureOffer('${p.id}',this.elements.salary.value,this.elements.years.value,this.elements.role.value)"><label>Årslön<input name="salary" type="number" min="1" step="1" required value="${w.salary}"></label><label>Avtalslängd<select name="years">${recruitOptions({1:'1 år',2:'2 år',3:'3 år',4:'4 år',5:'5 år'},Math.min(2,w.maxYears))}</select></label><label>Spelarens roll<select name="role">${recruitOptions(Object.fromEntries(SQUAD_ROLES.map(r=>[r,r])),w.role)}</select></label><button class="btn">Erbjud avtal inför nästa säsong</button></form></details>`;
 }
