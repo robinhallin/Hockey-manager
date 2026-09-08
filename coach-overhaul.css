@@ -33,3 +33,17 @@
 @media(min-width:1000px){.lineup-name{padding:6px;gap:2px;line-height:1.1}.lineup-name strong{font-size:12px;line-height:1.15}.lineup-name small{line-height:1.1}.lineup-name .star-rating{font-size:14px;line-height:1}.lineup-group{padding:8px;margin-bottom:8px}.lineup-group header{margin-bottom:6px}.lineup-all>header h1{margin:10px 0 6px}.lineup-all>header p{margin:6px 0 12px}}
 
 .save-status-warning{position:fixed;bottom:8px;left:8px;right:8px;z-index:9999;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;border:2px solid #d88b38;border-radius:8px;background:#122332;color:#fff;font-size:13px;box-shadow:0 8px 30px #0008}.save-status-warning span{flex:1 1 300px}.save-status-warning button{min-height:36px;padding:6px 12px;cursor:pointer}
+
+/* Desktop analysis belongs to the lineup workspace, beside the actual decisions. */
+.chemistry-analysis{margin:16px 0;border:1px solid #365365;border-radius:10px;background:#102330;color:#dce8f0}
+.chemistry-analysis>summary{padding:14px 16px;cursor:pointer;font-weight:600}
+.chemistry-analysis>p{padding:0 16px;font-size:12px;line-height:1.6;color:#b3c6d3}
+.chemistry-table-scroll{overflow:auto;margin:0 16px 16px}
+.chemistry-table-scroll table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.chemistry-table-scroll caption{text-align:left;padding:8px 0;color:#c5d9e7}
+.chemistry-table-scroll th,.chemistry-table-scroll td{padding:12px 10px;border-bottom:1px solid #304957;text-align:right}
+.chemistry-table-scroll th:nth-child(-n+2),.chemistry-table-scroll td:nth-child(2){text-align:left}
+.chemistry-table-scroll thead{background:#193342}
+.chemistry-table-scroll tbody tr:hover{background:#1c3b4b}
+.chemistry-table-scroll td:nth-child(2){min-width:220px}
+.chemistry-analysis summary:focus-visible,.chemistry-table-scroll:focus-visible{outline:2px solid #79cfe2;outline-offset:2px}

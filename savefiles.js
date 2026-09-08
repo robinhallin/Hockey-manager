@@ -53,7 +53,7 @@ function validateSaveText(text){
   for(const p of s.loans.external){if(!p||ids.has(String(p.id))||typeof p.name!=='string'||typeof p.club!=='string')throw Error('En återvänd spelare är dubbelregistrerad.');ids.add(String(p.id));}
  }
  if(s.training&&(!Array.isArray(s.training.plan)||s.training.plan.some(p=>!p||!TRAINING_SESSIONS[p.type]||!['light','normal','hard'].includes(p.intensity))||!Array.isArray(s.training.messages)||!Array.isArray(s.training.history)||!Number.isInteger(s.training.day)||s.training.day<0))throw Error('Träningsplanen är felaktig.');
- validateClubAISave(s,ids);validateManagerFeedbackSave(s);validateAICoachSave(s);validateSpatialMatchSave(s);
+ validateClubAISave(s,ids);validateManagerFeedbackSave(s);validateAICoachSave(s);validateSpatialMatchSave(s);validateDynamicsSave(s);
  if(s.season&&!['regular','playoffs','review','preseason'].includes(s.season.phase))throw Error('Ogiltig säsongsfas.');
  for(const g of s.schedule)if(!Number.isInteger(g.round)||g.round<1||!s.clubRosters[g.home]||!s.clubRosters[g.away])throw Error('Spelschemat är felaktigt.');
  if(s.calendar&&(!/^\d{4}-\d{2}-\d{2}$/.test(s.calendar.date)||!Number.isFinite(Date.parse(s.calendar.date))))throw Error('Ogiltigt kalenderdatum.');

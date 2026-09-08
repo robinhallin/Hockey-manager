@@ -108,6 +108,7 @@ function rivalsDay(){
   const today=state.calendar.date,fixture=state.schedule.some(g=>!g.played&&g.date===today&&(g.home===club||g.away===club));
   const rand=rivalRandom(`${today}:${club}:day`);
   c.familiarity=Math.min(85,c.familiarity+1);
+  if(!fixture){const l=rivalLineup(club);dynamicsTrain(club,[...l.lines.map(ps=>ps.map(p=>p.id)),...[0,1,2].map(i=>l.defense.slice(i*2,i*2+2).map(p=>p.id))],'tactics',today);}
   for(const p of state.clubRosters[club]||[]){
    p.fatigue=Math.max(0,(p.fatigue||0)-(fixture||p.fatigue>40?12:6));
    if(p.health?.injury||fixture)continue;
@@ -184,7 +185,7 @@ function rivalSimulate(game){
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club,club===game.home?game.away:game.home);
   const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
-  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
+  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},pairResults:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
  });
  // Attributes do not change during a background fixture: snapshot once per player.
  const values=new Map(),ratings=new Map(),energy=new Map();
@@ -193,9 +194,16 @@ function rivalSimulate(game){
   const average=keys=>keys.reduce((n,k)=>n+(a[k]||10),0)/keys.length;
   ratings.set(p,{attack:average(['shooting','passing','vision','skating']),defense:average(['positioning','decisions','workRate','discipline']),goalie:average(['reflexes','positioning','reboundControl','movement'])});
  }
- const chemistry=new Map();for(const side of sides)for(const line of [...side.l.lines,...[0,1,2].map(i=>side.l.defense.slice(i*2,i*2+2))]){const factor=1+(lineChemistry(line.map(p=>p.id),side.l.club).value-50)/500;for(const p of line)chemistry.set(p,factor);}
+ const chemistry=new Map(),chemistryCache=new Map();
+ const updateChemistry=ice=>{
+  for(const side of [0,1])for(const defense of [false,true]){
+   const ps=ice[side].filter(p=>(p.pos==='B')===defense),key=names[side]+':'+ps.map(p=>String(p.id)).sort().join('|');
+   if(!chemistryCache.has(key))chemistryCache.set(key,lineChemistry(ps.map(p=>p.id),names[side]).value);
+   for(const p of ps)chemistry.set(p,chemistryCache.get(key));
+  }
+ };
  const fatigueFactor=p=>1-(100-(energy.get(p)??100))*.0035;
- const attribute=(p,k)=>(values.get(p)?.[k]||10)*(['passing','positioning','decisions'].includes(k)?chemistry.get(p)||1:1)*fatigueFactor(p);
+ const attribute=(p,k)=>(values.get(p)?.[k]||10)*chemistryFactor(chemistry.get(p),k)*fatigueFactor(p);
  const rating=(p,kind='goalie')=>(ratings.get(p)?.[kind]||1)*fatigueFactor(p);
  let time=0,overtime=false,shootout=false;
  const weighted=(players,keys)=>{
@@ -226,6 +234,7 @@ function rivalSimulate(game){
   return [...new Map([...preferred,...available].filter(p=>available.includes(p)).map(p=>[String(p.id),p])).values()].slice(0,count);
  };
  const attempt=(side,ice,force=false)=>{
+  updateChemistry(ice);
   const b=sides[side],other=sides[1-side],players=ice[side],defenders=ice[1-side];
   const shooter=weighted(players,['shooting','composure','positioning']);if(!shooter)return false;
   const pp=players.length>defenders.length,keeper=other.l.keeper;
@@ -236,6 +245,9 @@ function rivalSimulate(game){
   if(keeper)row(1-side,keeper)[goal?'against':'saves']++;
   if(!goal)return false;
   b.goals++;row(side,shooter).goals++;
+  for(const team of [0,1])for(let i=0;i<ice[team].length;i++)for(let j=i+1;j<ice[team].length;j++){
+   const key=dynamicsKey(ice[team][i].id,ice[team][j].id);sides[team].pairResults[key]=(sides[team].pairResults[key]||0)+(team===side?1:-1);
+  }
   if(pp){b.ppGoals++;other.pens.shift();}
   let eligible=players.filter(p=>p!==shooter);
   for(const probability of [.86,.5]){if(!eligible.length||rand()>probability)break;const p=weighted(eligible,['passing','vision']);row(side,p).assists++;eligible=eligible.filter(q=>q!==p);}
@@ -249,7 +261,7 @@ function rivalSimulate(game){
    if(decision.timeout&&!b.timeout){b.timeout=true;for(const p of [...b.l.forwards,...b.l.defense,...b.l.extras])energy.set(p,Math.min(100,(energy.get(p)||100)+8));b.decisions.push({seconds:time,reason:'Tar timeout för återhämtning och en sista offensiv.'});}
    b.decisions=b.decisions.slice(-20);b.l.plan=decision;
   }
-  const ice=[onIce(0),onIce(1)];
+  const ice=[onIce(0),onIce(1)];updateChemistry(ice);
   for(let side=0;side<2;side++){
    const l=sides[side].l;
    for(const p of [...l.forwards,...l.defense,...l.extras]){
@@ -293,7 +305,7 @@ function rivalSimulate(game){
   }
  }
  return {homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
-  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds}))};
+  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults}))};
 }
 function rivalAfterFixture(game,rows,reports,partial=false){
  if(!game||game.rivalsRecorded||!state.rivals)return;game.rivalsRecorded=true;
@@ -306,7 +318,7 @@ function rivalAfterFixture(game,rows,reports,partial=false){
  for(const club of [game.home,game.away]){
   const c=rivalsClubState(club);if(!c)continue;
   const own=club===game.home,gf=own?game.homeGoals:game.awayGoals,ga=own?game.awayGoals:game.homeGoals,report=reports.find(r=>r.club===club)||{};
-  if(report.pairSeconds){const d=dynamicsClub(club);for(const [key,seconds] of Object.entries(report.pairSeconds)){const row=d.pairs[key]??={seconds:0,form:0};row.seconds+=seconds;row.form=Math.max(-10,Math.min(12,row.form*.96+Math.sign(gf-ga)*.4));}delete report.pairSeconds;}
+  if(report.pairSeconds){dynamicsCommit(club,report.pairSeconds,report.pairResults);delete report.pairSeconds;delete report.pairResults;}
   const entries=rows.filter(r=>r.club===club),keeper=entries.filter(r=>r.pos==='MV').sort((a,b)=>b.seconds-a.seconds)[0];
   const best=entries.filter(r=>r.pos!=='MV').sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
   c.recent.push({date:game.date||state.calendar.date,year:state.season.year,opponent:own?game.away:game.home,gf,ga,partial,...report,keeper:keeper?.id??report.keeper??null,shots:entries.reduce((n,r)=>n+r.shots,0),againstShots:rows.filter(r=>r.club!==club).reduce((n,r)=>n+r.shots,0),star:best&&best.goals+best.assists?{id:best.id,name:best.name,points:best.goals+best.assists}:null});

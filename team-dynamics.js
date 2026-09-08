@@ -31,34 +31,66 @@ function positionBadge(p,role){
  const fit=positionFit(p,role),a=playerAssessment(p);
  return `${starRatingHTML(Math.round(Math.max(0,a.low*fit)*10)/10,Math.round(Math.max(0,a.high*fit)*10)/10,false,a.staff.name)}<small class="position-fit ${fit<.8?'unfamiliar':''}">${Math.round(fit*100)} % positionsvana${fit<.8?' · ovan position':''}</small>`;
 }
+// One explanation and one factor for both engines and all lineup screens.
+const CHEMISTRY_ATTRIBUTES=new Set(['passing','vision','positioning','decisions']);
+function chemistryFactor(value,key){return CHEMISTRY_ATTRIBUTES.has(key)?1+((value??50)-50)/500:1;}
 function lineChemistry(ids,club=managerClub()){
- const ps=ids.map(id=>(state.clubRosters[club]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean),d=dynamicsClub(club);let total=0,pairs=0,minutes=0;
+ const roster=state.clubRosters[club]||[],ps=[...new Set(ids.map(String))].map(id=>roster.find(p=>String(p.id)===id)).filter(p=>p&&p.pos!=='MV');
+ const d=dynamicsClub(club),parts={base:45,nationality:0,experience:0,training:0,results:0};let total=0,pairs=0,minutes=0;
  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
   const a=ps[i],b=ps[j],record=d.pairs[dynamicsKey(a.id,b.id)]||{},nation=p=>p.nationality||p.research?.nationality;
-  const shared=Boolean(nation(a)&&nation(a)===nation(b));
-  total+=Math.max(20,Math.min(95,45+(shared?5:0)+Math.min(32,(record.seconds||0)/1800)+(record.form||0)));
+  const shared=nation(a)&&nation(a)===nation(b)?5:0,experience=Math.min(32,(record.seconds||0)/1800),training=Math.min(8,record.training||0),results=record.form||0;
+  total+=Math.max(20,Math.min(95,45+shared+experience+training+results));
+  parts.nationality+=shared;parts.experience+=experience;parts.training+=training;parts.results+=results;
   minutes+=(record.seconds||0)/60;pairs++;
  }
- return {value:pairs?Math.round(total/pairs):0,minutes:pairs?Math.round(minutes/pairs):0};
+ if(pairs)for(const k of ['nationality','experience','training','results'])parts[k]/=pairs;
+ return {value:pairs?Math.round(total/pairs):50,minutes:pairs?Math.round(minutes/pairs):0,pairs,parts};
 }
 function chemistryView(ids,club=managerClub()){
- const c=lineChemistry(ids,club);return `<span class="chemistry" title="Gemensam istid, resultat tillsammans och ett litet tillskott för gemensam nationalitet. ${c.minutes} gemensamma minuter i snitt.">Kemi <b>${c.value} %</b><meter min="0" max="100" value="${c.value}" aria-label="Kemi ${c.value} procent"></meter></span>`;
+ const c=lineChemistry(ids,club);return `<span class="chemistry" title="Gemensam istid, träning och resultat tillsammans. ${c.minutes} gemensamma minuter i snitt.">Kemi <b>${c.value} %</b><meter min="0" max="100" value="${c.value}" aria-label="Kemi ${c.value} procent"></meter></span>`;
+}
+function dynamicsTrain(club,units,session,date=state.calendar?.date){
+ if(!date||!['tactics','matchprep','powerplay','penaltykill','skills'].includes(session))return;
+ const d=dynamicsClub(club);if(d.lastTrainingDate===date)return;d.lastTrainingDate=date;
+ const seen=new Set(),roster=state.clubRosters[club]||[];
+ for(const ids of units){
+  const ps=ids.map(id=>roster.find(p=>samePlayerId(p.id,id))).filter(p=>p&&p.pos!=='MV'&&medicalCanTrain(p)&&p.trainingLoad!=='rest');
+  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){
+   const key=dynamicsKey(ps[i].id,ps[j].id);if(seen.has(key))continue;seen.add(key);
+   const row=d.pairs[key]??={seconds:0,form:0};row.training=Math.min(8,(row.training||0)+(session==='tactics'?.4:.2));
+  }
+ }
+ dynamicsPrune(club);
+}
+function dynamicsPrune(club){
+ const d=dynamicsClub(club),ids=new Set((state.clubRosters[club]||[]).map(p=>String(p.id)));
+ for(const key of Object.keys(d.pairs))if(!key.split('|').every(id=>ids.has(id)))delete d.pairs[key];
+}
+function dynamicsCommit(club,groups,results={}){
+ const d=dynamicsClub(club);
+ for(const [key,seconds] of Object.entries(groups||{})){
+  if(!Number.isFinite(seconds)||seconds<=0)continue;
+  const row=d.pairs[key]??={seconds:0,form:0};
+  row.seconds+=seconds*(club===managerClub()?clubPriorityValue('chemistry'):1);
+  row.form=Math.max(-10,Math.min(12,row.form*.96+Math.max(-2,Math.min(2,results[key]||0))*.6));
+ }
+ dynamicsPrune(club);
 }
 function dynamicsRecordMatch(snapshot){
  const m=state.live;if(!m?.broadcast||m.dynamicsSaved)return;m.dynamicsSaved=true;
  const e=studioEngine();
  for(const side of [0,1]){
-  const club=side?m.opponent:managerClub(),d=dynamicsClub(club),groups=e.pairSeconds?.[side]||{};
-  for(const [key,seconds] of Object.entries(groups)){
-   const row=d.pairs[key]??={seconds:0,form:0};row.seconds+=seconds*(club===managerClub()?clubPriorityValue('chemistry'):1);
-   const results=e.pairResults?.[side]?.[key]||0;
-   row.form=Math.max(-10,Math.min(12,row.form*.96+Math.max(-2,Math.min(2,results))*.6));
-  }
-  // Retain only relationships between current teammates to bound save size.
-  const ids=new Set((state.clubRosters[club]||[]).map(p=>String(p.id)));
-  for(const key of Object.keys(d.pairs))if(!key.split('|').every(id=>ids.has(id)))delete d.pairs[key];
-  d.lastMatch=snapshot.id;
+  const club=side?m.opponent:managerClub();
+  dynamicsCommit(club,e.pairSeconds?.[side],e.pairResults?.[side]);dynamicsClub(club).lastMatch=snapshot.id;
  }
+}
+function chemistryAnalysisView(){
+ const units=[...[0,1,2,3].map(i=>({name:'Kedja '+(i+1),ids:state.lines.forwards.slice(i*3,i*3+3)})),...[0,1,2].map(i=>({name:'Backpar '+(i+1),ids:state.lines.defense.slice(i*2,i*2+2)}))];
+ const signed=n=>(n>0?'+':'')+n.toFixed(1);
+ return `<details class="chemistry-analysis" ${state.page==='match'?'':'open'}><summary>Analysera formationernas samspel</summary><p>Samma kemi används här, i omklädningsrummet och i matchen. Jämför kontinuitet mot behovet av nya kombinationer.</p><div class="chemistry-table-scroll" tabindex="0" role="region" aria-label="Jämför formationernas kemi"><table><caption>Kemins underlag · före nästa match</caption><thead><tr><th>Formation</th><th>Spelare</th><th>Kemi</th><th>Gemensam istid¹</th><th>Istidsbidrag</th><th>Träningsbidrag</th><th>Resultatbidrag</th><th>Bakgrund²</th><th>Samspelseffekt³</th></tr></thead><tbody>${units.map(u=>{
+  const c=lineChemistry(u.ids);return `<tr><th scope="row">${u.name}</th><td>${u.ids.map(id=>trainingSafe(playerById(id)?.name||'Vakant')).join(' · ')}</td><td><strong>${c.value}/100</strong></td><td>${c.minutes} min</td><td>${signed(c.parts.experience)}</td><td>${signed(c.parts.training)}</td><td>${signed(c.parts.results)}</td><td>${signed(c.parts.base+c.parts.nationality)}</td><td>${signed((chemistryFactor(c.value,'passing')-1)*100)} %</td></tr>`;
+ }).join('')}</tbody></table></div><p>¹ Genomsnitt per spelarpar. ² Grundvärde 45 och högst +5 för gemensam nationalitet. ³ Påverkar passningar, spelsinne, positionering och beslut; inte alla attribut eller vinstchansen direkt. Värdet avrundas och begränsas till 20–95.</p><p>Träning bygger högst åtta kemipoäng för spelare som faktiskt deltar tillsammans. Resultatbidraget följer mål framåt och bakåt medan paret är på isen. Äldre sparningar behåller sina tidigare värden; träningsbidrag följs från denna uppdatering. En ensam spelare har neutral samspelseffekt.</p></details>`;
 }
 function lineupBoardPick(type,index){
  const from=lineupUI.slot;
@@ -90,7 +122,7 @@ function lineupBoardView(){
  ensureLines();const slot=lineupUI.slot;
  const candidates=managerRoster().filter(p=>medicalAvailable(p)&&(slot?.type==='goalie'?p.pos==='MV':p.pos!=='MV')&&(!lineupUI.query||p.name.toLocaleLowerCase('sv').includes(lineupUI.query.toLocaleLowerCase('sv'))));
  const group=(type,n,size)=>{const ids=state.lines[type].slice(n*size,n*size+size);return `<article class="lineup-group"><header><h2>${type==='forwards'?'Kedja':'Backpar'} ${n+1}</h2>${chemistryView(ids)}</header><div class="lineup-name-row ${type}">${ids.map((_,i)=>lineupBoardCard(type,n*size+i)).join('')}</div></article>`;};
- return `${lineupWorkspaceNav()}<section class="lineup-all"><header><h1>Alla kedjor och backpar</h1><p>Dra namn mellan platserna. På mobil eller med tangentbord: välj en plats, sedan en annan för att byta. Välj en reserv nedan för att sätta in den på markerad plats.</p></header>${hockeyChangeBlocked()?'<p class="lineup-warning">Icing: byten är låsta till nedsläpp.</p>':''}<div class="lineup-all-grid"><div>${[0,1,2,3].map(n=>group('forwards',n,3)).join('')}</div><div>${[0,1,2].map(n=>group('defense',n,2)).join('')}<article class="lineup-group"><header><h2>Målvakt</h2></header>${lineupBoardCard('goalie',0)}</article></div></div><section id="lineupCandidates" tabindex="-1" class="lineup-reserves"><header><h2>${slot?'Välj spelare till markerad plats':'Truppen och reserverna'}</h2><button class="btn secondary" onclick="lineupUI.slot=null;render()">Avmarkera</button></header><label>Sök spelare<input type="search" value="${trainingSafe(lineupUI.query)}" onchange="lineupUI.query=this.value;render()"></label><div>${candidates.map(p=>`<button class="lineup-reserve" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${haEscape(p.id)}')" onclick="lineupPlace('${haEscape(p.id)}')" ${!slot?'aria-disabled="true"':''}><strong>${trainingSafe(p.name)}</strong><small>${p.pos} · ${lineupPlayerPlace(p)}</small>${slot?positionBadge(p,lineupRole(slot.type,slot.index)):assessmentBadge(p)}<small>Potential ${assessmentBadge(p,true)}</small></button>`).join('')}</div></section><p>Kemin följer spelarnas relationer och utvecklas med gemensam istid och resultat. Samma nationalitet ger ett litet tillskott. Stjärnorna på varje plats visar förmågan efter positionsavdrag.</p></section>`;
+ return `${lineupWorkspaceNav()}<section class="lineup-all"><header><h1>Alla kedjor och backpar</h1><p>Dra namn mellan platserna. Med tangentbord: välj en plats med Enter, sedan en annan för att byta. Välj en reserv nedan för att sätta in den på markerad plats.</p></header>${hockeyChangeBlocked()?'<p class="lineup-warning">Icing: byten är låsta till nedsläpp.</p>':''}${chemistryAnalysisView()}<div class="lineup-all-grid"><div>${[0,1,2,3].map(n=>group('forwards',n,3)).join('')}</div><div>${[0,1,2].map(n=>group('defense',n,2)).join('')}<article class="lineup-group"><header><h2>Målvakt</h2></header>${lineupBoardCard('goalie',0)}</article></div></div><section id="lineupCandidates" tabindex="-1" class="lineup-reserves"><header><h2>${slot?'Välj spelare till markerad plats':'Truppen och reserverna'}</h2><button class="btn secondary" onclick="lineupUI.slot=null;render()">Avmarkera</button></header><label>Sök spelare<input type="search" value="${trainingSafe(lineupUI.query)}" onchange="lineupUI.query=this.value;render()"></label><div>${candidates.map(p=>`<button class="lineup-reserve" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${haEscape(p.id)}')" onclick="lineupPlace('${haEscape(p.id)}')" ${!slot?'aria-disabled="true"':''}><strong>${trainingSafe(p.name)}</strong><small>${p.pos} · ${lineupPlayerPlace(p)}</small>${slot?positionBadge(p,lineupRole(slot.type,slot.index)):assessmentBadge(p)}<small>Potential ${assessmentBadge(p,true)}</small></button>`).join('')}</div></section><p>Kemin följer spelarparen och utvecklas med gemensam träning, istid och resultat. Samma nationalitet ger ett litet tillskott. Stjärnorna på varje plats visar förmågan efter positionsavdrag.</p></section>`;
 }
 const MATCH_VIEW_MODES={full:'Hela matchen',extended:'Utökade höjdpunkter',highlights:'Viktiga höjdpunkter',commentary:'Endast resultat & kommentarer'};
 function studioShouldShow(e,m=state.live){
@@ -101,3 +133,18 @@ function studioShouldShow(e,m=state.live){
 }
 function studioPlaybackRate(e,m=state.live){return studioShouldShow(e,m)?({1:4,2:8,3:16,4:32}[m.speed]||8):({1:90,2:150,3:240,4:360}[m.speed]||150);}
 function matchFullscreen(){if(typeof document==='undefined')return;const root=document.documentElement;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
+
+function validateDynamicsSave(s){
+ if(!s.teamDynamics)return;
+ const clubs=s.teamDynamics.clubs;
+ if(!clubs||typeof clubs!=='object'||Array.isArray(clubs))throw Error('Ogiltigt samspel i sparfilen.');
+ for(const club of Object.values(clubs)){
+  if(!club?.pairs||typeof club.pairs!=='object'||Array.isArray(club.pairs))throw Error('Ogiltiga spelarpar i sparfilen.');
+  for(const row of Object.values(club.pairs)){
+   if(!row||typeof row!=='object')throw Error('Ogiltigt spelarpar i sparfilen.');
+   for(const [key,min,max] of [['seconds',0,Infinity],['form',-10,12],['training',0,8]]){
+    if(row[key]!==undefined&&(!Number.isFinite(row[key])||row[key]<min||row[key]>max))throw Error('Ogiltigt '+key+' för samspel i sparfilen.');
+   }
+  }
+ }
+}

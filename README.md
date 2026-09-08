@@ -390,3 +390,7 @@ Alla 28 svenska klubbar har nu en sparad tränarprofil. Motståndarnas fiktiva t
 Äldre karriärer får tränare när de läses in. Redan spelade matcher räknas inte om, och äldre matchresultat får inga påhittade tränarhistoriker. Händelselogg, senaste matcher, tränarhistorik och inbördes möten begränsas i storlek. De utländska marknadsklubbarna har fortfarande inga spelbara ligor. Bakgrundsmatcher använder en kompakt simulering; de kör inte den fullständiga 2D-animationen. Publiceringen använder nya versionsadresser för alla spelfiler.
 
 Verifiering: `node rivals.test.cjs` täcker samtliga 28 klubbar, skadade spelare, målvaktsrotation, resultat och spelarstatistik från samma händelser, dubbelräkning, kalenderutveckling, tränarbyten, taktiska matchbeslut, säsongshistorier, äldre sparfiler samt en hel direktsänd match. `node rivals-season.test.cjs` kontrollerar 728 grundseriematcher, avstämda tabeller och spelarmål, båda slutspelen, ligabyte och sparning i nästa säsong. Övriga befintliga regressionstester laddar även den nya modulen. Visuell webbläsartestning ingår inte i detta paket.
+
+## Utvecklingsriktning
+
+[Hockey Manager: dator först, kodgranskning och prioriterad grund](PROJECT_DIRECTION.md).
