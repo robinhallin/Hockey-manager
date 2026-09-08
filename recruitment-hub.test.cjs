@@ -3,7 +3,7 @@ r("startCareerWithClub('HV71');deskNavigate('transfers','search')");
 assert.equal(r('(deskSubnav().match(/<button/g)||[]).length'),5);assert.ok(!r('deskSubnav()').includes('desk-more'));
 r("globalThis.list=hubCandidates('search');hubPick(list[3].id);globalThis.chosen=recruitHub.player;hubPanel('transfer')");assert.equal(r('state.page'),'transfers');assert.ok(r('recruitmentView()').includes('Skicka köpbud'));
 r('recruitOpen(chosen);deskBack()');assert.equal(r('recruitHub.player'),r('chosen'));assert.equal(r('recruitHub.panel'),'transfer');
-r("toggleRecruitShortlist(chosen);deskNavigate('transfers','shortlist')");assert.equal(r("hubCandidates('shortlist').length"),1);
+r("toggleRecruitShortlist(chosen);deskNavigate('transfers','shortlist')");assert.equal(r("hubCandidates('shortlist').length"),1);r("recruitHub.market='own';recruitFilters().query='zzzz'");assert.equal(r("hubCandidates('shortlist').length"),1,'wishlist is independent of search filters');r("resetRecruitFilters();recruitHub.market='all'");
 r("deskNavigate('transfers','search');hubMarket('loan');globalThis.loanIds=hubScoutIds();globalThis.moneyBefore=state.money;createScoutMission(loanIds)");
 assert.equal(r('state.recruitment.missions[0].players.every(id=>loanIds.some(x=>samePlayerId(x,id)))'),true);assert.equal(r('moneyBefore-state.money'),r('clubMissionFee()'));
 r("globalThis.target=hubCandidates('search').find(p=>!scoutPending(p.id));globalThis.cashBefore=state.money;requestScoutReport(target.id,true)");assert.equal(r('state.page'),'transfers');assert.ok(r('scoutPending(target.id)'));assert.equal(r('cashBefore-state.money'),r('Math.round(clubMissionFee()/3)'));
@@ -15,4 +15,5 @@ assert.ok(r("hubDealDetail(hubAffairRows().find(x=>x.key==='loan:901')).includes
 r("cancelRecruitOffer(900)");assert.equal(r('state.recruitment.deals.at(-1).status'),'cancelled');
 r('save()');const loaded=boot(app.storage.value);assert.ok(loaded.run('state.loans.offers.some(x=>x.id===901)'));
 for(const tab of ['needs','search','missions','shortlist','deals','loans','history','world']){r(`deskNavigate('transfers','${tab}')`);assert.doesNotMatch(r('recruitmentView()'),/undefined|NaN/);}
+r("globalThis.own=managerRoster()[0].id;loanOpen(own)");assert.equal(r('state.recruitment.tab'),'search');assert.equal(r('recruitHub.panel'),'loan');assert.equal(r('recruitHub.player'),r('own'));
 console.log('PASS: unified navigation, in-place player decisions, origin restoration, scoped scout spending, persistent transfer/loan decisions and legacy routes.');

@@ -30,7 +30,7 @@ function loanCanLeave(p,club){
  if(club!==managerClub()&&positionFit(p,'C')>=.98&&(state.clubRosters[club]||[]).filter(q=>q!==p&&medicalReady(q)&&positionFit(q,'C')>=.98).length<4)return false;
  return (state.clubRosters[club]||[]).filter(q=>q!==p&&loanGroup(q)===loanGroup(p)&&medicalReady(q)).length>=({MV:2,B:6,F:12})[loanGroup(p)];
 }
-function loanOpen(id){ensureLoans();deskNavigate('transfers','loans');state.loans.selected=id;recruitHub.player=id;recruitHub.panel='loan';save();render();deskBrowserBefore();}
+function loanOpen(id){ensureLoans();hubStartLoan(id);}
 const LOAN_ROLES={starter:'Bärande roll',regular:'Regelbunden speltid',rotation:'Rotation'};
 function loanReserved(club,exclude=null){return (state.loans?.offers||[]).filter(o=>o.id!==exclude?.id&&o.borrower===club&&['pending','counter'].includes(o.status)).reduce((n,o)=>n+(findPlayerAnywhere(o.playerId)?.salary||0)*(o.counter?.share??o.share),0);}
 function loanTerms(p,owner,borrower,offer){

@@ -68,7 +68,7 @@ function recruitmentNeeds(){
 }
 function recruitFee(p){if(worldIsFree(p.id))return 0;return Math.round((p.askingPrice||calculateTransferPrice(p))*(p.transferListed?.9:1));}
 function recruitFilters(){return state.recruitment.filters;}
-function setRecruitFilter(key,value){const f=recruitFilters();f[key]=['maxAge','maxFee','minAttribute'].includes(key)?Number(value):String(value);queueInterfaceSave();render();}
+function setRecruitFilter(key,value){recruitHub.page=0;const f=recruitFilters();f[key]=['maxAge','maxFee','minAttribute'].includes(key)?Number(value):String(value);queueInterfaceSave();render();}
 function recruitCandidates(filters=recruitFilters()){
  return getTransferMarketPlayers().filter(p=>(filters.availability!=='free'||worldIsFree(p.id))&&(filters.country==='ALL'||(worldIsFree(p.id)?p.nationality:recruitCountry(p.team))===filters.country)&&(filters.profile==='ALL'||recruitRoleValue(p,filters.profile)>0)&&p.age<=filters.maxAge&&recruitFee(p)<=filters.maxFee&&(!filters.query||`${p.name} ${p.team}`.toLowerCase().includes(filters.query.toLowerCase()))&&(!filters.attribute||Number(playerAssessment(p).estimated[filters.attribute]||0)>=Number(filters.minAttribute||10))).sort((a,b)=>filters.profile==='ALL'?a.name.localeCompare(b.name,'sv'):recruitRoleValue(b,filters.profile)-recruitRoleValue(a,filters.profile));
 }
