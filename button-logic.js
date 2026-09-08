@@ -2,7 +2,7 @@
 // Availability mirrors existing domain guards; it never authorizes a blocked mutation.
 function deskActionReason(action,id,choice){
  const live=Boolean(state.live&&!state.live.finished),p=id!==undefined?findPlayerAnywhere(id):null;
- const between=['openContractNegotiation','submitContractRenewal','submitRecruitOffer','acceptRecruitCounter','loanSubmit','loanAnswer','loanRecall','clubSign','clubSetPolicy','juniorPromote','juniorReturn','juniorLoan','juniorRecall','juniorRelease'];
+ const between=['requestScoutReport','openContractNegotiation','submitContractRenewal','submitRecruitOffer','acceptRecruitCounter','loanSubmit','loanAnswer','loanRecall','clubSign','clubSetPolicy','juniorPromote','juniorReturn','juniorLoan','juniorRecall','juniorRelease'];
  if(live&&(between.includes(action)||action==='answerIncomingOffer'&&choice!==false))return 'Avsluta den pågående matchen innan du ändrar avtal, ekonomi eller spelartrupp.';
  if(['openContractNegotiation','submitContractRenewal'].includes(action)){
   if(!p||!isOwnPlayer(p))return 'Spelaren finns inte i din trupp.';
