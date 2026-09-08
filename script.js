@@ -3602,8 +3602,7 @@ function submitContractRenewal(playerId,salary,years,role){
   return fail(reason);
  }
  Object.assign(p,{salary,contractYears:years,promisedRole:role,squadRole:role,renewalAttempts:0,renewalPausedUntil:null,happiness:trainingClamp(p.happiness+5),morale:trainingClamp((p.morale||70)+3)});
- if(SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
- else delete p.recruitmentPromise;
+ rolePromiseAssign(p,role);
  state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,`${p.name} förlänger`,`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{link:'squad'});
  state.contractNegotiation=null;save();render();
 }
@@ -3808,6 +3807,7 @@ ${
                 </label>
               </div>
 
+              ${rolePromiseOfferView(player)}
               <div class="player-actions">
                 <button class="btn" onclick="submitContractRenewal(
                   '${player.id}',

@@ -82,7 +82,7 @@ function afterLockerMatch(){
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
      const neutral=promise.result&&!['Uppfyllt','Brutet'].includes(promise.result);
-     if(!neutral){const met=promise.qualified>=2;s.trust=trainingClamp(s.trust+(met?4:-8));socialLog(`${p.name}: förtroende efter löftet`,met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
+     if(!neutral){const met=promise.result?promise.result==='Uppfyllt':promise.qualified>=rolePromiseRule(promise).required;s.trust=trainingClamp(s.trust+(met?4:-8));socialLog(`${p.name}: förtroende efter löftet`,met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
    }
  }
  const captain=managerRoster().find(p=>samePlayerId(p.id,r.captainId));

@@ -169,7 +169,7 @@ function createOpponentBrief(){
 function createPlayerConversation(){
   if(pendingManagerDecision())return;
   const t=state.training;
-  const candidate=managerRoster().filter(p=>p.pos!=='MV'&&!t.promises.some(v=>samePlayerId(v.playerId,p.id)&&!v.resolved)).sort((a,b)=>(a.happiness||70)-(b.happiness||70)||(t.matchMinutes[a.id]||0)-(t.matchMinutes[b.id]||0)).find(p=>(p.happiness||70)<65||(p.age<=23&&(t.matchMinutes[p.id]||0)<1800));
+  const candidate=managerRoster().filter(p=>p.pos!=='MV'&&!playerLoan(p)&&(!p.recruitmentPromise||p.recruitmentPromise.resolved)&&!t.promises.some(v=>samePlayerId(v.playerId,p.id)&&!v.resolved)).sort((a,b)=>(a.happiness||70)-(b.happiness||70)||(t.matchMinutes[a.id]||0)-(t.matchMinutes[b.id]||0)).find(p=>(p.happiness||70)<65||(p.age<=23&&(t.matchMinutes[p.id]||0)<1800));
   if(!candidate)return;
   managerMessage(`talk:${state.round}`,`${candidate.name} vill prata om sin roll`,'Jag vill få mer ansvar. Kan du ge mig minst 15 minuters istid i två av de tre kommande matcherna?','Spelarsamtal',{playerId:candidate.id,decisionType:'minutes'});
 }
@@ -179,6 +179,7 @@ function answerPlayerConversation(id,answer){
   const p=managerRoster().find(p=>samePlayerId(p.id,m.playerId));
   if(!p){m.resolved=true;m.outcome='Spelaren har lämnat klubben.';save();render();return;}
   m.resolved=true;m.read=true;
+  if(answer==='promise'&&((p.recruitmentPromise&&!p.recruitmentPromise.resolved)||t.promises.some(q=>samePlayerId(q.playerId,p.id)&&!q.resolved))){m.resolved=false;m.outcome='Ett istidslöfte följs redan upp. Välj ett ärligt besked eller följ upp avtalet först.';save();render();return;}
   if(answer==='promise'){
     t.promises.push({playerId:p.id,name:p.name,startRound:state.round,games:0,qualified:0,resolved:false});
     p.happiness=trainingClamp((p.happiness||70)+5,20,100);
