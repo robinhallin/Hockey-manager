@@ -104,7 +104,7 @@ function clubBuyout(s){
 }
 function clubOpenOffer(personId){
  ensureClub();const c=state.clubOffice.market.find(c=>c.personId===personId);if(!c||state.clubOffice.taken.includes(personId))return;
- state.clubOffice.offer={type:'hire',personId,salary:c.salary,years:c.minYears};state.page='staff';save();render();clubShowOffer();
+ state.clubOffice.offer={type:'hire',personId,salary:c.salary,years:c.minYears};clubUI.staff='candidates';clubUI.role=c.id;state.page='staff';save();render();clubShowOffer();
 }
 function clubRenew(role){
  const s=state.staff.find(s=>s.id===role);if(!s?.salary)return;
