@@ -158,7 +158,7 @@ function rivalLivePlayers(){
  const pool=(state.clubRosters[m.opponent]||[]).filter(p=>(p.pos==='MV'||dressed.has(String(p.id)))&&medicalReady(p)&&(m.leagueBox?.players[m.opponent+':'+p.id]?.seconds||0)<medicalLimit(p));
  const penalized=p=>m.penaltiesOpp.some(x=>samePlayerId(x.playerId,p.id)||x.player===p.name||x.name===p.name);
  const ready=pool.filter(p=>p.pos!=='MV'&&!penalized(p));
- const clock=(m.period-1)*1200+m.minute*60+(m.second||0),sequence=RIVAL_ROTATIONS[a.rotation]||RIVAL_ROTATIONS.balanced;
+ const clock=(m.period-1)*1200+m.minute*60+(m.second||0),sequence=aiCoachRotation(a);
  const line=sequence[Math.floor(clock/45)%sequence.length],pair=Math.floor(clock/60)%3;
  const own=Math.min(2,m.penaltiesHV.length),opp=Math.min(2,m.penaltiesOpp.length),ot=m.period===4&&!isPlayoffMatch();
  const count=(ot?Math.min(5,3+Math.max(0,own-opp)):5-opp)+(m.aiGoaliePulled?1:0);
@@ -173,9 +173,9 @@ function rivalLiveDecision(){
  const elapsed=(m.period-1)*1200+m.minute*60+m.second,bucket=Math.floor(elapsed/120);if(a.lastDecisionBucket===bucket)return;a.lastDecisionBucket=bucket;
  const e=studioActive()?studioEngine():null;
  const decision=aiCoachDecision(m.opponent,a.basePlan||{style:a.baseStyle,rotation:a.rotation,tempo:'normal'},
-  {seconds:elapsed,gf:m.opp,ga:m.hv,shots:e?.stats[1].shots||m.shotsOpp||0,againstShots:e?.stats[0].shots||m.shotsHV||0});
- if(a.style!==decision.style){a.adjustment=decision.style;addEvent(`${a.coachName} ändrar matchplan: ${RIVAL_STYLES[decision.style].toLowerCase()}. ${decision.reason}`,'strategy');}
- for(const key of ['style','posture','tempo','forecheck','rotation','shiftLimit','matchup','reason'])a[key]=decision[key];
+  aiObserveMatch(a,{seconds:elapsed,gf:m.opp,ga:m.hv,shots:e?.stats[1].shots||m.shotsOpp||0,againstShots:e?.stats[0].shots||m.shotsHV||0,previous:a,linePoints:[0,1,2,3].map(i=>(a.forwards||[]).slice(i*3,i*3+3).reduce((n,id)=>{const r=m.leagueBox?.players[m.opponent+':'+id];return n+(r?.goals||0)+(r?.assists||0);},0)),energy:(a.forwards||[]).map(id=>(state.clubRosters[m.opponent]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean).reduce((n,p)=>n+matchEnergy(p),0)/Math.max(1,a.forwards.length),strength:Math.min(2,m.penaltiesHV.length)-Math.min(2,m.penaltiesOpp.length)}));
+ if(aiDecisionKey(a)!==aiDecisionKey(decision)){a.adjustment=decision.style;a.coachChanges??=[];a.coachChanges.push({seconds:elapsed,reason:decision.reason,response:decision.response});a.coachChanges=a.coachChanges.slice(-20);addEvent(`${a.coachName}: ${decision.reason} Stabens förslag: ${decision.response}`,'strategy');}
+ for(const key of ['style','posture','tempo','forecheck','rotation','shiftLimit','matchup','reason','response','situation','changedAt','hotLine'])a[key]=decision[key];
  if(!a.timeout&&decision.timeout){a.timeout=true;matchRecover(60,'opponent-timeout');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}
 }
 
@@ -205,7 +205,7 @@ function rivalSimulate(game){
  };
  const row=(side,p)=>sides[side].rows.get(String(p.id));
  const onIce=side=>{
-  const b=sides[side],l=b.l,sequence=RIVAL_ROTATIONS[l.plan.rotation],other=sides[1-side],otherSequence=RIVAL_ROTATIONS[other.l.plan.rotation];
+  const b=sides[side],l=b.l,sequence=aiCoachRotation(l.plan),other=sides[1-side],otherSequence=aiCoachRotation(other.l.plan);
   const shift=Math.max(20,l.plan.shiftLimit||40),opposingShift=Math.max(20,other.l.plan.shiftLimit||40);
   const opposingLine=otherSequence[Math.floor(time/opposingShift)%otherSequence.length];
   const idx=l.plan.matchup&&opposingLine===0?l.plan.checkingLine:sequence[Math.floor(time/shift)%sequence.length],pair=Math.floor(time/60)%3;
@@ -243,10 +243,11 @@ function rivalSimulate(game){
  };
  const tick=()=>{
   if(time%120===0)for(let side=0;side<2;side++){
-   const b=sides[side],other=sides[1-side],decision=aiCoachDecision(names[side],b.basePlan,{seconds:time,gf:b.goals,ga:other.goals,shots:b.shots,againstShots:other.shots});
-   if(decision.style!==b.l.plan.style)b.decisions.push({seconds:time,reason:decision.reason});
+   const b=sides[side],other=sides[1-side],decision=aiCoachDecision(names[side],b.basePlan,aiObserveMatch(b,{seconds:time,gf:b.goals,ga:other.goals,shots:b.shots,againstShots:other.shots,previous:b.l.plan,linePoints:[0,1,2,3].map(i=>b.l.forwards.slice(i*3,i*3+3).reduce((n,p)=>{const r=b.rows.get(String(p.id));return n+(r?.goals||0)+(r?.assists||0);},0)),energy:b.l.forwards.reduce((n,p)=>n+(energy.get(p)||100),0)/Math.max(1,b.l.forwards.length),strength:Math.min(2,other.pens.length)-Math.min(2,b.pens.length)}));
+   if(aiDecisionKey(decision)!==aiDecisionKey(b.l.plan))b.decisions.push({seconds:time,reason:decision.reason,response:decision.response});
+   b.decisions=b.decisions.slice(-20);
    if(decision.timeout&&!b.timeout){b.timeout=true;for(const p of [...b.l.forwards,...b.l.defense,...b.l.extras])energy.set(p,Math.min(100,(energy.get(p)||100)+8));b.decisions.push({seconds:time,reason:'Tar timeout för återhämtning och en sista offensiv.'});}
-   b.l.plan=decision;
+   b.decisions=b.decisions.slice(-20);b.l.plan=decision;
   }
   const ice=[onIce(0),onIce(1)];
   for(let side=0;side<2;side++){
@@ -310,7 +311,7 @@ function rivalAfterFixture(game,rows,reports,partial=false){
   const best=entries.filter(r=>r.pos!=='MV').sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
   c.recent.push({date:game.date||state.calendar.date,year:state.season.year,opponent:own?game.away:game.home,gf,ga,partial,...report,keeper:keeper?.id??report.keeper??null,shots:entries.reduce((n,r)=>n+r.shots,0),againstShots:rows.filter(r=>r.club!==club).reduce((n,r)=>n+r.shots,0),star:best&&best.goals+best.assists?{id:best.id,name:best.name,points:best.goals+best.assists}:null});
   c.recent=c.recent.slice(-8);
-  aiRecordMeeting(club,own?game.away:game.home,game,{...report,shots:entries.reduce((n,r)=>n+r.shots,0)},
+  aiRecordMeeting(club,own?game.away:game.home,game,{...report,partial,shots:entries.reduce((n,r)=>n+r.shots,0)},
    {...reports.find(r=>r.club!==club),shots:rows.filter(r=>r.club!==club).reduce((n,r)=>n+r.shots,0)});
   if(club===managerClub())continue;
   if(!partial)for(const row of entries){const p=(state.clubRosters[club]||[]).find(p=>samePlayerId(p.id,row.id));if(p?.age<=21&&(row.goals||0)+(row.assists||0)>=3&&p.feedbackBreakoutYear!==state.season.year){p.feedbackBreakoutYear=state.season.year;feedbackNews('breakout:'+p.id+':'+state.season.year,club,'development',p.name+' kliver fram',`${row.goals||0} mål och ${row.assists||0} assist mot ${own?game.away:game.home}. En stark tävlingsmatch av ${p.age}-åringen; följ fortsättningen i ligans spelarstatistik.`);}}
@@ -366,7 +367,7 @@ function rivalsView(){
  <div class="rival-columns"><section class="rival-panel"><h2>Målvaktsläget</h2>${l.keeper?`<h3>${trainingSafe(l.keeper.name)}</h3><p>Trolig start · ${Math.round(100-(l.keeper.fatigue||0))} % ork</p><p>${c.recent.slice(-3).filter(g=>samePlayerId(g.keeper,l.keeper.id)).length} starter i de senaste tre registrerade matcherna. Tränaren väger förmåga, räddningsform och belastning.</p>`:'<p>Klubben saknar en spelklar målvakt.</p>'}<h3>Skadeavbräck</h3>${unavailable.length?unavailable.map(p=>`<p><strong>${trainingSafe(p.name)}</strong> · ${medicalStatus(p)}${p.health?.injury?.remaining?' · '+p.health.injury.remaining+' dagar till återgångsträning':''}</p>`).join(''):'<p>Alla spelare är medicinskt tillgängliga.</p>'}</section>
  <section class="rival-panel"><h2>Våra möten</h2>${meetings.length?[...meetings].reverse().slice(0,5).map(g=>`<div class="rival-meeting"><span>${g.date?calText(g.date):seasonLabel(g.year)}</span><strong>${managerClub()} ${g.gf}–${g.ga} ${trainingSafe(club)}</strong></div>`).join(''):'<p>Nästa möte blir ert första registrerade kapitel. Historiken följer med mellan säsongerna.</p>'}${c.history.length?`<details><summary>Tidigare tränare</summary>${c.history.map(h=>`<p><strong>${trainingSafe(h.name)}</strong> · ${calText(h.left)}<br>${trainingSafe(h.reason)}</p>`).join('')}</details>`:''}</section></div>
  <details class="rival-panel"><summary>Förväntade kedjor och backpar</summary><p>Prognos utifrån spelklarhet, attribut, form och tränarens prioriteringar.</p>${l.lines.map((line,i)=>`<div class="rival-meeting"><span>Kedja ${i+1}</span><strong>${line.map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständig kedja'}</strong></div>`).join('')}${[0,1,2].map(i=>`<div class="rival-meeting"><span>Backpar ${i+1}</span><strong>${l.defense.slice(i*2,i*2+2).map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständigt backpar'}</strong></div>`).join('')}</details>
- ${aiClubView(club)}
+ ${aiCoachReport(club)}${aiClubView(club)}
  <section class="rival-panel"><h2>Det händer i ${leagueName(club)}</h2><div class="rival-news">${events.map(e=>`<article><span class="desk-kicker">${calText(e.date)} · ${trainingSafe(e.club)}</span><h3>${trainingSafe(e.title)}</h3><p>${trainingSafe(e.text)}</p></article>`).join('')||'<p>Här följer du tränarbyten, skadeavbräck och spelare som utvecklas under säsongen.</p>'}</div></section></section>`;
 }
 function rivalStoryDetect(){

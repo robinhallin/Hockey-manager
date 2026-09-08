@@ -40,7 +40,7 @@ function aiMatchPlan(club,opponentName,base){
  const plan={...base,posture:'balanced',forecheck:base.style==='pressure'?'aggressive':'balanced',
   pp:coach?.style==='control'?'131':coach?.style==='pressure'?'overload':'umbrella',
   pk:coach?.style==='pressure'?'diamond':'box',shiftLimit:base.tempo==='high'?38:45,matchup:false,reason:'Tränarens grundidé.'};
- const record=c?.memory?.[opponentName],meetings=record?.meetings||[];
+ const record=c?.memory?.[opponentName],meetings=(record?.meetings||[]).filter(m=>!m.partial&&(m.year===undefined||m.year>=state.season.year-1));
  if((coach?.adaptability||0)>=12&&meetings.length>=2){
   const last=meetings.slice(-3),losses=last.filter(x=>x.gf<x.ga).length;
   if(losses>=2){
@@ -57,20 +57,57 @@ function aiMatchPlan(club,opponentName,base){
  }
  return plan;
 }
+// Stable personality derived from coach identity also supports older saves.
+function aiCoachTraits(club){
+ const coach=rivalsClubState(club)?.coach||{},seed=key=>attrSeed(`${coach.id||club}:match:${key}`);
+ return {risk:coach.style==='pressure'?0.7:coach.style==='counter'?0.25:0.35+seed('risk')*.3,
+  patience:240+Math.floor(seed('patience')*4)*120,adaptability:coach.adaptability||10,youth:Boolean(coach.youth)};
+}
+// Observations are match-local, bounded and serializable. Only completed time buckets enter the window.
+function aiObserveMatch(holder,context){
+ const rows=holder.coachObservations??=[];
+ if(!rows.length||context.seconds>rows.at(-1).seconds)rows.push({seconds:context.seconds,shots:context.shots,againstShots:context.againstShots});
+ while(rows.length>7)rows.shift();
+ const first=rows.find(r=>r.seconds>=context.seconds-600)||rows[0];
+ return {...context,windowSeconds:context.seconds-first.seconds,recentShots:Math.max(0,context.shots-first.shots),recentAgainst:Math.max(0,context.againstShots-first.againstShots)};
+}
 function aiCoachDecision(club,base,context){
- const {seconds,gf,ga,shots=0,againstShots=0}=context,coach=rivalsClubState(club)?.coach;
- const late=seconds>=3000,adaptive=(coach?.adaptability||10)>=12;
- const outplayed=seconds>=600&&againstShots>shots*1.6+4;
- const chasing=late&&gf<ga,protecting=late&&gf>ga;
- const style=chasing?'pressure':protecting?'counter':adaptive&&outplayed?'counter':base.style;
- return {...base,style,posture:chasing?'attack':protecting?'defense':'balanced',
-  tempo:chasing?'high':protecting?'low':adaptive&&outplayed?'low':base.tempo||'normal',
-  forecheck:style==='pressure'?'aggressive':'balanced',
-  rotation:chasing?'topHeavy':protecting?'balanced':base.rotation,
-  shiftLimit:chasing?35:base.shiftLimit||43,
-  matchup:Boolean(base.matchup||adaptive&&outplayed),
-  timeout:seconds>=3240&&seconds<3600&&gf<ga&&ga-gf<=3,
-  reason:chasing?'Jagar kvittering med mer istid för toppkedjorna.':protecting?'Försvarar ledningen och sänker risken.':adaptive&&outplayed?'Täcker mitten och söker kontringar efter motståndarens tryck.':base.reason};
+ const {seconds,gf,ga,shots=0,againstShots=0,energy=100,strength=0,previous}=context,traits=aiCoachTraits(club);
+ const adaptive=traits.adaptability>=12,late=seconds>=3000,deficit=ga-gf;
+ const chasing=deficit>0&&seconds>=3000-Math.round(traits.risk*360)-(deficit>=2?240:0);
+ const protecting=late&&deficit<0;
+ const enough=context.windowSeconds>=traits.patience;
+ const outplayed=adaptive&&enough&&context.recentAgainst>=context.recentShots*1.6+4;
+ let decision={...base,posture:'balanced',tempo:base.tempo||'normal',rotation:base.rotation||'balanced',shiftLimit:base.shiftLimit||43,
+  situation:'base',reason:base.reason||'Behåller grundplanen.',response:'Följ skottbild och ork innan du ändrar din plan.'};
+ if(chasing)Object.assign(decision,{style:'pressure',posture:'attack',tempo:'high',rotation:'topHeavy',shiftLimit:35,situation:'chase',reason:'Jagar kvittering med mer istid för toppkedjorna.',response:'Överväg säkrare puckspel och behåll ett kontringshot när pressen ökar.'});
+ else if(protecting&&traits.risk<.65)Object.assign(decision,{style:'counter',posture:'defense',tempo:'low',situation:'protect',reason:'Försvarar ledningen och sänker risken.',response:'Överväg bredare anfall och trafik framför mål; undvik att forcera passningar genom mitten.'});
+ else if(outplayed)Object.assign(decision,{style:'counter',tempo:'low',matchup:true,situation:'pressure',reason:`Svarar på ${context.recentAgainst}–${context.recentShots} i skott under de senaste ${Math.round(context.windowSeconds/60)} minuterna.`,response:'Motståndaren täcker mitten. Överväg tålamod och spel längs kanterna.'});
+ if(energy<55&&!(chasing&&seconds>=3360))Object.assign(decision,{tempo:'low',rotation:'rollFour',shiftLimit:30,situation:'rest',reason:'Korta byten och fyra kedjor för att avlasta trötta spelare.',response:'Motståndaren sprider istiden. Överväg att möta reservkedjor med en utvilad offensiv formation.'});
+ if(strength<0)Object.assign(decision,{style:'counter',posture:'defense',tempo:'low',shiftLimit:30,situation:'pk',reason:'Prioriterar att stänga mitten i numerärt underläge.',response:'Flytta pucken mellan sidorna och skapa trafik framför målvakten.'});
+ else if(strength>0)Object.assign(decision,{style:'control',posture:'attack',tempo:energy<55?'low':'normal',situation:'pp',reason:'Söker etablerat powerplay i stället för att jaga med hela laget.',response:'Håll ihop boxplay och välj pressögonblick; undvik att dras isär.'});
+ // A strategic change gets time to work. Score urgency and manpower changes override patience.
+ if(previous&&['base','pressure'].includes(decision.situation)&&['base','pressure'].includes(previous.situation)&&seconds-(previous.changedAt||0)<traits.patience){
+  for(const key of ['style','posture','tempo','rotation','shiftLimit','matchup','situation','reason','response'])if(previous[key]!==undefined)decision[key]=previous[key];
+ }
+ decision.reason=decision.reason.replace(/ Ger kedja .*$/, '');
+ const scores=context.linePoints||[];
+ decision.hotLine=null;
+ if(adaptive&&seconds>=600&&energy>=55&&strength===0&&scores.length===4){const best=scores.indexOf(Math.max(...scores));if(scores[best]>=2&&scores[best]>scores[0]&&best>0){decision.hotLine=best;decision.reason+=` Ger kedja ${best+1} fler byten efter dess poängbidrag i matchen.`;}}
+ decision.forecheck=decision.style==='pressure'?'aggressive':'balanced';
+ decision.timeout=seconds>=3240&&seconds<3600&&deficit>0&&deficit<=3&&strength>=0;
+ decision.changedAt=previous&&aiDecisionKey(previous)===aiDecisionKey(decision)?previous.changedAt??seconds:seconds;
+ return decision;
+}
+function aiDecisionKey(d){return [d.style,d.posture,d.tempo,d.rotation,d.situation,d.hotLine??null].join('|');}
+function aiCoachRotation(plan){
+ const sequence=RIVAL_ROTATIONS[plan.rotation]||RIVAL_ROTATIONS.balanced;
+ return Number.isInteger(plan.hotLine)&&plan.hotLine>=1&&plan.hotLine<=3?[plan.hotLine,0,1,plan.hotLine,2,3]:sequence;
+}
+function aiCoachReport(club){
+ const c=rivalsClubState(club),traits=aiCoachTraits(club),live=state.live?.opponent===club?state.live.aiTeam:null;
+ const changes=live?.coachChanges||c.recent.at(-1)?.decisions||[];
+ return `<section class="rival-panel"><h2>Tränarens matchbeslut</h2><p>${traits.risk>=.65?'Tar tidigt offensiva risker och behåller gärna initiativet i ledning.':'Väntar längre med offensiva risker och skyddar sena ledningar.'} Ger normalt en taktisk ändring ${traits.patience/60} minuter att verka.</p><p>Bedömning utifrån tränarprofil och registrerat spel. Vi känner inte motståndarens nästa beslut.</p>${changes.slice(-5).map(d=>`<article><h3>${Math.floor(d.seconds/60)} min</h3><p>${trainingSafe(d.reason)}</p>${d.response?`<p><strong>Möjligt svar:</strong> ${trainingSafe(d.response)}</p>`:''}</article>`).join('')||'<p>Matchbeslut visas när de har observerats.</p>'}<button class="btn secondary" onclick="deskNavigate('tactics')">Se över vår taktik</button></section>`;
 }
 function aiRecordMeeting(club,opponentName,game,report,other){
  const c=state.clubAI?.clubs[club];if(!c)return;
@@ -79,6 +116,14 @@ function aiRecordMeeting(club,opponentName,game,report,other){
   ga:home?game.awayGoals:game.homeGoals,shots:report?.shots||0,againstShots:other?.shots||0,
   style:report?.style||rivalPlan(club).style,opponentStyle:other?.style||
    (opponentName===managerClub()?state.tacticalPlan?.attackStyle:rivalsClubState(opponentName)?.coach.style)||'control',
-  coachId:rivalsClubState(club)?.coach.id});
+  coachId:rivalsClubState(club)?.coach.id,partial:Boolean(report?.partial||other?.partial)});
  memory.meetings=memory.meetings.slice(-6);
+}
+
+function validateAICoachSave(s){
+ const a=s.live?.aiTeam;if(!a)return;
+ const bad=()=>{throw Error('Matchtränarens observationer är felaktiga.');};
+ if(a.coachObservations!==undefined&&(!Array.isArray(a.coachObservations)||a.coachObservations.length>7||a.coachObservations.some(r=>!r||['seconds','shots','againstShots'].some(k=>!Number.isFinite(r[k])||r[k]<0))))bad();
+ if(a.coachChanges!==undefined&&(!Array.isArray(a.coachChanges)||a.coachChanges.length>20||a.coachChanges.some(r=>!r||!Number.isFinite(r.seconds)||r.seconds<0||typeof r.reason!=='string'||typeof r.response!=='string')))bad();
+ if(a.hotLine!=null&&(!Number.isInteger(a.hotLine)||a.hotLine<1||a.hotLine>3))bad();
 }
