@@ -33,7 +33,8 @@ function medicalDay(session=null){
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[]),...(state.juniors?.roster||[]),...aiAcademyPlayers()]){
    const h=p.health;
    if(!isOwnPlayer(p)){h.load*=.8;if(h.injury){if(h.injury.remaining>0)h.injury.remaining--;else{h.injury.readiness=Math.min(100,h.injury.readiness+15);if(h.injury.readiness===100){h.injury=null;h.clearance='rest';}}}continue;}
-   const rest=Boolean(h.injury)||!session||session.type==='recovery'||p.trainingLoad==='rest',hard=session?.intensity==='hard'&&p.trainingLoad!=='light';
+   const exposure=session?trainingSessionEffect(p,session):{rest:true,hard:false};
+   const {rest,hard}=exposure;
    h.load=trainingClamp(h.load*(.8+(15-s.staff.skill)*.008)+(rest?0:hard?12:5));
    if(h.injury){const i=h.injury;
      if(i.remaining>0){i.remaining--;p.fatigue=Math.max(0,p.fatigue-12);if(i.remaining===0)medicalReport(`${p.name}: återgångsträning`,`${p.name} kan börja återgångsträna. Fortsatt återhämtning är det lugnaste alternativet. Du kan också välja en begränsad comeback under Medicinskt team.`);}
