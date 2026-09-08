@@ -13,7 +13,7 @@ Utvecklingsriktning: ett managerspel för dator där beslut har observerbara kon
 | Flera säsonger | AI-budgetar, förlängningar, pensioneringar, juniorintag, upp-/nedflyttning och arkiv finns. | Den automatiserade karriärkontrollen omfattar tre säsonger och riktiga säsongsövergångar. Ekonomisk och sportslig långtidsbalans behöver även bedömas genom längre speltestning. |
 | Tränarvardagen | Kontoret visar aktuella beslut, nästa match och daterade ärenden. | Individuell återhämtning kan delegeras utan att staben ändrar laguttagning, säljer spelare eller gör ekonomiska åtaganden. Manuella belastningsbeslut har företräde samma dag. |
 | Tydligt datorgränssnitt | Gemensam navigation, tabeller, filter och sidopaneler behålls. | Rollbeslut ligger i omklädningsrummet, konkurrens i köpflödet och delegering under spelarutveckling. Extra underlag går att fälla ut. |
-| Lärande och förklaringar | Tränarråd skiljer observationer från möjliga orsaker, och korta underlag markeras. | Rollavslag förklarar vilka faktorer som vägts in. Äldre sparfiler får åter en tydlig notis om sin spelarbas i ligavyn. |
+| Lärande och förklaringar | Tränarråd skiljer observationer från möjliga orsaker, och korta underlag markeras. | Assistentens formationsråd använder nu samma krav på återkommande utfall som trendtabellen. Träningsfokus utesluter ofullständiga spelformsdata och dubbla rapporter. Rollavslag förklarar vilka faktorer som vägts in. Äldre sparfiler får åter en tydlig notis om sin spelarbas i ligavyn. |
 
 ## De genomförda besluten
 
