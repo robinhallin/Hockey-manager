@@ -7,7 +7,7 @@ function officeOpenDeal(key){
   recruitHub.deal=key;
   render();queueInterfaceSave();
 }
-function officeOpenDay(date){deskNavigate('calendar');calendarPick(date);queueInterfaceSave();}
+function officeOpenDay(date){matchesUI.calendar='calendar';deskNavigate('calendar');calendarPick(date);queueInterfaceSave();}
 function officeDecisions(){
   const tasks=deskTasks().filter(t=>['Beslut','Säsong','Ekonomi'].includes(t.tag));
   const r=state.recruitment;

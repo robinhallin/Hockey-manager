@@ -25,6 +25,8 @@ for(const page of JSON.parse(r("JSON.stringify(DESK_AREAS.flatMap(a=>a.pages.map
 for(const tab of ['needs','search','missions','shortlist','deals','loans','history','world']){r(`deskNavigate('transfers','${tab}')`);audit();}
 for(const tab of ['even','special','squad','analysis']){r(`lineupWorkspace='${tab}';deskNavigate('lines')`);audit();}
 for(const [page,key,tabs] of [['training','tab',['players','history']],['juniors','juniorTab',['players','history']],['medical','medicalTab',['cases','history']]]){r(`deskNavigate('${page}')`);for(const tab of tabs){r(`developmentSet('${key}','${tab}')`);audit();}}
+r("deskNavigate('statistics')");for(const tab of ['overview','shots','events','units','trends','players']){r(`matchesSet('analysis','${tab}')`);audit();}
+r("deskNavigate('calendar');matchesSet('calendar','fixtures')");audit();
 r('selectPlayer(id)');for(const tab of ['overview','contract','development','report']){r(`profileWorkspace.tab='${tab}';render()`);audit();}
 r("deskNavigate('match')");for(const tab of ['feedback','tactics','changes','lineup','stats','players','events']){r(`matchTab('${tab}')`);audit();}
 assert.ok(checked>900);console.log(`PASS: ${checked} rendered buttons audited; route aliases, editor/profile return, filter reset, action reasons and allowed rejection verified.`);
