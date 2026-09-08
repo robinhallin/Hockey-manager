@@ -2754,6 +2754,8 @@ function toggleGoalie(){
 function setTactic(
   tactic
 ){
+  if(!["attack","balanced","defense"].includes(tactic))return;
+  if(state.live?.running)pauseMatch();
 
   state.tactic=
     tactic;
@@ -3577,6 +3579,7 @@ function renewalWishes(p){
 }
 function openContractNegotiation(playerId){
  profileWorkspace.tab="contract";
+ const reason=deskActionReason("openContractNegotiation",playerId);if(reason)return deskActionFeedback(reason);
  const p=managerRoster().find(p=>samePlayerId(p.id,playerId));if(!p||playerLoan(p)||loanLocked())return;
  const w=renewalWishes(p),paused=p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date;
  state.contractNegotiation={playerId:p.id,salaryDemand:w.salary,years:Math.max(w.minYears,Math.min(3,w.maxYears)),role:w.role,attempts:p.renewalAttempts||0,message:paused?`Agenten vill avvakta till ${calText(p.renewalPausedUntil)} efter de senaste avslagen.`:`Spelaren söker ${w.minYears}–${w.maxYears} år, ${w.role.toLowerCase()} och omkring ${money(w.salary)}/år. Förtroendet påverkar lönekravet.`};save();render();
@@ -4520,6 +4523,7 @@ careerScreen === "files" ? saveSettingsView()
 : homeView();
 
   content.innerHTML=deskFrame(pageHTML);
+  deskEnhanceButtons(content);
 
   const clubName = managerClub();
   const club = getClub(clubName);

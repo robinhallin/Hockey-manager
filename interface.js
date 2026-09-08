@@ -43,6 +43,13 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ if(previous.lineupUI)lineupUI={...previous.lineupUI,slot:previous.lineupUI.slot?{...previous.lineupUI.slot}:null};
+ if(previous.specialUI)specialUI={...previous.specialUI};
+ if(previous.profileTab)profileWorkspace.tab=previous.profileTab;
+ if(previous.loanPlayer!==undefined)state.loans.selected=previous.loanPlayer;
+ if(previous.juniorPlayer!==undefined)state.juniors.selected=previous.juniorPlayer;
+ if(previous.leagueStats)Object.assign(leagueStatsUI,previous.leagueStats);
+ if(previous.focusDeal!==undefined)state.recruitment.focusDeal=previous.focusDeal;
  if(state.managerFeedback){state.managerFeedback.selectedBrief=previous.feedbackBrief;state.managerFeedback.filter=previous.feedbackFilter||'all';}
  state.selectedPlayer=previous.player;state.selectedMarketPlayer=previous.market;lineupWorkspace=previous.lineup;
  if(previous.filters)state.recruitment.filters={...previous.filters};
@@ -58,17 +65,21 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
- deskHistorySync();
- if(page==='specialTeams'){page='lines';lineupWorkspace='special';}
+ deskHistorySync();deskActionNotice='';let nextLineup,nextAvailability;
+ if(page==='tactics'){page='lines';nextLineup='even';}
+ if(page==='specialTeams'){page='lines';nextLineup='special';}
  if(page==='scouting'){page='transfers';tab='missions';}
- if(page==='transfers'&&tab==='free'){tab='search';recruitFilters().availability='free';}
+ if(page==='transfers'&&tab==='reports')tab='missions';
+ if(page==='transfers'&&tab==='free'){tab='search';nextAvailability='free';}
  if(!DESK_AREAS.some(a=>a.pages.some(([p])=>p===page)||a.details?.[page])&&!['inbox','news','settings'].includes(page))return;
  if(state.live?.running)pauseMatch('Du lämnade matchvyn.');
- const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab);
+ const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab||nextLineup!==undefined&&nextLineup!==lineupWorkspace||nextAvailability!==undefined&&nextAvailability!==recruitFilters().availability);
  if(browserPush)deskBrowserBefore();
- if(record&&(page!==state.page||tab&&tab!==state.recruitment?.tab)){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
+ if(browserPush){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
+ if(nextLineup!==undefined)lineupWorkspace=nextLineup;
+ if(nextAvailability!==undefined)recruitFilters().availability=nextAvailability;
  if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
  if(page==='squad'&&tab==='contracts')deskFolds.contracts=true;
  if(page==='inbox'&&state.page!=='inbox')inboxUI.detail=false;
