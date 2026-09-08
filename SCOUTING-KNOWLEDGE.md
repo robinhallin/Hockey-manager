@@ -16,3 +16,10 @@ Gruppuppdrag hittar fortfarande spelare med färre än tre observationer; uppdat
 
 ## Kontroll
 scouting-refresh.test.cjs kontrollerar verklig kalenderleverans, frysta attribut, åldrande, kostnad och dubbelbeställning, leverans efter sju dagar, migrering och sparning/återläsning. Befintliga attribut-, rekryterings- och truppflöden körs som regressioner.
+
+## Rekrytering utifrån kunskapen
+Rollvalet rangordnar nu spelarna efter den valda profilens bedömda attribut, i stället för att hubben skriver över ordningen med namn. Tabellen visar rollpassning som intervall på attributskalan 1–20. Användaren kan fortfarande välja namn, övergångspris eller generell bedömd förmåga som sortering.
+
+Attributkrav har tre lägen: bedömt mittvärde (äldre sparfilers standard), möjlig träff (övre intervallgränsen räcker), och stöd i rapporten (hela intervallet når kravet). Detta är ett val mellan bred talentsökning och starkare beslutsunderlag. Nedre gränsen är fortfarande en bedömning, inte ett löfte om verklig förmåga. Gränserna använder samma avrundning som spelarprofilen. Saknade attribut, exempelvis målvaktsreflexer hos en utespelare, matchar aldrig. Filtren sparas och återställs tillsammans med befintligt urval.
+
+recruitment-knowledge.test.cjs verifierar rollrangordning, båda intervallgränserna och mittvärdet, fryst kunskap i urvalet, sparning/återläsning, återställning och positionsspecifika attribut. Befintliga scouting-, attribut- och rekryteringsflöden kontrolleras separat.
