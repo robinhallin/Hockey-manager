@@ -53,8 +53,10 @@ function juniorPromote(id){
  if(juniorLocked())return juniorNotice('Spelare flyttas mellan trupperna mellan matcher.');
  if(p.academy.loan)return juniorNotice('Återkalla lånet innan spelaren flyttas upp.');
  if(annualWageCost()+(p.academy.seniorContract?0:p.salary)>wageBudget())return juniorNotice('Löneutrymmet räcker inte för uppflyttningen.');
+ const feedbackPlan=feedbackBeforeArrival(p,managerClub());
  state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);managerRoster().push(p);p.academy.path='senior';p.academy.seniorContract=true;if(p.contractYears<=0)p.contractYears=3;
  syncManagerRoster();ensureManagementData();ensureMedical();ensureLocker();ensureTrainingData();repairMedicalLines();
+ feedbackArrival(p,feedbackPlan,'junior');feedbackNews('promotion:'+p.id+':'+state.calendar.date,managerClub(),'development',p.name+' flyttas upp',managerClub()+' ger junioren en plats i A-truppen.');
  juniorReport(`${p.name} tar steget till A-laget`,`Spelaren får ${careerMoney(p.salary)} per år och ${p.contractYears} års kontrakt. Träningen hjälper, men matchutveckling kräver faktisk istid. Välj plats under Kedjor.`);
  juniorNotice(`${p.name} finns nu i A-truppen.`);
 }

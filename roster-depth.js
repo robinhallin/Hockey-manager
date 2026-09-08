@@ -65,12 +65,15 @@ function loanSubmit(id,destination,days,share,role='regular',recall='day28'){
 }
 function loanCompleteOffer(o){
  const p=findPlayerAnywhere(o.playerId);if(!p||getPlayerClub(p.id)!==o.owner)return false;
+ const feedbackPlan=feedbackBeforeArrival(p,o.borrower);
  const t=o.counter||o,until=t.days?calAdd(state.calendar.date,t.days):`${state.season.year+1}-05-15`;
  const l={id:state.loans.nextId++,playerId:p.id,name:p.name,owner:o.owner,borrower:o.borrower,start:state.calendar.date,until,share:t.share,role:t.role,recall:t.recall,initial:false,termsEstimated:true,baseline:{games:p.games||0,goals:p.goals||0,assists:p.assists||0},seconds:0,games:0,starts:0,goals:0,assists:0,appearances:[]};
  if(o.owner===managerClub())state.scoutReports[String(p.id)]={visits:3,lastObserved:state.calendar.date};
  state.clubRosters[o.owner]=state.clubRosters[o.owner].filter(q=>!samePlayerId(q.id,p.id));state.clubRosters[o.borrower].push(p);p.club=o.borrower;p.loanId=l.id;p.transferListed=false;p.askingPrice=null;
  if(p.recruitmentPromise&&!p.recruitmentPromise.resolved){p.recruitmentPromise.resolved=true;p.recruitmentPromise.result='Utvecklingslån överenskommet';}
  state.loans.active.push(l);o.status='agreed';o.agreedDate=state.calendar.date;p.morale=trainingClamp((p.morale||70)+2);syncManagerRoster();repairMedicalLines();ensureSpecialTeams();
+ feedbackArrival(p,feedbackPlan,'loan');
+ feedbackNews('loan:'+l.id,o.borrower,'transfer',p.name+' går på lån',o.owner+' → '+o.borrower+' till '+calText(until)+'.');
  if([o.owner,o.borrower].includes(managerClub()))managerMessage(`loan:${l.id}`,`${p.name} går på lån`,`${o.owner} → ${o.borrower} till ${calText(until)}. Löneandel ${t.share*100} %. Roll: ${LOAN_ROLES[t.role]}. Återkallelse ${t.recall==='anytime'?'mellan matcher':'efter 28 dagar'}. Tränarteamet följer upp faktisk speltid.`,'Sportchef',{link:'transfers'});return true;
 }
 function loanResolveOffer(o,accept=false){

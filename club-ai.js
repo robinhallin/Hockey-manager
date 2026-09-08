@@ -18,6 +18,7 @@ function aiAcademyPlayers(){return Object.values(state.clubAI?.clubs||{}).flatMa
 function aiDecision(club,kind,text,key=null){
  const c=clubAIState(club);if(!c)return;
  if(key&&c.decisions.some(d=>d.key===key))return;
+ if(['finance','sale'].includes(kind))feedbackNews('ai:'+club+':'+(key||state.calendar.date+':'+text),club,kind,kind==='finance'?'Ekonomirapport: '+club:'Transferlistan: '+club,text);
  c.decisions.unshift({date:state.calendar.date,kind,text,...(key?{key}:{})});c.decisions=c.decisions.slice(0,36);
 }
 function aiCreateAcademyPlayer(club,pos,age){

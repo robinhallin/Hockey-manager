@@ -58,7 +58,7 @@ function calendarMarketDay(){
 function calendarStep(recovered=false){
  const c=state.calendar;if(!c)return;
  if(!recovered){medicalDay();managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
- c.date=calAdd(c.date,1);for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();
+ c.date=calAdd(c.date,1);for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();
 }
 function calendarToMatch(){
  ensureCalendar();if(state.calendar.active)return true;
@@ -233,10 +233,12 @@ function calendarActivateFuture(){
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[])]){
   const f=p.futureContract;if(!f||f.joinYear>state.season.year)continue;
   if(!state.clubRosters[f.buyer])continue;
+  const feedbackPlan=feedbackBeforeArrival(p,f.buyer);
   const seller=getPlayerClub(p.id);if(seller===WORLD_FREE)worldRemoveFree(p.id);else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
   state.clubRosters[f.buyer].push(p);Object.assign(p,{club:f.buyer,salary:f.salary,contractYears:f.years,squadRole:f.role,promisedRole:f.role,transferListed:false});delete p.futureContract;
   if(f.buyer===managerClub())p.recruitmentPromise={role:f.role,minutes:p.pos==='MV'?30:f.role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
   state.recruitment.history.unshift({id:state.recruitment.nextId++,year:state.season.year,tick:state.recruitment.tick,name:p.name,playerId:p.id,seller,buyer:f.buyer,fee:0});state.recruitment.history=state.recruitment.history.slice(0,250);
+  feedbackArrival(p,feedbackPlan,'future');feedbackNews('future-arrival:'+state.season.year+':'+p.id,f.buyer,'transfer',p.name+' ansluter till '+f.buyer,'Förhandsavtalet träder i kraft. Spelaren kommer från '+seller+'.');
   for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&d.status==='future_signed'){d.status='signed';d.reason='Spelaren har anslutit enligt förhandsavtalet.';}
   if(f.buyer===managerClub()||seller===managerClub())managerMessage(`future:${state.season.year}:${p.id}`,`${p.name}: förhandsavtalet träder i kraft`,`${seller} → ${f.buyer}. Det avtalade löneåtagandet gäller även om nästa säsongs budget har ändrats.`,'Sportchefen',{link:'transfers'});
  }

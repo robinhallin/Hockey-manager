@@ -4555,18 +4555,8 @@ function setTacticalSetting(key,value){
   save();render();
 }
 
-function newsView(){
+function newsView(){return feedbackNewsView();}
 
-  return `
-    <section class="card">
-      <h2>Nyheter</h2>
-      ${(state.news || []).length
-        ? state.news.map(item => `<div class="row"><span>${item}</span></div>`).join("")
-        : `<p class="muted">Det finns inga nyheter ännu.</p>`}
-    </section>
-  `;
-
-}
 
 function financeView(){return clubFinanceView();}
 
@@ -4677,6 +4667,8 @@ careerScreen === "files" ? saveSettingsView()
 
 ? tacticsView()
 
+: state.page==="staffReview"
+? staffReviewView()
 : state.page==="news"
 
 ? newsView()
