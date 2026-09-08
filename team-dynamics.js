@@ -117,6 +117,7 @@ function lineupBoardCard(type,index){
  return `<button class="lineup-name ${lineupUI.slot?.type===type&&lineupUI.slot?.index===index?'selected':''}" draggable="${Boolean(p)}" ondragstart="lineupDrag(event,'${type}',${index})" ondragover="event.preventDefault()" ondrop="lineupDrop(event,'${type}',${index})" onclick="lineupBoardPick('${type}',${index})"><small>${StudioHockey.ROLE_NAMES[role]}</small><strong>${trainingSafe(p?.name||'Vakant')}</strong>${p?positionBadge(p,role):'<span>Välj spelare</span>'}<small>${p?`${p.pos} · ${Math.round(100-(p.fatigue||0))} % energi`:''}</small></button>`;
 }
 function lineupBoardView(){
+ if(state.page==='lines'||state.page==='tactics')return desktopTacticsView();
  if(lineupWorkspace==='special')return lineupWorkspaceNav()+specialBoardView();
  if(lineupWorkspace==='squad')return lineupWorkspaceNav()+lineupSquadSummary()+depthBenchView();
  ensureLines();const slot=lineupUI.slot;

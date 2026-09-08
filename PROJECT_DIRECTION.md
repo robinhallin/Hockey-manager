@@ -167,3 +167,15 @@ uppspelsvägar, forecheckens faktiska genomslag och utfall efter en vald
 åtgärd behöver mer registrering och uppföljning innan assistenten kan
 diagnostisera dem. Ingen effekt av tränarråd eller taktik på vinstsannolikhet
 har kalibrerats i detta steg.
+
+## Desktop workspace redesign — September 8, 2026
+
+The FM reference images establish a spatial hierarchy: persistent club navigation, compact context tabs, instructions beside the formation, and a comparable player table. The default selection view now follows that hierarchy rather than stacking chemistry reports and reserve cards above and below the lineup.
+
+- Tactics and lineup share one navigation destination. Legacy tactics links remain supported.
+- Five-on-five uses independent four-line / three-pair selection, a rink, and a candidate table. Mouse drag/drop, keyboard slot selection and explicit assignment use existing lineup mutations and medical/icing guards.
+- Long chemistry and readiness explanations live in the analysis tab. Special teams and match squad retain their existing mutation paths.
+- The player overview places grouped technical, mental and physical attributes alongside role and readiness. Contract negotiations, development/medical/social actions and full reports have dedicated tabs.
+- The shared desktop shell is denser; the immersive live-match shell is excluded from these changes.
+
+Validation: actual saved roster swaps, profile/back navigation, contract form access, development access, saved tactical orders and pause-on-order behavior are covered in desktop-workspace.test.cjs. Existing navigation, attributes, training, medical and locker suites remain relevant. This is an information architecture change; it does not introduce new simulation bonuses.

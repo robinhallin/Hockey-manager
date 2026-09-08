@@ -3576,6 +3576,7 @@ function renewalWishes(p){
  return {...w,salary:Math.round(p.salary*(p.contractYears<=1?1.10:1.04)*(trust<40?1.10:trust>=80?.97:1)/10000)*10000,role:p.age>=34&&p.social?.lastMinutes!==null&&p.social?.lastMinutes<10?'Rotation':p.promisedRole||p.squadRole};
 }
 function openContractNegotiation(playerId){
+ profileWorkspace.tab="contract";
  const p=managerRoster().find(p=>samePlayerId(p.id,playerId));if(!p||playerLoan(p)||loanLocked())return;
  const w=renewalWishes(p),paused=p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date;
  state.contractNegotiation={playerId:p.id,salaryDemand:w.salary,years:Math.max(w.minYears,Math.min(3,w.maxYears)),role:w.role,attempts:p.renewalAttempts||0,message:paused?`Agenten vill avvakta till ${calText(p.renewalPausedUntil)} efter de senaste avslagen.`:`Spelaren söker ${w.minYears}–${w.maxYears} år, ${w.role.toLowerCase()} och omkring ${money(w.salary)}/år. Förtroendet påverkar lönekravet.`};save();render();
@@ -3686,108 +3687,10 @@ function playerView(){
   const formatCurrency = value =>
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
 
-  return `
-
-    <div class="player-page">
-
-      <button
-        class="player-back-button"
-        onclick="
-          deskBack('squad');
-        "
-      >
-        ← Tillbaka
-      </button>
-
-
-      <section class="player-hero player-hero-expanded">
-
-        <div class="player-identity">
-
-          <div class="player-number">
-            ${player.pos}
-          </div>
-
-          <div>
-
-            <span class="overview-kicker">
-              ${managerClub()}
-            </span>
-
-            <h1>
-              ${player.name}
-            </h1>
-
-            <div class="player-meta-line">
-              <span>${positionName}</span>
-              <span>•</span>
-              <span>${player.age} år</span>
-              <span>•</span>
-              <span>${nationality}</span>
-            </div>
-
-            <div class="player-role-badge">
-              ${role}
-            </div>
-${
-  player.transferListed
-    ? `
-      <div class="player-transfer-badge">
-        TRANSFERLISTAD
-      </div>
-    `
-    : ""
-}
-          </div>
-
-        </div>
-
-
-        <div class="player-hero-right">
-
-          <div class="player-contract-mini">
-
-            <div>
-              <span>Kontrakt</span>
-              <strong>${player.contractYears} år</strong>
-            </div>
-
-            <div>
-              <span>Lön</span>
-              <strong>${formatCurrency(player.salary)}</strong>
-            </div>
-
-            <div>
-              <span>Marknadsvärde</span>
-              <strong>${formatCurrency(player.value)}</strong>
-            </div>
-
-          </div>
-
-
-          <div class="player-overall">
-
-            <span>
-              Bedömning
-            </span>
-
-            <strong>
-              ${assessmentBadge(player)}
-            </strong>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <div class="player-dashboard">
-
-
-        ${assessmentPanel(player)}${loanPlayerPanel(player)}
-
-        <section class="dashboard-panel">
+  const r=playerAssessment(player),tab=profileWorkspace.tab;
+  return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${player.pos}</div><div><small>${trainingSafe(managerClub())} · ${positionName}</small><h1>${trainingSafe(player.name)}</h1><p>${player.age} år · ${nationality} · ${role}</p></div><div class="fm-profile-rating"><small>Förmåga / potential</small><div>${assessmentBadge(player)} / ${assessmentBadge(player,true)}</div></div></header>
+  <nav class="fm-tabs" aria-label="Spelarprofil">${[['overview','Översikt'],['contract','Kontrakt & övergång'],['development','Utveckling & hälsa'],['report','Rapport & historik']].map(([key,label])=>`<button aria-pressed="${tab===key}" onclick="profileWorkspace.tab='${key}';render()">${label}</button>`).join('')}</nav>
+  ${tab==='contract'?`        <section class="dashboard-panel">
 
           <div class="panel-header">
 
@@ -3915,124 +3818,10 @@ ${
         </section>
 
 
-        <section class="dashboard-panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <span class="panel-label">
-                SÄSONG ${seasonLabel()}
-              </span>
-
-              <h2>
-                Statistik
-              </h2>
-
-            </div>
-
-          </div>
-
-
-          <div class="player-stats-grid">
-
-            <div>
-              <span>Matcher</span>
-              <strong>${player.games || 0}</strong>
-            </div>
-
-            <div>
-              <span>Mål</span>
-              <strong>${player.goals || 0}</strong>
-            </div>
-
-            <div>
-              <span>Assist</span>
-              <strong>${player.assists || 0}</strong>
-            </div>
-
-            <div>
-              <span>Poäng</span>
-              <strong>${points}</strong>
-            </div>
-
-            <div>
-              <span>Skott</span>
-              <strong>${player.shots || 0}</strong>
-            </div>
-
-            <div>
-              <span>Utvisningsminuter</span>
-              <strong>${player.pim || 0}</strong>
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <section class="dashboard-panel">
-
-          <div class="panel-header">
-
-            <div>
-
-              <span class="panel-label">
-                STATUS
-              </span>
-
-              <h2>
-                Form & fysisk status
-              </h2>
-
-            </div>
-
-          </div>
-
-
-          <div class="player-status-grid">
-
-            <div>
-              <span>Kondition</span>
-              <strong>${condition}%</strong>
-            </div>
-
-            <div>
-              <span>Form</span>
-              <strong>${player.form || 0}</strong>
-            </div>
-
-            <div>
-              <span>Moral</span>
-              <strong>${Math.round(player.morale ?? 70)}</strong>
-            </div>
-
-            <div>
-              <span>Trivsel</span>
-              <strong>${Math.round(player.happiness)}%</strong>
-            </div>
-
-            <div>
-              <span>Potential</span>
-              <strong>${assessmentBadge(player,true)}</strong>
-            </div>
-
-          </div>
-
-          ${trainingPlayerPanel(player)}
-          ${lockerPlayerPanel(player)}
-          ${storiesPlayerPanel(player)}
-          ${medicalPlayerPanel(player)}
-
-        </section>
-
-
-      </div>
-
-    </div>
-
-  `;
-
+${loanPlayerPanel(player)}`:tab==='development'?`<div class="fm-profile-details">${trainingPlayerPanel(player)}${medicalPlayerPanel(player)}${lockerPlayerPanel(player)}</div>`:tab==='report'?`${assessmentPanel(player)}${storiesPlayerPanel(player)}`:`
+  <div class="fm-profile-main"><section class="fm-panel fm-role-panel"><h2>Position & roll</h2><div class="fm-position-map"><span class="${['VF','F'].includes(player.pos)?'active':''}">VF</span><span class="${['C','F'].includes(player.pos)?'active':''}">C</span><span class="${['HF','F'].includes(player.pos)?'active':''}">HF</span><span class="${player.pos==='B'?'active':''}">VB</span><span class="${player.pos==='B'?'active':''}">HB</span><span class="${player.pos==='MV'?'active':''}">MV</span></div><p>${lineupPlayerPlace(player)}</p>${r.roles.map(x=>`<div class="fm-role-row"><b>${x.name}</b><span>${x.value>=14?'Styrka':x.value>=11?'Användbar':'Utvecklingsbehov'}</span></div>`).join('')}</section>
+  ${desktopAttributes(player)}<aside class="fm-panel fm-report-summary"><h2>Tränarens bedömning</h2><p>${trainingSafe(r.staff.name)}</p><strong>${r.roles[0].name}</strong><p>${medicalAvailable(player)?'Tillgänglig för uttagning':'Ej tillgänglig för uttagning'}</p><dl><dt>Startenergi</dt><dd>${Math.round(readinessCeiling(player.fatigue))}%</dd><dt>Slitage</dt><dd>${Math.round(player.fatigue||0)} / 100</dd><dt>Moral</dt><dd>${Math.round(player.morale??70)} / 100</dd><dt>Form</dt><dd>${player.form||0}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='report';render()">Fullständig rapport →</button></aside></div>
+  <div class="fm-profile-bottom"><section class="fm-panel"><h2>Kontrakt</h2><dl><dt>Årslön</dt><dd>${formatCurrency(player.salary)}</dd><dt>Återstår</dt><dd>${player.contractYears} år</dd><dt>Utlovad roll</dt><dd>${player.promisedRole}</dd><dt>Marknadsvärde</dt><dd>${formatCurrency(player.value)}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='contract';render()">Hantera kontrakt →</button></section><section class="fm-panel"><h2>Utveckling & välmående</h2><dl><dt>Träningsfokus</dt><dd>${trainingSafe(player.developmentFocus||'Individuell plan')}</dd><dt>Trivsel</dt><dd>${Math.round(player.happiness??70)}%</dd><dt>Roll i truppen</dt><dd>${role}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='development';render()">Träning, samtal & hälsa →</button></section><section class="fm-panel"><h2>Säsong ${seasonLabel()}</h2><table class="fm-stats"><thead><tr><th>Matcher</th><th>Mål</th><th>Assist</th><th>Poäng</th><th>Skott</th><th>Utv.</th></tr></thead><tbody><tr>${[player.games,player.goals,player.assists,points,player.shots,player.pim].map(n=>`<td>${n||0}</td>`).join('')}</tr></tbody></table></section></div>`}</article>`;
 }
 /* =========================================================
    KEDJOR
@@ -4526,6 +4315,9 @@ function clubSelectView(){return careerClubSelectView();}
    ========================================================= */
 
 function tacticsView(){
+ return desktopTacticsView();
+}
+function legacyTacticsView(){
   const plan=state.tacticalPlan;
   const select=(key,options)=>`<select onchange="setTacticalSetting('${key}',this.value)">${options.map(([value,label])=>`<option value="${value}" ${plan[key]===value?"selected":""}>${label}</option>`).join("")}</select>`;
   return `<div class="tactics-page"><div class="page-heading"><div><span class="overview-kicker">MATCHPLAN</span><h1>Taktik</h1><p>Din matchplan påverkar lagstyrka, risk och hur kedjorna används.</p></div></div>
