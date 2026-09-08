@@ -117,6 +117,10 @@ function aiRoleFits(p,role){
  const def=AI_ROLE_DEFS[role];if(!def||worldGroup(p)!==def.kind)return false;
  return role!=='center'||positionFit(p,'C')>=.98;
 }
+function aiRosterWithReturns(club,extra=[]){
+ const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(Boolean);
+ return [...(state.clubRosters[club]||[]),...returning,...extra];
+}
 function aiRosterHasRoom(players){
  const roster=[...new Map(players.filter(Boolean).map(p=>[String(p.id),p])).values()];
  const vacancies=Object.entries({MV:2,B:6,F:12}).reduce((n,[group,target])=>n+Math.max(0,target-roster.filter(p=>worldGroup(p)===group).length),0);
@@ -154,7 +158,7 @@ function aiSquadNeeds(club){
 function aiPromote(club,p,reason){
  const c=clubAIState(club),b=state.recruitment.ai[club];if(!c||!b||!c.academy.roster.includes(p)||!medicalReady(p))return false;
  const added=p.academy.seniorContract?0:p.salary;
- if(!aiRosterHasRoom([...(state.clubRosters[club]||[]),p])||loanWageCost(club)+added+aiMarketReserved(club).salary>b.wageLimit||b.cash<0)return false;
+ if(!aiRosterHasRoom(aiRosterWithReturns(club,[p]))||loanWageCost(club)+added+aiMarketReserved(club).salary>b.wageLimit||b.cash<0)return false;
  c.academy.roster=c.academy.roster.filter(q=>q!==p);state.clubRosters[club].push(p);
  p.academy.path='senior';p.academy.seniorContract=true;p.contractYears=Math.max(2,p.contractYears);p.club=club;
  p.aiRoleReview={games:0,seconds:0,missed:0};

@@ -43,7 +43,7 @@ function loanTerms(p,owner,borrower,offer){
  const limit=borrower===managerClub()?wageBudget():state.recruitment.ai[borrower]?.wageLimit||0;
  const recruitReserve=borrower===managerClub()?state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future').reduce((n,d)=>n+d.salary,0):0;
  const room=limit-(borrower===managerClub()?annualWageCost():loanWageCost(borrower))-loanReserved(borrower,offer)-recruitReserve;
- if(state.clubRosters[borrower].length>=32||room<0)return {reason:'Mottagarklubbens trupp eller lönebudget är full.'};
+ if(state.clubRosters[borrower].length>=32||borrower!==managerClub()&&clubAIState(borrower)&&!aiRosterHasRoom(aiRosterWithReturns(borrower,[p]))||room<0)return {reason:'Mottagarklubbens trupp eller lönebudget är full.'};
  // The other club has a price, independent of the percentage typed into the form.
  const maxShare=Math.min(role==='starter'?.75:role==='regular'?.5:.25,Math.floor(room/Math.max(1,p.salary)*4)/4);
  const minShare=young?.5:.75;
