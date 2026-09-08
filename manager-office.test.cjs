@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const {run:r}=boot();
+r("startCareerWithClub('HV71');managerOfficeView()");
+const before=r('JSON.stringify(state)');
+assert.match(r('managerOfficeView()'),/Truppens läge/);
+assert.equal(r('JSON.stringify(state)'),before,'Overview must not change the simulation');
+r('managerRoster()[0].fatigue=60');
+assert.equal(r("officeDecisions().some(t=>t.tag==='Träning'||t.tag==='Medicinskt'||t.tag==='Trupp')"),false);
+r("state.recruitment.incoming.push({id:900,name:'Testspelare',buyer:'AIK',fee:100000,status:'pending',expires:state.recruitment.tick+2});recruitHub.affairs='history';state.recruitment.focusDeal=999;officeOpenDeal('incoming:900')");
+assert.equal(r('state.page'),'transfers');assert.equal(r('state.recruitment.tab'),'deals');assert.equal(r('recruitHub.deal'),'incoming:900');assert.equal(r('recruitHub.affairs'),'open');assert.equal(r('state.recruitment.focusDeal'),null);
+assert.equal(r("officeDecisions().some(t=>t.key==='incoming:900')"),true);
+r('state.recruitment.incoming.find(d=>d.id===900).expires=-1');
+assert.equal(r("officeDecisions().some(t=>t.key==='incoming:900')"),false);
+r("officeOpenDay(calAdd(state.calendar.date,3))");assert.equal(r('calendarUI.date'),r('calAdd(state.calendar.date,3)'));
+assert.equal(r("(managerOfficeView().match(/Öppna dagens program/g)||[]).length"),1);
+console.log('PASS: read-only overview, decision priorities, exact affair and calendar destinations, expired offers, single daily action.');
