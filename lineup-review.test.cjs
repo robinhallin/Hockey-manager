@@ -36,3 +36,12 @@ assert.equal(q('studioEngine().teams[0].plan.forwards[0]'),q('next'));
 assert.ok(q('tacticalReviewSnapshot()[0].result.seconds')>0);
 assert.equal(q('tacticalReviewSnapshot()[0].result.for'),q("state.live.analysis.shots.filter(s=>s.side==='own'&&s.situation==='even').length"));
 console.log('PASS: real substitutions, grouped orders/keeper change, strength accounting, engine continuation and persistent decision history.');
+
+// An old paused tactical decision has no lineup snapshot. Record only the new change.
+const legacy=boot(),z=legacy.run;z(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();matchOrder('forecheck','passive');
+ delete state.live.tacticalReviews[0].before.lineup;delete state.live.tacticalReviews[0].after.lineup;
+ globalThis.original=state.lines.forwards[0];changeLinePlayer('forwards',0,state.lines.forwards[3]);`);
+assert.equal(z('state.live.tacticalReviews.length'),1);
+assert.equal(z('state.live.tacticalReviews[0].before.lineup.forwards[0].id'),z('String(original)'));
+assert.ok(z('tacticalReviewView(tacticalReviewSnapshot()).includes("Kedja 1:")'));
+console.log('PASS: first new lineup decision at an existing legacy stoppage remains visible.');

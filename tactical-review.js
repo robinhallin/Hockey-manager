@@ -27,7 +27,7 @@ function tacticalReviewRecord(before,label){
  if(!m?.analysis||m.finished||JSON.stringify(before)===JSON.stringify(after))return;
  const history=m.tacticalReviews||(m.tacticalReviews=[]),totals=tacticalReviewTotals(),last=history.at(-1),time=analysisClock();
  // Changes made at the same stoppage form one decision, not several zero-second samples.
- if(last&&last.time===time){last.after=after;last.label='Flera tränarbeslut';return;}
+ if(last&&last.time===time){if(!last.before.lineup&&before.lineup)last.before.lineup=before.lineup;last.after=after;last.label='Flera tränarbeslut';return;}
  if(last){last.result=tacticalReviewDelta(totals,last.totals);last.end=time;}
  history.push({time,label,before,after,totals,baseline:tacticalReviewDelta(totals,last?.totals),partial:Boolean(m.analysis.partial||m.analysis.strengthPartial)});
  if(history.length>24)history.shift();
