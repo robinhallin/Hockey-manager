@@ -3619,6 +3619,7 @@ function setDevelopmentFocus(playerId,focus){
 
 }
 function playerView(){
+ depthSelection();
 
   const player =
     managerRoster().find(
