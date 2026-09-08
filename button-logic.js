@@ -57,3 +57,5 @@ function deskEnhanceButtons(root){
  if(deskActionNotice){const note=document.createElement('p');note.className='desk-action-notice';note.setAttribute('role','status');note.textContent=deskActionNotice;page.insertBefore(note,page.firstChild);}
 }
 function resetRecruitFilters(){state.recruitment.filters={country:'ALL',profile:'ALL',availability:'all',maxAge:60,maxFee:50000000,query:'',attribute:'',minAttribute:10};queueInterfaceSave();render();}
+
+function applyRecruitSearch(){const input=document.getElementById('recruit-query');if(input)setRecruitFilter('query',input.value);}

@@ -10,6 +10,7 @@ r("deskNavigate('specialTeams');deskNavigate('tactics');deskBack()");assert.equa
 r("deskNavigate('transfers','needs');recruitFilters().query='zzz';recruitSelectProfile('Målskytt');deskBack()");assert.equal(r('state.recruitment.tab'),'needs');assert.equal(r('recruitFilters().query'),'zzz');
 r("deskNavigate('transfers','reports')");assert.equal(r('state.recruitment.tab'),'missions');
 r("resetRecruitFilters()");assert.equal(r('recruitFilters().query'),'');assert.equal(r('recruitFilters().availability'),'all');assert.equal(r('recruitFilters().profile'),'ALL');
+r("document.getElementById('recruit-query').value='zzzxxyy';applyRecruitSearch()");assert.equal(r('recruitCandidates().length'),0);assert.match(r("deskActionReason('createScoutMission')"),/Inga nya kandidater/);r('resetRecruitFilters()');
 assert.equal(r("deskActionReason('openContractNegotiation',id)"),'');
 r("state.calendar.date=calendarTarget();startMatch();pauseMatch()");
 assert.match(r("deskActionReason('openContractNegotiation',id)"),/Avsluta/);
