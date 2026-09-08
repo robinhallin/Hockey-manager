@@ -3886,9 +3886,9 @@ function changeLinePlayer(type,index,newId){
  if(!hockeyAllowChange()||!['forwards','defense'].includes(type)||!Number.isInteger(index)||index<0||index>=(type==='forwards'?12:6))return;
  const p=playerById(newId);if(!medicalAvailable(p)||p.pos==='MV')return;
  if(state.live?.running)pauseMatch();ensureLines();
- const old=state.lines[type][index];
+ const before=tacticalReviewPlan(),old=state.lines[type][index];
  for(const key of ['forwards','defense']){const other=state.lines[key].findIndex(id=>samePlayerId(id,p.id));if(other>=0){state.lines[key][other]=old;break;}}
- state.lines[type][index]=p.id;save();render();
+ state.lines[type][index]=p.id;tacticalReviewRecord(before,'Ändrad laguppställning');save();render();
 }
 
 
@@ -3898,7 +3898,10 @@ function changeGoalie(id){
 
   ensureLines();
 
+  if(state.live?.running)pauseMatch();
+  const before=tacticalReviewPlan();
   state.lines.goalie=id;
+  tacticalReviewRecord(before,'Målvaktsbyte');
 
   save();
 
