@@ -117,33 +117,24 @@ function applyTrainingPreset(name){
 function setIndividualLoad(id,value){
   if(!['normal','light','rest'].includes(value))return;
   const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p)return;
-  p.trainingLoad=value;save();render();
+  p.trainingLoad=value;delete p.trainingReturn;save();render();
 }
 function pendingManagerDecision(){return state.training?.messages.find(m=>m.decisionType&&!m.resolved);}
 function runTrainingSession(){
   if(!managerEmployed())return false;
   ensureTrainingData();const t=state.training;
   if(!t||t.day>=trainingDays()||t.lockedRound===state.round||state.live&&!state.live.finished||state.calendar?.completedMatchDate===state.calendar?.date||(opponent()==='Ingen match'&&state.season.phase!=='preseason')||pendingManagerDecision())return false;
+  trainingReturnDay();
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
   let fatigueChange=0,trained=0,resting=0,improvements=0;
   const before=managerRoster().reduce((n,p)=>n+p.fatigue,0)/managerRoster().length;
   for(const p of managerRoster()){
-    const previous=p.fatigue;
-    if(!medicalCanTrain(p)||p.trainingLoad==='rest'||session.type==='recovery'){p.fatigue=Math.max(0,p.fatigue-25);resting++;}
-    else{
-      const light=p.trainingLoad==='light'||session.intensity==='light'||session.type==='matchprep';
-      const hard=session.intensity==='hard'&&!light;
-      const load=hard?12:light?-9:2;
-      p.fatigue=trainingClamp(p.fatigue+load);
-      const coach=state.staff.find(s=>s.id===(p.pos==='MV'?'goalie':'assistant'));
-      const age=p.age<=23?1.35:p.age<=28?.85:.45;
-      const quality=(coach?.coaching||12)/15*clubTrainingFactor()*(p.pos==='MV'?clubPriorityValue('goalieTraining'):1);
-      const freshness=Math.max(.25,1-previous/120);
-      const growthRoom=.5+Math.min(3,p.attributeGrowth||0)/6;
-      const points=(hard?8:light?3.5:6)*age*quality*freshness*growthRoom;
-      if(trainingGrowth(p,trainingTarget(p,session.type),points))improvements++;
-      trained++;
-    }
+    const previous=p.fatigue,effect=trainingSessionEffect(p,session);
+    p.fatigue=effect.fatigue;
+    const key=effect.rest?null:trainingTarget(p,session.type);
+    if(effect.rest)resting++;
+    else{if(trainingGrowth(p,key,effect.points))improvements++;trained++;}
+    trainingPlanRecord(p,session,effect,previous,key);
     fatigueChange+=p.fatigue-previous;
   }
   const participation=trained/Math.max(1,managerRoster().length),signature=trainingSignature();
@@ -240,7 +231,7 @@ function trainingSafe(text){return String(text).replace(/[&<>"']/g,c=>({'&':'&am
 function trainingPlayerPanel(p){
   ensureTrainingData();const key=trainingTarget(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
   const changes=Object.keys(p.attributes).filter(k=>p.attributes[k]>(p.trainingBaseline[k]||p.attributes[k]));
-  return `${developmentPanel(p)}${p.lastPerformance?`<div class="player-last-performance"><strong>Senaste matchinsats</strong> ${performanceStars(p.lastPerformance.stars)}<p>${calText(p.lastPerformance.date)} · ${trainingSafe(p.lastPerformance.opponent)} · ${trainingSafe(p.lastPerformance.reason)}</p></div>`:''}<div class="individual-training"><div class="training-individual-fields"><label>Individuellt fokus<select onchange="setDevelopmentFocus('${p.id}',this.value)">${focusOptions(p).map(f=>`<option ${p.developmentFocus===f?'selected':''}>${f}</option>`).join('')}</select></label><label>Träningsbelastning<select onchange="setIndividualLoad('${p.id}',this.value)">${[['normal','Följ lagets pass'],['light','Lätt träning'],['rest','Individuell vila']].map(([v,l])=>`<option value="${v}" ${p.trainingLoad===v?'selected':''}>${l}</option>`).join('')}</select></label></div><div class="training-progress-label"><span>Nästa fokus: ${fields[key]}</span><strong>${Math.floor(p.trainingProgress[key]||0)} %</strong></div><progress max="100" value="${p.trainingProgress[key]||0}" aria-label="Utvecklingsarbete inom ${fields[key]}"></progress><p>Framsteg mot nästa attributsteg. Utvecklingstakten beror på ålder, ork och tränarstöd. Individuell vila gäller tills du ändrar den.</p>${changes.length?`<p class="training-growth">Utvecklat sedan uppföljningen började: ${changes.map(k=>`${fields[k]} +${p.attributes[k]-p.trainingBaseline[k]}`).join(', ')}.</p>`:''}</div>`;
+  return `${developmentPanel(p)}${p.lastPerformance?`<div class="player-last-performance"><strong>Senaste matchinsats</strong> ${performanceStars(p.lastPerformance.stars)}<p>${calText(p.lastPerformance.date)} · ${trainingSafe(p.lastPerformance.opponent)} · ${trainingSafe(p.lastPerformance.reason)}</p></div>`:''}<div class="individual-training"><div class="training-individual-fields"><label>Individuellt fokus<select onchange="setDevelopmentFocus('${p.id}',this.value)">${focusOptions(p).map(f=>`<option ${p.developmentFocus===f?'selected':''}>${f}</option>`).join('')}</select></label><label>Träningsbelastning<select onchange="setIndividualLoad('${p.id}',this.value)">${[['normal','Följ lagets pass'],['light','Lätt träning'],['rest','Individuell vila']].map(([v,l])=>`<option value="${v}" ${p.trainingLoad===v?'selected':''}>${l}</option>`).join('')}</select></label></div><div class="training-progress-label"><span>Nästa fokus: ${fields[key]}</span><strong>${Math.floor(p.trainingProgress[key]||0)} %</strong></div><progress max="100" value="${p.trainingProgress[key]||0}" aria-label="Utvecklingsarbete inom ${fields[key]}"></progress><p>Framsteg mot nästa attributsteg. Utvecklingstakten beror på ålder, ork och tränarstöd. Individuell vila gäller tills du ändrar den eller din planerade återgång infaller.</p>${changes.length?`<p class="training-growth">Utvecklat sedan uppföljningen började: ${changes.map(k=>`${fields[k]} +${p.attributes[k]-p.trainingBaseline[k]}`).join(', ')}.</p>`:''}</div>${trainingPlanningPanel(p)}`;
 }
 function trainingAdvice(){
   const t=state.training,roster=managerRoster(),tired=roster.filter(p=>p.fatigue>=60),resting=roster.filter(p=>p.trainingLoad==='rest');
@@ -258,7 +249,7 @@ function legacyTrainingView(){
   return `<section class="training-page"><header class="daily-heading"><div><span class="career-eyebrow">TRÄNARVARDAG · OMGÅNG ${state.round}</span><h1>Spelarutveckling</h1><p>${state.season.phase==='preseason'?'Försäsong: planera belastningen och prova din spelidé.':`${trainingDays()} träningsdagar inför ${opponent()}.`}</p></div><button class="btn secondary" onclick="trainingOpen('inbox')">Öppna inkorgen</button></header>
   ${coachFollowupView()}<div class="training-metrics"><div><span>GENOMSNITTLIG ORK</span><strong>${condition}<small>%</small></strong><p>${roster.filter(p=>p.fatigue>=60).length} spelare behöver extra återhämtning</p></div><div><span>SAMSPEL MED MATCHPLANEN</span><strong>${Math.round(currentTrainingFamiliarity())}<small>%</small></strong><p>Taktik och matchvana bygger trygghet</p></div><div><span>SPECIAL TEAMS · FÖRBEREDELSE</span><strong>${Math.round(t.powerplay)}<small> PP / </small>${Math.round(t.penaltykill)}<small> PK</small></strong><p>Skala 0–100 · påverkar special teams</p></div></div>
   <div class="training-layout"><div><section class="training-planner"><span class="career-eyebrow">LAGETS DAGSPROGRAM</span><h2>Lagets schema</h2><p class="training-note">Välj pass och belastning direkt på rätt datum. Här arbetar du med varje spelares utveckling och individuella vila.</p><button class="btn" onclick="deskNavigate('calendar')">Öppna månadskalendern →</button></section>
-  <section class="training-individuals"><div class="daily-section-heading"><div><span class="career-eyebrow">INDIVIDEN I LAGET</span><h2>Utveckling & belastning</h2></div><label>Visa<select onchange="trainingPosition=this.value;render()"><option value="all" ${trainingPosition==='all'?'selected':''}>Hela truppen</option><option value="skater" ${trainingPosition==='skater'?'selected':''}>Utespelare</option><option value="goalie" ${trainingPosition==='goalie'?'selected':''}>Målvakter</option></select></label></div><p class="training-note">Individuell vila gäller tills du ändrar den. Lätt träning begränsar belastningen även om laget tränar hårt.</p><div class="individual-training-list">${filtered.map(p=>`<article class="training-player-row"><div class="training-player-title"><button onclick="trainingPlayerLink('${p.id}')"><strong>${p.name}</strong><span>${p.pos} · ${p.age} år</span></button><span class="player-readiness ${p.fatigue>=60?'tired':''}">${Math.round(100-p.fatigue)} % ork</span></div>${trainingPlayerPanel(p)}</article>`).join('')}</div></section></div>
+  <section class="training-individuals"><div class="daily-section-heading"><div><span class="career-eyebrow">INDIVIDEN I LAGET</span><h2>Utveckling & belastning</h2></div><label>Visa<select onchange="trainingPosition=this.value;render()"><option value="all" ${trainingPosition==='all'?'selected':''}>Hela truppen</option><option value="skater" ${trainingPosition==='skater'?'selected':''}>Utespelare</option><option value="goalie" ${trainingPosition==='goalie'?'selected':''}>Målvakter</option></select></label></div><p class="training-note">Individuell vila gäller tills du ändrar den eller din planerade återgång infaller. Lätt träning begränsar belastningen även om laget tränar hårt.</p><div class="individual-training-list">${filtered.map(p=>`<article class="training-player-row"><div class="training-player-title"><button onclick="trainingPlayerLink('${p.id}')"><strong>${p.name}</strong><span>${p.pos} · ${p.age} år</span></button><span class="player-readiness ${p.fatigue>=60?'tired':''}">${Math.round(100-p.fatigue)} % ork</span></div>${trainingPlayerPanel(p)}</article>`).join('')}</div></section></div>
   <aside class="training-sidebar"><section class="training-coach-note"><span class="career-eyebrow">ASSISTERANDE TRÄNAREN</span><h2>Min rekommendation</h2><p>${trainingAdvice()}</p><div class="row"><span>Isträning</span><strong>${state.staff.find(s=>s.id==='assistant')?.coaching||14}/20</strong></div><div class="row"><span>Målvaktsträning</span><strong>${state.staff.find(s=>s.id==='goalie')?.coaching||16}/20</strong></div></section><section class="training-promises"><span class="career-eyebrow">DITT ORD SPELAR ROLL</span><h2>Löften till spelarna</h2>${t.promises.filter(p=>!p.resolved).length?t.promises.filter(p=>!p.resolved).map(p=>`<article><strong>${p.name}</strong><p>${p.qualified}/2 matcher med minst 15 minuter. ${3-p.games} matcher kvar.</p></article>`).join(''):'<p>Inga aktiva löften. Spelare tar upp sin roll när de behöver mer förtroende.</p>'}</section><section class="training-history"><h2>Senaste passen</h2>${t.history.length?t.history.slice(0,6).map(l=>`<div><span>Omgång ${l.round} · dag ${l.day}</span><strong>${TRAINING_SESSIONS[l.type].name}</strong><p>Ork ${Math.round(100-l.before)} → ${Math.round(100-l.after)} %</p></div>`).join(''):'<p>Rapporterna visas när träningen har börjat.</p>'}</section></aside></div></section>`;
 }
 const inboxUI={filter:"all",detail:false,listScroll:0};
