@@ -184,12 +184,31 @@ function rivalLiveDecision(){
  if(!a.timeout&&decision.timeout){a.timeout=true;matchRecover(60,'opponent-timeout');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}
 }
 
+// Background fixtures resolve registered shots, not spatial puck flights.
+// The context is an estimate from the players on ice and the current match plans.
+function rivalShotContext({creation,resistance,shooterPosition,pp,plan,opposition},rand){
+ const edge=attrClamp((creation-resistance)/20,-.5,.5);
+ const counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
+ const closeChance=attrClamp(.30+edge*.4+(pp?.10:0)+(counter?.12:0),.1,.65);
+ const close=rand()<closeChance;
+ const d=close?3+rand()*6:(shooterPosition==='B'?15:9)+rand()*9;
+ const angle=rand()*(close?.65:1.05);
+ const pressure=attrClamp(.42-edge*.4-(pp?.14:0)-(counter?.12:0)+(opposition.forecheck==='aggressive'&&!counter?.08:0),.08,.85);
+ const screen=attrClamp((plan.style==='pressure'?.38:.20)+(pp?.12:0),0,1);
+ return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
+}
+function rivalShotReport(games){
+ const known=games.filter(g=>!g.partial&&g.shotAssessment?.version===1);
+ if(!known.length)return '<p>Avslutskvalitet följs från nya bakgrundsmatcher. Äldre resultat kompletteras inte i efterhand.</p>';
+ const sum=key=>known.reduce((n,g)=>n+g.shotAssessment[key],0),shots=sum('shots');
+ return `<details><summary>Avslutskvalitet · ${known.length} matcher</summary><p>${shots} skott på mål, varav ${sum('dangerous')} med minst 18 % beräknad målchans. ${sum('goals')} mål från dessa skott. ${sum('rebounds')} returskott följde på räddningar.</p><p>Modellens bedömning: ${sum('expectedGoals').toFixed(1)} mål på de registrerade skotten. Lägen och press uppskattas i bakgrundssimuleringen; avsluten bedöms med samma formel som i egna matcher. Blockerade och missade skott ingår inte, och straffavgöranden räknas bort.</p><p>Jämför kvaliteten med skottmängden när du väljer hur ni ska försvara slottet. Korta underlag och målvaktsspel kan ge stora skillnader mellan bedömning och mål.</p></details>`;
+}
 function rivalSimulate(game){
  ensureRivals();const rand=rivalRandom(`${state.season.year}:${game.round}:${game.home}:${game.away}:${game.seriesId||'regular'}:match`);
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club,club===game.home?game.away:game.home);
   const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
-  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},pairResults:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,pp:0,ppGoals:0,pens:[]};
+  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},pairResults:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,shotAssessment:{version:1,shots:0,goals:0,expectedGoals:0,dangerous:0,rebounds:0},pp:0,ppGoals:0,pens:[]};
  });
  // Attributes do not change during a background fixture: snapshot once per player.
  const values=new Map(),energy=new Map(),workload=new Map(),roles=new Map(),specialFit=new Map();
@@ -245,18 +264,29 @@ function rivalSimulate(game){
   chosen.forEach((p,i)=>{roles.set(p,slots[i]||'X');specialFit.set(p,Boolean(b.pens.length+sides[1-side].pens.length));});
   return chosen;
  };
- const attempt=(side,ice,force=false)=>{
+ const attempt=(side,ice,force=false,rebound=false)=>{
   updateChemistry(ice);
   const b=sides[side],other=sides[1-side],players=ice[side],defenders=ice[1-side];
   const shooter=weighted(players,['shooting','composure','positioning']);if(!shooter)return false;
   const pp=players.length>defenders.length,keeper=other.l.keeper;
   b.shots++;row(side,shooter).shots++;
-  const finish=(attribute(shooter,'shooting')+attribute(shooter,'composure'))/2,goalie=keeper?rating(keeper):1;
-  const chance=attrClamp(.088+(finish-goalie)*.008+(pp?.035:0)+(keeper?0:.55),.025,.7);
+  const avg=(ps,keys)=>ps.length?ps.reduce((n,p)=>n+keys.reduce((v,k)=>v+attribute(p,k),0)/keys.length,0)/ps.length:1;
+  const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),shooterPosition:shooter.pos,pp,plan:b.l.plan,opposition:other.l.plan},rand);
+  if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true});
+  const playerValues=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
+  const model=StudioHockey.evaluateShot({shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
+  const chance=model.goalChance;
+  // The shot is already on target. Do not apply onTarget probability twice.
+  if(!force){b.shotAssessment.shots++;b.shotAssessment.expectedGoals+=chance;if(chance>=.18)b.shotAssessment.dangerous++;if(rebound)b.shotAssessment.rebounds++;}
   const goal=force||rand()<chance;
   if(keeper)row(1-side,keeper)[goal?'against':'saves']++;
-  if(!goal)return false;
-  b.goals++;row(side,shooter).goals++;
+  if(!goal){
+   // A rebound can only follow an actual save. At most one follow-up per attack.
+   const recovery=keeper?attrClamp(.28-attribute(keeper,'reboundControl')*.008-attribute(keeper,'handling')*.004,.03,.25):0;
+   if(!rebound&&keeper&&rand()<recovery)return attempt(side,ice,false,true);
+   return false;
+  }
+  b.goals++;row(side,shooter).goals++;if(!force)b.shotAssessment.goals++;
   for(const team of [0,1])for(let i=0;i<ice[team].length;i++)for(let j=i+1;j<ice[team].length;j++){
    const key=dynamicsKey(ice[team][i].id,ice[team][j].id);sides[team].pairResults[key]=(sides[team].pairResults[key]||0)+(team===side?1:-1);
   }
@@ -319,7 +349,7 @@ function rivalSimulate(game){
   }
  }
  return {homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
-  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
+  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,shotAssessment:b.shotAssessment,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
 }
 function rivalAfterFixture(game,rows,reports,partial=false){
  if(!game||game.rivalsRecorded||!state.rivals)return;game.rivalsRecorded=true;
@@ -390,7 +420,7 @@ function rivalsView(){
  return `<section class="rivals-page"><header class="desk-heading"><div><span class="desk-kicker">MATCHFÖRBEREDELSER · ${leagueName(club)}</span><h1>Motståndsrapport</h1><p>Tränaren, laget och det som förändrats sedan sist.</p></div><label>Granska klubb<select onchange="rivalsOpen(this.value)">${['SHL','HA'].map(id=>`<optgroup label="${LEAGUE_NAMES[id]}">${clubs.filter(n=>leagueOf(n)===id).map(n=>`<option value="${trainingSafe(n)}" ${n===club?'selected':''}>${trainingSafe(n)}</option>`).join('')}</optgroup>`).join('')}</select></label></header>
  <section class="rival-identity"><div>${careerBadge(club)}<span class="desk-kicker">${trainingSafe(club)}</span><h2>${trainingSafe(c.coach.name)}</h2><p>Fiktiv tränare i din karriär · Tillträdde ${c.coach.appointed?calText(c.coach.appointed):'vid starten'}</p></div><div><span class="rival-status">${pressure}</span><h3>${RIVAL_STYLES[l.plan.style]}</h3><p>${c.coach.youth?'Ger unga spelare en fördel vid jämna uttagningar.':'Låter prestation och ork avgöra uttagningen.'} ${l.plan.rotation==='topHeavy'?'Ger toppkedjorna mer istid.':l.plan.rotation==='rollFour'?'Rullar fyra kedjor.':'Fördelar istiden med tyngd på de två första kedjorna.'}</p>${l.plan.style!==c.coach.style?'<p class="rival-update">Den svaga formen har fått tränaren att pröva en annan spelidé.</p>':''}</div></section>
  <div class="rival-columns"><section class="rival-panel"><h2>Vad vi behöver förbereda</h2>${c.recruitmentNote?`<p><strong>Sportchefens arbete:</strong> ${trainingSafe(c.recruitmentNote)}</p>`:''}<p>${trainingSafe(rivalBriefText(club)).replace(/\n/g,'</p><p>')}</p><button class="btn secondary" onclick="deskNavigate('training')">Planera träningen</button> <button class="btn secondary" onclick="deskNavigate('tactics')">Se vår matchplan</button></section>
- <section class="rival-panel"><h2>Senaste ${recent.length||'registrerade'} matcherna</h2>${rivalFormHTML(recent)}<div class="rival-numbers"><div><span>Mål</span><strong>${recent.reduce((n,g)=>n+g.gf,0)}–${recent.reduce((n,g)=>n+g.ga,0)}</strong></div><div><span>Skott / match</span><strong>${recent.length?Math.round(recent.reduce((n,g)=>n+g.shots,0)/recent.length):'–'}</strong></div><div><span>Powerplay</span><strong>${pp?Math.round(ppGoals/pp*100)+' %':'–'}</strong><small>${ppGoals} mål / ${pp} lägen</small></div></div>${recent.some(g=>g.partial)?'<p>En del matchdata är ofullständig från en äldre sparning.</p>':''}${hot?`<p><strong>${trainingSafe(hot.name)}</strong> har varit lagets främsta poängspelare i minst en av dessa matcher.</p>`:''}<button class="rival-text-button" onclick="leagueStatsClub('${trainingSafe(club)}')">Hela lagets spelarstatistik →</button></section></div>
+ <section class="rival-panel"><h2>Senaste ${recent.length||'registrerade'} matcherna</h2>${rivalFormHTML(recent)}${rivalShotReport(recent)}<div class="rival-numbers"><div><span>Mål</span><strong>${recent.reduce((n,g)=>n+g.gf,0)}–${recent.reduce((n,g)=>n+g.ga,0)}</strong></div><div><span>Skott / match</span><strong>${recent.length?Math.round(recent.reduce((n,g)=>n+g.shots,0)/recent.length):'–'}</strong></div><div><span>Powerplay</span><strong>${pp?Math.round(ppGoals/pp*100)+' %':'–'}</strong><small>${ppGoals} mål / ${pp} lägen</small></div></div>${recent.some(g=>g.partial)?'<p>En del matchdata är ofullständig från en äldre sparning.</p>':''}${hot?`<p><strong>${trainingSafe(hot.name)}</strong> har varit lagets främsta poängspelare i minst en av dessa matcher.</p>`:''}<button class="rival-text-button" onclick="leagueStatsClub('${trainingSafe(club)}')">Hela lagets spelarstatistik →</button></section></div>
  <div class="rival-columns"><section class="rival-panel"><h2>Målvaktsläget</h2>${l.keeper?`<h3>${trainingSafe(l.keeper.name)}</h3><p>Trolig start · ${Math.round(100-(l.keeper.fatigue||0))} % ork</p><p>${c.recent.slice(-3).filter(g=>samePlayerId(g.keeper,l.keeper.id)).length} starter i de senaste tre registrerade matcherna. Tränaren väger förmåga, räddningsform och belastning.</p>`:'<p>Klubben saknar en spelklar målvakt.</p>'}<h3>Skadeavbräck</h3>${unavailable.length?unavailable.map(p=>`<p><strong>${trainingSafe(p.name)}</strong> · ${medicalStatus(p)}${p.health?.injury?.remaining?' · '+p.health.injury.remaining+' dagar till återgångsträning':''}</p>`).join(''):'<p>Alla spelare är medicinskt tillgängliga.</p>'}</section>
  <section class="rival-panel"><h2>Våra möten</h2>${meetings.length?[...meetings].reverse().slice(0,5).map(g=>`<div class="rival-meeting"><span>${g.date?calText(g.date):seasonLabel(g.year)}</span><strong>${managerClub()} ${g.gf}–${g.ga} ${trainingSafe(club)}</strong></div>`).join(''):'<p>Nästa möte blir ert första registrerade kapitel. Historiken följer med mellan säsongerna.</p>'}${c.history.length?`<details><summary>Tidigare tränare</summary>${c.history.map(h=>`<p><strong>${trainingSafe(h.name)}</strong> · ${calText(h.left)}<br>${trainingSafe(h.reason)}</p>`).join('')}</details>`:''}</section></div>
  <details class="rival-panel"><summary>Förväntade kedjor och backpar</summary><p>Prognos utifrån spelklarhet, attribut, form och tränarens prioriteringar.</p>${l.lines.map((line,i)=>`<div class="rival-meeting"><span>Kedja ${i+1}</span><strong>${line.map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständig kedja'}</strong></div>`).join('')}${[0,1,2].map(i=>`<div class="rival-meeting"><span>Backpar ${i+1}</span><strong>${l.defense.slice(i*2,i*2+2).map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständigt backpar'}</strong></div>`).join('')}</details>

@@ -1,0 +1,37 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const {evaluateShot}=require('./match-simulation');
+const context={d:7,angle:.2,pressure:.3,screen:.2,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
+const shooter={shooting:12,puckControl:12,composure:12},keeper={reflexes:12,positioning:12,composure:12,movement:12};
+const chance=(s=shooter,k=keeper,c=context)=>evaluateShot({shooter:s,keeper:k,context:c}).goalChance;
+assert.ok(chance({...shooter,shooting:18})>chance({...shooter,shooting:4}));
+for(const key of ['reflexes','positioning','composure'])assert.ok(chance(shooter,{...keeper,[key]:18})<chance(shooter,{...keeper,[key]:4}));
+assert.ok(chance()>chance(shooter,keeper,{...context,d:22}));
+assert.ok(chance()>chance(shooter,keeper,{...context,pressure:.9}));
+assert.equal(chance(shooter,null),1);
+const app=boot(),r=app.run;
+r(`startCareerWithClub('HV71');globalThis.game=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());globalThis.calls=[];globalThis.originalShot=StudioHockey.evaluateShot;StudioHockey.evaluateShot=input=>{calls.push(input);return originalShot(input);};globalThis.before=JSON.stringify(state);globalThis.result=rivalSimulate(game);`);
+assert.ok(r('calls.length')>30);
+assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.shots,0)'),r('calls.length'));
+assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.shots,0)'),r('result.rows.reduce((n,x)=>n+x.shots,0)'));
+assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.goals,0)'),r('result.rows.reduce((n,x)=>n+x.goals,0)'));
+assert.ok(Math.abs(r('result.reports.reduce((n,x)=>n+x.shotAssessment.expectedGoals,0)')-r('calls.reduce((n,input)=>n+originalShot(input).goalChance,0)'))<1e-10);
+assert.equal(r("calls.every(input=>Number.isFinite(input.context.d)&&input.context.pressure>=0&&input.context.pressure<=1)"),true);
+// Stronger keepers reduce expected conversion across the exact production shot contexts.
+assert.equal(r("calls.filter(i=>i.keeper).every(i=>originalShot({...i,keeper:{...i.keeper,reflexes:18,positioning:18,composure:18}}).goalChance<originalShot({...i,keeper:{...i.keeper,reflexes:4,positioning:4,composure:4}}).goalChance)"),true);
+r('state=JSON.parse(before);globalThis.repeat=rivalSimulate(game)');
+assert.equal(r('JSON.stringify(result)'),r('JSON.stringify(repeat)'));
+r('state=JSON.parse(before);game=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());leagueBackground(game);globalThis.assessment=JSON.stringify(game.rivalReports.map(r=>r.shotAssessment));globalThis.ledger=JSON.stringify(state.leagueStatistics);leagueBackground(game);save()');
+assert.equal(r('JSON.stringify(state.leagueStatistics)'),r('ledger'));
+const reloaded=boot(app.storage.value);
+assert.equal(reloaded.run('JSON.stringify(state.schedule.find(g=>g.rivalsRecorded).rivalReports.map(r=>r.shotAssessment))'),r('assessment'));
+assert.match(r('rivalShotReport(rivalsClubState(game.home).recent)'),/registrerade skotten/);
+assert.match(r('rivalShotReport([{shots:30,gf:3}])'),/Äldre resultat kompletteras inte/);
+assert.doesNotMatch(r('rivalShotReport([{partial:true,shotAssessment:result.reports[0].shotAssessment}])'),/Modellens bedömning/);
+assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
+console.log('PASS: shared production shot evaluation, attribute/context causality, exact shot/goal/expected-goal reconciliation, deterministic fixtures, once-only settlement, old/partial report exclusion and save/reload.');
+// Production rebounds follow saves and respond to actual keeper handling attributes.
+r(`StudioHockey.evaluateShot=originalShot;globalThis.trial=(skill)=>{for(const roster of Object.values(state.clubRosters))for(const p of roster)if(p.pos==='MV'){p.attributes.handling=skill;p.attributes.reboundControl=skill;}let rebounds=0,shots=0,goals=0;for(const g of state.schedule.filter(g=>g.home!==managerClub()&&g.away!==managerClub()).slice(0,24)){const x=rivalSimulate(g);for(const report of x.reports){rebounds+=report.shotAssessment.rebounds;shots+=report.shots;goals+=report.shotAssessment.goals;}for(const report of x.reports){const own=x.rows.filter(r=>r.club===report.club);if(own.reduce((n,r)=>n+r.shots,0)!==report.shots)throw Error('shot ledger');}}return {rebounds,shots,goals};};globalThis.weak=trial(4),strong=trial(18);`);
+assert.ok(r('weak.rebounds>strong.rebounds*1.4'),r('JSON.stringify({weak,strong})'));
+assert.equal(r('weak.rebounds<weak.shots-weak.goals&&strong.rebounds<strong.shots-strong.goals'),true);
+console.log('Keeper handling cohorts:',r('JSON.stringify({weak,strong})'));

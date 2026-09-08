@@ -13,6 +13,21 @@ const StudioHockey = (() => {
   const PHASES={faceoff:'Tekning',breakout:'Uppspel',entry:'Zoninträde',attack:'Etablerat anfall',counter:'Omställning',loose:'Lös puck',battle:'Kamp om pucken',dump:'Dump & jakt',clear:'Rensning',stoppage:'Avblåsning',finished:'Periodpaus'};
   function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return {d:distance(p,{x:a.x+dx*t,y:a.y+dy*t}),t};}
   function rating(p,keys){return keys.reduce((s,k)=>s+(p.attributes[k]||10),0)/keys.length;}
+  // Shared finishing model. Callers provide measured or explicitly estimated context.
+  // Pure calculation: no random draws, actor mutation or career state.
+  function evaluateShot({shooter,keeper,context:c,block=0,alignment=0}){
+    const shooting=shooter.shooting,control=shooter.puckControl,calm=shooter.composure;
+    const onTarget=clamp(.53+shooting*.012+control*.004-c.pressure*(.2-calm*.006)-c.angle*.065-(c.oneTimer?.035:0),.28,.9);
+      if(c.behind)return {goalChance:0,onTarget,block,quality:0,alignment:0};
+      if(!keeper)return {goalChance:1,onTarget:clamp(onTarget-c.d*.0025,.25,.9),block,quality:(1-block)*clamp(onTarget-c.d*.0025,.25,.9),alignment:1};
+      alignment=clamp(alignment,0,1);
+      const reflex=keeper.reflexes,position=keeper.positioning,composure=keeper.composure;
+      const saving=reflex*(c.d<10?.5:.3)+position*(c.d<10?.3:.5)+composure*.2;
+      const location=(.027+.23*Math.exp(-c.d/9))*(.16+.84*Math.cos(c.angle)**2);
+      const finish=(.63+shooting*.035)*(1-c.pressure*(.30-calm*.011));
+      const goalChance=clamp(location*finish*(1.65-saving*.049)*(1+alignment*.6)+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.lateralSpeed?clamp(c.lateralSpeed/25,0,1)*.022*(1-keeper.movement/30):0)+(c.rebound?.035:0),.003,.65);
+      return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
+  }
   class Match {
     constructor(rosters,{seed=710031,scenario='period',duration=1200}={}){
       this.modelVersion=2;this.rng=seed>>>0;this.time=0;this.duration=duration;this.wall=0;this.tick=0;this.finished=false;
@@ -413,21 +428,14 @@ const StudioHockey = (() => {
     shotModel(a,context=this.shotContext(a)){
       const c=context,keeper=this.actors.find(b=>b.side!==a.side&&b.role==='G');
       const shooting=this.attribute(a,'shooting'),control=this.attribute(a,'puckControl'),calm=this.attribute(a,'composure');
-      const onTarget=clamp(.53+shooting*.012+control*.004-c.pressure*(.2-calm*.006)-c.angle*.065-(c.oneTimer?.035:0),.28,.9);
       const goal=point(a.side,56.5,15);
       const block=this.skaters(1-a.side).reduce((risk,b)=>{
         const lane=segmentDistance(b,a,goal),commit=this.attribute(b,'positioning')*.6+this.attribute(b,'workRate')*.4;
         return lane.t>0&&lane.t<.96&&distance(a,b)>.4?Math.max(risk,clamp(1-lane.d/1.35,0,1)*(.14+commit*.014)):risk;
       },0);
-      if(c.behind)return {goalChance:0,onTarget,block,quality:0,alignment:0};
-      if(!keeper)return {goalChance:1,onTarget:clamp(onTarget-c.d*.0025,.25,.9),block,quality:(1-block)*clamp(onTarget-c.d*.0025,.25,.9),alignment:1};
-      const desired=this.goalieTarget(keeper.side,a),alignment=clamp(distance(keeper,desired)/2.5,0,1);
-      const reflex=this.attribute(keeper,'reflexes'),position=this.attribute(keeper,'positioning'),composure=this.attribute(keeper,'composure');
-      const saving=reflex*(c.d<10?.5:.3)+position*(c.d<10?.3:.5)+composure*.2;
-      const location=(.027+.23*Math.exp(-c.d/9))*(.16+.84*Math.cos(c.angle)**2);
-      const finish=(.63+shooting*.035)*(1-c.pressure*(.30-calm*.011));
-      const goalChance=clamp(location*finish*(1.65-saving*.049)*(1+alignment*.6)+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.lateralSpeed?clamp(c.lateralSpeed/25,0,1)*.022*(1-this.attribute(keeper,'movement')/30):0)+(c.rebound?.035:0),.003,.65);
-      return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
+      const keeperValues=keeper?Object.fromEntries(['reflexes','positioning','composure','movement'].map(k=>[k,this.attribute(keeper,k)])):null;
+      const alignment=keeper?clamp(distance(keeper,this.goalieTarget(keeper.side,a))/2.5,0,1):1;
+      return evaluateShot({shooter:{shooting, puckControl:control,composure:calm},keeper:keeperValues,context:c,block,alignment});
     }
     shotQuality(a){return this.shotModel(a).quality;}
     pass(a,b){
@@ -700,6 +708,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;
