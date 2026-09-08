@@ -93,7 +93,8 @@ function starRatingHTML(low,high,potential=false,assessor='Personalens bedömnin
 }
 function assessmentBadge(p,potential=false){const r=playerAssessment(p);return starRatingHTML(potential?r.potentialLow:r.low,potential?r.potentialHigh:r.high,potential,r.staff.name);}
 function assessmentShort(p){const r=playerAssessment(p);return `${starsText(r.current)} · ${r.roles[0].name}`;}
-function attributeInterval(p,key,r){const center=r.estimated[key],spread=r.uncertainty;const lo=attrClamp(Math.floor(center-spread)),hi=attrClamp(Math.ceil(center+spread));return lo===hi?String(lo):`${lo}–${hi}`;}
+function assessmentBounds(center,spread){return {low:attrClamp(Math.floor(center-spread)),high:attrClamp(Math.ceil(center+spread))};}
+function attributeInterval(p,key,r){const {low:lo,high:hi}=assessmentBounds(r.estimated[key],r.uncertainty);return lo===hi?String(lo):`${lo}–${hi}`;}
 function assessmentPanel(p){
   const r=playerAssessment(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
   const ordered=Object.keys(fields).sort((a,b)=>r.estimated[b]-r.estimated[a]);
