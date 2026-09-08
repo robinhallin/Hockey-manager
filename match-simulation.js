@@ -122,7 +122,8 @@ const StudioHockey = (() => {
       this.delayedOffside=null;this.icingCandidate=null;this.puckVelocity=null;this.rimPath=null;
       this.owner=a.side;this.carrier=a.id;this.flight=null;this.puck={x:a.x,y:a.y};
       this.decision=this.readDelay(a)+this.random()*.15;
-      a.controlledAt=this.time;
+      a.controlledAt=this.time;delete a.carryPlan;delete a.receivedPass;
+      if(changed&&this.rebound?.side!==a.side)this.rebound=null;
       const p=progress(a.side,a.x);
       this.setPhase(p>40?'attack':changed&&p>18?'counter':p>23?'entry':'breakout');
       if(turnover){this.stats[a.side].turnovers++;this.say('turnover',a.player.name+' läser spelet och vinner pucken.',a.side,true);}
@@ -227,7 +228,12 @@ const StudioHockey = (() => {
         }
         if(a.id!==this.carrier&&(p<=40||this.delayedOffside===side)&&progress(side,a.x)>39)x=36.5;
         if(a.id===this.carrier&&p<=40&&this.skaters(side).some(b=>b.id!==a.id&&progress(side,b.x)>40.1)){x=Math.min(x,37.5);duty='Inväntar att medspelarna lämnar anfallszonen';}
-        this.assign(a,point(side,x,y),duty);
+        let target=point(side,x,y);
+        if(carrier&&a!==carrier&&!pp)target=this.supportTarget(a,carrier,target);
+        if(a===carrier&&a.carryPlan?.until>this.time){target={...a.carryPlan.target};duty=a.carryPlan.reason;}
+        if(a===carrier&&p<=40&&this.skaters(side).some(b=>b.id!==a.id&&progress(side,b.x)>40.1))target.x=point(side,Math.min(37.5,progress(side,target.x)),0).x;
+        if(a.id!==this.carrier&&(p<=40||this.delayedOffside===side)&&progress(side,target.x)>37.5)target.x=point(side,37.5,0).x;
+        this.assign(a,target,duty);
       }
       if(!carrier&&this.flight?.kind==='pass'){const receiver=this.actor(this.flight.to);if(receiver)this.assign(receiver,this.flight.end,'Möter passningen');}
     }
@@ -245,14 +251,16 @@ const StudioHockey = (() => {
         return;
       }
       // Assign each dangerous opponent a distinct defender. The deepest threats are covered first.
-      const threats=[...attackers].sort((a,b)=>progress(1-side,b.x)-progress(1-side,a.x));
+      const danger=b=>progress(1-side,b.x)+(1-Math.abs(b.y-15)/15)*8+(b===carrier?5:carrier?(1-this.laneRisk(carrier,b))*3:0);
+      const threats=[...attackers].sort((a,b)=>danger(b)-danger(a));
       const available=[...defenders],assignments=[];
       for(const threat of threats){
         if(!available.length)break;
         const deepest=assignments.length<2;
         let pool=deepest?available.filter(a=>a.role.endsWith('D')):available;
         if(!pool.length)pool=available;
-        const marker=[...pool].sort((a,b)=>distance(a,threat)-distance(b,threat))[0];available.splice(available.indexOf(marker),1);
+        const cost=a=>distance(a,threat)-(a.markedThreat===threat.id?2:0);
+        const marker=[...pool].sort((a,b)=>cost(a)-cost(b))[0];marker.markedThreat=threat.id;available.splice(available.indexOf(marker),1);
         assignments.push({a:marker,threat});
       }
       for(const {a,threat} of assignments){
@@ -301,6 +309,12 @@ const StudioHockey = (() => {
         a.x=clamp(a.x+a.vx*dt,1,59);a.y=clamp(a.y+a.vy*dt,.6,29.4);
       }
       const carrier=this.actor(this.carrier);if(carrier)this.puck={x:carrier.x,y:carrier.y};
+      // Contact can happen between puck decisions; a player cannot skate through
+      // a defender merely because the next decision timer has not expired.
+      if(carrier&&!this.battle&&this.time>(carrier.contactUntil||0)){
+        const challenger=this.skaters(1-carrier.side).filter(d=>this.time>(d.contactUntil||0)&&distance(d,carrier)<1.45).sort((a,b)=>distance(a,carrier)-distance(b,carrier))[0];
+        if(challenger&&this.random()<1-Math.exp(-this.battleChance(challenger,carrier)*6*dt))this.startBattle(carrier,challenger);
+      }
     }
     laneRisk(a,b){return this.skaters(1-a.side).reduce((risk,d)=>{const lane=segmentDistance(d,a,b),reading=this.attribute(d,'positioning')*.65+this.attribute(d,'decisions')*.35;return lane.t>.1&&lane.t<.94?Math.max(risk,clamp(1-lane.d/1.9,0,1)*(reading/20)):risk;},0);}
     passChance(a,b){
@@ -325,16 +339,75 @@ const StudioHockey = (() => {
       // Better readers recognize valuable lanes more consistently; the pass can still fail.
       return this.passingOptions(a).map(row=>({...row,seen:row.score+(this.random()-.5)*uncertainty*2})).sort((x,y)=>y.seen-x.seen)[0];
     }
+    // Spatial value is evaluated from the current rink, without drawing random numbers.
+    skatingLane(a){
+      const p=progress(a.side,a.x);
+      const options=[[7,0],[5,-5],[5,5],[1,-5],[1,5],[-3,a.y<15?4:-4]];
+      return options.map(([dx,dy])=>{
+        const target=point(a.side,clamp(p+dx,5,54),clamp(a.y+dy,3,27));
+        const threats=this.skaters(1-a.side).map(d=>({...d,x:d.x+clamp(d.vx*.5,-2,2),y:d.y+clamp(d.vy*.5,-2,2)}));
+        const gap=Math.min(8,...threats.map(d=>segmentDistance(d,a,target).d));
+        const space=Math.min(6,...threats.map(d=>distance(d,target)))/6;
+        const advance=(progress(a.side,target.x)-p)/7;
+        return {target,value:.14+space*.13+clamp(advance,-1,1)*(p>40?.045:.12)+clamp(gap/3,0,1)*.08-this.pressureAt(a)*.19,reason:gap>2?'Utnyttjar en fri skridskoväg':'Söker en väg runt pressen'};
+      }).sort((a,b)=>b.value-a.value)[0];
+    }
+    supportTarget(a,carrier,anchor){
+      const key=this.owner+':'+this.phase+':'+carrier.id;
+      if(a.supportPlan?.key===key&&a.supportPlan.until>this.time)return a.supportPlan.target;
+      const role=a.role,p=progress(a.side,carrier.x),back=role.endsWith('D');
+      const offsets=this.phase==='attack'?[[0,0],[-3,-3],[-3,3],[1,-3],[1,3],[-5,0]]:[[0,0],[-4,-4],[-4,4],[-7,0],[2,-3],[2,3]];
+      const candidates=offsets.map(([dx,dy])=>{
+        const target=point(a.side,clamp(progress(a.side,anchor.x)+dx,this.phase==='attack'&&p>40?41:5,back?Math.min(45,p+2):55),clamp(anchor.y+dy,3,27));
+        if(p<=40)target.x=point(a.side,Math.min(37.5,progress(a.side,target.x)),0).x;
+        const separation=Math.min(6,...this.skaters(a.side).filter(b=>b.id!==a.id&&b.id!==carrier.id).map(b=>distance(b,target)))/6;
+        const open=Math.min(5,...this.skaters(1-a.side).map(b=>distance(b,target)))/5;
+        const reach=distance(carrier,target),range=1-Math.min(1,Math.abs(reach-10)/14);
+        const lane=1-this.laneRisk(carrier,target),anchorCost=distance(anchor,target)*.025;
+        return {target,value:lane*.4+open*.24+separation*.18+range*.18-anchorCost};
+      }).sort((a,b)=>b.value-a.value);
+      const target=candidates[0].target;a.supportPlan={key,until:this.time+.6,target};return target;
+    }
+    actionOptions(a){
+      const p=progress(a.side,a.x),pressure=this.pressureAt(a),context=this.shotContext(a),model=this.shotModel(a,context),t=this.teams[a.side];
+      const lane=this.skatingLane(a),rows=[{kind:'carry',value:lane.value,target:lane.target,reason:lane.reason}];
+      const held=this.time-(a.controlledAt??this.time),pk=this.isShortHanded(a.side),pp=this.hasPowerPlay(a.side);
+      for(const {b} of this.passingOptions(a)){
+        const chance=this.passChance(a,b),forward=progress(a.side,b.x)-p;
+        if(p<=40&&progress(a.side,b.x)>40)continue;
+        const receiver=this.shotModel(b),space=1-this.pressureAt(b);
+        let value=chance*(.32+receiver.quality*3+space*.08+clamp(forward/20,-.5,1)*.10)-(1-chance)*.22;
+        if(this.lastTouches.at(-1)?.id===b.id)value-=.06;
+        if(p>40&&progress(a.side,b.x)<40)value-=.2;
+        rows.push({kind:'pass',value,to:b.id,reason:receiver.quality>model.quality*1.5?'Passar till ett bättre avslutsläge':chance>.8?'Spelar ur pressen via en säker passningsväg':'Söker en öppning genom täckningen'});
+      }
+      const instant=context.oneTimer||context.rebound||(p>47&&context.angle<.6&&context.pressure<.45);
+      if(p>41&&!context.behind&&(!pp||instant||this.attackPasses>=2&&this.setupTime>1.2))rows.push({kind:'shoot',value:.12+model.quality*4+(t.tactics.mentality==='direct'?.07:t.tactics.mentality==='control'?-.025:0)+(instant?.06:0),reason:context.oneTimer?'Avslutar innan målvakten hinner över':context.screen>.3?'Utnyttjar skymningen':'Väljer avslut framför en sämre fortsättning'});
+      if(p>=30&&p<40)rows.push({kind:'dump',value:.08+pressure*.28+(t.tactics.mentality==='direct'?.07:0),reason:'Lägger pucken bakom pressen för att vinna nästa duell'});
+      if(pressure>.35&&held<1.6)rows.push({kind:'shield',value:.1+pressure*.18+this.attribute(a,'puckControl')*.002-held*.04,reason:'Skyddar pucken medan understödet blir spelbart'});
+      if(pk&&p<32)rows.push({kind:'clear',value:.52+pressure*.15,reason:'Prioriterar att få ut pucken i numerärt underläge'});
+      return rows.sort((a,b)=>b.value-a.value);
+    }
+    chooseAction(a){
+      const noise=(40-this.attribute(a,'vision')-this.attribute(a,'decisions'))*.0018;
+      const rows=this.actionOptions(a).map(r=>({...r,seen:r.value+(this.random()-.5)*noise})).sort((a,b)=>b.seen-a.seen);
+      const selected=rows[0];
+      this.decisionAudit??={counts:{},recent:[]};
+      const audit=this.decisionAudit;audit.counts[selected.kind]=(audit.counts[selected.kind]||0)+1;
+      audit.recent.push({time:this.time,side:a.side,player:a.player.name,kind:selected.kind,reason:selected.reason,alternatives:rows.slice(0,3).map(r=>({kind:r.kind,value:Math.round(r.value*1000)/1000}))});audit.recent=audit.recent.slice(-30);
+      return selected;
+    }
     shotContext(a){
       const goal=point(a.side,56.5,15),d=distance(a,goal),forward=56.5-progress(a.side,a.x);
       const angle=Math.atan2(Math.abs(a.y-15),Math.max(.1,forward));
       const last=a.receivedPass,oneTimer=Boolean(last&&this.time-last.time<.85&&Math.abs(last.y-a.y)>5);
-      const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3);
+      const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3&&(!this.rebound.spot||distance(a,this.rebound.spot)<6));
       const screen=this.actors.filter(b=>b.role!=='G'&&b.id!==a.id).reduce((sum,b)=>{
         const lane=segmentDistance(b,a,goal);
         return sum+(lane.t>.5&&lane.t<.98&&distance(b,goal)<9?clamp(1-lane.d/.95,0,1)*(b.side===a.side?1:.55):0);
       },0);
       return {d,angle,pressure:this.pressureAt(a),screen:clamp(screen,0,1),oneTimer,rebound,behind:forward<=0,
+        lateralSpeed:last&&this.time-last.time<1.2?Math.abs(last.y-a.y)/Math.max(.25,last.duration||.5):0,
         type:rebound?'Retur':oneTimer?'Direktskott':d>16?'Slagskott':d<5?'Näravslut':'Handledsskott'};
     }
     shotModel(a,context=this.shotContext(a)){
@@ -353,11 +426,12 @@ const StudioHockey = (() => {
       const saving=reflex*(c.d<10?.5:.3)+position*(c.d<10?.3:.5)+composure*.2;
       const location=(.027+.23*Math.exp(-c.d/9))*(.16+.84*Math.cos(c.angle)**2);
       const finish=(.63+shooting*.035)*(1-c.pressure*(.30-calm*.011));
-      const goalChance=clamp(location*finish*(1.65-saving*.049)+alignment*.12+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.rebound?.035:0),.003,.65);
+      const goalChance=clamp(location*finish*(1.65-saving*.049)*(1+alignment*.6)+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.lateralSpeed?clamp(c.lateralSpeed/25,0,1)*.022*(1-this.attribute(keeper,'movement')/30):0)+(c.rebound?.035:0),.003,.65);
       return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
     }
     shotQuality(a){return this.shotModel(a).quality;}
     pass(a,b){
+      this.rebound=null;
       const end={x:b.x+b.vx*.25,y:b.y+b.vy*.25};end.x=clamp(end.x,1,59);end.y=clamp(end.y,1,29);
       if(progress(a.side,a.x)<40&&progress(a.side,end.x)>40&&this.skaters(a.side).some(p=>p.id!==a.id&&progress(a.side,p.x)>40.3))return false;
       const chance=this.passChance(a,b),success=this.random()<chance;
@@ -421,7 +495,7 @@ const StudioHockey = (() => {
       }
       const safe=this.random()<model.safe;
       const end=point(f.side,safe?54+this.random()*3:51+this.random()*3,safe?(f.start.y<15?4+this.random()*3:23+this.random()*3):12+this.random()*6);
-      this.rebound={side:f.side,time:this.time};
+      this.rebound={side:f.side,time:this.time,spot:{...end}};
       if(!safe)this.stats[1-f.side].dangerousRebounds++;
       // A rebound travels out from the save. It does not appear magically in the slot.
       this.flight={kind:'rebound',side:f.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(this.puck,end)/10)};
@@ -452,7 +526,7 @@ const StudioHockey = (() => {
           this.stats[f.side].passes++;this.playerEvent(from,'passes');
           if(f.preRealism)this.stats[f.side].priorPasses++;
           this.rememberTouch(f.from,from?.player.name||f.fromName||'',f.start.y);
-          to.receivedPass={time:this.time,y:f.start.y};
+          to.receivedPass={time:this.time,y:f.start.y,duration:f.duration};
           this.say('pass',to.player.name+' tar emot passningen.',f.side);
         }else{this.setPhase('loose');this.lastTouches=[];this.looseTime=0;this.say('loose','Passningen bryts. Båda lagen söker pucken.',f.side);}
       }else if(f.kind==='shot'){
@@ -522,30 +596,16 @@ const StudioHockey = (() => {
         if(this.canGivePenalty(nearest.side)&&this.random()<penaltyRisk){this.givePenalty(nearest.side,nearest.player.name);return;}
         if(this.random()<this.battleChance(nearest,a)&&this.startBattle(a,nearest))return;
       }
-      if(pk&&p<32){
-        const outlet=this.skaters(a.side).find(b=>b.id!==a.id&&progress(a.side,b.x)>p+8&&this.passChance(a,b)>.82&&opponents.every(d=>distance(d,b)>3));
-        if(outlet&&!t.safeCounter&&this.random()<.12+this.attribute(a,'vision')*.009)this.pass(a,outlet);else this.clear(a);return;
-      }
-      const context=this.shotContext(a),quality=this.shotModel(a,context).quality,option=this.choosePass(a);
-      const clearChance=p>47&&context.angle<.6&&context.pressure<.45;
-      const instant=context.oneTimer||context.rebound||clearChance;
-      // Established PP moves the box; a real rebound or open slot is never passed up
-      // merely because an arbitrary number of passes has not been completed.
-      const ready=!pp||instant||this.attackPasses>=2&&this.setupTime>1.2;
-      if(p>41&&!context.behind&&ready&&(this.phaseTime>.4||instant)){
-        const intent=t.tactics.mentality==='direct'?.63:t.tactics.mentality==='control'?.31:.44;
-        const composure=this.attribute(a,'composure')/20;
-        const urge=intent+quality*1.8+(instant?.3:0)-(context.angle>.9?.16:0);
-        const betterPass=option&&option.score>1.2&&quality<.045;
-        if(this.random()<clamp(urge-(betterPass?composure*.18:0),.07,.92)&&this.shoot(a))return;
-      }
+      // Delayed offside is a rule constraint, not a preference to gamble on.
       if(p>=30&&p<40&&(this.delayedOffside===a.side||this.skaters(a.side).some(b=>b.id!==a.id&&progress(a.side,b.x)>40.1))&&this.dump(a))return;
-      if(!pp&&p>=30&&p<40&&this.pressureAt(a)>.35&&(t.tactics.mentality==='direct'||!option||option.score<.9)&&this.random()<.45&&this.dump(a))return;
-      if(option&&(this.phase==='attack'||this.pressureAt(a)>.3||this.random()<.35)&&this.pass(a,option.b))return;
-      // A carrier with time and space can skate; carrying ability is resolved by
-      // skating/acceleration, offside, defensive gaps and the next physical contest.
-      a.duty=this.pressureAt(a)>.4?'Skyddar pucken och söker understöd':'Utnyttjar fri is med pucken';
+      const choice=this.chooseAction(a);a.duty=choice.reason;this.advice=choice.reason;
+      if(choice.kind==='shoot'){this.shoot(a);return;}
+      if(choice.kind==='pass'){const receiver=this.actor(choice.to);if(receiver)this.pass(a,receiver);return;}
+      if(choice.kind==='dump'){this.dump(a);return;}
+      if(choice.kind==='clear'){this.clear(a);return;}
+      a.carryPlan={until:this.time+this.decision+.15,target:choice.kind==='shield'?{x:a.x,y:a.y}:choice.target,reason:choice.reason};
     }
+
     isShortHanded(side){return this.penalty?.side===side;}
     hasPowerPlay(side){return Boolean(this.penalty&&this.penalty.side!==side);}
     canGivePenalty(){return !this.penalty;}
@@ -622,7 +682,7 @@ const StudioHockey = (() => {
       if(scenario==='period')return;
       this.stoppage=0;this.phase='attack';this.phaseTime=0;this.owner=scenario==='pk'?1:0;
       if(scenario==='pp'||scenario==='pk'){const side=1-this.owner;this.penalty={side,remaining:120,name:'Testläge'};this.installUnit(side);}
-      const carrier=this.skaters(this.owner).find(a=>a.role==='LW');this.carrier=carrier.id;this.puck=point(this.owner,48,6);
+      const carrier=this.skaters(this.owner).find(a=>a.role==='LW');this.carrier=carrier.id;this.puck=point(this.owner,48,6);Object.assign(carrier,this.puck);
       this.targets();for(const a of this.actors){a.x=a.target.x;a.y=a.target.y;}
       this.puck={x:carrier.x,y:carrier.y};
       // Scenario placements are pre-match setup, so position the defense against the final attack.

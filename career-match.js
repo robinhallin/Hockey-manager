@@ -366,10 +366,16 @@ function studioShotView(){
  const outcome=({goal:'Mål',save:'Räddning',block:'Blockerat',wide:'Utanför'})[shot.outcome]||'Avslut';
  return `<div><span class="broadcast-shot-label">${studioReplayState?'REPRIS':'SENASTE AVSLUTET'}</span><strong>${trainingSafe(shot.player)} <small>· ${trainingSafe(e.teams[shot.side].name)}</small></strong></div><b class="broadcast-shot-outcome ${shot.outcome==='goal'?'is-goal':''}">${outcome}</b><p>${studioShotReasons(shot).map(trainingSafe).join(' · ')}</p>`;
 }
+function studioDecisionView(){
+ const last=studioEngine()?.decisionAudit?.recent?.at(-1);
+ if(!last||studioReplayState)return '';
+ const labels={carry:'Pucktransport',pass:'Passning',shoot:'Avslut',dump:'Dumpning',shield:'Puckskydd',clear:'Rensning'};
+ return `<span class="broadcast-shot-label">SPELARVAL</span><p><strong>${trainingSafe(last.player)}</strong> · ${labels[last.kind]||'Spelval'}</p><p>${trainingSafe(last.reason)}.</p>`;
+}
 function studioView(){
  const e=studioEngine(),m=state.live,t=e.teams[0];
  const changing=t.requested||t.change||t.changeQueue.length||t.needsSetup;
- return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioReplayState?'REPRIS · MATCHEN PAUSAD':m.finished?'SLUTSIGNAL':m.running?'MATCHSÄNDNING':'PAUSAT · COACHA LAGET'}</strong></div><span>${changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header><div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och istid finns under rinken."></canvas><div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHEN FORTSÄTTER</span><h3 id="broadcast-overview-title"></h3><p>Nästa farliga sekvens visas på rinken.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><div class="broadcast-shot" aria-label="Analys av senaste avslutet">${studioShotView()}</div><footer><span>${MATCH_VIEW_MODES[m.rink.mode]||'Matchsändning'} · välj visning och hastighet ovan. Klicka på en spelare för att pausa och läsa uppgiften.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
+ return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioReplayState?'REPRIS · MATCHEN PAUSAD':m.finished?'SLUTSIGNAL':m.running?'MATCHSÄNDNING':'PAUSAT · COACHA LAGET'}</strong></div><span>${changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header><div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och istid finns under rinken."></canvas><div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHEN FORTSÄTTER</span><h3 id="broadcast-overview-title"></h3><p>Nästa farliga sekvens visas på rinken.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><div class="broadcast-shot" aria-label="Analys av senaste avslutet">${studioShotView()}</div><div class="broadcast-decision broadcast-shot" aria-label="Förklaring av spelarens beslut">${studioDecisionView()}</div><footer><span>${MATCH_VIEW_MODES[m.rink.mode]||'Matchsändning'} · välj visning och hastighet ovan. Klicka på en spelare för att pausa och läsa uppgiften.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
 }
 function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseMatch();studioReplayState={frames:e.latestReplay.frames,started:0};render();}
 function studioExitReplay(){studioReplayState=null;render();}
@@ -414,11 +420,19 @@ function studioRefresh(){
  set('.mc-on-ice>span',`PÅ ISEN · ${changing?'BYTE PÅGÅR':e.penalty?'SPECIAL TEAMS':'KEDJA '+(t.line+1)+' · BACKPAR '+(t.pair+1)}`);
  set('.mc-on-ice>p',studioPlayers(0,false).map(p=>`<span class="${matchEnergy(p)<55?'tired':''}">${trainingSafe(p.name.split(' ').at(-1))} <small>${Math.round(matchEnergy(p))}% energi</small></span>`).join(''));
  set('.broadcast-overview>strong',`${s.shots[0]} – ${s.shots[1]} <small>skott på mål</small>`);
- set('.broadcast-shot',studioShotView());
+ set('.broadcast-shot',studioShotView());set('.broadcast-decision',studioDecisionView());
  const replay=document.querySelector('.broadcast-view footer button');if(replay)replay.disabled=!e.latestReplay;
  const details=[...document.querySelectorAll('.mc-details')];
  for(const [i,node] of details.entries())if(node.open){
   const summary=node.querySelector('summary').outerHTML;
   node.innerHTML=summary+(i===0?matchDetailedStats():i===1?matchPlayersView():`<div class="mc-events">${m.events.map(event=>`<p><time>P${event.period} · ${event.time}</time><span>${trainingSafe(event.text)}</span></p>`).join('')}</div>`);
  }
+}
+
+function validateSpatialMatchSave(s){
+ const e=s.live?.broadcast;if(!e)return;
+ const bad=()=>{throw Error('Matchens spelarbeslut är felaktiga.');};
+ const kinds=['carry','pass','shoot','dump','shield','clear'];
+ if(e.decisionAudit){const a=e.decisionAudit;if(!a.counts||!Array.isArray(a.recent)||a.recent.length>30)bad();for(const [k,v] of Object.entries(a.counts))if(!kinds.includes(k)||!Number.isInteger(v)||v<0)bad();for(const r of a.recent)if(!r||!kinds.includes(r.kind)||!Number.isFinite(r.time)||r.time<0||![0,1].includes(r.side)||typeof r.player!=='string'||typeof r.reason!=='string'||!Array.isArray(r.alternatives)||r.alternatives.length>3||r.alternatives.some(o=>!o||!kinds.includes(o.kind)||!Number.isFinite(o.value)))bad();}
+ for(const a of e.actors||[])for(const key of ['supportPlan','carryPlan'])if(a[key]){const p=a[key];if(!Number.isFinite(p.until)||!p.target||!Number.isFinite(p.target.x)||!Number.isFinite(p.target.y)||p.target.x<0||p.target.x>60||p.target.y<0||p.target.y>30)bad();}
 }

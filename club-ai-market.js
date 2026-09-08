@@ -36,7 +36,7 @@ function aiCanCommit(club,p,fee,salary,{future=false,years=0}={}){
  }
  if(future)return !clubAIState(club)||aiFinancialForecast(club).cash>=0;
  const reserved=aiMarketReserved(club,p.id),roster=state.clubRosters[club]||[];
- if(!aiRosterHasRoom([...roster,p])||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club)>b.wageLimit)return false;
+ if(!aiRosterHasRoom(aiRosterWithReturns(club,[p]))||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club)>b.wageLimit)return false;
  const c=clubAIState(club);if(!c)return true;
  const forecast=aiFinancialForecast(club),remaining=forecast.remaining/52;
  // Keep at least a fortnight of running costs; avoid committing a projected deficit.
