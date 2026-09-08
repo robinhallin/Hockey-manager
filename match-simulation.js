@@ -28,6 +28,12 @@ const StudioHockey = (() => {
       const goalChance=clamp(location*finish*(1.65-saving*.049)*(1+alignment*.6)+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.lateralSpeed?clamp(c.lateralSpeed/25,0,1)*.022*(1-keeper.movement/30):0)+(c.rebound?.035:0),.003,.65);
       return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
   }
+  // Probability for a nearby pressure duel; geometry decides whether it occurs.
+  function pressureWinChance(defender,carrier){
+    const attack=defender.checking*.5+defender.strength*.25+defender.workRate*.25;
+    const shield=carrier.puckControl*.5+carrier.strength*.3+carrier.decisions*.2;
+    return clamp(.24+(attack-shield)*.018,.08,.48);
+  }
   class Match {
     constructor(rosters,{seed=710031,scenario='period',duration=1200}={}){
       this.modelVersion=2;this.rng=seed>>>0;this.time=0;this.duration=duration;this.wall=0;this.tick=0;this.finished=false;
@@ -81,9 +87,8 @@ const StudioHockey = (() => {
       this.lastTouches.push({id,name,y,time:this.time});this.lastTouches=this.lastTouches.slice(-2);
     }
     battleChance(defender,carrier){
-      const attack=this.attribute(defender,'checking')*.5+this.attribute(defender,'strength')*.25+this.attribute(defender,'workRate')*.25;
-      const shield=this.attribute(carrier,'puckControl')*.5+this.attribute(carrier,'strength')*.3+this.attribute(carrier,'decisions')*.2;
-      return clamp(.24+(attack-shield)*.018,.08,.48);
+      const values=(a,keys)=>Object.fromEntries(keys.map(k=>[k,this.attribute(a,k)]));
+      return pressureWinChance(values(defender,['checking','strength','workRate']),values(carrier,['puckControl','strength','decisions']));
     }
     battleStrength(a){return this.attribute(a,'strength')*.35+this.attribute(a,'checking')*.2+this.attribute(a,'puckControl')*.25+this.attribute(a,'workRate')*.2;}
     startBattle(a,b){
@@ -708,6 +713,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,pressureWinChance};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;
