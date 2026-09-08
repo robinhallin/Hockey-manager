@@ -84,7 +84,7 @@ function leagueCommitRows(game,rows,partial=false,live=false){
   }
  }
  game.statsRecorded=true;game.statsPartial=partial;s.recorded[stage][league]++;
- const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.baseStyle||'control',pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
+ const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.style||'control',decisions:state.live.aiTeam?.coachChanges||[],pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
  loansAfterFixture(game,rows);rivalAfterFixture(game,rows,reports,partial);
 }
 function leagueCommitLive(){
