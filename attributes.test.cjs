@@ -36,6 +36,6 @@ for(const club of run('Object.keys(CLUB_DATA)')){
   for(const view of ['squadView','linesView','specialTeamsView','transfersView','marketPlayerView','scoutingView']){
     const html=run(`${view}()`);assert.ok(!/\bOVR\b|undefined|NaN/.test(html),`${club}: ${view}`);
   }
-  run('selectPlayer(managerRoster()[0].id)');assert.ok(run('playerView().includes("PERSONALENS RAPPORT")'));
+  run('selectPlayer(managerRoster()[0].id)');assert.ok(run('playerView().includes("Tränarens bedömning")'));run("profileWorkspace.tab='report'");assert.ok(run('playerView().includes("PERSONALENS RAPPORT")'));
 }
 console.log('PASS: legacy migration, attribute persistence, scouting timing, assessor uncertainty, match effects and views for 14 clubs.');
