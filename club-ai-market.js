@@ -81,8 +81,8 @@ function aiSubmitMarket(club,p,need,kind,terms){
 function aiScoutClub(club,candidates=null){
  const c=clubAIState(club),b=state.recruitment.ai[club];if(!c||!b||club===managerClub()||loanLocked())return;
  if(c.lastMarket===state.calendar.date)return;
- const needs=aiSquadNeeds(club),need=needs.find(n=>n.missing>0)||needs.find(n=>n.futureNeed>0);
- if(!need)return;
+ const needs=aiSquadNeeds(club),need=needs.find(n=>n.missing>0&&!n.shortTerm)||needs.find(n=>!n.missing&&n.futureNeed>0);
+ if(!need){const waiting=needs.find(n=>n.shortTerm),rc=rivalsClubState(club);if(waiting&&rc)rc.recruitmentNote=waiting.reason;return;}
  const deadline=calGap(state.calendar.date,`${state.season.year+1}-02-15`),emergency=need.role==='goalie'&&need.count===0;
  const interval=emergency?1:deadline>=0&&deadline<=14?3:c.project==='survive'?7:7+Math.floor(c.director.patience/7);
  if(c.lastMarket&&calGap(c.lastMarket,state.calendar.date)<interval)return;c.lastMarket=state.calendar.date;
@@ -103,7 +103,7 @@ function aiScoutClub(club,candidates=null){
   if(!known(p.nationality||recruitCountry(seller))&&!c.scouting[p.id]&&attrSeed(`${club}:${p.id}:network`)>.2)continue;
   let kind=future?'future':'transfer',terms=aiOfferTerms(club,p,need,kind);
   if(!future&&need.temporary&&seller!==WORLD_FREE&&seller!==managerClub()&&loanCanLeave(p,seller)){
-   const result=loanTerms(p,seller,club,{id:null,days:56,share:.5,role:'regular',recall:'day28'});
+   const result=loanTerms(p,seller,club,{id:null,days:need.returnDays!==null&&need.returnDays<=28?28:56,share:.5,role:'regular',recall:'day28'});
    if(result.terms){kind='loan';terms={fee:0,salary:Math.round(p.salary*result.terms.share),years:0,role:'Rotation',...result.terms,loanRole:result.terms.role};}
   }
   if(kind==='transfer'&&!recruitWillingToSell(p,seller))continue;
@@ -136,6 +136,7 @@ function aiValidateOffer(o){
  if(o.kind==='future'?(p.contractYears!==1||o.joinYear&&o.joinYear<=state.season.year):!calendarWindowOpen())return 'Avtalsläget eller transferfönstret hindrar affären.';
  const need=aiSquadNeeds(o.buyer).find(n=>n.role===o.needRole);
  if(!need||(o.kind==='future'?need.futureNeed===0:need.missing===0))return 'Behovet är redan täckt.';
+ if(o.kind!=='future'&&need.shortTerm)return 'Kort skadefrånvaro kan täckas av den befintliga truppen.';
  if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitFee(p)))return 'Säljaren accepterar inte villkoren.';
  if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Budgeten räcker inte längre.';
  if(o.kind!=='loan'){
