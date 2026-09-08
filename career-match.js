@@ -426,6 +426,7 @@ function studioRefresh(){
  set('.mc-result small',`${m.period===4?'Förlängning':'Period '+m.period} · ${gameTime()}`);
  set('.mc-result>span',m.running?'LIVE':'PAUSAT');
  if(m.running&&matchReadOnlyTab())set('.mc-coach-content',matchLivePanel());
+ matchEvidencePatch();
  set('.mc-stats',matchStatCard('Skott på mål',s.shots)+matchStatCard('Farliga chanser',s.danger)+matchStatCard('Puckinnehav',s.possession,'%')+matchStatCard('Vunna tekningar',s.faceoffs)+matchStatCard('Powerplay · mål/försök',s.pp)+matchStatCard('Räddningar',s.saves));
  set('.mc-situation strong',`${e.skaters(0).length} mot ${e.skaters(1).length}${e.isShortHanded(0)?' · Boxplay':e.hasPowerPlay(0)?' · Powerplay':''}`);
  set('.mc-situation>span',`${matchPenaltyText()}${m.goaliePulled?' · Eget mål tomt':''}${m.aiGoaliePulled?' · Motståndarens mål tomt':''}`);
