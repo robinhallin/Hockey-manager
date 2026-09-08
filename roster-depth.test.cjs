@@ -61,7 +61,7 @@ run('globalThis.bad=JSON.parse(saveExportText());bad.career.loans.active[0].borr
 run('state.playerDatabaseVersion="ha-2026-09-05";managerRoster()[0].attributes.reflexes=19;globalThis.ids=JSON.stringify(managerRoster().map(p=>p.id));save()');
 const old=boot(app.storage.value);assert.equal(old.run('JSON.stringify(managerRoster().map(p=>p.id))'),run('ids'));
 assert.equal(old.run('managerRoster()[0].attributes.reflexes'),19);assert.match(old.run('rosterDatabaseNotice()'),/ny karriär/i);
-run('deskNavigate("transfers","loans")');assert.match(get('#content').innerHTML,/Lånecentralen/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);
+run('deskNavigate("transfers","loans")');assert.match(get('#content').innerHTML,/Aktiva lån/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);
 console.log('PASS: 680 sourced identities, all 28 match squads, locked bench substitutions/injuries, real goalkeeper loan games/growth/wages, contract and save continuity, recall/expiry/external ownership, invalid import rejection and legacy preservation.');
 
 // Incoming loans cannot become permanent signings; player contracts age at the owner once.

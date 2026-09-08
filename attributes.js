@@ -94,7 +94,7 @@ function assessmentPanel(p){
 // One observation per player and date window, shared by individual and group assignments.
 function scoutPending(id){return Boolean(state.scoutReports[String(id)]?.dueDate||state.recruitment?.missions.some(m=>m.status==='active'&&m.players.some(x=>samePlayerId(x,id))));}
 function scoutActiveCount(){return (state.recruitment?.missions.filter(m=>m.status==='active').length||0)+Object.values(state.scoutReports).filter(r=>r.dueDate&&!r.missionId).length;}
-function requestScoutReport(id){
+function requestScoutReport(id,stay=false){
  ensureAssessmentData();ensureCalendar();const p=findPlayerAnywhere(id);if(!p||isOwnPlayer(p)||!managerCanPlay()||loanLocked())return;
  const r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
  if(scoutPending(id)||r.visits>=3)return;
@@ -102,7 +102,7 @@ function requestScoutReport(id){
  if(scoutActiveCount()>=clubMissionLimit())return recruitMessage('Alla scouter är upptagna. Avsluta ett uppdrag eller invänta en rapport i Scoutcentralen.');
  if(state.money-clubForecast().reserved<fee)return recruitMessage('Klubbkassan räcker inte till observationen.');
  clubPost('scouting',-fee,'Observation · '+p.name);r.dueDate=calAdd(state.calendar.date,7);r.started=state.calendar.date;delete r.dueRound;
- state.page='scouting';save();render();
+ if(!stay)state.page='scouting';save();render();
 }
 function scoutObserve(id,date){
  const p=findPlayerAnywhere(id),r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
@@ -125,7 +125,8 @@ function scoutDay(){
 }
 function advanceScoutReports(){scoutDay();}
 let scoutUI={query:''};
-function scoutingView(){
+function scoutingView(){return recruitmentHubView("missions");}
+function legacyScoutingView(){
  ensureAssessmentData();ensureRecruitment();
  const reports=Object.entries(state.scoutReports).map(([id,r])=>({p:findPlayerAnywhere(id),r})).filter(x=>x.p&&!isOwnPlayer(x.p));
  const pending=reports.filter(x=>x.r.dueDate),done=reports.filter(x=>x.r.visits>0&&(!scoutUI.query||`${x.p.name} ${getPlayerClub(x.p.id)}`.toLocaleLowerCase('sv').includes(scoutUI.query.toLocaleLowerCase('sv')))).sort((a,b)=>(b.r.lastObserved||'').localeCompare(a.r.lastObserved||''));

@@ -23,7 +23,7 @@ run('selectPlayer(managerRoster()[0].id)');assert.equal(run('deskArea().id'),'te
 run('coachingNavigate("specialTeams")');assert.equal(run('deskArea().id'),'team');
 run('state.recruitment.filters.query="test";deskNavigate("transfers","shortlist")');assert.equal(run('state.recruitment.filters.query'),'test');
 assert.equal((get('#content').innerHTML.match(/class="desk-subnav"/g)||[]).length,1);assert.doesNotMatch(get('#content').innerHTML,/class="recruit-tabs"/);
-for(const tab of run('DESK_RECRUIT_MORE.map(t=>t[0])')){run(`deskNavigate('transfers','${tab}')`);assert.match(get('#content').innerHTML,/desk-more selected/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);}
+for(const tab of run('DESK_RECRUIT_MORE.map(t=>t[0])')){run(`deskNavigate('transfers','${tab}')`);assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>(Affärer|Spelare)/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);}
 run('deskNavigate("scouting")');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Scouting/);
 run('recruitOpen(state.clubRosters["AIK"][0].id)');assert.equal(run('deskArea().id'),'recruitment');
 // Decision and expiring-offer priorities are actionable; no fabricated clean bill of health.

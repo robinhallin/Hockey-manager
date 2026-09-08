@@ -20,3 +20,11 @@ Validation: workflow.test.cjs covers all primary routes and recruitment/lineup t
 - Search filters can be reset. Shortlist actions state exactly what is added or removed.
 
 `button-logic.test.cjs` audits handler availability across primary areas, recruitment tabs, lineup tabs, player tabs and match tabs, and tests state restoration and eligibility distinctions. This is a handler/flow audit, not a claim that every possible career outcome has been simulated.
+
+## Unified recruitment workspace
+
+Five stable destinations: Planering, Spelare, Scouting, Önskelista, Affärer. There is no separate loan/scout portal navigation. Candidate lists and a contextual inspector share the screen; the inspector offers report, purchase, eligible future contract, and loan actions. Full profiles preserve the list selection and page on return.
+
+Scouting uses the same player table with observation state, report dates and active assignments. A scoped group mission receives the visible recruitment pool's candidate IDs so loan searches cannot accidentally commission unrelated players. Existing observation fees, timing and uncertainty remain authoritative.
+
+Affärer combines purchase/future offers, incoming sales, loan offers, active loans and completed loans. Details show only the selected record and invoke the existing domain decisions. Old loan/scouting/world/history links still resolve into this workspace; saved transfers, loans and pending legacy negotiations are retained.
