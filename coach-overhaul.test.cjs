@@ -45,10 +45,10 @@ assert.ok(q('e.puck.y')>q('startY')+10,'a dump rims behind the net toward the op
 q(`e.stoppage=0;e.rimPath=null;e.puckVelocity=null;a.x=35;a.y=8;for(const b of e.skaters(0).slice(1))b.x=30;e.takePossession(a);globalThis.early=e.skaters(0)[1];early.x=43;e.dump(a);`);
 assert.equal(q('e.delayedOffside'),0);
 q('e.takePossession(early)');assert.equal(q('e.eventType'),'offside');
-q(`e.stoppage=0;e.penalty={side:0,remaining:50};a.x=12;a.y=3;for(const b of e.skaters(0).slice(1))b.x=20;e.takePossession(a);e.random=()=>.5;e.clear(a);e.resolveFlight(e.flight.duration)`);
+q(`e.stoppage=0;e.penalties=[{side:0,remaining:50}];e.syncPenalty();a.x=12;a.y=3;for(const b of e.skaters(0).slice(1))b.x=20;e.takePossession(a);e.random=()=>.5;e.clear(a);e.resolveFlight(e.flight.duration)`);
 assert.notEqual(q('e.eventType'),'icing','a shorthanded clearance is exempt');
 // A missed shot is an attempt, not a shot on target in any report.
-q(`e.penalty=null;e.stoppage=0;globalThis.p=studioPlayer(0,a.player.id);globalThis.shot={player:p.name,playerId:'0:'+p.id,side:0,x:49,y:15,quality:.1,outcome:'wide',assists:[]};e.stats[0].attempts++;studioRecordShot(e,shot,null);globalThis.missed=matchStats().shots[0];e.stats[0].attempts++;e.stats[0].shots++;studioRecordShot(e,{...shot,outcome:'save'},null);`);
+q(`e.penalties=[];e.syncPenalty();e.stoppage=0;globalThis.p=studioPlayer(0,a.player.id);globalThis.shot={player:p.name,playerId:'0:'+p.id,side:0,x:49,y:15,quality:.1,outcome:'wide',assists:[]};e.stats[0].attempts++;studioRecordShot(e,shot,null);globalThis.missed=matchStats().shots[0];e.stats[0].attempts++;e.stats[0].shots++;studioRecordShot(e,{...shot,outcome:'save'},null);`);
 assert.equal(q('matchStats().shots[0]'),q('missed+1'));assert.equal(q('state.live.shotsHV'),q('matchStats().shots[0]'));assert.equal(q('state.live.analysis.players[p.id].shots'),1);
 assert.ok(q('statisticsView()').includes('Skott på mål'));assert.ok(q('statisticsView()').includes('Alla skottförsök'));
 console.log('PASS: dump rims to the far side, delayed offside, shorthanded icing exemption and consistent attempt/on-target reporting.');

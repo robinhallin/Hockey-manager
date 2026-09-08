@@ -41,15 +41,32 @@ function recruitMessage(text){state.recruitment.message=text;save();render();}
 function recruitReport(title,body,extra={}){const r=state.recruitment;managerMessage(`recruit:${r.nextId++}`,title,body,'Rekrytering',{link:'transfers',...extra});}
 function recruitRoleValue(p,profile,estimated=true){const def=RECRUIT_PROFILES[profile];if(!def||!def.positions.includes(p.pos))return 0;return attributeWeighted(estimated?playerAssessment(p).estimated:ensurePlayerAttributes(p),def.weights);}
 function recruitmentNeeds(){
+ const club=managerClub(),plan=state.tacticalPlan||{},roster=managerRoster();
+ const threshold=leagueOf()==='HA'?11:12;
  return Object.entries(RECRUIT_PROFILES).map(([name,def])=>{
-   const ps=managerRoster().filter(p=>def.positions.includes(p.pos)).map(p=>({p,value:recruitRoleValue(p,name)})).sort((a,b)=>b.value-a.value);
-   const capable=ps.filter(x=>x.value>=12),secure=capable.filter(x=>x.p.contractYears>1),need=Math.max(0,def.target-capable.length);
-   return {name,need,secure:secure.length,count:capable.length,target:def.target,players:ps.slice(0,3),priority:need?'Förstärk nu':secure.length<def.target?'Planera efterträdare':'God täckning'};
- }).sort((a,b)=>b.need-a.need||a.secure-b.secure);
+  const target=def.target+((name==='Checkingforward'&&plan.forecheck==='aggressive'||name==='Spelfördelare'&&plan.attackStyle==='control'||name==='Defensiv back'&&state.tactic==='defense')?1:0);
+  const eligible=p=>def.positions.includes(p.pos)||(name==='Defensiv center'&&!['B','MV'].includes(p.pos)&&positionFit(p,'C')>=.9);
+  const value=p=>attributeWeighted(playerAssessment(p).estimated,def.weights)*(name==='Defensiv center'?positionFit(p,'C'):1);
+  const ps=roster.filter(eligible).map(p=>({p,value:value(p)})).sort((a,b)=>b.value-a.value);
+  const capable=ps.filter(x=>x.value>=threshold),available=capable.filter(x=>medicalReady(x.p));
+  const absent=capable.filter(x=>!medicalReady(x.p)),secure=capable.filter(x=>(x.p.contractYears>1&&!x.p.futureContract)||(x.p.futureContract?.buyer===club));
+  const arrivals=[...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[]].flat().filter(p=>p.futureContract?.buyer===club&&!roster.some(q=>samePlayerId(p.id,q.id))&&p.futureContract.joinYear<=recruitmentYear()+1&&eligible(p)&&value(p)>=threshold);
+  const youth=(state.juniors?.roster||[]).filter(p=>medicalReady(p)&&eligible(p)&&value(p)>=threshold);
+  const need=Math.max(0,target-available.length),futureNeed=Math.max(0,target-secure.length-arrivals.length);
+  const temporary=need>0&&capable.length>=target&&absent.length>0;
+  const priority=need?(youth.length?'Pröva junior':temporary?'Överväg lån':'Förstärk nu'):futureNeed?'Planera efterträdare':'God täckning';
+  const reasons=[`${available.length} spelklara av ${target} önskade för din matchplan.`];
+  if(absent.length)reasons.push(`${absent.length} saknas: ${absent.map(x=>x.p.name+' ('+(x.p.health?.injury?.remaining||0)+' dagar till återgångsträning)').join(', ')}.`);
+  if(youth.length)reasons.push(`Junioralternativ: ${youth.map(p=>p.name).join(', ')}. Bedömd nivå räcker; jämför positionsvana och ork före uppflyttning.`);
+  if(arrivals.length)reasons.push(`${arrivals.length} redan kontrakterade förstärkningar till nästa säsong.`);
+  if(temporary)reasons.push('Luckan beror på frånvaro. Jämför ett lån med återstående rehabiliteringstid.');
+  if(futureNeed)reasons.push(`${futureNeed} roller behöver säkras inför nästa säsong.`);
+  return {name,need,futureNeed,secure:secure.length, count:available.length,target,players:ps.slice(0,3),priority,reasons,temporary,juniors:youth.map(p=>p.id),arrivals:arrivals.map(p=>p.id)};
+ }).sort((a,b)=>b.need-a.need||b.futureNeed-a.futureNeed);
 }
 function recruitFee(p){if(worldIsFree(p.id))return 0;return Math.round((p.askingPrice||calculateTransferPrice(p))*(p.transferListed?.9:1));}
 function recruitFilters(){return state.recruitment.filters;}
-function setRecruitFilter(key,value){const f=recruitFilters();f[key]=['maxAge','maxFee','minAttribute'].includes(key)?Number(value):String(value);save();render();}
+function setRecruitFilter(key,value){const f=recruitFilters();f[key]=['maxAge','maxFee','minAttribute'].includes(key)?Number(value):String(value);queueInterfaceSave();render();}
 function recruitCandidates(filters=recruitFilters()){
  return getTransferMarketPlayers().filter(p=>(filters.availability!=='free'||worldIsFree(p.id))&&(filters.country==='ALL'||(worldIsFree(p.id)?p.nationality:recruitCountry(p.team))===filters.country)&&(filters.profile==='ALL'||recruitRoleValue(p,filters.profile)>0)&&p.age<=filters.maxAge&&recruitFee(p)<=filters.maxFee&&(!filters.query||`${p.name} ${p.team}`.toLowerCase().includes(filters.query.toLowerCase()))&&(!filters.attribute||Number(playerAssessment(p).estimated[filters.attribute]||0)>=Number(filters.minAttribute||10))).sort((a,b)=>filters.profile==='ALL'?a.name.localeCompare(b.name,'sv'):recruitRoleValue(b,filters.profile)-recruitRoleValue(a,filters.profile));
 }
@@ -75,37 +92,40 @@ function recruitmentWeek(){calendarWeek();}
 function advanceRecruitment(){
  const r=state.recruitment;r.tick++;
  for(const [club,budget] of Object.entries(r.ai))if(budget.year!==recruitmentYear()){
+   if(clubAIState(club)){aiNewFinancialYear(club);continue;}
    budget.year=recruitmentYear();budget.cash+=6000000;budget.wageLimit=Math.round(state.clubRosters[club].reduce((n,p)=>n+p.salary,0)*1.3);
  }
  scoutDay();
  for(const deal of r.deals.filter(d=>d.status==='pending'&&(d.dueDate?d.dueDate<=state.calendar.date:d.due<=r.tick)))resolveRecruitDeal(deal);
  r.incoming.filter(o=>o.status==='pending'&&o.expires<r.tick).forEach(o=>o.status='expired');
- if(r.tick%2===0)generateIncomingOffer();
- if(r.tick%3===0)aiRecruitTransfer();
+ aiRecruitTransfer();
 }
 function recruitPlayerWishes(p,club=managerClub()){
  const roster=state.clubRosters[club]||[],group=roster.filter(q=>p.pos==='MV'?q.pos==='MV':p.pos==='B'?q.pos==='B':!['MV','B'].includes(q.pos));
- const ability=matchAttributeRating(p),avg=group.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,group.length);
+ const snapshot=aiMarketSnapshot?.clubs.get(club);
+ const ability=aiMarketSnapshot?.ratings.get(String(p.id))??matchAttributeRating(p),avg=snapshot?.groupMean[worldGroup(p)]??group.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,group.length);
  const ambition=attrSeed(`${p.id}:ambition`)>.58;
  const level=ability-avg,role=level>2?'Nyckelspelare':level>-3?'Ordinarie':'Rotation';
- const clubStrength=roster.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,roster.length);
- const relegationStep=state.world?.membership?.[getPlayerClub(p.id)]==='SHL'&&leagueOf(club)==='HA';
+ const clubStrength=snapshot?.strength??roster.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,roster.length);
+ const relegationStep=state.world?.membership?.[aiMarketSnapshot?.owners.get(String(p.id))??getPlayerClub(p.id)]==='SHL'&&leagueOf(club)==='HA';
  const stretch=ambition&&(ability>clubStrength+5||relegationStep);
  const salary=Math.round(p.salary*(stretch?1.35:1.12)/10000)*10000;
  return {role,salary,minYears:p.age<24?2:1,maxYears:p.age>=32?2:5,priority:ambition?'Sportsliga ambitioner':'Speltid och trygghet',stretch};
 }
-function recruitCanSell(p,club){if(p.futureContract||playerLoan(p))return false;if(club===WORLD_FREE)return true;const roster=state.clubRosters[club]||[];const group=q=>q.pos==='MV'?'MV':q.pos==='B'?'B':'F';return roster.filter(q=>group(q)===group(p)).length>({MV:2,B:6,F:12})[group(p)];}
+function recruitCanSell(p,club){
+ if(p.futureContract||playerLoan(p))return false;if(club===WORLD_FREE)return true;
+ const roster=state.clubRosters[club]||[],group=q=>q.pos==='MV'?'MV':q.pos==='B'?'B':'F';
+ if(roster.filter(q=>group(q)===group(p)).length<=({MV:2,B:6,F:12})[group(p)])return false;
+ if(club!==managerClub()&&positionFit(p,'C')>=.98&&roster.filter(q=>q!==p&&medicalReady(q)&&positionFit(q,'C')>=.98).length<4)return false;
+ return true;
+}
 function recruitCanAfford(club,p,fee,salary){
  if(club===managerClub())return state.money>=fee&&annualWageCost()+salary<=wageBudget();
- const b=state.recruitment.ai[club];return Boolean(b&&state.clubRosters[club].length<30&&b.cash>=fee&&loanWageCost(club)+salary<=b.wageLimit);
+ return aiCanCommit(club,p,fee,salary);
 }
-function recruitWillingToSell(p,club){if(club===WORLD_FREE)return true;return recruitCanSell(p,club)&&(p.transferListed||p.contractYears<=1||matchAttributeRating(p)<Math.max(...state.clubRosters[club].map(q=>matchAttributeRating(q)))-2);}
+function recruitWillingToSell(p,club){if(club===WORLD_FREE)return true;return recruitCanSell(p,club)&&(p.transferListed||p.contractYears<=1||(aiMarketSnapshot?.ratings.get(String(p.id))??matchAttributeRating(p))<(aiMarketSnapshot?.clubs.get(club)?.max??Math.max(...state.clubRosters[club].map(q=>matchAttributeRating(q))))-2);}
 function recruitRival(p,seller){
- if(attrSeed(`${p.id}:${recruitmentYear()}:rival`)>.65)return null;
- const clubs=Object.keys(state.recruitment.ai).filter(c=>c!==seller&&recruitCanAfford(c,p,recruitFee(p),recruitPlayerWishes(p,c).salary));
- if(!clubs.length)return null;
- const club=clubs[Math.floor(attrSeed(`${p.id}:rivalClub`)*clubs.length)],wishes=recruitPlayerWishes(p,club);
- return {club,fee:recruitFee(p),salary:wishes.salary,years:Math.min(3,wishes.maxYears),role:wishes.role};
+ return aiCompetitionFor(p,seller);
 }
 function recruitOfferScore(p,club,offer){
  const w=recruitPlayerWishes(p,club),rank=SQUAD_ROLES.indexOf(offer.role);
@@ -134,6 +154,7 @@ function resolveRecruitDeal(d){
  if(d.counter){if(d.dueDate<=state.calendar.date){d.status='rejected';d.reason='Motbudet löpte ut utan svar.';delete d.counter;}return;}
  if(!calendarWindowOpen()){d.status='rejected';d.reason='Övergången hann inte bli klar före transferfönstrets stängning.';recruitReport(`Besked om ${d.name}`,d.reason);return;}
  const p=findPlayerAnywhere(d.playerId);let reason='';
+ if(p)d.rival=aiCompetitionFor(p,d.seller)||(d.rival?.aiOfferId?null:d.rival);
  if(!p||getPlayerClub(d.playerId)!==d.seller)reason='Spelaren har redan lämnat klubben.';
  else if(!recruitWillingToSell(p,d.seller))reason='Klubben vill behålla spelaren: nyckelspelare eller för liten trupp.';
  else if(d.fee<recruitFee(p))reason='Klubben avvisar övergångssumman.';
@@ -143,9 +164,8 @@ function resolveRecruitDeal(d){
    if(d.salary<w.salary)reason=`Spelaren begär minst ${money(w.salary)} per år med tanke på klubbens nivå och sin nuvarande lön.`;
    else if(SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role))reason=`Spelaren vill ha rollen ${w.role.toLowerCase()}.`;
    else if(d.years<w.minYears||d.years>w.maxYears)reason=`Spelaren önskar ${w.minYears}–${w.maxYears} år.`;
-   else if(d.rival&&recruitCanAfford(d.rival.club,p,d.rival.fee,d.rival.salary)&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,managerClub(),d)+1){
-     reason=`Spelaren valde ${d.rival.club}: deras kombination av roll, lön och ambitioner vägde tyngre.`;
-     transferRecruitPlayer(p,d.seller,d.rival.club,d.rival.fee,d.rival.salary,d.rival.years,d.rival.role);
+   else if(d.rival&&aiCanCommit(d.rival.club,p,d.rival.fee,d.rival.salary,{years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,managerClub(),d)+1){
+     if(transferRecruitPlayer(p,d.seller,d.rival.club,d.rival.fee,d.rival.salary,d.rival.years,d.rival.role))reason=`Spelaren valde ${d.rival.club}: deras kombination av roll, lön och ambitioner vägde tyngre.`;
    }
  }
  if(reason&&p&&getPlayerClub(p.id)===d.seller&&recruitWillingToSell(p,d.seller)&&!d.negotiationRounds&&d.salary>=recruitPlayerWishes(p).salary*.65&&d.fee>=recruitFee(p)*.65&&recruitCanAfford(managerClub(),p,d.fee,d.salary)){
@@ -165,16 +185,18 @@ function acceptRecruitCounter(id){
 function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  if(!calendarWindowOpen()||p.futureContract)return false;
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
+ if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
  if(seller===managerClub())state.scoutReports[String(p.id)]={visits:3,lastObserved:state.calendar.date};
  if(seller===WORLD_FREE){worldRemoveFree(p.id);}else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
  state.clubRosters[buyer].push(p);
- if(buyer===managerClub())clubPost('transfer',-fee,'Värvning · '+p.name);else r.ai[buyer].cash-=fee;
- if(seller===managerClub())clubPost('transfer',fee,'Försäljning · '+p.name);else if(r.ai[seller])r.ai[seller].cash+=fee;
+ if(buyer===managerClub())clubPost('transfer',-fee,'Värvning · '+p.name);else if(clubAIState(buyer))aiFinancePost(buyer,'transfer',-fee,'Värvning · '+p.name);else r.ai[buyer].cash-=fee;
+ if(seller===managerClub())clubPost('transfer',fee,'Försäljning · '+p.name);else if(clubAIState(seller))aiFinancePost(seller,'transfer',fee,'Försäljning · '+p.name);else if(r.ai[seller])r.ai[seller].cash+=fee;
  delete p.freeSince;delete p.previousClub;
  Object.assign(p,{club:buyer,salary,contractYears:years,squadRole:role,promisedRole:role,transferListed:false,askingPrice:null,happiness:78,morale:78,fatigue:0});
+ delete p.aiListed;delete p.aiRoleReview;aiMarkMarketPlayer(p.id,buyer);
  if(buyer===managerClub()&&SQUAD_ROLES.indexOf(role)>=SQUAD_ROLES.indexOf('Ordinarie'))p.recruitmentPromise={role,minutes:p.pos==='MV'?30:role==='Nyckelspelare'?15:12,games:0,qualified:0,resolved:false};
  else delete p.recruitmentPromise;
- r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});r.history=r.history.slice(0,250);
+ r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();state.lines=null;state.specialTeams=null;}
  // Rebuild team strength so background results respond to roster changes too.
  for(const club of [seller,buyer]){const t=team(club);if(t)t.strength=Math.round(state.clubRosters[club].reduce((n,q)=>n+matchAttributeRating(q),0)/state.clubRosters[club].length);}
@@ -184,7 +206,7 @@ function generateIncomingOffer(){
  if(!calendarWindowOpen())return;
  const r=state.recruitment,p=managerRoster().find(p=>p.transferListed&&recruitCanSell(p,managerClub())&&!r.incoming.some(o=>samePlayerId(o.playerId,p.id)&&o.status==='pending'));
  if(!p)return;
- const fee=recruitFee(p),buyer=Object.keys(r.ai).find(c=>rivalRecruitNeeds(c)[0].kind===(p.pos==='MV'?'MV':p.pos==='B'?'B':'F')&&recruitCanAfford(c,p,fee,recruitPlayerWishes(p,c).salary));if(!buyer)return;
+ const fee=recruitFee(p),buyer=Object.keys(r.ai).find(c=>rivalRecruitNeeds(c).some(n=>(n.missing||n.futureNeed)&&aiRoleFits(p,n.role))&&recruitCanAfford(c,p,fee,recruitPlayerWishes(p,c).salary));if(!buyer)return;
  const w=recruitPlayerWishes(p,buyer);
  r.incoming.unshift({id:r.nextId++,playerId:p.id,name:p.name,buyer,fee,salary:w.salary,role:w.role,years:Math.min(3,w.maxYears),expires:r.tick+3,status:'pending'});
  recruitReport(`Bud på ${p.name}`,`${buyer} erbjuder ${money(fee)}. Du avgör om spelaren ska säljas. Budet gäller i tre marknadsomgångar.`);
@@ -201,7 +223,7 @@ function answerIncomingOffer(id,accept){
 }
 function aiRecruitTransfer(){
  if(!calendarWindowOpen()||state.live&&!state.live.finished)return;
- ensureRivals();for(const club of Object.keys(state.recruitment.ai))rivalScoutMarket(club);
+ ensureRivals();aiMarketDay();
 }
 
 function followRecruitmentPromises(m){
@@ -220,7 +242,7 @@ function recruitmentView(){
  ensureRecruitment();if(state.recruitment.tab==='missions')return scoutingView();const r=state.recruitment,f=r.filters,pending=r.deals.filter(d=>d.status==='pending'),incoming=r.incoming.filter(d=>d.status==='pending');
  return `<section class="recruitment-page"><header class="daily-heading"><div><span class="career-eyebrow">SPORTCHEFENS ARBETSBORD</span><h1>Rekrytering</h1><p>Hitta rätt egenskaper och bygg truppen långsiktigt.</p></div></header>
  <div class="recruit-finances"><div><span>Kassa</span><strong>${careerMoney(state.money)}</strong></div><div><span>Ledigt löneutrymme / år</span><strong>${careerMoney(wageBudget()-annualWageCost())}</strong></div><div><span>Reserverat i bud</span><strong>${careerMoney(pending.reduce((n,d)=>n+d.fee,0))}</strong></div><div><span>Marknadsomgång</span><strong>${r.tick}</strong></div></div>
- ${r.tab==='needs'?`<section class="recruit-needs"><h2>Tränarteamets truppanalys</h2><p>Bedömning av rollernas attribut och kontraktsläge. En spelare kan täcka flera roller. Jämför själv i spelarprofilen.</p><div class="recruit-needs-grid">${recruitmentNeeds().map(n=>`<button class="need-card ${n.need?'urgent':''}" onclick="recruitSelectProfile('${n.name}')"><span>${n.priority}</span><strong>${n.name}</strong><b>${n.count} / ${n.target} användbara</b><small>${n.players.map(x=>trainingSafe(x.p.name)).join(' · ')||'Ingen spelare i positionen'}</small></button>`).join('')}</div></section>`:''}
+ ${r.tab==='needs'?`<section class="recruit-needs"><h2>Tränarteamets truppanalys</h2><p>Råden väger samman matchplan, bedömd nivå, positionsvana, skador, juniorer och avtal inför nästa säsong. Samma spelare kan passa flera roller; antalen ska inte summeras till truppstorlek.</p><div class="recruit-needs-grid">${recruitmentNeeds().map(n=>`<button class="need-card ${n.need?'urgent':''}" onclick="recruitSelectProfile('${n.name}')"><span>${n.priority}</span><strong>${n.name}</strong><b>${n.count} / ${n.target} användbara</b><small>${n.players.map(x=>trainingSafe(x.p.name)).join(' · ')||'Ingen spelare i positionen'}</small><small>${n.reasons.map(trainingSafe).join(' ')}</small></button>`).join('')}</div></section>`:''}
  ${r.message?`<p class="recruit-notice" role="status">${trainingSafe(r.message)}</p>`:''}
  ${state.season?.phase==='preseason'?`<div class="recruit-clock"><span>Nya rapporter och budbesked följer kalenderdagarna. Nästa marknadsrapport: ${calText(state.calendar.marketDay)}.</span><button class="btn" onclick="deskNavigate('calendar')">Till dagens program</button></div>`:'<p class="recruit-clock">Scoutrapporter och budbesked kommer när du fortsätter i kalendern.</p>'}
  ${r.tab==='needs'?'':r.tab==='loans'?loansView():r.tab==='search'?recruitSearchView():r.tab==='missions'?recruitMissionsView():r.tab==='shortlist'?recruitPlayerRows(r.shortlist.map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p))):r.tab==='deals'?recruitDealsView():r.tab==='free'?worldFreeView():r.tab==='world'?playerWorldView():recruitHistoryView()}

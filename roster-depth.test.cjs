@@ -33,7 +33,7 @@ run('save()');const locked=boot(app.storage.value);assert.equal(locked.run('JSON
 // A real outgoing keeper: wage split, one host, medical/training continuity, match evidence.
 run('startCareerWithClub("HV71");globalThis.keeper=goalies().find(p=>p.name==="Olof Glifford");globalThis.destination=Object.keys(state.world.membership).find(c=>leagueOf(c)==="HA"&&loanFit(keeper,c).interested);');
 assert.ok(run('destination'),'The third HV keeper has an interested Allsvenskan club');
-run('globalThis.ownerWage=annualWageCost();globalThis.hostWage=loanWageCost(destination);globalThis.contract=keeper.contractYears;globalThis.salary=keeper.salary;loanSubmit(keeper.id,destination,28,.5);calendarStep(true);calendarStep(true);if(state.loans.offers[0].status==="counter")loanAnswer(state.loans.offers[0].id,true);globalThis.loan=playerLoan(keeper)');
+run('globalThis.ownerWage=annualWageCost();globalThis.hostWage=loanWageCost(destination);globalThis.contract=keeper.contractYears;globalThis.salary=keeper.salary;loanSubmit(keeper.id,destination,28,.5);calendarStep(true);hostWage=loanWageCost(destination);calendarStep(true);if(state.loans.offers[0].status==="counter")loanAnswer(state.loans.offers[0].id,true);globalThis.loan=playerLoan(keeper)');
 assert.ok(run('loan'));assert.equal(run('getPlayerClub(keeper.id)'),run('destination'));
 assert.equal(run('annualWageCost()'),run('ownerWage-salary*loan.share'));assert.equal(run('loanWageCost(destination)'),run('hostWage+salary*loan.share'));
 assert.equal(run('keeper.contractYears'),run('contract'));assert.equal(run('keeper.salary'),run('salary'));

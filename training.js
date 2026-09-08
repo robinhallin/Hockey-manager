@@ -71,8 +71,8 @@ function trainingMatchBonus(){
   const t=state.training;if(!t)return 0;
   let bonus=(currentTrainingFamiliarity()-45)/25;
   const m=state.live;
-  if(m&&m.penaltiesOpp.length>m.penaltiesHV.length)bonus+=(t.powerplay-40)/30;
-  if(m&&m.penaltiesHV.length>m.penaltiesOpp.length)bonus+=(t.penaltykill-40)/30;
+  if(m&&Math.min(2,m.penaltiesOpp.length)>Math.min(2,m.penaltiesHV.length))bonus+=(t.powerplay-40)/30;
+  if(m&&Math.min(2,m.penaltiesHV.length)>Math.min(2,m.penaltiesOpp.length))bonus+=(t.penaltykill-40)/30;
   return bonus;
 }
 function trainingOpen(page){deskNavigate(page);}

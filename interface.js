@@ -21,7 +21,42 @@ function deskIcon(name){
 function deskArea(page=state.page){return DESK_AREAS.find(a=>a.pages.some(([p])=>p===page)||a.details?.[page]);}
 const deskHistory=[];
 let deskHistoryOwner=null;
-function deskHistorySync(){if(deskHistoryOwner!==state){deskHistory.length=0;deskHistoryOwner=state;}}
+let deskSaveTimer=null,deskSaveOwner=null,deskBrowserToken=null,deskBrowserIndex=0;
+function queueInterfaceSave(){
+ clearTimeout(deskSaveTimer);deskSaveOwner=state;
+ deskSaveTimer=setTimeout(()=>{deskSaveTimer=null;if(deskSaveOwner===state){deskBrowserBefore();save({normalize:false});}deskSaveOwner=null;},700);
+}
+function flushInterfaceSave(){
+ if(deskSaveOwner===state){clearTimeout(deskSaveTimer);deskSaveTimer=null;deskSaveOwner=null;save({normalize:false});}
+}
+function deskHistorySync(){
+ if(deskHistoryOwner!==state){
+  deskHistory.length=0;deskHistoryOwner=state;deskBrowserIndex=0;
+  deskBrowserToken=String(Date.now())+':'+Math.random();
+  if(typeof window!=='undefined'&&window.history?.replaceState)window.history.replaceState({hm:deskBrowserToken,index:0,view:deskSnapshot()},'');
+ }
+}
+function deskBrowserBefore(view=deskSnapshot()){
+ if(typeof window!=='undefined'&&window.history?.replaceState)window.history.replaceState({hm:deskBrowserToken,index:deskBrowserIndex,view},'');
+}
+function deskBrowserAfter(){
+ if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
+}
+function deskRestore(previous){
+ state.selectedPlayer=previous.player;state.selectedMarketPlayer=previous.market;lineupWorkspace=previous.lineup;
+ if(previous.filters)state.recruitment.filters={...previous.filters};
+ deskNavigate(previous.page,previous.tab,false);inboxUI.detail=previous.inboxDetail;render();
+ const content=document.getElementById('content');if(content)content.scrollTop=previous.scroll;
+ if(typeof window!=='undefined')window.scrollTo?.({top:previous.windowScroll||0,behavior:'instant'});
+}
+if(typeof window!=='undefined'){
+ window.addEventListener('popstate',event=>{
+  if(event.state?.hm!==deskBrowserToken||deskHistoryOwner!==state)return;
+  deskBrowserIndex=event.state.index;deskRestore(event.state.view);
+ });
+ window.addEventListener('pagehide',flushInterfaceSave);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
+}
 function deskSnapshot(){return {page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();
@@ -29,29 +64,29 @@ function deskNavigate(page,tab,record=true){
  if(page==='scouting'){page='transfers';tab='missions';}
  if(page==='transfers'&&tab==='free'){tab='search';recruitFilters().availability='free';}
  if(!DESK_AREAS.some(a=>a.pages.some(([p])=>p===page)||a.details?.[page])&&!['inbox','news','settings'].includes(page))return;
- if(state.live?.running)pauseMatch();
+ if(state.live?.running)pauseMatch('Du lämnade matchvyn.');
+ const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab);
+ if(browserPush)deskBrowserBefore();
  if(record&&(page!==state.page||tab&&tab!==state.recruitment?.tab)){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
  if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
  if(page==='squad'&&tab==='contracts')deskFolds.contracts=true;
  if(page==='inbox'&&state.page!=='inbox')inboxUI.detail=false;
- state.page=page;save();render();
+ state.page=page;queueInterfaceSave();render();
  const content=document.getElementById('content');if(content){content.scrollTop=0;content.focus?.({preventScroll:true});}
  if(typeof window!=='undefined')window.scrollTo?.({top:0,behavior:'instant'});
  if(page==='squad'&&tab==='contracts')document.getElementById('squad-contracts')?.scrollIntoView?.({block:'start'});
+ if(browserPush)deskBrowserAfter();
 }
 function deskBack(fallback='home'){
  deskHistorySync();
+ if(typeof window!=='undefined'&&window.history?.back&&deskBrowserIndex>0){window.history.back();return;}
  const previous=deskHistory.pop();if(!previous){deskNavigate(fallback,undefined,false);return;}
- state.selectedPlayer=previous.player;state.selectedMarketPlayer=previous.market;lineupWorkspace=previous.lineup;
- if(previous.filters)state.recruitment.filters={...previous.filters};
- deskNavigate(previous.page,previous.tab,false);inboxUI.detail=previous.inboxDetail;render();
- const content=document.getElementById('content');if(content)content.scrollTop=previous.scroll;
- if(typeof window!=='undefined')window.scrollTo?.({top:previous.windowScroll||0,behavior:'instant'});
+ deskRestore(previous);
 }
 function deskOpenPlayer(id,market=false){
  deskHistorySync();
- const old=deskSnapshot();if(market)state.selectedMarketPlayer=id;else state.selectedPlayer=id;
- deskHistory.push(old);if(deskHistory.length>30)deskHistory.shift();deskNavigate(market?'marketPlayer':'player',undefined,false);
+ const old=deskSnapshot();deskBrowserBefore(old);if(market)state.selectedMarketPlayer=id;else state.selectedPlayer=id;
+ deskHistory.push(old);if(deskHistory.length>30)deskHistory.shift();deskNavigate(market?'marketPlayer':'player',undefined,false);deskBrowserAfter();
 }
 function deskAction(action){return action.messageId!==undefined?`openManagerMessage(${JSON.stringify(action.messageId)})`:`deskNavigate(${JSON.stringify(action.page)}${action.tab?','+JSON.stringify(action.tab):''})`;}
 function deskLink(label,action,cls='desk-link'){return `<button class="${cls}" onclick="${trainingSafe(deskAction(action))}">${trainingSafe(label)}${deskIcon('arrow')}</button>`;}
@@ -153,5 +188,5 @@ function managerDeskView(){
  <section class="desk-panel"><span class="desk-kicker">IDAG</span><h2>${c.completedMatchDate===c.date?'Följ upp dagens match':calendarFixtures().some(f=>f.date===c.date)?'Matchdag':TRAINING_SESSIONS[calendarSession(c.date).type].name}</h2><p>${trainingSafe(trainingAdvice())}</p>${deskLink('Öppna dagens program',{page:'calendar'},'btn')}</section>
  <section class="desk-panel"><span class="desk-kicker">BESLUT SOM VÄNTAR · ${tasks.length}</span><h2>Att ta ställning till</h2>${tasks.length?tasks.slice(0,3).map(t=>`<button class="desk-task" onclick="${trainingSafe(deskAction(t.action))}"><span>${t.tag}</span><strong>${trainingSafe(t.title)}</strong><small>${trainingSafe(t.detail)}</small></button>`).join(''):'<p>Inga prioriterade beslut just nu.</p>'}${tasks.length>3?`<details><summary>${tasks.length-3} fler ärenden</summary>${tasks.slice(3).map(t=>deskLink(t.title,t.action)).join('')}</details>`:''}</section>
  <section class="desk-panel"><span class="desk-kicker">${next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="desk-live-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${next.action.page==='calendar'?'':deskLink(next.label,next.action,'btn secondary')}</section></div>
- <details class="desk-panel desk-context"><summary>Laget, motståndet och säsongens historier</summary>${coachFocus()?`<p>Träningsfokus: ${COACH_FOCUSES[coachFocus().key].name} · ${coachFocus().results.length}/3 matcher. ${deskLink('Visa uppföljning',{page:'training'})}</p>`:''}${rivalsDeskView()}${storiesDeskView()}<p>Kassa: ${careerMoney(state.money)} · Återstående löneutrymme: ${careerMoney(wageBudget()-annualWageCost())}</p></details></section>`;
+ <details class="desk-panel desk-context"><summary>Laget, motståndet och säsongens historier</summary>${coachFocus()?`<p>Träningsfokus: ${COACH_FOCUSES[coachFocus().key].name} · ${coachFocus().results.length}/${coachFocus().target||3} matcher. ${deskLink('Visa uppföljning',{page:'training'})}</p>`:''}${rivalsDeskView()}${storiesDeskView()}<p>Kassa: ${careerMoney(state.money)} · Återstående löneutrymme: ${careerMoney(wageBudget()-annualWageCost())}</p></details></section>`;
 }

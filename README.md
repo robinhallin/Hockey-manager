@@ -1,5 +1,8 @@
 # Hockey-manager
 
+Senaste utvecklingsarbetet: [Klubb-AI med långsiktiga truppplaner, ekonomi,
+akademier och taktiskt minne](CLUB_AI.md).
+
 ## Review fixes: club identity, contracts and integration tests
 
 Luleå's sourced roster and initial loan ownership now use the league's canonical
