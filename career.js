@@ -101,7 +101,8 @@ function boardProgress(){
   });
 }
 function boardGoalsHTML(goals,tracked=false){return `<div class="board-goals">${goals.map((g,i)=>`<article class="board-goal"><div class="board-goal-number">0${i+1}</div><div class="board-goal-body"><div class="board-goal-meta"><span>${g.category}</span><span>${g.priority}</span></div><h3>${g.title}</h3><p>${g.text}</p>${tracked?`<div class="goal-status ${g.met?'goal-positive':''}"><strong>${g.status}</strong><span>${g.detail}</span></div><progress max="1" value="${g.progress}" aria-label="Utveckling mot målet: ${g.title}"></progress>`:''}</div></article>`).join('')}</div>`;}
-function boardView(){
+function boardView(){return clubBoardWorkspace();}
+function legacyBoardView(){
   const goals=boardProgress(),c=careerIdentity(managerClub());
   const youngsters=Object.values(state.boardPlan.youthAppearances).sort((a,b)=>b.games-a.games);
   return `<section class="board-page"><header class="career-page-heading"><div><span class="career-eyebrow">KLUBBLEDNING · ${seasonLabel()}</span><h1>Styrelsens uppdrag</h1><p>Det här kom ni överens om. Resultat och ekonomi utvärderas vid grundseriens slut.</p></div>${careerBadge(managerClub(),'large')}</header><div class="board-letter"><span class="career-eyebrow">FRÅN STYRELSERUMMET</span><h2>${c.title}</h2><p>”${c.pitch}”</p><span class="letter-signature">Styrelsen · ${managerClub()}</span></div>${boardGoalsHTML(goals,true)}<section class="board-youth"><h2>Talanger som fått förtroende</h2><p>En match räknas först vid minst fem minuters registrerad istid, även i powerplay och boxplay.</p>${youngsters.length?youngsters.map(p=>`<div class="row"><span>${p.name}</span><strong>${p.games} / ${state.boardPlan.offer.youthGames} matcher</strong></div>`).join(''):'<p class="muted">Ingen spelare har nått fem minuters istid i en avslutad match ännu.</p>'}</section></section>`;
