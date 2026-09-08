@@ -189,7 +189,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
  const feedbackPlan=feedbackBeforeArrival(p,buyer);
- if(seller===managerClub())state.scoutReports[String(p.id)]={visits:3,lastObserved:state.calendar.date};
+ if(seller===managerClub())state.scoutReports[String(p.id)]=scoutRemember(p);
  if(seller===WORLD_FREE){worldRemoveFree(p.id);}else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
  state.clubRosters[buyer].push(p);
  if(buyer===managerClub())clubPost('transfer',-fee,'Värvning · '+p.name);else if(clubAIState(buyer))aiFinancePost(buyer,'transfer',-fee,'Värvning · '+p.name);else r.ai[buyer].cash-=fee;
