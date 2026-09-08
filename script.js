@@ -2610,15 +2610,14 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
  if(m.rink&&!m.rink.oppFatigue)m.rink.oppFatigue={};
  for(const [side,roster,onIce] of [['own',managerRoster(),ownPlayers],['opponent',state.clubRosters[m.opponent]||[],otherPlayers]]){
   const ids=new Set(onIce.map(p=>String(p.id))),tempo=side==='own'?state.tacticalPlan.tempo:m.aiTeam?.tempo;
-  const load=(tempo==='high'?1.22:tempo==='low'?.84:1)*(side==='own'&&state.tacticalPlan.forecheck==='aggressive'?1.12:1)*(side==='own'&&state.tacticalPlan.physicality==='hard'?1.06:1);
+  const load=readinessLoad(tempo,side==='own'?state.tacticalPlan.forecheck:m.aiTeam?.forecheck,side==='own'?state.tacticalPlan.physicality:'normal');
   for(const p of roster){
    const id=String(p.id),stamina=p.pos==='MV'?10:(p.attributes?.stamina??ensurePlayerAttributes(p).stamina??10);
-   const e=m.energy.players[id]||(m.energy.players[id]={level:Math.max(0,100-((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0))*.35),shift:0,seconds:0});
+   const e=m.energy.players[id]||(m.energy.players[id]={level:readinessCeiling((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0)),shift:0,seconds:0});
    const active=ids.has(id),used=active?Math.max(0,Math.min(seconds,side==='own'?medicalLimit(p)-(m.iceTime?.[id]||0):seconds)):0;
    if(used>0){
-    const strain=load*(1.45-stamina/25)*(p.pos==='MV'?.025:1)*(hockeySpecial(side)==='pk'&&p.pos!=='MV'?1.12:1)*(studioActive()?studioEffort(side,p.id):1);
-    e.level=Math.max(0,e.level-used*.48*strain);e.shift+=used;e.seconds+=used;
-    const longLoad=used*(p.pos==='MV'?.005:.014)*load*(1.4-stamina/25);
+    e.level=readinessEnergy(e.level,used,true,stamina,p.pos==='MV',load,hockeySpecial(side)==='pk',studioActive()?studioEffort(side,p.id):1);e.shift+=used;e.seconds+=used;
+    const longLoad=readinessWork(used,stamina,p.pos==='MV',load);
     if(side==='own')p.fatigue=Math.min(100,(p.fatigue||0)+longLoad);
     else if(m.rink)m.rink.oppFatigue[id]=Math.min(100,(m.rink.oppFatigue[id]||0)+longLoad);
    }else e.shift=0;
@@ -2626,8 +2625,7 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
    if(bench>0){
     // Recover the short burst of match energy faster when depleted, tapering near
     // a full tank. Long-term workload still limits the ceiling; stamina matters.
-    const recovery=studioActive()?.2+Math.max(0,80-e.level)*.006:.18;
-    e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+bench*recovery*(.7+stamina/25));
+    e.level=studioActive()?readinessEnergy(e.level,bench,false,stamina,p.pos==='MV',load,false,1,readinessCeiling(fatigue)):readinessRecover(e.level,bench,stamina,readinessCeiling(fatigue));
    }
   }
  }

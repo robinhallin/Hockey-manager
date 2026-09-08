@@ -70,4 +70,4 @@ function specialBoardView(){
 
 function lineupWorkspaceNav(){return `<nav class="lineup-workspace-nav" aria-label="Laguttagning">${[['even','Kedjor & backpar'],['squad','Matchtrupp'],['special','Powerplay & boxplay']].map(([key,label])=>`<button class="btn secondary" aria-pressed="${lineupWorkspace===key}" onclick="lineupWorkspace='${key}';deskNavigate('lines')">${label}</button>`).join('')}</nav>`;}
 
-function lineupSquadSummary(){ensureLines();return `<section class="desk-panel"><h1>Matchtrupp</h1><p>Spelarna i kedjorna och backparen tar platserna nedan. Reserver väljs längre ned.</p><div class="depth-chips">${[...state.lines.forwards,...state.lines.defense,state.lines.goalie].map(playerById).filter(Boolean).map(p=>`<span>${trainingSafe(p.name)} · ${p.pos}</span>`).join('')}</div></section>`;}
+function lineupSquadSummary(){ensureLines();return '<section class="desk-panel"><h1>Matchtrupp</h1><p>Jämför spelarnas förutsättningar inför laguttagningen. Reserver väljs längre ned.</p></section>'+readinessSquadView();}

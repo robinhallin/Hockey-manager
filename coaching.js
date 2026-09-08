@@ -65,7 +65,7 @@ function trackIceTime(seconds){
 
 function matchEnergy(p){
  const e=state.live?.energy?.players?.[String(p.id)];
- return e?.level??Math.max(0,100-(p.fatigue||0)*.35);
+ return e?.level??readinessCeiling(p.fatigue||0);
 }
 function matchEnergyPenalty(p){return state.live&&!state.live.finished?(100-matchEnergy(p))/12:0;}
 function matchRecover(seconds,key){
@@ -75,7 +75,7 @@ function matchRecover(seconds,key){
  for(const [id,e] of Object.entries(m.energy.players)){
   const p=findPlayerAnywhere(id);if(!p)continue;
   const fatigue=(p.fatigue||0)+(isOwnPlayer(p)?0:(m.rink?.oppFatigue?.[id]||0));
-  e.level=Math.min(Math.max(0,100-fatigue*.35),e.level+seconds*.18*(isOwnPlayer(p)?clubPriorityValue('recovery'):1)*(.7+(ensurePlayerAttributes(p).stamina||10)/25));
+  e.level=readinessRecover(e.level,seconds,ensurePlayerAttributes(p).stamina||10,readinessCeiling(fatigue),isOwnPlayer(p)?clubPriorityValue('recovery'):1);
   e.shift=0;
  }
 }

@@ -91,3 +91,46 @@ kalenderträning, tak, idempotens, AI-dagar, gamla värden, export/import,
 omladdning och ett kontrollerat attributkontrasttest i den riktiga matchmotorn.
 Full match verifierar också deterministisk återupptagning och slutbokföring.
 Detta är inte en ny körning av projektets fullständiga flersäsongstest.
+
+## Grundsteg 2: gemensam matchberedskap
+
+Implementerat 8 september 2026 i match-readiness.js, med anrop från båda
+matchmotorerna och den befintliga uppföljningen efter match:
+
+- Startenergi och återhämtningsgräns utgår från spelarens kvarvarande slitage.
+  Bakgrundssimuleringen börjar inte längre med full energi för alla.
+- Samma attributfunktion väger energi, positionsvana, kemi och moral. Moral
+  påverkar mentala egenskaper; tekniska/fysiska basattribut blir inte
+  automatiskt bättre av hög moral. Tränarbudskap och taktik läggs på separat.
+- Tempo, forecheck, uthållighet, målvaktsroll och boxplay påverkar energi.
+  Samma regler beskriver arbetsbelastning och bänkåterhämtning. AI:s
+  aggressiva forecheck har nu också en fysisk kostnad i direktsänd match.
+- Bakgrundsmatcher återhämtar vid periodpauser och timeout, med samma
+  slitagetak. Målvakten använder också matchenergi.
+- Bakgrundsmotorn bedömer de faktiska platserna i formationerna. Ordinarie
+  tre-mot-tre använder två forwards och en back.
+- Arbetsbelastningen samlas under bakgrundsmatchen och bokförs en gång vid
+  avslut. Motståndaren i direktsänd match behåller den uppmätta belastningen,
+  i stället för ett nytt schablonavdrag från antalet minuter.
+- Laguttagningens Matchtrupp innehåller en jämförbar beredskapstabell med
+  medicinsk status, slitage, startenergi, position och moral samt ett
+  uttryckligt avgränsat exempel på attributpåverkan.
+
+Gränser: bakgrundsmotorn tar steg om 20 sekunder och saknar skridskobana;
+dess rörelseansträngning är därför neutral, medan direktsänd match mäter
+rörelsen. Bänkåterhämtning delas upp i högst en sekund per beräkning i
+bakgrundsmotorn; tidsupplösningen ger fortfarande små skillnader. Äldre
+matchmotorer och rapporter utan uppmätt belastning behåller kompatibilitetsvägar.
+Rivalernas uttagningsbetyg är fortfarande ett separat bedömningsmått.
+Koefﬁcienterna är spelregler som ännu behöver statistisk hockeykalibrering.
+
+Verifiering: match-readiness.test.cjs kontrollerar verkliga anrop i båda
+motorerna, vila/tempo/uthållighet/moral, återhämtningstak, läsande
+beredskapsvy och exakt engångsbokföring av både AI- och direktsänd belastning.
+Ingen ny sparstruktur krävs för den gemensamma modellen; den använder
+befintlig energi och fatigue. Simuleringsrapportens arbetsdata tas bort
+efter bokföring och sparas inte i klubbens rapportarkiv.
+
+Åtta riktade testfiler passerade för detta steg: match-readiness,
+chemistry-foundation, career-match, career-match-rules, adaptive-coaches,
+workflow, coaching och rivals. Full flersäsongskalibrering återstår.
