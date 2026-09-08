@@ -106,15 +106,19 @@ function rivalsDay(){
  for(const [club,c] of Object.entries(w.clubs)){
   if(club===managerClub())continue;
   const today=state.calendar.date,fixture=state.schedule.some(g=>!g.played&&g.date===today&&(g.home===club||g.away===club));
+  const tomorrowDate=calAdd(today,1),tomorrow=state.schedule.some(g=>!g.played&&g.date===tomorrowDate&&(g.home===club||g.away===club));
   const rand=rivalRandom(`${today}:${club}:day`);
   c.familiarity=Math.min(85,c.familiarity+1);
-  if(!fixture){const l=rivalLineup(club);dynamicsTrain(club,[...l.lines.map(ps=>ps.map(p=>p.id)),...[0,1,2].map(i=>l.defense.slice(i*2,i*2+2).map(p=>p.id))],'tactics',today);}
+  if(!fixture){const l=rivalLineup(club);dynamicsTrain(club,[...l.lines.map(ps=>ps.filter(p=>p.fatigue<55&&medicalCanTrain(p)).map(p=>p.id)),...[0,1,2].map(i=>l.defense.slice(i*2,i*2+2).filter(p=>p.fatigue<55&&medicalCanTrain(p)).map(p=>p.id))],'tactics',today);}
   for(const p of state.clubRosters[club]||[]){
-   p.fatigue=Math.max(0,(p.fatigue||0)-(fixture||p.fatigue>40?12:6));
-   if(p.health?.injury||fixture)continue;
-   if(p.health)p.health.load=attrClamp((p.health.load||0)+5,0,100);
-   rivalGrow(p,(p.age<=23?5:2.8)*c.coach.coaching/15,club);
-   if(rand()<.0004*(1+(p.fatigue||0)/45+(p.health?.load||0)/60))rivalInjury(p,club,rand,'träning');
+   if(fixture){p.fatigue=Math.max(0,(p.fatigue||0)-12);continue;}
+   if(p.health?.injury){p.fatigue=Math.max(0,(p.fatigue||0)-25);continue;}
+   const session={type:tomorrow?'matchprep':'skills',intensity:'normal'},load=p.fatigue>=55?'rest':'normal';
+   const effect=trainingSessionEffect(p,session,load,{coaching:c.coach.coaching,factor:1,goalieFactor:1});
+   p.fatigue=effect.fatigue;
+   if(p.health)p.health.load=attrClamp((p.health.load||0)+(effect.rest?0:effect.hard?12:5),0,100);
+   if(!effect.rest)rivalGrow(p,effect.points,club);
+   if(!effect.rest&&rand()<.0004*medicalRisk(p,effect.hard))rivalInjury(p,club,rand,'träning');
   }
  }
 }

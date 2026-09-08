@@ -262,12 +262,13 @@ function aiAfterPlayerFixture(club,rows,gf,ga){
  for(const p of state.clubRosters[club]||[]){
   if(!medicalReady(p))continue;
   const r=p.aiRoleReview??={games:0,seconds:0,missed:0},row=rows.find(r=>samePlayerId(r.id,p.id));
+  r.startSamples=(r.startSamples||0)+1;r.starts=(r.starts||0)+((row?.seconds||0)>=1800?1:0);
   r.games++;r.seconds+=row?.seconds||0;r.missed+=(row?.seconds||0)===0?1:0;
   p.morale=attrClamp((p.morale||70)+(gf>ga?.65:-.65),30,90);
   if(r.games%6)continue;
   const role=p.promisedRole||p.squadRole||'Rotation';
   const target=p.pos==='MV'?(role==='Nyckelspelare'?2100:role==='Ordinarie'?1500:600):role==='Nyckelspelare'?900:role==='Ordinarie'?650:role==='Rotation'?360:120;
-  const met=r.seconds/6>=target;
+  const met=p.pos==='MV'?(r.startSamples<6?true:r.starts>=squadGoalieTarget(p)):r.seconds/6>=target;r.starts=0;r.startSamples=0;
   p.happiness=attrClamp((p.happiness||70)+(met?3:-6),20,95);
   r.unhappy=!met&&p.happiness<55;r.lastAverage=Math.round(r.seconds/6);r.seconds=0;
   if(r.unhappy)aiDecision(club,'dressing',`${p.name} vill ha mer ansvar efter sex matcher med för lite istid.`,`${p.id}:role:${state.season.year}:${Math.floor(r.games/12)}`);
