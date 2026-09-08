@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');const app=boot(),r=app.run;
+r(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();
+ state.live.minute=8;state.live.analysis.strengthSeconds={even:180,pp:180,pk:120,ot:0};
+ state.live.analysis.shots=[{side:'own',situation:'pp',dangerous:true},{side:'opponent',situation:'pk',dangerous:true},{side:'own',situation:'even',dangerous:true}];
+ specialPlan('pp','umbrella');globalThis.original=state.specialTeams.pp1[0];changeSpecialPlayer('pp1',0,state.specialTeams.pp1[1]);specialPlan('pk','diamond');`);
+assert.equal(r('state.live.tacticalReviews.length'),1);
+assert.equal(r('state.live.tacticalReviews[0].specialBaseline.pp.for'),1);
+assert.equal(r('state.live.tacticalReviews[0].specialBaseline.pk.against'),1);
+assert.equal(r('state.live.tacticalReviews[0].baseline.for'),1,'equal strength is separate');
+r(`specialPlan('pp','umbrella');changeSpecialPlayer('pp1',99,original);specialPlan('nope','bad');`);
+assert.equal(r('state.live.tacticalReviews.length'),1);
+r(`state.live.minute=13;state.live.analysis.strengthSeconds.pp+=180;state.live.analysis.strengthSeconds.pk+=120;
+ state.live.analysis.shots.push({side:'own',situation:'pp',dangerous:true},{side:'opponent',situation:'pp',dangerous:false},{side:'opponent',situation:'pk',dangerous:true});
+ globalThis.snapshot=tacticalReviewSnapshot();globalThis.html=tacticalReviewView(snapshot);`);
+assert.equal(r('snapshot[0].specialResult.pp.for'),1);
+assert.equal(r('snapshot[0].specialResult.pp.against'),1);
+assert.equal(r('snapshot[0].specialResult.pk.against'),1);
+assert.ok(r('html.includes("Powerplay · separat underlag")&&html.includes("Boxplay · separat underlag")&&html.includes("PP1:")'));
+assert.ok(r('html.includes("Farliga lägen per 10 minuter i denna spelform")'));
+assert.ok(r('html.includes("Minst tre minuter i denna spelform")'),'short PK sample remains qualified');
+r(`matchOrder('tempo','low');state.live.analysis.strengthSeconds.pp+=60;state.live.minute=14;`);
+assert.equal(r('tacticalReviewSnapshot()[0].specialResult.pp.seconds'),180,'later decisions close all strength windows');
+r('save()');const restored=boot(app.storage.value);
+assert.equal(restored.run('JSON.stringify(tacticalReviewSnapshot())'),r('JSON.stringify(tacticalReviewSnapshot())'));
+r(`globalThis.saved=JSON.parse(JSON.stringify(analysisSnapshot()));specialPlan('pp','overload');`);
+assert.equal(r('saved.tacticalReviews[0].after.special.plans.pp'),'umbrella','archive remains independent');
+// Production engine receives both the actual unit and systems.
+r('studioSyncPlans()');assert.equal(r('studioEngine().teams[0].tactics.pp'),'overload');assert.equal(r('studioEngine().teams[0].tactics.pk'),'diamond');
+assert.equal(r('String(studioEngine().teams[0].plan.pp1[0])'),r('String(state.specialTeams.pp1[0])'));
+// Older paused decision cannot claim a reconstructed PP/PK baseline.
+const old=boot(),q=old.run;q(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();matchOrder('forecheck','passive');
+ delete state.live.tacticalReviews[0].before.special;delete state.live.tacticalReviews[0].after.special;delete state.live.tacticalReviews[0].specialTotals;
+ specialPlan('pp','umbrella');`);
+assert.equal(q('state.live.tacticalReviews[0].specialBaseline'),null);
+assert.ok(q('tacticalReviewView(tacticalReviewSnapshot()).includes("Underlag saknas")'));
+console.log('PASS: PP/PK separation, actual player/system decisions, exposure thresholds, closed windows, save/reload, engine plans and legacy baseline.');
