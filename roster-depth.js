@@ -30,7 +30,7 @@ function loanCanLeave(p,club){
  if(club!==managerClub()&&positionFit(p,'C')>=.98&&(state.clubRosters[club]||[]).filter(q=>q!==p&&medicalReady(q)&&positionFit(q,'C')>=.98).length<4)return false;
  return (state.clubRosters[club]||[]).filter(q=>q!==p&&loanGroup(q)===loanGroup(p)&&medicalReady(q)).length>=({MV:2,B:6,F:12})[loanGroup(p)];
 }
-function loanOpen(id){ensureLoans();deskNavigate('transfers','loans');state.loans.selected=id;save();render();deskBrowserBefore();}
+function loanOpen(id){ensureLoans();deskNavigate('transfers','loans');state.loans.selected=id;recruitHub.player=id;recruitHub.panel='loan';save();render();deskBrowserBefore();}
 const LOAN_ROLES={starter:'Bärande roll',regular:'Regelbunden speltid',rotation:'Rotation'};
 function loanReserved(club,exclude=null){return (state.loans?.offers||[]).filter(o=>o.id!==exclude?.id&&o.borrower===club&&['pending','counter'].includes(o.status)).reduce((n,o)=>n+(findPlayerAnywhere(o.playerId)?.salary||0)*(o.counter?.share??o.share),0);}
 function loanTerms(p,owner,borrower,offer){
@@ -60,7 +60,7 @@ function loanSubmit(id,destination,days,share,role='regular',recall='day28'){
  if(!loanCanLeave(p,owner))return loanNotice('Spelaren är inte tillgänglig för lån eller behövs för att behålla tillräcklig täckning.');
  const offer={id:state.loans.nextOffer++,playerId:p.id,name:p.name,owner,borrower:destination,days,share,role,recall,date:state.calendar.date,due:calAdd(state.calendar.date,2),status:'pending'};
  if(destination===managerClub()&&annualWageCost()+p.salary*share+loanReserved(destination)+state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future').reduce((n,d)=>n+d.salary,0)>wageBudget())return loanNotice('Det erbjudna lånet och dina andra bud överskrider lönebudgeten.');
- state.loans.offers.unshift(offer);state.loans.offers=state.loans.offers.filter((o,i)=>i<60||['pending','counter'].includes(o.status));state.loans.selected=null;
+ state.loans.offers.unshift(offer);state.loans.offers=state.loans.offers.filter((o,i)=>i<60||['pending','counter'].includes(o.status));state.loans.selected=null;state.page='transfers';state.recruitment.tab='deals';recruitHub.deal='loan:'+offer.id;recruitHub.affairs='open';
  loanNotice('Förslaget är skickat till klubben och spelaren. Besked om två kalenderdagar. Spelaren stannar i sin trupp under förhandlingen.');
 }
 function loanCompleteOffer(o){

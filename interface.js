@@ -11,7 +11,7 @@ const DESK_AREAS = [
   {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
   {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
 ];
-const DESK_RECRUIT_TABS = [['needs','Behov'],['search','Sökning'],['missions','Scouting'],['shortlist','Önskelista'],['deals','Förhandlingar']];
+const DESK_RECRUIT_TABS = [['needs','Planering'],['search','Spelare'],['missions','Scouting'],['shortlist','Önskelista'],['deals','Affärer']];
 const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
 
 function deskIcon(name){
@@ -43,6 +43,7 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ if(previous.recruitHub)Object.assign(recruitHub,previous.recruitHub);
  if(previous.lineupUI)lineupUI={...previous.lineupUI,slot:previous.lineupUI.slot?{...previous.lineupUI.slot}:null};
  if(previous.specialUI)specialUI={...previous.specialUI};
  if(previous.profileTab)profileWorkspace.tab=previous.profileTab;
@@ -65,7 +66,7 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();deskActionNotice='';let nextLineup,nextAvailability;
  if(page==='tactics'){page='lines';nextLineup='even';}
@@ -111,8 +112,8 @@ function deskSubnav(){
   const area=deskArea(),page=area?.details?.[state.page]||state.page;
   if(area?.id==='recruitment'){
     const tab=state.page==='scouting'?'missions':state.recruitment.tab;
-    const extra=DESK_RECRUIT_MORE.find(([id])=>id===tab),more=Boolean(extra||tab==='reports');
-    return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${tab===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}<details class="desk-more ${more?'selected':''}"><summary>${extra?extra[1]:tab==='reports'?'Scoutrapporter':'Mer'}</summary><div>${DESK_RECRUIT_MORE.map(([id,label])=>deskLink(label,{page:'transfers',tab:id})).join('')}</div></details></nav>`;
+    const active=['loans','history'].includes(tab)?'deals':['world','free'].includes(tab)?'search':tab;
+    return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
   }
   const pages=area?.pages||(['inbox','news'].includes(page)?[['inbox','Inkorg'],['news','Nyheter']]:[]);
   if(pages.length<2)return '';
