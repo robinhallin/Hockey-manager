@@ -30,16 +30,19 @@ function matchPlay(){const m=state.live;if(!m||m.finished)return;matchDesk.notic
 function matchNotice(text){matchDesk.notice=text;save();render();}
 function matchPlan(key){
  const plan=MATCH_PLANS[key];if(!plan||state.live?.finished)return;matchPause();
+ const before=tacticalReviewPlan();
  state.tactic=plan.tactic;for(const field of ['attackStyle','forecheck','tempo'])state.tacticalPlan[field]=plan[field];
  if(state.live)addEvent(`Matchplan: ${plan.label}. ${plan.note}`,'strategy');
+ tacticalReviewRecord(before,plan.label);
  matchNotice(plan.label+' vald. Fysisk nivå och kedjeanvändning behåller dina val.');matchFocus('match-plan-'+key);
 }
 function matchOrder(key,value){
  if(state.live?.finished)return;
  const choices={shiftLength:['short','normal','long'],shotChoice:['patient','balanced','shoot'],tactic:['attack','balanced','defense'],attackStyle:Object.keys(HOCKEY_STYLES),forecheck:['passive','balanced','aggressive'],tempo:['low','normal','high'],physicality:['safe','balanced','hard'],lineUsage:['rollFour','balanced','topHeavy']};
- if(!choices[key]?.includes(value))return;matchPause();
+ if(!choices[key]?.includes(value))return;matchPause();const before=tacticalReviewPlan();
  if(['shiftLength','shotChoice'].includes(key)){state.tacticalPlan[key]=value;addEvent(`Lagorder: ${key==='shiftLength'?'byteslängd':'avslutsval'} justerad.`,'strategy');}
  else if(key==='tactic')setTactic(value);else if(key==='attackStyle')hockeySetStyle(value);else setTacticalSetting(key,value);
+ tacticalReviewRecord(before,'Lagorder');
  matchNotice('Lagordern är uppdaterad. Fortsätt matchen när du är klar.');matchFocus('match-order-'+key);
 }
 function matchFeedbackPlayers(target=matchDesk.target){
@@ -113,7 +116,7 @@ function matchOrdersView(){
  ${select('physicality','Fysisk nivå',[['safe','Disciplinerat'],['balanced','Balanserat'],['hard','Hårt']],'Hårt spel ökar utvisningsrisken.')}
  ${select('shiftLength','Byteslängd',[['short','30 sek · korta byten'],['normal','45 sek · normalt'],['long','60 sek · långa byten']],'Korta byten håller energin uppe; långa byten belastar samma femma längre.')}
  ${select('shotChoice','Avslutsval',[['patient','Sök ett bättre läge'],['balanced','Läs situationen'],['shoot','Skjut oftare']],'Fler skott kan ge returer men avslutar uppbyggnaden tidigare.')}
- ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}</div>`;
+ ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}</div>${tacticalReviewView(tacticalReviewSnapshot())}`;
 }
 function matchFeedbackChoices(extra,wait){return Object.entries(MATCH_MESSAGES).filter((_,i)=>extra?i>=6:i<6).map(([key,[label,note]])=>`<button class="mc-choice" onclick="matchFeedback('${key}')" ${wait?'disabled':''}><b>${label}</b><small>${note}</small></button>`).join('');}
 function matchFeedbackView(){

@@ -9,3 +9,5 @@
 @media(max-width:600px){.mc-scorers{padding:12px}.mc-scorers li{grid-template-columns:65px 36px 1fr;gap:7px;padding-inline:7px}.mc-scorers strong{font-size:14px}.mc-scorers time{font-size:12px}.performance-report{padding:14px}.performance-report h2{font-size:21px}}
 
 .mc-pause-settings{padding:10px 14px;margin:8px 0;border:1px solid var(--border,#344155);border-radius:8px}.mc-pause-settings>div{display:grid;gap:10px;padding:12px 0}.mc-pause-settings label{display:flex;align-items:center;gap:8px}.mc-pause-settings input{width:20px;height:20px;flex:none}.mc-pause-settings p,.mc-pause-reason{font-size:13px;line-height:1.5}.mc-pause-reason{padding:8px 14px;background:#443819;color:#fff2c4;border-radius:8px}
+
+.mc-tactical-review{margin-top:16px;padding:14px;border:1px solid #344457;background:#18212e;color:#d8e2ec;border-radius:4px;font-size:12px;line-height:1.5}.mc-tactical-review summary{cursor:pointer;font-weight:600;color:#f5df8b}.mc-tactical-review article{border-top:1px solid #344457;margin-top:12px;padding-top:10px}.mc-tactical-review h4{margin:0 0 8px}.mc-tactical-review p{margin:8px 0}

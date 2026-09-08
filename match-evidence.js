@@ -1,6 +1,6 @@
 "use strict";
 // Read-only observations. Never draw randomness or change the simulation.
-function coachEvidence(analysis,clock,players=[],plan={}){
+function matchCoachEvidence(analysis,clock,players=[],plan={}){
  const start=Math.max(0,clock-300),shots=(analysis?.shots||[]).filter(s=>Number.isFinite(s.time)&&s.time>=start&&s.time<=clock);
  const even=shots.filter(s=>s.situation==='even'),own=even.filter(s=>s.side==='own'),against=even.filter(s=>s.side==='opponent');
  const danger=rows=>rows.filter(s=>s.dangerous===true).length,advice=[];
@@ -20,7 +20,7 @@ function coachEvidence(analysis,clock,players=[],plan={}){
 function matchEvidenceReport(){
  const m=state.live;
  const ps=m&&!m.finished?(studioActive()?studioPlayers(0,false):[...currentLinePlayers(),...currentDefensePlayers()]):[];
- return coachEvidence(m?.analysis,analysisClock(),[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
+ return matchCoachEvidence(m?.analysis,analysisClock(),[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
 }
 function matchEvidenceBody(){
  const report=matchEvidenceReport();
