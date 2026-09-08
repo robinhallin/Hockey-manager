@@ -15,3 +15,10 @@ Detta visar återkommande chansbalans, inte kausal effekt, spelarvärde eller mo
 
 ## Kontroller
 formation-evidence.test.cjs använder den faktiska formationsregistreringen som grund och testar återkommande utfall, extrema enstaka matcher, kort istid, ofullständiga/avbrutna rapporter, spelformer, dubbletter, sparning/återläsning och navigation till rätt rapport. Befintliga analysis och matches-workspace testas som regressioner.
+
+## Samma underlag i råd och träningsfokus
+Assistentens kedjeråd använder samma återkommande utfall som formationstabellen. Kombinationer som får lyftas fram för skottmängd måste också ha tre kvalificerade matcher och tio minuters underlag; skottmängd skiljs uttryckligen från kvalitet. PP-råd räknar endast kompletta tävlingsrapporter.
+
+En gemensam regel avgör om en rapport är jämförbar. Träningsfokus utesluter nu även rapporter med ofullständigt registrerad tid i spelformerna. Dubbletter kan inte fylla baslinjen, och ofullständiga efterföljande matcher avancerar inte uppföljningen. Befintliga redan sparade baslinjer ändras inte retroaktivt. Tränaren kan fortsatt välja ett eget fokus efter en komplett match; råden utger inte det korta underlaget för en etablerad trend.
+
+coach-evidence.test.cjs kontrollerar samstämmiga råd, extremmatcher, uteslutna rapporter, verkligt val av fokus, efterföljande resultat, träningslogg och sparning. coaching-cycle och manager-feedback kontrollerar även kalenderns skyddade dagar, faktisk träningsdag, inkorg, arkivering och säsongsgräns.

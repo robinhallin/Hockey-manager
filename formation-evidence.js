@@ -2,7 +2,7 @@
 function formationEvidence(matches){
  const groups=new Map(),seen=new Set();let excluded=0;
  for(const m of matches){
-  if(!m.finished||m.partial||m.strengthPartial||m.abandoned||m.friendly){excluded++;continue;}
+  if(!analysisComparable(m)){excluded++;continue;}
   if(seen.has(m.id))continue;seen.add(m.id);
   for(const u of m.units||[]){
    if(!['forward','defense','pp','pk'].includes(u.kind)||!u.key||u.seconds<=0)continue;
