@@ -327,7 +327,8 @@ function rivalSimulate(game){
   const specialFit=pp?(avg(ice[side],ppKeys)-creation)-(avg(ice[1-side],pkKeys)-resistance):0;
   const tempo=b.l.plan.tempo==='high'?1.12:b.l.plan.tempo==='low'?.91:1;
   const familiarity=(rivalsClubState(names[side])?.familiarity||40)-(rivalsClubState(names[1-side])?.familiarity||40);
-  let goal=false;if(rand()<attrClamp((.36+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.15,.66))goal=attempt(side,ice);
+  // New attacks leave room for the separately resolved rebound shots.
+  let goal=false;if(rand()<.80*attrClamp((.36+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.15,.66))goal=attempt(side,ice);
   for(let s=0;s<2;s++){
    sides[s].pens=sides[s].pens.map(p=>({...p,left:p.left-20})).filter(p=>p.left>0);
    const risk=avg(ice[s],['discipline']);

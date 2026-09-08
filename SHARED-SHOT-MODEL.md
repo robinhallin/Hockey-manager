@@ -4,7 +4,7 @@ Egna matcher och bakgrundsmatcher använder nu `StudioHockey.evaluateShot` för 
 
 I egna matcher mäts läge, press, skymning och målvaktsplacering av den rumsliga simuleringen. Bakgrundsmatcher uppskattar läge och press från spelarna på isen, numerärt läge och aktuell spelstil. Ett kontringslag kan få närmare och mindre pressade avslut mot aggressiv forecheck. Det är fortfarande två olika sätt att skapa chanser, inte en identisk matchmotor.
 
-Bakgrundsmatcher behandlar registrerade skott på mål. Den villkorliga målchansen används därför direkt; sannolikheten att träffa mål appliceras inte ytterligare en gång. Returskott kan bara följa en verklig räddning, med högst en retur per anfall. Målvaktens returkontroll och plock/stöt påverkar sannolikheten. Returen blir ett nytt registrerat skott med samma avslutsmodell.
+Bakgrundsmatcher behandlar registrerade skott på mål. Den villkorliga målchansen används därför direkt; sannolikheten att träffa mål appliceras inte ytterligare en gång. Returskott kan bara följa en verklig räddning, med högst en retur per anfall. Målvaktens returkontroll och plock/stöt påverkar sannolikheten. Returen blir ett nytt registrerat skott med samma avslutsmodell. Frekvensen för nya anfall minskas med 20 procent för att ge utrymme åt dessa faktiska följdskott; den tidigare simuleringen hade ett enda avslut per anfall.
 
 ## Beslut och återkoppling
 
