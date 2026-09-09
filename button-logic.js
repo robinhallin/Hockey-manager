@@ -52,7 +52,7 @@ function deskEnhanceButtons(root){
  if(explanations.size){
   const info=document.createElement('details');info.id='desk-action-explanations';info.className='desk-action-explanations';
   info.innerHTML=`<summary>Varför är vissa val låsta?</summary>${[...explanations].map(s=>`<p>${trainingSafe(s)}</p>`).join('')}`;
-  page.insertBefore(info,page.querySelector('.desk-subnav')?.nextSibling||page.firstChild);
+  page.appendChild(info);
  }
  if(deskActionNotice){const note=document.createElement('p');note.className='desk-action-notice';note.setAttribute('role','status');note.textContent=deskActionNotice;page.insertBefore(note,page.firstChild);}
 }

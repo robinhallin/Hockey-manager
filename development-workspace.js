@@ -1,5 +1,5 @@
 const developmentUI={tab:'players',player:null,filter:'all',query:'',juniorTab:'players',medical:null,medicalTab:'cases'};
-function developmentSet(key,value){if(!Object.hasOwn(developmentUI,key))return;developmentUI[key]=value;render();queueInterfaceSave();}
+function developmentSet(key,value){if(!Object.hasOwn(developmentUI,key))return;if(developmentUI[key]!==value)deskClearWorkspaceNotices();developmentUI[key]=value;render();queueInterfaceSave();}
 function developmentHeader(title,summary){return `<header class="dv-heading"><div><span class="desk-kicker">${trainingSafe(managerClub())} · ${seasonLabel()}</span><h1>${title}</h1></div></header><div class="dv-summary">${summary}</div>`;}
 function developmentTabs(key,values){return `<nav class="dv-tabs" aria-label="Utvecklingsvy">${Object.entries(values).map(([value,label])=>`<button type="button" aria-pressed="${developmentUI[key]===value}" onclick="developmentSet('${key}','${value}')">${label}</button>`).join('')}</nav>`;}
 function developmentPlayers(){return managerRoster().filter(p=>p.name.toLocaleLowerCase('sv').includes(developmentUI.query.toLocaleLowerCase('sv').trim())&&(developmentUI.filter==='all'||developmentUI.filter==='goalies'&&p.pos==='MV'||developmentUI.filter==='rest'&&p.trainingLoad==='rest'||developmentUI.filter==='tired'&&p.fatigue>=35));}
