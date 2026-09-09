@@ -67,6 +67,22 @@ function aiScoutEstimate(club,p,role){
 function aiMarketNeed(club,p){
  return aiSquadNeeds(club).find(n=>aiRoleFits(p,n.role)&&(n.missing>0||n.futureNeed>0));
 }
+function aiRoleOfferIssue(club,p,offer){
+ if(offer.kind==='loan'||!['Ordinarie','Nyckelspelare'].includes(offer.role))return '';
+ const group=worldGroup(p),role=group==='MV'?'goalie':group==='B'?'defense':'forward';
+ const limit=(offer.role==='Nyckelspelare'?{MV:1,B:4,F:6}:{MV:2,B:6,F:12})[group];
+ const assess=q=>getPlayerClub(q.id)===club?aiRoleValue(q,role):aiScoutEstimate(club,q,role);
+ const value=assess(p);
+ const periods=offer.kind==='future'?[true]:offer.years>1?[false,true]:[false];
+ for(const future of periods){
+  const peers=[...new Map(aiCommittedRoster(club,p,{future}).filter(q=>q&&worldGroup(q)===group&&!samePlayerId(q.id,p.id))
+   .map(q=>[String(q.id),q])).values()];
+  // Injuries do not erase returning competition. Small assessment differences are ties.
+  const rank=1+peers.filter(q=>assess(q)>value+.35).length;
+  if(rank>limit)return `Rollen ${offer.role.toLowerCase()} saknar stöd i truppplanen: bedömd plats ${rank} i positionsgruppen${future?' nästa säsong':''}.`;
+ }
+ return '';
+}
 function aiOfferTerms(club,p,need,kind='transfer'){
  const c=clubAIState(club),w=recruitPlayerWishes(p,club),youth=p.age<=23;
  const stretch=need.missing>0&&c.director.risk>=14?1.04:1;
@@ -76,6 +92,7 @@ function aiOfferTerms(club,p,need,kind='transfer'){
 }
 function aiSubmitMarket(club,p,need,kind,terms){
  const w=state.clubAI,c=clubAIState(club),seller=getPlayerClub(p.id);
+ if(aiRoleOfferIssue(club,p,{...terms,kind}))return false;
  if(w.offers.some(o=>o.status==='pending'&&o.buyer===club&&samePlayerId(o.playerId,p.id)))return false;
  if(kind==='transfer'&&seller===managerClub()){
   const r=state.recruitment;if(r.incoming.some(o=>o.status==='pending'&&o.buyer===club&&samePlayerId(o.playerId,p.id)))return false;
@@ -106,7 +123,7 @@ function aiScoutClub(club,candidates=null){
  const market=candidates||getTransferMarketPlayers();
  const forecast=aiFinancialForecast(club),reserved=aiMarketReserved(club),futureRoom=calendarFutureRoom(club);
  const maxSalary=b.wageLimit-loanWageCost(club)-reserved.salary-loanReserved(club);
- const shortlist=[];
+ const shortlist=[];let roleBlocked=null;
  for(const candidate of market){
   const p=candidate,seller=candidate.team;
   if(!p||seller===club||!aiRoleFits(p,need.role)||p.futureContract||playerLoan(p)||!medicalReady(p))continue;
@@ -120,6 +137,8 @@ function aiScoutClub(club,candidates=null){
   }
   if(kind==='transfer'&&!recruitWillingToSell(p,seller))continue;
   if(future?terms.salary>futureRoom:terms.salary>maxSalary||terms.fee+reserved.fee>b.cash||forecast.cash-terms.fee-terms.salary*forecast.remaining/52<0)continue;
+  const roleIssue=aiRoleOfferIssue(club,p,{...terms,kind});
+  if(roleIssue){roleBlocked??=`${p.name}: ${roleIssue}`;continue;}
   const estimate=aiScoutEstimate(club,p,need.role),own=(state.clubRosters[club]||[]).filter(q=>aiRoleFits(q,need.role));
   if(estimate<need.minimumAbility)continue;
   const current=own.reduce((n,q)=>n+aiRoleValue(q,need.role),0)/Math.max(1,own.length);
@@ -138,7 +157,7 @@ function aiScoutClub(club,candidates=null){
  if(selected){
   aiSubmitMarket(club,selected.p,need,selected.kind,selected.terms);
   if(rc)rc.recruitmentNote=`Förhandlar om ${selected.p.name}: ${need.reason}`;
- }else if(rc)rc.recruitmentNote=shortlist.length?`Observerar ${shortlist.slice(0,3).map(x=>x.p.name).join(', ')}. ${need.reason}`:`Avvaktar: inget lämpligt alternativ ryms i planen. ${need.reason}`;
+ }else if(rc)rc.recruitmentNote=shortlist.length?`Observerar ${shortlist.slice(0,3).map(x=>x.p.name).join(', ')}. ${need.reason}`:`Avvaktar: ${roleBlocked||'inget lämpligt alternativ ryms i planen.'} ${need.reason}`;
  c.scouting=Object.fromEntries(Object.entries(c.scouting).sort((a,b)=>b[1].date.localeCompare(a[1].date)).slice(0,36));
 }
 function aiValidateOffer(o){
@@ -152,6 +171,7 @@ function aiValidateOffer(o){
  if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitFee(p)))return 'Säljaren accepterar inte villkoren.';
  if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Klubbens trupp- eller budgetutrymme räcker inte längre.';
  if(o.kind!=='loan'){
+  const roleIssue=aiRoleOfferIssue(o.buyer,p,o);if(roleIssue)return roleIssue;
   const wishes=recruitPlayerWishes(p,o.buyer);
   if(o.salary<wishes.salary||o.years<wishes.minYears||o.years>wishes.maxYears||SQUAD_ROLES.indexOf(o.role)<SQUAD_ROLES.indexOf(wishes.role))return 'Spelaren accepterar inte rollen eller avtalet.';
  }
