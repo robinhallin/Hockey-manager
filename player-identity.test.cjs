@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(),r=app.run;
+r(`startCareerWithClub('HV71');globalThis.p=managerRoster().find(p=>p.pos!=='MV');
+managerRoster().forEach(p=>p.social.leadership=1);p.promisedRole='Nyckelspelare';p.fatigue=0;p.trainingLoad='normal';p.social.ambition=20;
+globalThis.finish=(seconds)=>{state.round++;state.live={finished:true,iceTime:{[p.id]:seconds}};afterLockerMatch();};`);
+r('finish(0);finish(0)');
+assert.equal(r('p.social.trust'),57);
+assert.equal(r('p.social.journal[0].change'),-3);
+r('finish(900);finish(900)');assert.equal(r('p.social.trust'),57);
+r('finish(0);finish(900)');assert.equal(r('p.social.roleConcern.met'),1);
+r("p.health.injury={};finish(0);delete p.health.injury");assert.equal(r('p.social.roleConcern.met'),1);
+r('finish(900);finish(900)');assert.equal(r('p.social.trust'),60);
+assert.equal(r('p.social.roleConcern'),undefined);
+const journal=r('JSON.stringify(p.social.journal)');r('afterLockerMatch();socialJournalView(p)');assert.equal(r('JSON.stringify(p.social.journal)'),journal);
+r('finish(900);finish(900);finish(900)');assert.equal(r('p.social.trust'),60);
+// Actual bounds, cooldown and durable history, including legacy lazy initialization.
+r("state.live=null;p.social.trust=100;socialTalk(p.id,'listen')");assert.equal(r('p.social.journal[0].change'),0);
+const count=r('p.social.journal.length');r("socialTalk(p.id,'listen')");assert.equal(r('p.social.journal.length'),count);
+r("state.training.promises.push({playerId:p.id,resolved:true,result:'Brutet'});finish(900)");assert.equal(r('p.social.journal[0].change'),-8);
+r('finish(900)');assert.equal(r("p.social.journal.filter(e=>e.title==='Istidslöftet brutet').length"),1);
+r('state.live=null;save()');const saved=r('JSON.stringify(p.social)');
+const re=boot(app.storage.value);assert.equal(re.run("JSON.stringify(managerRoster().find(p=>p.pos!=='MV').social)"),saved);
+r("socialRemember(p,'<script>','<img>',0)");assert.ok(r("socialJournalView(p).includes('&lt;script&gt;')"));
+r("state.live=null;state.locker.captainId=null;p.social.trust=99;appointCaptain(p.id);");assert.equal(r('p.social.journal[0].change'),1);
+r('delete p.social.journal;socialJournalView(p)');assert.equal(r('p.social.journal'),undefined);
+console.log('player identity: actual ice time, interruption, medical pause, bounds, cooldown, promises, reload and safe rendering passed');

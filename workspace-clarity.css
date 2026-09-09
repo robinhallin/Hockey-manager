@@ -233,3 +233,13 @@
  .office-overview .office-panel>header{min-height:0;padding:7px 12px}
  .office-squad .office-status>small{line-height:1.35}
 }
+.player-person-workspace{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:14px;align-items:start}
+.player-person-workspace .locker-player-panel{padding:16px;border:1px solid #35465a;background:var(--desk-panel);font-size:13px}
+.player-person-workspace p{font-size:13px;line-height:1.5}
+.player-person-workspace .locker-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.player-person-workspace .btn{padding:8px;font-size:12px;min-height:34px}
+.player-journal-list{max-height:calc(100dvh - 340px);overflow:auto}
+.player-journal article{border-top:1px solid #35465a;padding:10px 0}
+.player-journal h3{font-size:14px;margin:6px 0;text-transform:none;letter-spacing:normal}
+.player-journal article p{margin:6px 0}.player-journal strong{font-size:12px;color:#c6ddb0}
+@media(max-width:1000px){.player-person-workspace{grid-template-columns:1fr}}
