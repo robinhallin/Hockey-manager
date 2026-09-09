@@ -43,6 +43,7 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ if(previous.staffReviewTab)staffReviewUI.tab=previous.staffReviewTab;
  if(previous.leagueWorkspaceUI)Object.assign(leagueWorkspaceUI,previous.leagueWorkspaceUI);
  if(previous.rivalsSelected!==undefined)rivalsSelected=previous.rivalsSelected;
  if(previous.clubUI)Object.assign(clubUI,previous.clubUI);
@@ -73,9 +74,9 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
- deskHistorySync();deskActionNotice='';let nextLineup,nextAvailability;
+ deskHistorySync();deskActionNotice='';const previousPage=state.page,previousTab=state.recruitment?.tab;let nextLineup,nextAvailability;
  if(page==='tactics'){page='lines';nextLineup='even';}
  if(page==='specialTeams'){page='lines';nextLineup='special';}
  if(page==='scouting'){page='transfers';tab='missions';}
@@ -94,6 +95,7 @@ function deskNavigate(page,tab,record=true){
  if(['table','leagueStats'].includes(page)&&state.page==='leagues'){leagueStatsUI.league=state.world.selected||leagueOf();if(page==='leagueStats'){leagueStatsUI.club='all';leagueStatsUI.query='';leagueStatsUI.minimum=0;leagueStatsUI.year='current';}}
  if(page==='table'&&['home','board'].includes(state.page))leagueStatsUI.league=leagueOf();
  if(page==='leagues'&&['table','leagueStats'].includes(state.page))state.world.selected=leagueStatLeague();
+ if(page!==previousPage||tab&&tab!==previousTab)deskClearWorkspaceNotices();
  state.page=page;queueInterfaceSave();render();
  const content=document.getElementById('content');if(content){content.scrollTop=0;content.focus?.({preventScroll:true});}
  if(typeof window!=='undefined')window.scrollTo?.({top:0,behavior:'instant'});
@@ -129,7 +131,10 @@ function deskSubnav(){
   if(pages.length<2)return '';
   return `<nav class="desk-subnav" aria-label="${area?.label||'Meddelanden'}">${pages.map(([id,label])=>`<button ${page===id?'aria-current="page"':''} onclick="deskNavigate('${id}')">${label}</button>`).join('')}</nav>`;
 }
-function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}">${deskSubnav()}${html}</div>`;}
+function deskClearWorkspaceNotices(){
+ for(const key of ['clubOffice','recruitment','loans','juniors','medical'])if(state[key])state[key].message='';
+}
+function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${state.page}">${deskSubnav()}${html}</div>`;}
 function deskCloseMenu(restoreFocus=false){
   document.querySelector('.game-shell')?.classList.toggle('mobile-nav-open',false);
   document.getElementById('mobileMenu')?.setAttribute?.('aria-expanded','false');

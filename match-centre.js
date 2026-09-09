@@ -109,14 +109,18 @@ function matchStatCard(label,values,suffix=''){return `<div class="mc-stat"><spa
 function matchOrdersView(){
  const select=(key,label,options,note)=>`<label class="mc-order" for="match-order-${key}"><span>${label}<small>${note}</small></span><select id="match-order-${key}" onchange="matchOrder('${key}',this.value)">${options.map(([value,text])=>`<option value="${value}" ${(key==='tactic'?state.tactic:state.tacticalPlan[key]||(key==='shiftLength'?'normal':key==='shotChoice'?'balanced':''))===value?'selected':''}>${text}</option>`).join('')}</select></label>`;
  return `<div class="mc-presets">${Object.entries(MATCH_PLANS).map(([key,p])=>`<button id="match-plan-${key}" class="mc-choice" onclick="matchPlan('${key}')" title="${p.note}"><b>${p.label}</b><small>${p.note}</small></button>`).join('')}</div><div class="mc-orders">
+<fieldset class="mc-order-group"><legend>Spelidé</legend>
  ${select('tactic','Mentalitet',[['attack','Offensiv'],['balanced','Balanserad'],['defense','Defensiv']],'Balansen mellan anfall och försvar.')}
- ${select('attackStyle','Spelidé',Object.entries(HOCKEY_STYLES),'Ställer även in forecheck. Finjustera nedan.')}
- ${select('forecheck','Forecheck',[['passive','Avvaktande'],['balanced','Balanserad'],['aggressive','Aggressiv']],'Hög press kostar mer ork.')}
+ ${select('attackStyle','Spelidé',Object.entries(HOCKEY_STYLES),'Ställer även in forecheck. Finjustera nedan.')}</fieldset>
+<fieldset class="mc-order-group"><legend>Med puck</legend>
  ${select('tempo','Speltempo',[['low','Lågt'],['normal','Normalt'],['high','Högt']],'Högre tempo ger tryck och trötthet.')}
- ${select('physicality','Fysisk nivå',[['safe','Disciplinerat'],['balanced','Balanserat'],['hard','Hårt']],'Hårt spel ökar utvisningsrisken.')}
- ${select('shiftLength','Byteslängd',[['short','30 sek · korta byten'],['normal','45 sek · normalt'],['long','60 sek · långa byten']],'Korta byten håller energin uppe; långa byten belastar samma femma längre.')}
- ${select('shotChoice','Avslutsval',[['patient','Sök ett bättre läge'],['balanced','Läs situationen'],['shoot','Skjut oftare']],'Fler skott kan ge returer men avslutar uppbyggnaden tidigare.')}
- ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}</div>${tacticalReviewView(tacticalReviewSnapshot())}`;
+ ${select('shotChoice','Avslutsval',[['patient','Sök ett bättre läge'],['balanced','Läs situationen'],['shoot','Skjut oftare']],'Fler skott kan ge returer men avslutar uppbyggnaden tidigare.')}</fieldset>
+<fieldset class="mc-order-group"><legend>Utan puck</legend>
+ ${select('forecheck','Forecheck',[['passive','Avvaktande'],['balanced','Balanserad'],['aggressive','Aggressiv']],'Hög press kostar mer ork.')}
+ ${select('physicality','Fysisk nivå',[['safe','Disciplinerat'],['balanced','Balanserat'],['hard','Hårt']],'Hårt spel ökar utvisningsrisken.')}</fieldset>
+<fieldset class="mc-order-group"><legend>Matchning & byten</legend>
+ ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}
+ ${select('shiftLength','Byteslängd',[['short','30 sek · korta byten'],['normal','45 sek · normalt'],['long','60 sek · långa byten']],'Korta byten håller energin uppe; långa byten belastar samma femma längre.')}</fieldset></div>${tacticalReviewView(tacticalReviewSnapshot())}`;
 }
 function matchFeedbackChoices(extra,wait){return Object.entries(MATCH_MESSAGES).filter((_,i)=>extra?i>=6:i<6).map(([key,[label,note]])=>`<button class="mc-choice" onclick="matchFeedback('${key}')" ${wait?'disabled':''}><b>${label}</b><small>${note}</small></button>`).join('');}
 function matchFeedbackView(){
@@ -153,7 +157,7 @@ function matchPlayersView(){
  return `<div class="mc-table-scroll"><table><caption>Spelare · båda lagen · denna match</caption><thead><tr><th>Spelare</th><th>Lag</th><th>Istid</th><th>Mål</th><th>Assist</th><th>Skott</th><th>Räddningar</th></tr></thead><tbody>${rows.map(p=>`<tr><th scope="row">${trainingSafe(p.name)} <small>${p.pos}</small></th><td>${trainingSafe(p.club)}</td><td>${analysisTime(p.seconds)}</td><td>${p.goals}</td><td>${p.assists}</td><td>${p.shots}</td><td>${p.pos==='MV'?p.saves:'—'}</td></tr>`).join('')||'<tr><td colspan="7">Registreras från nedsläpp.</td></tr>'}</tbody></table></div>`;
 }
 function matchCentreView(){
- const m=state.live;if(!m)return `<section class="mc-prematch"><span class="career-eyebrow">NÄSTA MATCH</span><h1>${trainingSafe(managerClub())} <span>–</span> ${trainingSafe(opponent())}</h1><p>Förbered matchplanen. Före nedsläpp kan du prata med laget och välja formationer.</p><button class="btn" onclick="matchDesk.notice='';createMatch()">Till matchen →</button><h2>Välj startplan</h2>${matchOrdersView()}</section>`;
+ const m=state.live;if(!m)return `<section class="mc-prematch"><span class="career-eyebrow">NÄSTA MATCH</span><h1>${trainingSafe(managerClub())} <span>–</span> ${trainingSafe(opponent())}</h1><p>Förbered matchplanen. Före nedsläpp kan du prata med laget och välja formationer.</p><button class="btn" onclick="matchDesk.notice='';createMatch()">Till matchen →</button><h2>Matchplan</h2><p class="workspace-note">Välj en startplan eller justera lagorder. Ändringar gäller lagets matchplan och sparas direkt.</p>${matchOrdersView()}</section>`;
  if(matchDesk.match!==m){matchDesk.match=m;matchDesk.notice='';matchDesk.tab='feedback';matchDesk.target='team';}
  ensureRink();const s=matchStats(),own=careerIdentity(managerClub()),opp=careerIdentity(m.opponent),skaters=side=>m.rink.actors.filter(a=>a.side===side&&a.pos!=='MV').length;
  const period=m.period===4?`Förlängning${(m.overtimePeriods||1)>1?' '+m.overtimePeriods:''}`:`Period ${m.period}`;
