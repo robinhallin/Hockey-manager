@@ -24,19 +24,31 @@ function aiFutureReserved(club,excludePlayer=null){
  return [...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&(o.kind==='future'||o.kind!=='loan'&&o.years>1)&&
   !(excludePlayer!=null&&samePlayerId(o.playerId,excludePlayer))).reduce((n,o)=>n+o.salary,0);
 }
+function aiCommittedRoster(club,p,{future=false}={}){
+ const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const pending=[...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&
+  (future?(o.kind==='future'||o.kind!=='loan'&&o.years>1):o.kind!=='future'));
+ const reserved=pending.map(o=>findPlayerAnywhere(o.playerId));
+ if(!future){
+  const loans=(state.loans?.offers||[]).filter(o=>o.borrower===club&&['pending','counter'].includes(o.status))
+   .map(o=>findPlayerAnywhere(o.playerId));
+  return aiRosterWithReturns(club,[p,...reserved,...loans]);
+ }
+ const secured=(state.clubRosters[club]||[]).filter(q=>!playerLoan(q)&&q.contractYears>1&&!q.futureContract);
+ // Loans owned by this club return to its contracted squad; borrowed players do not.
+ const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId))
+  .filter(q=>q&&q.contractYears>1&&!q.futureContract);
+ const arrivals=[...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[])]
+  .filter(q=>q.futureContract?.buyer===club);
+ return [...secured,...returning,...arrivals,p,...reserved];
+}
 function aiCanCommit(club,p,fee,salary,{future=false,years=0}={}){
  const b=state.recruitment.ai[club];if(!b||!p||!Number.isFinite(fee)||!Number.isFinite(salary))return false;
  if((future||years>1)&&salary>calendarFutureRoom(club)+aiFutureReserved(club)-aiFutureReserved(club,p.id))return false;
- if(future){
-  const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(Boolean);
-  const secured=[...(state.clubRosters[club]||[]).filter(q=>!playerLoan(q)),...returning].filter(q=>q.contractYears>1&&!q.futureContract);
-  const arrivals=Object.values(state.clubRosters).flat().filter(q=>q.futureContract?.buyer===club);
-  const pending=(state.clubAI?.offers||[]).filter(o=>o.status==='pending'&&o.buyer===club&&o.kind==='future');
-  if(!aiRosterHasRoom([...secured,...arrivals,p,...pending.map(o=>findPlayerAnywhere(o.playerId))]))return false;
- }
+ if((future||years>1)&&!aiRosterHasRoom(aiCommittedRoster(club,p,{future:true})))return false;
  if(future)return !clubAIState(club)||aiFinancialForecast(club).cash>=0;
- const reserved=aiMarketReserved(club,p.id),roster=state.clubRosters[club]||[];
- if(!aiRosterHasRoom(aiRosterWithReturns(club,[p]))||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club)>b.wageLimit)return false;
+ const reserved=aiMarketReserved(club,p.id);
+ if(!aiRosterHasRoom(aiCommittedRoster(club,p))||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club)>b.wageLimit)return false;
  const c=clubAIState(club);if(!c)return true;
  const forecast=aiFinancialForecast(club),remaining=forecast.remaining/52;
  // Keep at least a fortnight of running costs; avoid committing a projected deficit.
@@ -138,7 +150,7 @@ function aiValidateOffer(o){
  if(!need||(o.kind==='future'?need.futureNeed===0:need.missing===0))return 'Behovet är redan täckt.';
  if(o.kind!=='future'&&need.shortTerm)return 'Kort skadefrånvaro kan täckas av den befintliga truppen.';
  if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitFee(p)))return 'Säljaren accepterar inte villkoren.';
- if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Budgeten räcker inte längre.';
+ if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Klubbens trupp- eller budgetutrymme räcker inte längre.';
  if(o.kind!=='loan'){
   const wishes=recruitPlayerWishes(p,o.buyer);
   if(o.salary<wishes.salary||o.years<wishes.minYears||o.years>wishes.maxYears||SQUAD_ROLES.indexOf(o.role)<SQUAD_ROLES.indexOf(wishes.role))return 'Spelaren accepterar inte rollen eller avtalet.';
