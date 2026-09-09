@@ -13,7 +13,7 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');
   globalThis.need=aiSquadNeeds(buyer).find(n=>n.role==='forward');
   globalThis.salary=recruitPlayerWishes(p,buyer).salary;
   state.recruitment.ai[buyer].wageLimit=loanWageCost(buyer)+salary+100;
-  aiSubmitMarket(buyer,p,need,'transfer',{fee:0,salary,years:2,role:'Nyckelspelare'});`);
+  aiSubmitMarket(buyer,p,need,'transfer',{fee:0,salary,years:2,role:'Rotation'});`);
  assert.equal(r('aiMarketReserved(buyer).salary'),r('salary'));
  assert.equal(r('aiFutureReserved(buyer)'),r('salary'));
  assert.equal(r('aiCanCommit(buyer,q,0,1000,{years:2})'),false);

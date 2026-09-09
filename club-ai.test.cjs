@@ -105,6 +105,7 @@ function identities(app){return app.run('JSON.stringify([...Object.values(state.
    state.recruitment.ai[club].cash=100000000;state.recruitment.ai[club].wageLimit=100000000;
   }
   globalThis.target=state.playerWorld.freeAgents.find(p=>p.name==='Oula Palve');
+  for(const key of Object.keys(target.attributes))target.attributes[key]=18; // Both clubs can credibly offer the tested key role.
   globalThis.wishes=recruitPlayerWishes(target,buyers[0]);
   globalThis.needA=aiSquadNeeds(buyers[0]).find(n=>n.role==='forward');
   globalThis.needB=aiSquadNeeds(buyers[1]).find(n=>n.role==='forward');

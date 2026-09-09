@@ -199,6 +199,7 @@ function acceptRecruitCounter(id){
 }
 function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  if(!calendarWindowOpen()||p.futureContract)return false;
+ if(buyer!==managerClub()&&aiRoleOfferIssue(buyer,p,{kind:'transfer',years,role}))return false;
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
  const feedbackPlan=feedbackBeforeArrival(p,buyer);
@@ -235,6 +236,8 @@ function answerIncomingOffer(id,accept){
  if(!accept){o.status='rejected';return recruitMessage('Budet avvisat.');}
  if(state.live&&!state.live.finished)return recruitMessage('Avsluta matchen innan du säljer en spelare.');
  const p=managerRoster().find(p=>samePlayerId(p.id,o.playerId));
+ const roleIssue=p&&o.expires>=r.tick?aiRoleOfferIssue(o.buyer,p,{...o,kind:'transfer'}):'';
+ if(roleIssue){o.status='expired';o.reason=roleIssue;return recruitMessage(`${o.buyer} drar tillbaka budet. ${roleIssue}`);}
  if(!p||o.expires<r.tick||!recruitCanSell(p,managerClub())||!transferRecruitPlayer(p,managerClub(),o.buyer,o.fee,o.salary,o.years,o.role)){o.status='expired';return recruitMessage('Affären kan inte genomföras. Kontrollera truppens storlek och köparens ekonomi.');}
  o.status='accepted';recruitMessage(`${p.name} lämnar för ${o.buyer}. ${money(o.fee)} har tillförts kassan.`);
 }
