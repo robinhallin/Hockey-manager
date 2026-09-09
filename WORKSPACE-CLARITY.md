@@ -22,3 +22,9 @@ Visuell webbläsarkontroll genomförd i den publicerade versionen vid 1363 × 93
 ## Kvar
 
 Detta är en gemensam struktur och en riktad omarbetning av de sex rapporterade vyerna. Alla övriga delvyer behöver fortsatt kvalitetsgranskning. PDF-kraven på verifierad verklig spelardata och balans över långa karriärer är inte färdiga genom denna UI-etapp. Den ändrar inte kontraktsregler, rollkrav eller balans för att få vyn att se bättre ut.
+
+## Kompakt datorläge
+
+Standardlayouten från 1100 px använder bredd före höjd. Rubrik och nyckeltal delar rad på bredare datorer. Regler och text behålls läsbara; mindre sektionsmarginaler, kortare tabellrader och avgränsade listor ersätter långa sidor. Ingen global höjdlåsning eller overflow:hidden döljer utökade detaljer; mindre fönster och zoom kan fortsatt använda vanlig sidrullning.
+
+Tränarkontoret placerar nästa match, aktuella beslut och truppavvikelser överst. Kalender, tabell och ekonomi ligger på raden under. Matchsammanfattningen växlar mellan kommande matcher och resultat, med länkar till hela kalendern. Tillbaka behåller valt urval. Statusknappar heter Medicinsk status, Planera återhämtning och Granska kontrakt i stället för upprepat Visa. Match-/junior-/special teams-reglage komprimeras utan nya simuleringsregler.

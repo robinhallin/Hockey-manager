@@ -101,3 +101,108 @@
 
 .rh-needs tbody th{background:transparent;color:inherit;text-transform:none;letter-spacing:normal;font-weight:600}
 .rh-needs td:nth-child(2){white-space:nowrap}
+
+/* Desktop density: use width before spending height. Natural document flow is
+   retained as a fallback for zoom, short windows and expanded detail. */
+.office-fixture-tabs{display:flex;gap:6px;padding:0 12px;border-bottom:1px solid #303b4c}
+.office-overview .office-fixture-tabs button{padding:8px 10px;border-bottom:2px solid transparent;font-size:12px}
+.office-overview .office-fixture-tabs button[aria-pressed=true]{border-color:var(--club-accent);color:var(--club-accent)}
+.office-fixtures{display:block;padding:8px 12px}
+@media(min-width:1100px){
+ .game-content:not(:has(.mc-live)){padding:10px 16px 14px}
+ .desk-page .desk-subnav{margin-bottom:10px;gap:18px}
+ .desk-page :is(.office-heading,.sw-heading,.lw-heading,.mw-heading,.dv-heading,.cw-heading,.workspace-heading,.daily-heading){margin-bottom:10px}
+ .desk-page :is(.office-heading,.sw-heading,.lw-heading,.mw-heading,.dv-heading,.cw-heading,.workspace-heading,.daily-heading) h1{font-size:22px;margin:3px 0}
+ .desk-page :is(.dv-tabs,.cw-tabs,.fm-tabs,.workspace-tabs,.lw-tabs,.mw-tabs){margin:0 0 10px}
+ .desk-page :is(.dv-tabs,.cw-tabs,.fm-tabs,.workspace-tabs,.lw-tabs,.mw-tabs) button{padding:7px 12px;min-height:32px;font-size:12px}
+ /* Status shares the title row instead of becoming an extra full-width band. */
+ .development-workspace,.club-workspace:has(>.cw-metrics),.squad-workspace,.locker-workspace{display:grid;grid-template-columns:minmax(210px,1fr) auto;column-gap:16px;align-items:start}
+ :is(.development-workspace,.club-workspace,.squad-workspace,.locker-workspace)>*{grid-column:1/-1}
+ :is(.development-workspace,.club-workspace,.squad-workspace,.locker-workspace)>:is(.dv-heading,.cw-heading,.sw-heading,.lw-heading){grid-column:1;grid-row:1;align-self:center}
+ :is(.dv-summary,.cw-metrics,.sw-summary,.lw-summary){grid-column:2;grid-row:1;align-self:center;margin:0 0 10px!important;padding:9px 12px;gap:14px;font-size:12px}
+ .desk-page .cw-metrics{padding:0}
+ .desk-page .cw-metrics>div{padding:8px 12px;min-width:0}
+ .desk-page .cw-metrics strong{font-size:16px;margin-top:4px}
+ .desk-page .sw-heading{display:block}
+ .desk-page .sw-heading .btn{padding:4px 0;background:none;font-size:12px;color:var(--desk-muted);border:0}
+ .sw-toolbar{margin-top:0}
+ .sw-toolbar button{padding:8px 12px}
+ .sw-filters,.dv-filters,.cw-filters,.mw-selection{margin:0 0 10px;padding:0;gap:10px}
+ .sw-filters label,.dv-filters label{gap:4px}
+ .dv-program{padding:4px 0 10px}
+ .dv-responsibility{margin:0 0 10px;padding:8px 12px}
+ .dv-summary{flex-wrap:wrap;max-width:720px}
+ /* Side-by-side panels may scroll their own records; headings and filters stay put. */
+ .sw-table-wrap{max-height:calc(100dvh - 260px)}
+ .dv-scroll,.lw-table-scroll{max-height:calc(100dvh - 265px)}
+ .dv-juniors .dv-scroll{max-height:calc(100dvh - 215px);min-height:0}
+ .desk-page :is(.dv-scroll,.sw-table-wrap,.cw-scroll,.lw-table-scroll) :is(th,td){padding-top:7px;padding-bottom:7px}
+ .desk-page[data-page=staff] .cw-scroll :is(th,td){padding-top:8px;padding-bottom:8px}
+ .dv-junior-detail .junior-profile{padding:12px}
+ .dv-junior-detail .junior-profile header{display:grid;grid-template-columns:1fr auto;align-items:center;padding-bottom:8px;margin-bottom:8px}
+ .dv-junior-detail .junior-profile header>span{grid-column:1/-1}
+ .dv-junior-detail .junior-profile header h2{font-size:20px;margin:4px 0}
+ .dv-junior-detail .junior-profile header p{margin:4px 0}
+ .dv-junior-detail .junior-profile p{margin:6px 0}
+ .dv-junior-detail .junior-evaluation{grid-template-columns:1fr 1fr;gap:6px 12px}
+ .dv-junior-detail .junior-controls{gap:8px 12px}
+ .dv-junior-detail .junior-advice{padding:6px 10px}
+ .dv-junior-detail .junior-profile h3{margin:10px 0 6px}
+ .junior-next{margin:10px 0}
+ /* All six office summaries visible together; decisions are in the first row. */
+ .office-grid{display:grid;grid-template-columns:1.12fr 1fr 1fr;grid-template-areas:'next tasks squad' 'calendar league club';gap:10px;align-items:stretch}
+ .office-main,.office-side{display:contents}
+ .office-next{grid-area:next}.office-tasks{grid-area:tasks}.office-squad{grid-area:squad}.office-calendar{grid-area:calendar}.office-league{grid-area:league}.office-club{grid-area:club}
+ .office-overview .office-match{padding:12px 14px 0}
+ .office-match h2{font-size:20px;margin:8px 0}
+ .office-match>p{margin:6px 0 10px}
+ .office-day{padding:10px 0;margin-top:10px;gap:10px}
+ .office-day button{max-width:100px;font-size:12px!important}
+ .office-overview .btn{padding:8px 12px}
+ .office-overview .office-panel>header{padding:9px 12px}
+ .office-status-grid{display:block}
+ .office-status{display:grid;grid-template-columns:1fr auto;gap:3px 10px;padding:8px 12px;border-right:0;border-bottom:1px solid #303b4c}
+ .office-status>strong{grid-row:1;grid-column:2;font-size:18px}
+ .office-status>small{grid-column:1/-1;font-size:11px}
+ .office-status .desk-link{grid-column:1/-1;font-size:12px;padding:3px 0;justify-content:flex-start}
+ .office-decisions{max-height:260px}
+ .office-overview .office-decision{padding:9px 12px}
+ .office-overview .office-table :is(th,td){padding:6px}
+ .office-fixtures{max-height:235px;overflow:auto}
+ .office-finance{gap:8px;padding:12px}
+ .office-followup{padding:10px 12px}
+ .office-followup p{margin:6px 0}
+ .office-heading{margin-bottom:10px}
+ /* Planning and special teams fit laptop heights without squeezing live playback. */
+ .desk-page .mc-prematch{padding:14px}
+ .desk-page .mc-prematch h1{font-size:24px;margin:5px 0 8px}
+ .desk-page .mc-prematch>h2{margin:12px 0 4px}
+ .desk-page .mc-prematch .mc-presets{margin:10px 0 14px;gap:8px}
+ .desk-page .mc-prematch .mc-choice{padding:8px 10px}
+ .desk-page .mc-prematch .mc-orders{gap:10px}
+ .desk-page .mc-prematch .mc-order{padding:7px 0}
+ .mc-prematch .mc-order-group{padding:6px 10px}
+ .desk-page .special-board .daily-heading{margin-bottom:8px}
+ .desk-page .special-tabs{margin:8px 0}
+ .desk-page .special-rink{width:min(100%,max(330px,calc(100dvh - 340px)))}
+ .desk-page .special-slot{min-height:50px}
+ .desk-page .special-candidate-list{max-height:calc(100dvh - 385px)}
+ .desk-page :is(.special-ice-panel,.special-candidates){padding:10px}
+ .rh-header{padding:10px 14px;margin-bottom:10px}
+ .rh-header h1{font-size:21px}
+ .rh-sidebar label,.rh-inspector label{margin:8px 0}
+ .rh-inspector-tabs{margin:10px 0}
+ .rh-inspector dl{gap:8px;margin:10px 0}
+ .rh-inspector h3{margin:10px 0 6px}
+ .rh-table-scroll{max-height:calc(100dvh - 275px)}
+ .rh-inspector{max-height:calc(100dvh - 200px)}
+ .staff-workspace .feedback-item{padding:10px 0}
+ .staff-workspace .feedback-options{margin:10px 0}
+ .staff-workspace .feedback-options section{padding:10px}
+}
+/* Do not trap content at enlarged text or on shorter screens. */
+@media(min-width:1100px) and (max-width:1250px){
+ .office-grid{grid-template-columns:1fr 1fr;grid-template-areas:'next tasks' 'squad club' 'calendar league'}
+ .development-workspace,.club-workspace:has(>.cw-metrics),.squad-workspace,.locker-workspace{grid-template-columns:1fr}
+ :is(.dv-summary,.cw-metrics,.sw-summary,.lw-summary){grid-column:1;grid-row:auto}
+}

@@ -15,3 +15,11 @@ assert.equal(r("officeDecisions().some(t=>t.key==='incoming:900')"),false);
 r("officeOpenDay(calAdd(state.calendar.date,3))");assert.equal(r('calendarUI.date'),r('calAdd(state.calendar.date,3)'));
 assert.equal(r("(managerOfficeView().match(/Öppna dagens program/g)||[]).length"),1);
 console.log('PASS: read-only overview, decision priorities, exact affair and calendar destinations, expired offers, single daily action.');
+// Switching the compact match summary is a view change, not simulation progress.
+r("deskNavigate('home');officeFixtureTab('recent')");
+assert.match(r('managerOfficeView()'),/Inga matcher spelade ännu/);
+const afterView=r('JSON.stringify(state)');
+r('managerOfficeView()');assert.equal(r('JSON.stringify(state)'),afterView);
+r("deskNavigate('calendar');deskBack()");assert.equal(r('officeUI.fixtures'),'recent');
+r("officeFixtureTab('upcoming')");assert.match(r('managerOfficeView()'),/Spelplats/);
+assert.match(r('managerOfficeView()'),/Planera återhämtning/);
