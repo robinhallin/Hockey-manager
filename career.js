@@ -118,7 +118,7 @@ function beginCareerSelection(){
 function chooseCareerClub(name){if(!CLUB_DATA[name])return;const offset=document.querySelector('.career-club-grid')?.scrollLeft||0;careerChoice=name;render();const grid=document.querySelector('.career-club-grid');if(grid)grid.scrollLeft=offset;}
 function setCareerFilter(value){if(!['all','title','playoff','build'].includes(value))return;careerFilter=value;if(value!=='all'&&careerIdentity(careerChoice).group!==value)careerChoice=careerVisibleClubs()[0];render();}
 function showCareerMenu(){if(state.live?.running)pauseMatch();careerScreen='menu';careerMessage='';render();}
-function resumeCareer(){if(!state.careerStarted)return;careerScreen=null;if(['clubSelect','menu'].includes(state.page))state.page='home';render();}
+function resumeCareer(){if(!state.careerStarted)return;deskClearWorkspaceNotices();careerScreen=null;if(['clubSelect','menu'].includes(state.page))state.page='home';render();}
 function careerReview(){if(!careerDraft||!CLUB_DATA[careerChoice])return;careerScreen='review';render();}
 function acceptCareer(){
   if(careerScreen!=='review'||!careerDraft||!CLUB_DATA[careerChoice])return;

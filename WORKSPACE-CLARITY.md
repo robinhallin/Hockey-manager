@@ -17,7 +17,7 @@ Godkända befintliga testfiler: button-logic, club-workspace, desktop-workspace,
 
 workspace-clarity.test.cjs kontrollerar beskedens livslängd, verklig klubbpolicy, scoutinguppdrag, rollsökning, juniorval, stabsflikens tillbaka-navigering samt taktiska ändringar genom sparning och återläsning.
 
-Visuell webbläsarkontroll utförs på den publicerade versionen; lokal webbläsaranslutning är blockerad i arbetsmiljön.
+Visuell webbläsarkontroll genomförd i den publicerade versionen vid 1363 × 936: matchplanens alla åtta order och hela special teams-halvrinken ryms, juniorplanens fyra reglage är synliga och personal, rekrytering samt stabens tre arbetskategorier går att läsa och navigera. Kontrollen upptäckte ett feljusterat klubbhuvud som rättades. Nya ingångar till stabsplaneringen återställer rätt kategori; tillbaka behåller tidigare kategori. Besked rensas även när en sparad karriär återupptas. Juniorernas ordinarie utvecklings-/lånetest godkänt.
 
 ## Kvar
 

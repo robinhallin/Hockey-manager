@@ -20,3 +20,7 @@ const saved=boot(app.storage.value);assert.equal(saved.run('state.tacticalPlan.t
 assert.equal((r('matchOrdersView()').match(/<fieldset/g)||[]).length,4);
 assert.equal((r('matchOrdersView()').match(/<select/g)||[]).length,8);
 console.log('PASS: scoped feedback, real recruitment search/scout mission, junior selection, staff context back navigation, grouped tactical changes and save/reload.');
+
+r("deskNavigate('transfers','needs');deskNavigate('staffReview')");assert.equal(r('staffReviewUI.tab'),'planning','new planning entry must not land on the previous coaching tab');
+r("state.clubOffice.message='Besked från föregående session';save()");
+const resumed=boot(app.storage.value);resumed.run('resumeCareer()');assert.equal(resumed.run('state.clubOffice.message'),'');assert.equal(resumed.run('state.clubOffice.ticket'),280);

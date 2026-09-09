@@ -87,6 +87,7 @@ function deskNavigate(page,tab,record=true){
  const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab||nextLineup!==undefined&&nextLineup!==lineupWorkspace||nextAvailability!==undefined&&nextAvailability!==recruitFilters().availability);
  if(browserPush)deskBrowserBefore();
  if(browserPush){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
+ if(page==='staffReview'&&record&&page!==previousPage)staffReviewUI.tab='planning';
  if(nextLineup!==undefined)lineupWorkspace=nextLineup;
  if(nextAvailability!==undefined)recruitFilters().availability=nextAvailability;
  if(tab&&page==='transfers'&&[...DESK_RECRUIT_TABS,...DESK_RECRUIT_MORE].some(([t])=>t===tab))state.recruitment.tab=tab;
