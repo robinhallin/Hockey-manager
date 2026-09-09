@@ -67,10 +67,42 @@ function aiScoutEstimate(club,p,role){
 function aiMarketNeed(club,p){
  return aiSquadNeeds(club).find(n=>aiRoleFits(p,n.role)&&(n.missing>0||n.futureNeed>0));
 }
+function aiRoleDemand(p,role=p.promisedRole||p.squadRole||'Rotation'){
+ if(p.pos==='MV')return role==='Nyckelspelare'?4:role==='Ordinarie'?2:0;
+ return role==='Nyckelspelare'?900:role==='Ordinarie'?650:role==='Rotation'?360:120;
+}
+function aiRoleBudget(club,p,offer={},future=false,group=p?worldGroup(p):'F'){
+ const capacity=group==='MV'?6:group==='B'?7200:10800;
+ const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const offers=[...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&o.kind!=='loan'&&
+  (future?(o.kind==='future'||o.years>1):o.kind!=='future'));
+ const roster=[...new Map(aiCommittedRoster(club,p,{future}).filter(q=>q&&worldGroup(q)===group).map(q=>[String(q.id),q])).values()];
+ const used=roster.reduce((sum,q)=>{
+  if(p&&samePlayerId(q.id,p.id))return sum+aiRoleDemand(q,offer.role);
+  const pending=offers.filter(o=>samePlayerId(o.playerId,q.id));
+  const role=future&&q.futureContract?.buyer===club?q.futureContract.role:q.promisedRole||q.squadRole||'Rotation';
+  return sum+(pending.length?Math.max(...pending.map(o=>aiRoleDemand(q,o.role))):aiRoleDemand(q,role));
+ },0);
+ return {group,used,capacity};
+}
+function aiRoleBudgetView(club){
+ const cell=b=>`${b.group==='MV'?b.used:Math.round(b.used/60)} / ${b.group==='MV'?b.capacity:b.capacity/60} ${b.group==='MV'?'starter':'min'}${b.used>b.capacity?' · Överbokat':''}`;
+ return `<h3>Utrymme för rollöften</h3><p>Planeringsbedömning utifrån rollkraven i matchuppföljningen. Målvakter: sex planerade starter. Utespelare: spelarminuter per ordinarie match vid fem mot fem. Överbokning ändrar inte befintliga avtal.</p><table><thead><tr><th>Positionsgrupp</th><th>Nu</th><th>Nästa säsong</th></tr></thead><tbody>${Object.entries({MV:'Målvakter',B:'Backar',F:'Forwards'}).map(([g,label])=>`<tr><th>${label}</th><td>${cell(aiRoleBudget(club,null,{},false,g))}</td><td>${cell(aiRoleBudget(club,null,{},true,g))}</td></tr>`).join('')}</tbody></table>`;
+}
+function aiRoleBudgetIssue(club,p,offer){
+ if(offer.kind==='loan')return '';
+ for(const future of offer.kind==='future'?[true]:offer.years>1?[false,true]:[false]){
+  const b=aiRoleBudget(club,p,offer,future);if(b.used<=b.capacity)continue;
+  const load=b.group==='MV'?`${b.used} starter av 6`:`${Math.ceil(b.used/60)} av ${b.capacity/60} spelarminuter per match`;
+  return `Rollöftena ryms inte tillsammans${future?' nästa säsong':''}: ${load} i positionsgruppen. Frigör ansvar innan ett nytt löfte ges.`;
+ }
+ return '';
+}
 function aiRoleOfferIssue(club,p,offer){
- if(offer.kind==='loan'||!['Ordinarie','Nyckelspelare'].includes(offer.role))return '';
+ if(offer.kind==='loan')return '';
+ const budgetIssue=aiRoleBudgetIssue(club,p,offer);if(budgetIssue)return budgetIssue;
  const group=worldGroup(p),role=group==='MV'?'goalie':group==='B'?'defense':'forward';
- const limit=(offer.role==='Nyckelspelare'?{MV:1,B:4,F:6}:{MV:2,B:6,F:12})[group];
+ const limit=(offer.role==='Nyckelspelare'?{MV:1,B:4,F:6}:offer.role==='Ordinarie'?{MV:2,B:6,F:12}:{})[group];
  const assess=q=>getPlayerClub(q.id)===club?aiRoleValue(q,role):aiScoutEstimate(club,q,role);
  const value=assess(p);
  const periods=offer.kind==='future'?[true]:offer.years>1?[false,true]:[false];
@@ -79,7 +111,7 @@ function aiRoleOfferIssue(club,p,offer){
    .map(q=>[String(q.id),q])).values()];
   // Injuries do not erase returning competition. Small assessment differences are ties.
   const rank=1+peers.filter(q=>assess(q)>value+.35).length;
-  if(rank>limit)return `Rollen ${offer.role.toLowerCase()} saknar stöd i truppplanen: bedömd plats ${rank} i positionsgruppen${future?' nästa säsong':''}.`;
+  if(limit&&rank>limit)return `Rollen ${offer.role.toLowerCase()} saknar stöd i truppplanen: bedömd plats ${rank} i positionsgruppen${future?' nästa säsong':''}.`;
  }
  return '';
 }

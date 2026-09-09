@@ -167,6 +167,7 @@ function aiPromote(club,p,reason){
  if(!aiRosterHasRoom(aiCommittedRoster(club,p))||!aiRosterHasRoom(aiCommittedRoster(club,p,{future:true}))||
   loanWageCost(club)+added+aiMarketReserved(club).salary+loanReserved(club)>b.wageLimit||
   futureAdded>calendarFutureRoom(club)||b.cash<0)return false;
+ if(aiRoleBudgetIssue(club,p,{kind:'transfer',years:Math.max(2,p.contractYears),role:p.promisedRole||p.squadRole||'Rotation'}))return false;
  c.academy.roster=c.academy.roster.filter(q=>q!==p);state.clubRosters[club].push(p);
  p.academy.path='senior';p.academy.seniorContract=true;p.contractYears=Math.max(2,p.contractYears);p.club=club;
  p.aiRoleReview={games:0,seconds:0,missed:0};
@@ -219,8 +220,10 @@ function aiRenewContracts(club,expiredOnly=false){
   const salary=aiRoundMoney(Math.max(150000,p.salary*(p.age>=33?.94:p.age<=24?1.08:1.03)));
   const limit=loanWageCost(club)-p.salary+salary+aiMarketReserved(club).salary+loanReserved(club);
   const futureRoom=calendarFutureRoom(club)+(p.contractYears>1?p.salary:0);
+  const roleIssue=aiRoleBudgetIssue(club,p,{kind:expiredOnly?'transfer':'future',years:expiredOnly?(p.age>=33?1:p.age<=23?3:2):2,role:p.promisedRole||p.squadRole||'Rotation'});
   const reason=unhappy?'Söker mer istid':!useful?'Efterträdare och väntande ankomster täcker positionen':
    !aiRosterHasRoom(planned)?'Truppens platser är redan reserverade':
+   roleIssue?roleIssue:
    limit>b.wageLimit||salary>futureRoom?'Lönekraven ryms inte tillsammans med övriga åtaganden':
    aiFinancialForecast(club).cash<0?'Ekonomiprognosen kräver besparingar':null;
   if(!reason){
@@ -282,8 +285,8 @@ function aiAfterPlayerFixture(club,rows,gf,ga){
   p.morale=attrClamp((p.morale||70)+(gf>ga?.65:-.65),30,90);
   if(r.games%6)continue;
   const role=p.promisedRole||p.squadRole||'Rotation';
-  const target=p.pos==='MV'?(role==='Nyckelspelare'?2100:role==='Ordinarie'?1500:600):role==='Nyckelspelare'?900:role==='Ordinarie'?650:role==='Rotation'?360:120;
-  const met=p.pos==='MV'?(r.startSamples<6?true:r.starts>=squadGoalieTarget(p)):r.seconds/6>=target;r.starts=0;r.startSamples=0;
+  const target=aiRoleDemand(p,role);
+  const met=p.pos==='MV'?(r.startSamples<6?true:r.starts>=target):r.seconds/6>=target;r.starts=0;r.startSamples=0;
   p.happiness=attrClamp((p.happiness||70)+(met?3:-6),20,95);
   r.unhappy=!met&&p.happiness<55;r.lastAverage=Math.round(r.seconds/6);r.seconds=0;
   if(r.unhappy)aiDecision(club,'dressing',`${p.name} vill ha mer ansvar efter sex matcher med för lite istid.`,`${p.id}:role:${state.season.year}:${Math.floor(r.games/12)}`);
@@ -331,7 +334,7 @@ function aiClubView(club){
  const decisionRows=c.decisions.slice(0,6).map(d=>`<article><time>${calText(d.date)}</time><p>${trainingSafe(d.text)}</p></article>`).join('');
  return `<section class="rival-panel ai-club"><span class="desk-kicker">KLUBBENS RIKTNING</span><h2>${project}</h2><p>Styrelsens mål: topp ${c.target}. ${c.project==='develop'?'Unga spelare och framtida försäljningsvärde prioriteras.':c.project==='survive'?'Ekonomiskt utrymme avgör vilka förstärkningar som är möjliga.':c.project==='rebuild'?'Åldersstruktur, kontrakt och efterträdare väger tungt.':'Truppen byggs för att nå resultat utan att överskrida resurserna.'}</p>
  <div class="ai-summary"><div><small>Kassa</small><strong>${careerMoney(b?.cash||0)}</strong></div><div><small>Säsongsprognos</small><strong>${forecast?careerMoney(forecast.cash):'–'}</strong></div><div><small>Löner / budget</small><strong>${careerMoney(loanWageCost(club))} / ${careerMoney(b?.wageLimit||0)}</strong></div></div>
- <details><summary>Truppplan & kontrakt</summary><p>Rollerna överlappar. Tillgänglighet, utgående avtal, planerade ankomster och egna talanger ingår i bedömningen.</p><div class="ai-needs">${needs.map(n=>`<article><strong>${n.label}</strong><span>${n.count}/${n.target} spelklara</span><p>${trainingSafe(n.reason)} ${n.arrivals?n.arrivals+' framtida ankomster. ':''}${n.alternatives.length?n.alternatives.length+' junioralternativ.':''}</p></article>`).join('')}</div></details>
+ <details><summary>Truppplan & kontrakt</summary><p>Rollerna överlappar. Tillgänglighet, utgående avtal, planerade ankomster och egna talanger ingår i bedömningen.</p>${aiRoleBudgetView(club)}<div class="ai-needs">${needs.map(n=>`<article><strong>${n.label}</strong><span>${n.count}/${n.target} spelklara</span><p>${trainingSafe(n.reason)} ${n.arrivals?n.arrivals+' framtida ankomster. ':''}${n.alternatives.length?n.alternatives.length+' junioralternativ.':''}</p></article>`).join('')}</div></details>
  <details><summary>Akademi · ${academics.length} spelare</summary><p>Akademispelarna är fiktiva. De tränar, får mentorskap och spelar utvecklingsmatcher. Uppflyttning kräver en plats och löneutrymme.</p><div class="ai-academy">${academics.slice().sort((a,b)=>b.age-a.age).map(p=>`<article><strong>${trainingSafe(p.name)}</strong><span>${p.age} år · ${p.pos}</span><small>${p.academy.games} utvecklingsmatcher · ${Math.round(p.academy.seconds/60)} min</small></article>`).join('')||'<p>Akademin saknar för närvarande spelare.</p>'}</div></details>
  <details><summary>Ekonomins utveckling</summary><p>Publik, sponsoravtal, spelarlöner, personal, drift och akademi bokförs vid spelade matcher.</p>${c.finance.archives.slice(0,5).map(a=>`<p>${seasonLabel(a.year)} · Kassa ${careerMoney(a.opening)} → ${careerMoney(a.closing)}</p>`).join('')}${c.finance.ledger.slice(0,6).map(l=>`<div class="ai-ledger"><span>${trainingSafe(l.label)}</span><strong>${careerMoney(l.amount)}</strong></div>`).join('')}</details>
  <h3>Beslut och följder</h3><div class="ai-decisions">${decisionRows||'<p>Klubbens beslut följs när kalendern går framåt.</p>'}</div></section>`;
