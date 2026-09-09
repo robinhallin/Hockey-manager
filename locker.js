@@ -12,6 +12,39 @@ function ensureLocker(){
  if(initial)state.locker.captainId=[...managerRoster()].sort((a,b)=>b.social.leadership-a.social.leadership||b.age-a.age)[0]?.id??null;
  else if(!managerRoster().some(p=>samePlayerId(p.id,state.locker.captainId)))state.locker.captainId=null;
 }
+// Journal entries are observed game events, not invented biography.
+function socialRemember(p,title,body,change=0){
+ const s=p.social;if(!s)return;
+ s.journal??=[];
+ s.journal.unshift({date:state.calendar?.date||'',year:state.season?.year||2026,club:managerClub(),title,body,change:Math.round(change*10)/10});
+
+}
+function socialRoleFollowup(p,missed,played,loss){
+ const s=p.social,role=p.promisedRole||p.squadRole||'Rotation';
+ if(s.roleConcern&&s.roleConcern.role!==role){
+  socialRemember(p,'Rollen har ändrats','Den tidigare istidsuppföljningen avslutas. Ett nytt rollbesked återställer inte förtroendet.');
+  delete s.roleConcern;
+ }
+ if(missed){
+  if(s.roleConcern)s.roleConcern.met=0;
+  if(s.missed<2)return;
+  const c=s.roleConcern??={role,loss:0,met:0};
+  c.met=0;c.loss=Math.min(12,c.loss+loss);
+  if(s.missed===2)socialRemember(p,'Istiden motsvarar inte rollen',`${role}: för lite istid i flera tillgängliga matcher. Ambition påverkar hur starkt spelaren reagerar.`, -loss);
+  return;
+ }
+ const c=s.roleConcern;if(!c||!played)return;
+ c.met++;
+ if(c.met<3)return;
+ const before=s.trust;s.trust=trainingClamp(s.trust+Math.min(3,c.loss));const gain=s.trust-before;
+ socialRemember(p,'Handling bygger tillbaka förtroendet',`Tre matcher med istid som motsvarar rollen ${role}. En del av förtroendet återvänder; tidigare besvikelse försvinner inte direkt.`,gain);
+ s.lastResponse='Istiden har motsvarat rollen i tre matcher. Spelaren börjar återfå förtroendet.';
+ delete s.roleConcern;
+}
+function socialJournalView(p){
+ const rows=p.social?.journal||[];
+ return `<section class="fm-panel player-journal"><h2>Min historia med klubben</h2><p>Registrerade beslut och reaktioner i din karriär. Personligheten är fiktiv speldata.</p>${rows.length?`<div class="player-journal-list" tabindex="0" aria-label="Spelarens klubbjournal">${rows.map(e=>`<article><small>${trainingSafe(e.date||seasonLabel(e.year))} · ${trainingSafe(e.club)}</small><h3>${trainingSafe(e.title)}</h3><p>${trainingSafe(e.body)}</p>${e.change?`<strong>Förtroende ${e.change>0?'+':''}${e.change}</strong>`:''}</article>`).join('')}</div>`:'<p>Journalen börjar med nästa samtal, kaptensbeslut eller rolluppföljning. Äldre händelser återskapas inte.</p>'}</section>`;
+}
 function socialGrowth(p){return Object.values(p.attributes||{}).reduce((sum,n)=>sum+n,0);}
 function socialPersonality(p){const s=p.social;return [s.ambition>=14?'Ambitiös':s.ambition<=7?'Tålmodig':'Målmedveten',s.loyalty>=14?'Lojal':s.loyalty<=7?'Självständig':'Lagorienterad',s.sensitivity>=14?'Behöver trygghet':s.sensitivity<=7?'Tål raka besked':'Lyhörd'].join(' · ');}
 function socialTrustText(n){return n>=75?'Starkt förtroende':n>=50?'Gott förtroende':n>=30?'Tveksam till ledarskapet':'Lågt förtroende';}
@@ -40,11 +73,13 @@ function appointCaptain(id,reason='leadership'){
  if(!p||samePlayerId(id,r.captainId)||!['leadership','generation','rotation'].includes(reason))return;
  if(state.live&&!state.live.finished)return lockerNotice('Kaptensbytet görs mellan matcher.');
  if(r.captainId!==null&&r.turn-r.captainChanged<5)return lockerNotice('Ge ledargruppen fem matcher innan nästa kaptensbyte.');
- const previous=managerRoster().find(p=>samePlayerId(p.id,r.captainId));
+ const previous=managerRoster().find(p=>samePlayerId(p.id,r.captainId)),before=p.social.trust,previousTrust=previous?.social.trust;
  if(previous){previous.social.trust=trainingClamp(previous.social.trust-(reason==='generation'&&previous.age>=30?1:4));
    for(const q of managerRoster())if(q.id!==p.id&&q.id!==previous.id&&(socialPair(q.id,previous.id)?.bond||0)>=50)q.social.trust=trainingClamp(q.social.trust-1);
  }
  r.captainId=p.id;r.captainChanged=r.turn;p.social.trust=trainingClamp(p.social.trust+2);
+ socialRemember(p,'Utsedd till lagkapten','Du får ansvaret att företräda laget och påverka gruppens förtroende.',p.social.trust-before);
+ if(previous)socialRemember(previous,'Lämnar kaptensuppdraget',reason==='generation'?'Tränaren förklarar beslutet som en generationsväxling.':'Tränaren väljer en annan ledare för laget.',previous.social.trust-previousTrust);
  const why={leadership:'Du lyfter fram spelarens ledarskap.',generation:'Du förklarar att laget går in i en generationsväxling.',rotation:'Du vill fördela ansvaret på ett nytt sätt.'}[reason];
  socialLog(`${p.name} utses till kapten`,`${why} ${previous?`${previous.name} lämnar uppdraget och ${reason==='generation'&&previous.age>=30?'accepterar förklaringen, men är besviken.':'tappar en del förtroende för beslutet.'}`:'Laget har fått en ny representant.'}`);
  lockerNotice('Kaptensvalet är meddelat till truppen.');
@@ -68,7 +103,8 @@ function socialTalk(id,topic){
    delta=fair&&s.ambition>=12&&s.sensitivity<=12?3:-3;
    text=delta>0?'Spelaren svarar på din tydliga utmaning och vill ta mer ansvar.':'Kraven landar illa. Spelaren behöver trygghet, återhämtning eller en faktisk chans att visa sig.';
  }
- s.trust=trainingClamp(s.trust+delta);s.lastTalk=r.turn;s.lastResponse=text;
+ const before=s.trust;s.trust=trainingClamp(s.trust+delta);delta=s.trust-before;s.lastTalk=r.turn;s.lastResponse=text;
+ socialRemember(p,({praise:'Beröm för utvecklingen',bench:'Samtal om petning',listen:'Tränaren lyssnar',challenge:'Utmanad av tränaren'})[topic],text,delta);
  socialLog(`Samtal med ${p.name}`,`${text} Förtroende ${delta>0?'+':''}${delta}.`);lockerNotice(`${p.name}: ${text}`);
 }
 function afterLockerMatch(){
@@ -78,11 +114,13 @@ function afterLockerMatch(){
    const s=p.social,seconds=m.iceTime?.[p.id]||0,expected=playerLoan(p)?0:p.pos==='MV'?1800:p.promisedRole==='Nyckelspelare'?900:p.promisedRole==='Ordinarie'?720:0;
    squadRecordRole(p,m);s.lastMinutes=seconds/60;
    const missed=p.pos==='MV'?squadGoalieMissed(p):expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
+   const beforeRole=s.trust;
    if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(`${p.name} undrar över sin roll`,`${p.name} har fått mindre istid än sin utlovade roll under de senaste tillgängliga matcherna. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked.`);}
+   socialRoleFollowup(p,missed,expected>0&&seconds>=expected&&!medicalExcused(p,expected)&&!playerLoan(p),beforeRole-s.trust);
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
      const neutral=promise.result&&!['Uppfyllt','Brutet'].includes(promise.result);
-     if(!neutral){const met=promise.result?promise.result==='Uppfyllt':promise.qualified>=rolePromiseRule(promise).required;s.trust=trainingClamp(s.trust+(met?4:-8));socialLog(`${p.name}: förtroende efter löftet`,met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
+     if(!neutral){const met=promise.result?promise.result==='Uppfyllt':promise.qualified>=rolePromiseRule(promise).required;const beforePromise=s.trust;s.trust=trainingClamp(s.trust+(met?4:-8));socialRemember(p,met?'Istidslöftet uppfyllt':'Istidslöftet brutet',met?'Tränaren gav den speltid som utlovats.':'Den utlovade speltiden infriades inte.',s.trust-beforePromise);socialLog(`${p.name}: förtroende efter löftet`,met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
    }
  }
  const captain=managerRoster().find(p=>samePlayerId(p.id,r.captainId));
@@ -148,7 +186,7 @@ function teamTalkPanel(){
 }
 function lockerPlayerPanel(p){
  ensureLocker();const s=p.social;if(!s)return '';const partners=managerRoster().filter(q=>q.pos!=='MV'&&!samePlayerId(q.id,p.id)).map(q=>({p:q,pair:socialPair(p.id,q.id)})).filter(x=>x.pair).sort((a,b)=>b.pair.bond-a.pair.bond).slice(0,2);
- return `<section class="locker-player-panel">${state.locker.message?`<p role="status">${trainingSafe(state.locker.message)}</p>`:''}<h3>${samePlayerId(p.id,state.locker.captainId)?'C · ':''}${socialTrustText(s.trust)}</h3><p>${socialPersonality(p)} · Ledarskap: ${s.leadership>=15?'Tongivande':s.leadership>=9?'Tar ansvar':'Följer gruppen'}</p><p>Förtroende ${Math.round(s.trust)}/100${s.lastMinutes!==null?` · Senaste matchen: ${Math.floor(s.lastMinutes)} min`:''}</p>${partners.length?`<p>Mest samspel med ${partners.map(x=>`${trainingSafe(x.p.name)} (${Math.round(x.pair.bond)}/100)`).join(' och ')}.</p>`:''}<div class="locker-actions">${[['praise','Beröm utveckling'],['bench','Förklara petning'],['listen','Lyssna på spelaren'],['challenge','Utmana spelaren']].map(([key,label])=>`<button class="btn secondary" onclick="socialTalk('${p.id}','${key}')" ${state.locker.turn-s.lastTalk<3?'disabled':''}>${label}</button>`).join('')}</div>${s.lastResponse?`<p class="locker-response">${trainingSafe(s.lastResponse)}</p>`:''}</section>`;
+ return `<section class="locker-player-panel">${state.locker.message?`<p role="status">${trainingSafe(state.locker.message)}</p>`:''}<h3>${samePlayerId(p.id,state.locker.captainId)?'C · ':''}${socialTrustText(s.trust)}</h3><p>${socialPersonality(p)} · Ledarskap: ${s.leadership>=15?'Tongivande':s.leadership>=9?'Tar ansvar':'Följer gruppen'}</p><p>Förtroende ${Math.round(s.trust)}/100${s.lastMinutes!==null?` · Senaste matchen: ${Math.floor(s.lastMinutes)} min`:''}</p>${partners.length?`<p>Mest samspel med ${partners.map(x=>`${trainingSafe(x.p.name)} (${Math.round(x.pair.bond)}/100)`).join(' och ')}.</p>`:''}${s.roleConcern?`<p class="locker-response">Rolluppföljning: ${s.roleConcern.met}/3 matcher med utlovad istid. Faktisk istid kan återställa högst tre förtroendepoäng.</p>`:''}<div class="locker-actions">${[['praise','Beröm utveckling'],['bench','Förklara petning'],['listen','Lyssna på spelaren'],['challenge','Utmana spelaren']].map(([key,label])=>`<button class="btn secondary" onclick="socialTalk('${p.id}','${key}')" ${state.locker.turn-s.lastTalk<3?'disabled':''}>${label}</button>`).join('')}</div>${s.lastResponse?`<p class="locker-response">${trainingSafe(s.lastResponse)}</p>`:''}</section>`;
 }
 function lockerView(){return lockerWorkspaceView();}
 function legacyLockerView(){
