@@ -163,7 +163,10 @@ function aiSquadNeeds(club){
 function aiPromote(club,p,reason){
  const c=clubAIState(club),b=state.recruitment.ai[club];if(!c||!b||!c.academy.roster.includes(p)||!medicalReady(p))return false;
  const added=p.academy.seniorContract?0:p.salary;
- if(!aiRosterHasRoom(aiRosterWithReturns(club,[p]))||loanWageCost(club)+added+aiMarketReserved(club).salary>b.wageLimit||b.cash<0)return false;
+ const futureAdded=p.academy.seniorContract&&p.contractYears>1?0:p.salary;
+ if(!aiRosterHasRoom(aiCommittedRoster(club,p))||!aiRosterHasRoom(aiCommittedRoster(club,p,{future:true}))||
+  loanWageCost(club)+added+aiMarketReserved(club).salary+loanReserved(club)>b.wageLimit||
+  futureAdded>calendarFutureRoom(club)||b.cash<0)return false;
  c.academy.roster=c.academy.roster.filter(q=>q!==p);state.clubRosters[club].push(p);
  p.academy.path='senior';p.academy.seniorContract=true;p.contractYears=Math.max(2,p.contractYears);p.club=club;
  p.aiRoleReview={games:0,seconds:0,missed:0};
@@ -207,21 +210,28 @@ function aiRenewContracts(club,expiredOnly=false){
  for(const p of candidates){
   const previous=c.contractDecisions[p.id];
   if(!expiredOnly&&previous?.year===state.season.year&&(previous.status==='renewed'||calGap(previous.date||state.calendar.date,state.calendar.date)<28))continue;
-  const peers=roster.filter(q=>q!==p&&worldGroup(q)===worldGroup(p)&&q.contractYears>1&&!q.futureContract);
-  const incoming=Object.values(state.clubRosters).flat().filter(q=>q.futureContract?.buyer===club&&worldGroup(q)===worldGroup(p));
-  const target=({MV:2,B:7,F:13})[worldGroup(p)],useful=peers.length+incoming.length<target||p.age<=22&&c.project==='develop';
+  // At the year boundary contracts have already been decremented and arrivals activated.
+  const planned=aiCommittedRoster(club,p,{future:!expiredOnly});
+  const peers=[...new Map(planned.filter(q=>q&&!samePlayerId(q.id,p.id)&&worldGroup(q)===worldGroup(p)&&
+   (!expiredOnly||q.contractYears>0)).map(q=>[String(q.id),q])).values()];
+  const target=({MV:2,B:7,F:13})[worldGroup(p)],useful=peers.length<target||p.age<=22&&c.project==='develop';
   const unhappy=p.aiRoleReview?.unhappy&&(p.social?.ambition||10)>=12;
   const salary=aiRoundMoney(Math.max(150000,p.salary*(p.age>=33?.94:p.age<=24?1.08:1.03)));
-  const limit=loanWageCost(club)-p.salary+salary+aiMarketReserved(club).salary;
+  const limit=loanWageCost(club)-p.salary+salary+aiMarketReserved(club).salary+loanReserved(club);
   const futureRoom=calendarFutureRoom(club)+(p.contractYears>1?p.salary:0);
-  if(useful&&!unhappy&&limit<=b.wageLimit&&salary<=futureRoom&&aiFinancialForecast(club).cash>=0){
+  const reason=unhappy?'Söker mer istid':!useful?'Efterträdare och väntande ankomster täcker positionen':
+   !aiRosterHasRoom(planned)?'Truppens platser är redan reserverade':
+   limit>b.wageLimit||salary>futureRoom?'Lönekraven ryms inte tillsammans med övriga åtaganden':
+   aiFinancialForecast(club).cash<0?'Ekonomiprognosen kräver besparingar':null;
+  if(!reason){
    const years=p.age>=33?1:p.age<=23?3:2;p.salary=salary;p.contractYears=expiredOnly?years:years+1;
    c.contractDecisions[p.id]={year:state.season.year,date:state.calendar.date,status:'renewed'};
    worldLog('renew',p,club,`${years} nya år – roll, ålder och löneutrymme vägdes samman`);
    aiDecision(club,'contract',`${p.name} förlänger med ${years} år. ${p.age>=33?'Ett kort avtal begränsar åldersrisken.':'Kontinuitet på en prioriterad position.'}`);
   }else{
-   c.contractDecisions[p.id]={year:state.season.year,date:state.calendar.date,status:'leave'};
-   if(expiredOnly){state.clubRosters[club]=state.clubRosters[club].filter(q=>q!==p);worldRelease(p,club,unhappy?'Söker mer istid':!useful?'Efterträdare finns i truppen':'Lönekraven ryms inte i klubbens plan');}
+   c.contractDecisions[p.id]={year:state.season.year,date:state.calendar.date,status:'leave',reason};
+   if(expiredOnly){state.clubRosters[club]=state.clubRosters[club].filter(q=>q!==p);worldRelease(p,club,reason);}
+   else if(previous?.reason!==reason)aiDecision(club,'contract',`Avvaktar förlängning med ${p.name}: ${reason.toLowerCase()}.`);
   }
  }
  return true;
