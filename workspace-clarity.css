@@ -6,6 +6,7 @@
 .desk-page :is(.daily-heading,.dv-heading,.cw-heading,.workspace-heading) h1{font-size:24px;line-height:1.25;margin:5px 0 7px;max-width:none}
 .desk-page :is(.daily-heading,.dv-heading,.cw-heading,.workspace-heading) p{font-size:13px;line-height:1.5;margin:0;color:var(--desk-muted,#afbfcd)}
 .desk-page :is(.cw-metrics,.dv-summary){margin:0 0 12px;border-radius:4px}
+.desk-page .cw-heading{display:block}
 .desk-page .cw-metrics>div{padding:12px 16px}
 .desk-page .cw-metrics strong{font-size:18px}
 .desk-page :is(.dv-tabs,.cw-tabs,.fm-tabs,.workspace-tabs){display:flex;flex-wrap:wrap;gap:4px;margin:0 0 16px;border-bottom:1px solid var(--desk-line,#35465a)}
@@ -97,3 +98,6 @@
 .staff-workspace details>summary{cursor:pointer;padding:10px 0;font-size:13px}
 @media(max-width:1050px){.desk-page .special-workspace{grid-template-columns:minmax(320px,1fr) minmax(260px,1fr)}.dv-juniors{grid-template-columns:1fr}.desk-page .mc-prematch .mc-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){.desk-page .special-workspace,.desk-page .mc-prematch .mc-orders{grid-template-columns:1fr}.desk-page .special-rink{max-width:490px}.staff-workspace .feedback-options{grid-template-columns:1fr}}
+
+.rh-needs tbody th{background:transparent;color:inherit;text-transform:none;letter-spacing:normal;font-weight:600}
+.rh-needs td:nth-child(2){white-space:nowrap}
