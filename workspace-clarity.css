@@ -296,3 +296,6 @@
  .match-mode #content>.desk-page:has(.mc-live){height:100%;min-height:0}
  .mc-page.mc-live:has(.broadcast-view) .mc-layout{align-items:stretch}
 }
+
+.mc-edit-players>summary{padding:8px 0;cursor:pointer;font-size:12px;font-weight:600}.mc-edit-players[open]>.mc-player-picks{padding:6px 0}
+@media(min-width:1100px) and (min-height:650px){.mc-live .mc-bench-actions{margin:6px 0 8px}.mc-live .mc-unit progress{margin-top:5px;height:4px}.mc-live .mc-unit{line-height:1.25}}
