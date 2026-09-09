@@ -291,3 +291,8 @@
  .mc-live .mc-follow{padding:0}.mc-live .mc-follow h3{font-size:18px;margin:8px 0}
  .mc-live .mc-events{max-height:none;padding:0}.mc-live th,.mc-live td{padding:6px}
 }
+@media(min-width:1100px) and (min-height:650px){
+ .match-mode:has(.mc-live) #content{height:100dvh;padding:8px 12px!important}
+ .match-mode #content>.desk-page:has(.mc-live){height:100%;min-height:0}
+ .mc-page.mc-live:has(.broadcast-view) .mc-layout{align-items:stretch}
+}
