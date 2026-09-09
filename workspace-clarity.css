@@ -206,3 +206,30 @@
  .development-workspace,.club-workspace:has(>.cw-metrics),.squad-workspace,.locker-workspace{grid-template-columns:1fr}
  :is(.dv-summary,.cw-metrics,.sw-summary,.lw-summary){grid-column:1;grid-row:auto}
 }
+@media(min-width:1100px){
+ .sw-table-wrap{max-height:calc(100dvh - 395px)}
+ .dv-juniors .dv-scroll{max-height:calc(100dvh - 260px)}
+ .desk-page[data-page=training] .dv-layout{grid-template-columns:minmax(0,1.1fr) minmax(420px,1fr);gap:12px}
+ .desk-page[data-page=training] .dv-scroll{max-height:calc(100dvh - 485px)}
+ .desk-page[data-page=training] .dv-inspector{padding:12px}
+ .desk-page[data-page=training] .dv-inspector>h2{margin:4px 0 8px}
+ .desk-page[data-page=training] .training-individual-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .desk-page[data-page=training] .individual-training{padding:0;margin:0}
+ .desk-page[data-page=training] .training-individual-fields label{margin:0;font-size:12px}
+ .desk-page[data-page=training] .training-individual-fields select{font-size:13px;min-height:34px;padding:7px}
+ .desk-page[data-page=training] .training-progress-label{margin:10px 0 5px}
+ .desk-page[data-page=training] .training-decision{padding:10px 0;margin:8px 0 0;border:0;border-top:1px solid #35465a;background:transparent}
+ .desk-page[data-page=training] .training-decision h3{font-size:14px;margin:0 0 6px}
+ .desk-page[data-page=training] .training-decision p{margin:6px 0;font-size:12px}
+ .desk-page[data-page=training] .training-decision :is(th,td){padding:6px;font-size:12px}
+ .desk-page[data-page=training] .dv-report{padding:6px 0;margin:0}
+ .desk-page[data-page=training] .dv-inspector>.dv-link{margin-top:8px}
+ .dv-junior-detail .junior-evaluation{grid-template-columns:1fr 1fr 1fr;align-items:start}
+ .dv-junior-detail .junior-evaluation label{grid-column:auto;display:grid;gap:4px;font-size:12px}
+ .dv-junior-detail .junior-evaluation select{max-width:100%;width:100%}
+ .dv-junior-detail .dv-report{padding:5px 0}
+ .dv-junior-detail .dv-report summary{padding:6px 0}
+ .office-squad .office-status{padding:6px 12px;gap:2px 8px}
+ .office-overview .office-panel>header{min-height:0;padding:7px 12px}
+ .office-squad .office-status>small{line-height:1.35}
+}
