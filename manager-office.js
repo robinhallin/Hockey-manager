@@ -19,6 +19,37 @@ function officeDecisions(){
   r.incoming.filter(d=>d.status==='pending'&&d.expires>=r.tick).forEach(d=>add('incoming:'+d.id,d.name||'Försäljningsbud',`${d.buyer||'En klubb'} erbjuder ${careerMoney(d.fee||0)}`));
   return tasks;
 }
+function officeWaiting(){
+  const r=state.recruitment||{},missions=(r.missions||[]).filter(m=>m.status==='active');
+  if(missions.length){
+    const next=missions.map(m=>m.nextDate).filter(Boolean).sort()[0];
+    return {label:'Väntar på',value:`${missions.length} scoutuppdrag`,detail:next?`Nästa observation ${calText(next)}.`:'Scoutstaben arbetar vidare med sina observationer.',action:{page:'transfers',tab:'missions'},button:'Öppna scouting',tone:'blue'};
+  }
+  const deals=(r.deals||[]).filter(d=>d.status==='pending'&&!d.counter);
+  if(deals.length){
+    const next=deals.map(d=>d.dueDate).filter(Boolean).sort()[0];
+    return {label:'Väntar på',value:`${deals.length} värvningssvar`,detail:next?`Nästa besked väntas senast ${calText(next)}.`:'Agent- eller klubbsvar är fortfarande utestående.',action:{page:'transfers',tab:'deals'},button:'Visa affärer',tone:'blue'};
+  }
+  const rehab=managerRoster().filter(p=>!medicalReady(p)&&p.health?.injury);
+  if(rehab.length){
+    const soonest=rehab.slice().sort((a,b)=>(a.health?.injury?.remaining??999)-(b.health?.injury?.remaining??999))[0],days=soonest?.health?.injury?.remaining;
+    return {label:'Väntar på',value:`${rehab.length} i rehab`,detail:Number.isFinite(days)?`${soonest.name}: cirka ${days} dagar till återgångsträning.`:'Medicinska besked följs löpande.',action:{page:'medical'},button:'Medicinsk status',tone:'blue'};
+  }
+  return {label:'Väntar på',value:'Inget blockerande',detail:'Inga scout-, affärs- eller rehabärenden kräver väntan just nu.',tone:'calm'};
+}
+function officePulse(tasks,{active,finished,matchday,pass,tired}){
+  const decide={label:'Besluta nu',value:tasks.length?`${tasks.length} ${tasks.length===1?'ärende':'ärenden'}`:'Klart',detail:tasks.length?tasks[0].title:'Inga akuta beslut blockerar kalendern.',tone:tasks.length?'amber':'calm'};
+  let influence;
+  if(active)influence={label:'Påverka idag',value:'Matchen pågår',detail:'Taktik, byten, feedback och målvaktsbeslut påverkar matchbilden direkt.',action:{page:'match'},button:'Till matchen',tone:'green'};
+  else if(finished)influence={label:'Påverka idag',value:'Följ upp matchen',detail:'Läs prestation, istid och matchbild innan nästa träningsbeslut.',action:{page:'statistics'},button:'Analysera matchen',tone:'green'};
+  else if(matchday)influence={label:'Påverka idag',value:'Matchförberedelser',detail:'Kedjor, målvakt, special teams och matchplan är dagens viktigaste val.',action:{page:'lines'},button:'Förbered laget',tone:'green'};
+  else if(tired.length)influence={label:'Påverka idag',value:`${tired.length} högt belastade`,detail:'Justera dagens träningsbelastning och återhämtning före nästa match.',action:{page:'training'},button:'Planera träning',tone:'green'};
+  else influence={label:'Påverka idag',value:pass.name,detail:pass.description,action:{page:'training'},button:'Öppna dagens pass',tone:'green'};
+  return [decide,influence,officeWaiting()];
+}
+function officePulseView(items){
+  return `<section class="office-pulse" aria-label="Managerveckan">${items.map(item=>`<article class="office-pulse-card" data-tone="${item.tone||'calm'}"><span>${item.label}</span><strong>${trainingSafe(item.value)}</strong><p>${trainingSafe(item.detail)}</p>${item.action?deskLink(item.button,item.action):''}</article>`).join('')}</section>`;
+}
 function officeDecisionRow(t){
   const action=t.key?`officeOpenDeal(${JSON.stringify(t.key)})`:deskAction(t.action);
   return `<button type="button" class="office-decision" onclick="${trainingSafe(action)}"><span>${t.tag}</span><strong>${trainingSafe(t.title)}</strong><small>${trainingSafe(t.detail)}</small><b aria-hidden="true">→</b></button>`;
@@ -33,9 +64,10 @@ function managerOfficeView(){
   const today=finished?'Matchdagen är spelad':matchday?'Matchdag':pass.name;
   const active=state.live&&!state.live.finished;
   const daily=active?'Matchen är igång. Se över matchplanen eller återvänd till matchvyn.':finished?'Läs matchrapporten och följ upp lagets prestation.':matchday?'Kontrollera kedjor, målvakt och matchplan inför nedsläpp.':pass.description;
-  const table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,Math.min(index-2,table.length-5)),focus=coachFocus();
+  const table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,Math.min(index-2,table.length-5)),focus=coachFocus(),pulse=officePulse(tasks,{active,finished,matchday,pass,tired});
   const status=(label,value,detail,action,buttonLabel)=>`<div class="office-status"><span>${label}</span><strong>${value}</strong><small>${trainingSafe(detail)}</small>${deskLink(buttonLabel,action)}</div>`;
   return `<section class="office-overview"><header class="office-heading"><div><span class="desk-kicker">${trainingSafe(managerClub())} · ${seasonLabel()}</span><h1>Tränarkontoret</h1></div><span>${calText(c.date)}</span></header>
+  ${officePulseView(pulse)}
   <div class="office-grid">
     <section class="office-match office-next"><span class="desk-kicker">${next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="office-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${deskLink(next.label,next.action,'btn')}<div class="office-day"><div><strong>Idag · ${today}</strong><p>${trainingSafe(daily)}</p></div><button type="button" onclick="officeOpenDay('${c.date}')">Öppna dagens program →</button></div></section>
     <section class="office-panel office-tasks"><header><h2>Att ta ställning till</h2><span class="office-count">${tasks.length}</span></header><div class="office-decisions">${tasks.map(officeDecisionRow).join('')||'<p class="office-empty">Inga svarsärenden eller akuta åtgärder just nu.</p>'}</div></section>
