@@ -12,19 +12,24 @@ function managerJ20ProspectScore(player,row){
 function managerJ20RecentForm(player,limit=5){
   if(!player)return {games:0,goals:0,assists:0,seconds:0,points:0};
   const rows=(state.juniors?.matches||[]).filter(m=>m?.j20&&m.year===state.season?.year&&m.date<=state.calendar?.date).slice(0,limit).flatMap(m=>(m.players||[]).filter(r=>String(r.id)===String(player.id)));
-  const form=rows.reduce((o,r)=>({games:o.games+(r.seconds>0?1:0),goals:o.goals+(r.goals||0),assists:o.assists+(r.assists||0),seconds:o.seconds+(r.seconds||0),points:o.points+(r.goals||0)+(r.assists||0)}),{games:0,goals:0,assists:0,seconds:0,points:0});
-  return form;
+  return rows.reduce((o,r)=>({games:o.games+(r.seconds>0?1:0),goals:o.goals+(r.goals||0),assists:o.assists+(r.assists||0),seconds:o.seconds+(r.seconds||0),points:o.points+(r.goals||0)+(r.assists||0)}),{games:0,goals:0,assists:0,seconds:0,points:0});
+}
+function managerJ20Group(player){return player?.pos==='MV'?'goalie':player?.pos==='B'?'defense':'forward';}
+function managerJ20SeniorNeed(player){
+  const group=managerJ20Group(player),sameGroup=p=>group==='goalie'?p.pos==='MV':group==='defense'?p.pos==='B':!['MV','B'].includes(p.pos),required={goalie:2,defense:6,forward:12}[group];
+  const all=managerRoster().filter(sameGroup),available=all.filter(medicalReady);
+  return {group,required,total:all.length,available:available.length,shortage:Math.max(0,required-available.length),players:available};
 }
 function managerJ20Readiness(player){
   if(!player)return {level:'Följ vidare',detail:'Ingen junior har spelat tillräckligt för en bedömning ännu.'};
-  const sameGroup=p=>player.pos==='MV'?p.pos==='MV':player.pos==='B'?p.pos==='B':!['MV','B'].includes(p.pos);
-  const seniors=managerRoster().filter(p=>sameGroup(p)&&medicalReady(p));
+  const need=managerJ20SeniorNeed(player),seniors=need.players;
   const role=PLAYER_ROLES[player.academy?.role]||PLAYER_ROLES[juniorRoles(player)[0]],junior=attributeWeighted(ensurePlayerAttributes(player),role);
   const floor=seniors.length?Math.min(...seniors.map(p=>attributeWeighted(ensurePlayerAttributes(p),role))):junior+2;
   const gap=junior-floor,form=managerJ20RecentForm(player),ppg=form.games?form.points/form.games:0;
-  if(gap>=0&&form.games>=2)return {level:'A-lagsnära',detail:`Attributprofilen är i nivå med A-lagets nedre skikt. J20-form: ${form.points} poäng på ${form.games} matcher.`};
-  if(gap>=-1.25||form.games>=3&&ppg>=1)return {level:'Knackar på dörren',detail:`Spelaren närmar sig A-laget genom profil eller form. J20-form: ${form.points} poäng på ${form.games} matcher.`};
-  return {level:'Fortsatt J20-utveckling',detail:`Spelaren behöver fortfarande mer utveckling innan A-lagsnivån är ett naturligt nästa steg. J20-form: ${form.points} poäng på ${form.games} matcher.`};
+  if(need.shortage>0&&gap>=-2)return {level:'Aktuell vid truppbehov',detail:`A-laget saknar ${need.shortage} spelbar${need.shortage>1?'a':''} ${need.group==='goalie'?'målvakt':need.group==='defense'?'back':'forward'}${need.shortage>1?'ar':''}. J20-form: ${form.points} poäng på ${form.games} matcher.`,need};
+  if(gap>=0&&form.games>=2)return {level:'A-lagsnära',detail:`Attributprofilen är i nivå med A-lagets nedre skikt. J20-form: ${form.points} poäng på ${form.games} matcher.`,need};
+  if(gap>=-1.25||form.games>=3&&ppg>=1)return {level:'Knackar på dörren',detail:`Spelaren närmar sig A-laget genom profil eller form. J20-form: ${form.points} poäng på ${form.games} matcher.`,need};
+  return {level:'Fortsatt J20-utveckling',detail:`Spelaren behöver fortfarande mer utveckling innan A-lagsnivån är ett naturligt nästa steg. J20-form: ${form.points} poäng på ${form.games} matcher.`,need};
 }
 function managerJ20Review(){
   const match=managerJ20Latest();if(!match)return null;
