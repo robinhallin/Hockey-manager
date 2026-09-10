@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(),r=app.run;
+r("startCareerWithClub('HV71');ensureJuniors();ensureJuniorCalendar()");
+assert.equal(r("juniorCalendarNext().date"),'2026-09-08');
+assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),0);
+r('calendarStep(true)');
+assert.equal(r('state.calendar.date'),'2026-09-08');
+assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),0);
+assert.match(r('managerOfficeView()'),/J20 IDAG/);
+r('calendarStep(true)');
+assert.equal(r('state.calendar.date'),'2026-09-09');
+assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),1,'J20 round should play when its own date is completed');
+const resultCount=r('state.juniorWorld.results.length'),matches=r('state.juniors.matches.length');
+r("juniorFixture(`${state.season.year}:${state.round}`)");
+assert.equal(r('state.juniorWorld.results.length'),resultCount,'senior match hook must not create J20 league games');
+assert.equal(r('state.juniors.matches.length'),matches,'senior match hook must not create a second junior match');
+const next=r('juniorCalendarNext()');assert.equal(next.round,2);assert.ok(next.date>'2026-09-08');
+while(r('state.calendar.date')<=next.date)r('calendarStep(true)');
+assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),2);
+const before=JSON.stringify(r('state.juniorWorld.results'));r('juniorCalendarProcess(state.calendar.date)');assert.equal(JSON.stringify(r('state.juniorWorld.results')),before);
+const table=r('JSON.stringify(juniorWorldTable(leagueOf()))');r('save()');const restored=boot(app.storage.value);assert.equal(restored.run('JSON.stringify(juniorWorldTable(leagueOf()))'),table);
+const lineup=r('ensureJuniorLineup()');assert.ok(lineup.forwards.length>=3&&lineup.defense.length>=2&&lineup.goalies.length>=1);
+const firstGoalie=String(lineup.goalies[0]),secondGoalie=String(lineup.goalies[1]||lineup.goalies[0]);
+if(firstGoalie!==secondGoalie){r(`juniorSetLineupSlot('goalies',0,${JSON.stringify(secondGoalie)})`);assert.equal(String(r('ensureJuniorLineup().goalies[0]')),secondGoalie);assert.equal(String(r('juniorMatchPlan().starter')),secondGoalie);}
+assert.match(r('juniorWorldView()'),/J20-kedjor & matchtrupp/);
+console.log('PASS: J20 owns dated matchdays, lineup order and senior-match isolation.');
