@@ -1,0 +1,16 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(),r=app.run;
+r("startCareerWithClub('HV71');ensureJuniors();ensureJuniorCalendar()");
+const firstDate=r('juniorCalendarNext().date');
+r(`state.calendar.date=${JSON.stringify(firstDate)};juniorCalendarProcess(state.calendar.date);state.calendar.date=calAdd(state.calendar.date,1)`);
+assert.equal(r('state.juniors.matches[0].j20'),true);
+assert.match(r('managerOfficeView()'),/J20 UPPFÖLJNING/);
+assert.match(r('managerOfficeView()'),/Öppna juniorrapporten/);
+const before=r('JSON.stringify(state)');r('managerOfficeView()');assert.equal(r('JSON.stringify(state)'),before,'follow-up must be read-only');
+const standout=r('managerJ20Standout(state.juniors.matches[0])');assert.ok(standout&&standout.p&&standout.row.seconds>0);
+assert.equal(r('Boolean(managerJ20SeniorRadar(managerJ20Standout(state.juniors.matches[0]).p))'),false,'one good game alone must not trigger A-team radar');
+r("globalThis.jp=managerJ20Standout(state.juniors.matches[0]).p;for(const k of Object.keys(jp.attributes))jp.attributes[k]=20;jp.academy.history.unshift({year:state.season.year,path:'junior',seconds:1200,goals:1,assists:1},{year:state.season.year,path:'junior',seconds:1200,goals:1,assists:0})");
+assert.equal(r('Boolean(managerJ20SeniorRadar(jp))'),true,'radar requires both senior-near ability and sustained J20 production');
+r('state.calendar.date=calAdd(state.juniors.matches[0].date,4)');assert.doesNotMatch(r('managerOfficeView()'),/J20 UPPFÖLJNING/);
+console.log('PASS: actual J20 result and standout feed the manager office without mutating career state.');
