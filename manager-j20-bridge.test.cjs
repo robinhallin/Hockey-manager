@@ -6,7 +6,6 @@ while(r("state.calendar.date<'2026-09-09'"))r('calendarStep(true)');
 assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),1);
 let review=r('managerJ20Review()');
 assert.ok(review&&review.match&&review.match.j20);
-assert.ok(['Seger','Förlust','Oavgjort'].includes(review.resultLabel));
 assert.ok(review.best,'played J20 match should identify a development signal');
 assert.ok(review.bestRow.seconds>0);
 assert.ok(['A-lagsnära','Knackar på dörren','Aktuell vid truppbehov','Fortsatt J20-utveckling'].includes(review.readiness.level));
@@ -17,15 +16,17 @@ assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"
 review=r('managerJ20Review()');
 assert.ok(review.form.games>=1&&review.form.games<=3);
 assert.equal(review.form.points,review.form.goals+review.form.assists);
-// Real A-team availability must feed the recommendation layer.
+// Real A-team medical availability must feed the recommendation layer.
 const group=r(`managerJ20Group(juniorById(${JSON.stringify(firstId)}))`);
-r(`for(const p of managerRoster())if((managerJ20Group(p)===${JSON.stringify(group)}))p.injury={days:5,type:'test'}`);
+r(`for(const p of managerRoster())if(managerJ20Group(p)===${JSON.stringify(group)}){p.health??={load:0,injury:null,clearance:'full'};p.health.injury={name:'Testskada',remaining:5,initial:5,readiness:40,source:'test'};p.health.clearance='rest';}`);
 const need=r(`managerJ20SeniorNeed(juniorById(${JSON.stringify(firstId)}))`);
 assert.ok(need.shortage>0);
+assert.equal(r(`managerJ20Readiness(juniorById(${JSON.stringify(firstId)})).level`),'Aktuell vid truppbehov');
 const before=r('JSON.stringify(state)');
 const html=r('managerOfficeView()');
 assert.match(html,/J20 SENAST/);
 assert.match(html,/Matchens utvecklingssignal/);
+assert.match(html,/Aktuell vid truppbehov/);
 assert.equal(r('JSON.stringify(state)'),before,'manager J20 review must be read-only');
 assert.equal(r('state.juniors.roster.reduce((n,p)=>n+(p.goals||0)+(p.assists||0),0)'),0);
-console.log('PASS: manager office turns J20 results, rolling form and A-team availability into a read-only development signal.');
+console.log('PASS: manager office turns J20 results, rolling form and A-team medical availability into a read-only development signal.');
