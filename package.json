@@ -9,7 +9,8 @@
     "test:match-realism": "node match-realism.test.cjs && node career-realism.test.cjs",
     "check:match-balance": "node scripts/match-balance.cjs",
     "test:development": "node development.test.cjs",
-    "test": "node --test --test-concurrency=3 *.test.cjs"
+    "test": "node --test --test-concurrency=3 *.test.cjs",
+    "check:match-balance-wide": "node scripts/match-balance-wide.cjs"
   },
   "devDependencies": {
     "vite": "8.0.13"
