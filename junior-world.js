@@ -62,7 +62,7 @@ function juniorWorldManagerResult(pair,match,round){
   juniorWorldRecord(result,league,round);
 }
 function juniorWorldSimulateRound(round,managerMatch=null){
-  const w=ensureJuniorWorld();if(!w)return;
+  const w=ensureJuniorWorld();if(!w||state.season?.phase!=='regular')return;
   for(const league of ['SHL','HA'])for(const pair of juniorWorldPairings(league,round)){
     if(pair.home===managerClub()||pair.away===managerClub()){
       if(league===leagueOf(managerClub())&&!w.results.some(r=>r.key===juniorWorldResultKey(league,round,pair.home,pair.away)))juniorWorldManagerResult(pair,managerMatch,round);
@@ -85,15 +85,16 @@ function juniorWorldOpponent(club=managerClub(),round=state.round+1){
   return {round,opponent:pair.home===club?pair.away:pair.home,venue:pair.home===club?'Hemma':'Borta'};
 }
 function juniorWorldView(){
-  const league=leagueOf(),table=juniorWorldTable(league),next=juniorWorldOpponent(),recent=ensureJuniorWorld().results.filter(r=>r.league===league&&(r.home===managerClub()||r.away===managerClub())).slice(-5).reverse();
-  return `<section class="dv-panel junior-world"><header><div><h2>${league} J20 · utvecklingsserie</h2><p class="dv-note">Riktiga seniorklubbar, fiktiva juniorer. Resultaten påverkas av akademiernas aktuella spelare och utvecklingsnivå.</p></div><span>${next?`Nästa: ${trainingSafe(next.opponent)} · ${next.venue}`:'Ingen match planerad'}</span></header><div class="junior-world-grid"><div class="dv-scroll"><table><thead><tr><th>#</th><th>Lag</th><th>M</th><th>+/−</th><th>P</th></tr></thead><tbody>${table.map((r,i)=>`<tr class="${r.name===managerClub()?'selected':''}"><td>${i+1}</td><th>${trainingSafe(r.name)} J20</th><td>${r.gp}</td><td>${r.gf-r.ga}</td><td><strong>${r.pts}</strong></td></tr>`).join('')}</tbody></table></div><div class="junior-world-recent"><h3>Dina senaste J20-matcher</h3>${recent.map(g=>{const home=g.home===managerClub(),own=home?g.homeGoals:g.awayGoals,against=home?g.awayGoals:g.homeGoals,opp=home?g.away:g.home;return `<p><strong>${own}–${against}</strong> ${trainingSafe(opp)}${g.overtime?' · OT/SO':''}${g.forfeit?' · ej spelbar trupp':''}</p>`;}).join('')||'<p class="dv-note">Tabellen börjar fyllas när nästa junioromgång spelas.</p>'}</div></div></section>`;
+  const league=leagueOf(),table=juniorWorldTable(league),next=state.season?.phase==='regular'?juniorWorldOpponent():null,recent=ensureJuniorWorld().results.filter(r=>r.league===league&&(r.home===managerClub()||r.away===managerClub())).slice(-5).reverse();
+  const nextText=next?`Nästa: ${trainingSafe(next.opponent)} · ${next.venue}`:state.season?.phase==='regular'?'Ingen match planerad':'J20-serien fortsätter under grundserien';
+  return `<section class="dv-panel junior-world"><header><div><h2>${league} J20 · utvecklingsserie</h2><p class="dv-note">Riktiga seniorklubbar, fiktiva juniorer. Resultaten påverkas av akademiernas aktuella spelare och utvecklingsnivå.</p></div><span>${nextText}</span></header><div class="junior-world-grid"><div class="dv-scroll"><table><thead><tr><th>#</th><th>Lag</th><th>M</th><th>+/−</th><th>P</th></tr></thead><tbody>${table.map((r,i)=>`<tr class="${r.name===managerClub()?'selected':''}"><td>${i+1}</td><th>${trainingSafe(r.name)} J20</th><td>${r.gp}</td><td>${r.gf-r.ga}</td><td><strong>${r.pts}</strong></td></tr>`).join('')}</tbody></table></div><div class="junior-world-recent"><h3>Dina senaste J20-matcher</h3>${recent.map(g=>{const home=g.home===managerClub(),own=home?g.homeGoals:g.awayGoals,against=home?g.awayGoals:g.homeGoals,opp=home?g.away:g.home;return `<p><strong>${own}–${against}</strong> ${trainingSafe(opp)}${g.overtime?' · OT/SO':''}${g.forfeit?' · ej spelbar trupp':''}</p>`;}).join('')||'<p class="dv-note">Tabellen börjar fyllas när nästa junioromgång spelas.</p>'}</div></div></section>`;
 }
 
 const juniorFixtureBeforeWorld=juniorFixture;
 juniorFixture=function(key){
   const before=state.juniors?.matches?.length||0,last=state.juniors?.lastFixture;
   juniorFixtureBeforeWorld(key);ensureJuniorWorld();
-  if(state.juniors.lastFixture===last)return;
+  if(state.juniors.lastFixture===last||state.season?.phase!=='regular')return;
   const created=(state.juniors.matches?.length||0)>before?state.juniors.matches[0]:null;
   juniorWorldSimulateRound(state.round,created);
 };
@@ -102,7 +103,7 @@ if(typeof developmentJuniorsView==="function"){
   const developmentJuniorsViewBeforeWorld=developmentJuniorsView;
   developmentJuniorsView=function(){
     ensureJuniorWorld();let html=developmentJuniorsViewBeforeWorld();
-    html=html.replace('Juniorlagets matcher spelas efter A-lagets matcher. Motståndarna är fiktiva och statistiken räknas separat.','Juniorlagets matcher spelas efter A-lagets matcher och ingår i klubbarnas J20-utvecklingsserie. Statistiken räknas separat från A-laget.');
+    html=html.replace('Juniorlagets matcher spelas efter A-lagets matcher. Motståndarna är fiktiva och statistiken räknas separat.','Under grundserien ingår juniorlagets matcher i klubbarnas J20-utvecklingsserie. Statistik och resultat räknas separat från A-laget; utvecklingsmatcher utanför serien kan förekomma under andra säsongsfaser.');
     const end=html.lastIndexOf('</section>');return end<0?html:html.slice(0,end)+juniorWorldView()+html.slice(end);
   };
 }
