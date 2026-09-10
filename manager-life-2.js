@@ -1,17 +1,18 @@
 "use strict";
 
 function managerLifePreviousDay(){
-  const date=calAdd(state.calendar.date,-1);
-  const match=(state.analysis?.matches||[]).find(m=>m.date===date&&m.club===managerClub()&&!m.partial&&!m.abandoned);
-  if(match){
+  const current=state.calendar.date;
+  const match=(state.analysis?.matches||[]).filter(m=>m.date&&m.date<=current&&m.club===managerClub()&&!m.partial&&!m.abandoned).sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
+  const log=(state.training?.history||[]).filter(l=>l.date&&l.date<=current).sort((a,b)=>b.date.localeCompare(a.date))[0]||null;
+  const latestDate=[match?.date,log?.date].filter(Boolean).sort().at(-1);
+  if(match&&match.date===latestDate){
     const own=Number.isFinite(match.own)?match.own:'–',against=Number.isFinite(match.against)?match.against:'–';
     const result=`${managerClub()} ${own}–${against} ${match.opponent||'motståndare'}`;
-    return {label:'Senast',value:result,detail:'Matchen är arkiverad. Följ upp istid, formationer och matchbild innan nästa beslut.',action:{page:'statistics'},button:'Matchanalys'};
+    return {label:`Senast · ${calText(match.date)}`,value:result,detail:'Matchen är arkiverad. Följ upp istid, formationer och matchbild innan nästa beslut.',action:{page:'statistics'},button:'Matchanalys'};
   }
-  const log=(state.training?.history||[]).find(l=>l.date===date);
-  if(log){
+  if(log&&log.date===latestDate){
     const pass=TRAINING_SESSIONS[log.type]?.name||'Träningspass',condition=n=>Number.isFinite(n)?`${Math.round(100-n)} %`:'–';
-    return {label:'Senast',value:pass,detail:`${Number.isFinite(log.trained)?log.trained:0} tränade · ${Number.isFinite(log.resting)?log.resting:0} vilade · lagets ork ${condition(log.before)} → ${condition(log.after)}.`,action:{page:'training'},button:'Utveckling'};
+    return {label:`Senast · ${calText(log.date)}`,value:pass,detail:`${Number.isFinite(log.trained)?log.trained:0} tränade · ${Number.isFinite(log.resting)?log.resting:0} vilade · lagets ork ${condition(log.before)} → ${condition(log.after)}.`,action:{page:'training'},button:'Utveckling'};
   }
   return {label:'Senast',value:'Ingen avslutad aktivitet',detail:'När en träningsdag eller match är färdig visas utfallet här.'};
 }
