@@ -4,13 +4,14 @@ function managerLifePreviousDay(){
   const date=calAdd(state.calendar.date,-1);
   const match=(state.analysis?.matches||[]).find(m=>m.date===date&&m.club===managerClub()&&!m.partial&&!m.abandoned);
   if(match){
-    const result=`${managerClub()} ${match.own}–${match.against} ${match.opponent}`;
+    const own=Number.isFinite(match.own)?match.own:'–',against=Number.isFinite(match.against)?match.against:'–';
+    const result=`${managerClub()} ${own}–${against} ${match.opponent||'motståndare'}`;
     return {label:'Gårdagen',value:result,detail:'Matchen är arkiverad. Följ upp istid, formationer och matchbild innan nästa beslut.',action:{page:'statistics'},button:'Öppna matchanalys'};
   }
   const log=(state.training?.history||[]).find(l=>l.date===date);
   if(log){
-    const pass=TRAINING_SESSIONS[log.type]?.name||'Träningspass';
-    return {label:'Gårdagen',value:pass,detail:`${log.trained} tränade · ${log.resting} vilade · lagets ork ${Math.round(100-log.before)} → ${Math.round(100-log.after)} %.`,action:{page:'training'},button:'Se utveckling'};
+    const pass=TRAINING_SESSIONS[log.type]?.name||'Träningspass',condition=n=>Number.isFinite(n)?`${Math.round(100-n)} %`:'–';
+    return {label:'Gårdagen',value:pass,detail:`${Number.isFinite(log.trained)?log.trained:0} tränade · ${Number.isFinite(log.resting)?log.resting:0} vilade · lagets ork ${condition(log.before)} → ${condition(log.after)}.`,action:{page:'training'},button:'Se utveckling'};
   }
   return {label:'Gårdagen',value:'Ingen avslutad aktivitet',detail:'När en träningsdag eller match är färdig visas utfallet här.'};
 }
@@ -35,7 +36,7 @@ function managerLifeAction(item){
   return item.action?deskLink(item.button,item.action):'';
 }
 function managerLifeMorningView(){
-  const tasks=officeDecisions(),roster=managerRoster(),fixtures=deskFixtures(),session=calendarSession(state.calendar.date),pass=TRAINING_SESSIONS[session.type];
+  const tasks=officeDecisions(),roster=managerRoster(),fixtures=deskFixtures(),session=calendarSession(state.calendar.date),pass=TRAINING_SESSIONS[session.type]||TRAINING_SESSIONS.skills;
   const context={active:Boolean(state.live&&!state.live.finished),matchday:calendarFixtures().some(f=>f.date===state.calendar.date),pass,
     unavailable:roster.filter(p=>!medicalReady(p)),tired:roster.filter(p=>medicalReady(p)&&p.fatigue>=35),nextFixture:fixtures.upcoming[0]};
   const items=[managerLifePriority(tasks,context),managerLifeRisk(context),managerLifePreviousDay()];
