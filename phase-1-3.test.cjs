@@ -13,16 +13,21 @@ r('runTrainingSession()');
 assert.match(r('managerOfficeView()'),/Senast/);
 
 // 2. The puck must reach a real teammate before a deflection can change scorer and ledger.
-r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;globalThis.sCareer=studioPlayer(0,s.player.id);globalThis.tipCareer=studioPlayer(0,tip.player.id);globalThis.sAssistBefore=sCareer.assists||0;globalThis.tipGoalsBefore=tipCareer.goals||0;e.random=(()=>{const q=[.99,.01,0,0];return()=>q.length?q.shift():0;})();e.shoot(s);globalThis.shot=e.flight.shot");
+// Save before the puck reaches the stick: reload must preserve the same pending spatial event.
+r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;e.rng=4440;e.shoot(s);globalThis.shot=e.flight.shot;shot.finishRoll=0;save()");
 assert.equal(r('shot.context.deflection'),undefined,'release alone must not award the tip');
-r('while(e.flight)e.resolveFlight(.1)');
-assert.equal(r('shot.context.deflection'),true);
-assert.equal(r('shot.player'),r('tip.player.name'));
-assert.equal(r('shot.originalShooter.name'),r('s.player.name'));
-assert.equal(r('shot.assists.some(a=>a.id===s.id)'),true);
-assert.equal(r('tipCareer.goals'),r('tipGoalsBefore+1'));
-assert.equal(r('sCareer.assists'),r('sAssistBefore+1'));
-assert.equal(r('state.live.hv'),1);
+assert.ok(r('e.flight.deflectionCandidate'),'a spatial candidate must be serialized with the travelling shot');
+const tipped=boot(office.storage.value),t=tipped.run;
+t("globalThis.e=studioEngine();globalThis.shot=e.flight.shot;globalThis.c=e.flight.deflectionCandidate;globalThis.tip=e.actor(c.id);globalThis.s=e.actor(c.shooterId);globalThis.tipCareer=studioPlayer(0,tip.player.id);globalThis.sCareer=studioPlayer(0,s.player.id);globalThis.tipGoalsBefore=tipCareer.goals||0;globalThis.sAssistBefore=sCareer.assists||0");
+assert.equal(t('shot.context.deflection'),undefined);
+t('while(e.flight)e.resolveFlight(.1)');
+assert.equal(t('shot.context.deflection'),true);
+assert.equal(t('shot.player'),t('tip.player.name'));
+assert.equal(t('shot.originalShooter.name'),t('s.player.name'));
+assert.equal(t('shot.assists.some(a=>a.id===s.id)'),true);
+assert.equal(t('tipCareer.goals'),t('tipGoalsBefore+1'));
+assert.equal(t('sCareer.assists'),t('sAssistBefore+1'));
+assert.equal(t('state.live.hv'),1);
 
 // 3. Junior fixtures populate a real-club J20 round robin; team and player ledgers agree and survive reload.
 const juniors=boot(),q=juniors.run;
@@ -43,4 +48,4 @@ q('save()');const restored=boot(juniors.storage.value);
 assert.equal(restored.run('state.juniorWorld.results.length'),resultCount);
 assert.equal(restored.run('JSON.stringify(juniorWorldTable(leagueOf()))'),table,'J20 table must survive save/reload exactly');
 
-console.log('PASS: compact manager morning brief, puck-timed deflection ledger and persistent real-club J20 round robin.');
+console.log('PASS: compact manager morning brief, save-stable puck-timed deflection ledger and persistent real-club J20 round robin.');
