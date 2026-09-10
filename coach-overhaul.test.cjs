@@ -27,7 +27,8 @@ for(const mode of ['full','extended','highlights','commentary']){r(`rinkMode('${
 r('state.live.rink.mode="commentary";state.live.speed=1;globalThis.slow=studioPlaybackRate(e);state.live.speed=4');assert.ok(r('studioPlaybackRate(e)')>r('slow'));
 r('state.live.rink.mode="full"');assert.equal(r('studioShouldShow(e)'),true);
 r('state.live.rink.mode="highlights";e.flight=null;e.highlightUntil=0;e.carrier=null;e.phase="attack"');assert.equal(r('studioShouldShow(e)'),false,'an attack alone is no longer a key highlight');
-r('pauseMatch();matchTab("stats")');assert.equal(r('matchDesk.tab'),'stats');assert.ok(r('matchCentreView()').includes('Alla skottförsök'));
+// Initialise the match-centre reference before choosing a tab; first render intentionally resets a new match to Feedback.
+r('pauseMatch();matchCentreView();matchTab("stats")');assert.equal(r('matchDesk.tab'),'stats');assert.ok(r('matchCentreView()').includes('Alla skottförsök'));
 // Continuous puck travel, boards and an icing call at the actual goal-line crossing.
 r(`e.carrier=null;e.flight=null;e.puck={x:30,y:15};e.puckVelocity={x:14,y:0};e.stoppage=0;e.moveFreePuck(.1)`);
 assert.ok(r('e.puck.x')>31);assert.ok(r('e.puckVelocity.x')>13);
