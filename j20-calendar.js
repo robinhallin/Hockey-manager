@@ -89,8 +89,6 @@ function juniorCalendarProcess(date=state.calendar?.date){
   cal.lastProcessed=date;
 }
 
-// Once J20 owns its dates, the normal A-team completion hook only records promoted academy players' senior exposure.
-// Other explicit fixture calls retain the legacy development-match path for preseason/tools/older flows.
 const juniorCalendarLegacyFixture=juniorFixture;
 juniorFixture=function(key){
   const seniorKey=`${state.season?.year}:${state.round}`;
@@ -104,7 +102,6 @@ juniorFixture=function(key){
 };
 const juniorCalendarStepBase=calendarStep;
 calendarStep=function(recovered=false){juniorCalendarProcess(state.calendar?.date);juniorCalendarStepBase(recovered);};
-
 function juniorCalendarView(){
   const league=leagueOf(),cal=ensureJuniorCalendar(),rows=cal?.leagues?.[league]||[],results=ensureJuniorWorld().results.filter(r=>r.league===league&&r.year===state.season.year);
   const fixtures=rows.map(row=>{const pair=juniorWorldPairings(league,row.round).find(g=>g.home===managerClub()||g.away===managerClub());if(!pair)return null;const g=results.find(r=>r.round===row.round&&(r.home===managerClub()||r.away===managerClub()));return {row,pair,g};}).filter(Boolean);
@@ -174,3 +171,20 @@ function managerJ20BriefView(){
 }
 const juniorCalendarMorningBase=managerLifeMorningView;
 managerLifeMorningView=function(){return juniorCalendarMorningBase()+managerJ20BriefView();};
+
+const juniorCalendarValidateBase=validateSaveText;
+validateSaveText=function(text){
+  const s=juniorCalendarValidateBase(text),world=s.juniorWorld;
+  if(!world)return s;
+  const cal=world.calendar;
+  if(cal){
+    if(cal.version!==1||cal.year!==s.season?.year&&cal.year!==s.season?.year-1||!/^\d{4}-\d{2}-\d{2}$/.test(cal.activationDate||'')||!cal.leagues||!Array.isArray(cal.leagues.SHL)||!Array.isArray(cal.leagues.HA))throw Error('Ogiltig J20-kalender.');
+    for(const rows of [cal.leagues.SHL,cal.leagues.HA])for(const row of rows){if(!row||!Number.isInteger(row.round)||row.round<1||!/^\d{4}-\d{2}-\d{2}$/.test(row.date||''))throw Error('Ogiltig J20-matchdag.');}
+  }
+  const lineups=world.lineups;
+  if(lineups&&typeof lineups==='object')for(const [club,l] of Object.entries(lineups)){
+    if(!s.clubRosters?.[club]||!l||!Number.isInteger(l.year)||!Array.isArray(l.forwards)||!Array.isArray(l.defense)||!Array.isArray(l.goalies)||l.forwards.length>12||l.defense.length>6||l.goalies.length>2)throw Error('Ogiltig J20-laguttagning.');
+    const ids=[...l.forwards,...l.defense,...l.goalies].filter(Boolean).map(String);if(new Set(ids).size!==ids.length)throw Error('Samma junior finns på flera J20-platser.');
+  }
+  return s;
+};
