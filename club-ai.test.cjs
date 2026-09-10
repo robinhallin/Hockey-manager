@@ -131,7 +131,10 @@ function identities(app){return app.run('JSON.stringify([...Object.values(state.
  assert.equal(r('reserve.aiRoleReview.unhappy'),true);assert.ok(r('reserve.morale<mood'));
  r('aiReviewClub(testClub)');assert.ok(r('clubAIState(testClub).decisions.some(d=>d.kind==="dressing")'));
  r('globalThis.prospect=clubAIState(testClub).academy.roster[0];globalThis.games=prospect.academy.games;globalThis.trainingBefore=JSON.stringify([prospect.attributes,prospect.trainingProgress]);for(let i=0;i<14;i++){state.calendar.date=calAdd(state.calendar.date,1);aiAcademyDay(testClub)}');
- assert.equal(r('prospect.academy.games'),r('games+2'));
+ assert.equal(r('prospect.academy.games'),r('games'),'regular-season days train but do not fabricate extra weekly matches');
+ r("state.round=1;juniorFixture('ai-j20:1');state.round=2;juniorFixture('ai-j20:2')");
+ assert.equal(r('prospect.academy.games'),r('games+1'),'equal-priority goalies rotate across the two actual J20 fixtures');
+ assert.equal(r('prospect.academy.leagueStats.games'),1);
  assert.notEqual(r('JSON.stringify([prospect.attributes,prospect.trainingProgress])'),r('trainingBefore'));
  r('globalThis.progress=JSON.stringify(clubAIState(testClub).academy);aiAcademyDay(testClub)');
  assert.equal(r('JSON.stringify(clubAIState(testClub).academy)'),r('progress'));

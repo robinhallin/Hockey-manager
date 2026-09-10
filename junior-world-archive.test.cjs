@@ -9,7 +9,7 @@ const test=require('node:test');
 // The dependency fixture models juniorFixture's capped 16-report buffer;
 // this does not replace a full career/match-engine integration test.
 function boot(saved){
- const players=['C','VF','HF','MV'].map((pos,i)=>({id:'junior-'+i,name:'Junior '+i,pos,age:18,goals:0,assists:0,
+ const players=['C','VF','HF','MV','B','B'].map((pos,i)=>({id:'junior-'+i,name:'Junior '+i,pos,age:18,fatigue:0,goals:0,assists:0,
   attributes:{shooting:10,positioning:10,composure:10,puckControl:10,passing:10,vision:10,decisions:10},
   academy:{role:'test',goals:0,assists:0,history:[]}}));
  const state=saved?JSON.parse(saved):{careerStarted:true,season:{year:2026,phase:'regular'},round:1,
@@ -17,7 +17,7 @@ function boot(saved){
   juniors:{roster:players,matches:[],lastFixture:null}};
  const c={state,playable:true,managerClub:()=> 'HV71',leagueOf:club=>state.world.membership[club||'HV71'],
   ensureJuniors(){},ensureClubAI(){},clubAIState:()=>({academy:{roster:[]}}),
-  medicalReady:()=>true,PLAYER_ROLES:{test:{shooting:1}},juniorRoles:()=>['test'],
+  medicalReady:()=>true,medicalLimit:()=>Infinity,PLAYER_ROLES:{test:{shooting:1}},juniorRoles:()=>['test'],
   attributeWeighted:a=>a.shooting,ensurePlayerAttributes:p=>p.attributes,attrSeed:()=>.5,
   juniorById:id=>state.juniors.roster.find(p=>p.id===id)};
  c.juniorFixture=key=>{
