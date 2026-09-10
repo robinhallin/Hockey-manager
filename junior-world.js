@@ -80,13 +80,18 @@ function juniorWorldTable(league=leagueOf()){
   }
   return rows.sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||a.name.localeCompare(b.name,'sv'));
 }
-function juniorWorldOpponent(club=managerClub(),round=state.round+1){
+function juniorWorldOpponent(club=managerClub(),round=state.round){
   const pair=juniorWorldPairings(leagueOf(club),round).find(g=>g.home===club||g.away===club);if(!pair)return null;
   return {round,opponent:pair.home===club?pair.away:pair.home,venue:pair.home===club?'Hemma':'Borta'};
 }
+function juniorWorldNextOpponent(club=managerClub()){
+  const league=leagueOf(club),w=ensureJuniorWorld(),played=new Set(w.results.filter(r=>r.year===state.season.year&&r.league===league&&(r.home===club||r.away===club)).map(r=>r.round));
+  let round=Math.max(1,state.round||1);while(played.has(round)&&round<60)round++;
+  return juniorWorldOpponent(club,round);
+}
 function juniorWorldView(){
-  const league=leagueOf(),table=juniorWorldTable(league),next=state.season?.phase==='regular'?juniorWorldOpponent():null,recent=ensureJuniorWorld().results.filter(r=>r.league===league&&(r.home===managerClub()||r.away===managerClub())).slice(-5).reverse();
-  const nextText=next?`Nästa: ${trainingSafe(next.opponent)} · ${next.venue}`:state.season?.phase==='regular'?'Ingen match planerad':'J20-serien fortsätter under grundserien';
+  const league=leagueOf(),table=juniorWorldTable(league),next=state.season?.phase==='regular'?juniorWorldNextOpponent():null,recent=ensureJuniorWorld().results.filter(r=>r.league===league&&(r.home===managerClub()||r.away===managerClub())).slice(-5).reverse();
+  const nextText=next?`Nästa: ${trainingSafe(next.opponent)} · ${next.venue} · J20-omgång ${next.round}`:state.season?.phase==='regular'?'Ingen match planerad':'J20-serien fortsätter under grundserien';
   return `<section class="dv-panel junior-world"><header><div><h2>${league} J20 · utvecklingsserie</h2><p class="dv-note">Riktiga seniorklubbar, fiktiva juniorer. Resultaten påverkas av akademiernas aktuella spelare och utvecklingsnivå.</p></div><span>${nextText}</span></header><div class="junior-world-grid"><div class="dv-scroll"><table><thead><tr><th>#</th><th>Lag</th><th>M</th><th>+/−</th><th>P</th></tr></thead><tbody>${table.map((r,i)=>`<tr class="${r.name===managerClub()?'selected':''}"><td>${i+1}</td><th>${trainingSafe(r.name)} J20</th><td>${r.gp}</td><td>${r.gf-r.ga}</td><td><strong>${r.pts}</strong></td></tr>`).join('')}</tbody></table></div><div class="junior-world-recent"><h3>Dina senaste J20-matcher</h3>${recent.map(g=>{const home=g.home===managerClub(),own=home?g.homeGoals:g.awayGoals,against=home?g.awayGoals:g.homeGoals,opp=home?g.away:g.home;return `<p><strong>${own}–${against}</strong> ${trainingSafe(opp)}${g.overtime?' · OT/SO':''}${g.forfeit?' · ej spelbar trupp':''}</p>`;}).join('')||'<p class="dv-note">Tabellen börjar fyllas när nästa junioromgång spelas.</p>'}</div></div></section>`;
 }
 
