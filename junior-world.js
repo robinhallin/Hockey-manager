@@ -48,17 +48,35 @@ function juniorWorldRecord(result,league,round){
   w.results.push({key,year:state.season.year,league,round,...result,date:state.calendar?.date||null});
   if(w.results.length>900)w.results=w.results.slice(-900);
 }
-function juniorWorldManagerResult(pair,match,round){
-  const league=leagueOf(managerClub()),home=pair.home===managerClub(),opponent=home?pair.away:pair.home;
-  let own=match?.own??0,against=juniorWorldProjectedResult(home?managerClub():opponent,home?opponent:managerClub(),round)[home?'awayGoals':'homeGoals'];
-  let overtime=false,forfeit=!match;
-  if(forfeit){own=0;against=Math.max(3,against);}
-  else if(own===against){overtime=true;const win=attrSeed(`j20:${state.season.year}:${round}:${managerClub()}:shootout`)>=.5;if(win)own++;else against++;}
-  const result=home?{home:managerClub(),away:opponent,homeGoals:own,awayGoals:against,overtime,forfeit}:{home:opponent,away:managerClub(),homeGoals:against,awayGoals:own,overtime,forfeit};
-  if(match){
-    match.opponent=opponent;match.own=own;match.against=against;match.overtime=overtime;match.j20=true;
-    for(const row of match.players||[]){const p=juniorById(row.id);if(p?.academy?.history?.[0]&&p.academy.history[0].round===round)p.academy.history[0].opponent=opponent+' J20';}
+function juniorWorldHistoryRow(p,round){return p?.academy?.history?.find(h=>h.year===state.season.year&&h.round===round&&h.path!=='senior')||null;}
+function juniorWorldRetallyManagerMatch(match,opponent,round,targetGoals){
+  if(!match)return 0;
+  const rows=match.players||[],eligible=rows.filter(row=>row.seconds>0&&juniorById(row.id)?.pos!=='MV');
+  for(const row of rows){
+    const p=juniorById(row.id),oldGoals=Number(row.goals)||0,oldAssists=Number(row.assists)||0,h=juniorWorldHistoryRow(p,round);
+    if(p?.academy){p.academy.goals=Math.max(0,(p.academy.goals||0)-oldGoals);p.academy.assists=Math.max(0,(p.academy.assists||0)-oldAssists);}
+    row.goals=0;row.assists=0;
+    if(h){h.goals=0;h.assists=0;h.opponent=opponent+' J20';}
   }
+  if(!eligible.length)return 0;
+  const scoreValue=p=>{const a=ensurePlayerAttributes(p);return (a.shooting||10)*.38+(a.positioning||10)*.25+(a.composure||10)*.2+(a.puckControl||10)*.17;};
+  const assistValue=p=>{const a=ensurePlayerAttributes(p);return (a.passing||10)*.45+(a.vision||10)*.35+(a.decisions||10)*.2;};
+  for(let goal=0;goal<targetGoals;goal++){
+    const ranked=eligible.map(row=>({row,p:juniorById(row.id)})).sort((a,b)=>(scoreValue(b.p)+attrSeed(`j20:${state.season.year}:${round}:g:${goal}:${b.p.id}`)*4)-(scoreValue(a.p)+attrSeed(`j20:${state.season.year}:${round}:g:${goal}:${a.p.id}`)*4));
+    const scorer=ranked[0];scorer.row.goals++;scorer.p.academy.goals++;const scorerHistory=juniorWorldHistoryRow(scorer.p,round);if(scorerHistory)scorerHistory.goals++;
+    const roll=attrSeed(`j20:${state.season.year}:${round}:assist-count:${goal}`),assistCount=roll<.12?0:roll<.34?1:2;
+    const assists=ranked.slice(1).sort((a,b)=>(assistValue(b.p)+attrSeed(`j20:${state.season.year}:${round}:a:${goal}:${b.p.id}`)*3)-(assistValue(a.p)+attrSeed(`j20:${state.season.year}:${round}:a:${goal}:${a.p.id}`)*3)).slice(0,assistCount);
+    for(const helper of assists){helper.row.assists++;helper.p.academy.assists++;const h=juniorWorldHistoryRow(helper.p,round);if(h)h.assists++;}
+  }
+  match.own=targetGoals;return targetGoals;
+}
+function juniorWorldManagerResult(pair,match,round){
+  const league=leagueOf(managerClub()),home=pair.home===managerClub(),opponent=home?pair.away:pair.home,projected=juniorWorldProjectedResult(pair.home,pair.away,round),forfeit=!match;
+  let own=home?projected.homeGoals:projected.awayGoals,against=home?projected.awayGoals:projected.homeGoals,overtime=projected.overtime;
+  if(forfeit){own=0;against=Math.max(3,against);overtime=false;}
+  else own=juniorWorldRetallyManagerMatch(match,opponent,round,own);
+  const result=home?{home:managerClub(),away:opponent,homeGoals:own,awayGoals:against,overtime,forfeit}:{home:opponent,away:managerClub(),homeGoals:against,awayGoals:own,overtime,forfeit};
+  if(match){match.opponent=opponent;match.own=own;match.against=against;match.overtime=overtime;match.j20=true;}
   juniorWorldRecord(result,league,round);
 }
 function juniorWorldSimulateRound(round,managerMatch=null){
@@ -92,7 +110,7 @@ function juniorWorldNextOpponent(club=managerClub()){
 function juniorWorldView(){
   const league=leagueOf(),table=juniorWorldTable(league),next=state.season?.phase==='regular'?juniorWorldNextOpponent():null,recent=ensureJuniorWorld().results.filter(r=>r.league===league&&(r.home===managerClub()||r.away===managerClub())).slice(-5).reverse();
   const nextText=next?`Nästa: ${trainingSafe(next.opponent)} · ${next.venue} · J20-omgång ${next.round}`:state.season?.phase==='regular'?'Ingen match planerad':'J20-serien fortsätter under grundserien';
-  return `<section class="dv-panel junior-world"><header><div><h2>${league} J20 · utvecklingsserie</h2><p class="dv-note">Riktiga seniorklubbar, fiktiva juniorer. Resultaten påverkas av akademiernas aktuella spelare och utvecklingsnivå.</p></div><span>${nextText}</span></header><div class="junior-world-grid"><div class="dv-scroll"><table><thead><tr><th>#</th><th>Lag</th><th>M</th><th>+/−</th><th>P</th></tr></thead><tbody>${table.map((r,i)=>`<tr class="${r.name===managerClub()?'selected':''}"><td>${i+1}</td><th>${trainingSafe(r.name)} J20</th><td>${r.gp}</td><td>${r.gf-r.ga}</td><td><strong>${r.pts}</strong></td></tr>`).join('')}</tbody></table></div><div class="junior-world-recent"><h3>Dina senaste J20-matcher</h3>${recent.map(g=>{const home=g.home===managerClub(),own=home?g.homeGoals:g.awayGoals,against=home?g.awayGoals:g.homeGoals,opp=home?g.away:g.home;return `<p><strong>${own}–${against}</strong> ${trainingSafe(opp)}${g.overtime?' · OT/SO':''}${g.forfeit?' · ej spelbar trupp':''}</p>`;}).join('')||'<p class="dv-note">Tabellen börjar fyllas när nästa junioromgång spelas.</p>'}</div></div></section>`;
+  return `<section class="dv-panel junior-world"><header><div><h2>${league} J20 · utvecklingsserie</h2><p class="dv-note">Riktiga seniorklubbar, fiktiva juniorer. Resultat och individuell poängproduktion kommer från samma J20-match och påverkas av akademiernas aktuella nivå.</p></div><span>${nextText}</span></header><div class="junior-world-grid"><div class="dv-scroll"><table><thead><tr><th>#</th><th>Lag</th><th>M</th><th>+/−</th><th>P</th></tr></thead><tbody>${table.map((r,i)=>`<tr class="${r.name===managerClub()?'selected':''}"><td>${i+1}</td><th>${trainingSafe(r.name)} J20</th><td>${r.gp}</td><td>${r.gf-r.ga}</td><td><strong>${r.pts}</strong></td></tr>`).join('')}</tbody></table></div><div class="junior-world-recent"><h3>Dina senaste J20-matcher</h3>${recent.map(g=>{const home=g.home===managerClub(),own=home?g.homeGoals:g.awayGoals,against=home?g.awayGoals:g.homeGoals,opp=home?g.away:g.home;return `<p><strong>${own}–${against}</strong> ${trainingSafe(opp)}${g.overtime?' · OT':''}${g.forfeit?' · ej spelbar trupp':''}</p>`;}).join('')||'<p class="dv-note">Tabellen börjar fyllas när nästa junioromgång spelas.</p>'}</div></div></section>`;
 }
 
 const juniorFixtureBeforeWorld=juniorFixture;
