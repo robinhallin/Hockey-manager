@@ -24,11 +24,10 @@ function matchRule3ApplyDeflection(match,candidate){
   const tip=match.actor(candidate.id),shooter=match.actor(candidate.shooterId);if(!tip||!shooter||tip.side!==shooter.side||['leaving','entering'].includes(tip.status))return false;
   const crossing={x:flight.start.x+(flight.end.x-flight.start.x)*candidate.t,y:flight.start.y+(flight.end.y-flight.start.y)*candidate.t};
   if(StudioHockey.distance(tip,crossing)>1.35||match.random()>=candidate.chance)return false;
-  const original={id:shooter.id,name:candidate.shooterName||shooter.player.name,y:shooter.y,time:match.time};
-  const goal={x:StudioHockey.progress(tip.side,56.5),y:15},forward=56.5-StudioHockey.progress(tip.side,tip.x),d=StudioHockey.distance(tip,goal);
+  const original={id:shooter.id,name:candidate.shooterName||shooter.player.name,y:shooter.y,time:match.time},tipContext=match.shotContext(tip);
   shot.originalShooter={id:original.id,name:original.name};
   shot.player=tip.player.name;shot.playerId=tip.id;shot.role=tip.role;shot.x=tip.x;shot.y=tip.y;
-  shot.context={...shot.context,type:'Styrning',deflection:true,d,angle:Math.atan2(Math.abs(tip.y-15),Math.max(.1,forward)),pressure:match.pressureAt(tip),oneTimer:false,rebound:false,behind:forward<=0};
+  shot.context={...tipContext,type:'Styrning',deflection:true,oneTimer:false,rebound:false,lateralSpeed:0};
   shot.onTargetChance=Math.min(.94,(shot.onTargetChance||.6)+.04);
   const assists=[original,...(shot.assists||[])],seen=new Set([String(tip.id)]);
   shot.assists=assists.filter(a=>{const id=String(a.id);if(seen.has(id))return false;seen.add(id);return true;}).slice(0,2);
