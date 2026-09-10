@@ -9,8 +9,10 @@ assert.match(r('managerOfficeView()'),/MORGONMÖTE/);
 assert.match(r('managerOfficeView()'),/Påverka idag/);
 assert.match(r('managerOfficeView()'),/Största risk|Nästa kontrollpunkt/);
 assert.equal(r('JSON.stringify(state)'),before,'manager briefing must not advance or mutate the career');
-r('runTrainingSession()');
+r('runTrainingSession();globalThis.latestActivity=managerLifePreviousDay().value');
 assert.match(r('managerOfficeView()'),/Senast/);
+r('calendarStep(true)');
+assert.equal(r('managerLifePreviousDay().value'),r('latestActivity'),'a rest day must not erase the latest completed activity');
 
 // 2. The puck must reach a real teammate before a deflection can change scorer and ledger.
 // Save before the puck reaches the stick: reload must preserve the same pending spatial event.
@@ -22,6 +24,7 @@ t("globalThis.e=studioEngine();globalThis.shot=e.flight.shot;globalThis.c=e.flig
 assert.equal(t('shot.context.deflection'),undefined);
 t('while(e.flight)e.resolveFlight(.1)');
 assert.equal(t('shot.context.deflection'),true);
+assert.equal(t('shot.context.type'),'Styrning');
 assert.equal(t('shot.player'),t('tip.player.name'));
 assert.equal(t('shot.originalShooter.name'),t('s.player.name'));
 assert.equal(t('shot.assists.some(a=>a.id===s.id)'),true);
@@ -29,15 +32,17 @@ assert.equal(t('tipCareer.goals'),t('tipGoalsBefore+1'));
 assert.equal(t('sCareer.assists'),t('sAssistBefore+1'));
 assert.equal(t('state.live.hv'),1);
 
-// 3. Junior fixtures populate a real-club J20 round robin; team and player ledgers agree and survive reload.
+// 3. Junior fixtures populate a real-club J20 round robin; pre-match strength, team and player ledgers agree and survive reload.
 const juniors=boot(),q=juniors.run;
-q("startCareerWithClub('HV71');ensureJuniors();ensureClubAI()");
+q("startCareerWithClub('HV71');ensureJuniors();ensureClubAI();globalThis.j20Pair=juniorWorldPairings(leagueOf(),state.round).find(g=>g.home===managerClub()||g.away===managerClub());globalThis.j20Forecast=juniorWorldProjectedResult(j20Pair.home,j20Pair.away,state.round)");
 assert.equal(q("juniorWorldPairings(leagueOf(),1).length"),7);
 assert.equal(q("new Set(juniorWorldPairings(leagueOf(),1).flatMap(g=>[g.home,g.away])).size"),14);
 assert.equal(q("new Set(Array.from({length:13},(_,i)=>juniorWorldPairings(leagueOf(),i+1)).flat().map(g=>[g.home,g.away].sort().join('|'))).size"),91,'first 13 rounds must cover every pairing once');
-q("juniorFixture('j20:round:1')");
+q("juniorFixture('j20:round:1');globalThis.j20Result=state.juniorWorld.results.find(g=>g.round===1&&(g.home===managerClub()||g.away===managerClub()))");
 assert.equal(q('juniorWorldTable(leagueOf()).length'),14);
 assert.equal(q("juniorWorldTable(leagueOf()).find(row=>row.name===managerClub()).gp"),1);
+assert.equal(q('j20Result.homeGoals'),q('j20Forecast.homeGoals'),'J20 result must use the pre-match academy snapshot');
+assert.equal(q('j20Result.awayGoals'),q('j20Forecast.awayGoals'),'J20 result must use the pre-match academy snapshot');
 assert.equal(q('juniorWorldClubs(leagueOf()).includes(state.juniors.matches[0].opponent)'),true);
 assert.equal(q('state.juniors.matches[0].players.reduce((n,row)=>n+(row.goals||0),0)'),q('state.juniors.matches[0].own'),'player goals must equal the J20 team score');
 assert.match(q('developmentJuniorsView()'),/J20 · utvecklingsserie/);
@@ -48,4 +53,4 @@ q('save()');const restored=boot(juniors.storage.value);
 assert.equal(restored.run('state.juniorWorld.results.length'),resultCount);
 assert.equal(restored.run('JSON.stringify(juniorWorldTable(leagueOf()))'),table,'J20 table must survive save/reload exactly');
 
-console.log('PASS: compact manager morning brief, save-stable puck-timed deflection ledger and persistent real-club J20 round robin.');
+console.log('PASS: compact manager morning brief, save-stable puck-timed deflection ledger and pre-match-snapshotted J20 round robin.');
