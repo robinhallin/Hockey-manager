@@ -1,0 +1,46 @@
+name: Test Hockey Manager
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run regression shard
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 6
+        run: |
+          mapfile -t files < <(printf '%s\n' *.test.cjs | sort)
+          selected=()
+          for i in "${!files[@]}"; do
+            if (( i % SHARDS == SHARD )); then selected+=("${files[$i]}"); fi
+          done
+          printf 'Shard %s/%s: %s files\n' "$SHARD" "$SHARDS" "${#selected[@]}"
+          node --test --test-concurrency=2 "${selected[@]}"
+
+  balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node match-calibration.test.cjs
