@@ -51,3 +51,26 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
   };
   StudioHockey.Match.prototype.matchRules3Installed=true;
 }
+
+// Match calibration v2: keep attributes meaningful, but reduce compounding across
+// speed, possession, decisions and finishing. The same rules apply to the lab and
+// career broadcast; presentation speed never changes these values.
+function matchCalibrationAttribute(value){return 10+(value-10)*.88;}
+if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchCalibration2Installed){
+  const baseAttribute=StudioHockey.Match.prototype.attribute,baseShotModel=StudioHockey.Match.prototype.shotModel;
+  StudioHockey.Match.prototype.attribute=function(a,key){return matchCalibrationAttribute(baseAttribute.call(this,a,key));};
+  StudioHockey.Match.prototype.readDelay=function(a){
+    const reading=this.attribute(a,'decisions')*.4+this.attribute(a,'vision')*.25+this.attribute(a,'puckControl')*.35;
+    return Math.max(.42,Math.min(1.35,1.15-reading*.03+this.pressureAt(a)*(20-this.attribute(a,'composure'))*.016));
+  };
+  StudioHockey.Match.prototype.shotModel=function(a,context){
+    const model=baseShotModel.call(this,a,context);
+    return {...model,goalChance:model.goalChance*.75,quality:model.quality*.75};
+  };
+  StudioHockey.Match.prototype.matchCalibration2Installed=true;
+}
+if(typeof CareerBroadcastMatch!=="undefined"&&!CareerBroadcastMatch.prototype.matchCalibration2Installed){
+  const careerAttribute=CareerBroadcastMatch.prototype.attribute;
+  CareerBroadcastMatch.prototype.attribute=function(a,key){return matchCalibrationAttribute(careerAttribute.call(this,a,key));};
+  CareerBroadcastMatch.prototype.matchCalibration2Installed=true;
+}
