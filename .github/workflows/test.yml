@@ -6,6 +6,18 @@ on:
     branches: [main]
 
 jobs:
+  feature-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test manager-j20-bridge.test.cjs match-club-matrix.test.cjs
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
