@@ -1,33 +1,46 @@
 const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 
-// 1. The office briefing is read-only and explains the manager's immediate day.
+// 1. The office briefing is read-only and complements the existing manager pulse.
 const office=boot(),r=office.run;
 r("startCareerWithClub('HV71')");
 const before=r('JSON.stringify(state)');
-assert.match(r('managerOfficeView()'),/Morgonmöte/);
-assert.match(r('managerOfficeView()'),/Dagens huvuduppgift/);
+assert.match(r('managerOfficeView()'),/MORGONMÖTE/);
+assert.match(r('managerOfficeView()'),/Påverka idag/);
 assert.match(r('managerOfficeView()'),/Största risk|Nästa kontrollpunkt/);
 assert.equal(r('JSON.stringify(state)'),before,'manager briefing must not advance or mutate the career');
 r('runTrainingSession()');
-assert.match(r('managerOfficeView()'),/Gårdagen/);
+assert.match(r('managerOfficeView()'),/Senast/);
 
-// 2. A real skater in the shooting lane can become the scorer on a deflection.
-r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;e.random=(()=>{const q=[.99,.01,.5,0];return()=>q.length?q.shift():0;})();e.shoot(s)");
-assert.equal(r('e.flight.shot.context.deflection'),true);
-assert.equal(r('e.flight.shot.player'),r('tip.player.name'));
-assert.equal(r('e.flight.shot.originalShooter.name'),r('s.player.name'));
-assert.equal(r('e.flight.shot.assists.some(a=>a.id===s.id)'),true);
+// 2. The puck must reach a real teammate before a deflection can change scorer and ledger.
+r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;globalThis.sCareer=studioPlayer(0,s.player.id);globalThis.tipCareer=studioPlayer(0,tip.player.id);globalThis.sAssistBefore=sCareer.assists||0;globalThis.tipGoalsBefore=tipCareer.goals||0;e.random=(()=>{const q=[.99,.01,0,0];return()=>q.length?q.shift():0;})();e.shoot(s);globalThis.shot=e.flight.shot");
+assert.equal(r('shot.context.deflection'),undefined,'release alone must not award the tip');
+r('while(e.flight)e.resolveFlight(.1)');
+assert.equal(r('shot.context.deflection'),true);
+assert.equal(r('shot.player'),r('tip.player.name'));
+assert.equal(r('shot.originalShooter.name'),r('s.player.name'));
+assert.equal(r('shot.assists.some(a=>a.id===s.id)'),true);
+assert.equal(r('tipCareer.goals'),r('tipGoalsBefore+1'));
+assert.equal(r('sCareer.assists'),r('sAssistBefore+1'));
+assert.equal(r('state.live.hv'),1);
 
-// 3. Junior fixtures now populate a real-club J20 world and survive reload.
+// 3. Junior fixtures populate a real-club J20 round robin; team and player ledgers agree and survive reload.
 const juniors=boot(),q=juniors.run;
-q("startCareerWithClub('HV71');ensureJuniors();ensureClubAI();juniorFixture('j20:round:1')");
+q("startCareerWithClub('HV71');ensureJuniors();ensureClubAI()");
+assert.equal(q("juniorWorldPairings(leagueOf(),1).length"),7);
+assert.equal(q("new Set(juniorWorldPairings(leagueOf(),1).flatMap(g=>[g.home,g.away])).size"),14);
+assert.equal(q("new Set(Array.from({length:13},(_,i)=>juniorWorldPairings(leagueOf(),i+1)).flat().map(g=>[g.home,g.away].sort().join('|'))).size"),91,'first 13 rounds must cover every pairing once');
+q("juniorFixture('j20:round:1')");
 assert.equal(q('juniorWorldTable(leagueOf()).length'),14);
-assert.equal(q("juniorWorldTable(leagueOf()).find(r=>r.name===managerClub()).gp"),1);
+assert.equal(q("juniorWorldTable(leagueOf()).find(row=>row.name===managerClub()).gp"),1);
 assert.equal(q('juniorWorldClubs(leagueOf()).includes(state.juniors.matches[0].opponent)'),true);
+assert.equal(q('state.juniors.matches[0].players.reduce((n,row)=>n+(row.goals||0),0)'),q('state.juniors.matches[0].own'),'player goals must equal the J20 team score');
 assert.match(q('developmentJuniorsView()'),/J20 · utvecklingsserie/);
 assert.doesNotMatch(q('developmentJuniorsView()'),/Motståndarna är fiktiva/);
-const resultCount=q('state.juniorWorld.results.length');q("juniorFixture('j20:round:1')");assert.equal(q('state.juniorWorld.results.length'),resultCount,'same junior fixture must be idempotent');
-q('save()');const restored=boot(juniors.storage.value);assert.equal(restored.run('state.juniorWorld.results.length'),resultCount);
+const resultCount=q('state.juniorWorld.results.length'),table=q('JSON.stringify(juniorWorldTable(leagueOf()))');
+q("juniorFixture('j20:round:1')");assert.equal(q('state.juniorWorld.results.length'),resultCount,'same junior fixture must be idempotent');
+q('save()');const restored=boot(juniors.storage.value);
+assert.equal(restored.run('state.juniorWorld.results.length'),resultCount);
+assert.equal(restored.run('JSON.stringify(juniorWorldTable(leagueOf()))'),table,'J20 table must survive save/reload exactly');
 
-console.log('PASS: manager morning brief, spatial deflection scorer/assist and persistent real-club J20 table.');
+console.log('PASS: compact manager morning brief, puck-timed deflection ledger and persistent real-club J20 round robin.');
