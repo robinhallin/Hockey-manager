@@ -42,7 +42,7 @@ run('state.live.running=true;toggleManagerMenu()');assert.equal(run('state.live.
 app.events.keydown({key:'Escape',preventDefault(){}});assert.equal(get('.game-area').inert,false);assert.equal(get('#mobileMenu').attrs['aria-expanded'],'false');
 run('toggleManagerMenu();deskNavigate("squad")');assert.equal(get('.game-area').inert,false);assert.equal(get('.game-shell').classList.contains('mobile-nav-open'),false);
 assert.match(get('#content').innerHTML,/Truppens tabellvy/);assert.match(get('#content').innerHTML,/Kontrakt/);
-run('deskFolds.iceTime=true;deskNavigate("match");render()');assert.match(get('#content').innerHTML,/data-desk-fold="iceTime" open/);
+run('deskNavigate("match");matchTab("players")');assert.match(get('#content').innerHTML,/aria-pressed="true">Istid/);assert.match(get('#content').innerHTML,/Spelare · båda lagen · denna match/);
 run('save()');const reload=boot(app.storage.value);assert.equal(reload.run('state.live.minute'),12);assert.equal(reload.run('state.live.hv'),2);assert.equal(reload.run('state.live.running'),false);assert.equal(reload.run('state.calendar.date'),run('matchDate'));
 // The dashboard works with every Swedish club, and keeps club identity and fixtures separate.
 const clubs=run('Object.keys(state.world.membership)');assert.equal(clubs.length,28);
