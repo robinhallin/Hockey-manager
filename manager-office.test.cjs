@@ -30,7 +30,7 @@ r("deskNavigate('home');officeFixtureTab('recent')");
 assert.match(r('managerOfficeView()'),/Inga matcher spelade ännu/);
 const afterView=r('JSON.stringify(state)');
 r('managerOfficeView()');assert.equal(r('JSON.stringify(state)'),afterView);
-r("deskNavigate('calendar');deskBack()\");assert.equal(r('officeUI.fixtures'),'recent');
+r("deskNavigate('calendar');deskBack()");assert.equal(r('officeUI.fixtures'),'recent');
 r("officeFixtureTab('upcoming')");assert.match(r('managerOfficeView()'),/Spelplats/);
 assert.match(r('managerOfficeView()'),/Planera återhämtning/);
 
