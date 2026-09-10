@@ -24,4 +24,6 @@ const lineup=r('ensureJuniorLineup()');assert.ok(lineup.forwards.length>=3&&line
 const firstGoalie=String(lineup.goalies[0]),secondGoalie=String(lineup.goalies[1]||lineup.goalies[0]);
 if(firstGoalie!==secondGoalie){r(`juniorSetLineupSlot('goalies',0,${JSON.stringify(secondGoalie)})`);assert.equal(String(r('ensureJuniorLineup().goalies[0]')),secondGoalie);assert.equal(String(r('juniorMatchPlan().starter')),secondGoalie);}
 assert.match(r('juniorWorldView()'),/J20-kedjor & matchtrupp/);
-console.log('PASS: J20 owns dated matchdays, lineup order and senior-match isolation.');
+r("globalThis.badJ20=JSON.parse(JSON.stringify(state));badJ20.juniorWorld.lineups[managerClub()].forwards=[badJ20.juniorWorld.lineups[managerClub()].forwards[0],badJ20.juniorWorld.lineups[managerClub()].forwards[0]]");
+assert.throws(()=>r('validateSaveText(JSON.stringify(badJ20))'));
+console.log('PASS: J20 owns dated matchdays, lineup order, save validation and senior-match isolation.');
