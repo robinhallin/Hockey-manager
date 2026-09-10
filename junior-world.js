@@ -116,11 +116,12 @@ function juniorWorldView(){
 const juniorFixtureBeforeWorld=juniorFixture;
 juniorFixture=function(key){
   ensureJuniors();ensureJuniorWorld();
-  const round=state.round,before=state.juniors?.matches?.length||0,last=state.juniors?.lastFixture,pair=state.season?.phase==='regular'?juniorWorldPairings(leagueOf(),round).find(g=>g.home===managerClub()||g.away===managerClub()):null;
+  const round=state.round,before=state.juniors?.matches?.[0]||null,last=state.juniors?.lastFixture,pair=state.season?.phase==='regular'?juniorWorldPairings(leagueOf(),round).find(g=>g.home===managerClub()||g.away===managerClub()):null;
   const projection=pair?juniorWorldProjectedResult(pair.home,pair.away,round):null;
   juniorFixtureBeforeWorld(key);
   if(state.juniors.lastFixture===last||state.season?.phase!=='regular')return;
-  const created=(state.juniors.matches?.length||0)>before?state.juniors.matches[0]:null;
+  // The report buffer is capped at 16: compare the newest record, not its length.
+  const latest=state.juniors.matches?.[0]||null,created=latest!==before?latest:null;
   juniorWorldSimulateRound(round,created,projection);
 };
 
