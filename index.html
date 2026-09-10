@@ -59,45 +59,132 @@
 
 <div class="game-shell">
 
+  <!-- =========================================
+       VÄNSTERMENY
+  ========================================== -->
+
   <aside class="sidebar" id="managerSidebar" aria-label="Huvudmeny">
     <button class="desk-mobile-close" onclick="deskCloseMenu(true)" aria-label="Stäng menyn">×</button>
 
     <div class="sidebar-brand">
-      <div class="logo">HM</div>
-      <div class="brand-text"><strong>HOCKEY</strong><span>MANAGER</span></div>
+
+      <div class="logo">
+        HM
+      </div>
+
+      <div class="brand-text">
+        <strong>HOCKEY</strong>
+        <span>MANAGER</span>
+      </div>
+
     </div>
 
+
     <div class="club-box">
-      <div class="club-badge">HV</div>
-      <div class="club-info"><strong>HV71</strong><span>SHL</span></div>
+
+      <div class="club-badge">
+        HV
+      </div>
+
+      <div class="club-info">
+        <strong>HV71</strong>
+        <span>SHL</span>
+      </div>
+
     </div>
+
 
     <nav class="manager-nav" aria-label="Spelets huvudområden"></nav>
 
+
     <div class="sidebar-bottom">
       <button class="nav-item" onclick="showCareerMenu()"><span class="nav-icon">⌂</span>Huvudmeny</button>
-      <button class="nav-item settings-item" onclick="deskNavigate('settings')"><span class="nav-icon">⚙</span>Sparfiler & inställningar</button>
-      <div class="version sidebar-version">Hockey Manager Alpha · J20 Calendar</div>
+
+      <button
+        class="nav-item settings-item"
+        onclick="deskNavigate('settings')"
+      >
+        <span class="nav-icon">⚙</span>
+        Sparfiler & inställningar
+      </button>
+
+      <div class="version sidebar-version">
+        Hockey Manager Alpha · J20 Calendar
+      </div>
+
     </div>
+
   </aside>
   <button class="desk-menu-backdrop" onclick="deskCloseMenu(true)" tabindex="-1" aria-label="Stäng menyn"></button>
 
+
+  <!-- =========================================
+       HÖGER DEL AV SPELET
+  ========================================== -->
+
   <div class="game-area">
+
+
+    <!-- TOPPRAD -->
+
     <header class="topbar">
+
       <div class="topbar-left">
         <button id="mobileMenu" aria-controls="managerSidebar" aria-label="Öppna spelmenyn" aria-expanded="false" onclick="toggleManagerMenu()">Meny</button>
-        <div class="current-section">ÖVERSIKT</div>
+
+        <div class="current-section">
+          ÖVERSIKT
+        </div>
+
       </div>
-      <div class="topbar-center"><div class="season-info"><span>SÄSONG</span><strong>2026/27</strong></div></div>
+
+
+      <div class="topbar-center">
+
+        <div class="season-info">
+          <span>SÄSONG</span>
+          <strong>2026/27</strong>
+        </div>
+
+      </div>
+
+
       <div class="topbar-right">
+
         <button id="deskInbox" class="desk-inbox" onclick="deskNavigate('inbox')" aria-label="Inkorg">Inkorg</button>
-        <button class="continue-button" id="continueGame">FORTSÄTT <span>▶</span></button>
+
+        <button
+          class="continue-button"
+          id="continueGame"
+        >
+          FORTSÄTT
+          <span>▶</span>
+        </button>
+
       </div>
+
     </header>
 
-    <main id="content" class="game-content" tabindex="-1"></main>
+
+    <!-- =========================================
+         SPELETS SIDINNEHÅLL
+
+         VIKTIGT:
+         ID="content" behålls eftersom script.js
+         redan använder detta.
+    ========================================== -->
+
+    <main
+      id="content"
+      class="game-content" tabindex="-1"
+    >
+    </main>
+
+
   </div>
+
 </div>
+
 
 <div id="medical-decision-root"></div>
 <div id="save-status-root"></div>
@@ -161,5 +248,7 @@
 <script src="junior-world.js?v=day-j20-2"></script>
 <script src="j20-calendar.js?v=j20calendar1"></script>
 <script src="script.js?v=playeridentity1"></script>
+
 </body>
+
 </html>
