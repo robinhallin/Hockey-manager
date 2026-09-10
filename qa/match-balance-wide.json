@@ -1,0 +1,27 @@
+{
+  "periodsPerMatchup": 6,
+  "method": "Same roster snapshot with every attribute shifted by -2/0/+2. Stress diagnostic only.",
+  "rows": {
+    "baseline-baseline": [
+      {"goals":1.17,"shots":12.67,"attempts":23.5,"quality":1.61},
+      {"goals":1.67,"shots":12.67,"attempts":20,"quality":1.4}
+    ],
+    "strong-baseline": [
+      {"goals":1.67,"shots":18.83,"attempts":31,"quality":2.56},
+      {"goals":0.83,"shots":8.5,"attempts":14.83,"quality":0.9}
+    ],
+    "baseline-weak": [
+      {"goals":1.5,"shots":13.5,"attempts":27.67,"quality":2.12},
+      {"goals":0.83,"shots":9.83,"attempts":14.17,"quality":0.91}
+    ],
+    "strong-weak": [
+      {"goals":4,"shots":28.17,"attempts":42.33,"quality":4.24},
+      {"goals":0.67,"shots":5,"attempts":8.83,"quality":0.5}
+    ]
+  },
+  "warnings": [
+    "strong-weak side 0: 28.17 shots/20m indicates runaway volume",
+    "strong-weak side 1: 5 shots/20m indicates suppressed offense"
+  ],
+  "note": "The stress test intentionally exposes the next calibration problem; no blind coefficient change was shipped from this sample alone."
+}
