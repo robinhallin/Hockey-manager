@@ -39,11 +39,11 @@ assert.equal(r('coachEvidence().length'),1,'Completed match reaches the training
 assert.ok(r('coachCycleView().includes("Välj vad laget ska arbeta med")'));
 assert.ok(r('matchesAnalysisView().includes("Dina taktiska ändringar")'));
 console.log('PASS: distinct live/post-match evidence, real order handlers, strength separation, grouped changes, exposure rates, saved reviews and archived match rendering.');
-// Real engine continuation: the review observes generated play, and the order reaches the engine.
+// Real engine continuation: legitimate stoppages/auto-pauses must not make the test stop observing play.
 const live=boot(),sim=live.run;
 sim(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();`);
-sim(`for(let i=0;i<300&&state.live.running;i++)liveStep();matchOrder('forecheck','passive');startMatch();for(let i=0;i<300&&state.live.running;i++)liveStep();`);
+sim(`for(let i=0;i<300&&!state.live.finished;i++){if(!state.live.running)startMatch();if(state.live.running)liveStep();}matchOrder('forecheck','passive');globalThis.reviewStart=tacticalReviewTotals().seconds;for(let i=0;i<500&&!state.live.finished&&tacticalReviewTotals().seconds-reviewStart<30;i++){if(!state.live.running)startMatch();if(state.live.running)liveStep();}`);
 assert.equal(sim('studioEngine().teams[0].forecheck'),'passive');
-assert.ok(sim('tacticalReviewSnapshot()[0].result.seconds')>0);
+assert.ok(sim('tacticalReviewSnapshot()[0].result.seconds')>0,'the review must observe actual subsequent even-strength play');
 assert.equal(sim('tacticalReviewSnapshot()[0].result.for'),sim(`state.live.analysis.shots.filter(s=>s.side==='own'&&s.situation==='even').length-state.live.tacticalReviews[0].totals.for`));
 console.log('PASS: continued production match applies the tactical order and records actual subsequent play.');
