@@ -86,6 +86,40 @@ function managerJ20ReviewView(){
   const {match,best,bestRow,readiness,form}=review,age=best?` · ${best.age} år`:'';
   return `<section class="manager-day-preview j20-review" aria-label="Senaste J20-rapport"><div><span class="desk-kicker">J20 SENAST · ${calText(match.date)}</span><strong>${managerClub()} J20 ${match.own}–${match.against} ${trainingSafe(match.opponent)} J20</strong><p>${best?`Matchens utvecklingssignal: <b>${trainingSafe(best.name)}</b>${age} · ${bestRow.goals||0} mål · ${bestRow.assists||0} assist · ${Math.round((bestRow.seconds||0)/60)} min. ${trainingSafe(readiness.level)}.`:'Ingen individuell utvecklingssignal registrerad.'}</p>${best?`<small>${trainingSafe(readiness.detail)}${form.games>1?` Senaste ${form.games}: ${form.goals}+${form.assists}.`:''}</small>`:''}</div>${managerJ20DecisionView(review)}</section>`;
 }
+function managerSeniorProspectDecision(player){
+  const rows=Object.values(state.juniors?.managerDecisions||{}).filter(d=>d.action==='promote'&&samePlayerId(d.playerId,player.id));
+  return rows.sort((a,b)=>(b.decisionDate||'').localeCompare(a.decisionDate||''))[0]||null;
+}
+function managerSeniorProspectFollowup(){
+  const candidates=managerRoster().filter(p=>p.academy?.path==='senior'&&p.age<=21).map(player=>({player,decision:managerSeniorProspectDecision(player)})).filter(x=>x.decision).sort((a,b)=>b.decision.decisionDate.localeCompare(a.decision.decisionDate));
+  const entry=candidates[0];if(!entry)return null;
+  const {player,decision}=entry,teamGames=(state.analysis?.matches||[]).filter(m=>m.finished&&!m.abandoned&&m.club===managerClub()&&m.date>=decision.decisionDate).sort((a,b)=>b.date.localeCompare(a.date));
+  const appearances=teamGames.map(match=>({match,row:(match.players||[]).find(r=>samePlayerId(r.id,player.id))})).filter(x=>x.row?.seconds>0);
+  const totals=appearances.reduce((o,x)=>({games:o.games+1,seconds:o.seconds+(x.row.seconds||0),goals:o.goals+(x.row.goals||0),assists:o.assists+(x.row.assists||0)}),{games:0,seconds:0,goals:0,assists:0});
+  const debut=appearances.length?[...appearances].sort((a,b)=>a.match.date.localeCompare(b.match.date))[0]:null,lastThree=teamGames.slice(0,3),lastThreeApps=lastThree.filter(m=>(m.players||[]).some(r=>samePlayerId(r.id,player.id)&&r.seconds>0)).length,avgMinutes=totals.games?totals.seconds/60/totals.games:0;
+  let level='Väntar på A-lagschans',detail='Staben följer om uppflyttningen leder till faktisk matchtid.';
+  if(teamGames.length>=3&&lastThreeApps===0){level='Behöver matchtid';detail='Spelaren har inte fått istid i någon av de tre senaste A-lagsmatcherna.';}
+  else if(teamGames.length>=2&&!totals.games){level='Fastnar utanför laget';detail=`A-laget har spelat ${teamGames.length} matcher sedan uppflyttningen utan att spelaren fått istid.`;}
+  else if(totals.games===1){level='Debut genomförd';detail=`Debuten gav ${Math.round(totals.seconds/60)} minuters istid.`;}
+  else if(totals.games>=2&&avgMinutes<6){level='För liten roll';detail=`Snittiden är ${avgMinutes.toFixed(1)} minuter över ${totals.games} matcher.`;}
+  else if(totals.games>=3&&avgMinutes>=10){level='Etableras i A-laget';detail=`Spelaren snittar ${avgMinutes.toFixed(1)} minuter över ${totals.games} matcher.`;}
+  else if(totals.games>=2){level='På väg in i A-laget';detail=`Spelaren har fått istid i ${totals.games} matcher och samlar erfarenhet på seniornivå.`;}
+  return {player,decision,teamGames,appearances,totals,debut,lastThreeApps,avgMinutes,level,detail};
+}
+function managerSeniorProspectAct(id,action){
+  const follow=managerSeniorProspectFollowup();if(!follow||!samePlayerId(follow.player.id,id))return false;
+  if(action==='return'){
+    if(follow.player.age>20||juniorLocked())return false;
+    const before=state.juniors.roster.length;juniorReturn(follow.player.id);
+    return state.juniors.roster.length>before;
+  }
+  return false;
+}
+function managerSeniorProspectFollowupView(){
+  const follow=managerSeniorProspectFollowup();if(!follow)return '';
+  const {player,totals,debut,level,detail}=follow,points=totals.goals+totals.assists,warning=['Behöver matchtid','Fastnar utanför laget','För liten roll'].includes(level),id=JSON.stringify(String(player.id));
+  return `<section class="manager-day-preview j20-review" aria-label="A-lagsuppföljning junior"><div><span class="desk-kicker">A-LAGSUPPFÖLJNING · ${trainingSafe(player.name)}</span><strong>${trainingSafe(level)}</strong><p>${totals.games?`${totals.games} A-lagsmatcher · ${Math.round(totals.seconds/60)} min · ${totals.goals}+${totals.assists} · ${points} poäng.`:`Ingen registrerad A-lagsistid ännu.`}${debut?` Debut ${calText(debut.match.date)}.`:''}</p><small>${trainingSafe(detail)}</small></div><div class="manager-life-actions j20-decision">${deskLink('Öppna kedjor',{page:'squad'})}${warning&&player.age<=20?`<button class="desk-link" onclick='managerSeniorProspectAct(${id},"return")'>Tillbaka till J20</button>`:''}</div></section>`;
+}
 
 const managerJ20MorningBase=managerLifeMorningView;
-managerLifeMorningView=function(){return managerJ20MorningBase()+managerJ20ReviewView();};
+managerLifeMorningView=function(){return managerJ20MorningBase()+managerJ20ReviewView()+managerSeniorProspectFollowupView();};
