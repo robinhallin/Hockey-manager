@@ -21,7 +21,7 @@ const MatchEventLedger=(()=>{
  function shot(match,engine,record,penalties=[]){
   if(!match||!record)return null;
   const side=sideName(record.side),playerId=String(record.playerId||'').replace(/^\d:/,''),period=match.period||1;
-  const ownPens=(penalties||[]).filter(p=>p.side===record.side).length,oppPens=(penalties||[]).filter(p=>p.side!==record.side).length;
+  const ownPens=Math.min(2,(penalties||[]).filter(p=>p.side===record.side).length),oppPens=Math.min(2,(penalties||[]).filter(p=>p.side!==record.side).length);
   return append(match,{type:'shot',time:Number(engine?.time)||0,period,clock:typeof gameTime==='function'?gameTime():null,side,playerId,player:record.player||null,
    outcome:record.outcome||'wide',quality:Number(record.quality)||0,x:Number(record.x)||0,y:Number(record.y)||0,
    powerPlay:oppPens>ownPens,strength:[Math.max(3,5-ownPens),Math.max(3,5-oppPens)],
@@ -36,6 +36,10 @@ const MatchEventLedger=(()=>{
  }
  function summary(input){
   const ledger=input?.events?input:input?.eventLedger;if(!ledger)return null;
+  if(ledger.source==='background'&&ledger.aggregate){
+   const a=ledger.aggregate;
+   return {version:VERSION,source:ledger.source,events:(ledger.events||[]).length,goals:[...(a.goals||[0,0])],shots:[...(a.shots||[0,0])],attempts:[...(a.shots||[0,0])],saves:null,blocks:null,danger:null,pp:[...(a.pp||[0,0])],ppGoals:[...(a.ppGoals||[0,0])],ice:ledger.ice,duration:a.duration||0,overtime:Boolean(a.overtime),shootout:Boolean(a.shootout),aggregate:true};
+  }
   const events=ledger.events||[],shots=events.filter(e=>e.type==='shot'),forSide=side=>shots.filter(e=>e.side===side),onGoal=e=>ON_GOAL.has(e.outcome),saved=e=>e.outcome==='save'||e.outcome==='rebound';
   const own=forSide('own'),opp=forSide('opponent');
   const goals=[own.filter(e=>e.outcome==='goal').length,opp.filter(e=>e.outcome==='goal').length];
