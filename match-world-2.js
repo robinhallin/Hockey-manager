@@ -1,9 +1,8 @@
 "use strict";
 
 // MatchWorld 2 is the shared hockey layer between the spatial broadcast engine
-// and background fixtures. The rink still owns geometry; this layer owns the
-// common interpretation of team quality, pressure, opportunity creation and
-// now the hockey value of player decisions.
+// and background fixtures. Geometry stays in the rink engine; this layer owns
+// common interpretation of team quality, decisions, special teams and shifts.
 const MatchWorld2=(()=>{
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const KEYS=['passing','puckControl','vision','decisions','shooting','skating','positioning','workRate','checking','strength','discipline'];
@@ -32,7 +31,6 @@ const MatchWorld2=(()=>{
   const base=homeIce?.51:.5;
   return clamp(base+(controlScore(home)-controlScore(away))*.015+press(home,away,homePlan)-press(away,home,awayPlan)+(homeCount-awayCount)*.07,.25,.75);
  }
-
  function decisionValues(attrs,plan={},context={}){
   const a=attrs||{},style=plan.style||plan.mentality||'balanced',tempo=plan.tempo||'normal';
   const pressure=clamp(Number(context.pressure)||0,0,1),distance=Number.isFinite(context.distance)?context.distance:14;
@@ -53,22 +51,60 @@ const MatchWorld2=(()=>{
   for(const key of ACTIONS)out[key]=clamp(out[key],-.06,.07);
   return out;
  }
+ function specialUnitScore(attrs,role,kind='even'){
+  const keys=kind==='pk'?['positioning','decisions','workRate','discipline']:
+   kind==='pp'?['passing','vision','shooting','puckControl','decisions']:
+   ['LD','RD'].includes(role)?['positioning','decisions','passing','checking']:
+   role==='C'?['passing','vision','decisions','puckControl']:['shooting','skating','puckControl','workRate'];
+  return keys.reduce((n,key)=>n+value(attrs,key),0)/keys.length;
+ }
+ function shiftTarget({base=43,energy=100,tempo='normal',forecheck='balanced',shortHanded=false,powerPlay=false,chasing=false,protecting=false}={}){
+  let target=Number.isFinite(base)?base:43;
+  if(tempo==='high'||tempo==='fast')target-=3;
+  if(tempo==='low'||tempo==='slow')target+=2;
+  if(forecheck==='aggressive')target-=3;
+  if(shortHanded)target-=5;
+  if(powerPlay)target+=1;
+  if(chasing)target-=2;
+  if(protecting)target+=1;
+  if(energy<70)target-=Math.min(10,(70-energy)*.32);
+  else if(energy>88)target+=2;
+  return Math.round(clamp(target,24,58));
+ }
+ function specialTeamsEdge(attAttrs,defAttrs,ppPlan='131',pkPlan='box',{attEnergy=100,defEnergy=100,skaterDiff=1}={}){
+  const ppKeys=ppPlan==='131'?['passing','vision','puckControl','decisions']:
+   ppPlan==='overload'?['passing','puckControl','workRate','shooting']:['shooting','passing','positioning','decisions'];
+  const pkKeys=pkPlan==='diamond'?['skating','workRate','decisions','positioning']:['positioning','discipline','decisions','workRate'];
+  const avg=(a,keys)=>keys.reduce((n,k)=>n+value(a,k),0)/keys.length;
+  const skill=avg(attAttrs,ppKeys)-avg(defAttrs,pkKeys),energy=(attEnergy-defEnergy)/25,manpower=Math.max(0,skaterDiff-1)*.015;
+  return clamp(skill*.006+energy*.012+manpower,-.08,.12);
+ }
+ function specialDecisionBias(match,a){
+  const pp=Boolean(match.hasPowerPlay?.(a.side)),pk=Boolean(match.isShortHanded?.(a.side));
+  if(!pp&&!pk)return {shoot:0,pass:0,carry:0,dump:0,shield:0,clear:0,edge:0};
+  const ps=liveProfiles(match),own=ps?.[a.side],opp=ps?.[1-a.side],attEnergy=liveTeamEnergy(match,a.side),defEnergy=liveTeamEnergy(match,1-a.side);
+  const edge=pp&&own&&opp?specialTeamsEdge(own.attrs,opp.attrs,own.plan.pp,opp.plan.pk,{attEnergy,defEnergy,skaterDiff:own.count-opp.count}):0;
+  return pp?{shoot:.012+edge*.22,pass:.010+edge*.18,carry:.004+edge*.08,dump:-.010,shield:.004,clear:-.020,edge}:
+   {shoot:-.020,pass:-.012,carry:-.010,dump:.016,shield:.008,clear:.030,edge:0};
+ }
  function backgroundDecisionProfile({creation=10,resistance=10,shooterPosition='F',pp=false,plan={},opposition={}}={}){
   const edge=clamp((creation-resistance)/20,-.5,.5);
-  const pseudo={shooting:10+edge*8+(shooterPosition==='F'?1:0),passing:10+edge*6,vision:10+edge*6,puckControl:10+edge*6,decisions:10+edge*5,skating:10+edge*4,strength:10};
+  const pseudo={shooting:10+edge*8+(shooterPosition==='F'?1:0),passing:10+edge*6,vision:10+edge*6,puckControl:10+edge*6,decisions:10+edge*5,skating:10+edge*4,strength:10,positioning:10+edge*3,workRate:10,discipline:10};
   const context={pressure:clamp(.42-edge*.4+(opposition.forecheck==='aggressive'?.08:0),.08,.85),distance:shooterPosition==='B'?17:12,progress:46,powerPlay:Boolean(pp),shortHanded:false,rebound:false,oneTimer:false};
   return decisionValues(pseudo,plan,context);
  }
  function backgroundShotContext(args,rand){
   const {creation,resistance,shooterPosition,pp,plan={},opposition={}}=args;
-  const edge=clamp((creation-resistance)/20,-.5,.5),choices=backgroundDecisionProfile(args);
-  const counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
-  const closeChance=clamp(.30+edge*.4+(pp?.10:0)+(counter?.12:0)+(choices.carry+choices.pass-choices.dump)*.65,.1,.65);
+  const edge=clamp((creation-resistance)/20,-.5,.5),choices=backgroundDecisionProfile(args),counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
+  const attackPseudo={passing:creation,vision:creation,puckControl:creation,decisions:creation,shooting:creation,workRate:creation,positioning:creation,discipline:creation,skating:creation};
+  const defendPseudo={passing:resistance,vision:resistance,puckControl:resistance,decisions:resistance,shooting:resistance,workRate:resistance,positioning:resistance,discipline:resistance,skating:resistance};
+  const special=pp?specialTeamsEdge(attackPseudo,defendPseudo,plan.pp||'131',opposition.pk||'box'):0;
+  const closeChance=clamp(.30+edge*.4+(pp?.085:0)+(counter?.12:0)+(choices.carry+choices.pass-choices.dump)*.65+special*.35,.1,.65);
   const close=rand()<closeChance;
   const d=close?3+rand()*6:(shooterPosition==='B'?15:9)+rand()*9;
   const angle=rand()*(close?.65:1.05);
-  const pressure=clamp(.42-edge*.4-(pp?.14:0)-(counter?.12:0)+(opposition.forecheck==='aggressive'&&!counter?.08:0)-choices.shield*.35,.08,.85);
-  const screen=clamp((plan.style==='pressure'?.38:.20)+(pp?.12:0)+choices.shoot*.15,0,1);
+  const pressure=clamp(.42-edge*.4-(pp?.12:0)-(counter?.12:0)+(opposition.forecheck==='aggressive'&&!counter?.08:0)-choices.shield*.35-special*.25,.08,.85);
+  const screen=clamp((plan.style==='pressure'?.38:.20)+(pp?.10:0)+choices.shoot*.15+special*.20,0,1);
   return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
  }
  function liveProfiles(match){
@@ -85,11 +121,16 @@ const MatchWorld2=(()=>{
   });
   match._matchWorld2Cache={signature,value:result};return result;
  }
- function liveInitiative(match,side){
-  const ps=liveProfiles(match);if(!ps)return .5;
-  const own=ps[side],opp=ps[1-side];
-  return initiativeChance(own.attrs,opp.attrs,own.plan,opp.plan,own.count,opp.count,{homeIce:false});
+ function liveTeamEnergy(match,side){
+  const actors=match?.skaters?.(side)?.filter(a=>!['leaving','entering'].includes(a.status))||[];
+  if(!actors.length)return 100;
+  return actors.reduce((n,a)=>{
+   const p=typeof studioPlayer==='function'?studioPlayer(side,a.player.id):null;
+   const e=p&&typeof matchEnergy==='function'?matchEnergy(p):(a.player?.energy??100);
+   return n+(Number.isFinite(e)?e:100);
+  },0)/actors.length;
  }
+ function liveInitiative(match,side){const ps=liveProfiles(match);if(!ps)return .5;const own=ps[side],opp=ps[1-side];return initiativeChance(own.attrs,opp.attrs,own.plan,opp.plan,own.count,opp.count,{homeIce:false});}
  function liveDecisionContext(match,a){
   const shot=match.shotContext(a),p=typeof StudioHockey!=="undefined"?StudioHockey.progress(a.side,a.x):30;
   return {pressure:shot?.pressure||0,distance:shot?.d??14,progress:p,rebound:Boolean(shot?.rebound),oneTimer:Boolean(shot?.oneTimer),powerPlay:Boolean(match.hasPowerPlay?.(a.side)),shortHanded:Boolean(match.isShortHanded?.(a.side))};
@@ -101,27 +142,49 @@ const MatchWorld2=(()=>{
  }
  function describe(match){
   const profiles=liveProfiles(match);if(!profiles)return null;
-  return {version:2,decisionVersion:1,profiles:profiles.map(p=>({count:p.count,control:+p.control.toFixed(2),attack:+p.attack.toFixed(2),defense:+p.defense.toFixed(2),transition:+p.transition.toFixed(2),discipline:+p.discipline.toFixed(2),plan:p.plan})),initiative:[+liveInitiative(match,0).toFixed(4),+liveInitiative(match,1).toFixed(4)]};
+  return {version:2,decisionVersion:1,specialTeamsVersion:1,profiles:profiles.map(p=>({count:p.count,control:+p.control.toFixed(2),attack:+p.attack.toFixed(2),defense:+p.defense.toFixed(2),transition:+p.transition.toFixed(2),discipline:+p.discipline.toFixed(2),plan:p.plan})),initiative:[+liveInitiative(match,0).toFixed(4),+liveInitiative(match,1).toFixed(4)],energy:[+liveTeamEnergy(match,0).toFixed(1),+liveTeamEnergy(match,1).toFixed(1)]};
  }
- return {version:2,decisionVersion:1,KEYS,ACTIONS,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
+ return {version:2,decisionVersion:1,specialTeamsVersion:1,KEYS,ACTIONS,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,specialUnitScore,shiftTarget,specialTeamsEdge,specialDecisionBias,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveTeamEnergy,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
 })();
 
-if(typeof rivalInitiativeChance==='function'){
- rivalInitiativeChance=function(home,away,homePlan,awayPlan,homeCount=5,awayCount=5){return MatchWorld2.initiativeChance(home,away,homePlan,awayPlan,homeCount,awayCount);};
+if(typeof rivalInitiativeChance==='function')rivalInitiativeChance=function(home,away,homePlan,awayPlan,homeCount=5,awayCount=5){return MatchWorld2.initiativeChance(home,away,homePlan,awayPlan,homeCount,awayCount);};
+if(typeof rivalShotContext==='function')rivalShotContext=function(args,rand){return MatchWorld2.backgroundShotContext(args,rand);};
+
+if(typeof aiUnitScore==='function'){
+ const baseAIUnitScore=aiUnitScore;
+ aiUnitScore=function(p,role,kind='even'){
+  if(!p||!['pp','pk'].includes(kind))return baseAIUnitScore(p,role,kind);
+  const attrs=Object.fromEntries(MatchWorld2.KEYS.map(k=>[k,typeof rivalAttribute==='function'?rivalAttribute(p,k):(p.attributes?.[k]||10)]));
+  const fit=typeof positionFit==='function'?positionFit(p,role):1;
+  return MatchWorld2.specialUnitScore(attrs,role,kind)*fit+(role==='C'?(attrs.faceoffs||10)*.12:0)+(p.aiForm||0)*.12;
+ };
 }
-if(typeof rivalShotContext==='function'){
- rivalShotContext=function(args,rand){return MatchWorld2.backgroundShotContext(args,rand);};
+if(typeof aiMatchPlan==='function'){
+ const baseAIMatchPlan=aiMatchPlan;
+ aiMatchPlan=function(club,opponentName,base){
+  const plan=baseAIMatchPlan(club,opponentName,base);
+  plan.shiftLimit=MatchWorld2.shiftTarget({base:plan.shiftLimit||43,energy:100,tempo:plan.tempo,forecheck:plan.forecheck});
+  plan.worldShiftVersion=1;return plan;
+ };
+}
+if(typeof aiCoachDecision==='function'){
+ const baseAICoachDecision=aiCoachDecision;
+ aiCoachDecision=function(club,base,context){
+  const decision=baseAICoachDecision(club,base,context);
+  decision.shiftLimit=MatchWorld2.shiftTarget({base:decision.shiftLimit||base?.shiftLimit||43,energy:context?.energy??100,tempo:decision.tempo,forecheck:decision.forecheck,shortHanded:(context?.strength||0)<0,powerPlay:(context?.strength||0)>0,chasing:decision.situation==='chase',protecting:decision.situation==='protect'});
+  decision.worldShiftVersion=1;return decision;
+ };
 }
 
 if(typeof CareerBroadcastMatch!=="undefined"){
  const baseActionOptions=CareerBroadcastMatch.prototype.actionOptions;
  CareerBroadcastMatch.prototype.actionOptions=function(a){
-  const rows=baseActionOptions.call(this,a),initiative=MatchWorld2.liveInitiative(this,a.side),edge=initiative-.5,values=MatchWorld2.liveDecisionValues(this,a);
+  const rows=baseActionOptions.call(this,a),initiative=MatchWorld2.liveInitiative(this,a.side),edge=initiative-.5,values=MatchWorld2.liveDecisionValues(this,a),special=MatchWorld2.specialDecisionBias(this,a);
   for(const row of rows){
    const initiativeScale=row.kind==='shoot'?.018:['pass','carry'].includes(row.kind)?.010:['dump','clear'].includes(row.kind)?-.006:0;
-   const initiativeBias=edge*initiativeScale,decisionBias=values[row.kind]||0;
-   row.value+=initiativeBias+decisionBias;
-   row.worldBias=initiativeBias+decisionBias;row.worldInitiative=initiative;row.worldDecisionBias=decisionBias;row.worldDecisionVersion=1;
+   const initiativeBias=edge*initiativeScale,decisionBias=values[row.kind]||0,specialBias=special[row.kind]||0;
+   row.value+=initiativeBias+decisionBias+specialBias;
+   row.worldBias=initiativeBias+decisionBias+specialBias;row.worldInitiative=initiative;row.worldDecisionBias=decisionBias;row.worldDecisionVersion=1;row.worldSpecialBias=specialBias;row.worldSpecialTeamsVersion=1;
   }
   return rows.sort((x,y)=>y.value-x.value);
  };
@@ -131,7 +194,14 @@ if(typeof studioSyncPlans==='function'){
  const baseStudioSyncPlans=studioSyncPlans;
  studioSyncPlans=function(e=studioEngine()){
   const result=baseStudioSyncPlans(e);
-  if(e)e.worldModel=MatchWorld2.describe(e);
+  if(e){
+   for(const side of [0,1]){
+    const t=e.teams[side],energy=MatchWorld2.liveTeamEnergy(e,side),shortHanded=Boolean(e.isShortHanded?.(side)),powerPlay=Boolean(e.hasPowerPlay?.(side));
+    t.shiftLimit=MatchWorld2.shiftTarget({base:t.shiftLimit||43,energy,tempo:t.tempo||t.plan?.tempo,forecheck:t.forecheck||t.plan?.forecheck,shortHanded,powerPlay});
+    t.worldShiftTarget=t.shiftLimit;t.worldShiftVersion=1;
+   }
+   e.worldModel=MatchWorld2.describe(e);e.worldModel.shiftTargets=e.teams.map(t=>t.shiftLimit);
+  }
   return result;
  };
 }
