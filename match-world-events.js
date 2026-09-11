@@ -54,7 +54,12 @@ const MatchEventStream=(()=>{
  const syncLive=(e)=>{
   if(typeof state==='undefined'||!state.live?.eventStream)return null;
   const s=summary(state.live.eventStream),m=state.live;
-  m.matchEventSummary=s;m.shotsHV=s.shots[0];m.shotsOpp=s.shots[1];m.hv=s.score[0];m.opp=s.score[1];m.ppHV=s.pp[0];m.ppOpp=s.pp[1];m.ppGoalsHV=s.ppGoals[0];m.ppGoalsOpp=s.ppGoals[1];
+  m.matchEventSummary=s;m.shotsHV=s.shots[0];m.shotsOpp=s.shots[1];
+  // Shootout goals are an official tiebreak result, not normal shot/goal events.
+  // Once the shootout has finished, keep the career match's official winner on the scoreboard.
+  const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
+  if(!preserveShootoutScore){m.hv=s.score[0];m.opp=s.score[1];}
+  m.ppHV=s.pp[0];m.ppOpp=s.pp[1];m.ppGoalsHV=s.ppGoals[0];m.ppGoalsOpp=s.ppGoals[1];
   if(e){e.eventStreamVersion=VERSION;e.eventSummary=s;}
   return s;
  };
