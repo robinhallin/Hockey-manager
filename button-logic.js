@@ -71,6 +71,7 @@ DESK_AREAS.splice(0,DESK_AREAS.length,
   {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['table','Tabell'],['leagueStats','Spelarstatistik']],details:{news:'leagues',season:'leagues'}}
 );
 DESK_RECRUIT_TABS.splice(0,DESK_RECRUIT_TABS.length,['needs','Planering'],['search','Spelare & scouting'],['deals','Affärer']);
+for(const row of [['missions','Scouting'],['shortlist','Önskelista']])if(!DESK_RECRUIT_MORE.some(([id])=>id===row[0]))DESK_RECRUIT_MORE.push(row);
 
 const deskAreaMemory={};
 let deskAreaMemoryOwner=null;
