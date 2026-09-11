@@ -56,10 +56,6 @@ const MatchEventStream=(()=>{
   const stream=state.live.eventStream,m=state.live;
   let s=summary(stream);
   const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
-  // Some official finishes (friendlies/imported states/tests) can enter with a final
-  // engine score but without replayed goal events. Reconcile only missing positive
-  // goal deltas once the engine has reached a period/game boundary, before the career
-  // adapter decides whether regulation is actually over.
   if((m.finished||e?.finished)&&!preserveShootoutScore&&Array.isArray(e?.score)){
    let changed=false;
    for(const side of [0,1]){
@@ -69,8 +65,6 @@ const MatchEventStream=(()=>{
    if(changed)s=summary(stream);
   }
   m.matchEventSummary=s;m.shotsHV=s.shots[0];m.shotsOpp=s.shots[1];
-  // Shootout goals are an official tiebreak result, not normal shot/goal events.
-  // Once the shootout has finished, keep the career match's official winner on the scoreboard.
   if(!preserveShootoutScore){m.hv=s.score[0];m.opp=s.score[1];}
   m.ppHV=s.pp[0];m.ppOpp=s.pp[1];m.ppGoalsHV=s.ppGoals[0];m.ppGoalsOpp=s.ppGoals[1];
   if(e){e.eventStreamVersion=VERSION;e.eventSummary=s;}
@@ -132,10 +126,6 @@ if(typeof CareerBroadcastMatch!=='undefined'){
   const after=[Boolean(this.hasPowerPlay?.(0)),Boolean(this.hasPowerPlay?.(1))];for(const s of [0,1])if(!before[s]&&after[s])MatchEventStream.emit(stream,'pp-start',{side:s,seconds:this.time||0});
   MatchEventStream.syncLive(this);return result;
  };
-}
-if(typeof studioMirror==='function'){
- const baseStudioMirror=studioMirror;
- studioMirror=function(e){const result=baseStudioMirror.apply(this,arguments);if(e&&typeof state!=='undefined'&&state.live?.eventStream)MatchEventStream.syncLive(e);return result;};
 }
 if(typeof rivalSimulate==='function'){
  const baseRivalSimulate=rivalSimulate;
