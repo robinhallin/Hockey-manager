@@ -51,12 +51,21 @@ function managerJ20PathCandidate(){
   const training=managerJ20TrainingFollowup()?.player,senior=managerSeniorProspectFollowup()?.player,review=managerJ20Review()?.best;
   return training||senior||review||null;
 }
+function managerJ20PathMarkPromotion(player,plan){
+  const store=state.juniors.managerDecisions??={},date=state.calendar?.date||null,key=`path-promote:${date}:${player.id}`,form=managerJ20RecentForm(player);
+  store[key]={action:'promote',playerId:player.id,playerName:player.name,matchDate:null,decisionDate:date,readiness:'Utvecklingsplan',formGames:form.games,formPoints:form.points,pathPace:plan.pace};
+  plan.promotedDate=date;plan.updatedDate=date;
+}
 function managerJ20PathAction(id,action){
   const player=managerJ20PathPlayer(id),status=managerJ20PathStatus(player);if(!player||!status||juniorLocked())return false;
   if(action==='guest'&&player.academy?.path==='junior'){player.academy.path='guest';save();render();return true;}
   if(action==='junior'&&player.academy?.path==='guest'){player.academy.path='junior';save();render();return true;}
   if(action==='light'){player.trainingLoad='light';save();render();return true;}
-  if(action==='promote'&&player.academy?.path==='guest'){juniorPromote(player.id);return managerRoster().some(p=>samePlayerId(p.id,id)&&p.academy?.path==='senior');}
+  if(action==='promote'&&player.academy?.path==='guest'){
+    const plan=managerJ20PathPlan(player);juniorPromote(player.id);
+    const promoted=managerRoster().find(p=>samePlayerId(p.id,id)&&p.academy?.path==='senior');
+    if(!promoted)return false;if(plan)managerJ20PathMarkPromotion(promoted,plan);save();render();return true;
+  }
   return false;
 }
 function managerJ20PathView(){
