@@ -131,7 +131,8 @@ if(typeof CareerBroadcastMatch!=="undefined"&&!CareerBroadcastMatch.prototype.ma
 
 function matchEngine31RoleProfile(match,a){
   if(!a||a.role==='G')return 'goalie';
-  const shoot=match.attribute(a,'shooting'),passing=match.attribute(a,'passing'),strength=match.attribute(a,'strength'),checking=match.attribute(a,'checking'),position=match.attribute(a,'positioning'),control=match.attribute(a,'puckControl');
+  const raw=a.player?.attributes||{};
+  const shoot=raw.shooting??10,passing=raw.passing??10,strength=raw.strength??10,checking=raw.checking??10,position=raw.positioning??10,control=raw.puckControl??10;
   if(a.role==='LD'||a.role==='RD')return shoot+passing>=29?'offensive-defense':'defensive-defense';
   if(shoot>=15&&shoot>=passing+1)return 'sniper';
   if(strength+checking>=29&&position>=12)return 'power-forward';
@@ -194,11 +195,12 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
       this.rebound.attackClaim=att?{id:att.a.id,score:att.score}:null;this.rebound.defenseClaim=def?{id:def.a.id,score:def.score}:null;
     }
   };
-  StudioHockey.Match.prototype.takePossession=function(a,opts){
-    if(this.rebound?.spot&&a&&this.time-this.rebound.time<3&&StudioHockey.distance(a,this.rebound.spot)<2.1){
-      const other=matchEngine31ReboundClaim(this,1-a.side,this.rebound.spot);
-      if(other?.a&&other.d<2.2&&a.role!=='G'&&this.random()<.42){
-        this.startBattle(a,other.a);return;
+  StudioHockey.Match.prototype.takePossession=function(a,opts={}){
+    if(this.rebound?.spot&&this.time-this.rebound.time<3){
+      const attack=this.rebound.side,att=matchEngine31ReboundClaim(this,attack,this.rebound.spot),def=matchEngine31ReboundClaim(this,1-attack,this.rebound.spot);
+      if(att?.a&&def?.a&&StudioHockey.distance(att.a,this.rebound.spot)<1.7&&StudioHockey.distance(def.a,this.rebound.spot)<1.7&&att.a.id!==def.a.id&&!this.battle){
+        const started=this.startBattle(def.a,att.a);
+        if(started)this.say('net-front',att.a.player.name+' och '+def.a.player.name.split(' ').at(-1)+' slåss om returen framför mål.',attack,true);
       }
     }
     return baseTakePossession31.call(this,a,opts);
