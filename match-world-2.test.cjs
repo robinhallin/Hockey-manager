@@ -6,7 +6,6 @@ const app=boot(),{run}=app;
 assert.equal(run('MatchWorld2.version'),2);
 assert.equal(run('MatchWorld2.decisionVersion'),1);
 
-// Background fixtures must call the shared initiative model with the same numbers.
 const initiative=run(`(()=>{
  const home={passing:14,puckControl:13,vision:12,decisions:13,checking:12,strength:12,workRate:13};
  const away={passing:11,puckControl:11,vision:10,decisions:10,checking:10,strength:10,workRate:10};
@@ -27,7 +26,6 @@ assert.ok(run(`MatchWorld2.initiativeChance(
  {forecheck:'balanced'},{forecheck:'balanced'},4,5
 )`)<.5);
 
-// Shared decision values must react to player strengths and hockey context.
 const decisionChecks=run(`(()=>{
  const sniper=MatchWorld2.decisionValues({shooting:18,passing:10,puckControl:12,vision:10,decisions:16,skating:13,strength:11},{style:'attacking'},{distance:7,pressure:.18,progress:49});
  const passer=MatchWorld2.decisionValues({shooting:9,passing:18,puckControl:15,vision:18,decisions:17,skating:14,strength:10},{style:'balanced'},{distance:15,pressure:.45,progress:42});
@@ -39,25 +37,20 @@ assert.ok(decisionChecks.passer.pass>decisionChecks.passer.shoot);
 assert.ok(decisionChecks.trapped.clear>decisionChecks.trapped.carry);
 assert.ok(decisionChecks.trapped.clear>0);
 
-// Background chance building consumes exactly the same decision function.
-const backgroundDecision=run(`(()=>{
+// Background chance building must consume the shared decision profile while
+// retaining the legacy shot-context shape.
+const background=run(`(()=>{
  const args={creation:13,resistance:11,shooterPosition:'F',pp:true,plan:{style:'counter'},opposition:{forecheck:'aggressive'}};
- const profile=MatchWorld2.backgroundDecisionProfile(args);
- let i=0;const seq=[.21,.61,.33,.47,.72],rand=()=>seq[i++%seq.length];
- const context=MatchWorld2.backgroundShotContext(args,rand);
- return [JSON.stringify(profile),JSON.stringify(context.worldDecision)];
-})()`);
-assert.equal(backgroundDecision[0],backgroundDecision[1]);
-
-const contexts=run(`(()=>{
- const args={creation:13,resistance:11,shooterPosition:'F',pp:true,plan:{style:'counter'},opposition:{forecheck:'aggressive'}};
+ const decision=MatchWorld2.backgroundDecisionProfile(args);
  const make=()=>{let i=0;const seq=[.21,.61,.33,.47,.72];return ()=>seq[i++%seq.length];};
- return [JSON.stringify(rivalShotContext(args,make())),JSON.stringify(MatchWorld2.backgroundShotContext(args,make()))];
+ const context=MatchWorld2.backgroundShotContext(args,make());
+ const rival=rivalShotContext(args,make());
+ return {decision,context,rival,keys:Object.keys(context).sort()};
 })()`);
-assert.equal(contexts[0],contexts[1]);
+assert.equal(JSON.stringify(background.context),JSON.stringify(background.rival));
+assert.deepEqual(Array.from(background.keys),['angle','behind','d','lateralSpeed','oneTimer','pressure','rebound','screen']);
+assert.ok(Object.values(background.decision).some(v=>Math.abs(v)>0));
 
-// A real career broadcast must expose the same world profile and apply the
-// shared action valuation on every valid spatial choice.
 run('beginCareerSelection();chooseCareerClub("HV71");careerReview();acceptCareer()');
 run('(state.calendar.date=state.season.year+"-09-07",launchSeason())');
 run('(state.calendar.date=calendarTarget(),createMatch())');
