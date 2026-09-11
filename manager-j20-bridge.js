@@ -37,11 +37,54 @@ function managerJ20Review(){
   const best=ranked[0]||null,readiness=managerJ20Readiness(best?.p),form=managerJ20RecentForm(best?.p),win=match.own>match.against,draw=match.own===match.against;
   return {match,best:best?.p||null,bestRow:best?.row||null,readiness,form,resultLabel:draw?'Oavgjort':win?'Seger':'Förlust'};
 }
+function managerJ20DecisionKey(review){return review?.best&&review?.match?`${review.match.year}:${review.match.date}:${review.best.id}`:'';}
+function managerJ20Decision(review=managerJ20Review()){
+  const key=managerJ20DecisionKey(review);return key?state.juniors?.managerDecisions?.[key]||null:null;
+}
+function managerJ20DecisionLabel(action){return action==='promote'?'Flyttad till A-laget':action==='guest'?'A-träning + J20':action==='monitor'?'Följ vidare':'Beslut registrerat';}
+function managerJ20Remember(review,action){
+  if(!review?.best||!review?.match)return null;
+  const key=managerJ20DecisionKey(review),store=state.juniors.managerDecisions??={};
+  store[key]={action,playerId:review.best.id,playerName:review.best.name,matchDate:review.match.date,decisionDate:state.calendar.date,readiness:review.readiness.level,formGames:review.form.games,formPoints:review.form.points};
+  const keys=Object.keys(store);while(keys.length>60)delete store[keys.shift()];
+  return store[key];
+}
+function managerJ20Act(id,action,matchDate){
+  const review=managerJ20Review();if(!review?.best||!samePlayerId(review.best.id,id)||review.match.date!==matchDate)return false;
+  const p=state.juniors.roster.find(q=>samePlayerId(q.id,id));
+  if(action==='promote'){
+    if(!p||juniorLocked()||p.academy?.loan)return false;
+    juniorPromote(p.id);
+    const promoted=managerRoster().find(q=>samePlayerId(q.id,id)&&q.academy?.path==='senior');
+    if(!promoted)return false;
+    managerJ20Remember(review,'promote');save();render();return true;
+  }
+  if(action==='guest'){
+    if(!p||juniorLocked()||p.academy?.loan)return false;
+    p.academy.path='guest';managerJ20Remember(review,'guest');
+    juniorReport(`${p.name} får A-träning`,`Spelaren tränar med A-laget men spelar fortsatt J20. Nästa J20-rapport följer om nivån, formen och A-lagsbehovet förändras.`);
+    juniorNotice(`${p.name} går in i A-träning men tillhör fortsatt J20.`);return true;
+  }
+  if(action==='monitor'){
+    managerJ20Remember(review,'monitor');
+    managerMessage(`j20-monitor:${review.match.date}:${review.best.id}`,'Följ junioren vidare',`${review.best.name} stannar i J20. Tränarstaben återkommer efter nästa spelade J20-match med en ny bedömning.`,'Junioransvarig',{link:'juniors'});
+    save();render();return true;
+  }
+  return false;
+}
+function managerJ20DecisionView(review){
+  const decision=managerJ20Decision(review),best=review.best;if(!best)return '';
+  if(decision)return `<div class="manager-life-actions j20-decision"><span><b>Managerbeslut:</b> ${trainingSafe(managerJ20DecisionLabel(decision.action))} · ${calText(decision.decisionDate)}</span>${deskLink('Öppna juniorlaget',{page:'juniors'})}</div>`;
+  const stillJunior=state.juniors?.roster?.some(p=>samePlayerId(p.id,best.id));
+  if(!stillJunior)return `<div class="manager-life-actions j20-decision"><span>Spelaren tillhör redan A-truppen.</span>${deskLink('Öppna truppen',{page:'squad'})}</div>`;
+  const id=JSON.stringify(String(best.id)),date=JSON.stringify(review.match.date),canPromote=review.readiness.level!=='Fortsatt J20-utveckling';
+  return `<div class="manager-life-actions j20-decision"><button class="desk-link" onclick='juniorSelect(${id})'>Granska spelaren</button>${best.academy?.path==='guest'?'':`<button class="desk-link" onclick='managerJ20Act(${id},"guest",${date})'>A-träning</button>`}${canPromote?`<button class="btn" onclick='managerJ20Act(${id},"promote",${date})'>Flytta upp till A-laget</button>`:''}<button class="desk-link" onclick='managerJ20Act(${id},"monitor",${date})'>Följ vidare</button></div>`;
+}
 function managerJ20ReviewView(){
   if(state.season?.phase!=='regular')return '';
   const review=managerJ20Review();if(!review)return '';
   const {match,best,bestRow,readiness,form}=review,age=best?` · ${best.age} år`:'';
-  return `<section class="manager-day-preview j20-review" aria-label="Senaste J20-rapport"><div><span class="desk-kicker">J20 SENAST · ${calText(match.date)}</span><strong>${managerClub()} J20 ${match.own}–${match.against} ${trainingSafe(match.opponent)} J20</strong><p>${best?`Matchens utvecklingssignal: <b>${trainingSafe(best.name)}</b>${age} · ${bestRow.goals||0} mål · ${bestRow.assists||0} assist · ${Math.round((bestRow.seconds||0)/60)} min. ${trainingSafe(readiness.level)}.`:'Ingen individuell utvecklingssignal registrerad.'}</p>${best?`<small>${trainingSafe(readiness.detail)}${form.games>1?` Senaste ${form.games}: ${form.goals}+${form.assists}.`:''}</small>`:''}</div>${deskLink('Öppna juniorlaget',{page:'juniors'})}</section>`;
+  return `<section class="manager-day-preview j20-review" aria-label="Senaste J20-rapport"><div><span class="desk-kicker">J20 SENAST · ${calText(match.date)}</span><strong>${managerClub()} J20 ${match.own}–${match.against} ${trainingSafe(match.opponent)} J20</strong><p>${best?`Matchens utvecklingssignal: <b>${trainingSafe(best.name)}</b>${age} · ${bestRow.goals||0} mål · ${bestRow.assists||0} assist · ${Math.round((bestRow.seconds||0)/60)} min. ${trainingSafe(readiness.level)}.`:'Ingen individuell utvecklingssignal registrerad.'}</p>${best?`<small>${trainingSafe(readiness.detail)}${form.games>1?` Senaste ${form.games}: ${form.goals}+${form.assists}.`:''}</small>`:''}</div>${managerJ20DecisionView(review)}</section>`;
 }
 
 const managerJ20MorningBase=managerLifeMorningView;
