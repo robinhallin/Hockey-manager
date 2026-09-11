@@ -16,11 +16,11 @@ assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"
 review=r('managerJ20Review()');
 assert.ok(review.form.games>=1&&review.form.games<=3);
 assert.equal(review.form.points,review.form.goals+review.form.assists);
-const group=r(`managerJ20Group(juniorById(${JSON.stringify(firstId)}))`);
+const latestId=String(review.best.id),group=r(`managerJ20Group(juniorById(${JSON.stringify(latestId)}))`);
 r(`for(const p of managerRoster())if(managerJ20Group(p)===${JSON.stringify(group)}){p.health??={load:0,injury:null,clearance:'full'};p.health.injury={name:'Testskada',remaining:5,initial:5,readiness:40,source:'test'};p.health.clearance='rest';}`);
-const need=r(`managerJ20SeniorNeed(juniorById(${JSON.stringify(firstId)}))`);
+const need=r(`managerJ20SeniorNeed(juniorById(${JSON.stringify(latestId)}))`);
 assert.ok(need.shortage>0);
-assert.equal(r(`managerJ20Readiness(juniorById(${JSON.stringify(firstId)})).level`),'Aktuell vid truppbehov');
+assert.equal(r(`managerJ20Readiness(juniorById(${JSON.stringify(latestId)})).level`),'Aktuell vid truppbehov');
 const before=r('JSON.stringify(state)');
 const html=r('managerOfficeView()');
 assert.match(html,/J20 SENAST/);
