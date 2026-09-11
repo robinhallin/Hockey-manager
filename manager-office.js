@@ -17,6 +17,8 @@ function officeDecisions(){
   (state.loans?.offers||[]).filter(o=>o.status==='counter').forEach(o=>add('loan:'+o.id,o.name||'Låneförhandling','Motbud om lån · granska nya villkor'));
   r.deals.filter(d=>d.status==='pending'&&d.counter).forEach(d=>add('transfer:'+d.id,d.name||'Värvning','Agentens motbud · granska nya villkor'));
   r.incoming.filter(d=>d.status==='pending'&&d.expires>=r.tick).forEach(d=>add('incoming:'+d.id,d.name||'Försäljningsbud',`${d.buyer||'En klubb'} erbjuder ${careerMoney(d.fee||0)}`));
+  const stories=(state.stories?.active||[]).filter(s=>s.status==='decision');
+  for(const s of stories)tasks.unshift({storyId:s.id,title:s.title,detail:typeof storiesNext==='function'?storiesNext(s):'Ett säsongsbeslut väntar på ditt besked.',tag:'Berättelse'});
   return tasks;
 }
 function officeWaiting(){
@@ -51,7 +53,7 @@ function officePulseView(items){
   return `<section class="office-pulse" aria-label="Managerveckan">${items.map(item=>`<article class="office-pulse-card" data-tone="${item.tone||'calm'}"><span>${item.label}</span><strong>${trainingSafe(item.value)}</strong><p>${trainingSafe(item.detail)}</p>${item.action?deskLink(item.button,item.action):''}</article>`).join('')}</section>`;
 }
 function officeDecisionRow(t){
-  const action=t.key?`officeOpenDeal(${JSON.stringify(t.key)})`:deskAction(t.action);
+  const action=t.storyId?`storiesOpen(${JSON.stringify(t.storyId)})`:t.key?`officeOpenDeal(${JSON.stringify(t.key)})`:deskAction(t.action);
   return `<button type="button" class="office-decision" onclick="${trainingSafe(action)}"><span>${t.tag}</span><strong>${trainingSafe(t.title)}</strong><small>${trainingSafe(t.detail)}</small><b aria-hidden="true">→</b></button>`;
 }
 function officeFixtures(rows,played){
@@ -66,8 +68,10 @@ function managerOfficeView(){
   const daily=active?'Matchen är igång. Se över matchplanen eller återvänd till matchvyn.':finished?'Läs matchrapporten och följ upp lagets prestation.':matchday?'Kontrollera kedjor, målvakt och matchplan inför nedsläpp.':pass.description;
   const table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,Math.min(index-2,table.length-5)),focus=coachFocus(),pulse=officePulse(tasks,{active,finished,matchday,pass,tired});
   const status=(label,value,detail,action,buttonLabel)=>`<div class="office-status"><span>${label}</span><strong>${value}</strong><small>${trainingSafe(detail)}</small>${deskLink(buttonLabel,action)}</div>`;
+  const storyFocus=typeof storiesDeskView==='function'?storiesDeskView():'';
   return `<section class="office-overview"><header class="office-heading"><div><span class="desk-kicker">${trainingSafe(managerClub())} · ${seasonLabel()}</span><h1>Tränarkontoret</h1></div><span>${calText(c.date)}</span></header>
   ${officePulseView(pulse)}
+  ${storyFocus}
   <div class="office-grid">
     <section class="office-match office-next"><span class="desk-kicker">${next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="office-score">${next.score}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${deskLink(next.label,next.action,'btn')}<div class="office-day"><div><strong>Idag · ${today}</strong><p>${trainingSafe(daily)}</p></div><button type="button" onclick="officeOpenDay('${c.date}')">Öppna dagens program →</button></div></section>
     <section class="office-panel office-tasks"><header><h2>Att ta ställning till</h2><span class="office-count">${tasks.length}</span></header><div class="office-decisions">${tasks.map(officeDecisionRow).join('')||'<p class="office-empty">Inga svarsärenden eller akuta åtgärder just nu.</p>'}</div></section>
