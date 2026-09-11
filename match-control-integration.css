@@ -1,0 +1,7 @@
+/* Scan fixes: keep the six common bench messages visible on desktop match view. */
+@media(min-width:1100px) and (min-height:650px){
+  .mc-live .mc-messages{gap:5px}
+  .mc-live .mc-messages>.mc-choice{min-height:30px;padding:6px 8px}
+  .mc-live .mc-messages>.mc-choice small{display:none}
+  .mc-live .mc-target{margin:6px 0}
+}
