@@ -28,13 +28,18 @@ const background=run(`(()=>{
  const game={home:'A',away:'B'};
  const result={homeGoals:3,awayGoals:2,duration:3700,overtime:true,shootout:false,reports:[{club:'A',shots:31,pp:4,ppGoals:1},{club:'B',shots:27,pp:3,ppGoals:0}]};
  const ledger=MatchEventLedger.aggregateBackground(result,game);
- return {source:ledger.source,aggregate:ledger.aggregate,event:ledger.events[0],valid:MatchEventLedger.validate({eventLedger:ledger})};
+ return {source:ledger.source,aggregate:ledger.aggregate,summary:MatchEventLedger.summary(ledger),event:ledger.events[0],valid:MatchEventLedger.validate({eventLedger:ledger})};
 })()`);
 assert.equal(background.source,'background');
 assert.deepEqual(Array.from(background.aggregate.goals),[3,2]);
 assert.deepEqual(Array.from(background.aggregate.shots),[31,27]);
 assert.deepEqual(Array.from(background.aggregate.pp),[4,3]);
 assert.deepEqual(Array.from(background.aggregate.ppGoals),[1,0]);
+assert.deepEqual(Array.from(background.summary.goals),[3,2]);
+assert.deepEqual(Array.from(background.summary.shots),[31,27]);
+assert.deepEqual(Array.from(background.summary.pp),[4,3]);
+assert.deepEqual(Array.from(background.summary.ppGoals),[1,0]);
+assert.equal(background.summary.aggregate,true);
 assert.equal(background.event.type,'final');
 assert.equal(background.valid,true);
 
