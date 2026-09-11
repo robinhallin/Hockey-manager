@@ -53,11 +53,23 @@ const MatchEventStream=(()=>{
  };
  const syncLive=(e)=>{
   if(typeof state==='undefined'||!state.live?.eventStream)return null;
-  const s=summary(state.live.eventStream),m=state.live;
+  const stream=state.live.eventStream,m=state.live;
+  let s=summary(stream);
+  const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
+  // Some official finishes (friendlies/imported states/tests) can enter with a final
+  // engine score but without replayed goal events. Reconcile only missing positive
+  // goal deltas at match end so the ledger remains authoritative afterwards.
+  if(m.finished&&!preserveShootoutScore&&Array.isArray(e?.score)){
+   let changed=false;
+   for(const side of [0,1]){
+    const official=Math.max(0,Number(e.score[side])||0),missing=official-s.score[side];
+    if(missing>0){stream.baseline.score[side]=(stream.baseline.score[side]||0)+missing;changed=true;}
+   }
+   if(changed)s=summary(stream);
+  }
   m.matchEventSummary=s;m.shotsHV=s.shots[0];m.shotsOpp=s.shots[1];
   // Shootout goals are an official tiebreak result, not normal shot/goal events.
   // Once the shootout has finished, keep the career match's official winner on the scoreboard.
-  const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
   if(!preserveShootoutScore){m.hv=s.score[0];m.opp=s.score[1];}
   m.ppHV=s.pp[0];m.ppOpp=s.pp[1];m.ppGoalsHV=s.ppGoals[0];m.ppGoalsOpp=s.ppGoals[1];
   if(e){e.eventStreamVersion=VERSION;e.eventSummary=s;}
