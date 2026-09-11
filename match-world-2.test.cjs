@@ -27,13 +27,14 @@ assert.ok(run(`MatchWorld2.initiativeChance(
  {forecheck:'balanced'},{forecheck:'balanced'},4,5
 )`)<.5);
 
-// Background chance context is no longer a separate formula.
+// Background chance context is no longer a separate formula. Serialize inside
+// the VM so realm-specific Object prototypes cannot affect the assertion.
 const contexts=run(`(()=>{
  const args={creation:13,resistance:11,shooterPosition:'F',pp:true,plan:{style:'counter'},opposition:{forecheck:'aggressive'}};
  const make=()=>{let i=0;const seq=[.21,.61,.33,.47,.72];return ()=>seq[i++%seq.length];};
- return [rivalShotContext(args,make()),MatchWorld2.backgroundShotContext(args,make())];
+ return [JSON.stringify(rivalShotContext(args,make())),JSON.stringify(MatchWorld2.backgroundShotContext(args,make()))];
 })()`);
-assert.deepEqual(contexts[0],contexts[1]);
+assert.equal(contexts[0],contexts[1]);
 
 // A real career broadcast must expose the same world profile and use it in decisions.
 run('beginCareerSelection();chooseCareerClub("HV71");careerReview();acceptCareer()');
