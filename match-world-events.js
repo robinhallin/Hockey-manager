@@ -58,8 +58,9 @@ const MatchEventStream=(()=>{
   const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
   // Some official finishes (friendlies/imported states/tests) can enter with a final
   // engine score but without replayed goal events. Reconcile only missing positive
-  // goal deltas at match end so the ledger remains authoritative afterwards.
-  if(m.finished&&!preserveShootoutScore&&Array.isArray(e?.score)){
+  // goal deltas once the engine has reached a period/game boundary, before the career
+  // adapter decides whether regulation is actually over.
+  if((m.finished||e?.finished)&&!preserveShootoutScore&&Array.isArray(e?.score)){
    let changed=false;
    for(const side of [0,1]){
     const official=Math.max(0,Number(e.score[side])||0),missing=official-s.score[side];
@@ -143,5 +144,5 @@ if(typeof rivalSimulate==='function'){
   result.eventStream=stream;result.eventSummary=s;result.eventStreamVersion=MatchEventStream.VERSION;
   (result.reports||[]).forEach((r,side)=>{r.eventStreamVersion=MatchEventStream.VERSION;r.eventSummary={score:s.score[side],shots:s.shots[side],attempts:s.attempts[side],saves:s.saves[side],pp:s.pp[side],ppGoals:s.ppGoals[side]};r.shots=s.shots[side];r.pp=s.pp[side];r.ppGoals=s.ppGoals[side];});
   return result;
- };
+ }
 }
