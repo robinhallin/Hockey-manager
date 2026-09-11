@@ -33,8 +33,6 @@ const MatchWorld2=(()=>{
   return clamp(base+(controlScore(home)-controlScore(away))*.015+press(home,away,homePlan)-press(away,home,awayPlan)+(homeCount-awayCount)*.07,.25,.75);
  }
 
- // Shared action valuation. Geometry and legal availability remain owned by the
- // spatial engine; these values only rank hockey choices that are already valid.
  function decisionValues(attrs,plan={},context={}){
   const a=attrs||{},style=plan.style||plan.mentality||'balanced',tempo=plan.tempo||'normal';
   const pressure=clamp(Number(context.pressure)||0,0,1),distance=Number.isFinite(context.distance)?context.distance:14;
@@ -71,7 +69,7 @@ const MatchWorld2=(()=>{
   const angle=rand()*(close?.65:1.05);
   const pressure=clamp(.42-edge*.4-(pp?.14:0)-(counter?.12:0)+(opposition.forecheck==='aggressive'&&!counter?.08:0)-choices.shield*.35,.08,.85);
   const screen=clamp((plan.style==='pressure'?.38:.20)+(pp?.12:0)+choices.shoot*.15,0,1);
-  return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0,worldDecision:choices};
+  return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
  }
  function liveProfiles(match){
   if(!match)return null;
@@ -115,8 +113,6 @@ if(typeof rivalShotContext==='function'){
  rivalShotContext=function(args,rand){return MatchWorld2.backgroundShotContext(args,rand);};
 }
 
-// Spatial geometry decides which actions exist. MatchWorld decides how much the
-// player's attributes, pressure and team plan should move each valid choice.
 if(typeof CareerBroadcastMatch!=="undefined"){
  const baseActionOptions=CareerBroadcastMatch.prototype.actionOptions;
  CareerBroadcastMatch.prototype.actionOptions=function(a){
