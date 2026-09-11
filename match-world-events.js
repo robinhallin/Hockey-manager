@@ -56,6 +56,9 @@ const MatchEventStream=(()=>{
   const stream=state.live.eventStream,m=state.live;
   let s=summary(stream);
   const preserveShootoutScore=Boolean(m.finished&&m.analysisShootout);
+  // The live engine owns the scoreboard while a match is being played. The event
+  // stream mirrors the official final score for reporting, but never writes the
+  // score back into state.live; doing so can interfere with OT/friendly finish logic.
   if((m.finished||e?.finished)&&!preserveShootoutScore&&Array.isArray(e?.score)){
    let changed=false;
    for(const side of [0,1]){
@@ -65,7 +68,6 @@ const MatchEventStream=(()=>{
    if(changed)s=summary(stream);
   }
   m.matchEventSummary=s;m.shotsHV=s.shots[0];m.shotsOpp=s.shots[1];
-  if(!preserveShootoutScore){m.hv=s.score[0];m.opp=s.score[1];}
   m.ppHV=s.pp[0];m.ppOpp=s.pp[1];m.ppGoalsHV=s.ppGoals[0];m.ppGoalsOpp=s.ppGoals[1];
   if(e){e.eventStreamVersion=VERSION;e.eventSummary=s;}
   return s;
