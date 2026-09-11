@@ -8,6 +8,17 @@ assert.match(r('managerOfficeView()'),/Besluta nu/);
 assert.match(r('managerOfficeView()'),/Påverka idag/);
 assert.match(r('managerOfficeView()'),/Väntar på/);
 assert.equal(r('JSON.stringify(state)'),before,'Overview must not change the simulation');
+
+// Existing season stories must become visible manager work instead of a hidden side page.
+r("ensureStories();globalThis.storyPlayer=managerRoster().find(p=>p.pos!=='MV');globalThis.officeStory=storiesCreate('talent',[storyPlayer.id],'Talangen knackar på','En faktisk matchsituation har öppnat en chans.');");
+assert.ok(r('officeStory&&officeStory.id'));
+const storyState=r('JSON.stringify(state)');
+assert.match(r('managerOfficeView()'),/Säsongens historier/);
+assert.match(r('managerOfficeView()'),/Talangen knackar på/);
+assert.equal(r("officeDecisions().some(t=>t.storyId===officeStory.id&&t.tag==='Berättelse')"),true);
+assert.match(r("officeDecisionRow(officeDecisions().find(t=>t.storyId===officeStory.id))"),/storiesOpen/);
+assert.equal(r('JSON.stringify(state)'),storyState,'Reading the office story focus must not change the simulation');
+
 r('managerRoster()[0].fatigue=60');
 assert.equal(r("officeDecisions().some(t=>t.tag==='Träning'||t.tag==='Medicinskt'||t.tag==='Trupp')"),false);
 const pulse=r("officePulse([], {active:false,finished:false,matchday:false,pass:{name:'Teknik',description:'Passbeskrivning'},tired:[managerRoster()[0]]})");
@@ -24,7 +35,7 @@ r('state.recruitment.incoming.find(d=>d.id===900).expires=-1');
 assert.equal(r("officeDecisions().some(t=>t.key==='incoming:900')"),false);
 r("officeOpenDay(calAdd(state.calendar.date,3))");assert.equal(r('calendarUI.date'),r('calAdd(state.calendar.date,3)'));
 assert.equal(r("(managerOfficeView().match(/Öppna dagens program/g)||[]).length"),1);
-console.log('PASS: read-only overview, manager pulse, decision priorities, exact affair and calendar destinations, expired offers, single daily action.');
+console.log('PASS: read-only overview, manager pulse, season stories as decisions, exact affair and calendar destinations, expired offers, single daily action.');
 // Switching the compact match summary is a view change, not simulation progress.
 r("deskNavigate('home');officeFixtureTab('recent')");
 assert.match(r('managerOfficeView()'),/Inga matcher spelade ännu/);
