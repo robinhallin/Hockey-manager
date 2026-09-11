@@ -31,6 +31,18 @@ assert.ok(run('Boolean(studioEngine())'));
 assert.equal(run('state.live.eventStream.version'),1);
 assert.equal(run('state.live.matchEventSummary.score[0]'),0);
 
+const ownership=run(`(()=>{
+ const e=studioEngine();
+ state.live.hv=1;state.live.opp=0;e.score=[1,0];
+ MatchEventStream.syncLive(e);
+ const out={hv:state.live.hv,opp:state.live.opp,ledger:[...state.live.matchEventSummary.score]};
+ state.live.hv=0;state.live.opp=0;e.score=[0,0];
+ return out;
+})()`);
+assert.equal(ownership.hv,1);
+assert.equal(ownership.opp,0);
+assert.deepEqual(Array.from(ownership.ledger),[0,0]);
+
 run('state.live.running=true');
 run('for(let i=0;i<25;i++)studioStep()');
 assert.ok(run('Object.values(state.live.eventStream.ice).some(v=>v>0)'));
@@ -61,4 +73,4 @@ for(let side=0;side<2;side++){
  assert.equal(background.reports[side].event.shots,background.summary.shots[side]);
 }
 
-console.log('PASS: MatchWorld event stream is authoritative for live counters, penalties/PP, ice ledger and background reports.');
+console.log('PASS: MatchWorld event stream is authoritative for reports/counters without taking ownership of the live scoreboard.');
