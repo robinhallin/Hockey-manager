@@ -9,6 +9,12 @@ assert.ok(r('screenCtx.screeners.some(x=>x.id===tip.id)'),'the actual screening 
 assert.ok(r('screenRebound.freeze')<r('clearRebound.freeze'),'screened shots must be harder to freeze');
 assert.ok(r('screenRebound.safe')<r('clearRebound.safe'),'screened shots must create less controlled rebounds');
 
+r("globalThis.d=e.skaters(1)[0];Object.assign(s,{x:48,y:15,vx:2.5,vy:0});Object.assign(d,{x:49.1,y:15,vx:-2.8,vy:0});globalThis.contactCtx=e.shotContext(s);Object.assign(d,{x:38,y:3,vx:0,vy:0});globalThis.spaceCtx=e.shotContext(s)");
+assert.ok(r('contactCtx.contactPressure')>r('spaceCtx.contactPressure'),'close physical defender must create contact pressure');
+assert.ok(r('contactCtx.pressure')>r('spaceCtx.pressure'),'physical contact pressure must feed the real shot-pressure context');
+r("Object.assign(d,{x:49.1,y:15,vx:-2.8,vy:0});e.puck={x:s.x,y:s.y};globalThis.fastBattle=e.battleChance(d,s);Object.assign(d,{vx:0,vy:0});Object.assign(s,{vx:0,vy:0});globalThis.slowBattle=e.battleChance(d,s)");
+assert.ok(r('fastBattle')>r('slowBattle'),'collision momentum must matter in puck battles');
+
 r("Object.assign(tip,{x:54,y:15});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;e.shoot(s);globalThis.trafficShot=e.flight?.shot");
 assert.equal(r('trafficShot.context.trafficShot'),true);
 assert.equal(r('e.stats[0].trafficShots'),1);
@@ -35,4 +41,4 @@ assert.equal(q('e.penaltyCount(0)'),0);
 assert.equal(q('e.strength(0)'),q('baseStrength'),'a misconduct removes the offender but must not make the team short-handed');
 assert.equal(q('studioPlayer(0,mc.playerId).pim>=10'),true);
 
-console.log('PASS: Match Engine 3 geometric traffic, screen-sensitive rebound control, major penalties and misconduct preserve shared match accounting.');
+console.log('PASS: Match Engine 3 geometric traffic, physical pressure, momentum battles, screen-sensitive rebound control, majors and misconduct preserve shared accounting.');
