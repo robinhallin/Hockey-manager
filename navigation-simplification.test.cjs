@@ -3,10 +3,10 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;
 r("startCareerWithClub('HV71')");
 
-assert.deepEqual(r("Array.from(DESK_AREAS.find(a=>a.id==='overview').pages,p=>p[0])"),['home']);
-assert.deepEqual(r("Array.from(DESK_AREAS.find(a=>a.id==='matches').pages,p=>p[0])"),['calendar','statistics']);
-assert.deepEqual(r("Array.from(DESK_AREAS.find(a=>a.id==='leagues').pages,p=>p[0])"),['leagues','table','leagueStats']);
-assert.deepEqual(r("Array.from(DESK_RECRUIT_TABS,p=>p[0])"),['needs','search','deals']);
+assert.equal(r("JSON.stringify(Array.from(DESK_AREAS.find(a=>a.id==='overview').pages,p=>p[0]))"),JSON.stringify(['home']));
+assert.equal(r("JSON.stringify(Array.from(DESK_AREAS.find(a=>a.id==='matches').pages,p=>p[0]))"),JSON.stringify(['calendar','statistics']));
+assert.equal(r("JSON.stringify(Array.from(DESK_AREAS.find(a=>a.id==='leagues').pages,p=>p[0]))"),JSON.stringify(['leagues','table','leagueStats']));
+assert.equal(r("JSON.stringify(Array.from(DESK_RECRUIT_TABS,p=>p[0]))"),JSON.stringify(['needs','search','deals']));
 assert.equal(r("deskSubnav()"),'','overview must not add another row of tabs');
 
 r("deskNavigate('lines')");
