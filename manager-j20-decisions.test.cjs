@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(),r=app.run;
+r("startCareerWithClub('HV71');ensureJuniors();ensureJuniorCalendar()");
+while(r("state.calendar.date<'2026-09-09'"))r('calendarStep(true)');
+let review=r('managerJ20Review()');
+assert.ok(review?.best&&review?.match?.j20,'latest J20 match should surface a prospect');
+const id=String(review.best.id),date=review.match.date;
+const before=r('JSON.stringify(state)');
+const html=r('managerJ20ReviewView()');
+assert.match(html,/J20 SENAST/);
+assert.match(html,/A-träning/);
+assert.match(html,/Följ vidare/);
+assert.equal(r('JSON.stringify(state)'),before,'rendering J20 decision card must be read-only');
+assert.equal(r(`managerJ20Act(${JSON.stringify(id)},'guest',${JSON.stringify(date)})`),true);
+assert.equal(r(`juniorById(${JSON.stringify(id)}).academy.path`),'guest');
+assert.equal(r(`managerJ20Decision().action`),'guest');
+assert.match(r('managerJ20ReviewView()'),/Managerbeslut/);
+assert.match(r('managerJ20ReviewView()'),/A-träning \+ J20/);
+// A manager may revise the same recommendation before the next J20 match.
+assert.equal(r(`managerJ20Act(${JSON.stringify(id)},'monitor',${JSON.stringify(date)})`),true);
+assert.equal(r(`managerJ20Decision().action`),'monitor');
+assert.match(r('managerJ20ReviewView()'),/Följ vidare/);
+// Promotion must use the existing junior promotion path and therefore update both rosters.
+assert.equal(r(`managerJ20Act(${JSON.stringify(id)},'promote',${JSON.stringify(date)})`),true);
+assert.equal(r(`state.juniors.roster.some(p=>samePlayerId(p.id,${JSON.stringify(id)}))`),false);
+assert.equal(r(`managerRoster().some(p=>samePlayerId(p.id,${JSON.stringify(id)})&&p.academy?.path==='senior')`),true);
+assert.equal(r(`managerJ20Decision().action`),'promote');
+assert.match(r('managerJ20ReviewView()'),/Flyttad till A-laget/);
+assert.ok(r(`state.juniors.reports.some(x=>/A-laget/.test(x.title)||/A-träning/.test(x.title))`));
+console.log('PASS: J20 development signal can become A-training, monitoring or a real senior promotion without render-side mutation.');
