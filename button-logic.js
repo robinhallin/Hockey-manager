@@ -59,3 +59,53 @@ function deskEnhanceButtons(root){
 function resetRecruitFilters(){state.recruitment.filters={country:'ALL',profile:'ALL',availability:'all',maxAge:60,maxFee:50000000,query:'',attribute:'',minAttribute:10};queueInterfaceSave();render();}
 
 function applyRecruitSearch(){const input=document.getElementById('recruit-query');if(input)setRecruitFilter('query',input.value);}
+
+// Navigation simplification: keep deep tools available contextually, but remove duplicate top-level routes.
+DESK_AREAS.splice(0,DESK_AREAS.length,
+  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret']],details:{staffReview:'home',stories:'home'}},
+  {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Taktik & laguttagning'],['locker','Omklädningsrum']],details:{player:'squad',specialTeams:'lines',tactics:'lines'}},
+  {id:'training',label:'Utveckling',icon:'training',pages:[['training','Spelarutveckling'],['juniors','Juniorer'],['medical','Medicinskt team']]},
+  {id:'matches',label:'Matcher',icon:'calendar',pages:[['calendar','Kalender'],['statistics','Matchanalys']],details:{match:'calendar',opponents:'calendar',schedule:'calendar',round:'calendar'}},
+  {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Rekrytering']],details:{marketPlayer:'transfers',scouting:'transfers'}},
+  {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
+  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['table','Tabell'],['leagueStats','Spelarstatistik']],details:{news:'leagues',season:'leagues'}}
+);
+DESK_RECRUIT_TABS.splice(0,DESK_RECRUIT_TABS.length,['needs','Planering'],['search','Spelare & scouting'],['deals','Affärer']);
+for(const row of [['missions','Scouting'],['shortlist','Önskelista']])if(!DESK_RECRUIT_MORE.some(([id])=>id===row[0]))DESK_RECRUIT_MORE.push(row);
+
+const deskAreaMemory={};
+let deskAreaMemoryOwner=null;
+function deskAreaMemoryReset(){if(deskAreaMemoryOwner!==state){for(const key of Object.keys(deskAreaMemory))delete deskAreaMemory[key];deskAreaMemoryOwner=state;}}
+function deskRememberArea(){
+  deskAreaMemoryReset();
+  const area=deskArea();if(!area)return;
+  const canonical=area.details?.[state.page]||state.page;
+  if(!area.pages.some(([page])=>page===canonical))return;
+  deskAreaMemory[area.id]={page:canonical,tab:area.id==='recruitment'?state.recruitment?.tab:undefined};
+}
+const deskNavigateBeforeSimplification=deskNavigate;
+deskNavigate=function(page,tab,record=true){
+  const result=deskNavigateBeforeSimplification(page,tab,record);
+  deskRememberArea();
+  return result;
+};
+function deskPrimaryNav(){
+  deskRememberArea();
+  const area=deskArea();
+  return DESK_AREAS.map(a=>{
+    const target=deskAreaMemory[a.id]||{page:a.pages[0][0]};
+    const tab=target.tab?','+JSON.stringify(target.tab):'';
+    return `<button class="nav-item ${area?.id===a.id?'active':''}" ${area?.id===a.id?'aria-current="true"':''} onclick="deskNavigate(${JSON.stringify(target.page)}${tab})"><span class="nav-icon">${deskIcon(a.icon)}</span><span>${a.label}</span></button>`;
+  }).join('');
+}
+function deskSubnav(){
+  const area=deskArea(),page=area?.details?.[state.page]||state.page;
+  if(area?.id==='recruitment'){
+    const tab=state.page==='scouting'?'missions':state.recruitment.tab;
+    const active=['loans','history'].includes(tab)?'deals':['missions','shortlist','world','free'].includes(tab)?'search':tab;
+    return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
+  }
+  const pages=area?.pages||(['inbox','news'].includes(page)?[['inbox','Inkorg'],['news','Nyheter']]:[]);
+  if(pages.length<2)return '';
+  return `<nav class="desk-subnav" aria-label="${area?.label||'Meddelanden'}">${pages.map(([id,label])=>`<button ${page===id?'aria-current="page"':''} onclick="deskNavigate('${id}')">${label}</button>`).join('')}</nav>`;
+}
