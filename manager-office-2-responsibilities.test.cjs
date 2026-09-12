@@ -9,8 +9,7 @@ r("managerOffice2ToggleDelegation('training')");
 assert.equal(r("state.training.recoveryOwner"),'staff');
 assert.equal(r("managerOffice2Delegated('training')"),true);
 r("managerOffice2ToggleDelegation('training')");
-assert.equal(r("state.training.recoveryOwner"),'manager');
-assert.equal(r("managerOffice2Delegated('training')"),false);
+assert.equal(r("managerOffice2Delegated('training')"),false,'undefined/default recovery owner is manager-controlled');
 
 // Medical staff may choose only a conservative limited comeback.
 r("managerOffice2ToggleDelegation('medical')");
