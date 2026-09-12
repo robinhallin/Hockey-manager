@@ -4,7 +4,7 @@ const {run:r}=boot();
 r("startCareerWithClub('HV71')");
 
 // Training delegation must control the real recovery responsibility.
-assert.equal(r("state.training.recoveryOwner"),'manager');
+assert.equal(r("managerOffice2Delegated('training')"),false);
 r("managerOffice2ToggleDelegation('training')");
 assert.equal(r("state.training.recoveryOwner"),'staff');
 assert.equal(r("managerOffice2Delegated('training')"),true);
