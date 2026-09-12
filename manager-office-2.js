@@ -7,13 +7,12 @@ function managerOffice2Ensure(){
   return state.office2;
 }
 function managerOffice2Priority(level){return ({critical:100,high:75,medium:50,low:25})[level]||0;}
-function managerOffice2Delegated(area){return Boolean(managerOffice2Ensure().delegation?.[area]);}
+function managerOffice2Delegated(area){return Boolean(state.office2?.delegation?.[area]);}
 function managerOffice2ToggleDelegation(area){
   if(!['training','medical','scouting','contracts'].includes(area))return;
   const office=managerOffice2Ensure();office.delegation[area]=!office.delegation[area];queueInterfaceSave();render();
 }
 function managerOffice2Items(){
-  managerOffice2Ensure();
   const items=[];
   const add=item=>items.push({owner:'Du',level:'medium',area:'general',requiresDecision:false,...item});
   for(const task of officeDecisions()){
