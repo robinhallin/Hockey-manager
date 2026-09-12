@@ -12,6 +12,7 @@ r("managerOffice2ToggleDelegation('training')");
 assert.equal(r("managerOffice2Delegated('training')"),false,'undefined/default recovery owner is manager-controlled');
 
 // Medical staff may choose only a conservative limited comeback.
+r("managerOffice2ToggleDelegation('medical')");
 r("const p0=managerRoster()[0];p0.health={load:0,injury:{name:'Test',remaining:0,initial:3,readiness:80,source:'test'},clearance:'rest'}");
 let changed=r("managerOffice2MedicalStaffPlan()");
 assert.equal(changed.length,1);
