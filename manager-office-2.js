@@ -7,10 +7,16 @@ function managerOffice2Ensure(){
   return state.office2;
 }
 function managerOffice2Priority(level){return ({critical:100,high:75,medium:50,low:25})[level]||0;}
-function managerOffice2Delegated(area){return Boolean(state.office2?.delegation?.[area]);}
+function managerOffice2Delegated(area){
+  if(area==='training'&&state.training?.recoveryOwner==='staff')return true;
+  return Boolean(state.office2?.delegation?.[area]);
+}
 function managerOffice2ToggleDelegation(area){
   if(!['training','medical','scouting','contracts'].includes(area))return;
-  const office=managerOffice2Ensure();office.delegation[area]=!office.delegation[area];queueInterfaceSave();render();
+  const office=managerOffice2Ensure(),next=!managerOffice2Delegated(area);
+  office.delegation[area]=next;
+  if(area==='training'&&state.training)state.training.recoveryOwner=next?'staff':'manager';
+  save();render();
 }
 function managerOffice2Items(){
   const items=[];
@@ -46,11 +52,11 @@ function managerOffice2Action(item){
 }
 function managerOffice2Row(item,index){
   const action=managerOffice2Action(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;
-  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p></div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben bevakar</small>':''}</div></article>`;
+  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p></div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben hanterar rutinen</small>':''}</div></article>`;
 }
 function managerOffice2DelegationView(){
   const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt'};
-  return `<div class="office2-delegation"><span>Staben bevakar</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Delegering filtrerar rådgivning. Beslut som kräver ditt svar visas alltid.</small></div>`;
+  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning och medicinskt kan utföra försiktiga rutinåtgärder. Scouting och kontrakt bevakas av staben. Beslut som kräver ditt svar visas alltid.</small></div>`;
 }
 function managerOffice2View(){
   const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length;

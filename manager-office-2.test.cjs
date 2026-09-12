@@ -17,5 +17,5 @@ r("state.recruitment.incoming.push({id:991,name:'Testbud',buyer:'AIK',fee:100000
 assert.equal(r("managerOffice2Items().some(x=>x.requiresDecision&&x.action&&x.action.deal==='incoming:991')"),true);
 r("managerOffice2ToggleDelegation('contracts');managerOffice2ToggleDelegation('medical');managerOffice2ToggleDelegation('scouting')");
 assert.equal(r("managerOffice2VisibleItems().some(x=>x.requiresDecision&&x.action&&x.action.deal==='incoming:991')"),true,'delegation must never hide required manager decisions');
-assert.match(r('managerOffice2View()'),/Staben bevakar/);
+assert.match(r('managerOffice2View()'),/Ansvar & bevakning/);
 console.log('PASS: Office 2 prioritises real work, stays read-only, supports advisory delegation and never hides required decisions.');
