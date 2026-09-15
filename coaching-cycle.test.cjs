@@ -16,6 +16,7 @@ assert.equal(run('coachFocus().results.length'),1);
 run(`coachMatchDone(sample('two',6));coachMatchDone(sample('three',5));coachMatchDone(sample('four',1));save();`);
 assert.equal(run('coachFocus().results.length'),3);
 assert.match(run('coachCycleView()'),/5.0/);
+run("officePanelTab('followup')");
 assert.match(run('managerDeskView()'),/3\/3 matcher/);
 const resumed=boot(app.storage.value);
 assert.equal(resumed.run('coachFocus().results.length'),3);

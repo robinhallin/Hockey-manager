@@ -40,6 +40,6 @@ assert.equal(r('officeUI.panel'),'followup','back returns to the selected office
 const live=boot(),q=live.run;
 q("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.page='home'");
 const liveBefore=q('JSON.stringify(state.live)');
-assert.match(q('managerOfficeView()'),/Matchen pågår/);
+assert.match(q('managerOfficeView()'),/Matchen är pausad/);
 assert.match(q('managerOfficeView()'),/Till matchen/);
 assert.equal(q('JSON.stringify(state.live)'),liveBefore,'Office pulse must not advance a paused match');
