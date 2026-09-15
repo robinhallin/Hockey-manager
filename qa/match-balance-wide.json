@@ -1,27 +1,68 @@
 {
-  "periodsPerMatchup": 6,
-  "method": "Same roster snapshot with every attribute shifted by -2/0/+2. Stress diagnostic only.",
+  "engine": "Match Engine 3 + manager controls; career modifiers excluded",
+  "periodsPerMatchup": 12,
+  "method": "Same roster snapshot with every attribute shifted by -2/0/+2. Same seeds, both rink sides per profile. Stress diagnostic only.",
   "rows": {
     "baseline-baseline": [
-      {"goals":1.17,"shots":12.67,"attempts":23.5,"quality":1.61},
-      {"goals":1.67,"shots":12.67,"attempts":20,"quality":1.4}
+      {
+        "goals": 0.92,
+        "shots": 8.58,
+        "attempts": 13.92,
+        "quality": 0.96
+      },
+      {
+        "goals": 0.92,
+        "shots": 8.58,
+        "attempts": 13.92,
+        "quality": 0.96
+      }
     ],
     "strong-baseline": [
-      {"goals":1.67,"shots":18.83,"attempts":31,"quality":2.56},
-      {"goals":0.83,"shots":8.5,"attempts":14.83,"quality":0.9}
+      {
+        "goals": 2,
+        "shots": 13.42,
+        "attempts": 21.17,
+        "quality": 1.42
+      },
+      {
+        "goals": 0.42,
+        "shots": 4.5,
+        "attempts": 8.25,
+        "quality": 0.49
+      }
     ],
     "baseline-weak": [
-      {"goals":1.5,"shots":13.5,"attempts":27.67,"quality":2.12},
-      {"goals":0.83,"shots":9.83,"attempts":14.17,"quality":0.91}
+      {
+        "goals": 1.58,
+        "shots": 13.42,
+        "attempts": 22.25,
+        "quality": 1.64
+      },
+      {
+        "goals": 0.17,
+        "shots": 5.17,
+        "attempts": 8.92,
+        "quality": 0.48
+      }
     ],
     "strong-weak": [
-      {"goals":4,"shots":28.17,"attempts":42.33,"quality":4.24},
-      {"goals":0.67,"shots":5,"attempts":8.83,"quality":0.5}
+      {
+        "goals": 2,
+        "shots": 19.58,
+        "attempts": 30.58,
+        "quality": 2.51
+      },
+      {
+        "goals": 0.5,
+        "shots": 4.42,
+        "attempts": 7.25,
+        "quality": 0.38
+      }
     ]
   },
   "warnings": [
-    "strong-weak side 0: 28.17 shots/20m indicates runaway volume",
-    "strong-weak side 1: 5 shots/20m indicates suppressed offense"
-  ],
-  "note": "The stress test intentionally exposes the next calibration problem; no blind coefficient change was shipped from this sample alone."
+    "strong-baseline side 1: 4.5 shots/20m indicates suppressed offense",
+    "baseline-weak side 1: 5.17 shots/20m indicates suppressed offense",
+    "strong-weak side 1: 4.42 shots/20m indicates suppressed offense"
+  ]
 }

@@ -9,7 +9,8 @@ const rosters=require('./match-lab-rosters');
 const {Match}=StudioHockey;
 
 // Stable descriptive tuning sample. It protects the intended game envelope, not real SHL claims.
-const periods=24,totals={goals:0,shots:0,attempts:0};
+// A larger fixed sample keeps a few changed puck paths from dominating save percentage.
+const periods=96,totals={goals:0,shots:0,attempts:0};
 for(let i=1;i<=periods;i++){
   const m=new Match(rosters,{seed:i*1107});let steps=0;
   while(!m.finished&&steps++<24000)m.step();

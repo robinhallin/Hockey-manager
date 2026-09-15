@@ -13,6 +13,16 @@ function studioPlayers(side,goalies=true){
 }
 function studioEffort(side,id){const e=studioEngine(),a=(e.accountingActors||e.actors).find(a=>a.side===(side==='own'?0:1)&&samePlayerId(a.player.id,id));return a&&a.role!=='G'?.8+Math.min(.5,Math.hypot(a.vx,a.vy)/10):1;}
 function studioKeeper(side){const a=(studioEngine()?.accountingActors||studioEngine()?.actors||[]).find(a=>a.side===side&&a.role==='G');return a?studioPlayer(side,a.player.id):null;}
+// Resolve the complete formation that is actually on the ice. During a partial
+// change neither the outgoing nor the intended incoming line owns that exposure.
+function studioFormationIndex(e,side,kind='forward'){
+ const roles=kind==='forward'?['LW','C','RW']:['LD','RD'],size=roles.length;
+ const ids=(e.accountingActors||e.actors).filter(a=>a.side===side&&roles.includes(a.role)).map(a=>String(a.player.id));
+ const plan=e.teams[side].plan?.[kind==='forward'?'forwards':'defense']||[];
+ if(ids.length!==size)return -1;
+ for(let i=0;i<(kind==='forward'?4:3);i++){const unit=plan.slice(i*size,(i+1)*size).map(String);if(unit.length===size&&unit.every(id=>ids.includes(id)))return i;}
+ return -1;
+}
 class CareerBroadcastMatch extends StudioHockey.Match {
  shiftTime(a){return state.live?.energy?.players?.[String(a.player.id)]?.shift??super.shiftTime(a);}
  unit(side,line=this.teams[side].line,pair=this.teams[side].pair){
@@ -61,7 +71,17 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   }else{
    t.rotationIndex=(t.rotationIndex||0)+1;
    const energy=ids=>{const ps=(ids||[]).map(id=>studioPlayer(side,id)).filter(Boolean);return ps.length?ps.reduce((n,p)=>n+matchEnergy(p),0)/ps.length:0;};
-   const preferred=t.plan?.matchup&&this.teams[1-side].line===0?t.plan.checkingLine??seq[t.rotationIndex%seq.length]:seq[t.rotationIndex%seq.length],lineEnergy=i=>energy((t.plan?.forwards||[]).slice(i*3,i*3+3));
+   const lineEnergy=i=>energy((t.plan?.forwards||[]).slice(i*3,i*3+3));
+   let preferred=seq[t.rotationIndex%seq.length];
+   const matchup=t.matchup,opposing=studioFormationIndex(this,1-side);
+   t.matchupReason='Följer kedjerotationen.';
+   if(matchup&&!this.isShortHanded(side)&&!this.hasPowerPlay(side)&&!this.threeOnThree){
+    const ids=(t.plan?.forwards||[]).slice(matchup.line*3,matchup.line*3+3),players=ids.map(id=>t.players.find(p=>samePlayerId(p.id,id)));
+    const ready=ids.length===3&&players.every(p=>p&&p.available!==false)&&lineEnergy(matchup.line)>=65;
+    const prolonged=this.skaters(side).some(a=>ids.some(id=>samePlayerId(a.player.id,id))&&this.shiftTime(a)>=(t.shiftLimit||43));
+    if(opposing===matchup.target&&ready&&!prolonged){preferred=matchup.line;t.matchupReason=`Matchar kedja ${matchup.line+1} mot kedja ${matchup.target+1}.`;}
+    else t.matchupReason=opposing!==matchup.target?'Inväntar motståndarkedjan; följer rotationen.':!ready?'Matchningskedjan behöver återhämtning eller saknar spelare.':'Matchningskedjan har redan gjort sitt byte; rotationen avlastar.';
+   }
    t.line=lineEnergy(preferred)>=50?preferred:[...new Set(seq)].sort((a,b)=>lineEnergy(b)-lineEnergy(a))[0];
    const pair=(t.pair+1)%3,pairEnergy=i=>energy((t.plan?.defense||[]).slice(i*2,i*2+2));
    t.pair=pairEnergy(pair)>=50?pair:[0,1,2].sort((a,b)=>pairEnergy(b)-pairEnergy(a))[0];
@@ -69,12 +89,6 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    t.specialIndex=energy(t.plan?.[key+(special+1)])>=50?special:energy(t.plan?.[key+'1'])>=energy(t.plan?.[key+'2'])?0:1;
   }
   t.nextLine=null;t.nextPair=null;t.nextSpecial=null;
- }
- updateChanges(dt){
-  // Reuse the prototype's one-at-a-time bench movement, with the coach's shift duration.
-  const offsets=this.teams.map(t=>43-(t.shiftLimit||43));this.teams.forEach((t,i)=>t.shift+=offsets[i]);
-  const changing=this.teams.map(t=>Boolean(t.change));
-  super.updateChanges(dt);this.teams.forEach((t,i)=>{const reset=changing[i]&&!t.change&&!t.changeQueue.length&&t.shift===0;t.shift=reset?0:Math.max(0,t.shift-offsets[i]);});
  }
  attribute(a,key){
   if(!a)return 10;const p=studioPlayer(a.side,a.player.id),energy=p?matchEnergy(p):a.player.energy;
@@ -187,7 +201,10 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  }
  changeAtStoppage(){
   if(this.otExpanded){this.otExpanded=false;this.otCounts=null;for(const side of [0,1])this.installUnit(side);}
-  for(const side of [0,1]){
+  const game=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));
+  const home=game?.home===state.live.opponent?1:0;
+  // The visiting bench declares first; only then can the home bench respond.
+  for(const side of [1-home,home]){
    const t=this.teams[side];
    if(this.icingHold===side)continue;
    if(t.requested||t.shift>32||t.change||t.changeQueue.length||t.needsSetup){
@@ -246,6 +263,7 @@ function studioSyncPlans(e=studioEngine()){
   const nextPlan=side===0?{...state.lines,...state.specialTeams}:{...m.aiTeam};
   const signature=JSON.stringify(nextPlan);if(t.planSignature&&t.planSignature!==signature)t.needsSetup=true;t.planSignature=signature;t.plan=nextPlan;
   const plan=state.tacticalPlan||{},style=side===0?(plan.attackStyle||'control'):m.aiTeam?.style;
+  t.matchup=side===0?(['0','1','2','3'].includes(plan.matchupLine)?{line:Number(plan.matchupLine),target:['0','1','2','3'].includes(plan.matchupTarget)?Number(plan.matchupTarget):0}:null):(t.plan.matchup?{line:t.plan.checkingLine??2,target:0}:null);
   t.tactics={mentality:style==='control'||side===0&&plan.shotChoice==='patient'?'control':style==='pressure'||style==='counter'||side===0&&plan.shotChoice==='shoot'?'direct':'balanced',pp:side===0?(['umbrella','overload'].includes(state.specialPlans?.pp)?state.specialPlans.pp:'131'):(m.aiTeam?.pp||'131'),pk:side===0?(state.specialPlans?.pk==='diamond'?'diamond':'box'):(m.aiTeam?.pk||'box')};
   t.defenseChemistry=lineChemistry((t.plan.defense||[]).slice(t.pair*2,t.pair*2+2),side===0?managerClub():m.opponent).value;
   t.chemistry=lineChemistry((t.plan.forwards||[]).slice(t.line*3,t.line*3+3),side===0?managerClub():m.opponent).value;

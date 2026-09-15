@@ -82,3 +82,19 @@
  .junior-workspace>.dv-juniors,.junior-workspace>.dv-junior-workarea,.junior-workspace>.dv-panel{grid-area:work}
  .junior-workspace .junior-lineup-grid>section:nth-child(2) fieldset{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Compact line matching shares the bench workspace with manual changes. */
+.mc-matchup-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.mc-matchup-controls label{display:grid;gap:4px;font-size:12px}
+.mc-matchup-controls select{width:100%;min-width:0;padding:5px 7px}
+.mc-line-table table{width:100%;font-size:12px;font-variant-numeric:tabular-nums}
+.mc-line-table th,.mc-line-table td{padding:5px 4px;white-space:nowrap}
+.mc-line-table caption{text-align:left;font-size:12px;padding:4px 0;color:#b7cbd9}
+.mc-line-table .is-on-ice{background:#203e49}
+.mc-line-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mc-line-grid table{width:100%;font-variant-numeric:tabular-nums}
+.mc-line-grid th,.mc-line-grid td{padding:6px;text-align:left}
+
+.mc-coach-content:has(.mc-matchup-controls) .mc-note{font-size:11px;line-height:1.3;margin:5px 0}
+.mc-coach-content:has(.mc-matchup-controls) .mc-coach-modes{margin-bottom:6px}
+.mc-coach-content:has(.mc-matchup-controls) .mc-tactical-review{margin-top:5px}

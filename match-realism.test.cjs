@@ -157,7 +157,7 @@ test('A replacement clears the bench gate without waiting forever for a moving a
  t.changeQueue=m.unit(0,1,1);const identities=m.actors.map(a=>a.id).sort();
  m.updateChanges(.1);assert.equal(t.change,null);assert.equal(a.status,'playing');
  assert.deepEqual(m.actors.map(a=>a.id).sort(),identities,'clearing a queue cannot invent or remove a player');
- const old=m.skaters(0)[1];old.shift=85;t.shift=0;t.changeQueue=[];t.requested=false;m.carrier=null;m.flight=null;
+ const old=m.skaters(0)[1];old.shift=85;t.shift=0;t.changeQueue=[];t.requested=false;m.carrier=null;m.flight=null;m.puck.x=10;
  m.updateChanges(.1);assert.equal(t.requested,true,'old remaining skaters need a change even when a recent replacement reset the unit timer');
 });
 console.log(checks+' hockey realism checks passed');
