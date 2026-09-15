@@ -20,13 +20,21 @@ function matchCoachEvidence(analysis,clock,players=[],plan={}){
 function matchEvidenceReport(){
  const m=state.live;
  const ps=m&&!m.finished?(studioActive()?studioPlayers(0,false):[...currentLinePlayers(),...currentDefensePlayers()]):[];
- return matchCoachEvidence(m?.analysis,analysisClock(),[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
+ const report=matchCoachEvidence(m?.analysis,m?analysisClock():0,[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
+ const situation=m&&!m.finished&&matchCoachSituation(report.clock,{own:m.hv,against:m.opp},{...state.tacticalPlan,tactic:state.tactic});
+ if(situation)report.advice=[situation,...report.advice].slice(0,2);
+ return report;
 }
 function matchEvidenceBody(){
+ const current=matchCoachCurrent();
+ if(current)return matchCoachFollowupView(current.row,current.closed,!state.live.finished);
  const report=matchEvidenceReport();
- return `<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid</p>${report.advice.map(a=>`<article><strong>${trainingSafe(a.title)}</strong><p>${trainingSafe(a.evidence)}</p><p>${trainingSafe(a.suggestion)}</p><p class="mc-note"><b>Avvägning:</b> ${trainingSafe(a.risk)}</p><button class="btn secondary" onclick="matchTab('${a.tab}')">${a.action}</button></article>`).join('')}<p class="mc-note">${trainingSafe(report.note)}</p>`;
+ return `<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.length>1?`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(report.advice[1].title)}</summary>${matchCoachAdviceView(report.advice[1])}</details>`:''}<p class="mc-note">${trainingSafe(report.note)}</p>`;
 }
-function matchEvidenceView(){return state.live?.finished?'':`<section class="mc-evidence" aria-label="Assistentens matchobservationer"><h3>Assistentens observationer</h3><div class="mc-evidence-body">${matchEvidenceBody()}</div></section>`;}
+function matchEvidenceView(){
+ if(state.live?.finished){const last=[...tacticalReviewSnapshot()].reverse().find(r=>r.coachDecision);return last?`<section class="mc-evidence"><h3>Ditt senaste matchbeslut</h3>${matchCoachFollowupView(last,true)}</section>`:'';}
+ return `<section class="mc-evidence" aria-label="Assistentens matchobservationer"><h3>Assistentens observationer</h3><div class="mc-evidence-body">${matchEvidenceBody()}</div></section>`;
+}
 function matchEvidencePatch(){
  const node=document.querySelector('.mc-evidence-body');if(!node||node.contains?.(document.activeElement))return;
  const bucket=Math.floor(analysisClock()/30);if(node.evidenceBucket===bucket)return;

@@ -1,3 +1,13 @@
+# Matchcoach: choose, observe, learn
+
+The match coach now connects four situations to real manager choices: low-quality attempts, dangerous chances against, chasing a late equalizer, and defending a narrow late lead. The player can apply the stated order or deliberately retain the current plan. Existing matchOrder/matchPlan handlers own the tactical changes; there is no new performance bonus or alternate simulation.
+
+The existing tactical review ledger records the reason, tradeoff and selected alternative. Follow-up requires at least three minutes at equal strength before and after the decision; PP/PK cannot satisfy this exposure. Rates show both dangerous chances created and conceded. Before means since the previous recorded decision (or faceoff), after means until the next decision or now. Further manual orders close the interval; edits at the same stoppage are explicitly labelled as combined changes. These observations do not prove causation or predict wins.
+
+One match-coach panel shows the current decision or its follow-up, with additional observations collapsed. Read the match and speak to players are two selectable workspaces. Current decisions survive reload and are included in archived match reports. Old saves without decision metadata remain supported, and incomplete old reports cannot produce a rate comparison. Existing energy and discipline observations still link to the appropriate bench controls.
+
+Validation: match-coach-decisions.test.cjs exercises real production action preferences from the same saved situation, all four order paths, retaining the plan, stale/duplicate clicks, strength separation, frozen follow-up, combined manual changes, partial records, saved/archived decisions and speech navigation. Existing match-centre, match-workspace, tactical-review, tactical-controls and match-evidence tests pass, including a complete production match and deterministic presentation-mode comparison. This stage does not recalibrate the engine's scoring or league-wide balance.
+
 # Coherent manager workflow
 
 The office has a persistent decision list and one context panel: Påverka idag, Uppföljning or Klubbläge. Required replies remain reachable even when more than five items are pending. Detailed follow-ups scroll inside the panel; the header owns advancing time. Back navigation restores the selected context.
