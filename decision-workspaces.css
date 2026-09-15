@@ -1,4 +1,19 @@
 /* One active workspace per job; only long lists/details scroll inside it. */
+.mc-coach-modes{display:flex;gap:4px;border-bottom:1px solid #354d5f;margin-bottom:10px}
+.mc-coach-modes button{background:none;border:0;border-bottom:2px solid transparent;color:#b7cbd9;padding:8px 10px;font-size:12px;cursor:pointer}
+.mc-coach-modes button[aria-pressed="true"]{color:#f5d454;border-bottom-color:#f5d454}
+.mc-evidence .mc-decision-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+.mc-evidence .mc-decision-actions .btn{font-size:12px;min-height:32px;padding:7px 10px}
+.mc-decision-followup table{width:100%;border-collapse:collapse;margin:7px 0;font-variant-numeric:tabular-nums}
+.mc-decision-followup table caption{text-align:left;color:#acc4d5;font-size:11px;padding:4px 0}
+.mc-page .mc-decision-followup th,.mc-page .mc-decision-followup td{padding:5px 8px;font-size:12px}
+.mc-decision-followup td{text-align:right}.mc-decision-followup th:not(:first-child){text-align:right}
+.mc-decision-status{color:#f5d454!important}.mc-decision-followup details,.mc-other-observations{font-size:12px;margin-top:8px}
+.mc-decision-followup details summary,.mc-other-observations summary{cursor:pointer;color:#bdd0de}
+.mc-live .mc-evidence{margin:0;padding:9px;border:1px solid #354d5f;border-left:3px solid #f5d454;border-radius:4px;background:#142430}
+.mc-live .mc-evidence h3{font-size:13px;margin:0 0 8px}.mc-live .mc-evidence article{padding:0;border:0;margin:0}
+.mc-live .mc-evidence p{font-size:12px;line-height:1.45;margin:7px 0}.mc-live .mc-evidence article>strong{font-size:15px}
+.mc-live .mc-follow>.mc-evidence~span,.mc-live .mc-follow>.mc-evidence~h3,.mc-live .mc-follow>.mc-evidence~p{display:none}
 .office-desk .office-roster-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 12px;border:1px solid #304353;background:#172532;font-size:12px}
 .office-desk .office-roster-strip .desk-link{font-size:12px}
 .office-desk-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-top:12px}
