@@ -1,0 +1,133 @@
+{
+  "method": "Four 20-minute production periods, paired seeds, same HV71 career, four-line rotation. Injuries disabled to isolate shifts. Descriptive game test, not empirical league calibration.",
+  "meanShiftSeconds": {
+    "short": 53.83478708791324,
+    "long": 63.80755279181557
+  },
+  "rows": [
+    {
+      "seed": 1879,
+      "plan": "short",
+      "time": 1199.000000000005,
+      "score": [
+        2,
+        2
+      ],
+      "shots": [
+        8,
+        14
+      ],
+      "goalsRecorded": 4,
+      "lineSeconds": 1199.000000000005,
+      "sides": [
+        {
+          "completed": 112,
+          "mean": 51.95803571428735,
+          "p90": 78.3000000000178,
+          "max": 131.9999999999968,
+          "lowEnergyPercent": 0.06505421184317103
+        },
+        {
+          "completed": 74,
+          "mean": 77.58108108108452,
+          "p90": 116.19999999999341,
+          "max": 158.10000000003018,
+          "lowEnergyPercent": 0
+        }
+      ]
+    },
+    {
+      "seed": 1879,
+      "plan": "long",
+      "time": 1199.000000000005,
+      "score": [
+        4,
+        2
+      ],
+      "shots": [
+        8,
+        12
+      ],
+      "goalsRecorded": 6,
+      "lineSeconds": 943.2000000000033,
+      "sides": [
+        {
+          "completed": 93,
+          "mean": 59.394623655916355,
+          "p90": 105.39999999991994,
+          "max": 160.99999999996703,
+          "lowEnergyPercent": 0.4774184555332607
+        },
+        {
+          "completed": 87,
+          "mean": 66.71839080459996,
+          "p90": 110.39999999989959,
+          "max": 172.10000000003913,
+          "lowEnergyPercent": 1.0959132610495805
+        }
+      ]
+    },
+    {
+      "seed": 3758,
+      "plan": "short",
+      "time": 1199.000000000005,
+      "score": [
+        0,
+        3
+      ],
+      "shots": [
+        1,
+        13
+      ],
+      "goalsRecorded": 3,
+      "lineSeconds": 1078.9999999999777,
+      "sides": [
+        {
+          "completed": 104,
+          "mean": 55.71153846153913,
+          "p90": 86.9000000000197,
+          "max": 120.00000000001518,
+          "lowEnergyPercent": 0
+        },
+        {
+          "completed": 77,
+          "mean": 73.5246753246796,
+          "p90": 115.29999999991969,
+          "max": 159.30000000003622,
+          "lowEnergyPercent": 0.6138448707253061
+        }
+      ]
+    },
+    {
+      "seed": 3758,
+      "plan": "long",
+      "time": 1199.000000000005,
+      "score": [
+        3,
+        0
+      ],
+      "shots": [
+        7,
+        8
+      ],
+      "goalsRecorded": 3,
+      "lineSeconds": 1078.9999999999777,
+      "sides": [
+        {
+          "completed": 83,
+          "mean": 68.22048192771477,
+          "p90": 109.90000000002499,
+          "max": 126.10000000002867,
+          "lowEnergyPercent": 0.5287739783150056
+        },
+        {
+          "completed": 84,
+          "mean": 66.48809523809838,
+          "p90": 107.50000000002444,
+          "max": 219.90000000004994,
+          "lowEnergyPercent": 2.514042553190417
+        }
+      ]
+    }
+  ]
+}

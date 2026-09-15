@@ -14,7 +14,8 @@ function analysisUnits(){
  const m=state.live;if(!m)return [];
  const situation=analysisSituation(),skaters=[...currentLinePlayers(),...currentDefensePlayers()];
  if(situation!=='even'){const n=(m.rotationIndex||0)%2+1;return [{kind:situation,label:situation==='ot'?'Förlängning':`${situation.toUpperCase()} ${n}`,players:skaters}];}
- return [{kind:'forward',label:`Kedja ${m.currentLine+1}`,players:currentLinePlayers()},{kind:'defense',label:`Backpar ${m.currentDefensePair+1}`,players:currentDefensePlayers()}];
+ const index=kind=>studioActive()?studioFormationIndex(studioEngine(),0,kind):kind==='forward'?m.currentLine:m.currentDefensePair;
+ return ['forward','defense'].map(kind=>{const i=index(kind);return {kind,label:i<0?(kind==='forward'?'Blandade forwards':'Blandade backar'):`${kind==='forward'?'Kedja':'Backpar'} ${i+1}`,players:kind==='forward'?currentLinePlayers():currentDefensePlayers()};});
 }
 function analysisUnitRecord(unit){
  const a=state.live.analysis,key=JSON.stringify([unit.kind,...unit.players.map(p=>String(p.id)).sort()]);
@@ -25,6 +26,7 @@ function analysisPlayer(p){const a=state.live.analysis;return a.players[String(p
 function analysisIce(players,seconds){
  ensureAnalysis();if(!state.live?.analysis||state.live.finished||seconds<=0)return;
  const a=state.live.analysis;if(!a.strengthSeconds){a.strengthSeconds={even:0,pp:0,pk:0,ot:0};a.strengthPartial=true;}a.strengthSeconds[analysisSituation()]+=seconds;
+ matchLineExposure(seconds);
  for(const unit of analysisUnits())analysisUnitRecord(unit).seconds+=Math.max(0,Math.min(seconds,...unit.players.map(p=>medicalLimit(p)-(state.live.iceTime?.[p.id]||0))));
  for(const p of players)analysisPlayer(p).seconds+=Math.max(0,Math.min(seconds,medicalLimit(p)-(state.live.iceTime?.[p.id]||0)));
 }
@@ -36,6 +38,7 @@ function recordAnalysisShot(side,name,id,dangerous,location,probability,result,o
  const outcome=override||(result<probability?'goal':result<probability+.12?'post':result<probability+.28?'rebound':'save');
  const shot={time:analysisClock(),side,name,id,dangerous:Boolean(dangerous),x:location.x,y:location.y,probability,outcome,situation:analysisSituation()};
  a.shots.push(shot);
+ matchLineShot(shot);
  leagueTrackShot(side,id,name,outcome);
  for(const unit of analysisUnits()){const u=analysisUnitRecord(unit);if(analysisOnTarget(shot))u[side==='own'?'shotsFor':'shotsAgainst']++;if(dangerous)u[side==='own'?'dangerFor':'dangerAgainst']++;}
  if(side==='own'){const p=playerById(id);if(p&&analysisOnTarget(shot))analysisPlayer(p).shots++;}
@@ -54,7 +57,7 @@ function analysisEvent(type,side,text,id=null){
 function analysisAssist(p){ensureAnalysis();leagueTrackEvent("assist","own",p.id);if(state.live?.analysis)analysisPlayer(p).assists++;}
 function analysisSnapshot(){
  const m=state.live,a=m?.analysis;if(!a)return null;
- return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.home===managerClub(),stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,tacticalReviews:tacticalReviewSnapshot(),hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,overtime:Boolean(m.overtime||m.analysisShootout||m.period>3),shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
+ return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.home===managerClub(),stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,tacticalReviews:tacticalReviewSnapshot(),hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,overtime:Boolean(m.overtime||m.analysisShootout||m.period>3),shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),lineMatchups:a.lineMatchups,strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
 }
 function finishAnalysis(){
  ensureAnalysis();leagueCommitLive();finishPerformance();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;

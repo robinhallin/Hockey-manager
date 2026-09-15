@@ -28,6 +28,11 @@
       if(row.kind==='shoot')row.value+=shotBias;
       if(safePk&&row.kind==='carry')row.value-=.12;
       if(safePk&&row.kind==='pass')row.value-=.11;
+      // A tired unit can deliberately surrender possession beyond the centre
+      // line to reach its bench. This is still a real, contestable puck flight.
+      if(row.kind==='dump'&&(team.requested||team.changeQueue?.length)&&this.skaters(actor.side).some(a=>this.shiftTime(a)>(team.shiftLimit||43))){
+        row.value+=.22;row.reason='Lägger pucken djupt så att den trötta formationen kan byta';
+      }
     }
     if(safePk&&progress<40){
       const existing=rows.find(row=>row.kind==='clear');

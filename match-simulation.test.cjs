@@ -61,14 +61,14 @@ test('An established attack starts with actual defensive coverage; a counter has
   assert.equal(b.skaters(1).filter(p=>p.x>30).length,1);
 });
 
-test('Losing possession cancels the outgoing change; replacing a skater does not vacate the whole formation',()=>{
+test('An opponent rush towards our end cancels the outgoing change; replacing a skater does not vacate the whole formation',()=>{
   const m=new Match(rosters,{scenario:'change'});m.teams[0].requested=true;
   // Move the nearest marker just far enough away to make this a genuinely safe change.
   const carrier=m.actor(m.carrier);for(const a of m.skaters(1))if(distance(a,carrier)<3){a.y=15;a.x=54;}
   m.updateChanges(STEP);assert.ok(m.teams[0].change);
   const outgoing=m.actor(m.teams[0].change.id),others=m.skaters(0).filter(a=>a!==outgoing).map(a=>a.id);
   assert.equal(outgoing.status,'leaving');assert.equal(m.skaters(0).length,5);
-  m.takePossession(m.skaters(1)[0],{turnover:true});m.updateChanges(STEP);
+  m.skaters(1)[0].x=33;m.takePossession(m.skaters(1)[0],{turnover:true});m.updateChanges(STEP);
   assert.equal(outgoing.status,'playing');assert.equal(m.teams[0].change,null);
   assert.ok(others.every(id=>m.actor(id)));assert.equal(m.skaters(0).length,5);
 });

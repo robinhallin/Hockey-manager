@@ -177,23 +177,25 @@ const StudioHockey = (() => {
     nextUnit(side){const t=this.teams[side];t.line=(t.line+1)%Math.min(4,Math.floor(t.forwards.length/3));t.pair=(t.pair+1)%Math.min(3,Math.floor(t.defense.length/2));}
     changeAtStoppage(){for(const side of [0,1]){const t=this.teams[side];if(this.icingHold===side)continue;if(t.requested||t.shift>32||t.change||t.changeQueue.length){if(!t.changeQueue.length&&!t.change)this.nextUnit(side);this.installUnit(side);}}}
     safeToChange(side){
-      // A controlled dump or PK clearance creates a real window for a short change.
+      // One skater leaves at a time. Puck territory, not ownership alone, makes
+      // the window: a deep opponent retrieval still permits a change behind it.
       if(this.flight?.side===side&&['dump','clear'].includes(this.flight.kind)&&progress(side,this.puck.x)>40)return true;
-      if(this.owner!==side||!this.carrier||this.phase==='counter'||this.phase==='loose')return false;
+      if(progress(side,this.puck.x)>44)return true;
+      if(this.owner!==side||!this.carrier||this.phase==='loose')return false;
       const puckCarrier=this.actor(this.carrier);
-      return progress(side,this.puck.x)>39&&this.skaters(1-side).every(a=>distance(a,puckCarrier)>2.4);
+      return puckCarrier&&progress(side,this.puck.x)>27&&this.skaters(1-side).every(a=>distance(a,puckCarrier)>1.5);
     }
     updateChanges(dt){
       for(const side of [0,1]){
         const t=this.teams[side];
-        const overdue=this.skaters(side).some(a=>this.shiftTime(a)>Math.max(60,(t.shiftLimit||43)*1.4));
-        if((t.shift>43||overdue)&&!t.requested&&!t.change&&!t.changeQueue.length)t.requested=true;
+        const limit=t.shiftLimit||43,overdue=this.skaters(side).some(a=>this.shiftTime(a)>limit*1.4);
+        if((t.shift>limit||overdue)&&!t.requested&&!t.change&&!t.changeQueue.length)t.requested=true;
         if(t.requested&&!t.change&&!t.changeQueue.length&&this.safeToChange(side)){
           this.nextUnit(side);t.changeQueue=this.unit(side);t.requested=false;
         }
         if(t.change){
           const c=t.change,a=this.actor(c.id);
-          if(c.stage==='out'&&a&&(this.owner!==side||this.carrier===a.id)){a.status='playing';t.changeQueue.unshift(c.row);t.change=null;t.requested=false;continue;}
+          if(c.stage==='out'&&a&&(this.carrier===a.id||(this.owner!==side&&progress(side,this.puck.x)<39))){a.status='playing';t.changeQueue.unshift(c.row);t.change=null;t.requested=false;continue;}
           if(c.stage==='out'&&a&&distance(a,{x:c.gate,y:.7})<.8){
             this.actors=this.actors.filter(x=>x.id!==a.id);
             const incoming=this.makeActor(side,c.row,{x:c.gate,y:.7});incoming.status='entering';
@@ -207,6 +209,13 @@ const StudioHockey = (() => {
           continue;
         }
         if(t.changeQueue.length&&this.safeToChange(side)){
+          // Nearby players clear the gate sooner. Never pull the puck carrier
+          // off the ice, and never create two copies of an incoming player.
+          const gate={x:side===0?27:33,y:.7};
+          t.changeQueue.sort((x,y)=>{
+            const a=this.skaters(side).find(a=>a.role===x.role),b=this.skaters(side).find(a=>a.role===y.role);
+            return (a?distance(a,gate):Infinity)-(b?distance(b,gate):Infinity);
+          });
           const index=t.changeQueue.findIndex(row=>{const a=this.skaters(side).find(x=>x.role===row.role);return a&&a.id!==this.carrier&&a.player.id!==row.player.id&&!this.skaters(side).some(b=>b.player.id===row.player.id);});
           if(index<0){t.changeQueue=t.changeQueue.filter(row=>!this.skaters(side).some(a=>a.player.id===row.player.id));continue;}
           const row=t.changeQueue.splice(index,1)[0],a=this.skaters(side).find(x=>x.role===row.role);
