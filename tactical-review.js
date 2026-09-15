@@ -28,13 +28,13 @@ function tacticalReviewRecord(before,label,coachDecision=null){
  const history=m.tacticalReviews||(m.tacticalReviews=[]),totals=tacticalReviewTotals(),specialTotals=specialReviewTotals(),last=history.at(-1),time=analysisClock();
  // Changes made at the same stoppage form one decision, not several zero-second samples.
  if(last&&last.time===time){if(!last.before.lineup&&before.lineup)last.before.lineup=before.lineup;if(!last.before.special)last.before.special=before.special;if(!last.specialTotals){last.specialTotals=specialTotals;last.specialBaseline=null;}last.after=after;last.label='Flera tränarbeslut';if(coachDecision)last.coachDecision={...coachDecision,additionalChanges:true};else if(last.coachDecision)last.coachDecision.additionalChanges=true;return;}
- if(last){last.result=tacticalReviewDelta(totals,last.totals);last.specialResult=last.specialTotals?specialReviewDelta(specialTotals,last.specialTotals):null;last.end=time;}
+ if(last){if(last.coachDecision?.energy)last.coachEnergy=matchCoachEnergy(last.coachDecision);last.result=tacticalReviewDelta(totals,last.totals);last.specialResult=last.specialTotals?specialReviewDelta(specialTotals,last.specialTotals):null;last.end=time;}
  history.push({time,label,before,after,totals,specialTotals,specialBaseline:last&&!last.specialTotals?null:specialReviewDelta(specialTotals,last?.specialTotals),baseline:tacticalReviewDelta(totals,last?.totals),partial:Boolean(m.analysis.partial||m.analysis.strengthPartial),...(coachDecision?{coachDecision}: {})});
  if(history.length>24)history.shift();
 }
 function tacticalReviewSnapshot(){
  const rows=state.live?.tacticalReviews||[],totals=tacticalReviewTotals(),specialTotals=specialReviewTotals();
- return rows.map((r,i)=>({...r,specialResult:i===rows.length-1&&r.specialTotals?specialReviewDelta(specialTotals,r.specialTotals):r.specialResult,result:i===rows.length-1?tacticalReviewDelta(totals,r.totals):r.result,end:i===rows.length-1?analysisClock():r.end}));
+ return rows.map((r,i)=>({...r,...(r.coachDecision?.energy?{coachEnergy:i===rows.length-1?matchCoachEnergy(r.coachDecision):r.coachEnergy}:{}),specialResult:i===rows.length-1&&r.specialTotals?specialReviewDelta(specialTotals,r.specialTotals):r.specialResult,result:i===rows.length-1?tacticalReviewDelta(totals,r.totals):r.result,end:i===rows.length-1?analysisClock():r.end}));
 }
 function tacticalReviewView(rows,finished=false){
  if(!rows?.length)return '';
