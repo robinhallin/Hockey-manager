@@ -44,6 +44,7 @@ function deskBrowserAfter(){
 }
 function deskRestore(previous){
  if(previous.officeFixtures)officeUI.fixtures=previous.officeFixtures;
+ if(previous.officePanel)officeUI.panel=previous.officePanel;
  if(previous.staffReviewTab)staffReviewUI.tab=previous.staffReviewTab;
  if(previous.leagueWorkspaceUI)Object.assign(leagueWorkspaceUI,previous.leagueWorkspaceUI);
  if(previous.rivalsSelected!==undefined)rivalsSelected=previous.rivalsSelected;
@@ -75,7 +76,7 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {officePanel:officeUI.panel||'today',officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();deskActionNotice='';const previousPage=state.page,previousTab=state.recruitment?.tab;let nextLineup,nextAvailability;
  if(page==='tactics'){page='lines';nextLineup='even';}
@@ -214,4 +215,3 @@ function deskNextMatch(next){
   return {eyebrow:phase==='playoffs'?'Slutspel':'Spelschema',title:'Inväntar nästa match',detail:'Följ säsongens avgörande och se när nästa omgång är klar.',action:{page:'season'},label:'Följ säsongen'};
 }
 function managerDeskView(){return managerOfficeView();}
-

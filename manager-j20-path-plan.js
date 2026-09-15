@@ -26,14 +26,22 @@ function managerJ20PathEvidence(player){
   const form=managerJ20RecentForm(player,5),training=state.juniors?.aTraining?.[String(player.id)]||null,senior=managerJ20PathSeniorStats(player),readiness=player.academy?.path==='senior'?null:managerJ20Readiness(player);
   return {form,training,senior,readiness,fatigue:player.fatigue||0,path:player.academy?.path||'junior'};
 }
+function managerJ20PathMatchEvidence(player,form,cfg){
+  const minutes=form.games?form.seconds/60/form.games:0,goalie=player.pos==='MV',defender=player.pos==='B';
+  // The J20 simulation records ice time, goals and assists, not reliable save/defence rates.
+  // Use meaningful exposure for defensive roles; never invent unrecorded performance.
+  const target=goalie?30:10,ppg=form.games?form.points/form.games:0;
+  return {done:form.games>=cfg.formGames&&(goalie||defender?minutes>=target:ppg>=cfg.formPpg),detail:`${form.games}/${cfg.formGames} matcher · ${goalie||defender?`${minutes.toFixed(1)}/${target} min i snitt · ${goalie?'målvaktsunderlag':'backunderlag'}`:`${ppg.toFixed(2)}/${cfg.formPpg} p/match`}`};
+}
 function managerJ20PathStatus(player,plan=managerJ20PathPlan(player)){
-  if(!player||!plan)return null;const cfg=J20_PATH_PACES[plan.pace]||J20_PATH_PACES.balanced,e=managerJ20PathEvidence(player),ppg=e.form.games?e.form.points/e.form.games:0;
+  if(!player||!plan)return null;const cfg=J20_PATH_PACES[plan.pace]||J20_PATH_PACES.balanced,e=managerJ20PathEvidence(player);
   const promoted=Boolean(managerSeniorProspectDecision(player))||e.path==='senior';
+  const matchEvidence=managerJ20PathMatchEvidence(player,e.form,cfg),trainingSessions=managerJ20TrainingSessions(e.training),seniorMinutes=player.pos==='MV'?30:cfg.seniorMinutes;
   const milestones=[
-    {key:'j20',label:'J20-underlag',done:promoted||e.form.games>=cfg.formGames&&ppg>=cfg.formPpg,detail:`${e.form.games}/${cfg.formGames} matcher · ${ppg.toFixed(2)}/${cfg.formPpg.toFixed(2)} p/match`},
-    {key:'training',label:'A-träningsunderlag',done:promoted||(e.training?.sessions||0)>=cfg.aSessions,detail:`${e.training?.sessions||0}/${cfg.aSessions} A-pass · ork ${Math.round(100-e.fatigue)} %`},
+    {key:'j20',label:'J20-underlag',done:promoted||matchEvidence.done,detail:matchEvidence.detail},
+    {key:'training',label:'A-träningsunderlag',done:promoted||trainingSessions>=cfg.aSessions,detail:`${trainingSessions}/${cfg.aSessions} deltagna A-pass · ork ${Math.round(100-e.fatigue)} %`},
     {key:'trial',label:'A-lagsprov',done:e.senior.games>=cfg.seniorGames,detail:`${e.senior.games}/${cfg.seniorGames} matcher · ${Math.round(e.senior.seconds/60)} min`},
-    {key:'role',label:'Etablering',done:e.senior.games>=cfg.seniorGames&&e.senior.avgMinutes>=cfg.seniorMinutes,detail:`${e.senior.avgMinutes.toFixed(1)}/${cfg.seniorMinutes.toFixed(1)} min i snitt`}
+    {key:'role',label:'Etablering',done:e.senior.games>=cfg.seniorGames&&e.senior.avgMinutes>=seniorMinutes,detail:`${e.senior.avgMinutes.toFixed(1)}/${seniorMinutes.toFixed(1)} min i snitt`}
   ];
   let next='Fortsätt samla underlag',reason='Planen följer spelarens faktiska utveckling.';
   if(e.fatigue>cfg.maxFatigue){next='Sänk belastningen';reason=`Belastningen ligger över planens gräns (${Math.round(e.fatigue)} > ${cfg.maxFatigue}).`;}

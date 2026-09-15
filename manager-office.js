@@ -1,5 +1,5 @@
 const officeUI={fixtures:'upcoming'};
-function officeFixtureTab(value){if(!['upcoming','recent'].includes(value))return;officeUI.fixtures=value;render();queueInterfaceSave();}
+function officeFixtureTab(value){if(!['upcoming','recent'].includes(value))return;officeUI.fixtures=value;officeUI.panel='club';render();queueInterfaceSave();}
 // The office summarises existing systems; opening it never advances the simulation.
 function officeOpenDeal(key){
   deskNavigate('transfers','deals');

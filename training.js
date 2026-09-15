@@ -31,6 +31,8 @@ function ensureTrainingData(){
   const initial=!state.training;
   if(initial)state.training={version:1,round:state.round,day:0,plan:trainingPlan(),logs:[],history:[],messages:[],nextMessageId:1,selectedMessage:null,promises:[],lastMatchRound:0,matchMinutes:{},familiarity:{[trainingSignature()]:45},powerplay:40,penaltykill:40};
   const t=state.training;
+  // Migrate the older office flag once; the training owner is authoritative.
+  t.recoveryOwner??=state.office2?.delegation?.training?'staff':'manager';
   for(const staff of state.staff)if(!Number.isFinite(staff.coaching))staff.coaching=staff.id==='goalie'?16:staff.id==='assistant'?14:8;
   for(const p of managerRoster()){
     ensurePlayerAttributes(p);

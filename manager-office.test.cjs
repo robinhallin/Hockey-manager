@@ -33,6 +33,8 @@ r('managerOfficeView()');assert.equal(r('JSON.stringify(state)'),afterView);
 r("deskNavigate('calendar');deskBack()");assert.equal(r('officeUI.fixtures'),'recent');
 r("officeFixtureTab('upcoming')");assert.match(r('managerOfficeView()'),/Spelplats/);
 assert.match(r('managerOfficeView()'),/Planera återhämtning/);
+r("officePanelTab('followup');deskNavigate('training');deskBack()");
+assert.equal(r('officeUI.panel'),'followup','back returns to the selected office context');
 
 // A live or paused match must become today's primary influence without advancing it.
 const live=boot(),q=live.run;

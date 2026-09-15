@@ -3,7 +3,7 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 
 // 1. The office briefing is read-only and complements the existing manager pulse.
 const office=boot(),r=office.run;
-r("startCareerWithClub('HV71')");
+r("startCareerWithClub('HV71');officePanelTab('followup')");
 const before=r('JSON.stringify(state)');
 assert.match(r('managerOfficeView()'),/MORGONMÖTE/);
 assert.match(r('managerOfficeView()'),/Påverka idag/);
@@ -45,6 +45,7 @@ assert.equal(q('j20Result.homeGoals'),q('j20Forecast.homeGoals'),'J20 result mus
 assert.equal(q('j20Result.awayGoals'),q('j20Forecast.awayGoals'),'J20 result must use the pre-match academy snapshot');
 assert.equal(q('juniorWorldClubs(leagueOf()).includes(state.juniors.matches[0].opponent)'),true);
 assert.equal(q('state.juniors.matches[0].players.reduce((n,row)=>n+(row.goals||0),0)'),q('state.juniors.matches[0].own'),'player goals must equal the J20 team score');
+q("juniorOpenWorkspace('league')");
 assert.match(q('developmentJuniorsView()'),/J20 · utvecklingsserie/);
 assert.doesNotMatch(q('developmentJuniorsView()'),/Motståndarna är fiktiva/);
 const resultCount=q('state.juniorWorld.results.length'),table=q('JSON.stringify(juniorWorldTable(leagueOf()))');

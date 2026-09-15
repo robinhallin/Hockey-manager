@@ -225,6 +225,6 @@ if(typeof developmentJuniorsView==="function"){
   developmentJuniorsView=function(){
     ensureJuniorWorld();let html=developmentJuniorsViewBeforeWorld();
     html=html.replace('Juniorlagets matcher spelas efter A-lagets matcher. Motståndarna är fiktiva och statistiken räknas separat.','Under grundserien ingår juniorlagets matcher i klubbarnas J20-utvecklingsserie. Statistik och resultat räknas separat från A-laget; utvecklingsmatcher utanför serien kan förekomma under andra säsongsfaser.');
-    const end=html.lastIndexOf('</section>');return end<0?html:html.slice(0,end)+juniorWorldView()+html.slice(end);
+    return html;
   };
 }

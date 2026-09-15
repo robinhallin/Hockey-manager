@@ -8,7 +8,7 @@ function managerOffice2Ensure(){
 }
 function managerOffice2Priority(level){return ({critical:100,high:75,medium:50,low:25})[level]||0;}
 function managerOffice2Delegated(area){
-  if(area==='training'&&state.training?.recoveryOwner==='staff')return true;
+  if(area==='training')return state.training?.recoveryOwner==='staff';
   return Boolean(state.office2?.delegation?.[area]);
 }
 function managerOffice2ToggleDelegation(area){
@@ -44,7 +44,7 @@ function managerOffice2Items(){
 }
 function managerOffice2VisibleItems(){
   const all=managerOffice2Items();
-  return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical').slice(0,5);
+  return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
 }
 function managerOffice2Action(item){
   if(item.action?.deal)return `officeOpenDeal(${JSON.stringify(item.action.deal)})`;
@@ -63,9 +63,16 @@ function managerOffice2View(){
   return `<section class="office2-command" aria-label="Dagens prioriteringar"><header><div><span class="desk-kicker">MANAGER OFFICE 2.0</span><h2>Dagens prioriteringar</h2><p>${must?`${must} ärende${must===1?'':'n'} kräver ditt svar. `:''}Listan rangordnas efter deadline, matchnärhet, medicinsk risk och klubbpåverkan.</p></div><strong>${items.length}</strong></header><div class="office2-list">${items.map(managerOffice2Row).join('')||'<p class="office-empty">Inga prioriterade ärenden just nu.</p>'}</div>${managerOffice2DelegationView()}</section>`;
 }
 
-const managerOfficeViewBeforeOffice2=managerOfficeView;
+function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
+function officeTodayView(){
+  const next=deskNextMatch(deskFixtures().upcoming[0]),waiting=officeWaiting();
+  return `<div class="office-today"><section class="office-next"><span class="desk-kicker">${state.live&&!state.live.finished?'Matchen pågår':next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2><p>${trainingSafe(next.detail)}</p>${deskLink(next.label,next.action)}</section>${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}</div>`;
+}
+function officeClubView(){
+  const fixtures=deskFixtures(),table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,index-2);
+  return `<section class="office-club-view"><h2>Matcher</h2><nav class="office-fixture-tabs" aria-label="Matcher på översikten">${[['upcoming','Kommande'],['recent','Resultat']].map(([key,label])=>`<button type="button" aria-pressed="${officeUI.fixtures===key}" onclick="officeFixtureTab('${key}')">${label}</button>`).join('')}</nav>${officeFixtures(officeUI.fixtures==='recent'?fixtures.recent:fixtures.upcoming,officeUI.fixtures==='recent')}<h2>${leagueName()} · grundserien</h2><table class="office-table"><thead><tr><th>#</th><th>Lag</th><th>M</th><th>P</th></tr></thead><tbody>${table.slice(start,start+5).map((t,i)=>`<tr><td>${t.gp?start+i+1:'–'}</td><th>${trainingSafe(t.name)}</th><td>${t.gp}</td><td>${t.pts}</td></tr>`).join('')}</tbody></table>${deskLink('Hela tabellen',{page:'table'})}<dl class="office-finance"><dt>Klubbkassa</dt><dd>${careerMoney(state.money)}</dd><dt>Löneutrymme före bud</dt><dd>${careerMoney(wageBudget()-annualWageCost())}</dd></dl>${deskLink('Ekonomi',{page:'finance'})}</section>`;
+}
 managerOfficeView=function(){
-  const html=managerOfficeViewBeforeOffice2();
-  const marker='<div class="office-grid">';
-  return html.includes(marker)?html.replace(marker,managerOffice2View()+marker):html;
+  const panel=officeUI.panel||'today',roster=managerRoster(),ready=roster.filter(medicalReady).length,tired=roster.filter(p=>p.fatigue>=35).length;
+  return `<section class="office-overview office-desk"><header class="office-heading"><div><span class="desk-kicker">${trainingSafe(managerClub())} · ${seasonLabel()}</span><h1>Tränarkontoret</h1></div><button type="button" class="desk-link" onclick="officeOpenDay('${state.calendar.date}')">Öppna dagens program →</button></header><div class="office-roster-strip"><strong>Truppens läge</strong><span>${ready}/${roster.length} matchklara</span>${deskLink('Medicinsk status',{page:'medical'})}<span>${tired} högt belastade</span>${deskLink('Planera återhämtning',{page:'training'})}</div><div class="office-desk-grid"><div class="office-decision-pane"><span class="desk-kicker">Besluta nu</span>${managerOffice2View()}</div><section class="office-context-pane"><nav class="dv-tabs" aria-label="Kontorets underlag">${[['today','Påverka idag'],['followup','Uppföljning'],['club','Klubbläge']].map(([key,label])=>`<button type="button" aria-pressed="${panel===key}" onclick="officePanelTab('${key}')">${label}</button>`).join('')}</nav><div class="office-context-content">${panel==='today'?officeTodayView():panel==='club'?officeClubView():managerLifeMorningView()+deskLink('Stab & uppföljning',{page:'staffReview'})}</div></section></div></section>`;
 };
