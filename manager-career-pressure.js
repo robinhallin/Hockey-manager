@@ -28,12 +28,21 @@
       value>=15?{key:'danger',label:'Jobbet är hotat',detail:'Styrelsen kräver en tydlig vändning inom kort.'}:
       {key:'critical',label:'Kritiskt',detail:'Styrelsen överväger att avsluta ditt uppdrag.'};
   };
-  globalThis.managerRecentMatches=function(limit=5){
-    return (state.analysis?.matches||[]).filter(m=>m.club===managerClub()&&!m.friendly&&!m.partial&&!m.abandoned&&Number.isFinite(m.own)&&Number.isFinite(m.against)).slice(0,limit);
+  globalThis.managerLeagueResults=function(club=managerClub()){
+    const rows=new Map(Object.values(state.analysis?.history||{}).map(m=>[m.id,m]));
+    for(const m of state.analysis?.matches||[])rows.set(m.id,m);
+    return [...rows.values()].filter(m=>m.club===club&&!m.friendly&&!m.abandoned&&(!m.stage||m.stage==='Grundserie')&&Number.isFinite(m.own)&&Number.isFinite(m.against))
+      .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.year||0)-(a.year||0)||(b.round||0)-(a.round||0)||String(b.id).localeCompare(String(a.id),undefined,{numeric:true}));
   };
+  globalThis.managerResultPoints=function(m){
+    const fixture=m.year===state.season.year?state.schedule.find(g=>g.round===m.round&&(g.home===m.club||g.away===m.club)):null;
+    const extra=Boolean(m.overtime||m.shootout||m.strengthSeconds?.ot>0||m.events?.some(e=>e.period>3)||fixture?.overtime);
+    return m.own>m.against?(extra?2:3):m.own===m.against?1:extra?1:0;
+  };
+  globalThis.managerRecentMatches=function(limit=5){return managerLeagueResults().slice(0,limit);};
   globalThis.managerRecentForm=function(limit=5){
     const rows=managerRecentMatches(limit);if(!rows.length)return {score:50,wins:0,losses:0,games:0};
-    let points=0,wins=0,losses=0;for(const m of rows){if(m.own>m.against){points+=3;wins++;}else if(m.own===m.against)points++;else losses++;}
+    let points=0,wins=0,losses=0;for(const m of rows){points+=managerResultPoints(m);if(m.own>m.against)wins++;else if(m.own<m.against)losses++;}
     return {score:Math.round(points/(rows.length*3)*100),wins,losses,games:rows.length};
   };
   globalThis.managerSquadSupport=function(){
@@ -42,8 +51,13 @@
   };
   globalThis.managerUltimatumMatches=function(){
     const p=state.managerCareer?.pressure;if(!p?.active)return [];
-    const all=(state.analysis?.matches||[]).filter(m=>m.club===p.club&&!m.friendly&&!m.partial&&!m.abandoned&&Number.isFinite(m.own)&&Number.isFinite(m.against));
-    return all.slice(0,Math.max(0,all.length-p.startCount));
+    const all=managerLeagueResults(p.club);
+    // Results live in the permanent summary archive; report pruning must not stop the clock.
+    let rows;
+    if(p.resultTracking===1){const boundary=p.afterId?all.findIndex(m=>m.id===p.afterId):all.length;rows=boundary>=0?all.slice(0,boundary):all.filter(m=>m.date>p.created);}
+    else if(p.created)rows=all.filter(m=>m.date>p.created);
+    else rows=all.slice(0,Math.max(0,all.length-(p.startCount||0)));
+    return rows.slice().reverse().slice(0,p.matches);
   };
 
   function regularJobMarket(){return state.season?.phase==='regular'&&!managerEmployed();}
@@ -97,10 +111,11 @@
   };
   globalThis.managerAssessUltimatum=function(){
     const c=state.managerCareer,p=c?.pressure;if(!p?.active||p.club!==managerClub())return false;
-    const rows=managerUltimatumMatches();let pts=0;for(const m of rows)pts+=m.own>m.against?3:m.own===m.against?1:0;
+    const rows=managerUltimatumMatches();const pts=rows.reduce((sum,m)=>sum+managerResultPoints(m),0);
     p.points=pts;p.played=rows.length;
     if(c.confidence>=45){c.pressure=null;managerMessage(`manager-pressure-cleared:${clubYear()}:${managerClub()}`,'Styrelsen häver ultimatumet',`Förtroendet har återhämtats till ${c.confidence}/100. Styrelsen anser att utvecklingen har vänt.`,'Din anställning',{link:'manager'});return false;}
     if(rows.length>=p.matches&&pts<p.targetPoints){managerDismiss(`Styrelsens ultimatum misslyckades: ${pts} poäng på ${p.matches} matcher, kravet var ${p.targetPoints}.`);return true;}
+    if(rows.length>=p.matches){c.pressure=null;c.lastUltimatumMet=`${clubYear()}:${managerClub()}:${team(managerClub())?.gp||0}`;managerMessage(`manager-pressure-met:${p.created||clubYear()}:${managerClub()}`,'Styrelsens ultimatum uppfyllt',`${pts} seriepoäng på ${p.matches} matcher. Kravet var ${p.targetPoints}; ultimatumet är avslutat.`,'Din anställning',{link:'manager'});}
     return false;
   };
 
@@ -108,14 +123,14 @@
     ensureManager();const c=state.managerCareer;if(!managerEmployed()||state.season.phase!=='regular')return;
     if(managerAssessUltimatum()||!managerEmployed())return;
     const played=team(managerClub())?.gp||0,key=`${clubYear()}:${managerClub()}:${played}`;
-    if(played-c.startGames<4||(played-c.startGames)%4!==0||c.lastReview===key)return;c.lastReview=key;
+    if(played-c.startGames<4||(played-c.startGames)%4!==0||c.lastReview===key||c.lastUltimatumMet===key)return;c.lastReview=key;
     const e=managerEvaluation(),form=managerRecentForm(5),support=managerSquadSupport(),target=Math.round(e.score*.55+form.score*.30+support*.15);
     const before=c.confidence,delta=trainingClamp(Math.round((target-before)*.34),-12,9);c.confidence=trainingClamp(before+delta,5,100);
     const band=managerPressureBand(c.confidence),previousBand=managerPressureBand(before);
     c.confidenceHistory.unshift({date:state.calendar?.date||null,year:clubYear(),club:managerClub(),played,confidence:c.confidence,delta,board:e.score,form:form.score,support});c.confidenceHistory=c.confidenceHistory.slice(0,40);
     let pressureText='';
     if(c.confidence<30&&!c.pressure&&played-c.startGames>=8){
-      c.pressure={active:true,club:managerClub(),created:state.calendar?.date||null,startGames:played,startCount:(state.analysis?.matches||[]).filter(m=>m.club===managerClub()&&!m.friendly&&!m.partial&&!m.abandoned).length,matches:5,targetPoints:6,points:0,played:0};
+      c.pressure={active:true,club:managerClub(),created:state.calendar?.date||null,startGames:played,resultTracking:1,afterId:managerLeagueResults()[0]?.id||null,matches:5,targetPoints:6,points:0,played:0};
       pressureText=' Styrelsen kräver minst 6 poäng på de kommande 5 spelbara ligamatcherna eller en tydlig återhämtning i förtroendet.';
     }
     if(c.pressure?.active)managerAssessUltimatum();

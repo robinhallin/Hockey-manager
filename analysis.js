@@ -54,7 +54,7 @@ function analysisEvent(type,side,text,id=null){
 function analysisAssist(p){ensureAnalysis();leagueTrackEvent("assist","own",p.id);if(state.live?.analysis)analysisPlayer(p).assists++;}
 function analysisSnapshot(){
  const m=state.live,a=m?.analysis;if(!a)return null;
- return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.home===managerClub(),stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,tacticalReviews:tacticalReviewSnapshot(),hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
+ return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.home===managerClub(),stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,tacticalReviews:tacticalReviewSnapshot(),hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,overtime:Boolean(m.overtime||m.analysisShootout||m.period>3),shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
 }
 function finishAnalysis(){
  ensureAnalysis();leagueCommitLive();finishPerformance();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
@@ -106,7 +106,10 @@ function performanceView(report){
 function archiveMatchSummaries(){
  const a=state.analysis;if(!a)return;
  a.history??={};
- for(const m of a.matches)if(m.finished&&!a.history[m.id])a.history[m.id]={id:m.id,year:m.year,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,stage:m.stage,friendly:m.friendly,partial:m.partial,abandoned:m.abandoned,shootout:m.shootout,shots:[0,1].map(i=>(m.shots||[]).filter(s=>s.side===(i?'opponent':'own')&&analysisOnTarget(s)).length)};
+ for(const m of a.matches)if(m.finished){const summary=a.history[m.id]??={id:m.id,year:m.year,round:m.round,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,stage:m.stage,friendly:m.friendly,partial:m.partial,abandoned:m.abandoned,overtime:Boolean(m.overtime||m.shootout||m.strengthSeconds?.ot>0||m.events?.some(e=>e.period>3)),shootout:m.shootout,shots:[0,1].map(i=>(m.shots||[]).filter(s=>s.side===(i?'opponent':'own')&&analysisOnTarget(s)).length)};
+  summary.round??=m.round;
+  summary.overtime??=Boolean(m.overtime||m.shootout||m.strengthSeconds?.ot>0||m.events?.some(e=>e.period>3));
+ }
 }
 function careerHistoryView(){
  archiveMatchSummaries();

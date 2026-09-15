@@ -1,6 +1,12 @@
 # Coherent manager workflow
 
-The office has three primary blocks: today, decisions and next fixture. Supporting coach focus, opponent context, stories and finances are expandable. Duplicate generic calendar/training links have been removed; contextual tasks remain. The persistent header owns advancing time, including on the calendar.
+The office has a persistent decision list and one context panel: Påverka idag, Uppföljning or Klubbläge. Required replies remain reachable even when more than five items are pending. Detailed follow-ups scroll inside the panel; the header owns advancing time. Back navigation restores the selected context.
+
+Junior development has distinct workspaces for players/plans, lines, calendar, table/statistics and reports. Selecting a junior opens their player workspace. The live coach's eight tactical choices use a compact two-column grid on desktop.
+
+Training responsibility has one authoritative owner across the office and training screen. An explicit medical comeback plan lasts for the current injury; staff actions are reported. Junior A-training evidence counts participation separately from rest/recovery, once per session. Legacy counts are retained but do not satisfy new attendance milestones. Goalkeeper/defender J20 evidence uses recorded ice time rather than attacking point targets; save and defensive performance rates remain a future addition.
+
+Board ultimatums use permanent match summaries and hockey's 3/2/1/0 points. Existing detailed reports backfill missing overtime metadata; unavailable historical outcomes are not fabricated. A met ultimatum closes and cannot be restarted at the same match checkpoint.
 
 Calendar owns team sessions, individual development owns individual focus/load and observed development. Analysis owns choosing a coaching focus, calendar owns scheduling its session, and development displays its follow-up instead of repeating the whole editor.
 

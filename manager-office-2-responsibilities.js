@@ -6,12 +6,13 @@ function managerOffice2MedicalStaffPlan(){
   const changed=[];
   for(const p of managerRoster()){
     const injury=p.health?.injury;
-    if(!injury||injury.remaining>0||p.health.clearance!=='rest')continue;
+    if(!injury||injury.remaining>0||p.health.clearance!=='rest'||injury.managerPlan?.club===managerClub())continue;
     // The staff may only choose the conservative limited-comeback path.
     // Full comeback remains a manager decision.
     if(injury.readiness>=75&&injury.readiness<100){
       p.health.clearance='limited';
       changed.push(p);
+      medicalReport(`${p.name}: staben väljer begränsad comeback`, `Matchberedskap ${Math.round(injury.readiness)} %. Högst ${p.pos==='MV'?30:10} minuter per match. Du kan ändra planen under Medicinskt team; dina egna val gäller tills rehabiliteringen är klar.`);
     }
   }
   if(changed.length)repairMedicalLines();

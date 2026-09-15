@@ -1,0 +1,59 @@
+/* One active workspace per job; only long lists/details scroll inside it. */
+.office-desk .office-roster-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:9px 12px;border:1px solid #304353;background:#172532;font-size:12px}
+.office-desk .office-roster-strip .desk-link{font-size:12px}
+.office-desk-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-top:12px}
+.office-decision-pane,.office-context-pane{min-width:0;min-height:0}
+.office-decision-pane>.desk-kicker{display:block;margin-bottom:5px}
+.office-desk .office2-command{margin:0;padding:12px;border-radius:4px;box-shadow:none;background:#152330}
+.office-desk .office2-command h2{font-size:18px;margin:0 0 5px}
+.office-desk .office2-command header .desk-kicker{display:none}
+.office-desk .office2-command>header>strong{font-size:20px;padding:5px 8px;border-radius:3px}
+.office-desk .office2-command header p{font-size:12px}
+.office-desk .office2-priority{padding:9px 8px;gap:8px;grid-template-columns:24px minmax(0,1fr) auto;border-radius:3px}
+.office-desk .office2-rank{width:23px;height:23px;font-size:12px}
+.office-desk .office2-copy strong{font-size:13px}.office-desk .office2-copy p{font-size:12px}
+.office-desk .office2-actions button{font-size:12px}
+.office-desk .office2-delegation{margin-top:10px;padding-top:8px}
+.office-context-pane{border:1px solid #304353;background:#152330;border-radius:4px}
+.office-context-pane>.dv-tabs{margin:0;padding:0 8px;flex-shrink:0}
+.office-context-content{padding:12px;min-height:0}
+.office-context-content h2{font-size:18px;margin:4px 0 8px}.office-context-content h3{font-size:13px;margin:0 0 5px}
+.office-context-content p{font-size:12px;line-height:1.5;color:#adc3d2;margin:6px 0}
+.office-today{display:grid;gap:14px}.office-today>section{padding:0 0 12px;border:0;border-bottom:1px solid #304353;border-radius:0;background:none;margin:0}
+.office-today .manager-day-preview{display:block}.office-today .manager-day-preview strong{font-size:15px}
+.office-today .manager-day-preview .desk-link{margin-top:7px}
+.office-context-content .manager-life-brief{display:block;padding:10px;margin:0 0 10px}
+.office-context-content .manager-day-preview{padding:10px;margin:0 0 10px;display:block}
+.office-context-content .manager-life-actions{margin-top:8px;display:flex;gap:7px;flex-wrap:wrap}
+.office-club-view>h2:not(:first-child){margin-top:20px}
+.junior-workspace .dv-junior-workarea{min-height:0}
+.junior-workspace .junior-world{margin:0}
+.junior-workspace .dv-junior-workarea>.dv-report{margin:0}
+.junior-workspace .junior-lineup-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.junior-workspace .junior-lineup fieldset{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0;padding:8px}
+.junior-workspace .junior-lineup label{display:grid;gap:4px;font-size:12px;min-width:0}
+.junior-workspace .junior-lineup select{width:100%;min-width:0;padding:7px;font-size:12px}
+@media(min-width:1100px) and (min-height:650px){
+ .desk-page:has(>.office-desk),.desk-page:has(>.junior-workspace){height:100%;min-height:0;display:flex;flex-direction:column}
+ .office-desk,.junior-workspace{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;margin:0}
+ .office-desk-grid{flex:1;min-height:0}
+ .office-decision-pane,.office-context-pane{display:flex;flex-direction:column}
+ .office-desk .office2-command{flex:1;min-height:0;display:flex;flex-direction:column}
+ .office-desk .office2-command>header,.office-desk .office2-delegation{flex-shrink:0}
+ .office-desk .office2-list{display:block;flex:1;min-height:0;overflow:auto;scrollbar-width:thin}
+ .office-desk .office2-priority+.office2-priority{margin-top:6px}
+ .office-context-content{overflow:auto;flex:1;scrollbar-width:thin}
+ .junior-workspace>.dv-heading,.junior-workspace>.dv-summary,.junior-workspace>.dv-tabs,.junior-workspace>.dv-notice{flex-shrink:0}
+ .junior-workspace>.dv-juniors{flex:1;min-height:0;align-items:stretch}
+ .junior-workspace .dv-juniors>.dv-panel{display:flex;min-height:0}
+ .junior-workspace .dv-juniors .dv-scroll{max-height:none;flex:1;min-height:0}
+ .junior-workspace .dv-junior-detail,.junior-workspace>.dv-junior-workarea,.junior-workspace>.dv-panel{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}
+ .junior-workspace .junior-lineup{padding:12px}.junior-workspace .junior-lineup h3{margin:8px 0;font-size:14px}
+ /* Two columns keep all eight tactical choices on the bench at once. */
+ .mc-live .mc-orders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
+ .mc-live .mc-coach .mc-order-group{margin:0;padding:5px 8px;min-width:0}
+ .mc-live .mc-order-group legend{font-size:12px}
+ .mc-live .mc-order{display:grid;grid-template-columns:1fr;gap:3px;padding:4px 0;font-size:12px}
+ .mc-live .mc-order select{min-width:0;width:100%;padding:5px 6px;min-height:30px;font-size:12px}
+ .mc-live .mc-presets{gap:5px}.mc-live .mc-presets .mc-choice{padding:5px;min-height:30px}
+}

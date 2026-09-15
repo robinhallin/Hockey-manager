@@ -107,8 +107,7 @@ function juniorCalendarView(){
   const fixtures=rows.map(row=>{const pair=juniorWorldPairings(league,row.round).find(g=>g.home===managerClub()||g.away===managerClub());if(!pair)return null;const g=results.find(r=>r.round===row.round&&(r.home===managerClub()||r.away===managerClub()));return {row,pair,g};}).filter(Boolean);
   return `<details class="dv-report junior-calendar" open><summary>J20-kalender · egna matchdagar</summary><p class="dv-note">J20 har nu egna daterade omgångar och spelas när karriärkalendern når datumet, oberoende av A-lagets matchdag.</p><div class="dv-scroll"><table><thead><tr><th>Datum</th><th>Motstånd</th><th>H/B</th><th>Status</th></tr></thead><tbody>${fixtures.slice(0,52).map(({row,pair,g})=>{const home=pair.home===managerClub(),opp=home?pair.away:pair.home,status=g?(home?`${g.homeGoals}–${g.awayGoals}`:`${g.awayGoals}–${g.homeGoals}`):(row.date<state.calendar.date?'Ej bokförd':'Kommande');return `<tr class="${row.date===state.calendar.date?'selected':''}"><td>${calText(row.date)}</td><th>${trainingSafe(opp)} J20</th><td>${home?'H':'B'}</td><td>${status}</td></tr>`;}).join('')}</tbody></table></div></details>`;
 }
-const juniorCalendarViewBase=juniorWorldView;
-juniorWorldView=function(){const html=juniorCalendarViewBase();return html.replace(juniorWorldScoringView(leagueOf()),juniorCalendarView()+juniorWorldScoringView(leagueOf()));};
+// Calendar has its own workspace tab; it is not appended to the league table.
 
 function ensureJuniorLineup(){
   const world=ensureJuniorWorld();world.lineups??={};const club=managerClub(),year=state.season.year;
@@ -160,14 +159,13 @@ function juniorLineupView(){
   const l=ensureJuniorLineup(),slot=(group,index,label)=>`<label>${label}<select onchange="juniorSetLineupSlot('${group}',${index},this.value)">${juniorLineupOptions(group,l[group][index])}</select></label>`;
   return `<details class="dv-report junior-lineup" open><summary>J20-kedjor & matchtrupp</summary><p class="dv-note">Kedjeordningen styr juniortränarens istidsviktning. Individuell matchroll kan fortfarande ge större eller mindre ansvar, och medicinska gränser gäller alltid.</p><div class="junior-lineup-grid"><section><h3>Forwards</h3>${Array.from({length:4},(_,line)=>`<fieldset><legend>Kedja ${line+1}</legend>${[0,1,2].map(slotIndex=>slot('forwards',line*3+slotIndex,['VF','C','HF'][slotIndex])).join('')}</fieldset>`).join('')}</section><section><h3>Backar</h3>${Array.from({length:3},(_,pair)=>`<fieldset><legend>Backpar ${pair+1}</legend>${slot('defense',pair*2,'Vänster')}${slot('defense',pair*2+1,'Höger')}</fieldset>`).join('')}<h3>Målvakter</h3>${slot('goalies',0,'Start')}${slot('goalies',1,'Backup')}</section></div></details>`;
 }
-const juniorCalendarWorldViewWithCalendar=juniorWorldView;
-juniorWorldView=function(){const html=juniorCalendarWorldViewWithCalendar(),needle=juniorCalendarView();return html.includes(needle)?html.replace(needle,juniorLineupView()+needle):juniorLineupView()+html;};
+// Line selection has its own workspace tab.
 
 function managerJ20BriefView(){
   if(state.season?.phase!=='regular')return '';const next=juniorCalendarNext();if(!next)return '';
   const days=calGap(state.calendar.date,next.date);if(days>2)return '';
   const plan=juniorMatchPlan(managerClub(),next.round),label=days===0?'IDAG':days===1?'IMORGON':'OM 2 DAGAR';
-  return `<section class="manager-day-preview j20-day-preview"><div><span class="desk-kicker">J20 ${label}</span><strong>${trainingSafe(next.opponent)} · ${next.venue}</strong><p>${plan.playable?'Juniortruppen kan täcka en hel match med nuvarande uttagning.':'Juniortruppen kan inte täcka en hel match inom nuvarande medicinska gränser.'} Kedjor och matchroller styr istidsfördelningen.</p></div>${deskLink('J20-kedjor & kalender',{page:'juniors'})}</section>`;
+  return `<section class="manager-day-preview j20-day-preview"><div><span class="desk-kicker">J20 ${label}</span><strong>${trainingSafe(next.opponent)} · ${next.venue}</strong><p>${plan.playable?'Juniortruppen kan täcka en hel match med nuvarande uttagning.':'Juniortruppen kan inte täcka en hel match inom nuvarande medicinska gränser.'} Kedjor och matchroller styr istidsfördelningen.</p></div><button type="button" class="desk-link" onclick="juniorOpenWorkspace('lineup')">J20-kedjor & kalender</button></section>`;
 }
 const juniorCalendarMorningBase=managerLifeMorningView;
 managerLifeMorningView=function(){return juniorCalendarMorningBase()+managerJ20BriefView();};

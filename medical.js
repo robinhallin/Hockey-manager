@@ -83,6 +83,7 @@ function setMedicalClearance(id,mode){
  const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p?.health?.injury||p.health.injury.remaining>0||!['rest','limited','full'].includes(mode))return;
  if(state.live&&!state.live.finished)return medicalNotice('Comebackplanen låses under matchen. Justera den mellan matcher.');
  if(mode==='full'&&p.health.injury.readiness<85)return medicalNotice('Full comeback kräver minst 85 % matchberedskap. Välj mer återgångsträning eller begränsad istid.');
+ p.health.injury.managerPlan={club:managerClub(),mode,date:state.calendar?.date||null};
  p.health.clearance=mode;repairMedicalLines();medicalNotice(`${p.name}: ${medicalStatus(p)}. ${mode==='limited'?`Högst ${p.pos==='MV'?30:10} minuter per match.`:mode==='full'?'Förhöjd risk för bakslag kvarstår tills spelaren är fullt återställd.':'Spelaren står över matcher tills du ändrar planen eller rehabiliteringen är klar.'}`);
 }
 function medicalCallUp(pos){
