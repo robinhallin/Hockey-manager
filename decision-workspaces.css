@@ -19,7 +19,7 @@
 .office-context-content{padding:12px;min-height:0}
 .office-context-content h2{font-size:18px;margin:4px 0 8px}.office-context-content h3{font-size:13px;margin:0 0 5px}
 .office-context-content p{font-size:12px;line-height:1.5;color:#adc3d2;margin:6px 0}
-.office-today{display:grid;gap:14px}.office-today>section{padding:0 0 12px;border:0;border-bottom:1px solid #304353;border-radius:0;background:none;margin:0}
+.office-today{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:none;gap:14px}.office-today>section{grid-area:auto;padding:0 0 12px;border:0;border-bottom:1px solid #304353;border-radius:0;background:none;margin:0}
 .office-today .manager-day-preview{display:block}.office-today .manager-day-preview strong{font-size:15px}
 .office-today .manager-day-preview .desk-link{margin-top:7px}
 .office-context-content .manager-life-brief{display:block;padding:10px;margin:0 0 10px}
@@ -56,4 +56,14 @@
  .mc-live .mc-order{display:grid;grid-template-columns:1fr;gap:3px;padding:4px 0;font-size:12px}
  .mc-live .mc-order select{min-width:0;width:100%;padding:5px 6px;min-height:30px;font-size:12px}
  .mc-live .mc-presets{gap:5px}.mc-live .mc-presets .mc-choice{padding:5px;min-height:30px}
+}
+
+@media(min-width:1100px) and (min-height:650px){
+ .junior-workspace{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto minmax(0,1fr);grid-template-areas:"heading summary" "tabs tabs" "notice notice" "work work";align-items:stretch}
+ .junior-workspace>.dv-heading{grid-area:heading;justify-self:start}
+ .junior-workspace>.dv-summary{grid-area:summary;justify-self:end}
+ .junior-workspace>.dv-tabs{grid-area:tabs}
+ .junior-workspace>.dv-notice{grid-area:notice}
+ .junior-workspace>.dv-juniors,.junior-workspace>.dv-junior-workarea,.junior-workspace>.dv-panel{grid-area:work}
+ .junior-workspace .junior-lineup-grid>section:nth-child(2) fieldset{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
