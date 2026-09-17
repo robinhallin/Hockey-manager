@@ -46,3 +46,17 @@ markering i etablerat försvar, riktiga samtals-/avtalslöften, sparning och
 återläsning, obligatoriska svar och en ensam skrivskyddad prioriteringslista.
 Kalibreringens tidigare gränser för skott, skottförsök, mål och räddningsprocent
 behålls.
+
+### Uppmätt kalibrering
+
+Den oförändrade kalibreringen över 96 perioder passerar med aktuell motor:
+26,30 skott, 43,73 skottförsök och 2,89 mål per lag och 60 minuter; 89,01 %
+räddningar. Slumpfröna är i × 1107 för i = 1…96. Resultat och gränser finns i
+`qa/match-balance-current.json`.
+
+Det separata stresstestet i `qa/match-balance-wide.json` använder samma trupp
+med −2/0/+2 på samtliga attribut, parade slumpfrön och båda spelriktningarna.
+Det visar fortsatt undertryckt anfall för svagare profiler och för hög
+skottvolym i den största styrkeskillnaden. Det är en kvarvarande
+balansbegränsning; denna åtgärd gör mätningen aktuell men påstår inte att alla
+styrkeskillnader eller SHL-statistik är färdigkalibrerade.
