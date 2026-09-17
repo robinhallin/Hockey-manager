@@ -1,0 +1,5 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+global.StudioHockey=require('./match-simulation');vm.runInThisContext(fs.readFileSync('match-rules-3.js','utf8'));vm.runInThisContext(fs.readFileSync('match-engine-3.js','utf8'));vm.runInThisContext(fs.readFileSync('match-engine-4.js','utf8'));
+const rosters=require('./match-lab-rosters'),m=new StudioHockey.Match(rosters,{seed:4604}),a=m.skaters(0)[0];m.stoppage=0;m.owner=0;m.carrier=a.id;a.x=35;a.y=5;m.puck={x:a.x,y:a.y};m.skaters(0).filter(b=>b.id!==a.id).forEach(b=>{b.x=34;});
+assert.equal(m.dump(a),true,'dump starts');assert.equal(m.flight.matchEngine4Rim,true,'dump is marked for rim continuation');let guard=0;while(m.flight&&guard++<100)m.resolveFlight(.1);assert.ok(guard<100,'dump flight completes');assert.ok(m.rimPath&&m.rimPath.length>=3,'completed dump continues around the end boards');assert.ok(m.puckVelocity,'rim remains a moving loose puck');assert.ok(Math.hypot(m.puckVelocity.x,m.puckVelocity.y)>0,'puck does not stop abruptly at the end boards');console.log('PASS: deep dump becomes a moving rim puck without replacing authoritative physics');
