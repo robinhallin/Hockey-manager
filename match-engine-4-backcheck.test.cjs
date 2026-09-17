@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+global.StudioHockey=require('./match-simulation');
+vm.runInThisContext(fs.readFileSync('match-rules-3.js','utf8'));vm.runInThisContext(fs.readFileSync('match-engine-3.js','utf8'));vm.runInThisContext(fs.readFileSync('match-engine-4.js','utf8'));
+const rosters=require('./match-lab-rosters'),m=new StudioHockey.Match(rosters,{seed:4504}),carrier=m.skaters(0)[0];m.owner=0;m.carrier=carrier.id;carrier.x=34;carrier.y=9;carrier.vx=3;m.puck={x:34,y:9};m.phase='counter';
+const attackers=m.skaters(0).filter(a=>a.id!==carrier.id);attackers.forEach((a,i)=>{a.x=31+i*2;a.y=7+i*4;});m.skaters(1).forEach((a,i)=>{a.x=39+i;a.y=5+i*5;});
+m.defenseTargets(1);const forwards=m.skaters(1).filter(a=>!a.role.endsWith('D')),backs=m.skaters(1).filter(a=>a.role.endsWith('D'));
+assert.ok(forwards.every(a=>a.duty.includes('Backcheckar')),'all forwards transition from forecheck to backcheck');
+assert.ok(forwards.some(a=>a.duty.includes('första sena hotet')),'one forward owns the most dangerous late threat');
+assert.ok(!forwards.some(a=>/^F[123]/.test(a.duty)),'forecheck labels disappear once the rush advances');
+assert.ok(backs.every(a=>a.duty.includes('gap')),'defencemen retain gap responsibilities during the same transition');
+console.log('PASS: forwards backcheck through the middle while defencemen retain gap');
