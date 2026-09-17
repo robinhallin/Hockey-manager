@@ -1,7 +1,6 @@
 "use strict";
 
-// Match Engine 4, stage 1-2: player identity changes hockey decisions and the
-// carrier reads the blue lines before choosing entry, support or a deep puck.
+// Match Engine 4, stage 1-3: player identity, blue-line reads and pressure-aware breakouts.
 (function installMatchEngine4PlayerDecisions(){
   if(typeof StudioHockey==='undefined'||StudioHockey.Match.prototype.matchEngine4PlayerDecisionsInstalled)return;
   const proto=StudioHockey.Match.prototype,baseActionOptions=proto.actionOptions;
@@ -11,8 +10,8 @@
     const p=StudioHockey.progress(a.side,a.x),pressure=match.pressureAt(a),mates=match.skaters(a.side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status));
     const ahead=mates.filter(b=>StudioHockey.progress(a.side,b.x)>p),offside=ahead.filter(b=>StudioHockey.progress(a.side,b.x)>40),onsideAhead=ahead.filter(b=>StudioHockey.progress(a.side,b.x)<=40);
     const support=mates.filter(b=>Math.abs(StudioHockey.progress(a.side,b.x)-p)<9).length;
-    const lineRush=p>=32&&p<40;
-    return {p,pressure,lineRush,offside:offside.length,onsideAhead:onsideAhead.length,support};
+    const outlets=ahead.filter(b=>StudioHockey.progress(a.side,b.x)<32&&match.pressureAt(b)<.38).length;
+    return {p,pressure,lineRush:p>=32&&p<40,breakout:p<23,offside:offside.length,onsideAhead:onsideAhead.length,support,outlets};
   };
   proto.actionOptions=function(a){
     const rows=baseActionOptions.call(this,a);if(!a||a.role==='G')return rows;
@@ -25,6 +24,26 @@
       if(row.kind==='shield'){row.value+=control*.05+strength*.045+composure*.035;row.identityReason='Puckskydd: kontroll, styrka och kyla';}
       if(row.kind==='dump'){row.value+=(decisions*.035+work*.02)*clamp(.35+pressure,.35,1.2);row.identityReason='Djupledspuck: beslut, press och arbetskapacitet';}
       if(row.kind==='clear'){row.value+=decisions*.035+composure*.025;row.identityReason='Rensning: beslut och kyla';}
+
+      if(read.breakout){
+        const hardForecheck=pressure>.42;
+        if(row.kind==='pass'){
+          row.value+=read.outlets*.035+(passing+vision+decisions)*.025-(hardForecheck&&read.outlets===0?.13:0);
+          row.zoneReason=read.outlets?'Hittar ett spelbart förstapass ur egen zon':'Forechecken stänger första passningen';
+        }
+        if(row.kind==='carry'){
+          row.value+=read.outlets?-.025:clamp((control+skating+decisions)*.035-pressure*.12,-.11,.08);
+          row.zoneReason=hardForecheck?'Bedömer om pucken kan transporteras ur pressen':'Tar is när uppspelsvägen är öppen';
+        }
+        if(row.kind==='shield'){
+          row.value+=(hardForecheck?.07:0)+control*.02+composure*.018;
+          row.zoneReason='Skyddar pucken för att ge understödet tid';
+        }
+        if(row.kind==='clear'){
+          row.value+=(hardForecheck&&read.outlets===0?.14:-.06)+decisions*.02;
+          row.zoneReason=hardForecheck&&read.outlets===0?'Tar det säkra beslutet när forechecken låser uppspelet':'Behåller pucken när ett riktigt uppspel finns';
+        }
+      }
 
       if(read.lineRush){
         if(row.kind==='carry'){
