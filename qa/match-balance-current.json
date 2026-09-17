@@ -1,0 +1,30 @@
+{
+  "engine": "Match Engine 4 + manager controls; career modifiers excluded",
+  "seedRule": "i * 1107, i=1..96",
+  "periods": 96,
+  "per60": {
+    "goals": 2.890625,
+    "shots": 26.296875,
+    "attempts": 43.734375
+  },
+  "savePct": 89.01,
+  "bounds": {
+    "shots": [
+      24,
+      34
+    ],
+    "attempts": [
+      40,
+      60
+    ],
+    "goals": [
+      1.8,
+      3.8
+    ],
+    "savePct": [
+      88,
+      94
+    ]
+  },
+  "passed": true
+}

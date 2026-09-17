@@ -1,6 +1,6 @@
 // Descriptive tuning sample, not a claim of a calibrated real-world hockey model.
 const assert=require('node:assert/strict');
-const {Match}=require('../match-simulation');
+const {Match}=require('./current-match-engine.cjs');
 const rosters=require('../match-lab-rosters');
 const periods=24,totals={goals:0,shots:0,attempts:0,blocks:0,hits:0,penalties:0,passes:0,passAttempts:0,quality:0},types={};
 for(let i=1;i<=periods;i++){
@@ -12,4 +12,4 @@ for(let i=1;i<=periods;i++){
  assert.equal(m.shots.filter(s=>s.outcome==='goal').length,m.score[0]+m.score[1]);
 }
 const perTeamPer60=Object.fromEntries(Object.entries(totals).map(([k,v])=>[k,+(v/(periods*2/3)).toFixed(2)]));
-console.log(JSON.stringify({periods,seedRule:'i * 1107, i=1..24',perTeamPer60,shotTypes:types,savePct:+(100*(1-totals.goals/totals.shots)).toFixed(2)},null,2));
+console.log(JSON.stringify({engine:'Match Engine 4 + manager controls; career modifiers excluded',periods,seedRule:'i * 1107, i=1..24',perTeamPer60,shotTypes:types,savePct:+(100*(1-totals.goals/totals.shots)).toFixed(2)},null,2));

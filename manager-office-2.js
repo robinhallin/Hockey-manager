@@ -23,7 +23,7 @@ function managerOffice2Items(){
   const add=item=>items.push({owner:'Du',level:'medium',area:'general',requiresDecision:false,...item});
   for(const task of officeDecisions()){
     const must=task.tag==='Beslut'||task.tag==='Affär'||task.tag==='Ekonomi';
-    add({id:'decision:'+task.key,title:task.title,detail:task.detail,tag:task.tag,level:must?'critical':'high',score:must?110:80,requiresDecision:must,action:task.key?{deal:task.key}:task.action||null});
+    add({id:'decision:'+(task.key||task.action?.messageId||task.action?.page||task.title),title:task.title,detail:task.detail,tag:task.tag,level:must?'critical':'high',score:must?110:80,requiresDecision:must,action:task.key?{deal:task.key}:task.action||null});
   }
   const roster=managerRoster();
   const injured=roster.filter(p=>!medicalReady(p)&&p.health?.injury);
@@ -34,6 +34,16 @@ function managerOffice2Items(){
   if(contracts.length)add({id:'contracts:expiring',title:`${contracts.length} kontrakt behöver plan`,detail:'Avtal på sista året bör prioriteras innan marknadsläget förändras.',tag:'Kontrakt',area:'contracts',owner:managerOffice2Delegated('contracts')?'Sportchef/stab':'Du',level:contracts.length>=4?'high':'medium',score:contracts.length>=4?72:52,action:{page:'squad',tab:'contracts'}});
   const missions=(state.recruitment?.missions||[]).filter(m=>m.status==='active');
   if(missions.length)add({id:'scouting:missions',title:`${missions.length} aktiva scoutuppdrag`,detail:'Staben samlar observationer. Du behöver bara ingripa om prioritering eller mål ändras.',tag:'Scouting',area:'scouting',owner:managerOffice2Delegated('scouting')?'Scoutchef':'Du',level:'low',score:32,action:{page:'transfers',tab:'missions'}});
+  const promises=lockerPromises().filter(({p,q,source})=>p&&!q.resolved&&source!=='Tidigare avtal'&&(!q.club||q.club===managerClub()));
+  for(const {p,q,source} of promises){
+    const rule=rolePromiseRule(q),left=Math.max(0,rule.total-(q.games||0)),needed=Math.max(0,rule.required-(q.qualified||0));
+    const atRisk=needed>0&&left<=needed;
+    add({id:`promise:${source}:${p.id}`,title:`${p.name}: följ upp istidslöftet`,
+      detail:`${source} · ${q.qualified||0}/${rule.required} matcher med minst ${rule.minutes} minuter. ${left} tillgängliga tävlingsmatcher kvar.`,
+      tag:'Löfte',area:'locker',level:atRisk?'high':'medium',score:atRisk?86:56,action:{promisePlayer:p.id}});
+  }
+  const unread=(state.training?.messages||[]).filter(m=>!m.read&&!m.dismissed&&!m.decisionType);
+  if(unread.length)add({id:'inbox:unread',title:`${unread.length} olästa rapporter`,detail:unread.slice(0,2).map(m=>m.title).join(' · '),tag:'Rapporter',area:'inbox',level:'low',score:30,action:{page:'inbox'}});
   const next=deskFixtures().upcoming[0];
   if(next){
     const days=Math.max(0,calGap(state.calendar.date,next.date));
@@ -47,8 +57,13 @@ function managerOffice2VisibleItems(){
   return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
 }
 function managerOffice2Action(item){
+  if(item.action?.promisePlayer!==undefined)return `managerOfficeOpenPromise(${JSON.stringify(item.action.promisePlayer)})`;
   if(item.action?.deal)return `officeOpenDeal(${JSON.stringify(item.action.deal)})`;
   return item.action?deskAction(item.action):'';
+}
+function managerOfficeOpenPromise(playerId){
+  deskNavigate('locker');lockerUI.tab='promises';lockerUI.player=playerId;
+  render();queueInterfaceSave();
 }
 function managerOffice2Row(item,index){
   const action=managerOffice2Action(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;
@@ -60,7 +75,7 @@ function managerOffice2DelegationView(){
 }
 function managerOffice2View(){
   const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length;
-  return `<section class="office2-command" aria-label="Dagens prioriteringar"><header><div><span class="desk-kicker">MANAGER OFFICE 2.0</span><h2>Dagens prioriteringar</h2><p>${must?`${must} ärende${must===1?'':'n'} kräver ditt svar. `:''}Listan rangordnas efter deadline, matchnärhet, medicinsk risk och klubbpåverkan.</p></div><strong>${items.length}</strong></header><div class="office2-list">${items.map(managerOffice2Row).join('')||'<p class="office-empty">Inga prioriterade ärenden just nu.</p>'}</div>${managerOffice2DelegationView()}</section>`;
+  return `<section class="office2-command" aria-label="Dagens prioriteringar"><header><div><span class="desk-kicker">DAGENS AGENDA</span><h2>Dagens prioriteringar</h2><p>${must?`${must} ärende${must===1?'':'n'} kräver ditt svar. `:''}Listan rangordnas efter deadline, matchnärhet, medicinsk risk och klubbpåverkan.</p></div><strong>${items.length}</strong></header><div class="office2-list">${items.map(managerOffice2Row).join('')||'<p class="office-empty">Inga prioriterade ärenden just nu.</p>'}</div>${managerOffice2DelegationView()}</section>`;
 }
 
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}

@@ -1,5 +1,5 @@
 const path=require('node:path');
-const {Match}=require(path.resolve(process.argv[2]||'match-simulation.js'));
+const {Match}=process.argv[2]?require(path.resolve(process.argv[2])):require('./current-match-engine.cjs');
 const rosters=require('../match-lab-rosters');
 const count=Number(process.argv[3]||12),rows=[],offset=Number(process.argv[4]||0);
 for(let seed=1;seed<=count;seed++){
