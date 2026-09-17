@@ -1,9 +1,6 @@
 // Stress diagnostic for ability separation. Not an empirical SHL calibration.
 const assert=require('node:assert/strict');
-const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-global.StudioHockey=require('../match-simulation');
-for(const file of ['match-rules-3.js','match-engine-3.js','match-control-integration.js'])vm.runInThisContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{filename:file});
-const {Match}=StudioHockey;
+const {Match}=require('./current-match-engine.cjs');
 const base=require('../match-lab-rosters');
 const PERIODS=6;
 function scale(team,delta,name){return {...team,name,players:team.players.map(p=>({...p,attributes:Object.fromEntries(Object.entries(p.attributes).map(([k,v])=>[k,Math.max(1,Math.min(20,v+delta))]))}))};}
@@ -13,4 +10,4 @@ const cases=[['baseline','baseline'],['strong','baseline'],['baseline','weak'],[
 assert.ok(rows['strong-baseline'][0].quality>rows['strong-baseline'][1].quality,'strong profile should create more shot quality');
 assert.ok(rows['baseline-weak'][0].quality>rows['baseline-weak'][1].quality,'baseline should create more shot quality than weak profile');
 const warnings=[];for(const [name,sides] of Object.entries(rows))sides.forEach((side,index)=>{if(side.shots>20)warnings.push(`${name} side ${index}: ${side.shots} shots/20m indicates runaway volume`);if(side.shots<6)warnings.push(`${name} side ${index}: ${side.shots} shots/20m indicates suppressed offense`);});
-console.log(JSON.stringify({engine:'Match Engine 3 + manager controls; career modifiers excluded',periodsPerMatchup:PERIODS*2,method:'Same roster snapshot with every attribute shifted by -2/0/+2. Same seeds, both rink sides per profile. Stress diagnostic only.',rows,warnings},null,2));
+console.log(JSON.stringify({engine:'Match Engine 4 + manager controls; career modifiers excluded',periodsPerMatchup:PERIODS*2,method:'Same roster snapshot with every attribute shifted by -2/0/+2. Same seeds, both rink sides per profile. Stress diagnostic only.',rows,warnings},null,2));
