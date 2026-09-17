@@ -1,0 +1,17 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+global.StudioHockey=require('./match-simulation');
+vm.runInThisContext(fs.readFileSync('match-rules-3.js','utf8'));
+vm.runInThisContext(fs.readFileSync('match-engine-3.js','utf8'));
+vm.runInThisContext(fs.readFileSync('match-engine-4.js','utf8'));
+const rosters=require('./match-lab-rosters');
+const m=new StudioHockey.Match(rosters,{seed:440});
+const a=m.skaters(0).find(x=>x.role.endsWith('D'))||m.skaters(0)[0];m.owner=0;m.carrier=a.id;a.x=14;a.y=15;m.puck={x:a.x,y:a.y};
+const mates=m.skaters(0).filter(x=>x.id!==a.id);mates.forEach((x,i)=>{x.x=22+i;x.y=6+i*4;});
+const original=m.pressureAt.bind(m);m.pressureAt=x=>x.id===a.id?.58:.18;
+let rows=m.actionOptions(a),pass=rows.find(r=>r.kind==='pass');assert.ok(pass?.zoneReason?.includes('förstapass'),'open outlet is recognized under forecheck pressure');
+const openValue=pass.value;
+m.pressureAt=x=>x.id===a.id?.58:.72;rows=m.actionOptions(a);pass=rows.find(r=>r.kind==='pass');
+assert.ok(pass?.zoneReason?.includes('stänger'),'covered outlets are recognized');assert.ok(pass.value<openValue,'closed forecheck lanes reduce the first-pass value');
+m.pressureAt=original;
+console.log('PASS: Match Engine 4 breakout reads forecheck and outlet pressure');
