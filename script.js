@@ -3079,7 +3079,7 @@ calendarAfterFixture();
    HEMSIDAN
    ========================================================= */
 
-function homeView(){return managerDeskView();}
+function homeView(){return managerDeskView()+pressDeskView();}
 
 /* TRUPP */
 function squadView(){return squadWorkspaceView();}
@@ -4272,6 +4272,7 @@ function render(){
   ensureClub();
   ensureManager();
   ensureStories();
+  ensurePress();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
@@ -4324,6 +4325,9 @@ careerScreen === "files" ? saveSettingsView()
 
 : state.page==="opponents"
 ? rivalsView()
+
+: state.page==="press"
+? pressView()
 
 : state.page==="stories"
 ? storiesView()
