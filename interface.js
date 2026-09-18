@@ -3,7 +3,7 @@
 // Presentation only: routes share the existing career state and game actions.
 const deskFolds = {iceTime:false,contracts:false};
 const DESK_AREAS = [
-  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['staffReview','Stab & uppföljning'],['stories','Säsongens historier']]},
+  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['staffReview','Stab & uppföljning'],['stories','Säsongens historier'],['press','Press & supportrar']]},
   {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Taktik & laguttagning'],['locker','Omklädningsrum']],details:{player:'squad',specialTeams:'lines',tactics:'lines'}},
   {id:'training',label:'Utveckling',icon:'training',pages:[['training','Spelarutveckling'],['juniors','Juniorer'],['medical','Medicinskt team']]},
   {id:'matches',label:'Matcher',icon:'calendar',pages:[['calendar','Kalender'],['match','Matchcenter'],['opponents','Motståndsrapport'],['statistics','Matchanalys']],details:{schedule:'calendar',round:'calendar'}},
