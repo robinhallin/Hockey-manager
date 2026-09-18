@@ -32,3 +32,5 @@ Detta är en diagnostisk jämförelse, inte bevis för identiska resultatfördel
 ## Verifiering
 
 12 riktade testfiler har passerat: match-depth-followup, tactical-controls, match-world-2, match-initiative, headless-career, shared-shot-model, tactical-review, matches-workspace, match-calibration-career, match-centre, match-readiness och match-shifts. Där ingår fortsatt riktig match, paus/återläsning, statistikavstämning, uppställning, belastning och äldre rapporter.
+
+Slutkörningen omfattade 20 matchpar i fem scenarier samt två matchpar med Brynäs. Rådata och medelvärden finns i `qa/match-tactics-comparison.json`. I grundscenariot hade HV71 19,25 skott i visad match mot 29,75 i bakgrunden; motståndaren hade 35,75 mot 24. Det visar kvarvarande skillnader som behöver större kalibreringsunderlag.
