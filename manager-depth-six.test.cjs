@@ -20,6 +20,11 @@ assert.equal(r('coachFocus().sessions.length'),0);
 r("coachTrainingDone({date:'2026-01-02',trained:10,type:'powerplay'})");
 assert.equal(r('coachFocus().sessions.length'),1);
 // A plan displaces a named player but cannot change formations, money or roles.
+r(`state.lines=null;globalThis.firstCandidate=Object.values(state.clubRosters).flat().find(q=>!isOwnPlayer(q)&&q.pos==='C');`);
+assert.match(r('squadArrivalView(firstCandidate)'),/Prova värvningen i laget/);
+assert.ok(r('state.lines.forwards.length'));
+r('state.lines=null');
+assert.equal(r('squadPlacementSave(firstCandidate.id,1,roleWeights(firstCandidate)[0])'),true);
 r(`globalThis.candidate=Object.values(state.clubRosters).flat().find(q=>!isOwnPlayer(q)&&q.pos==='C');globalThis.before=JSON.stringify([state.lines,state.money,managerRoster().map(p=>p.promisedRole)]);squadPlacementSave(candidate.id,1,roleWeights(candidate)[0]);`);
 assert.equal(r('JSON.stringify([state.lines,state.money,managerRoster().map(p=>p.promisedRole)])'),r('before'));
 assert.equal(r('squadPlacementPlan(candidate).displaced'),r('state.lines.forwards[1]'));
