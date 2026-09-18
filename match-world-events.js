@@ -136,8 +136,14 @@ if(typeof CareerBroadcastMatch!=='undefined'){
 if(typeof rivalSimulate==='function'){
  const baseRivalSimulate=rivalSimulate;
  rivalSimulate=function(game){
-  const result=baseRivalSimulate.apply(this,arguments),stream=MatchEventStream.backgroundFromResult(result),s=MatchEventStream.summary(stream);
+  const result=baseRivalSimulate.apply(this,arguments),stream=result.eventStream||MatchEventStream.backgroundFromResult(result),s=MatchEventStream.summary(stream);
   result.eventStream=stream;result.eventSummary=s;result.eventStreamVersion=MatchEventStream.VERSION;
+  if(stream.meta.recorded)for(const [side,r] of (result.reports||[]).entries()){
+   r.strengthEvidence=['even','pp','pk'].map(kind=>{
+    const shots=stream.events.filter(e=>e.type==='shot'&&e.side===side&&e.situation===kind);
+    return {kind,seconds:r.strengthSeconds?.[kind]||0,attempts:shots.length,shots:shots.filter(e=>['goal','save'].includes(e.outcome)).length,goals:shots.filter(e=>e.outcome==='goal').length,xg:shots.reduce((n,e)=>n+(e.probability||0),0)};
+   });
+  }
   (result.reports||[]).forEach((r,side)=>{r.eventStreamVersion=MatchEventStream.VERSION;r.eventSummary={score:s.score[side],shots:s.shots[side],attempts:s.attempts[side],saves:s.saves[side],pp:s.pp[side],ppGoals:s.ppGoals[side]};r.shots=s.shots[side];r.pp=s.pp[side];r.ppGoals=s.ppGoals[side];});
   return result;
  }
