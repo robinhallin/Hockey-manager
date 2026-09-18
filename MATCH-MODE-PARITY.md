@@ -1,5 +1,7 @@
 # Matchlägen, avslut och kalibrering
 
+Den fortsatta kalibreringen och nyare kontrollresultat finns i [AI-CALIBRATION.md](AI-CALIBRATION.md). Nedanstående siffror beskriver den tidigare kontrollomgången.
+
 ## Resultatpåverkande visningsfel rättat
 
 Höjdpunktsvyn bedömde avslutskvalitet för att välja vad den skulle visa. Den beräkningen anropade målvaktens positionsbedömning, som samtidigt skrev över målvaktens senaste puckläsning. Även en vyfråga kunde därmed ändra nästa beslut på isen.

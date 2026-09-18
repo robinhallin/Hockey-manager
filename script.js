@@ -2853,139 +2853,21 @@ function overtimeStep(){
    ========================================================= */
 
 function shootout(){
-
-  const m = state.live;
-
-  addEvent(
-    "Straffläggning börjar.",
-    "period"
-  );
-
-  let hvGoals = 0;
-  let oppGoals = 0;
-
-  let hvTaken = 0;
-  let oppTaken = 0;
-
-  // Första 5 straffarna per lag
-  for(let i = 1; i <= 5; i++){
-
-    const hvScores = Math.random() < 0.52;
-    hvTaken++;
-
-    if(hvScores){
-      hvGoals++;
-
-      addEvent(
-        `${managerClub()} straff ${i}: MÅL!`,
-        "goal"
-      );
-    }else{
-      addEvent(
-        `${managerClub()} straff ${i}: miss.`,
-        "chance"
-      );
-    }
-
-    // Motståndaren kan inte längre komma ikapp
-    const oppRemaining = 5 - oppTaken;
-
-    if(hvGoals > oppGoals + oppRemaining){
-      break;
-    }
-
-    const oppScores = Math.random() < 0.48;
-    oppTaken++;
-
-    if(oppScores){
-      oppGoals++;
-
-      addEvent(
-        `${m.opponent} straff ${i}: MÅL!`,
-        "goal"
-      );
-    }else{
-      addEvent(
-        `${m.opponent} straff ${i}: miss.`,
-        "chance"
-      );
-    }
-
-    // HV71 kan inte längre komma ikapp
-    const hvRemaining = 5 - hvTaken;
-
-    if(oppGoals > hvGoals + hvRemaining){
-      break;
-    }
-  }
-
-  // Sudden death om lika efter grundomgången
-  let suddenRound = 1;
-
-  while(hvGoals === oppGoals){
-
-    addEvent(
-      `Sudden death-straffar, omgång ${suddenRound}.`,
-      "period"
-    );
-
-    const hvScores = Math.random() < 0.52;
-
-    if(hvScores){
-      hvGoals++;
-
-      addEvent(
-        `${managerClub()}: MÅL!`,
-        "goal"
-      );
-    }else{
-      addEvent(
-        `${managerClub()}: miss.`,
-        "chance"
-      );
-    }
-
-    const oppScores = Math.random() < 0.48;
-
-    if(oppScores){
-      oppGoals++;
-
-      addEvent(
-        `${m.opponent}: MÅL!`,
-        "goal"
-      );
-    }else{
-      addEvent(
-        `${m.opponent}: miss.`,
-        "chance"
-      );
-    }
-
-    suddenRound++;
-  }
-
+  const m=state.live,e=studioEngine();
+  if(!m||m.finished)return;
+  // Legacy saves may reach the decider without a spatial broadcast snapshot.
+  const source=e?.teams||[managerClub(),m.opponent].map((club,side)=>({players:(state.clubRosters[club]||[]).filter(medicalReady),goalie:side===0?randomGoalie():rivalLiveKeeper()}));
+  const teams=source.map((t,side)=>{
+    const values=(p,keys)=>{if(!e)return Object.fromEntries(keys.map(k=>[k,matchCalibrationAttribute(readinessAttribute(ensurePlayerAttributes(p)[k]||10,k,typeof matchEnergy==='function'?matchEnergy(p):readinessCeiling(p.fatigue||0),1,50,p.morale??70))]));const actor=e.actors.find(a=>a.side===side&&samePlayerId(a.player.id,p.id))||{side,player:p,role:p.pos==='MV'?'G':p.pos==='B'?'LD':'C'};return Object.fromEntries(keys.map(k=>[k,e.attribute(actor,k)]));};
+    return {shooters:t.players.filter(p=>p.pos!=='MV').map(p=>({id:p.id,name:p.name,attributes:values(p,['shooting','puckControl','composure'])})),keeper:t.goalie?values(t.goalie,['reflexes','positioning','movement','composure']):null};
+  });
+  const result=StudioHockey.resolveShootout(teams,e?()=>e.random():rivalRandom(`${state.season.year}:${state.round}:${managerClub()}:${m.opponent}:shootout`));
+  addEvent('Straffläggning börjar.','period');
+  for(const a of result.attempts)addEvent(`${a.side===0?managerClub():m.opponent} · ${a.player}, straff ${a.round}: ${a.goal?'MÅL!':'miss.'}`,a.goal?'goal':'chance');
   m.analysisShootout=true;
-  analysisEvent("decider",hvGoals>oppGoals?"own":"opponent",`Straffläggning: ${hvGoals}–${oppGoals}`);
-  if(hvGoals > oppGoals){
-
-    m.hv++;
-
-    addEvent(
-      `${managerClub()} vinner straffläggningen ${hvGoals}-${oppGoals}.`,
-      "goal"
-    );
-
-  }else{
-
-    m.opp++;
-
-    addEvent(
-      `${m.opponent} vinner straffläggningen ${oppGoals}-${hvGoals}.`,
-      "goal"
-    );
-
-  }
-
+  analysisEvent('decider',result.winner===0?'own':'opponent',`Straffläggning: ${result.score[0]}–${result.score[1]}`);
+  if(result.winner===0)m.hv++;else m.opp++;
+  addEvent(`${result.winner===0?managerClub():m.opponent} vinner straffläggningen ${result.score[result.winner]}–${result.score[1-result.winner]}.`,'goal');
   finishMatch(true);
 }
 

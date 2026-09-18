@@ -68,7 +68,7 @@ const background=run(`(()=>{
  return {decision,context,rival,keys:Object.keys(context).sort()};
 })()`);
 assert.equal(JSON.stringify(background.context),JSON.stringify(background.rival));
-assert.deepEqual(Array.from(background.keys),['angle','behind','d','lateralSpeed','oneTimer','pressure','rebound','screen']);
+assert.deepEqual(Array.from(background.keys),['angle','behind','coverage','d','lateralSpeed','oneTimer','pressure','rebound','screen']);
 assert.ok(Object.values(background.decision).some(v=>Math.abs(v)>0));
 
 run('beginCareerSelection();chooseCareerClub("HV71");careerReview();acceptCareer()');

@@ -1,6 +1,8 @@
 const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
-let app=boot(),run=app.run;
+// Run the production engine directly; isolated VM loading is retained at every
+// season checkpoint. headless-career.test.cjs proves fixture parity between them.
+const app=require('./scripts/headless-career.cjs').headlessCareer(),run=app.run;
 run('startCareerWithClub("HV71")');
 let regularGames=0;
 for(let season=0;season<3;season++){
@@ -33,7 +35,9 @@ for(let season=0;season<3;season++){
  assert.equal(run('(()=>{const ps=[...Object.values(state.clubRosters).flat(),...state.playerWorld.freeAgents,...state.loans.external,...state.juniors.roster,...aiAcademyPlayers()];return ps.length===new Set(ps.map(p=>String(p.id))).size&&ps.every(p=>Object.values(p.attributes).every(n=>Number.isFinite(n)&&n>=1&&n<=20))})()'),true);
  assert.doesNotThrow(()=>run('validateSaveText(saveExportText())'));
  run('save();globalThis.savedAI=JSON.stringify(state.clubAI)');
- const previous=run('savedAI');app=boot(app.storage.value);run=app.run;
+ const previous=run('savedAI'),loaded=boot(app.storage.value);
+ assert.equal(loaded.run('JSON.stringify(state.clubAI)'),previous);
+ run('state=JSON.parse('+JSON.stringify(loaded.run('JSON.stringify(state)'))+')');
  assert.equal(run('JSON.stringify(state.clubAI)'),previous);
  const packedBytes=run('careerPack(JSON.stringify(state)).length*2');
  if(packedBytes>=5*1024*1024)require('node:fs').writeFileSync('/tmp/hockey-ai-career-storage.json',run('JSON.stringify(state)'));

@@ -1,0 +1,67 @@
+{
+  "passed": true,
+  "fixturesPerMode": 60,
+  "controls": "Same initial rosters and first 60 fixtures; adaptive coaching frozen. Ungated disables only the new PK attempt gate, not a replay of an older release. Independent RNG paths after changed decisions.",
+  "results": {
+    "ungated": {
+      "even": {
+        "seconds": 375680,
+        "shots": 3239,
+        "goals": 292,
+        "shotsPer60": 31.038117546848383
+      },
+      "pp": {
+        "seconds": 28160,
+        "shots": 384,
+        "goals": 49,
+        "shotsPer60": 49.09090909090909
+      },
+      "pk": {
+        "seconds": 28160,
+        "shots": 212,
+        "goals": 8,
+        "shotsPer60": 27.102272727272727
+      }
+    },
+    "selective": {
+      "even": {
+        "seconds": 375880,
+        "shots": 3271,
+        "goals": 295,
+        "shotsPer60": 31.328083430882195
+      },
+      "pp": {
+        "seconds": 28060,
+        "shots": 368,
+        "goals": 40,
+        "shotsPer60": 47.21311475409836
+      },
+      "pk": {
+        "seconds": 28060,
+        "shots": 79,
+        "goals": 6,
+        "shotsPer60": 10.135424091233071
+      }
+    },
+    "safe": {
+      "even": {
+        "seconds": 375600,
+        "shots": 3252,
+        "goals": 282,
+        "shotsPer60": 31.169329073482427
+      },
+      "pp": {
+        "seconds": 28200,
+        "shots": 360,
+        "goals": 38,
+        "shotsPer60": 45.95744680851064
+      },
+      "pk": {
+        "seconds": 28200,
+        "shots": 35,
+        "goals": 3,
+        "shotsPer60": 4.468085106382978
+      }
+    }
+  }
+}

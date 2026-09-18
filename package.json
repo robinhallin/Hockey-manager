@@ -14,7 +14,10 @@
     "test:career-long": "node scripts/career-long-run.cjs",
     "check:match-modes": "node scripts/compare-match-modes.cjs",
     "check:playback-parity": "node scripts/check-playback-parity.cjs",
-    "check:background-strength": "node scripts/check-background-strength.cjs"
+    "check:background-strength": "node scripts/check-background-strength.cjs",
+    "sample:ai-calibration": "node scripts/sample-ai-calibration.cjs",
+    "check:ai-calibration": "node scripts/check-ai-calibration.cjs",
+    "check:ai-overtime": "node scripts/check-ai-overtime.cjs"
   },
   "devDependencies": {
     "vite": "8.0.13"

@@ -1,0 +1,1045 @@
+{
+  "passed": false,
+  "limits": {
+    "overallShotsRelative": 0.1,
+    "overallXgRelative": 0.15,
+    "evenShotsRelative": 0.15,
+    "ppShotsRelative": 0.25,
+    "pkShotsAbsolute": 5,
+    "strengthXgPerAttemptAbsolute": 0.012,
+    "ppExposureRelative": 0.25,
+    "tacticalShotsAbsolute": 8,
+    "tacticalShotsRelative": 0.25,
+    "tacticalXgAbsolute": 0.6,
+    "tacticalXgRelative": 0.3,
+    "venueShotsRelative": 0.15,
+    "venueXgRelative": 0.2,
+    "ppMatchupShotsRelative": 0.35,
+    "ppMatchupQualityAbsolute": 0.02
+  },
+  "method": "81 held-out regulation fixtures; different clubs and seeds from 162 training fixtures. Background repeats share the same frozen initial lineup, plan and roster. Adaptive coaching/injuries disabled only in the comparison harness; fatigue and rotation retained. Bootstrap resamples whole fixtures. Limits are consistency guardrails, not external league validation.",
+  "fixtures": 81,
+  "backgroundRepeats": 12,
+  "checks": [
+    {
+      "name": "overall shots",
+      "difference": 0.06294735433808794,
+      "limit": 0.1,
+      "passed": true
+    },
+    {
+      "name": "overall xg",
+      "difference": 0.045344071627578676,
+      "limit": 0.15,
+      "passed": true
+    },
+    {
+      "name": "even shots/60",
+      "difference": 0.06052060958362494,
+      "limit": 0.15,
+      "passed": true
+    },
+    {
+      "name": "even expected goals per attempt",
+      "difference": 0.0023244080828594624,
+      "limit": 0.012,
+      "passed": true
+    },
+    {
+      "name": "pp shots/60",
+      "difference": 0.05945802369128131,
+      "limit": 0.25,
+      "passed": true
+    },
+    {
+      "name": "pp expected goals per attempt",
+      "difference": 0.004642392383220811,
+      "limit": 0.012,
+      "passed": true
+    },
+    {
+      "name": "pk shots/60",
+      "difference": 0.7690333780090608,
+      "limit": 5,
+      "passed": true
+    },
+    {
+      "name": "pk expected goals per attempt",
+      "difference": 0.004502494294291424,
+      "limit": 0.012,
+      "passed": true
+    },
+    {
+      "name": "powerplay exposure",
+      "difference": 0.2278857061892752,
+      "limit": 0.25,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:balanced shots",
+      "difference": 2.14629629629637,
+      "limit": 8,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:balanced xg",
+      "difference": 0.3739633265625124,
+      "limit": 0.7677046578082766,
+      "passed": true
+    },
+    {
+      "name": "venue:away shots",
+      "difference": 0.055033294163725335,
+      "limit": 0.15,
+      "passed": true
+    },
+    {
+      "name": "venue:away xg",
+      "difference": 0.029685043148277166,
+      "limit": 0.2,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:131:box shots/60",
+      "difference": 0.050067918800879976,
+      "limit": 0.35,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:131:box expected goals per attempt",
+      "difference": 0.003910833451313253,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:balanced shots",
+      "difference": 4.756944444444393,
+      "limit": 9.42361111111111,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:balanced xg",
+      "difference": 0.27265461940656355,
+      "limit": 0.8773954005853115,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:patient shots",
+      "difference": 0.22222222222223031,
+      "limit": 8,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:patient xg",
+      "difference": 0.003170401943230594,
+      "limit": 0.6,
+      "passed": true
+    },
+    {
+      "name": "venue:home shots",
+      "difference": 0.07126200274348292,
+      "limit": 0.15,
+      "passed": true
+    },
+    {
+      "name": "venue:home xg",
+      "difference": 0.06148587418449165,
+      "limit": 0.2,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:umbrella:box shots/60",
+      "difference": 0.03810931144110221,
+      "limit": 0.35,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:umbrella:box expected goals per attempt",
+      "difference": 0.004362707541281208,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:shoot shots",
+      "difference": 1.2962962962962692,
+      "limit": 8.5,
+      "passed": true
+    },
+    {
+      "name": "tactic:control:shoot xg",
+      "difference": 0.05372805756342425,
+      "limit": 0.7443674212211661,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:overload:box shots/60",
+      "difference": 0.010308119077615497,
+      "limit": 0.35,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:overload:box expected goals per attempt",
+      "difference": 0.002512273324914757,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:umbrella:diamond shots/60",
+      "difference": 0.030295502707547044,
+      "limit": 0.35,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:umbrella:diamond expected goals per attempt",
+      "difference": 0.003337067421053372,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:patient shots",
+      "difference": 1.7592592592592489,
+      "limit": 8,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:patient xg",
+      "difference": 0.07445223921307953,
+      "limit": 0.6272098325099779,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:overload:diamond shots/60",
+      "difference": 0.4557968337397109,
+      "limit": 0.35,
+      "passed": false
+    },
+    {
+      "name": "pp-matchup:overload:diamond expected goals per attempt",
+      "difference": 0.004055384652692028,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:shoot shots",
+      "difference": 3.1296296296296617,
+      "limit": 11.722222222222221,
+      "passed": true
+    },
+    {
+      "name": "tactic:counter:shoot xg",
+      "difference": 0.49630275598292073,
+      "limit": 0.758838344923786,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:131:diamond shots/60",
+      "difference": 0.15201196608517153,
+      "limit": 0.35,
+      "passed": true
+    },
+    {
+      "name": "pp-matchup:131:diamond expected goals per attempt",
+      "difference": 0.0023192948376775657,
+      "limit": 0.02,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:balanced shots",
+      "difference": 0.31172839506157146,
+      "limit": 8.722222222222221,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:balanced xg",
+      "difference": 0.10759701878999461,
+      "limit": 0.7472864017741493,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:patient shots",
+      "difference": 1.555555555555543,
+      "limit": 8,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:patient xg",
+      "difference": 0.018811375884817183,
+      "limit": 0.6,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:shoot shots",
+      "difference": 2.8981481481481026,
+      "limit": 11.972222222222221,
+      "passed": true
+    },
+    {
+      "name": "tactic:pressure:shoot xg",
+      "difference": 0.08105811655198014,
+      "limit": 0.7839561404284435,
+      "passed": true
+    },
+    {
+      "name": "tactical discrepancy improvement",
+      "difference": 2.178560232685204,
+      "limit": 11.849295753003451,
+      "passed": true
+    }
+  ],
+  "intervals": {
+    "shots": {
+      "backgroundMinusLive": -1.936213991769705,
+      "bootstrap95": [
+        -3.1553497942386834,
+        -0.6975308641975317
+      ]
+    },
+    "xg": {
+      "backgroundMinusLive": -0.1143903102975461,
+      "bootstrap95": [
+        -0.18572332738414896,
+        -0.04394073971308105
+      ]
+    }
+  },
+  "groups": {
+    "all": {
+      "live": {
+        "n": 162,
+        "shots": 30.75925925925926,
+        "goals": 2.5,
+        "xg": 2.5227181016530698
+      },
+      "background": {
+        "n": 162.00000000000094,
+        "shots": 28.823045267489555,
+        "goals": 2.3935185185185035,
+        "xg": 2.4083277913555237
+      }
+    },
+    "tactic:control:balanced": {
+      "live": {
+        "n": 45,
+        "shots": 21.933333333333334,
+        "goals": 2.511111111111111,
+        "xg": 2.5590155260275886
+      },
+      "background": {
+        "n": 45.000000000000185,
+        "shots": 19.787037037036963,
+        "goals": 2.0759259259259166,
+        "xg": 2.1850521994650762
+      }
+    },
+    "venue:away": {
+      "live": {
+        "n": 82,
+        "shots": 31.134146341463413,
+        "goals": 2.5121951219512195,
+        "xg": 2.529784032649383
+      },
+      "background": {
+        "n": 81.9999999999997,
+        "shots": 29.420731707317184,
+        "goals": 2.4308943089430985,
+        "xg": 2.4546872844843635
+      }
+    },
+    "even": {
+      "live": {
+        "seconds": 511681.40000000154,
+        "shots": 4488,
+        "goals": 357,
+        "xg": 359.35446106154296,
+        "attempts": 8239,
+        "shotsPer60": 31.575898596274854,
+        "attemptsPer60": 57.9665393348281,
+        "xgPerAttempt": 0.043616271521002906
+      },
+      "background": {
+        "seconds": 495383.3333333327,
+        "shots": 4082.083333333331,
+        "goals": 330.50000000000017,
+        "xg": 329.3576667371118,
+        "attempts": 7976.333333333341,
+        "shotsPer60": 29.664905965077573,
+        "attemptsPer60": 57.964808397537396,
+        "xgPerAttempt": 0.04129186343814344
+      }
+    },
+    "pp": {
+      "live": {
+        "seconds": 35759.299999999326,
+        "shots": 410,
+        "goals": 44,
+        "xg": 45.63344074630448,
+        "attempts": 650,
+        "shotsPer60": 41.27597576015268,
+        "attemptsPer60": 65.43752254658352,
+        "xgPerAttempt": 0.07020529345585305
+      },
+      "background": {
+        "seconds": 43908.33333333332,
+        "shots": 473.49999999999994,
+        "goals": 51.083333333333506,
+        "xg": 54.86335372004121,
+        "attempts": 733.0000000000009,
+        "shotsPer60": 38.82178781552477,
+        "attemptsPer60": 60.097931296261244,
+        "xgPerAttempt": 0.07484768583907386
+      }
+    },
+    "pp-matchup:131:box": {
+      "live": {
+        "seconds": 5888.199999999401,
+        "shots": 105,
+        "goals": 14,
+        "xg": 14.023583878995394,
+        "attempts": 165,
+        "shotsPer60": 64.19618898815231,
+        "attemptsPer60": 100.87972555281077,
+        "xgPerAttempt": 0.08499141744845694
+      },
+      "background": {
+        "seconds": 7530,
+        "shots": 141.00000000000003,
+        "goals": 16.833333333333336,
+        "xg": 18.587978958960296,
+        "attempts": 209.08333333333346,
+        "shotsPer60": 67.41035856573707,
+        "attemptsPer60": 99.96015936254986,
+        "xgPerAttempt": 0.08890225089977019
+      }
+    },
+    "pk": {
+      "live": {
+        "seconds": 35759.299999999326,
+        "shots": 85,
+        "goals": 4,
+        "xg": 3.692430659950191,
+        "attempts": 150,
+        "shotsPer60": 8.557214486860921,
+        "attemptsPer60": 15.100966741519274,
+        "xgPerAttempt": 0.02461620439966794
+      },
+      "background": {
+        "seconds": 43908.33333333332,
+        "shots": 113.74999999999982,
+        "goals": 6.166666666666661,
+        "xg": 5.928081742445245,
+        "attempts": 203.58333333333397,
+        "shotsPer60": 9.326247864869982,
+        "attemptsPer60": 16.69159233251097,
+        "xgPerAttempt": 0.029118698693959364
+      }
+    },
+    "tactic:counter:balanced": {
+      "live": {
+        "n": 36,
+        "shots": 37.69444444444444,
+        "goals": 2.8055555555555554,
+        "xg": 2.9246513352843717
+      },
+      "background": {
+        "n": 35.99999999999993,
+        "shots": 32.93750000000005,
+        "goals": 2.601851851851858,
+        "xg": 2.651996715877808
+      }
+    },
+    "tactic:control:patient": {
+      "live": {
+        "n": 9,
+        "shots": 14.333333333333334,
+        "goals": 1.3333333333333333,
+        "xg": 1.7853575031979598
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 14.555555555555564,
+        "goals": 1.703703703703705,
+        "xg": 1.7885279051411904
+      }
+    },
+    "venue:home": {
+      "live": {
+        "n": 80,
+        "shots": 30.375,
+        "goals": 2.4875,
+        "xg": 2.5154755223818532
+      },
+      "background": {
+        "n": 79.99999999999982,
+        "shots": 28.210416666666706,
+        "goals": 2.355208333333338,
+        "xg": 2.360809310898514
+      }
+    },
+    "pp-matchup:umbrella:box": {
+      "live": {
+        "seconds": 5510.900000002055,
+        "shots": 90,
+        "goals": 8,
+        "xg": 9.279217003154463,
+        "attempts": 131,
+        "shotsPer60": 58.792574715541775,
+        "attemptsPer60": 85.57585875262193,
+        "xgPerAttempt": 0.07083371758133178
+      },
+      "background": {
+        "seconds": 7511.666666666665,
+        "shots": 118.00000000000003,
+        "goals": 13.166666666666673,
+        "xg": 13.04031339001313,
+        "attempts": 173.4166666666666,
+        "shotsPer60": 56.55203017528292,
+        "attemptsPer60": 83.1107166629687,
+        "xgPerAttempt": 0.07519642512261299
+      }
+    },
+    "tactic:control:shoot": {
+      "live": {
+        "n": 9,
+        "shots": 34,
+        "goals": 2.6666666666666665,
+        "xg": 2.481224737403887
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 32.70370370370373,
+        "goals": 2.3148148148148167,
+        "xg": 2.534952794967311
+      }
+    },
+    "pp-matchup:overload:box": {
+      "live": {
+        "seconds": 6152.299999999559,
+        "shots": 54,
+        "goals": 3,
+        "xg": 5.7888372186941845,
+        "attempts": 88,
+        "shotsPer60": 31.597938982171534,
+        "attemptsPer60": 51.492937600575836,
+        "xgPerAttempt": 0.06578224112152482
+      },
+      "background": {
+        "seconds": 7771.666666666665,
+        "shots": 68.91666666666664,
+        "goals": 7.333333333333327,
+        "xg": 6.954658054462429,
+        "attempts": 101.8333333333333,
+        "shotsPer60": 31.923654299806987,
+        "attemptsPer60": 47.17134891700621,
+        "xgPerAttempt": 0.06829451444643958
+      }
+    },
+    "pp-matchup:umbrella:diamond": {
+      "live": {
+        "seconds": 6335.900000001608,
+        "shots": 48,
+        "goals": 7,
+        "xg": 4.612567771877649,
+        "attempts": 77,
+        "shotsPer60": 27.273157720285383,
+        "attemptsPer60": 43.75069050962447,
+        "xgPerAttempt": 0.05990347755685259
+      },
+      "background": {
+        "seconds": 7078.333333333333,
+        "shots": 52.000000000000036,
+        "goals": 4.75,
+        "xg": 5.443956913514733,
+        "attempts": 86.08333333333326,
+        "shotsPer60": 26.44690369672712,
+        "attemptsPer60": 43.78149281846005,
+        "xgPerAttempt": 0.06324054497790596
+      }
+    },
+    "tactic:counter:patient": {
+      "live": {
+        "n": 9,
+        "shots": 22.88888888888889,
+        "goals": 2.4444444444444446,
+        "xg": 2.0906994416999263
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 21.12962962962964,
+        "goals": 1.8518518518518523,
+        "xg": 2.0162472024868467
+      }
+    },
+    "pp-matchup:overload:diamond": {
+      "live": {
+        "seconds": 6138.299999998633,
+        "shots": 54,
+        "goals": 4,
+        "xg": 4.690321005596306,
+        "attempts": 80,
+        "shotsPer60": 31.67000635355771,
+        "attemptsPer60": 46.91852793119661,
+        "xgPerAttempt": 0.05862901256995382
+      },
+      "background": {
+        "seconds": 7293.333333333331,
+        "shots": 34.91666666666665,
+        "goals": 2.750000000000001,
+        "xg": 3.505102544699614,
+        "attempts": 55.91666666666667,
+        "shotsPer60": 17.234917733089578,
+        "attemptsPer60": 27.60054844606948,
+        "xgPerAttempt": 0.06268439722264585
+      }
+    },
+    "tactic:counter:shoot": {
+      "live": {
+        "n": 9,
+        "shots": 46.888888888888886,
+        "goals": 2.7777777777777777,
+        "xg": 2.5294611497459534
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 50.01851851851855,
+        "goals": 3.2407407407407427,
+        "xg": 3.025763905728874
+      }
+    },
+    "pp-matchup:131:diamond": {
+      "live": {
+        "seconds": 5733.699999998085,
+        "shots": 59,
+        "goals": 8,
+        "xg": 7.238913867986472,
+        "attempts": 109,
+        "shotsPer60": 37.04414252578107,
+        "attemptsPer60": 68.43748364932435,
+        "xgPerAttempt": 0.06641205383473828
+      },
+      "background": {
+        "seconds": 6723.333333333338,
+        "shots": 58.666666666666714,
+        "goals": 6.249999999999995,
+        "xg": 7.331343858391031,
+        "attempts": 106.66666666666677,
+        "shotsPer60": 31.412989588497776,
+        "attemptsPer60": 57.11452652454141,
+        "xgPerAttempt": 0.06873134867241584
+      }
+    },
+    "tactic:pressure:balanced": {
+      "live": {
+        "n": 27,
+        "shots": 34.888888888888886,
+        "goals": 2.4074074074074074,
+        "xg": 2.490954672580498
+      },
+      "background": {
+        "n": 26.999999999999886,
+        "shots": 34.577160493827314,
+        "goals": 2.688271604938281,
+        "xg": 2.5985516913704925
+      }
+    },
+    "tactic:pressure:patient": {
+      "live": {
+        "n": 9,
+        "shots": 22.555555555555557,
+        "goals": 2.111111111111111,
+        "xg": 1.942448873929163
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 21.000000000000014,
+        "goals": 2.009259259259261,
+        "xg": 1.9612602498139802
+      }
+    },
+    "tactic:pressure:shoot": {
+      "live": {
+        "n": 9,
+        "shots": 47.888888888888886,
+        "goals": 2.6666666666666665,
+        "xg": 2.6131871347614783
+      },
+      "background": {
+        "n": 8.999999999999995,
+        "shots": 44.99074074074078,
+        "goals": 3.111111111111111,
+        "xg": 2.6942452513134585
+      }
+    }
+  },
+  "before": {
+    "groups": {
+      "all": {
+        "live": {
+          "n": 162,
+          "shots": 30.75925925925926,
+          "goals": 2.5,
+          "xg": 2.5227181016530698
+        },
+        "background": {
+          "n": 162.00000000000094,
+          "shots": 26.46399176954715,
+          "goals": 1.955761316872419,
+          "xg": 1.9764474599030382
+        }
+      },
+      "tactic:control:balanced": {
+        "live": {
+          "n": 45,
+          "shots": 21.933333333333334,
+          "goals": 2.511111111111111,
+          "xg": 2.5590155260275886
+        },
+        "background": {
+          "n": 45.000000000000185,
+          "shots": 17.394444444444364,
+          "goals": 1.1962962962962924,
+          "xg": 1.2369719452692276
+        }
+      },
+      "venue:away": {
+        "live": {
+          "n": 82,
+          "shots": 31.134146341463413,
+          "goals": 2.5121951219512195,
+          "xg": 2.529784032649383
+        },
+        "background": {
+          "n": 81.9999999999997,
+          "shots": 26.702235772357863,
+          "goals": 1.9573170731707386,
+          "xg": 1.9854797234682686
+        }
+      },
+      "even": {
+        "live": {
+          "seconds": 511681.40000000154,
+          "shots": 4488,
+          "goals": 357,
+          "xg": 359.35446106154296,
+          "attempts": 8239,
+          "shotsPer60": 31.575898596274854,
+          "attemptsPer60": 57.9665393348281,
+          "xgPerAttempt": 0.043616271521002906
+        },
+        "background": {
+          "seconds": 458579.9999999989,
+          "shots": 3434.4166666666642,
+          "goals": 239.2500000000005,
+          "xg": 244.2467086097253,
+          "attempts": 6799.166666666667,
+          "shotsPer60": 26.961271751929914,
+          "attemptsPer60": 53.3756378385452,
+          "xgPerAttempt": 0.03592303595191449
+        }
+      },
+      "pp": {
+        "live": {
+          "seconds": 35759.299999999326,
+          "shots": 410,
+          "goals": 44,
+          "xg": 45.63344074630448,
+          "attempts": 650,
+          "shotsPer60": 41.27597576015268,
+          "attemptsPer60": 65.43752254658352,
+          "xgPerAttempt": 0.07020529345585305
+        },
+        "background": {
+          "seconds": 62309.99999999988,
+          "shots": 706.166666666666,
+          "goals": 67.08333333333366,
+          "xg": 64.51673642196317,
+          "attempts": 1232.5833333333335,
+          "shotsPer60": 40.79922965816084,
+          "attemptsPer60": 71.2132883967262,
+          "xgPerAttempt": 0.05234269738784112
+        }
+      },
+      "pp-matchup:131:box": {
+        "live": {
+          "seconds": 5888.199999999401,
+          "shots": 105,
+          "goals": 14,
+          "xg": 14.023583878995394,
+          "attempts": 165,
+          "shotsPer60": 64.19618898815231,
+          "attemptsPer60": 100.87972555281077,
+          "xgPerAttempt": 0.08499141744845694
+        },
+        "background": {
+          "seconds": 10838.333333333325,
+          "shots": 122.08333333333343,
+          "goals": 10.83333333333334,
+          "xg": 11.084656393852057,
+          "attempts": 212.25,
+          "shotsPer60": 40.55051514685536,
+          "attemptsPer60": 70.49976933722903,
+          "xgPerAttempt": 0.0522245295352276
+        }
+      },
+      "pk": {
+        "live": {
+          "seconds": 35759.299999999326,
+          "shots": 85,
+          "goals": 4,
+          "xg": 3.692430659950191,
+          "attempts": 150,
+          "shotsPer60": 8.557214486860921,
+          "attemptsPer60": 15.100966741519274,
+          "xgPerAttempt": 0.02461620439966794
+        },
+        "background": {
+          "seconds": 62309.9999999999,
+          "shots": 146.58333333333303,
+          "goals": 10.500000000000005,
+          "xg": 11.421043472606145,
+          "attempts": 275.8333333333341,
+          "shotsPer60": 8.468945594607604,
+          "attemptsPer60": 15.936446798266802,
+          "xgPerAttempt": 0.04140559567107956
+        }
+      },
+      "tactic:counter:balanced": {
+        "live": {
+          "n": 36,
+          "shots": 37.69444444444444,
+          "goals": 2.8055555555555554,
+          "xg": 2.9246513352843717
+        },
+        "background": {
+          "n": 35.99999999999993,
+          "shots": 29.694444444444503,
+          "goals": 2.15972222222223,
+          "xg": 2.245766789043056
+        }
+      },
+      "tactic:control:patient": {
+        "live": {
+          "n": 9,
+          "shots": 14.333333333333334,
+          "goals": 1.3333333333333333,
+          "xg": 1.7853575031979598
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 9.546296296296303,
+          "goals": 0.7314814814814817,
+          "xg": 0.7406640827942017
+        }
+      },
+      "venue:home": {
+        "live": {
+          "n": 80,
+          "shots": 30.375,
+          "goals": 2.4875,
+          "xg": 2.5154755223818532
+        },
+        "background": {
+          "n": 79.99999999999982,
+          "shots": 26.219791666666723,
+          "goals": 1.9541666666666684,
+          "xg": 1.967189389748714
+        }
+      },
+      "pp-matchup:umbrella:box": {
+        "live": {
+          "seconds": 5510.900000002055,
+          "shots": 90,
+          "goals": 8,
+          "xg": 9.279217003154463,
+          "attempts": 131,
+          "shotsPer60": 58.792574715541775,
+          "attemptsPer60": 85.57585875262193,
+          "xgPerAttempt": 0.07083371758133178
+        },
+        "background": {
+          "seconds": 10881.666666666657,
+          "shots": 122.25000000000003,
+          "goals": 10.333333333333334,
+          "xg": 11.348000012932044,
+          "attempts": 219.24999999999974,
+          "shotsPer60": 40.444172155000814,
+          "attemptsPer60": 72.53484453974573,
+          "xgPerAttempt": 0.05175826687768327
+        }
+      },
+      "tactic:control:shoot": {
+        "live": {
+          "n": 9,
+          "shots": 34,
+          "goals": 2.6666666666666665,
+          "xg": 2.481224737403887
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 29.55555555555557,
+          "goals": 2.12962962962963,
+          "xg": 2.055089244830668
+        }
+      },
+      "pp-matchup:overload:box": {
+        "live": {
+          "seconds": 6152.299999999559,
+          "shots": 54,
+          "goals": 3,
+          "xg": 5.7888372186941845,
+          "attempts": 88,
+          "shotsPer60": 31.597938982171534,
+          "attemptsPer60": 51.492937600575836,
+          "xgPerAttempt": 0.06578224112152482
+        },
+        "background": {
+          "seconds": 10436.666666666668,
+          "shots": 121.66666666666666,
+          "goals": 11.500000000000007,
+          "xg": 10.924605908345525,
+          "attempts": 209.99999999999991,
+          "shotsPer60": 41.96742254870647,
+          "attemptsPer60": 72.43692111146595,
+          "xgPerAttempt": 0.05202193289688347
+        }
+      },
+      "pp-matchup:umbrella:diamond": {
+        "live": {
+          "seconds": 6335.900000001608,
+          "shots": 48,
+          "goals": 7,
+          "xg": 4.612567771877649,
+          "attempts": 77,
+          "shotsPer60": 27.273157720285383,
+          "attemptsPer60": 43.75069050962447,
+          "xgPerAttempt": 0.05990347755685259
+        },
+        "background": {
+          "seconds": 10138.333333333332,
+          "shots": 113.4166666666667,
+          "goals": 12.750000000000012,
+          "xg": 10.289799931229576,
+          "attempts": 195.33333333333334,
+          "shotsPer60": 40.27289166529675,
+          "attemptsPer60": 69.36051290481672,
+          "xgPerAttempt": 0.05267815664452001
+        }
+      },
+      "tactic:counter:patient": {
+        "live": {
+          "n": 9,
+          "shots": 22.88888888888889,
+          "goals": 2.4444444444444446,
+          "xg": 2.0906994416999263
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 23.35185185185187,
+          "goals": 2.018518518518521,
+          "xg": 1.7781504013507072
+        }
+      },
+      "pp-matchup:overload:diamond": {
+        "live": {
+          "seconds": 6138.299999998633,
+          "shots": 54,
+          "goals": 4,
+          "xg": 4.690321005596306,
+          "attempts": 80,
+          "shotsPer60": 31.67000635355771,
+          "attemptsPer60": 46.91852793119661,
+          "xgPerAttempt": 0.05862901256995382
+        },
+        "background": {
+          "seconds": 9965.000000000002,
+          "shots": 113.24999999999999,
+          "goals": 10.416666666666663,
+          "xg": 10.435410870414339,
+          "attempts": 198.41666666666663,
+          "shotsPer60": 40.91319618665327,
+          "attemptsPer60": 71.68088309081784,
+          "xgPerAttempt": 0.05259341891850991
+        }
+      },
+      "tactic:counter:shoot": {
+        "live": {
+          "n": 9,
+          "shots": 46.888888888888886,
+          "goals": 2.7777777777777777,
+          "xg": 2.5294611497459534
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 40.37962962962966,
+          "goals": 2.6759259259259274,
+          "xg": 2.9548706272414473
+        }
+      },
+      "pp-matchup:131:diamond": {
+        "live": {
+          "seconds": 5733.699999998085,
+          "shots": 59,
+          "goals": 8,
+          "xg": 7.238913867986472,
+          "attempts": 109,
+          "shotsPer60": 37.04414252578107,
+          "attemptsPer60": 68.43748364932435,
+          "xgPerAttempt": 0.06641205383473828
+        },
+        "background": {
+          "seconds": 10049.999999999995,
+          "shots": 113.49999999999996,
+          "goals": 11.250000000000009,
+          "xg": 10.434263305189607,
+          "attempts": 197.3333333333334,
+          "shotsPer60": 40.65671641791045,
+          "attemptsPer60": 70.68656716417917,
+          "xgPerAttempt": 0.052876334316839205
+        }
+      },
+      "tactic:pressure:balanced": {
+        "live": {
+          "n": 27,
+          "shots": 34.888888888888886,
+          "goals": 2.4074074074074074,
+          "xg": 2.490954672580498
+        },
+        "background": {
+          "n": 26.999999999999886,
+          "shots": 34.56790123456803,
+          "goals": 2.756172839506184,
+          "xg": 2.6761133629708937
+        }
+      },
+      "tactic:pressure:patient": {
+        "live": {
+          "n": 9,
+          "shots": 22.555555555555557,
+          "goals": 2.111111111111111,
+          "xg": 1.942448873929163
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 25.39814814814816,
+          "goals": 1.8148148148148158,
+          "xg": 2.0062118588927356
+        }
+      },
+      "tactic:pressure:shoot": {
+        "live": {
+          "n": 9,
+          "shots": 47.888888888888886,
+          "goals": 2.6666666666666665,
+          "xg": 2.6131871347614783
+        },
+        "background": {
+          "n": 8.999999999999995,
+          "shots": 38.666666666666714,
+          "goals": 2.944444444444446,
+          "xg": 2.8448010917141264
+        }
+      }
+    },
+    "discrepancy": 14.811619691254313,
+    "afterDiscrepancy": 2.178560232685204
+  }
+}
