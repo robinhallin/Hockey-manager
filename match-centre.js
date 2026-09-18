@@ -106,6 +106,16 @@ function matchScoringView(){
 }
 
 function matchStatCard(label,values,suffix=''){return `<div class="mc-stat"><span>${label}</span><strong><b>${values[0]}${suffix}</b><i>–</i><b>${values[1]}${suffix}</b></strong></div>`;}
+function matchPlanTradeoffsView(){
+ const p=state.tacticalPlan||{},notes=[];
+ if(p.forecheck==='aggressive')notes.push('Aggressiv forecheck försöker vinna pucken högre upp. Missad press lämnar yta för uppspel och kontringar, och kostar mer ork.');
+ if(p.attackStyle==='counter')notes.push('Kontringsspelet söker framåtrörelse efter puckvinst. Motståndarens press och spelarnas skridskoåkning, puckkontroll och beslut avgör möjligheten.');
+ if(p.shotChoice==='patient')notes.push('Tålamod prioriterar vidare spel framför tidiga avslut. Du kan få bättre lägen men också tappa pucken innan ett skott kommer.');
+ if(p.shotChoice==='shoot')notes.push('Skjut oftare sänker tröskeln för avslut. Det kan ge fler skott och returer, men också fler svaga avslut och förlorade anfall.');
+ if(p.tempo==='high'||p.lineUsage==='topHeavy')notes.push('Högt tempo och toppning belastar de spelare som faktiskt används. Trötthet påverkar egenskaperna och kan tvinga fram andra byten.');
+ if(!notes.length)notes.push('Följ skapade och insläppta farliga lägen, kedjornas faktiska istid och spelarnas ork. Ändra ett tydligt problem i taget för att kunna följa utfallet.');
+ return `<details class="mc-tactical-review"><summary>Vad din matchplan innebär</summary>${notes.map(n=>`<p>${n}</p>`).join('')}<p>Efter matchen visar rapporten spelformer och kedjor. Taktiska ändringar jämförs först när det finns tillräckligt med spel före och efter.</p></details>`;
+}
 function matchOrdersView(){
  const select=(key,label,options,note)=>`<label class="mc-order" for="match-order-${key}"><span>${label}<small>${note}</small></span><select id="match-order-${key}" onchange="matchOrder('${key}',this.value)">${options.map(([value,text])=>`<option value="${value}" ${(key==='tactic'?state.tactic:state.tacticalPlan[key]||(key==='shiftLength'?'normal':key==='shotChoice'?'balanced':''))===value?'selected':''}>${text}</option>`).join('')}</select></label>`;
  return `<div class="mc-presets">${Object.entries(MATCH_PLANS).map(([key,p])=>`<button id="match-plan-${key}" class="mc-choice" onclick="matchPlan('${key}')" title="${p.note}"><b>${p.label}</b><small>${p.note}</small></button>`).join('')}</div><div class="mc-orders">
@@ -120,7 +130,7 @@ function matchOrdersView(){
  ${select('physicality','Fysisk nivå',[['safe','Disciplinerat'],['balanced','Balanserat'],['hard','Hårt']],'Hårt spel ökar utvisningsrisken.')}</fieldset>
 <fieldset class="mc-order-group"><legend>Matchning & byten</legend>
  ${select('lineUsage','Kedjeanvändning',[['rollFour','Rulla fyra'],['balanced','Balanserad'],['topHeavy','Toppa laget']],'Toppning ger nyckelspelarna fler byten.')}
- ${select('shiftLength','Byteslängd',[['short','30 sek · korta byten'],['normal','45 sek · normalt'],['long','60 sek · långa byten']],'Måltid: bytet inväntar ett säkert puckläge. Långa byten belastar samma spelare längre.')}</fieldset></div>${tacticalReviewView(tacticalReviewSnapshot())}`;
+ ${select('shiftLength','Byteslängd',[['short','30 sek · korta byten'],['normal','45 sek · normalt'],['long','60 sek · långa byten']],'Måltid: bytet inväntar ett säkert puckläge. Långa byten belastar samma spelare längre.')}</fieldset></div>${matchPlanTradeoffsView()}${tacticalReviewView(tacticalReviewSnapshot())}`;
 }
 function matchFeedbackChoices(extra,wait){return Object.entries(MATCH_MESSAGES).filter((_,i)=>extra?i>=6:i<6).map(([key,[label,note]])=>`<button class="mc-choice" onclick="matchFeedback('${key}')" ${wait?'disabled':''}><b>${label}</b><small>${note}</small></button>`).join('');}
 function matchCoachMode(mode){if(!['coach','talk'].includes(mode))return;matchPause();matchDesk.coachMode=mode;render();matchFocus('match-coach-mode-'+mode);}
