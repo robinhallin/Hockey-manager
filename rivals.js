@@ -229,7 +229,7 @@ function rivalInitiativeReport(games){
  const attacks=known.reduce((n,g)=>n+g.initiative.evenAttacks,0),share=Math.round(attacks/total*100);
  return `<details><summary>Anfallsinitiativ · ${known.length} matcher</summary><p>${share} % av anfallslägena vid lika styrka gick till laget (${attacks} av ${total}). Det är initiativ i bakgrundssimuleringen, inte uppmätt puckinnehav eller antal skott.</p><p>Puckspel och pressdueller påverkar vilket lag som får bygga nästa anfall. Ork och positionsvana ingår i spelarnas förutsättningar. Aggressiv press kostar mer ork och kan misslyckas mot skickliga puckspelare.</p><p>Jämför initiativet med avslutskvaliteten nedan innan du väljer hur högt ni ska pressa. ${known.length<3?'Färre än tre matcher: underlaget är ännu tunt.':'Motstånd och matchförlopp påverkar också; andelen är ingen prognos för nästa match.'}</p></details>`;
 }
-function rivalSimulate(game){
+function rivalSimulate(game,{regulationOnly=false}={}){
  ensureRivals();const rand=rivalRandom(`${state.season.year}:${game.round}:${game.home}:${game.away}:${game.seriesId||'regular'}:match`);
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club,club===game.home?game.away:game.home);
@@ -250,7 +250,9 @@ function rivalSimulate(game){
   }
  };
  const attribute=(p,k)=>{
-  const effective=readinessAttribute(values.get(p)?.[k]||10,k,energy.get(p)??readinessCeiling(p.fatigue||0),roles.has(p)?readinessFit(p,roles.get(p),specialFit.get(p)):1,chemistry.get(p)??50,p.morale??70);
+  const plan=sides.find(s=>s.rows.has(String(p.id)))?.l.plan||{};
+  const physical=k==='discipline'?(plan.physicality==='hard'?-4:plan.physicality==='safe'?3:0):k==='checking'?(plan.physicality==='hard'?1:plan.physicality==='safe'?-.6:0):0;
+  const effective=readinessAttribute(values.get(p)?.[k]||10,k,energy.get(p)??readinessCeiling(p.fatigue||0),roles.has(p)?readinessFit(p,roles.get(p),specialFit.get(p)):1,chemistry.get(p)??50,p.morale??70,physical);
   return typeof matchCalibrationAttribute==='function'?matchCalibrationAttribute(effective):effective;
  };
  const rating=(p,kind='goalie')=>{
@@ -272,7 +274,11 @@ function rivalSimulate(game){
   const b=sides[side],l=b.l,sequence=aiCoachRotation(l.plan),other=sides[1-side],otherSequence=aiCoachRotation(other.l.plan);
   const shift=Math.max(20,l.plan.shiftLimit||40),opposingShift=Math.max(20,other.l.plan.shiftLimit||40);
   const opposingLine=otherSequence[Math.floor(time/opposingShift)%otherSequence.length];
-  const idx=l.plan.matchup&&opposingLine===0?l.plan.checkingLine:sequence[Math.floor(time/shift)%sequence.length],pair=Math.floor(time/60)%3;
+  const rotationLine=sequence[Math.floor(time/shift)%sequence.length];
+  const lineEnergy=i=>{const ps=l.lines[i]||[];return ps.length?ps.reduce((n,p)=>n+(energy.get(p)??100),0)/ps.length:0;};
+  const matching=l.plan.matchup&&opposingLine===(l.plan.matchupTarget??0)&&lineEnergy(l.plan.checkingLine)>=65;
+  const requested=matching?l.plan.checkingLine:rotationLine;
+  const idx=lineEnergy(requested)>=50?requested:[...new Set(sequence)].sort((a,b)=>lineEnergy(b)-lineEnergy(a))[0],pair=Math.floor(time/60)%3;
   const available=[...l.forwards,...l.defense,...l.extras].filter(p=>!b.pens.some(x=>samePlayerId(x.id,p.id))&&row(side,p).seconds<medicalLimit(p));
   const diff=sides[1-side].pens.length-b.pens.length;
   const count=overtime&&!game.seriesId?Math.min(5,3+Math.max(0,diff)):5-Math.min(2,b.pens.length);
@@ -338,7 +344,7 @@ function rivalSimulate(game){
    const l=sides[side].l;
    for(const p of [...l.forwards,...l.defense,...l.extras,...l.keepers]){
     const goalie=p.pos==='MV',playing=goalie?p===l.keeper:ice[side].includes(p),stamina=goalie?10:values.get(p)?.stamina||10;
-    const load=readinessLoad(l.plan.tempo,l.plan.forecheck),used=playing?20:0;
+    const load=readinessLoad(l.plan.tempo,l.plan.forecheck,l.plan.physicality),used=playing?20:0;
     workload.set(p,(workload.get(p)||0)+readinessWork(used,stamina,goalie,load));
     energy.set(p,readinessEnergy(energy.get(p)??100,20,playing,stamina,goalie,load,ice[side].length<ice[1-side].length,1,readinessCeiling((p.fatigue||0)+(workload.get(p)||0))));
    }
@@ -362,7 +368,8 @@ function rivalSimulate(game){
   const tempo=b.l.plan.tempo==='high'?1.12:b.l.plan.tempo==='low'?.91:1;
   const familiarity=(rivalsClubState(names[side])?.familiarity||40)-(rivalsClubState(names[1-side])?.familiarity||40);
   // New attacks leave room for the separately resolved rebound shots.
-  let goal=false;if(rand()<.80*attrClamp((.36+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.15,.66))goal=attempt(side,ice);
+  const intent=typeof MatchWorld2!=='undefined'?MatchWorld2.tacticalIntent(b.l.plan):{volume:1};
+  let goal=false;if(rand()<.80*intent.volume*attrClamp((.36+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.15,.66))goal=attempt(side,ice);
   for(let s=0;s<2;s++){
    sides[s].pens=sides[s].pens.map(p=>({...p,left:p.left-20})).filter(p=>p.left>0);
    const risk=avg(ice[s],['discipline']);
@@ -373,7 +380,7 @@ function rivalSimulate(game){
   return goal;
  };
  for(let i=0;i<180;i++){if(i>0&&i%60===0)recover(1200);tick();}
- if(sides[0].goals===sides[1].goals){
+ if(!regulationOnly&&sides[0].goals===sides[1].goals){
   overtime=true;
   for(let i=0;i<(game.seriesId?900:15)&&sides[0].goals===sides[1].goals;i++)tick();
   if(sides[0].goals===sides[1].goals){

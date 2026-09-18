@@ -1,26 +1,26 @@
 'use strict';
-// Paired fixtures from the same career state. Report distributions, not identical
-// outcomes: background opportunities and spatial geometry remain distinct.
+// Controlled full-regulation comparison. Only the test harness freezes coaching
+// and injuries; production lineup, energy, geometry and event rules still run.
 const assert=require('node:assert/strict');
-const {boot}=require('./career-test-fixture.cjs');
-const samples=Number(process.env.MATCH_SAMPLES||6);
-const app=boot(),r=app.run;
-r("startCareerWithClub('HV71');globalThis.initial=JSON.stringify(state);globalThis.fixture=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));");
-const totals={live:[{shots:0,goals:0,xg:0},{shots:0,goals:0,xg:0}],background:[{shots:0,goals:0,xg:0},{shots:0,goals:0,xg:0}]};
-const fixture=JSON.parse(r('JSON.stringify(fixture)'));
-for(let i=0;i<samples;i++){
- r(`state=JSON.parse(initial);fixture=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));fixture.round=${i+1};globalThis.result=rivalSimulate(fixture);`);
- const background=JSON.parse(r('JSON.stringify(result.reports.map(x=>({shots:x.shots,goals:x.shotAssessment.goals,xg:x.shotAssessment.expectedGoals})))'));
- // Return home/away to manager/opponent order used by the live engine.
- if(fixture.home!=='HV71')background.reverse();
- r(`state=JSON.parse(initial);state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();e.rng=${(i+1)*1107};e.duration=1200;globalThis.steps=0;while(!e.finished&&steps++<24000)e.step();`);
- assert.ok(r('e.finished'),'Spatial period must complete');
- const live=JSON.parse(r('JSON.stringify([0,1].map(side=>({shots:e.stats[side].shots*3,goals:e.score[side]*3,xg:e.shots.filter(s=>s.side===side&&["goal","save","rebound"].includes(s.outcome)).reduce((n,s)=>n+s.quality/Math.max(.001,(1-s.blockChance)*s.onTargetChance),0)*3})))'));
- for(const mode of ['live','background'])for(let side=0;side<2;side++)for(const key of ['shots','goals','xg'])totals[mode][side][key]+=(mode==='live'?live:background)[side][key]/samples;
- console.log(JSON.stringify({sample:i+1,live,background}));
+const {headlessCareer}=require('./headless-career.cjs');
+const r=headlessCareer().run;
+const club=process.env.MATCH_CLUB||'HV71';
+const samples=Number(process.env.MATCH_SAMPLES||4);
+const scenarios=(process.env.MATCH_SCENARIOS||'balanced,patient,shoot,pressure,counter').split(',');
+assert.ok(Number.isInteger(samples)&&samples>0);
+r("startCareerWithClub("+JSON.stringify(club)+");globalThis.auditInitial=JSON.stringify(state);globalThis.originalLineup=rivalLineup;globalThis.originalCoach=aiCoachDecision;medicalExposure=()=>{};aiDecisions=()=>{};simulateOtherGames=()=>{};");
+const results=[];
+for(const scenario of scenarios)for(let sample=0;sample<samples;sample++){
+ const seed=710031+sample*1107;
+ r(`state=JSON.parse(auditInitial);rivalLineup=originalLineup;aiCoachDecision=originalCoach;state.calendar.date=calendarTarget();ensureLines();ensureSpecialTeams();state.tacticalPlan.shotChoice=${JSON.stringify(['patient','shoot'].includes(scenario)?scenario:'balanced')};state.tacticalPlan.attackStyle=${JSON.stringify(['pressure','counter'].includes(scenario)?scenario:'control')};state.tacticalPlan.forecheck=${JSON.stringify(scenario==='pressure'?'aggressive':'balanced')};state.tacticalPlan.tempo=${JSON.stringify(scenario==='pressure'?'high':'normal')};startMatch();pauseMatch();globalThis.e=studioEngine();e.rng=${seed};globalThis.fixture=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));globalThis.locked=e.teams.map((t,side)=>{const source=side===0?managerRoster():state.clubRosters[state.live.opponent],find=id=>source.find(p=>samePlayerId(p.id,id)),plan=side===0?{style:state.tacticalPlan.attackStyle,posture:state.tactic,forecheck:state.tacticalPlan.forecheck,tempo:state.tacticalPlan.tempo,shotChoice:state.tacticalPlan.shotChoice,physicality:state.tacticalPlan.physicality,rotation:state.tacticalPlan.lineUsage,shiftLimit:t.shiftLimit,pp:state.specialPlans.pp,pk:state.specialPlans.pk}:{...state.live.aiTeam};const forwards=t.plan.forwards.map(find).filter(Boolean),defense=t.plan.defense.map(find).filter(Boolean),keepers=[find(t.goalie.id)].filter(Boolean),selected=new Set([...forwards,...defense,...keepers].map(p=>p.id));return {club:t.name,plan,forwards,defense,lines:Array.from({length:4},(_,i)=>forwards.slice(i*3,i*3+3)),keepers,keeper:keepers[0],extras:t.players.map(p=>find(p.id)).filter(p=>p&&p.pos!=='MV'&&!selected.has(p.id)),...Object.fromEntries(['pp1','pp2','pk1','pk2'].map(k=>[k,t.plan[k]]))};});globalThis.lockedState=JSON.stringify(state);aiCoachDecision=(club,base)=>({...base});rivalLineup=club=>locked.find(l=>l.club===club);globalThis.bg=rivalSimulate({...fixture,round:${sample+1}},{regulationOnly:true});`);
+ assert.equal(r('bg.duration'),3600,'background regulation only');
+ const background=JSON.parse(r("JSON.stringify(bg.reports.map(x=>({club:x.club,shots:x.shots,goals:x.shotAssessment.goals,xgOnTarget:x.shotAssessment.expectedGoals})))"));
+ r(`state=JSON.parse(lockedState);globalThis.e=studioEngine();e.rng=${seed};globalThis.steps=0;while(e.time<3600&&!state.live.finished&&steps++<100000){state.live.running=true;studioStep();}globalThis.auditMatch=state.live.analysis;`);
+ assert.ok(r('e.time>=3600'),'full regulation completed');
+ const live=JSON.parse(r("JSON.stringify([0,1].map(side=>{const shots=auditMatch.shots.filter(s=>s.side===(side===0?'own':'opponent'));return {club:e.teams[side].name,shots:shots.filter(analysisOnTarget).length,goals:shots.filter(s=>s.outcome==='goal').length,xg:shots.reduce((n,s)=>n+s.probability,0)};}))"));
+ const row={scenario,sample:sample+1,liveSeed:seed,live,background};results.push(row);console.log(JSON.stringify(row));
 }
-for(const rows of Object.values(totals))for(const row of rows)assert.ok(Object.values(row).every(Number.isFinite));
-const ratios=totals.live.map((row,i)=>({shots:row.shots/Math.max(1,totals.background[i].shots),xg:row.xg/Math.max(.01,totals.background[i].xg)}));
-// Wide smoke bounds flag catastrophic divergence, not a claim of calibration.
-assert.ok(ratios.every(r=>r.shots>.2&&r.shots<5&&r.xg>.1&&r.xg<10),JSON.stringify({totals,ratios}));
-console.log(JSON.stringify({passed:true,samples,fixture:{home:fixture.home,away:fixture.away},units:'Conditional xG on target in both modes. Live 20-minute periods scaled to 60; background full games (may include overtime). Each mode retains its selection/rotation policy.',totals,ratios}));
+const averages=Object.fromEntries([...new Set(results.map(x=>x.scenario))].map(s=>[s,Object.fromEntries(['live','background'].map(mode=>[mode,[0,1].map(side=>{const rows=results.filter(x=>x.scenario===s).map(x=>x[mode].find(y=>y.club===results[0].live[side].club));return {club:rows[0].club,shots:rows.reduce((n,x)=>n+x.shots,0)/rows.length,goals:rows.reduce((n,x)=>n+x.goals,0)/rows.length};})]))]));
+for(const modes of Object.values(averages))for(const rows of Object.values(modes))for(const row of rows)assert.ok(Number.isFinite(row.shots)&&Number.isFinite(row.goals)&&row.shots>=row.goals);
+const differences=Object.fromEntries(Object.entries(averages).map(([scenario,m])=>[scenario,m.live.map((row,i)=>({club:row.club,shots:row.shots-m.background[i].shots,goals:row.goals-m.background[i].goals}))]));
+console.log(JSON.stringify({passed:true,samples,minutes:60,differences,controls:'Same initial players, ordered formations, goalie, PP/PK units and fixed tactical plan. Injury events and adaptive coaching disabled only in this harness. Production energy/rotation rules retained. No overtime or shootout in comparison. Spatial xG is per attempt; background xG is conditional on target and is not compared.',averages}));

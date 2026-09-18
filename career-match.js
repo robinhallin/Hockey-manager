@@ -267,9 +267,9 @@ function studioSyncPlans(e=studioEngine()){
   t.tactics={mentality:style==='control'||side===0&&plan.shotChoice==='patient'?'control':style==='pressure'||style==='counter'||side===0&&plan.shotChoice==='shoot'?'direct':'balanced',pp:side===0?(['umbrella','overload'].includes(state.specialPlans?.pp)?state.specialPlans.pp:'131'):(m.aiTeam?.pp||'131'),pk:side===0?(state.specialPlans?.pk==='diamond'?'diamond':'box'):(m.aiTeam?.pk||'box')};
   t.defenseChemistry=lineChemistry((t.plan.defense||[]).slice(t.pair*2,t.pair*2+2),side===0?managerClub():m.opponent).value;
   t.chemistry=lineChemistry((t.plan.forwards||[]).slice(t.line*3,t.line*3+3),side===0?managerClub():m.opponent).value;
-  t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:(m.aiTeam?.forecheck||'balanced');
+  t.attackStyle=style||'control';t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:(m.aiTeam?.forecheck||'balanced');
   t.safeCounter=side===0&&state.specialPlans?.counter==='safe';
-  t.rotation=side===0?(plan.lineUsage==='topHeavy'?[0,1,0,2,0,1,3]:plan.lineUsage==='rollFour'?[0,1,2,3]:[0,1,2,0,1,3]):aiCoachRotation(m.aiTeam||{});
+  t.rotation=aiCoachRotation(side===0?{rotation:plan.lineUsage}:m.aiTeam||{});
   t.shiftLimit=side===0?(plan.shiftLength==='short'?30:plan.shiftLength==='long'?60:45):(m.aiTeam?.shiftLimit||43);
   const goalie=t.players.find(p=>p.pos==='MV'&&p.available&&samePlayerId(p.id,side===0?state.lines.goalie:m.aiTeam?.keeper))||t.players.find(p=>p.pos==='MV'&&p.available);
   if(goalie&&t.goalie!==goalie){t.goalie=goalie;t.needsSetup=true;}

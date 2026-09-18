@@ -237,3 +237,26 @@ function coachRatesView(f){
  const cell=v=>v.seconds?`${(v.count*3600/v.seconds).toFixed(1)} · ${analysisTime(v.seconds)}${v.seconds<600?' · kort istid':''}`:'Saknar underlag';
  return `<h4>${COACH_FOCUSES[f.key].label} per 60 minuter</h4><div class="analysis-scroll"><table><thead><tr><th>Spelform</th><th>Före · registrerad tid</th><th>Efter · registrerad tid</th></tr></thead><tbody>${[['even','Lika styrka'],['pp','Powerplay'],['pk','Boxplay'],['ot','Förlängning, lika styrka']].map(([key,label])=>`<tr><th>${label}</th><td>${cell(sum(f.baseline,key))}</td><td>${cell(sum(f.results,key))}</td></tr>`).join('')}</tbody></table></div><p>Matchtid räknas en gång per spelform. Äldre matcher utan fullständig tidsfördelning ingår inte i talen per 60 minuter. Motstånd och små underlag påverkar fortfarande jämförelsen.</p>`;
 }
+
+// Derived only from the selected report. No inferred hidden ratings or invented
+// causes; legacy/partial reports cannot support a complete explanation.
+function analysisKeyFactors(m){
+ if(!m?.finished||m.partial||m.abandoned||!Array.isArray(m.shots)||!Array.isArray(m.events))return null;
+ const shots=m.shots||[],events=m.events||[],onTarget=side=>shots.filter(s=>s.side===side&&analysisOnTarget(s)).length;
+ const strengths=['even','pp','pk','ot'].map(kind=>{const rows=shots.filter(s=>s.situation===kind);return {kind,seconds:m.strengthPartial?null:m.strengthSeconds?.[kind]??null,goals:['own','opponent'].map(side=>rows.filter(s=>s.side===side&&s.outcome==='goal').length),shots:['own','opponent'].map(side=>rows.filter(s=>s.side===side&&analysisOnTarget(s)).length),danger:['own','opponent'].map(side=>rows.filter(s=>s.side===side&&s.dangerous).length)};});
+ const units=(m.units||[]).filter(u=>u.kind==='forward'&&u.seconds>=300).map(u=>({...u,netDanger:(u.dangerFor||0)-(u.dangerAgainst||0)})).sort((a,b)=>a.netDanger-b.netDanger);
+ const winner=Math.sign(m.own-m.against);let own=0,against=0,decisive=null;
+ for(const event of events.filter(e=>e.type==='goal')){const before=own-against;if(event.side==='own')own++;else if(event.side==='opponent')against++;else continue;if(winner&&Math.sign(own-against)===winner&&Math.sign(before)!==winner)decisive=event;}
+ // Administrative/shootout goals are not attributed to ordinary play.
+ if(m.shootout||own!==m.own||against!==m.against||!Number.isFinite(decisive?.time))decisive=null;
+ const saves=['own','opponent'].map(side=>{const rows=shots.filter(s=>s.side!==(side)&&['own','opponent'].includes(s.side)&&analysisOnTarget(s));return {faced:rows.length,saves:rows.filter(s=>s.outcome!=='goal').length};});
+ return {strengths,units:units.length>1?[units[0],units.at(-1)]:units,decisive,saves,onTarget:[onTarget('own'),onTarget('opponent')]};
+}
+function analysisKeyFactorsView(m){
+ if(!m?.finished)return '';
+ const report=analysisKeyFactors(m);
+ if(!report)return '<section class="mw-panel"><h2>Matchens viktigaste underlag</h2><p>Rapporten är ofullständig eller matchen avbruten. Ingen sammanfattning av avgörande situationer görs.</p></section>';
+ const names={even:'Lika styrka',pp:'Vårt powerplay',pk:'Vårt boxplay',ot:'Förlängning, lika styrka'};
+ const rows=report.strengths.filter(r=>r.seconds>0||r.shots.some(Boolean)||r.goals.some(Boolean));
+ return `<section class="mw-panel"><h2>Matchens viktigaste underlag</h2><p>${report.decisive?`Ledningen som höll kom vid ${analysisTime(report.decisive.time)}: ${trainingSafe(report.decisive.text)}.`:m.shootout?'Straffläggningen avgjorde. Den redovisas separat från spelets skott och formationer.':'Se målens ordning under Händelser. Underlaget pekar inte ut ett enskilt avgörande.'}</p><table><thead><tr><th>Spelform</th><th>Tid</th><th>Mål</th><th>Skott på mål</th><th>Farliga avslut</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${names[r.kind]}</th><td>${r.seconds===null?'Saknas':analysisTime(Math.round(r.seconds))}</td><td>${r.goals.join('–')}</td><td>${r.shots.join('–')}</td><td>${r.danger.join('–')}</td></tr>`).join('')}</tbody></table><p>Ditt lag visas först. Powerplay och boxplay skiljs från lika styrka; farliga avslut är registrerade lägen, inte garanterade mål.</p><h3>Målvaktsspelet</h3><p>${trainingSafe(m.club)}: ${report.saves[0].saves}/${report.saves[0].faced} räddningar. ${trainingSafe(m.opponent)}: ${report.saves[1].saves}/${report.saves[1].faced} räddningar. Antalet räddningar säger inte ensamt hur svåra skotten var.</p>${report.units.length?`<h3>Kedjor att granska</h3>${report.units.map(u=>`<p><b>${trainingSafe(u.label)}</b> · ${trainingSafe((u.names||[]).join(' / '))}<br>${analysisTime(Math.round(u.seconds))} vid lika styrka · ${u.goalsFor||0}–${u.goalsAgainst||0} mål · ${u.dangerFor||0}–${u.dangerAgainst||0} farliga avslut.</p>`).join('')}<p>Visar ytterlägen i registrerad chansskillnad bland kedjor med minst fem minuter. Kontrollera motstånd och istid under Formationer innan du ändrar matchningen. Kedjor och backpar delar händelser och ska inte summeras.</p>`:'<p>Ingen forwardskombination har fem minuters registrerad istid ännu. Ingen kedja pekas ut.</p>'}<p>${m.tacticalReviews?.length?'Dina taktiska ändringar följs separat nedan med före- och efterunderlag.':'Inga taktiska ändringar med före- och efterunderlag är registrerade.'} Detta beskriver matchförloppet; en enskild match bevisar inte varför en taktik fungerade.</p></section>`;
+}
