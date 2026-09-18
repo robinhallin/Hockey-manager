@@ -161,12 +161,15 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
     const lateral=Math.abs((source.y??15)-(last.y??15)),dt=Math.max(.1,this.time-(last.time??this.time));
     const movement=this.attribute(goalie,'movement'),recovery=this.attribute(goalie,'reboundControl')*.5+this.attribute(goalie,'composure')*.5;
     const lag=matchEngine3Clamp(lateral/10-movement*.018,0,.7),reboundLag=this.rebound&&this.time-this.rebound.time<1.8?matchEngine3Clamp((20-recovery)*.018,0,.28):0;
-    goalie.engine31LastRead={x:source.x,y:source.y,time:this.time};
     const ownGoal=StudioHockey.progress(side,4.4),dir=side===0?1:-1;
     return {x:matchEngine3Clamp(target.x-dir*(lag+reboundLag),1,59),y:matchEngine3Clamp(target.y+(last.y-source.y)*(lag*.18),1,29)};
   };
   StudioHockey.Match.prototype.targets=function(){
     baseTargets31.call(this);
+    // Only a simulation update may advance the keeper's read. Shot previews,
+    // highlight selection and render calls must be observational.
+    const source=this.flight?.kind==='shot'?this.flight.start:this.puck;
+    for(const goalie of this.actors.filter(a=>a.role==='G'))goalie.engine31LastRead={x:source.x,y:source.y,time:this.time};
     if(!this.rebound?.spot||this.time-this.rebound.time>3)return;
     const attack=this.rebound.side,spot=this.rebound.spot,att=matchEngine31ReboundClaim(this,attack,spot),def=matchEngine31ReboundClaim(this,1-attack,spot);
     if(att?.a)this.assign(att.a,spot,matchEngine31RoleProfile(this,att.a)==='power-forward'?'Kraschar mot mål för returen':'Jagar returen framför mål');

@@ -1,0 +1,1344 @@
+{
+  "description": "Exact playback parity is separate from approximate background calibration. Read MATCH-MODE-PARITY.md.",
+  "playback": [
+    {
+      "mode": "full",
+      "passed": true,
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "mode": "extended",
+      "passed": true,
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "mode": "highlights",
+      "passed": true,
+      "score": [
+        0,
+        2
+      ]
+    },
+    {
+      "mode": "commentary",
+      "passed": true,
+      "score": [
+        0,
+        2
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "name": "hv",
+      "records": [
+        {
+          "scenario": "balanced",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 26,
+              "goals": 3,
+              "xg": 2.853507398236751
+            },
+            {
+              "club": "Björklöven",
+              "shots": 41,
+              "goals": 4,
+              "xg": 2.3724351597923254
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 22,
+              "goals": 2,
+              "xgOnTarget": 1.5209832459742791,
+              "attempts": 34,
+              "xg": 1.1954973202520327
+            },
+            {
+              "club": "Björklöven",
+              "shots": 32,
+              "goals": 6,
+              "xgOnTarget": 2.736753408906636,
+              "attempts": 71,
+              "xg": 3.080880202207471
+            }
+          ]
+        },
+        {
+          "scenario": "balanced",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 19,
+              "goals": 2,
+              "xg": 2.221057912321876
+            },
+            {
+              "club": "Björklöven",
+              "shots": 42,
+              "goals": 5,
+              "xg": 2.4281942091278
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 19,
+              "goals": 3,
+              "xgOnTarget": 1.6445566627995538,
+              "attempts": 33,
+              "xg": 1.3232441898295644
+            },
+            {
+              "club": "Björklöven",
+              "shots": 29,
+              "goals": 1,
+              "xgOnTarget": 2.4092871640315243,
+              "attempts": 57,
+              "xg": 2.7074337108348083
+            }
+          ]
+        },
+        {
+          "scenario": "balanced",
+          "venue": "home",
+          "sample": 3,
+          "liveSeed": 712245,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 26,
+              "goals": 4,
+              "xg": 2.5241404385054134
+            },
+            {
+              "club": "Björklöven",
+              "shots": 36,
+              "goals": 0,
+              "xg": 2.948546154602454
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 11,
+              "goals": 0,
+              "xgOnTarget": 1.0000607338455891,
+              "attempts": 25,
+              "xg": 1.0656655718216725
+            },
+            {
+              "club": "Björklöven",
+              "shots": 33,
+              "goals": 2,
+              "xgOnTarget": 2.8087866388995746,
+              "attempts": 59,
+              "xg": 2.5276722206261346
+            }
+          ]
+        },
+        {
+          "scenario": "patient",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 19,
+              "goals": 1,
+              "xg": 2.5874543541842607
+            },
+            {
+              "club": "Björklöven",
+              "shots": 33,
+              "goals": 3,
+              "xg": 2.4190738269000223
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 9,
+              "goals": 1,
+              "xgOnTarget": 0.6702289153655059,
+              "attempts": 17,
+              "xg": 0.6571142541005259
+            },
+            {
+              "club": "Björklöven",
+              "shots": 31,
+              "goals": 4,
+              "xgOnTarget": 2.628645517738698,
+              "attempts": 66,
+              "xg": 2.892584819511671
+            }
+          ]
+        },
+        {
+          "scenario": "patient",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 18,
+              "goals": 4,
+              "xg": 2.3780029465191004
+            },
+            {
+              "club": "Björklöven",
+              "shots": 31,
+              "goals": 3,
+              "xg": 2.5681621241218884
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 9,
+              "goals": 0,
+              "xgOnTarget": 0.620208149105557,
+              "attempts": 15,
+              "xg": 0.6019447629632885
+            },
+            {
+              "club": "Björklöven",
+              "shots": 32,
+              "goals": 4,
+              "xgOnTarget": 2.201281656413736,
+              "attempts": 64,
+              "xg": 2.6173962313646255
+            }
+          ]
+        },
+        {
+          "scenario": "patient",
+          "venue": "home",
+          "sample": 3,
+          "liveSeed": 712245,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 20,
+              "goals": 3,
+              "xg": 2.2923722202254817
+            },
+            {
+              "club": "Björklöven",
+              "shots": 45,
+              "goals": 1,
+              "xg": 3.770432114467829
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 7,
+              "goals": 0,
+              "xgOnTarget": 0.5280535192881152,
+              "attempts": 15,
+              "xg": 0.49326299200705476
+            },
+            {
+              "club": "Björklöven",
+              "shots": 23,
+              "goals": 3,
+              "xgOnTarget": 1.8108036107599443,
+              "attempts": 58,
+              "xg": 2.3387267679681294
+            }
+          ]
+        },
+        {
+          "scenario": "shoot",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 50,
+              "goals": 3,
+              "xg": 4.013637223962913
+            },
+            {
+              "club": "Björklöven",
+              "shots": 37,
+              "goals": 4,
+              "xg": 2.842458408477296
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 36,
+              "goals": 2,
+              "xgOnTarget": 2.337856348954758,
+              "attempts": 60,
+              "xg": 2.169347254500953
+            },
+            {
+              "club": "Björklöven",
+              "shots": 28,
+              "goals": 5,
+              "xgOnTarget": 2.257664447581233,
+              "attempts": 52,
+              "xg": 2.176657723631279
+            }
+          ]
+        },
+        {
+          "scenario": "shoot",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 28,
+              "goals": 1,
+              "xg": 2.460789868841846
+            },
+            {
+              "club": "Björklöven",
+              "shots": 46,
+              "goals": 3,
+              "xg": 3.6369059171757034
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 30,
+              "goals": 2,
+              "xgOnTarget": 1.8860671365941613,
+              "attempts": 60,
+              "xg": 2.0508309234855644
+            },
+            {
+              "club": "Björklöven",
+              "shots": 36,
+              "goals": 5,
+              "xgOnTarget": 2.8815715562677346,
+              "attempts": 62,
+              "xg": 2.671278711727154
+            }
+          ]
+        },
+        {
+          "scenario": "shoot",
+          "venue": "home",
+          "sample": 3,
+          "liveSeed": 712245,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 39,
+              "goals": 2,
+              "xg": 2.56975152645328
+            },
+            {
+              "club": "Björklöven",
+              "shots": 48,
+              "goals": 2,
+              "xg": 3.6076931086403556
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 17,
+              "goals": 0,
+              "xgOnTarget": 1.1714335217031884,
+              "attempts": 45,
+              "xg": 1.708178930617067
+            },
+            {
+              "club": "Björklöven",
+              "shots": 29,
+              "goals": 1,
+              "xgOnTarget": 2.406660632093671,
+              "attempts": 58,
+              "xg": 2.4585635794418694
+            }
+          ]
+        },
+        {
+          "scenario": "pressure",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 38,
+              "goals": 2,
+              "xg": 2.0898044183103646
+            },
+            {
+              "club": "Björklöven",
+              "shots": 28,
+              "goals": 2,
+              "xg": 2.142721397138713
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 44,
+              "goals": 5,
+              "xgOnTarget": 3.704064179898112,
+              "attempts": 70,
+              "xg": 3.099887619100455
+            },
+            {
+              "club": "Björklöven",
+              "shots": 29,
+              "goals": 4,
+              "xgOnTarget": 2.521085500466556,
+              "attempts": 53,
+              "xg": 2.63167837571883
+            }
+          ]
+        },
+        {
+          "scenario": "pressure",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 35,
+              "goals": 1,
+              "xg": 2.663973359438784
+            },
+            {
+              "club": "Björklöven",
+              "shots": 24,
+              "goals": 2,
+              "xg": 2.2563279814562596
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 40,
+              "goals": 5,
+              "xgOnTarget": 3.0723285377124725,
+              "attempts": 78,
+              "xg": 3.313264179012071
+            },
+            {
+              "club": "Björklöven",
+              "shots": 37,
+              "goals": 3,
+              "xgOnTarget": 2.999427029549481,
+              "attempts": 54,
+              "xg": 2.7739811538108325
+            }
+          ]
+        },
+        {
+          "scenario": "pressure",
+          "venue": "home",
+          "sample": 3,
+          "liveSeed": 712245,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 39,
+              "goals": 3,
+              "xg": 2.5912281554860517
+            },
+            {
+              "club": "Björklöven",
+              "shots": 30,
+              "goals": 3,
+              "xg": 2.1780543375990526
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 24,
+              "goals": 3,
+              "xgOnTarget": 1.9209614899142022,
+              "attempts": 59,
+              "xg": 2.3858952017785704
+            },
+            {
+              "club": "Björklöven",
+              "shots": 28,
+              "goals": 3,
+              "xgOnTarget": 2.350625945993044,
+              "attempts": 51,
+              "xg": 2.393857062856332
+            }
+          ]
+        },
+        {
+          "scenario": "counter",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 43,
+              "goals": 2,
+              "xg": 2.6983248467290655
+            },
+            {
+              "club": "Björklöven",
+              "shots": 40,
+              "goals": 5,
+              "xg": 3.3923923597384786
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 37,
+              "goals": 1,
+              "xgOnTarget": 2.562213297968105,
+              "attempts": 61,
+              "xg": 2.358078574573582
+            },
+            {
+              "club": "Björklöven",
+              "shots": 28,
+              "goals": 5,
+              "xgOnTarget": 2.2581716819602633,
+              "attempts": 51,
+              "xg": 2.1625128738688897
+            }
+          ]
+        },
+        {
+          "scenario": "counter",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 43,
+              "goals": 3,
+              "xg": 3.4364027161849284
+            },
+            {
+              "club": "Björklöven",
+              "shots": 27,
+              "goals": 6,
+              "xg": 2.562620436073274
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 36,
+              "goals": 2,
+              "xgOnTarget": 2.4637478862603728,
+              "attempts": 70,
+              "xg": 2.5784830036744464
+            },
+            {
+              "club": "Björklöven",
+              "shots": 34,
+              "goals": 4,
+              "xgOnTarget": 2.6866648634751322,
+              "attempts": 59,
+              "xg": 2.4022220852975615
+            }
+          ]
+        },
+        {
+          "scenario": "counter",
+          "venue": "home",
+          "sample": 3,
+          "liveSeed": 712245,
+          "live": [
+            {
+              "club": "HV71",
+              "shots": 29,
+              "goals": 4,
+              "xg": 2.038112470882928
+            },
+            {
+              "club": "Björklöven",
+              "shots": 49,
+              "goals": 2,
+              "xg": 4.232866925087489
+            }
+          ],
+          "background": [
+            {
+              "club": "HV71",
+              "shots": 20,
+              "goals": 2,
+              "xgOnTarget": 1.363771958652013,
+              "attempts": 54,
+              "xg": 2.048219927931304
+            },
+            {
+              "club": "Björklöven",
+              "shots": 29,
+              "goals": 1,
+              "xgOnTarget": 2.4539741046242294,
+              "attempts": 50,
+              "xg": 2.167690776123956
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "samples": 3,
+          "minutes": 60,
+          "differences": {
+            "balanced": [
+              {
+                "club": "HV71",
+                "shots": 6.333333333333336,
+                "goals": 1.3333333333333333
+              },
+              {
+                "club": "Björklöven",
+                "shots": 8.333333333333332,
+                "goals": 0
+              }
+            ],
+            "patient": [
+              {
+                "club": "HV71",
+                "shots": 10.666666666666666,
+                "goals": 2.333333333333333
+              },
+              {
+                "club": "Björklöven",
+                "shots": 7.666666666666668,
+                "goals": -1.333333333333333
+              }
+            ],
+            "shoot": [
+              {
+                "club": "HV71",
+                "shots": 11.333333333333332,
+                "goals": 0.6666666666666667
+              },
+              {
+                "club": "Björklöven",
+                "shots": 12.666666666666664,
+                "goals": -0.6666666666666665
+              }
+            ],
+            "pressure": [
+              {
+                "club": "HV71",
+                "shots": 1.3333333333333357,
+                "goals": -2.333333333333333
+              },
+              {
+                "club": "Björklöven",
+                "shots": -4,
+                "goals": -1
+              }
+            ],
+            "counter": [
+              {
+                "club": "HV71",
+                "shots": 7.333333333333336,
+                "goals": 1.3333333333333333
+              },
+              {
+                "club": "Björklöven",
+                "shots": 8.333333333333332,
+                "goals": 0.9999999999999996
+              }
+            ]
+          },
+          "controls": "Same initial players, ordered formations, goalie, PP/PK units and fixed tactical plan. Injury events and adaptive coaching disabled only in this harness. Production energy/rotation rules retained. No overtime or shootout in comparison. Attempt xG is reported separately from conditional on-target xG. Background shot geometry is estimated, live geometry measured.",
+          "averages": {
+            "balanced": {
+              "live": [
+                {
+                  "club": "HV71",
+                  "shots": 23.666666666666668,
+                  "goals": 3
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 39.666666666666664,
+                  "goals": 3
+                }
+              ],
+              "background": [
+                {
+                  "club": "HV71",
+                  "shots": 17.333333333333332,
+                  "goals": 1.6666666666666667
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 31.333333333333332,
+                  "goals": 3
+                }
+              ]
+            },
+            "patient": {
+              "live": [
+                {
+                  "club": "HV71",
+                  "shots": 19,
+                  "goals": 2.6666666666666665
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 36.333333333333336,
+                  "goals": 2.3333333333333335
+                }
+              ],
+              "background": [
+                {
+                  "club": "HV71",
+                  "shots": 8.333333333333334,
+                  "goals": 0.3333333333333333
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 28.666666666666668,
+                  "goals": 3.6666666666666665
+                }
+              ]
+            },
+            "shoot": {
+              "live": [
+                {
+                  "club": "HV71",
+                  "shots": 39,
+                  "goals": 2
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 43.666666666666664,
+                  "goals": 3
+                }
+              ],
+              "background": [
+                {
+                  "club": "HV71",
+                  "shots": 27.666666666666668,
+                  "goals": 1.3333333333333333
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 31,
+                  "goals": 3.6666666666666665
+                }
+              ]
+            },
+            "pressure": {
+              "live": [
+                {
+                  "club": "HV71",
+                  "shots": 37.333333333333336,
+                  "goals": 2
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 27.333333333333332,
+                  "goals": 2.3333333333333335
+                }
+              ],
+              "background": [
+                {
+                  "club": "HV71",
+                  "shots": 36,
+                  "goals": 4.333333333333333
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 31.333333333333332,
+                  "goals": 3.3333333333333335
+                }
+              ]
+            },
+            "counter": {
+              "live": [
+                {
+                  "club": "HV71",
+                  "shots": 38.333333333333336,
+                  "goals": 3
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 38.666666666666664,
+                  "goals": 4.333333333333333
+                }
+              ],
+              "background": [
+                {
+                  "club": "HV71",
+                  "shots": 31,
+                  "goals": 1.6666666666666667
+                },
+                {
+                  "club": "Björklöven",
+                  "shots": 30.333333333333332,
+                  "goals": 3.3333333333333335
+                }
+              ]
+            }
+          },
+          "warnings": [
+            {
+              "scenario": "patient",
+              "club": "HV71",
+              "shots": 10.666666666666666,
+              "goals": 2.333333333333333
+            },
+            {
+              "scenario": "shoot",
+              "club": "HV71",
+              "shots": 11.333333333333332,
+              "goals": 0.6666666666666667
+            },
+            {
+              "scenario": "shoot",
+              "club": "Björklöven",
+              "shots": 12.666666666666664,
+              "goals": -0.6666666666666665
+            },
+            {
+              "scenario": "pressure",
+              "club": "HV71",
+              "shots": 1.3333333333333357,
+              "goals": -2.333333333333333
+            }
+          ],
+          "calibrationPassed": false
+        }
+      ]
+    },
+    {
+      "name": "away",
+      "records": [
+        {
+          "scenario": "balanced",
+          "venue": "away",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "Brynäs IF",
+              "shots": 22,
+              "goals": 3,
+              "xg": 2.4606275771988444
+            },
+            {
+              "club": "Örebro Hockey",
+              "shots": 34,
+              "goals": 3,
+              "xg": 2.5385368204428524
+            }
+          ],
+          "background": [
+            {
+              "club": "Örebro Hockey",
+              "shots": 39,
+              "goals": 3,
+              "xgOnTarget": 2.854611268117498,
+              "attempts": 57,
+              "xg": 2.4983899684904083
+            },
+            {
+              "club": "Brynäs IF",
+              "shots": 24,
+              "goals": 3,
+              "xgOnTarget": 2.1500694365954853,
+              "attempts": 37,
+              "xg": 1.8939705896918144
+            }
+          ]
+        },
+        {
+          "scenario": "balanced",
+          "venue": "away",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "Brynäs IF",
+              "shots": 17,
+              "goals": 1,
+              "xg": 1.715976211670041
+            },
+            {
+              "club": "Örebro Hockey",
+              "shots": 30,
+              "goals": 1,
+              "xg": 3.676655304999563
+            }
+          ],
+          "background": [
+            {
+              "club": "Örebro Hockey",
+              "shots": 33,
+              "goals": 1,
+              "xgOnTarget": 2.5344613665939284,
+              "attempts": 54,
+              "xg": 2.2000756783992066
+            },
+            {
+              "club": "Brynäs IF",
+              "shots": 16,
+              "goals": 1,
+              "xgOnTarget": 1.331740713259887,
+              "attempts": 35,
+              "xg": 1.3082627704498595
+            }
+          ]
+        },
+        {
+          "scenario": "pressure",
+          "venue": "away",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "Brynäs IF",
+              "shots": 28,
+              "goals": 4,
+              "xg": 1.7525996892356512
+            },
+            {
+              "club": "Örebro Hockey",
+              "shots": 51,
+              "goals": 4,
+              "xg": 3.7467954900555522
+            }
+          ],
+          "background": [
+            {
+              "club": "Örebro Hockey",
+              "shots": 31,
+              "goals": 2,
+              "xgOnTarget": 2.4161076382734303,
+              "attempts": 60,
+              "xg": 2.95808145976428
+            },
+            {
+              "club": "Brynäs IF",
+              "shots": 53,
+              "goals": 4,
+              "xgOnTarget": 4.483145858267773,
+              "attempts": 82,
+              "xg": 3.7770788199925267
+            }
+          ]
+        },
+        {
+          "scenario": "pressure",
+          "venue": "away",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "Brynäs IF",
+              "shots": 34,
+              "goals": 2,
+              "xg": 1.8963722250233395
+            },
+            {
+              "club": "Örebro Hockey",
+              "shots": 42,
+              "goals": 3,
+              "xg": 3.360447552702881
+            }
+          ],
+          "background": [
+            {
+              "club": "Örebro Hockey",
+              "shots": 37,
+              "goals": 0,
+              "xgOnTarget": 2.8927756492030325,
+              "attempts": 60,
+              "xg": 2.8647664034240092
+            },
+            {
+              "club": "Brynäs IF",
+              "shots": 40,
+              "goals": 7,
+              "xgOnTarget": 3.2800547298941556,
+              "attempts": 70,
+              "xg": 2.7992291804771083
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "samples": 2,
+          "minutes": 60,
+          "differences": {
+            "balanced": [
+              {
+                "club": "Brynäs IF",
+                "shots": -0.5,
+                "goals": 0
+              },
+              {
+                "club": "Örebro Hockey",
+                "shots": -4,
+                "goals": 0
+              }
+            ],
+            "pressure": [
+              {
+                "club": "Brynäs IF",
+                "shots": -15.5,
+                "goals": -2.5
+              },
+              {
+                "club": "Örebro Hockey",
+                "shots": 12.5,
+                "goals": 2.5
+              }
+            ]
+          },
+          "controls": "Same initial players, ordered formations, goalie, PP/PK units and fixed tactical plan. Injury events and adaptive coaching disabled only in this harness. Production energy/rotation rules retained. No overtime or shootout in comparison. Attempt xG is reported separately from conditional on-target xG. Background shot geometry is estimated, live geometry measured.",
+          "averages": {
+            "balanced": {
+              "live": [
+                {
+                  "club": "Brynäs IF",
+                  "shots": 19.5,
+                  "goals": 2
+                },
+                {
+                  "club": "Örebro Hockey",
+                  "shots": 32,
+                  "goals": 2
+                }
+              ],
+              "background": [
+                {
+                  "club": "Brynäs IF",
+                  "shots": 20,
+                  "goals": 2
+                },
+                {
+                  "club": "Örebro Hockey",
+                  "shots": 36,
+                  "goals": 2
+                }
+              ]
+            },
+            "pressure": {
+              "live": [
+                {
+                  "club": "Brynäs IF",
+                  "shots": 31,
+                  "goals": 3
+                },
+                {
+                  "club": "Örebro Hockey",
+                  "shots": 46.5,
+                  "goals": 3.5
+                }
+              ],
+              "background": [
+                {
+                  "club": "Brynäs IF",
+                  "shots": 46.5,
+                  "goals": 5.5
+                },
+                {
+                  "club": "Örebro Hockey",
+                  "shots": 34,
+                  "goals": 1
+                }
+              ]
+            }
+          },
+          "warnings": [
+            {
+              "scenario": "pressure",
+              "club": "Brynäs IF",
+              "shots": -15.5,
+              "goals": -2.5
+            },
+            {
+              "scenario": "pressure",
+              "club": "Örebro Hockey",
+              "shots": 12.5,
+              "goals": 2.5
+            }
+          ],
+          "calibrationPassed": false
+        }
+      ]
+    },
+    {
+      "name": "third",
+      "records": [
+        {
+          "scenario": "balanced",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "Leksands IF",
+              "shots": 19,
+              "goals": 3,
+              "xg": 1.7997897064541293
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 16,
+              "goals": 1,
+              "xg": 1.5647657277182252
+            }
+          ],
+          "background": [
+            {
+              "club": "Leksands IF",
+              "shots": 20,
+              "goals": 2,
+              "xgOnTarget": 1.3108249951398696,
+              "attempts": 38,
+              "xg": 1.286433291323571
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 15,
+              "goals": 0,
+              "xgOnTarget": 0.8881227749394514,
+              "attempts": 33,
+              "xg": 1.1697656698114889
+            }
+          ]
+        },
+        {
+          "scenario": "balanced",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "Leksands IF",
+              "shots": 17,
+              "goals": 1,
+              "xg": 2.405406778995751
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 26,
+              "goals": 2,
+              "xg": 3.4050566432224
+            }
+          ],
+          "background": [
+            {
+              "club": "Leksands IF",
+              "shots": 18,
+              "goals": 0,
+              "xgOnTarget": 1.4855979996292932,
+              "attempts": 32,
+              "xg": 1.4564287323569969
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 20,
+              "goals": 1,
+              "xgOnTarget": 1.5386913487208511,
+              "attempts": 39,
+              "xg": 1.5497431192631237
+            }
+          ]
+        },
+        {
+          "scenario": "counter",
+          "venue": "home",
+          "sample": 1,
+          "liveSeed": 710031,
+          "live": [
+            {
+              "club": "Leksands IF",
+              "shots": 46,
+              "goals": 3,
+              "xg": 2.5224482114517137
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 18,
+              "goals": 2,
+              "xg": 2.155076225278859
+            }
+          ],
+          "background": [
+            {
+              "club": "Leksands IF",
+              "shots": 35,
+              "goals": 2,
+              "xgOnTarget": 2.7112337540529885,
+              "attempts": 67,
+              "xg": 2.667735515354639
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 17,
+              "goals": 0,
+              "xgOnTarget": 1.0817106791359206,
+              "attempts": 27,
+              "xg": 0.9599834047866593
+            }
+          ]
+        },
+        {
+          "scenario": "counter",
+          "venue": "home",
+          "sample": 2,
+          "liveSeed": 711138,
+          "live": [
+            {
+              "club": "Leksands IF",
+              "shots": 19,
+              "goals": 3,
+              "xg": 2.2240058618288567
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 18,
+              "goals": 2,
+              "xg": 1.8653472542388867
+            }
+          ],
+          "background": [
+            {
+              "club": "Leksands IF",
+              "shots": 34,
+              "goals": 2,
+              "xgOnTarget": 2.776520676179513,
+              "attempts": 65,
+              "xg": 2.8381758681501092
+            },
+            {
+              "club": "Nybro Vikings",
+              "shots": 19,
+              "goals": 0,
+              "xgOnTarget": 1.3561971797184758,
+              "attempts": 35,
+              "xg": 1.4588470006638683
+            }
+          ]
+        },
+        {
+          "passed": true,
+          "samples": 2,
+          "minutes": 60,
+          "differences": {
+            "balanced": [
+              {
+                "club": "Leksands IF",
+                "shots": -1,
+                "goals": 1
+              },
+              {
+                "club": "Nybro Vikings",
+                "shots": 3.5,
+                "goals": 1
+              }
+            ],
+            "counter": [
+              {
+                "club": "Leksands IF",
+                "shots": -2,
+                "goals": 1
+              },
+              {
+                "club": "Nybro Vikings",
+                "shots": 0,
+                "goals": 2
+              }
+            ]
+          },
+          "controls": "Same initial players, ordered formations, goalie, PP/PK units and fixed tactical plan. Injury events and adaptive coaching disabled only in this harness. Production energy/rotation rules retained. No overtime or shootout in comparison. Attempt xG is reported separately from conditional on-target xG. Background shot geometry is estimated, live geometry measured.",
+          "averages": {
+            "balanced": {
+              "live": [
+                {
+                  "club": "Leksands IF",
+                  "shots": 18,
+                  "goals": 2
+                },
+                {
+                  "club": "Nybro Vikings",
+                  "shots": 21,
+                  "goals": 1.5
+                }
+              ],
+              "background": [
+                {
+                  "club": "Leksands IF",
+                  "shots": 19,
+                  "goals": 1
+                },
+                {
+                  "club": "Nybro Vikings",
+                  "shots": 17.5,
+                  "goals": 0.5
+                }
+              ]
+            },
+            "counter": {
+              "live": [
+                {
+                  "club": "Leksands IF",
+                  "shots": 32.5,
+                  "goals": 3
+                },
+                {
+                  "club": "Nybro Vikings",
+                  "shots": 18,
+                  "goals": 2
+                }
+              ],
+              "background": [
+                {
+                  "club": "Leksands IF",
+                  "shots": 34.5,
+                  "goals": 2
+                },
+                {
+                  "club": "Nybro Vikings",
+                  "shots": 18,
+                  "goals": 0
+                }
+              ]
+            }
+          },
+          "warnings": [],
+          "calibrationPassed": true
+        }
+      ]
+    }
+  ]
+}

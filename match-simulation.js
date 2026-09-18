@@ -26,7 +26,20 @@ const StudioHockey = (() => {
       const location=(.027+.23*Math.exp(-c.d/9))*(.16+.84*Math.cos(c.angle)**2);
       const finish=(.63+shooting*.035)*(1-c.pressure*(.30-calm*.011));
       const goalChance=clamp(location*finish*(1.65-saving*.049)*(1+alignment*.6)+c.screen*(.032+(20-composure)*.0013)+(c.oneTimer?.018:0)+(c.lateralSpeed?clamp(c.lateralSpeed/25,0,1)*.022*(1-keeper.movement/30):0)+(c.rebound?.035:0),.003,.65);
-      return {goalChance,onTarget,block,quality:(1-block)*onTarget*goalChance,alignment};
+      // Calibration belongs to the shared model, not a spatial-only wrapper.
+      const calibrated=goalChance*.75;
+      return {goalChance:calibrated,onTarget,block,quality:(1-block)*onTarget*calibrated,alignment};
+  }
+  // Identical roll boundaries for spatial and estimated attempts. The spatial
+  // keeper is evaluated again on arrival, so finishing remains a separate stage.
+  function shotBlockChance(coverage,defender){return clamp(coverage,0,1)*(.14+(defender.positioning*.6+defender.workRate*.4)*.014);}
+  function shotFlightOutcome(model,blockRoll,targetRoll){
+    return blockRoll<model.block?'block':targetRoll>model.onTarget?'wide':null;
+  }
+  function finishShot(model,roll){return roll<model.goalChance?'goal':'save';}
+  function shotTacticalBias(plan={}){
+    const mentality=plan.mentality||(plan.style==='control'?'control':['pressure','counter'].includes(plan.style)?'direct':'balanced');
+    return (mentality==='direct'?.07:mentality==='control'?-.025:0)+(plan.shotChoice==='shoot'?.09:plan.shotChoice==='patient'?-.055:0);
   }
   // Probability for a nearby pressure duel; geometry decides whether it occurs.
   function pressureWinChance(defender,carrier){
@@ -411,7 +424,7 @@ const StudioHockey = (() => {
         rows.push({kind:'pass',value,to:b.id,reason:receiver.quality>model.quality*1.5?'Passar till ett bättre avslutsläge':chance>.8?'Spelar ur pressen via en säker passningsväg':'Söker en öppning genom täckningen'});
       }
       const instant=context.oneTimer||context.rebound||(p>47&&context.angle<.6&&context.pressure<.45);
-      if(p>41&&!context.behind&&(!pp||instant||this.attackPasses>=2&&this.setupTime>1.2))rows.push({kind:'shoot',value:.12+model.quality*4+(t.tactics.mentality==='direct'?.07:t.tactics.mentality==='control'?-.025:0)+(instant?.06:0),reason:context.oneTimer?'Avslutar innan målvakten hinner över':context.screen>.3?'Utnyttjar skymningen':'Väljer avslut framför en sämre fortsättning'});
+      if(p>41&&!context.behind&&(!pp||instant||this.attackPasses>=2&&this.setupTime>1.2))rows.push({kind:'shoot',value:.12+model.quality*4+shotTacticalBias({mentality:t.tactics.mentality})+(instant?.06:0),reason:context.oneTimer?'Avslutar innan målvakten hinner över':context.screen>.3?'Utnyttjar skymningen':'Väljer avslut framför en sämre fortsättning'});
       if(p>=30&&p<40)rows.push({kind:'dump',value:.08+pressure*.28+(t.tactics.mentality==='direct'?.07:0),reason:'Lägger pucken bakom pressen för att vinna nästa duell'});
       if(pressure>.35&&held<1.6)rows.push({kind:'shield',value:.1+pressure*.18+this.attribute(a,'puckControl')*.002-held*.04,reason:'Skyddar pucken medan understödet blir spelbart'});
       if(pk&&p<32)rows.push({kind:'clear',value:.52+pressure*.15,reason:'Prioriterar att få ut pucken i numerärt underläge'});
@@ -444,8 +457,8 @@ const StudioHockey = (() => {
       const shooting=this.attribute(a,'shooting'),control=this.attribute(a,'puckControl'),calm=this.attribute(a,'composure');
       const goal=point(a.side,56.5,15);
       const block=this.skaters(1-a.side).reduce((risk,b)=>{
-        const lane=segmentDistance(b,a,goal),commit=this.attribute(b,'positioning')*.6+this.attribute(b,'workRate')*.4;
-        return lane.t>0&&lane.t<.96&&distance(a,b)>.4?Math.max(risk,clamp(1-lane.d/1.35,0,1)*(.14+commit*.014)):risk;
+        const lane=segmentDistance(b,a,goal);
+        return lane.t>0&&lane.t<.96&&distance(a,b)>.4?Math.max(risk,shotBlockChance(1-lane.d/1.35,{positioning:this.attribute(b,'positioning'),workRate:this.attribute(b,'workRate')})):risk;
       },0);
       const keeperValues=keeper?Object.fromEntries(['reflexes','positioning','composure','movement'].map(k=>[k,this.attribute(keeper,k)])):null;
       const alignment=keeper?clamp(distance(keeper,this.goalieTarget(keeper.side,a))/2.5,0,1):1;
@@ -471,7 +484,7 @@ const StudioHockey = (() => {
       const context=this.shotContext(a);if(context.behind)return false;
       const model=this.shotModel(a,context),goal=point(a.side,56.5,15);
       const blockRoll=this.random(),targetRoll=this.random(),finishRoll=this.random();
-      let outcome=blockRoll<model.block?'block':targetRoll>model.onTarget?'wide':null;
+      let outcome=shotFlightOutcome(model,blockRoll,targetRoll);
       let end={...goal};
       if(outcome==='wide')end.y=15+(a.y<15?-1:1)*(2.3+this.random()*2);
       let blocker=null;
@@ -557,7 +570,7 @@ const StudioHockey = (() => {
           const player=this.teams[f.side].players.find(p=>f.side+':'+p.id===shot.playerId);
           const shooter={side:f.side,id:shot.playerId,role:shot.role||this.actor(shot.playerId)?.role,player,x:shot.x,y:shot.y};
           const model=this.shotModel(shooter,shot.context);
-          shot.quality=(1-shot.blockChance)*shot.onTargetChance*model.goalChance;shot.outcome=shot.finishRoll<model.goalChance?'goal':'save';shot.alignment=model.alignment;
+          shot.quality=(1-shot.blockChance)*shot.onTargetChance*model.goalChance;shot.outcome=finishShot(model,shot.finishRoll);shot.alignment=model.alignment;
         }
         this.shots.push(shot);this.stats[f.side].attempts++;
         const shooter=this.teams[f.side].players.find(p=>f.side+':'+p.id===shot.playerId);this.playerEvent({player:shooter},'xG',shot.quality);
@@ -722,6 +735,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,pressureWinChance};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;

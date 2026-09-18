@@ -20,7 +20,7 @@
     const rows=baseActionOptions.call(this,actor),team=this.teams?.[actor?.side];
     if(!team||!actor)return rows;
     const shotChoice=team.tactics?.shotChoice||'balanced';
-    const shotBias=shotChoice==='shoot'?.09:shotChoice==='patient'?-.055:0;
+    const shotBias=StudioHockey.shotTacticalBias({mentality:'balanced',shotChoice});
     const shortHanded=this.isShortHanded(actor.side),safePk=shortHanded&&team.safeCounter;
     const progress=StudioHockey.progress(actor.side,actor.x),pressure=this.pressureAt(actor);
 
@@ -52,11 +52,11 @@ if(typeof studioSyncPlans==='function'){
     const result=baseStudioSyncPlans(e);if(!e)return result;
     const plan=state.tacticalPlan||{};
     for(const team of e.teams||[]){
-      if(team.side!==0)continue;
-      const style=plan.attackStyle||'control';
+      const own=team.side===0,current=own?plan:state.live.aiTeam||{};
+      const style=(own?current.attackStyle:current.style)||'control';
       team.tactics.mentality=style==='control'?'control':style==='pressure'||style==='counter'?'direct':'balanced';
-      team.tactics.shotChoice=plan.shotChoice||'balanced';
-      team.safeCounter=state.specialPlans?.counter==='safe';
+      team.tactics.shotChoice=current.shotChoice||'balanced';
+      team.safeCounter=own?state.specialPlans?.counter==='safe':current.counter==='safe';
     }
     return result;
   };

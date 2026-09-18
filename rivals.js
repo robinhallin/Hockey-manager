@@ -234,7 +234,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club,club===game.home?game.away:game.home);
   const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
-  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},pairResults:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,initiative:{version:1,total:0,attacks:0,evenTotal:0,evenAttacks:0},shotAssessment:{version:1,shots:0,goals:0,expectedGoals:0,dangerous:0,rebounds:0},pp:0,ppGoals:0,pens:[]};
+  return {l,basePlan:{...l.plan},decisions:[],pairSeconds:{},pairResults:{},rows:new Map(players.map(p=>[String(p.id),leagueStatRow(p,club)])),goals:0,shots:0,attempts:0,blocked:0,wide:0,attemptXg:0,initiative:{version:1,total:0,attacks:0,evenTotal:0,evenAttacks:0},shotAssessment:{version:1,shots:0,goals:0,expectedGoals:0,dangerous:0,rebounds:0},pp:0,ppGoals:0,pens:[]};
  });
  // Attributes do not change during a background fixture: snapshot once per player.
  const values=new Map(),energy=new Map(),workload=new Map(),roles=new Map(),specialFit=new Map();
@@ -304,17 +304,25 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const b=sides[side],other=sides[1-side],players=ice[side],defenders=ice[1-side];
   const shooter=weighted(players,['shooting','composure','positioning']);if(!shooter)return false;
   const pp=players.length>defenders.length,keeper=other.l.keeper;
-  b.shots++;row(side,shooter).shots++;
   const avg=(ps,keys)=>ps.length?ps.reduce((n,p)=>n+keys.reduce((v,k)=>v+attribute(p,k),0)/keys.length,0)/ps.length:1;
   const attrs=ps=>Object.fromEntries(['passing','puckControl','vision','decisions','shooting','skating','positioning','workRate','checking','strength','discipline'].map(k=>[k,avg(ps,[k])]));
   const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),attackAttributes:attrs(players),defenseAttributes:attrs(defenders),shooterPosition:shooter.pos,pp,plan:b.l.plan,opposition:other.l.plan},rand);
   if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true,oneTimer:false,lateralSpeed:0});
   const playerValues=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
-  const model=StudioHockey.evaluateShot({shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
+  // Background coverage is estimated from pressure; live coverage is measured on ice.
+  const block=StudioHockey.shotBlockChance(context.pressure,{positioning:avg(defenders,['positioning']),workRate:avg(defenders,['workRate'])});
+  const model=StudioHockey.evaluateShot({block,shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
+  b.attempts++;
+  if(!force){
+   b.attemptXg+=model.quality;
+   const flight=StudioHockey.shotFlightOutcome(model,rand(),rand());
+   if(flight){b[flight==='block'?'blocked':'wide']++;return false;}
+  }
+  b.shots++;row(side,shooter).shots++;
   const chance=model.goalChance;
   // The shot is already on target. Do not apply onTarget probability twice.
   if(!force){b.shotAssessment.shots++;b.shotAssessment.expectedGoals+=chance;if(chance>=.18)b.shotAssessment.dangerous++;if(rebound)b.shotAssessment.rebounds++;}
-  const goal=force||rand()<chance;
+  const goal=force||StudioHockey.finishShot(model,rand())==='goal';
   if(keeper)row(1-side,keeper)[goal?'against':'saves']++;
   if(!goal){
    // A rebound can only follow an actual save. At most one follow-up per attack.
@@ -365,11 +373,9 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const ppKeys=b.l.plan.pp==='131'?['passing','vision','puckControl']:b.l.plan.pp==='overload'?['passing','puckControl','workRate']:['shooting','passing','positioning'];
   const pkKeys=other.l.plan.pk==='diamond'?['skating','workRate','decisions']:['positioning','discipline','decisions'];
   const specialFit=pp?(avg(ice[side],ppKeys)-creation)-(avg(ice[1-side],pkKeys)-resistance):0;
-  const tempo=b.l.plan.tempo==='high'?1.12:b.l.plan.tempo==='low'?.91:1;
   const familiarity=(rivalsClubState(names[side])?.familiarity||40)-(rivalsClubState(names[1-side])?.familiarity||40);
-  // New attacks leave room for the separately resolved rebound shots.
-  const intent=typeof MatchWorld2!=='undefined'?MatchWorld2.tacticalIntent(b.l.plan):{volume:1};
-  let goal=false;if(rand()<.80*intent.volume*attrClamp((.36+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.15,.66))goal=attempt(side,ice);
+  const opportunity=MatchWorld2.backgroundAttemptChance({creation,resistance,familiarity,specialFit,pp,plan:b.l.plan});
+  let goal=false;if(rand()<opportunity)goal=attempt(side,ice);
   for(let s=0;s<2;s++){
    sides[s].pens=sides[s].pens.map(p=>({...p,left:p.left-20})).filter(p=>p.left>0);
    const risk=avg(ice[s],['discipline']);
@@ -379,7 +385,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   }
   return goal;
  };
- for(let i=0;i<180;i++){if(i>0&&i%60===0)recover(1200);tick();}
+ for(let i=0;i<180;i++){if(i>0&&i%60===0)recover(180);tick();}
  if(!regulationOnly&&sides[0].goals===sides[1].goals){
   overtime=true;
   for(let i=0;i<(game.seriesId?900:15)&&sides[0].goals===sides[1].goals;i++)tick();
@@ -391,7 +397,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   }
  }
  return {homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
-  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,initiative:b.initiative,shotAssessment:b.shotAssessment,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
+  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,attempts:b.attempts,blocked:b.blocked,wide:b.wide,attemptXg:b.attemptXg,initiative:b.initiative,shotAssessment:b.shotAssessment,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
 }
 function rivalAfterFixture(game,rows,reports,partial=false){
  if(!game||game.rivalsRecorded||!state.rivals)return;game.rivalsRecorded=true;

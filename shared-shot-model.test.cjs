@@ -12,10 +12,11 @@ assert.equal(chance(shooter,null),1);
 const app=boot(),r=app.run;
 r(`startCareerWithClub('HV71');globalThis.game=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());globalThis.calls=[];globalThis.originalShot=StudioHockey.evaluateShot;StudioHockey.evaluateShot=input=>{calls.push(input);return originalShot(input);};globalThis.before=JSON.stringify(state);globalThis.result=rivalSimulate(game);`);
 assert.ok(r('calls.length')>30);
-assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.shots,0)'),r('calls.length'));
+assert.equal(r('result.reports.reduce((n,x)=>n+x.attempts,0)'),r('calls.length'));
 assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.shots,0)'),r('result.rows.reduce((n,x)=>n+x.shots,0)'));
 assert.equal(r('result.reports.reduce((n,x)=>n+x.shotAssessment.goals,0)'),r('result.rows.reduce((n,x)=>n+x.goals,0)'));
-assert.ok(Math.abs(r('result.reports.reduce((n,x)=>n+x.shotAssessment.expectedGoals,0)')-r('calls.reduce((n,input)=>n+originalShot(input).goalChance,0)'))<1e-10);
+assert.ok(Math.abs(r('result.reports.reduce((n,x)=>n+x.attemptXg,0)')-r('calls.reduce((n,input)=>n+originalShot(input).quality,0)'))<1e-10);
+assert.equal(r('result.reports.every(x=>x.attempts===x.shots+x.wide+x.blocked)'),true);
 assert.equal(r("calls.every(input=>Number.isFinite(input.context.d)&&input.context.pressure>=0&&input.context.pressure<=1)"),true);
 // Stronger keepers reduce expected conversion across the exact production shot contexts.
 assert.equal(r("calls.filter(i=>i.keeper).every(i=>originalShot({...i,keeper:{...i.keeper,reflexes:18,positioning:18,composure:18}}).goalChance<originalShot({...i,keeper:{...i.keeper,reflexes:4,positioning:4,composure:4}}).goalChance)"),true);

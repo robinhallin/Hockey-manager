@@ -1,0 +1,37 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const hockey=require('./match-simulation');
+// Flight and finish boundaries, including a blocked shot that would otherwise score.
+const model={block:.2,onTarget:.7,goalChance:.1};
+assert.equal(hockey.shotFlightOutcome(model,.1,.1),'block');
+assert.equal(hockey.shotFlightOutcome(model,.2,.8),'wide');
+assert.equal(hockey.shotFlightOutcome(model,.2,.7),null);
+assert.equal(hockey.finishShot(model,.09),'goal');
+assert.equal(hockey.finishShot(model,.1),'save');
+assert.ok(hockey.shotBlockChance(.8,{positioning:16,workRate:16})>hockey.shotBlockChance(.8,{positioning:4,workRate:4}));
+const r=boot().run;
+r("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.live.aiTeam.shotChoice='patient';state.live.aiTeam.physicality='hard';studioSyncPlans();globalThis.e=studioEngine();globalThis.a=e.skaters(1)[0];globalThis.hard=e.attribute(a,'discipline');");
+assert.equal(r('e.teams[1].tactics.shotChoice'),'patient');
+r("state.live.aiTeam.physicality='safe'");
+assert.ok(r("e.attribute(a,'discipline')>hard"));
+assert.ok(r("MatchWorld2.backgroundAttemptChance({plan:{style:'counter'}})>MatchWorld2.backgroundAttemptChance({plan:{style:'control'}})"));
+assert.ok(r("MatchWorld2.backgroundAttemptChance({plan:{shotChoice:'shoot'}})>MatchWorld2.backgroundAttemptChance({plan:{shotChoice:'patient'}})"));
+r("state.live=null;globalThis.g=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());globalThis.result=rivalSimulate(g,{regulationOnly:true});");
+assert.equal(r('result.duration'),3600);
+assert.equal(r('result.reports.every((x,i)=>x.attempts===x.shots+x.blocked+x.wide&&result.eventSummary.attempts[i]===x.attempts)'),true);
+assert.ok(r('result.reports.reduce((n,x)=>n+x.blocked+x.wide,0)>0'));
+assert.equal(r('result.reports.every(x=>Number.isFinite(x.attemptXg))'),true);
+console.log('PASS: shared attempt resolution, AI tactical symmetry, attempt ledger and regulation duration.');
+// Shootout score must not manufacture a skater goal or erase a keeper save.
+r("globalThis.so={homeGoals:2,awayGoals:1,shootout:true,reports:[{club:'A',shots:2},{club:'B',shots:2}],rows:[{club:'A',id:1,name:'A',shots:2,goals:1},{club:'B',id:2,name:'B',shots:2,goals:1}]};globalThis.ss=MatchEventStream.summary(MatchEventStream.backgroundFromResult(so));");
+assert.equal(r('JSON.stringify(ss.score)'),'[2,1]');
+assert.equal(r('JSON.stringify(ss.saves)'),'[1,1]');
+assert.equal(r('ss.players["0:1"].goals'),1);
+r("state.live=null;state.round=1;state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.a=e.skaters(0)[0];globalThis.beforeRead=JSON.stringify(e.actors);globalThis.rngBefore=e.rng;for(let i=0;i<20;i++){e.shotQuality(a);e.goalieTarget(1,a);studioShouldShow(e,state.live);}");
+assert.equal(r('JSON.stringify(e.actors)'),r('beforeRead'),'observing a chance must not alter keeper or actor state');
+assert.equal(r('e.rng'),r('rngBefore'),'observation must not consume random draws');
+r("globalThis.context=e.shotContext(a);globalThis.model=e.shotModel(a,context);globalThis.keeper=e.actors.find(x=>x.side===1&&x.role==='G');globalThis.values=(p,keys)=>Object.fromEntries(keys.map(k=>[k,e.attribute(p,k)]));globalThis.shared=StudioHockey.evaluateShot({context,block:model.block,alignment:model.alignment,shooter:values(a,['shooting','puckControl','composure']),keeper:values(keeper,['reflexes','positioning','composure','movement'])});");
+assert.equal(r('model.goalChance'),r('shared.goalChance'),'live and background must apply finishing calibration exactly once');
+assert.equal(r('model.quality'),r('shared.quality'));
+console.log('PASS: side-effect-free observations and identical calibrated finishing probabilities.');
