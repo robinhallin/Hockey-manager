@@ -78,12 +78,16 @@ const MatchEventStream=(()=>{
   for(let side=0;side<2;side++){
    const report=reports[side]||{},teamRows=rows.filter(r=>r.club===clubBySide[side]||r.team===clubBySide[side]);
    for(let i=0;i<(report.pp||0);i++)emit(stream,'pp-start',{side,seconds:0});
+   for(let i=0;i<(report.wide||0);i++)emit(stream,'shot',{side,seconds:0,outcome:'wide'});
+   for(let i=0;i<(report.blocked||0);i++)emit(stream,'shot',{side,seconds:0,outcome:'block'});
    const shotRows=[];for(const r of teamRows)for(let i=0;i<(r.shots||0);i++)shotRows.push(r);
    const goals=[];for(const r of teamRows)for(let i=0;i<(r.goals||0);i++)goals.push(r);
    const assists=[];for(const r of teamRows)for(let i=0;i<(r.assists||0);i++)assists.push(r);
+   // Shootout winners change the official score, never skater goals or saves.
+   if(result.shootout)stream.baseline.score[side]=Math.max(0,(side===0?result.homeGoals:result.awayGoals)-goals.length);
    let goalIndex=0,assistIndex=0;
    for(let i=0;i<(report.shots||0);i++){
-    const goal=goalIndex<(side===0?result.homeGoals:result.awayGoals),row=goal?goals[goalIndex++]||shotRows[i]||teamRows[0]:shotRows[i]||teamRows[0];
+    const goal=goalIndex<goals.length,row=goal?goals[goalIndex++]||shotRows[i]||teamRows[0]:shotRows[i]||teamRows[0];
     const eventAssists=[];
     if(goal){for(let a=0;a<2&&assistIndex<assists.length;a++){const ar=assists[assistIndex++];eventAssists.push({id:ar.id,name:ar.name});}}
     emit(stream,'shot',{side,seconds:0,playerId:row?.id??null,player:row?.name||'',outcome:goal?'goal':'save',powerPlay:goal&&goalIndex<=(report.ppGoals||0),assists:eventAssists});

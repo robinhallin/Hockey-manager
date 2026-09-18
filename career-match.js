@@ -108,9 +108,10 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    }
    chemistry=a.role==='G'?50:cache.values[a.side][['LD','RD'].includes(a.role)?1:0];
   }
-  if(a.side===0&&key==='discipline')extra+=state.tacticalPlan.physicality==='hard'?-4:state.tacticalPlan.physicality==='safe'?3:0;
+  const physicality=a.side===0?state.tacticalPlan.physicality:state.live.aiTeam?.physicality;
+  if(key==='discipline')extra+=physicality==='hard'?-4:physicality==='safe'?3:0;
   if(a.side===0&&key==='discipline')extra+=clubPriorityValue('discipline',0);
-  if(a.side===0&&key==='checking')extra+=state.tacticalPlan.physicality==='hard'?1:state.tacticalPlan.physicality==='safe'?-.6:0;
+  if(key==='checking')extra+=physicality==='hard'?1:physicality==='safe'?-.6:0;
   if(a.side===0&&['passing','vision','positioning','faceoffs'].includes(key))extra+=(this.teamBonus||0)/4;
   if(p&&['decisions','composure','vision','positioning','passing'].includes(key))extra+=(a.side===0?matchFeedbackBonus([p]):0)*.15;
   return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra);

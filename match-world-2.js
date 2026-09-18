@@ -29,6 +29,13 @@ const MatchWorld2=(()=>{
   return {volume:(choice==='shoot'?1.12:choice==='patient'?.88:1)*(posture==='attack'?1.06:posture==='defense'?.94:1),
    patience:choice==='patient'?1:choice==='shoot'?-1:0,risk:posture==='attack'?1:posture==='defense'?-1:0};
  }
+ // Coarse attack opportunities use the same tactical shot utility as the rink.
+ // These are attempt rates: targeting and blocking are resolved afterwards.
+ function backgroundAttemptChance({creation=10,resistance=10,familiarity=0,specialFit=0,pp=false,plan={}}={}){
+  const tempo=plan.tempo==='high'?1.12:plan.tempo==='low'?.91:1;
+  const bias=StudioHockey.shotTacticalBias(plan);
+  return clamp((.44+bias*3+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.12,.85)*(1+tacticalIntent(plan).risk*.06);
+ }
  function profileFromAttributes(attrs,plan={},count=5,goalie=null){
   const a={...Object.fromEntries(KEYS.map(key=>[key,value(attrs,key)]))};
   return {version:2,count,attrs:a,control:controlScore(a),attack:attackScore(a),defense:defenseScore(a),transition:transitionScore(a),discipline:a.discipline,
@@ -161,7 +168,7 @@ const MatchWorld2=(()=>{
   const profiles=liveProfiles(match);if(!profiles)return null;
   return {version:2,decisionVersion:1,specialTeamsVersion:1,profiles:profiles.map(p=>({count:p.count,control:+p.control.toFixed(2),attack:+p.attack.toFixed(2),defense:+p.defense.toFixed(2),transition:+p.transition.toFixed(2),discipline:+p.discipline.toFixed(2),plan:p.plan})),initiative:[+liveInitiative(match,0).toFixed(4),+liveInitiative(match,1).toFixed(4)],energy:[+liveTeamEnergy(match,0).toFixed(1),+liveTeamEnergy(match,1).toFixed(1)]};
  }
- return {version:2,decisionVersion:1,specialTeamsVersion:1,KEYS,ACTIONS,livePlan,tacticalIntent,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,specialUnitScore,shiftTarget,specialTeamsEdge,specialDecisionBias,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveTeamEnergy,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
+ return {version:2,decisionVersion:1,specialTeamsVersion:1,KEYS,ACTIONS,backgroundAttemptChance,livePlan,tacticalIntent,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,specialUnitScore,shiftTarget,specialTeamsEdge,specialDecisionBias,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveTeamEnergy,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
 })();
 
 if(typeof rivalInitiativeChance==='function')rivalInitiativeChance=function(home,away,homePlan,awayPlan,homeCount=5,awayCount=5){return MatchWorld2.initiativeChance(home,away,homePlan,awayPlan,homeCount,awayCount);};

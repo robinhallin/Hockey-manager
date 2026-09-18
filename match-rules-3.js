@@ -60,16 +60,13 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
 // ordering, fatigue and readiness still feed every individual contest.
 function matchCalibrationAttribute(value){return 10+(value-10)*.5;}
 if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchCalibration2Installed){
-  const baseAttribute=StudioHockey.Match.prototype.attribute,baseShotModel=StudioHockey.Match.prototype.shotModel;
+  const baseAttribute=StudioHockey.Match.prototype.attribute;
   StudioHockey.Match.prototype.attribute=function(a,key){return matchCalibrationAttribute(baseAttribute.call(this,a,key));};
   StudioHockey.Match.prototype.readDelay=function(a){
     const reading=this.attribute(a,'decisions')*.4+this.attribute(a,'vision')*.25+this.attribute(a,'puckControl')*.35;
     return Math.max(.42,Math.min(1.35,1.15-reading*.03+this.pressureAt(a)*(20-this.attribute(a,'composure'))*.016));
   };
-  StudioHockey.Match.prototype.shotModel=function(a,context){
-    const model=baseShotModel.call(this,a,context);
-    return {...model,goalChance:model.goalChance*.75,quality:model.quality*.75};
-  };
+  // Finishing calibration now lives in evaluateShot for every match mode.
   StudioHockey.Match.prototype.matchCalibration2Installed=true;
 }
 // The subclass overrides attribute(). The inherited base installation flag

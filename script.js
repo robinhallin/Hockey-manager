@@ -2610,7 +2610,7 @@ function updateFatigue(seconds=0,ownPlayers=[],otherPlayers=[]){
  if(m.rink&&!m.rink.oppFatigue)m.rink.oppFatigue={};
  for(const [side,roster,onIce] of [['own',managerRoster(),ownPlayers],['opponent',state.clubRosters[m.opponent]||[],otherPlayers]]){
   const ids=new Set(onIce.map(p=>String(p.id))),tempo=side==='own'?state.tacticalPlan.tempo:m.aiTeam?.tempo;
-  const load=readinessLoad(tempo,side==='own'?state.tacticalPlan.forecheck:m.aiTeam?.forecheck,side==='own'?state.tacticalPlan.physicality:'normal');
+  const load=readinessLoad(tempo,side==='own'?state.tacticalPlan.forecheck:m.aiTeam?.forecheck,side==='own'?state.tacticalPlan.physicality:m.aiTeam?.physicality);
   for(const p of roster){
    const id=String(p.id),stamina=p.pos==='MV'?10:(p.attributes?.stamina??ensurePlayerAttributes(p).stamina??10);
    const e=m.energy.players[id]||(m.energy.players[id]={level:readinessCeiling((p.fatigue||0)+(side==='opponent'?(m.rink?.oppFatigue?.[id]||0):0)),shift:0,seconds:0});
