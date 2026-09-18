@@ -51,13 +51,15 @@ function squadPlacementSave(id,index,role){
  const p=findPlayerAnywhere(id);index=Number(index);
  if(!p||isOwnPlayer(p)||state.live&&!state.live.finished||!Number.isInteger(index)||!roleWeights(p).includes(role))return false;
  const slot=squadPlacementSlots(p)[index];if(!slot)return false;
+ if(!state.lines)ensureLines();
  const displaced=slot.type==='goalie'?state.lines.goalie:state.lines[slot.type][slot.index];
  const plans=(state.recruitment.placementPlans||[]).filter(x=>!(samePlayerId(x.playerId,p.id)&&x.club===managerClub()));
  state.recruitment.placementPlans=[{playerId:p.id,club:managerClub(),year:state.season.year,date:state.calendar.date,...slot,role,displaced},...plans].slice(0,60);
  save();render();return true;
 }
 function squadPlacementView(p){
- if(isOwnPlayer(p)||!state.lines)return '';
+ if(isOwnPlayer(p))return '';
+ if(!state.lines)ensureLines();
  const slots=squadPlacementSlots(p),plan=squadPlacementPlan(p),slot=slots.find(s=>s.index===plan?.index)||slots[0],role=roleWeights(p).includes(plan?.role)?plan.role:roleWeights(p)[0];
  const currentId=slot.type==='goalie'?state.lines.goalie:state.lines[slot.type][slot.index],displaced=playerById(currentId);
  const ids=slot.type==='goalie'?[]:state.lines[slot.type].slice(Math.floor(slot.index/(slot.type==='defense'?2:3))*(slot.type==='defense'?2:3),Math.floor(slot.index/(slot.type==='defense'?2:3))*(slot.type==='defense'?2:3)+(slot.type==='defense'?2:3)).filter(id=>!samePlayerId(id,currentId));
