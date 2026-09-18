@@ -3,11 +3,11 @@
   "seedRule": "i * 1107, i=1..96",
   "periods": 96,
   "per60": {
-    "goals": 2.890625,
-    "shots": 26.296875,
-    "attempts": 43.734375
+    "goals": 2.796875,
+    "shots": 25.625,
+    "attempts": 44.71875
   },
-  "savePct": 89.01,
+  "savePct": 89.09,
   "bounds": {
     "shots": [
       24,
