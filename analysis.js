@@ -185,14 +185,27 @@ function coachAdopt(key){
  state.analysis.coachFocus={key,club:managerClub(),year:state.season.year,date:state.calendar.date,target:state.analysis.coachWindow||3,baseline:matches.map(m=>({id:m.id,value:coachMeasure(m,key),rates:analysisStrengthSummary(m,key)})),seen:(state.analysis.matches||[]).map(m=>m.id),sessions:[],results:[]};
  save();render();
 }
+function coachPlanSlot(key=coachFocus()?.key){
+ const t=state.training,c=state.calendar;
+ if(!COACH_FOCUSES[key]||!t||!c||t.lockedRound===state.round||state.live&&!state.live.finished)return null;
+ const fixtures=calendarFixtures(),session=COACH_FOCUSES[key].session;
+ const slots=t.plan.flatMap((p,index)=>{
+  if(index<t.day||index>=t.plan.length-1)return [];
+  const date=calAdd(c.date,index-t.day),actual=calendarSession(date);
+  if(c.completedMatchDate===date||t.history.some(l=>l.date===date)||fixtures.some(g=>g.date===date||g.date===calAdd(date,1)))return [];
+  if(['recovery','matchprep'].includes(actual.type))return [];
+  // Respect a date-specific manual plan. An already matching pass can be used.
+  if(c.plans[date]&&actual.type!==session)return [];
+  return [{index,date,type:actual.type,intensity:actual.intensity}];
+ });
+ return slots.find(s=>s.date===coachFocus()?.planned&&s.type===session)||slots[0]||null;
+}
 function coachPlan(){
  const f=coachFocus();if(!f||f.results.length>=(f.target||3))return;ensureTrainingData();
- const t=state.training;if(t.lockedRound===state.round||state.live&&!state.live.finished)return;
- // Preserve today's recovery and the final match preparation day.
- const index=t.plan.findIndex((p,i)=>i>=t.day&&p.type!=='recovery'&&p.type!=='matchprep'&&i<t.plan.length-1);
- if(index<0){calendarNotify('Ingen lämplig träningsdag före nästa match. Behåll återhämtning och matchförberedelse; planera efter matchen.');return;}
- f.planned=calAdd(state.calendar.date,index-t.day);
- setTrainingSession(index,'type',COACH_FOCUSES[f.key].session);
+ const slot=coachPlanSlot(f.key);
+ if(!slot){calendarNotify('Ingen lämplig träningsdag före nästa match. Behåll återhämtning, egna kalenderplaner och matchförberedelse; planera efter matchen.');return;}
+ f.planned=slot.date;
+ setTrainingSession(slot.index,'type',COACH_FOCUSES[f.key].session);
 }
 function coachTrainingDone(log){const f=coachFocus();if(!f||f.results.length>=(f.target||3)||!log.trained||log.type!==COACH_FOCUSES[f.key].session||f.sessions.some(s=>s.date===log.date))return;f.sessions.push({date:log.date,trained:log.trained,resting:log.resting});f.sessions=f.sessions.slice(-20);}
 function coachMatchDone(m){

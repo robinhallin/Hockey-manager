@@ -80,12 +80,11 @@ function managerOffice2View(){
 
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
 function officeTodayView(){
-  const next=deskNextMatch(deskFixtures().upcoming[0]),waiting=officeWaiting();
-  return `<div class="office-today"><section class="office-next"><span class="desk-kicker">${next.eyebrow}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="office-live-score">${trainingSafe(next.score)}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${deskLink(next.label,next.action)}</section>${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}</div>`;
+  const waiting=officeWaiting();
+  return `<div class="office-today">${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
 }
 function officeFollowupView(){
-  const focus=coachFocus();
-  return `${focus?`<section class="office-followup"><strong>Aktivt träningsfokus</strong><p>${trainingSafe(COACH_FOCUSES[focus.key].name)} · ${focus.results.length}/${focus.target||3} matcher följda</p>${deskLink('Granska träningsfokus',{page:'statistics'})}</section>`:''}${managerLifeMorningView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
+  return `${managerWeekFollowupView()}${managerLifeMorningView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
 }
 function officeClubView(){
   const fixtures=deskFixtures(),table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,index-2);
