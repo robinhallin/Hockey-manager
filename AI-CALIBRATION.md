@@ -41,6 +41,7 @@ Bakgrundens kvarvarande genomsnittliga skillnad är −1,762 skott och −0,126 
 Separata kontroller täcker:
 
 - 24 riktiga 3-mot-3-förlängningar, med åtta bakgrundsfrön per startläge och slut vid avgörande mål. Färska trupper används i just frekvensprovet; överförd trötthet testas separat.
+- Tre hela säsonger med 2 184 grundseriematcher, slutspel och övergångar mellan år. Samma produktionsmotor körs direkt för att undvika den tidigare VM-körningens tidsgräns; varje år sparas och läses fortfarande in i en ny isolerad miljö. Inga säsonger eller kontrollvillkor är borttagna.
 - 90 fulla bakgrundsmatcher som tillsammans måste innehålla vanlig förlängning, straffar och slutspelsförlängning. Händelser, lag- och spelarsummor måste stämma exakt.
 - 2 000 straffläggningar med jämnstarka lag och 2 000 med starkare respektive svagare skyttar/målvakter, samt exakt återspelning av samma frö.
 - Gemensam avslutsmodell, attributens verkan, returer efter räddningar, PP-mål och utvisningsslut, istid, ork, dubbelföringsskydd, äldre rapporter och sparning/återläsning.
