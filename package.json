@@ -13,7 +13,8 @@
     "check:match-balance-wide": "node scripts/match-balance-wide.cjs",
     "test:career-long": "node scripts/career-long-run.cjs",
     "check:match-modes": "node scripts/compare-match-modes.cjs",
-    "check:playback-parity": "node scripts/check-playback-parity.cjs"
+    "check:playback-parity": "node scripts/check-playback-parity.cjs",
+    "check:background-strength": "node scripts/check-background-strength.cjs"
   },
   "devDependencies": {
     "vite": "8.0.13"

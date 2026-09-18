@@ -211,11 +211,18 @@ function rivalShotContext({creation,resistance,shooterPosition,pp,plan,oppositio
  const screen=attrClamp((plan.style==='pressure'?.38:.20)+(pp?.12:0),0,1);
  return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
 }
+function rivalStrengthEvidenceView(games){
+ const known=games.filter(g=>!g.partial&&Array.isArray(g.strengthEvidence)&&['even','pp','pk'].every(kind=>g.strengthEvidence.some(r=>r.kind===kind&&Number.isFinite(r.seconds))));
+ if(!known.length)return '';
+ const labels={even:'Lika styrka',pp:'Powerplay',pk:'Boxplay'};
+ const rows=['even','pp','pk'].map(kind=>known.reduce((out,g)=>{const r=g.strengthEvidence.find(r=>r.kind===kind);for(const key of ['seconds','attempts','shots','goals'])out[key]+=r[key]||0;return out;},{kind,seconds:0,attempts:0,shots:0,goals:0}));
+ return `<h4>Lagets avslut per spelform</h4><p>${known.length} matcher med registrerad speltid. Äldre och ofullständiga rapporter ingår inte.</p><div class="analysis-scroll"><table><thead><tr><th>Spelform</th><th>Speltid</th><th>Mål</th><th>Skott på mål</th><th>Skott / 60 min</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${labels[r.kind]}</th><td>${analysisTime(r.seconds)}</td><td>${r.goals}</td><td>${r.shots}</td><td>${r.seconds?(r.shots*3600/r.seconds).toFixed(1):'–'}${r.seconds>0&&r.seconds<600?' · kort underlag':''}</td></tr>`).join('')}</tbody></table></div><p>Skott per 60 minuter räknas på tiden i respektive spelform. Små tidsunderlag kan ge stora utslag. Bakgrundsmatchens lägen är uppskattade; skott och tider registreras under simuleringen.</p>`;
+}
 function rivalShotReport(games){
  const known=games.filter(g=>!g.partial&&g.shotAssessment?.version===1);
  if(!known.length)return '<p>Avslutskvalitet följs från nya bakgrundsmatcher. Äldre resultat kompletteras inte i efterhand.</p>';
  const sum=key=>known.reduce((n,g)=>n+g.shotAssessment[key],0),shots=sum('shots');
- return `<details><summary>Avslutskvalitet · ${known.length} matcher</summary><p>${shots} skott på mål, varav ${sum('dangerous')} med minst 18 % beräknad målchans. ${sum('goals')} mål från dessa skott. ${sum('rebounds')} returskott följde på räddningar.</p><p>Modellens bedömning: ${sum('expectedGoals').toFixed(1)} mål på de registrerade skotten. Lägen och press uppskattas i bakgrundssimuleringen; avsluten bedöms med samma formel som i egna matcher. Blockerade och missade skott ingår inte, och straffavgöranden räknas bort.</p><p>Jämför kvaliteten med skottmängden när du väljer hur ni ska försvara slottet. Korta underlag och målvaktsspel kan ge stora skillnader mellan bedömning och mål.</p></details>`;
+ return `<details><summary>Avslutskvalitet · ${known.length} matcher</summary><p>${shots} skott på mål, varav ${sum('dangerous')} med minst 18 % beräknad målchans. ${sum('goals')} mål från dessa skott. ${sum('rebounds')} returskott följde på räddningar.</p><p>Modellens bedömning: ${sum('expectedGoals').toFixed(1)} mål på de registrerade skotten. Lägen och press uppskattas i bakgrundssimuleringen; avsluten bedöms med samma formel som i egna matcher. Blockerade och missade skott ingår inte, och straffavgöranden räknas bort.</p>${rivalStrengthEvidenceView(known)}<p>Jämför kvaliteten med skottmängden när du väljer hur ni ska försvara slottet. Korta underlag och målvaktsspel kan ge stora skillnader mellan bedömning och mål.</p></details>`;
 }
 // Initiative is an attack opportunity, not a measurement of puck-possession time.
 function rivalInitiativeChance(home,away,homePlan,awayPlan,homeCount=5,awayCount=5){
@@ -231,6 +238,8 @@ function rivalInitiativeReport(games){
 }
 function rivalSimulate(game,{regulationOnly=false}={}){
  ensureRivals();const rand=rivalRandom(`${state.season.year}:${game.round}:${game.home}:${game.away}:${game.seriesId||'regular'}:match`);
+ const eventStream=MatchEventStream.create({source:'background',recorded:true,home:game.home,away:game.away});
+ const strengthSeconds=[{even:0,pp:0,pk:0},{even:0,pp:0,pk:0}];
  const names=[game.home,game.away],sides=names.map(club=>{
   const l=rivalLineup(club,club===game.home?game.away:game.home);
   const players=[...l.forwards,...l.defense,...l.extras,...l.keepers];
@@ -306,17 +315,18 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const pp=players.length>defenders.length,keeper=other.l.keeper;
   const avg=(ps,keys)=>ps.length?ps.reduce((n,p)=>n+keys.reduce((v,k)=>v+attribute(p,k),0)/keys.length,0)/ps.length:1;
   const attrs=ps=>Object.fromEntries(['passing','puckControl','vision','decisions','shooting','skating','positioning','workRate','checking','strength','discipline'].map(k=>[k,avg(ps,[k])]));
-  const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),attackAttributes:attrs(players),defenseAttributes:attrs(defenders),shooterPosition:shooter.pos,pp,plan:b.l.plan,opposition:other.l.plan},rand);
+  const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),attackAttributes:attrs(players),defenseAttributes:attrs(defenders),shooterPosition:shooter.pos,pp,pk:players.length<defenders.length,plan:b.l.plan,opposition:other.l.plan},rand);
   if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true,oneTimer:false,lateralSpeed:0});
   const playerValues=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
   // Background coverage is estimated from pressure; live coverage is measured on ice.
   const block=StudioHockey.shotBlockChance(context.pressure,{positioning:avg(defenders,['positioning']),workRate:avg(defenders,['workRate'])});
   const model=StudioHockey.evaluateShot({block,shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
+  const event={side,seconds:time,playerId:shooter.id,player:shooter.name,powerPlay:pp,situation:pp?'pp':players.length<defenders.length?'pk':'even',probability:force?null:model.quality,context:{...context},estimatedContext:true,forced:force,energy:energy.get(shooter),onIce:players.map(p=>p.id),assists:[]};
   b.attempts++;
   if(!force){
    b.attemptXg+=model.quality;
    const flight=StudioHockey.shotFlightOutcome(model,rand(),rand());
-   if(flight){b[flight==='block'?'blocked':'wide']++;return false;}
+   if(flight){b[flight==='block'?'blocked':'wide']++;MatchEventStream.emit(eventStream,'shot',{...event,outcome:flight});return false;}
   }
   b.shots++;row(side,shooter).shots++;
   const chance=model.goalChance;
@@ -325,6 +335,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const goal=force||StudioHockey.finishShot(model,rand())==='goal';
   if(keeper)row(1-side,keeper)[goal?'against':'saves']++;
   if(!goal){
+   MatchEventStream.emit(eventStream,'shot',{...event,outcome:'save'});
    // A rebound can only follow an actual save. At most one follow-up per attack.
    const recovery=keeper?attrClamp(.28-attribute(keeper,'reboundControl')*.008-attribute(keeper,'handling')*.004,.03,.25):0;
    if(!rebound&&keeper&&rand()<recovery)return attempt(side,ice,false,true);
@@ -336,7 +347,8 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   }
   if(pp){b.ppGoals++;other.pens.shift();}
   let eligible=players.filter(p=>p!==shooter);
-  for(const probability of [.86,.5]){if(!eligible.length||rand()>probability)break;const p=weighted(eligible,['passing','vision']);row(side,p).assists++;eligible=eligible.filter(q=>q!==p);}
+  for(const probability of [.86,.5]){if(!eligible.length||rand()>probability)break;const p=weighted(eligible,['passing','vision']);row(side,p).assists++;event.assists.push({id:p.id,name:p.name});eligible=eligible.filter(q=>q!==p);}
+  MatchEventStream.emit(eventStream,'shot',{...event,outcome:'goal'});
   return true;
  };
  const tick=()=>{
@@ -350,6 +362,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const ice=[onIce(0),onIce(1)];updateChemistry(ice);
   for(let side=0;side<2;side++){
    const l=sides[side].l;
+   strengthSeconds[side][ice[side].length>ice[1-side].length?'pp':ice[side].length<ice[1-side].length?'pk':'even']+=20;
    for(const p of [...l.forwards,...l.defense,...l.extras,...l.keepers]){
     const goalie=p.pos==='MV',playing=goalie?p===l.keeper:ice[side].includes(p),stamina=goalie?10:values.get(p)?.stamina||10;
     const load=readinessLoad(l.plan.tempo,l.plan.forecheck,l.plan.physicality),used=playing?20:0;
@@ -357,9 +370,9 @@ function rivalSimulate(game,{regulationOnly=false}={}){
     energy.set(p,readinessEnergy(energy.get(p)??100,20,playing,stamina,goalie,load,ice[side].length<ice[1-side].length,1,readinessCeiling((p.fatigue||0)+(workload.get(p)||0))));
    }
    if(l.keeper&&row(side,l.keeper).seconds>=medicalLimit(l.keeper))l.keeper=l.keepers.filter(p=>row(side,p).seconds<medicalLimit(p)).sort((a,b)=>rating(b)-rating(a))[0]||null;
-   for(const p of ice[side])row(side,p).seconds+=20;
+   for(const p of ice[side]){row(side,p).seconds+=20;MatchEventStream.addIce(eventStream,side,p.id,20);}
    for(let i=0;i<ice[side].length;i++)for(let j=i+1;j<ice[side].length;j++){const key=dynamicsKey(ice[side][i].id,ice[side][j].id);sides[side].pairSeconds[key]=(sides[side].pairSeconds[key]||0)+20;}
-   if(sides[side].l.keeper)row(side,sides[side].l.keeper).seconds+=20;
+   if(sides[side].l.keeper){row(side,sides[side].l.keeper).seconds+=20;MatchEventStream.addIce(eventStream,side,sides[side].l.keeper.id,20);}
   }
   time+=20;
   const keys=['passing','puckControl','vision','decisions','checking','strength','workRate'];
@@ -370,17 +383,19 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const avg=(players,keys)=>players.length?players.reduce((n,p)=>n+keys.reduce((v,k)=>v+attribute(p,k),0)/keys.length,0)/players.length:1;
   const creation=avg(ice[side],['passing','vision','skating']),resistance=avg(ice[1-side],['positioning','decisions','workRate']);
   const pp=ice[side].length>ice[1-side].length;
-  const ppKeys=b.l.plan.pp==='131'?['passing','vision','puckControl']:b.l.plan.pp==='overload'?['passing','puckControl','workRate']:['shooting','passing','positioning'];
+  const ppKeys=['131','oneThreeOne'].includes(b.l.plan.pp)?['passing','vision','puckControl']:b.l.plan.pp==='overload'?['passing','puckControl','workRate']:['shooting','passing','positioning'];
   const pkKeys=other.l.plan.pk==='diamond'?['skating','workRate','decisions']:['positioning','discipline','decisions'];
   const specialFit=pp?(avg(ice[side],ppKeys)-creation)-(avg(ice[1-side],pkKeys)-resistance):0;
   const familiarity=(rivalsClubState(names[side])?.familiarity||40)-(rivalsClubState(names[1-side])?.familiarity||40);
-  const opportunity=MatchWorld2.backgroundAttemptChance({creation,resistance,familiarity,specialFit,pp,plan:b.l.plan});
+  const opportunity=MatchWorld2.backgroundAttemptChance({creation,resistance,familiarity,specialFit,pp,pk:ice[side].length<ice[1-side].length,plan:b.l.plan});
   let goal=false;if(rand()<opportunity)goal=attempt(side,ice);
   for(let s=0;s<2;s++){
    sides[s].pens=sides[s].pens.map(p=>({...p,left:p.left-20})).filter(p=>p.left>0);
    const risk=avg(ice[s],['discipline']);
    if(sides[s].pens.length<2&&ice[s].length&&rand()<.018*(1+(12-risk)/20)*(sides[s].l.plan.style==='pressure'?1.2:1)){
     const p=ice[s][Math.floor(rand()*ice[s].length)];row(s,p).pim+=2;sides[s].pens.push({id:p.id,left:120});sides[1-s].pp++;
+    MatchEventStream.emit(eventStream,'penalty',{side:s,seconds:time,playerId:p.id,player:p.name,minutes:2});
+    MatchEventStream.emit(eventStream,'pp-start',{side:1-s,seconds:time});
    }
   }
   return goal;
@@ -393,11 +408,11 @@ function rivalSimulate(game,{regulationOnly=false}={}){
    const advantage=((sides[0].l.keeper?rating(sides[0].l.keeper):1)-(sides[1].l.keeper?rating(sides[1].l.keeper):1))*.01;
    const winner=rand()<.5+advantage?0:1;
    if(game.seriesId)attempt(winner,[onIce(0),onIce(1)],true);
-   else{shootout=true;sides[winner].goals++;}
+   else{shootout=true;sides[winner].goals++;eventStream.baseline.score[winner]++;MatchEventStream.emit(eventStream,'shootout-decider',{side:winner,seconds:time});}
   }
  }
- return {homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
-  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,shots:b.shots,attempts:b.attempts,blocked:b.blocked,wide:b.wide,attemptXg:b.attemptXg,initiative:b.initiative,shotAssessment:b.shotAssessment,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
+ return {eventStream,homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,
+  rows:sides.flatMap(b=>[...b.rows.values()]),reports:sides.map((b,i)=>({club:names[i],coachId:rivalsClubState(names[i])?.coach.id,coachName:rivalsClubState(names[i])?.coach.name,style:b.l.plan.style,decisions:b.decisions,keeper:b.l.keeper?.id??null,strengthSeconds:strengthSeconds[i],shots:b.shots,attempts:b.attempts,blocked:b.blocked,wide:b.wide,attemptXg:b.attemptXg,initiative:b.initiative,shotAssessment:b.shotAssessment,pp:b.pp,ppGoals:b.ppGoals,pairSeconds:b.pairSeconds,pairResults:b.pairResults,workload:Object.fromEntries([...b.rows.keys()].map(id=>{const p=[...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers].find(p=>String(p.id)===id);return [id,workload.get(p)||0];}))}))};
 }
 function rivalAfterFixture(game,rows,reports,partial=false){
  if(!game||game.rivalsRecorded||!state.rivals)return;game.rivalsRecorded=true;
