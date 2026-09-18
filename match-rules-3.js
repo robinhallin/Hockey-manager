@@ -52,10 +52,13 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
   StudioHockey.Match.prototype.matchRules3Installed=true;
 }
 
-// Match calibration v2: keep attributes meaningful, but reduce compounding across
+// Match calibration: keep attributes meaningful, but reduce compounding across
 // speed, possession, decisions and finishing. The same rules apply to the lab and
 // career broadcast; presentation speed never changes these values.
-function matchCalibrationAttribute(value){return 10+(value-10)*.88;}
+// A raw point affects several successive contests in a possession. Halving its
+// effective distance from the midpoint limits that compound advantage; player
+// ordering, fatigue and readiness still feed every individual contest.
+function matchCalibrationAttribute(value){return 10+(value-10)*.5;}
 if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchCalibration2Installed){
   const baseAttribute=StudioHockey.Match.prototype.attribute,baseShotModel=StudioHockey.Match.prototype.shotModel;
   StudioHockey.Match.prototype.attribute=function(a,key){return matchCalibrationAttribute(baseAttribute.call(this,a,key));};
@@ -69,7 +72,9 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchCalibra
   };
   StudioHockey.Match.prototype.matchCalibration2Installed=true;
 }
-if(typeof CareerBroadcastMatch!=="undefined"&&!CareerBroadcastMatch.prototype.matchCalibration2Installed){
+// The subclass overrides attribute(). The inherited base installation flag
+// does not mean that this override has been calibrated.
+if(typeof CareerBroadcastMatch!=="undefined"&&!Object.hasOwn(CareerBroadcastMatch.prototype,'matchCalibration2Installed')){
   const careerAttribute=CareerBroadcastMatch.prototype.attribute;
   CareerBroadcastMatch.prototype.attribute=function(a,key){return matchCalibrationAttribute(careerAttribute.call(this,a,key));};
   CareerBroadcastMatch.prototype.matchCalibration2Installed=true;

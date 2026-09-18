@@ -47,16 +47,39 @@ markering i etablerat försvar, riktiga samtals-/avtalslöften, sparning och
 Kalibreringens tidigare gränser för skott, skottförsök, mål och räddningsprocent
 behålls.
 
+### Attributbalans och karriärkoppling
+
+Attributkurvan använder nu 10 + (värde − 10) × 0,5 i stället för × 0,88.
+Samma råa styrkeskillnad påverkade flera efterföljande moment: rörelse,
+passningsval, dueller och avslut. Den mildare kurvan begränsar denna samlade
+förstärkning. Råa spelarattribut, utveckling och sparformat ändras inte.
+Bättre attribut behåller sin ordning; resultaten styrs inte av ställningen.
+
+Karriärmotorns egen attributmetod hoppade tidigare över kalibreringen eftersom
+installationsflaggan ärvdes från basklassen. Kontrollen skiljer nu på en egen
+och en ärvd flagga. Kalibreringen körs exakt en gång efter karriärens beräkning
+av energi, positionsvana, kemi och moral. Regressionstestet använder den riktiga
+karriärklassen och kontrollerar även återinläsning, oförändrade råattribut och RNG.
+Det befintliga beredskapstestet förväntar nu den faktiskt kalibrerade effekten.
+
 ### Uppmätt kalibrering
 
-Den oförändrade kalibreringen över 96 perioder passerar med aktuell motor:
-26,30 skott, 43,73 skottförsök och 2,89 mål per lag och 60 minuter; 89,01 %
+De oförändrade gränserna över 96 perioder passerar med aktuell gemensam motor:
+25,63 skott, 44,72 skottförsök och 2,80 mål per lag och 60 minuter; 89,09 %
 räddningar. Slumpfröna är i × 1107 för i = 1…96. Resultat och gränser finns i
 `qa/match-balance-current.json`.
 
 Det separata stresstestet i `qa/match-balance-wide.json` använder samma trupp
 med −2/0/+2 på samtliga attribut, parade slumpfrön och båda spelriktningarna.
-Det visar fortsatt undertryckt anfall för svagare profiler och för hög
-skottvolym i den största styrkeskillnaden. Det är en kvarvarande
-balansbegränsning; denna åtgärd gör mätningen aktuell men påstår inte att alla
-styrkeskillnader eller SHL-statistik är färdigkalibrerade.
+I största styrkeskillnaden minskar det starkare lagets skott från 23,17 till
+15,33 per period; det svagare ökar från 3,00 till 5,08. Svagare profiler får
+fortfarande varningar under sex skott per period: detta är en förbättring,
+inte ett påstående att alla styrkeskillnader eller verklig SHL-statistik är
+färdigkalibrerade. Karriärens särskilda beredskap och taktiska tillskott ingår
+inte i dessa fristående volymsiffror.
+
+Ett separat regressionstest kör 24 perioder med andra slumpfrön (101…112 × 1879)
+och ombytta spelriktningar. Det kräver fortsatt fördel i chanser för starkare
+spelare, samtidigt som det svagare laget måste behålla minst 20 % av skotten
+och nio skottförsök per period över hela provet. Dessa är spelmässiga skydd mot
+återfall, inte observerade liganormer.
