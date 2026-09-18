@@ -89,17 +89,17 @@ function trainingTarget(p,session='skills'){
   // A stable rotation avoids turning every balanced player into the same profile.
   return available.length?available[(state.round+state.training.day+Math.floor(attrSeed(p.id)*10))%available.length]:Object.keys(a)[0];
 }
-function trainingGrowth(p,key,points){
+function trainingGrowth(p,key,points,source='Träningsarbete'){
   if(p.academy)p.academy.cursor++;
-  if(!developmentAdvance(p,key,points))return false;
+  if(!developmentAdvance(p,key,points,source))return false;
   const label=(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[key];
-  managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,`${p.name} tar ett steg framåt`,`${p.name} har utvecklat ${label.toLowerCase()} genom träning och matchvana. Öppna spelarprofilen för tränarteamets aktuella bedömning.`,'Utvecklingsrapport',p.academy&&!isOwnPlayer(p)?{link:'juniors'}:{playerId:p.id});
+  managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,`${p.name} tar ett steg framåt`,`${p.name} har utvecklat ${label.toLowerCase()} efter registrerat utvecklingsarbete. Öppna spelarprofilen för tränarteamets aktuella bedömning.`,'Utvecklingsrapport',p.academy&&!isOwnPlayer(p)?{link:'juniors'}:{playerId:p.id});
   return true;
 }
 function grantMatchDevelopment(p,seconds){
   if(!state.training||seconds<300)return;
   const key=trainingTarget(p),age=p.age<=23?1.3:p.age<=28?.8:.4;
-  trainingGrowth(p,key,2.5*age*Math.min(1.5,seconds/1200));
+  trainingGrowth(p,key,2.5*age*Math.min(1.5,seconds/1200),'Matchvana (senior)');
 }
 function setTrainingSession(index,key,value){
   ensureTrainingData();const t=state.training;

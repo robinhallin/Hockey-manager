@@ -185,17 +185,19 @@ function developmentRate(p,key){
  // Approaching the final attainable step is slower; no rerolls on reload.
  return d.pace*ageFactor*(room>=3?1:room===2?.65:.35);
 }
-function developmentAdvance(p,key,points){
+function developmentAdvance(p,key,points,source='Träningsarbete'){
  const d=ensureDevelopment(p);
  if(!Number.isFinite(points)||points<=0||!Object.hasOwn(d.ceiling,key)||p.health?.injury)return false;
  if(!p.trainingProgress)p.trainingProgress={};
  if(p.attributes[key]>=d.ceiling[key]){p.trainingProgress[key]=0;return false;}
+ d.sources??={};d.sources[key]??=[];
+ if(!d.sources[key].includes(source))d.sources[key]=[...d.sources[key],source].slice(-4);
  p.trainingProgress[key]=Math.min(199,(p.trainingProgress[key]||0)+points*developmentRate(p,key));
  if(p.trainingProgress[key]<100)return false;
  p.trainingProgress[key]-=100;p.attributes[key]++;
  if(p.attributes[key]>=d.ceiling[key])p.trainingProgress[key]=0;
  p.attributeGrowth=Math.max(0,p.attributeGrowth-.12);
- developmentRecord(p,key,1,'Träning och matchvana');return true;
+ developmentRecord(p,key,1,'Registrerat arbete: '+d.sources[key].join(', '));d.sources[key]=[];return true;
 }
 function developmentRecord(p,key,change,reason){
  const d=ensureDevelopment(p);d.history.unshift({year:state.season?.year||2026,date:state.calendar?.date||null,key,change,reason});d.history=d.history.slice(0,24);
@@ -215,5 +217,5 @@ function developmentBirthday(p){
 function developmentPanel(p){
  const d=ensureDevelopment(p),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
  const history=d.history.slice(0,5);
- return `<div class="training-coach-note"><strong>Spelarens utveckling</strong><p>Utveckling sker i olika takt och kan plana ut. Ork, tränarstöd, matchvana och ålder påverkar. Personalens potentialstjärnor är en osäker bedömning.</p>${history.length?history.map(h=>`<p>${h.date?calText(h.date):seasonLabel(h.year)} · ${labels[h.key]} ${h.change>0?'+':''}${h.change} · ${h.reason}</p>`).join(''):'<p>Inga nya attributförändringar registrerade ännu.</p>'}</div>`;
+ return `<div class="training-coach-note"><strong>Spelarens utveckling</strong><p>Utveckling sker i olika takt och kan plana ut. Ork, tränarstöd, matchvana och ålder påverkar. Personalens potentialstjärnor är en osäker bedömning.</p>${history.length?history.map(h=>`<p>${h.date?calText(h.date):seasonLabel(h.year)} · ${labels[h.key]} ${h.change>0?'+':''}${h.change} · ${h.reason}</p>`).join(''):'<p>Inga nya attributförändringar registrerade ännu.</p>'}${developmentReviewView(p)}</div>`;
 }

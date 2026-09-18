@@ -45,14 +45,14 @@ function storiesCreate(type,ids,title,text,extra={}){
  const b=state.stories;if(!b||b.active.length>=3||b.active.some(s=>s.type===type)||ids.some(id=>b.active.some(s=>s.ids.some(other=>samePlayerId(id,other)))))return null;
  const key=type+':'+(extra.storyKey||extra.opponent||ids.map(String).sort().join('|'));
  if(b.started.includes(key))return null;
- const story={id:'story-'+b.nextId++,type,ids:ids.map(String),names:ids.map(id=>storiesPlayer(id)?.name||'Tidigare spelare'),club:b.club,year:b.year,title,status:'decision',stage:1,created:state.calendar?.date,decisionAt:b.matchCount,elapsed:0,chapters:[],expectation:null,choices:[],...extra};
+ const story={id:'story-'+b.nextId++,type,personalVersion:2,ids:ids.map(String),names:ids.map(id=>storiesPlayer(id)?.name||'Tidigare spelare'),club:b.club,year:b.year,title,status:'decision',stage:1,created:state.calendar?.date,decisionAt:b.matchCount,elapsed:0,chapters:[],expectation:null,choices:[],...extra};
  b.active.push(story);b.started.push(key);b.lastStart=b.matchCount;storiesChapter(story,'Det börjar här',text);
  const memory=type==='rival'?b.memory.rivals[b.club+'|'+extra.opponent]:b.memory.players[b.club+':'+ids[0]];
  if(memory)storiesChapter(story,'Det här bär ni med er',`${seasonLabel(memory.year)}: ${memory.outcome}. ${memory.text}`);
  storiesNotify(story,story.title,text+' Läs historien och välj hur du vill gå vidare.');
  return story;
 }
-function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>u.kind==='forward').map(u=>({ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
+function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>['forward','pp'].includes(u.kind)).map(u=>({kind:u.kind,ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
 function storiesNextRival(opponentName){return state.schedule.filter(g=>!g.played&&((g.home===managerClub()&&g.away===opponentName)||(g.away===managerClub()&&g.home===opponentName))).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.round-b.round)[0];}
 function storiesDetect(sample){
  const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<2)return;
@@ -67,18 +67,32 @@ function storiesDetect(sample){
  if(sample.own<sample.against&&(sample.against-sample.own===1)&&storiesNextRival(sample.opponent)){
   if(storiesCreate('rival',[],`Nästa gång mot ${sample.opponent}`,`${sample.own}–${sample.against} mot ${sample.opponent}. En uddamålsförlust som ni får möjlighet att svara på. Vill du göra returmötet till ett uttalat mål för gruppen?`,{opponent:sample.opponent,firstScore:`${sample.own}–${sample.against}`}))return;
  }
- for(const unit of sample.units.filter(u=>u.ids.length===3&&u.seconds>=300&&u.goalsFor>0)){
-  const previous=b.recent.slice(0,-1).slice(-2).flatMap(m=>m.units).find(u=>u.ids.length===3&&u.ids.every(id=>unit.ids.includes(id))&&u.seconds>=300&&u.goalsFor>0);
+ for(const unit of sample.units.filter(u=>u.kind!=='pp'&&u.ids.length===3&&u.seconds>=300&&u.goalsFor>0)){
+  const previous=b.recent.slice(0,-1).slice(-2).flatMap(m=>m.units).find(u=>u.kind!=='pp'&&u.ids.length===3&&u.ids.every(id=>unit.ids.includes(id))&&u.seconds>=300&&u.goalsFor>0);
   if(previous&&unit.ids.every(id=>storiesPlayer(id)&&medicalReady(storiesPlayer(id)))&&storiesCreate('line',unit.ids,'Tre spelare börjar hitta varandra',`${unit.ids.map(id=>storiesPlayer(id).name).join(', ')} har varit på isen vid mål framåt tillsammans i två av de senaste tre matcherna. Vill du bygga vidare på deras samspel?`,{nickname:''}))return;
  }
 }
-function storiesChoices(s){
+function storiesBaseChoices(s){
  if(s.type==='coach')return rivalStoryChoices();
  if(['rival','coach'].includes(s.type))return [{id:'revenge',label:'Vi ska ta revansch',detail:'Ett uttalat resultatmål. Seger stärker lagmoralen med 3; en ny förlust sänker den med 3.',pressure:true},{id:'calm',label:'Fokus på vårt eget spel',detail:'Låt resultatet tala. Seger ger 1 i lagmoral; ett bakslag ger ingen extra förlust.',pressure:false}];
  const matches=s.stage===1?4:3;
  if(s.type==='talent')return [{id:'trust',label:s.stage===1?'Ge en riktig chans':'Fortsätt satsningen',detail:`Minst 8 minuter i ${matches-1} av ${matches} spelbara matcher.`,seconds:480,needed:matches-1,matches},{id:'ease',label:'Väx in i rollen',detail:`Minst 4 minuter i ${matches-2} av ${matches} spelbara matcher.`,seconds:240,needed:matches-2,matches}];
  if(s.type==='veteran')return [{id:'lead',label:'Du ska bära en viktig roll',detail:`Minst 12 minuter i ${matches-1} av ${matches} spelbara matcher.`,seconds:720,needed:matches-1,matches},{id:'rotate',label:'En tydlig rotationsroll',detail:`Minst 6 minuter i ${matches-2} av ${matches} spelbara matcher.`,seconds:360,needed:matches-2,matches}];
  return [{id:'together',label:'Håll ihop kedjan',detail:`Minst 8 minuter tillsammans i ${matches-1} av ${matches} spelbara matcher.`,seconds:480,needed:matches-1,matches},{id:'careful',label:'Bygg vidare försiktigt',detail:`Minst 4 minuter tillsammans i ${matches-2} av ${matches} spelbara matcher.`,seconds:240,needed:matches-2,matches}];
+}
+function storiesReaction(p,met,s){
+ const social=p.social||{},history=s.firstHonoured===false||social.missed>=2;
+ const change=met?3+(social.trust<45?1:0)+(social.loyalty>=14?1:0):-(4+(social.ambition>=14?1:0)+(social.sensitivity>=14?1:0)+(history?1:0));
+ return {change,reason:met?(social.trust<45?'Tidigare lågt förtroende gör handlingen viktig.':social.loyalty>=14?'Lojalitet förstärker betydelsen av ett hållet besked.':'Besked och handling stämmer överens.'):[social.ambition>=14?'Hög ambition':'',social.sensitivity>=14?'Behov av trygghet':'',history?'Tidigare besvikelse':''].filter(Boolean).join(' · ')||'Det utlovade ansvaret uteblev.'};
+}
+function storiesChoices(s){
+ const choices=storiesBaseChoices(s);
+ if(s.personalVersion!==2||!['talent','veteran'].includes(s.type))return choices;
+ const p=storiesPlayer(s.ids[0]);if(!p)return choices;
+ const shift=(p.social?.ambition>=14?60:p.social?.ambition<=7?-60:0)+(p.promisedRole==='Nyckelspelare'?60:0);
+ const result=choices.map(c=>{const seconds=Math.max(180,c.seconds+shift);return {...c,seconds,detail:`Minst ${seconds/60} minuter i ${c.needed} av ${c.matches} spelbara matcher. Kravet väger in ambition och avtalad roll.`};});
+ if(p.pos!=='MV')result.push({id:'powerplay',label:'Ge ansvar i powerplay',seconds:60,needed:3,matches:4,situation:'pp',detail:'Minst en minut i powerplay i tre av fyra matcher där laget får minst en minuts powerplay. Ordinarie rollöften gäller samtidigt.'});
+ return result;
 }
 function storiesChoose(id,choiceId){
  ensureStories();const s=state.stories.active.find(s=>s.id===id);
@@ -87,7 +101,7 @@ function storiesChoose(id,choiceId){
  if(choiceId==='open'){storiesClose(s,['rival','coach'].includes(s.type)?'Låt matcherna tala':'Uttagningen förblir öppen',['rival','coach'].includes(s.type)?'Du valde att låta nästa möte tala för sig självt, utan ett särskilt resultatlöfte.':'Du valde att inte ge ett särskilt löfte. Konkurrensen om platserna fortsätter.');save();render();return;}
  const choice=storiesChoices(s).find(c=>c.id===choiceId);if(!choice)return;
  s.choices.push({stage:s.stage,id:choiceId,label:choice.label});s.status='following';s.elapsed=0;
- s.expectation={...choice,eligible:0,qualified:0,points:0,goalsFor:0,goalsAgainst:0,...(s.type==='coach'?{sessions:0,signature:trainingSignature()}: {})};
+ s.expectation={...choice,...(s.personalVersion===2?{reactions:Object.fromEntries(s.ids.map(id=>{const p=storiesPlayer(id);return [id,{met:storiesReaction(p,true,s),missed:storiesReaction(p,false,s)}];}))}:{}),eligible:0,qualified:0,points:0,goalsFor:0,goalsAgainst:0,...(s.type==='coach'?{sessions:0,signature:trainingSignature()}: {})};
  storiesChapter(s,'Ditt besked',`${choice.label}. ${choice.detail}${['rival','coach'].includes(s.type)?'':' Du sköter laguttagningen; spelarna följer om handlingen motsvarar beskedet.'}`);
  storiesUI.notice='Beskedet är lämnat. Nästa kapitel skrivs av matcherna.';save();render();document.getElementById('story-detail')?.focus?.({preventScroll:true});
 }
@@ -98,7 +112,7 @@ function storiesNickname(id,name){
 }
 function storiesEffect(s,delta){
  const changed=[];
- for(const id of s.ids){const p=storiesPlayer(id);if(!p?.social)continue;const before=p.social.trust;p.social.trust=trainingClamp(before+delta);changed.push(`${p.name}: förtroende ${p.social.trust-before>=0?'+':''}${p.social.trust-before}`);}
+ for(const id of s.ids){const p=storiesPlayer(id);if(!p?.social)continue;const before=p.social.trust;p.social.trust=trainingClamp(before+(s.expectation?.reactions?.[id]?.[delta>0?'met':'missed']?.change??delta));changed.push(`${p.name}: förtroende ${p.social.trust-before>=0?'+':''}${p.social.trust-before}${s.expectation?.reactions?.[id]?' · '+s.expectation.reactions[id][delta>0?'met':'missed'].reason:''}`);}
  return changed.join(' · ');
 }
 function storiesAdvance(s,sample){
@@ -115,17 +129,18 @@ function storiesAdvance(s,sample){
   state.morale=trainingClamp(state.morale+delta,30,100);
   storiesClose(s,won?'Revanschen blev er':'Rivalen vann igen',`${managerClub()} ${sample.own}–${sample.against} ${sample.opponent}. ${won?'Laget lyckades svara på det förra nederlaget.':'Det här blev ännu ett kapitel att bära med sig.'} Ditt budskap var ”${e.label}”. Lagmoral ${state.morale-before>=0?'+':''}${state.morale-before}.`);return;
  }
+ if(e.situation==='pp'&&sample.units.filter(u=>u.kind==='pp').reduce((n,u)=>n+u.seconds,0)<60){if(s.elapsed>=10)storiesClose(s,'För få möjligheter','Laget fick för få matcher med powerplay att följa upp. Inget förtroendeavdrag.');return;}
  const players=s.ids.map(storiesPlayer),excused=players.some(p=>medicalExcused(p,e.seconds)||!medicalReady(p));
  if(excused||sample.partial){
   if(s.elapsed===1||s.elapsed===5)storiesChapter(s,'Planen får vänta',sample.partial?'Matchens istid är ofullständigt registrerad. Den räknas inte när löftet följs upp.':'Skada eller begränsad återgång påverkar en berörd spelare. Matchen räknas inte mot löftet.');
   if(s.elapsed>=10)storiesClose(s,'Omständigheterna ändrades','För få spelbara matcher kunde följas upp. Löftet avslutas utan förtroendeavdrag.');return;
  }
  const row=sample.players.find(p=>p.id===s.ids[0]);
- const seconds=s.type==='line'?sample.units.filter(u=>u.ids.length===3&&u.ids.every(id=>s.ids.includes(id))).reduce((sum,u)=>sum+u.seconds,0):row?.seconds||0;
+ const seconds=e.situation==='pp'?sample.units.filter(u=>u.kind==='pp'&&u.ids.includes(s.ids[0])).reduce((n,u)=>n+u.seconds,0):s.type==='line'?sample.units.filter(u=>u.kind!=='pp'&&u.ids.length===3&&u.ids.every(id=>s.ids.includes(id))).reduce((sum,u)=>sum+u.seconds,0):row?.seconds||0;
  e.eligible++;if(seconds>=e.seconds)e.qualified++;
  e.points+=s.type==='line'?sample.players.filter(p=>s.ids.includes(p.id)).reduce((sum,p)=>sum+p.goals+p.assists,0):(row?.goals||0)+(row?.assists||0);
- if(s.type==='line')for(const u of sample.units.filter(u=>u.ids.length===3&&u.ids.every(id=>s.ids.includes(id)))){e.goalsFor+=u.goalsFor;e.goalsAgainst+=u.goalsAgainst;}
- storiesChapter(s,`Match ${e.eligible} av ${e.matches}`,`${sample.opponent}: ${analysisTime(seconds)} ${s.type==='line'?'tillsammans':'istid'}. ${e.qualified} av ${e.needed} utlovade matcher uppnådda.${s.seniorId&&medicalReady(storiesPlayer(s.seniorId))?' '+s.seniorName+' är spelklar igen.':''}`);
+ if(s.type==='line')for(const u of sample.units.filter(u=>u.kind!=='pp'&&u.ids.length===3&&u.ids.every(id=>s.ids.includes(id)))){e.goalsFor+=u.goalsFor;e.goalsAgainst+=u.goalsAgainst;}
+ storiesChapter(s,`Match ${e.eligible} av ${e.matches}`,`${sample.opponent}: ${analysisTime(seconds)} ${e.situation==='pp'?'i powerplay':s.type==='line'?'tillsammans':'istid'}. ${e.qualified} av ${e.needed} utlovade matcher uppnådda.${s.seniorId&&medicalReady(storiesPlayer(s.seniorId))?' '+s.seniorName+' är spelklar igen.':''}`);
  if(e.eligible<e.matches){if(s.elapsed>=10)storiesClose(s,'Omständigheterna ändrades','För få spelbara matcher kunde följas upp. Löftet avslutas utan förtroendeavdrag.');return;}
  const met=e.qualified>=e.needed,effect=storiesEffect(s,met?3:-4);
  const evidence=`${e.qualified} av ${e.needed} utlovade matcher fick tillräcklig istid. ${s.type==='line'?`Mål med kombinationen på isen: ${e.goalsFor}–${e.goalsAgainst}.`:`${e.points} poäng under perioden.`} ${effect}.`;
@@ -164,7 +179,7 @@ function storiesView(){
 }
 function storiesDetail(s){
  const live=state.live&&!state.live.finished,closed=s.status==='closed';
- return `<article class="story-detail story-${s.type}" id="story-detail" tabindex="-1"><header><span class="story-category">${STORY_TYPES[s.type]} · ${trainingSafe(s.club)} · ${seasonLabel(s.year)}</span><h2>${trainingSafe(s.title)}</h2><p>${trainingSafe(storiesNext(s))}</p></header>${s.status==='decision'?`<section class="story-decision"><h3>${s.stage===1?'Vad vill du säga?':'Nästa kapitel ligger hos dig'}</h3>${live?'<p>Ta samtalet mellan matcher. Den pågående matchen är pausad.</p>':''}<div class="story-choices">${storiesChoices(s).map(c=>`<button onclick="storiesChoose('${s.id}','${c.id}')" ${live||!storiesReady()?'disabled':''}><strong>${c.label}</strong><span>${c.detail}</span></button>`).join('')}</div>${!['rival','coach'].includes(s.type)?'<p>Uppfyllt löfte: +3 i förtroende. Brutet löfte: −4. Skador och ofullständig matchdata räknas bort.</p>':''}<button class="story-text-button" onclick="storiesChoose('${s.id}','open')" ${live||!storiesReady()?'disabled':''}>${['rival','coach'].includes(s.type)?'Gör inget särskilt utspel':'Lämna uttagningen öppen – inget löfte'}</button></section>`:''}${s.expectation&&!['rival','coach'].includes(s.type)?`<section class="story-follow"><h3>Det laget väntar på</h3><p>${trainingSafe(s.expectation.detail)}</p><progress max="${s.expectation.needed}" value="${Math.min(s.expectation.needed,s.expectation.qualified)}" aria-label="Uppfyllda matcher"></progress><p>${trainingSafe(storiesNext(s))}</p><small>Sköts i din ordinarie laguttagning. Efter tio matcher avslutas en uppföljning som hindrats av skador utan avdrag.</small></section>`:''}${!closed?`<div class="story-links"><button class="btn secondary" onclick="deskNavigate('lines')">Till laguttagningen</button><button class="btn secondary" onclick="deskNavigate('${['rival','coach'].includes(s.type)?'calendar':'training'}')">${['rival','coach'].includes(s.type)?'Nästa möte':'Planera träningen'}</button>${s.ids.map(id=>storiesPlayer(id)?`<button class="story-text-button" onclick="selectPlayer('${id}')">${trainingSafe(storiesPlayer(id).name)}</button>`:'').join('')}</div>`:''}${s.type==='line'&&!closed?`<form class="story-nickname" onsubmit="event.preventDefault();storiesNickname('${s.id}',this.elements.nickname.value)"><label for="story-nickname">Ge kedjan ett namn<input id="story-nickname" name="nickname" maxlength="28" value="${trainingSafe(s.nickname||'')}" placeholder="Ditt smeknamn" ${live?'disabled':''}></label><button class="btn secondary" ${live?'disabled':''}>Spara namnet</button></form>`:''}<ol class="story-timeline">${[...s.chapters].reverse().map((c,i)=>`<li><span class="story-chapter-date">${c.date?calText(c.date):'Denna säsong'}${i===0?' · SENASTE KAPITLET':''}</span><h3>${trainingSafe(c.title)}</h3><p>${trainingSafe(c.text)}</p></li>`).join('')}</ol></article>`;
+ return `<article class="story-detail story-${s.type}" id="story-detail" tabindex="-1"><header><span class="story-category">${STORY_TYPES[s.type]} · ${trainingSafe(s.club)} · ${seasonLabel(s.year)}</span><h2>${trainingSafe(s.title)}</h2><p>${trainingSafe(storiesNext(s))}</p></header>${s.status==='decision'?`<section class="story-decision"><h3>${s.stage===1?'Vad vill du säga?':'Nästa kapitel ligger hos dig'}</h3>${live?'<p>Ta samtalet mellan matcher. Den pågående matchen är pausad.</p>':''}<div class="story-choices">${storiesChoices(s).map(c=>`<button onclick="storiesChoose('${s.id}','${c.id}')" ${live||!storiesReady()?'disabled':''}><strong>${c.label}</strong><span>${c.detail}</span></button>`).join('')}</div>${!['rival','coach'].includes(s.type)?`<p>${s.personalVersion===2?'Förtroendereaktionen beror på ambition, trygghetsbehov, lojalitet och tidigare behandling.':'Uppfyllt löfte: +3 i förtroende. Brutet löfte: −4.'} Skador och ofullständig matchdata räknas bort.</p>`:''}<button class="story-text-button" onclick="storiesChoose('${s.id}','open')" ${live||!storiesReady()?'disabled':''}>${['rival','coach'].includes(s.type)?'Gör inget särskilt utspel':'Lämna uttagningen öppen – inget löfte'}</button></section>`:''}${s.expectation&&!['rival','coach'].includes(s.type)?`<section class="story-follow"><h3>Det laget väntar på</h3><p>${trainingSafe(s.expectation.detail)}</p><progress max="${s.expectation.needed}" value="${Math.min(s.expectation.needed,s.expectation.qualified)}" aria-label="Uppfyllda matcher"></progress><p>${trainingSafe(storiesNext(s))}</p><small>Sköts i din ordinarie laguttagning. Efter tio matcher avslutas en uppföljning som hindrats av skador utan avdrag.</small></section>`:''}${!closed?`<div class="story-links"><button class="btn secondary" onclick="deskNavigate('lines')">Till laguttagningen</button><button class="btn secondary" onclick="deskNavigate('${['rival','coach'].includes(s.type)?'calendar':'training'}')">${['rival','coach'].includes(s.type)?'Nästa möte':'Planera träningen'}</button>${s.ids.map(id=>storiesPlayer(id)?`<button class="story-text-button" onclick="selectPlayer('${id}')">${trainingSafe(storiesPlayer(id).name)}</button>`:'').join('')}</div>`:''}${s.type==='line'&&!closed?`<form class="story-nickname" onsubmit="event.preventDefault();storiesNickname('${s.id}',this.elements.nickname.value)"><label for="story-nickname">Ge kedjan ett namn<input id="story-nickname" name="nickname" maxlength="28" value="${trainingSafe(s.nickname||'')}" placeholder="Ditt smeknamn" ${live?'disabled':''}></label><button class="btn secondary" ${live?'disabled':''}>Spara namnet</button></form>`:''}<ol class="story-timeline">${[...s.chapters].reverse().map((c,i)=>`<li><span class="story-chapter-date">${c.date?calText(c.date):'Denna säsong'}${i===0?' · SENASTE KAPITLET':''}</span><h3>${trainingSafe(c.title)}</h3><p>${trainingSafe(c.text)}</p></li>`).join('')}</ol></article>`;
 }
 function storiesPlayerPanel(p){
  const b=state.stories;if(!b)return '';const active=b.active.filter(s=>s.ids.some(id=>samePlayerId(id,p.id))),memory=b.memory.players[managerClub()+':'+p.id];

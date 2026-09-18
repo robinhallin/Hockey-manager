@@ -249,7 +249,10 @@ function rivalSimulate(game){
    for(const p of ps)chemistry.set(p,chemistryCache.get(key));
   }
  };
- const attribute=(p,k)=>readinessAttribute(values.get(p)?.[k]||10,k,energy.get(p)??readinessCeiling(p.fatigue||0),roles.has(p)?readinessFit(p,roles.get(p),specialFit.get(p)):1,chemistry.get(p)??50,p.morale??70);
+ const attribute=(p,k)=>{
+  const effective=readinessAttribute(values.get(p)?.[k]||10,k,energy.get(p)??readinessCeiling(p.fatigue||0),roles.has(p)?readinessFit(p,roles.get(p),specialFit.get(p)):1,chemistry.get(p)??50,p.morale??70);
+  return typeof matchCalibrationAttribute==='function'?matchCalibrationAttribute(effective):effective;
+ };
  const rating=(p,kind='goalie')=>{
   const keys=kind==='attack'?['shooting','passing','vision','skating']:kind==='defense'?['positioning','decisions','workRate','discipline']:['reflexes','positioning','reboundControl','movement'];
   return keys.reduce((n,k)=>n+attribute(p,k),0)/keys.length;
@@ -297,8 +300,9 @@ function rivalSimulate(game){
   const pp=players.length>defenders.length,keeper=other.l.keeper;
   b.shots++;row(side,shooter).shots++;
   const avg=(ps,keys)=>ps.length?ps.reduce((n,p)=>n+keys.reduce((v,k)=>v+attribute(p,k),0)/keys.length,0)/ps.length:1;
-  const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),shooterPosition:shooter.pos,pp,plan:b.l.plan,opposition:other.l.plan},rand);
-  if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true});
+  const attrs=ps=>Object.fromEntries(['passing','puckControl','vision','decisions','shooting','skating','positioning','workRate','checking','strength','discipline'].map(k=>[k,avg(ps,[k])]));
+  const context=rivalShotContext({creation:avg(players,['passing','vision','decisions']),resistance:avg(defenders,['positioning','workRate','decisions']),attackAttributes:attrs(players),defenseAttributes:attrs(defenders),shooterPosition:shooter.pos,pp,plan:b.l.plan,opposition:other.l.plan},rand);
+  if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true,oneTimer:false,lateralSpeed:0});
   const playerValues=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
   const model=StudioHockey.evaluateShot({shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
   const chance=model.goalChance;

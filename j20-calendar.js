@@ -50,7 +50,7 @@ function juniorCalendarManagerReport(pair,round,date,forecast){
     const row={id:p.id,name:p.name,seconds,goals:0,assists:0};rows.push(row);
     const a=p.academy;a.observations=Math.min(100,(a.observations||0)+1);
     a.history.unshift({year:state.season.year,round,date,opponent:opponent+' J20',seconds,goals:0,assists:0,path:'junior'});a.history=a.history.slice(0,16);
-    if(seconds>0){a.games=(a.games||0)+1;a.seconds=(a.seconds||0)+seconds;a.missed=0;if(medicalCanTrain(p))developmentAdvance(p,juniorTarget(p),2*Math.min(2,seconds/900));}
+    if(seconds>0){a.games=(a.games||0)+1;a.seconds=(a.seconds||0)+seconds;a.missed=0;if(medicalCanTrain(p))developmentAdvance(p,juniorTarget(p),2*Math.min(2,seconds/900),'Matchvana (J20)');}
     else a.missed=(a.missed||0)+1;
     p.fatigue=trainingClamp((p.fatigue||0)+seconds/180-8);
   }

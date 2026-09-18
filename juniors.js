@@ -86,9 +86,9 @@ function juniorRelease(id){
  juniorReport(`${p.name} lämnar juniorverksamheten`,'Spelaren är över junioråldern och har släppts till listan över kontraktslösa spelare.');juniorNotice(`${p.name} har lämnat klubben.`);
 }
 function juniorTarget(p){const all=Object.keys(PLAYER_ROLES[p.academy.role]).filter(k=>Object.hasOwn(p.attributes,k)),keys=all.filter(k=>p.attributes[k]<p.academy.ceiling[k]);return keys.length?keys[p.academy.cursor%keys.length]:all[0];}
-function juniorGrow(p,points,key=juniorTarget(p)){
+function juniorGrow(p,points,key=juniorTarget(p),source='Träningsarbete'){
  if(!medicalCanTrain(p)||p.attributes[key]>=p.academy.ceiling[key])return false;
- return trainingGrowth(p,key,points);
+ return trainingGrowth(p,key,points,source);
 }
 function juniorMentor(p){const m=managerRoster().find(q=>samePlayerId(q.id,p.academy.mentor));return m&&m.age>=27&&medicalCanTrain(m)&&m.trainingLoad!=='rest'&&m.fatigue<75&&p.academy.path!=='loan'?m:null;}
 function juniorTraining(session,key){
@@ -112,7 +112,7 @@ function juniorAppearance(p,seconds,level,opponent){
  const skill=attributeWeighted(p.attributes,PLAYER_ROLES[a.role]),challenge=Math.max(.25,1-Math.abs(skill-level)/12);
  const goals=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/4000?1:0,assists=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/3000?1:0;
  a.history.unshift({year:state.season.year,round:state.round,opponent,seconds,goals,assists,path:a.path});a.history=a.history.slice(0,16);
- if(seconds>0){a.games++;a.seconds+=seconds;a.goals+=goals;a.assists+=assists;juniorGrow(p,5*Math.min(1.5,seconds/1200)*challenge);a.missed=0;}else a.missed++;
+ if(seconds>0){a.games++;a.seconds+=seconds;a.goals+=goals;a.assists+=assists;juniorGrow(p,5*Math.min(1.5,seconds/1200)*challenge,juniorTarget(p),'Matchvana (junior/lån)');a.missed=0;}else a.missed++;
  p.fatigue=trainingClamp(p.fatigue+seconds/180-10);return {id:p.id,name:p.name,seconds,goals,assists};
 }
 function juniorFixture(key){

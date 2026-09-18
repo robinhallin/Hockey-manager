@@ -1,0 +1,127 @@
+{
+  "date": "2026-09-18T17:44:48.896109+00:00",
+  "tests": {
+    "passedFiles": [
+      "ai-coaching-update.test.cjs",
+      "ai-internal-planning.test.cjs",
+      "career-storage.test.cjs",
+      "coaching-cycle.test.cjs",
+      "cohesion.test.cjs",
+      "development.test.cjs",
+      "headless-career.test.cjs",
+      "juniors.test.cjs",
+      "manager-depth-six.test.cjs",
+      "manager-week.test.cjs",
+      "match-calibration-career.test.cjs",
+      "match-initiative.test.cjs",
+      "match-world-2.test.cjs",
+      "player-identity.test.cjs",
+      "recruitment-hub.test.cjs",
+      "shared-shot-model.test.cjs",
+      "stories.test.cjs",
+      "training-planning.test.cjs"
+    ],
+    "count": 18,
+    "fullSuite": false
+  },
+  "career": {
+    "seasons": 6,
+    "regularFixtures": 4368,
+    "playoffs": true,
+    "roundTrips": 6,
+    "employmentProtected": false,
+    "contractsProtected": false,
+    "storageIssue": "v2 exceeded 5 MiB at the fifth year boundary. v3 resumed the fourth checkpoint and completed years five and six with exact saved-state equality.",
+    "checkpoints": [
+      {
+        "year": 2026,
+        "club": "HV71",
+        "employmentDecision": null,
+        "savedBytes": 3328776
+      },
+      {
+        "year": 2027,
+        "club": "HV71",
+        "employmentDecision": "expired",
+        "savedBytes": 4090102
+      },
+      {
+        "year": 2028,
+        "club": "Leksands IF",
+        "employmentDecision": null,
+        "savedBytes": 4678136
+      },
+      {
+        "year": 2029,
+        "club": "Leksands IF",
+        "employmentDecision": null,
+        "savedBytes": 5085054
+      },
+      {
+        "year": 2030,
+        "club": "Leksands IF",
+        "employmentDecision": null,
+        "savedBytes": 3289540
+      },
+      {
+        "year": 2031,
+        "club": "Leksands IF",
+        "employmentDecision": null,
+        "savedBytes": 3422932
+      }
+    ]
+  },
+  "matchComparison": {
+    "passed": true,
+    "samples": 6,
+    "fixture": {
+      "home": "HV71",
+      "away": "Björklöven"
+    },
+    "units": "Conditional xG on target in both modes. Live 20-minute periods scaled to 60; background full games (may include overtime). Each mode retains its selection/rotation policy.",
+    "totals": {
+      "live": [
+        {
+          "shots": 20,
+          "goals": 2,
+          "xg": 2.3100628225694124
+        },
+        {
+          "shots": 40.5,
+          "goals": 3,
+          "xg": 3.441036571788527
+        }
+      ],
+      "background": [
+        {
+          "shots": 28.499999999999996,
+          "goals": 3.1666666666666665,
+          "xg": 2.991089273234831
+        },
+        {
+          "shots": 26.333333333333332,
+          "goals": 2.6666666666666665,
+          "xg": 2.5206541546855794
+        }
+      ]
+    },
+    "ratios": [
+      {
+        "shots": 0.7017543859649124,
+        "xg": 0.7723149032162134
+      },
+      {
+        "shots": 1.5379746835443038,
+        "xg": 1.3651363339123983
+      }
+    ]
+  },
+  "browser": {
+    "verified": false,
+    "reason": "Chromium absent; download timed out."
+  },
+  "publication": {
+    "status": "local only",
+    "reason": "Automatic approval review rejected GitHub push; explicit publication approval required."
+  }
+}

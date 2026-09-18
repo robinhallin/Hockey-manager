@@ -39,5 +39,33 @@ function squadRolePanel(p){
 function squadArrivalView(p){
  const peers=managerRoster().filter(q=>!samePlayerId(q.id,p.id)&&worldGroup(q)===worldGroup(p)),ready=peers.filter(medicalReady),slots=p.pos==='MV'?2:p.pos==='B'?6:12;
  const commitments=peers.filter(q=>SQUAD_ROLES.indexOf(q.promisedRole)>=2),young=peers.filter(q=>q.age<=23);
- return `<details class="rh-arrival"><summary>Konsekvenser för truppen</summary><p>${ready.length} spelklara ${p.pos==='MV'?'målvakter':p.pos==='B'?'backar':'forwards'} konkurrerar redan om ${slots} ordinarie matchplatser. Värvningen tillför ytterligare en konkurrent.</p><p>${commitments.length} spelare i gruppen har utlovats ordinarie roll eller nyckelroll. ${young.length} är högst 23 år.</p><p>${commitments.length?'Befintliga rollåtaganden: '+commitments.map(q=>trainingSafe(q.name)).join(', ')+'.':'Inga ordinarie roller är utlovade i gruppen.'}</p><p>Kedjorna behålls när spelaren ansluter. Du avgör vem som får plats; befintliga löften gäller fortfarande.</p></details>`;
+ return `<details class="rh-arrival"><summary>Konsekvenser för truppen</summary><p>${ready.length} spelklara ${p.pos==='MV'?'målvakter':p.pos==='B'?'backar':'forwards'} konkurrerar redan om ${slots} ordinarie matchplatser. Värvningen tillför ytterligare en konkurrent.</p><p>${commitments.length} spelare i gruppen har utlovats ordinarie roll eller nyckelroll. ${young.length} är högst 23 år.</p><p>${commitments.length?'Befintliga rollåtaganden: '+commitments.map(q=>trainingSafe(q.name)).join(', ')+'.':'Inga ordinarie roller är utlovade i gruppen.'}</p><p>Kedjorna behålls när spelaren ansluter. Du avgör vem som får plats; befintliga löften gäller fortfarande.</p></details>${squadPlacementView(p)}`;
+}
+function squadPlacementSlots(p){
+ const type=p.pos==='MV'?'goalie':p.pos==='B'?'defense':'forwards';
+ return Array.from({length:type==='goalie'?1:type==='defense'?6:12},(_,index)=>({type,index,
+  label:type==='goalie'?'Startande målvakt':type==='defense'?`Backpar ${Math.floor(index/2)+1} · ${index%2?'höger':'vänster'}`:`Kedja ${Math.floor(index/3)+1} · ${['vänster','center','höger'][index%3]}`}));
+}
+function squadPlacementPlan(p){return (state.recruitment?.placementPlans||[]).find(x=>samePlayerId(x.playerId,p.id)&&x.club===managerClub()&&x.year===state.season.year);}
+function squadPlacementSave(id,index,role){
+ const p=findPlayerAnywhere(id);index=Number(index);
+ if(!p||isOwnPlayer(p)||state.live&&!state.live.finished||!Number.isInteger(index)||!roleWeights(p).includes(role))return false;
+ const slot=squadPlacementSlots(p)[index];if(!slot)return false;
+ const displaced=slot.type==='goalie'?state.lines.goalie:state.lines[slot.type][slot.index];
+ const plans=(state.recruitment.placementPlans||[]).filter(x=>!(samePlayerId(x.playerId,p.id)&&x.club===managerClub()));
+ state.recruitment.placementPlans=[{playerId:p.id,club:managerClub(),year:state.season.year,date:state.calendar.date,...slot,role,displaced},...plans].slice(0,60);
+ save();render();return true;
+}
+function squadPlacementView(p){
+ if(isOwnPlayer(p)||!state.lines)return '';
+ const slots=squadPlacementSlots(p),plan=squadPlacementPlan(p),slot=slots.find(s=>s.index===plan?.index)||slots[0],role=roleWeights(p).includes(plan?.role)?plan.role:roleWeights(p)[0];
+ const currentId=slot.type==='goalie'?state.lines.goalie:state.lines[slot.type][slot.index],displaced=playerById(currentId);
+ const ids=slot.type==='goalie'?[]:state.lines[slot.type].slice(Math.floor(slot.index/(slot.type==='defense'?2:3))*(slot.type==='defense'?2:3),Math.floor(slot.index/(slot.type==='defense'?2:3))*(slot.type==='defense'?2:3)+(slot.type==='defense'?2:3)).filter(id=>!samePlayerId(id,currentId));
+ const peers=ids.map(playerById).filter(Boolean),assessment=playerAssessment(p),score=attributeWeighted(assessment.estimated,PLAYER_ROLES[role]);
+ const currentScore=displaced?attributeWeighted(playerAssessment(displaced).estimated,PLAYER_ROLES[role]):null;
+ const natural=playerPositions(p).has(slot.type==='goalie'?'G':slot.type==='defense'?['LD','RD'][slot.index%2]:['LW','C','RW'][slot.index%3]);
+ const risk=displaced&&(SQUAD_ROLES.indexOf(displaced.promisedRole)>=2||lockerPromises().some(x=>samePlayerId(x.p.id,displaced.id)&&!x.q.resolved));
+ const junior=displaced?.age<=23?`${displaced.name}, ${displaced.age} år, förlorar den planerade platsen. Välj annan istid eller en utvecklingsväg innan värvningen.`:'';
+ const safeId=trainingSafe(JSON.stringify(p.id));
+ return `<section class="training-coach-note squad-placement"><h3>Prova värvningen i laget</h3><form onsubmit="event.preventDefault();squadPlacementSave(${safeId},this.elements.slot.value,this.elements.role.value)"><label>Planerad plats<select name="slot">${slots.map((s,i)=>`<option value="${i}" ${s.index===slot.index?'selected':''}>${s.label}</option>`).join('')}</select></label><label>Uppgift<select name="role">${roleWeights(p).map(r=>`<option ${r===role?'selected':''}>${r}</option>`).join('')}</select></label><button ${state.live&&!state.live.finished?'disabled':''}>Spara och jämför planen</button></form><p>${plan?`Plan sparad ${calText(plan.date)}`:'Förhandsvisning – ingen plan sparad'} · ${slot.label} · ${role}.</p><p>Bedömd rollförmåga ${Math.max(1,score-assessment.uncertainty).toFixed(1)}–${Math.min(20,score+assessment.uncertainty).toFixed(1)} / 20. ${assessment.visits?'Bygger på scoutingrapporten; äldre observationer ökar osäkerheten.':'Ingen färdig scoutingrapport; osäker uppskattning.'}</p><p>${currentScore!==null?`Nuvarande spelare i samma uppgift: ${currentScore.toFixed(1)} / 20. `:''}${natural?'Kandidaten har stöd för positionen i sin positionsprofil.':'Positionen är ovan för kandidaten. Väg rollförmågan mot positionsanpassningen.'}</p><p>${displaced?`Tar platsen från ${trainingSafe(displaced.name)} (${trainingSafe(displaced.promisedRole||'ingen avtalad roll')}).`:'Platsen är ledig.'}${risk?' Befintligt rollåtagande riskeras; det ändras inte av planen.':''}</p>${junior?`<p>${trainingSafe(junior)}</p>`:''}<p>${peers.length?'Planerade medspelare: '+peers.map(q=>trainingSafe(q.name)).join(', ')+'.':'Målvaktsvalet påverkar fördelningen av starter.'}</p>${plan&&!samePlayerId(plan.displaced,currentId)?'<p>Uttagningen har ändrats sedan planen sparades. Jämförelsen ovan använder den aktuella uppställningen.</p>':''}<p>Planen ändrar inte laguttagning, avtal eller kemi. Samspel måste byggas genom gemensam träning och matcher.</p></section>`;
 }

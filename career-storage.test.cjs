@@ -3,6 +3,8 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 const a=boot(),r=a.run;
 const oldPacked=require('node:fs').readFileSync('fixtures/career-storage-v1.json','utf8');
 assert.deepEqual(JSON.parse(r(`JSON.stringify(careerRead(${JSON.stringify(oldPacked)}))`)),{club:'HV71',year:2026,text:'Äldre karriär 🏒',values:[0,1,65535]},'legacy v1 remains readable');
+const v2=require('node:fs').readFileSync('fixtures/career-storage-v2.json','utf8');
+assert.equal(r(`careerRead(${JSON.stringify(v2)}).text`),'Sparad karriär 🏒','v2 remains readable');
 r(`globalThis.samples=['', 'HV71 – Björklöven 🏒 åäö',String.fromCharCode(0,0xd800,0xdc00,65535),'abc'.repeat(50000),Array.from({length:100000},(_,i)=>String.fromCharCode((Math.imul(i,1103515245)>>>8)&65535)).join('')];`);
 assert.equal(r('samples.every(text=>careerRead(careerPack(JSON.stringify(text)))===text)'),true,'all UTF-16 values and saturated dictionary round trip');
 assert.ok(r('JSON.parse(careerPack(JSON.stringify(samples.at(-1)))).data.includes(String.fromCharCode(65535))'),'large mixed data exercises dictionary resets');
@@ -10,7 +12,7 @@ assert.throws(()=>r(`globalThis.bad=JSON.parse(careerPack(JSON.stringify('hello'
 r(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';medicalRoll=()=>.999;for(let i=0;i<150;i++)studioStep();save();globalThis.raw=JSON.stringify(state);globalThis.originalStore=localStorage.setItem;globalThis.quota=Math.floor(raw.length*.65);localStorage.setItem=(key,text)=>{if(text.length>quota){const error=new Error('Quota');error.name='QuotaExceededError';throw error;}originalStore(key,text);};`);
 const start=Date.now();r('save()');console.log('Packing time ms:',Date.now()-start);
 assert.equal(r('careerSaveError'),false,'quota fallback succeeds');
-assert.equal(r('JSON.parse(localStorage.getItem(CAREER_SAVE_KEY)).format'), 'hockey-manager-lzw16-v2');
+assert.equal(r('JSON.parse(localStorage.getItem(CAREER_SAVE_KEY)).format'), 'hockey-manager-lzw16-v3');
 assert.equal(r('JSON.stringify(careerRead(localStorage.getItem(CAREER_SAVE_KEY)))===raw'),true,'entire career preserved');
 console.log('Storage characters:',r('raw.length'),'->',a.storage.value.length);
 const b=boot(a.storage.value);
@@ -28,3 +30,12 @@ const previous=a.storage.value;
 r(`localStorage.setItem=()=>{const e=new Error('Quota');e.name='QuotaExceededError';throw e;};save()`);
 assert.equal(r('careerSaveError'),true);assert.equal(a.storage.value,previous);
 console.log('PASS: lossless compression, corruption check, quota recovery, exact live resume, previous career, ordinary export/import and failed-write preservation.');
+
+// Interning must preserve repeated JSON tokens, escaped quotes and marker-like text.
+r(`globalThis.tokenData={rows:Array.from({length:4000},(_,i)=>({name:'Återkommande spelare',date:'2030-09-10',text:'\\ue0000; \\ue000! \\ue000zz; \\\"citat\\\"',value:i%17}))};globalThis.tokenRaw=JSON.stringify(tokenData);globalThis.tokenPacked=careerPack(tokenRaw);`);
+assert.equal(r('JSON.stringify(careerRead(tokenPacked))'),r('tokenRaw'));
+assert.ok(r('JSON.parse(tokenPacked).dictionary.length')>0);
+assert.ok(r('tokenPacked.length<tokenRaw.length/3'));
+assert.throws(()=>r(`globalThis.corrupt=JSON.parse(tokenPacked);corrupt.dictionary[0]='broken';careerRead(JSON.stringify(corrupt))`));
+assert.throws(()=>r(`corrupt=JSON.parse(tokenPacked);corrupt.encodedLength++;careerRead(JSON.stringify(corrupt))`));
+console.log('PASS: v1/v2 compatibility, lossless repeated-token compression, reserved markers and dictionary corruption detection.');

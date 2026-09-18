@@ -8,7 +8,9 @@ assert.ok(r('rivalInitiativeChance(normal,normal,balanced,balanced,5,4)')>.51);
 assert.ok(r('rivalInitiativeChance({...normal,checking:18,strength:18,workRate:18},normal,aggressive,balanced)')>r('rivalInitiativeChance({...normal,checking:18,strength:18,workRate:18},normal,balanced,balanced)'));
 assert.ok(r('rivalInitiativeChance({...normal,checking:4,strength:4,workRate:4},{...normal,puckControl:18,strength:18,decisions:18},aggressive,balanced)')<r('rivalInitiativeChance({...normal,checking:4,strength:4,workRate:4},{...normal,puckControl:18,strength:18,decisions:18},balanced,balanced)'));
 r(`globalThis.g=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());globalThis.trial=(skill,fatigue=0)=>{for(const p of state.clubRosters[g.home])if(p.pos!=='MV'){for(const k of ['passing','puckControl','vision','decisions'])p.attributes[k]=skill;p.fatigue=fatigue;}let attacks=0,total=0;for(let i=0;i<16;i++){const x=rivalSimulate({...g,round:100+i});const a=x.reports[0].initiative,b=x.reports[1].initiative;if(a.attacks+b.attacks!==a.total||a.evenAttacks+b.evenAttacks!==a.evenTotal)throw Error('opportunity conservation');if(a.total*20!==x.duration)throw Error('time conservation');attacks+=a.evenAttacks;total+=a.evenTotal;}return {attacks,total,share:attacks/total};};globalThis.weak=trial(4),strong=trial(18),tired=trial(18,100);`);
-assert.ok(r('strong.share>weak.share+.12'),r('JSON.stringify({weak,strong})'));
+// Both modes now halve attribute differences through the shared calibration.
+// Retain the original minimum response on that calibrated scale.
+assert.ok(r('strong.share>weak.share+.06'),r('JSON.stringify({weak,strong})'));
 assert.ok(r('strong.share>tired.share'),r('JSON.stringify({strong,tired})'));
 console.log('Production initiative cohorts:',r('JSON.stringify({weak,strong,tired})'));
 r('leagueBackground(g);globalThis.report=JSON.stringify(g.rivalReports);globalThis.before=JSON.stringify(state);rivalInitiativeReport(rivalsClubState(g.home).recent)');

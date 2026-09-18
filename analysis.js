@@ -179,16 +179,17 @@ function coachEligible(m){return analysisComparable(m)&&m.club===managerClub()&&
 function coachMeasure(m,key){return key==='discipline'?(m.events||[]).filter(e=>e.type==='penalty'&&e.side==='own').length:(m.shots||[]).filter(s=>s.dangerous&&s.side===(key==='defense'?'opponent':'own')).length;}
 function coachEvidence(){return analysisCompleteMatches(state.analysis?.matches||[]).filter(coachEligible).slice(0,state.analysis.coachWindow||3);}
 function coachFocus(){const f=state.analysis?.coachFocus;return f&&f.club===managerClub()&&f.year===state.season?.year?f:null;}
-function coachAdopt(key){
+function coachAdopt(key,diagnosis=null){
  ensureAnalysis();const matches=coachEvidence();if(!COACH_FOCUSES[key]||!matches.length||state.live&&!state.live.finished)return;
  feedbackArchiveCoach();
  state.analysis.coachFocus={key,club:managerClub(),year:state.season.year,date:state.calendar.date,target:state.analysis.coachWindow||3,baseline:matches.map(m=>({id:m.id,value:coachMeasure(m,key),rates:analysisStrengthSummary(m,key)})),seen:(state.analysis.matches||[]).map(m=>m.id),sessions:[],results:[]};
+ if(diagnosis)state.analysis.coachFocus.diagnosis={...diagnosis,baseline:matches.map(m=>coachDiagnosisMeasure(m,diagnosis)),results:[]};
  save();render();
 }
 function coachPlanSlot(key=coachFocus()?.key){
  const t=state.training,c=state.calendar;
  if(!COACH_FOCUSES[key]||!t||!c||t.lockedRound===state.round||state.live&&!state.live.finished)return null;
- const fixtures=calendarFixtures(),session=COACH_FOCUSES[key].session;
+ const fixtures=calendarFixtures(),session=coachFocus()?.diagnosis?.session||COACH_FOCUSES[key].session;
  const slots=t.plan.flatMap((p,index)=>{
   if(index<t.day||index>=t.plan.length-1)return [];
   const date=calAdd(c.date,index-t.day),actual=calendarSession(date);
@@ -205,12 +206,13 @@ function coachPlan(){
  const slot=coachPlanSlot(f.key);
  if(!slot){calendarNotify('Ingen lämplig träningsdag före nästa match. Behåll återhämtning, egna kalenderplaner och matchförberedelse; planera efter matchen.');return;}
  f.planned=slot.date;
- setTrainingSession(slot.index,'type',COACH_FOCUSES[f.key].session);
+ setTrainingSession(slot.index,'type',f.diagnosis?.session||COACH_FOCUSES[f.key].session);
 }
-function coachTrainingDone(log){const f=coachFocus();if(!f||f.results.length>=(f.target||3)||!log.trained||log.type!==COACH_FOCUSES[f.key].session||f.sessions.some(s=>s.date===log.date))return;f.sessions.push({date:log.date,trained:log.trained,resting:log.resting});f.sessions=f.sessions.slice(-20);}
+function coachTrainingDone(log){const f=coachFocus();if(!f||f.results.length>=(f.target||3)||!log.trained||log.type!==(f.diagnosis?.session||COACH_FOCUSES[f.key].session)||f.sessions.some(s=>s.date===log.date))return;f.sessions.push({date:log.date,trained:log.trained,resting:log.resting});f.sessions=f.sessions.slice(-20);}
 function coachMatchDone(m){
  const f=coachFocus();if(!f||!coachEligible(m)||f.results.length>=(f.target||3)||f.seen.includes(m.id)||f.results.some(r=>r.id===m.id))return;
  f.results.push({id:m.id,opponent:m.opponent,value:coachMeasure(m,f.key),rates:analysisStrengthSummary(m,f.key)});
+ if(f.diagnosis)f.diagnosis.results.push(coachDiagnosisMeasure(m,f.diagnosis));
  if(f.results.length===(f.target||3))managerMessage('coach-review:'+m.id,'Dags att följa upp ditt träningsfokus',`${f.target||3} matcher är spelade. Jämför utfallet med utgångsläget i tränarens uppföljning. Resultaten påverkas också av motstånd, istid och matchbild.`,'Assisterande tränare',{link:'training'});
 }
 function coachCycleView(){
@@ -218,8 +220,8 @@ function coachCycleView(){
  if(!matches.length)return '<section class="coach-cycle"><span class="career-eyebrow">MATCH → TRÄNING → UPPFÖLJNING</span><h2>Tränarens fokus</h2><p>Efter en fullständigt registrerad tävlingsmatch får du ett konkret underlag att arbeta vidare med.</p></section>';
  const avg=(rows)=>rows.reduce((n,r)=>n+r.value,0)/rows.length;
  let content='';
- if(f){const d=COACH_FOCUSES[f.key],before=avg(f.baseline),after=f.results.length?avg(f.results):null;
- content=`<h3>${d.name}</h3><div class="coach-cycle-metrics"><div><small>UTGÅNGSLÄGE · ${f.baseline.length} MATCHER</small><strong>${before.toFixed(1)}</strong></div><div><small>UPPFÖLJNING · ${f.results.length}/${f.target||3} MATCHER</small><strong>${after===null?'—':after.toFixed(1)}</strong></div><div><small>GENOMFÖRDA RELEVANTA PASS</small><strong>${f.sessions.length}</strong></div></div><p>${d.label} per match. ${after===null?'Nästa tävlingsmatch inleder uppföljningen.':after===before?'Oförändrat snitt.':(d.lower?after<before:after>before)?'Utvecklingen går i önskad riktning.':'Ännu ingen förbättring i underlaget.'} Små underlag; motstånd, matchlängd och spelform påverkar. Detta visar inte att träningen ensam orsakat utfallet.</p>${f.planned?`<p>Planerat pass ${calText(f.planned)}${f.planned>=state.calendar.date&&calendarSession(f.planned).type!==d.session?' · kalendern har ändrats sedan planeringen':''}.</p>`:''}${coachRatesView(f)}${f.results.map(r=>`<p>${safe(r.opponent)}: <strong>${r.value}</strong></p>`).join('')}${f.results.length<(f.target||3)?`<button class="btn" onclick="deskNavigate('calendar')">Planera ${d.session==='tactics'?'taktiskt samspel':TRAINING_SESSIONS[d.session].name.toLowerCase()}</button>`:'<p>Uppföljningen är klar. Välj ett nytt fokus när du är redo.</p>'}<button class="btn secondary" onclick="trainingOpen('lines')">Se över formationerna</button>`;
+ if(f){const d={...COACH_FOCUSES[f.key],session:f.diagnosis?.session||COACH_FOCUSES[f.key].session},before=avg(f.baseline),after=f.results.length?avg(f.results):null;
+ content=`<h3>${d.name}</h3><div class="coach-cycle-metrics"><div><small>UTGÅNGSLÄGE · ${f.baseline.length} MATCHER</small><strong>${before.toFixed(1)}</strong></div><div><small>UPPFÖLJNING · ${f.results.length}/${f.target||3} MATCHER</small><strong>${after===null?'—':after.toFixed(1)}</strong></div><div><small>GENOMFÖRDA RELEVANTA PASS</small><strong>${f.sessions.length}</strong></div></div><p>${d.label} per match. ${after===null?'Nästa tävlingsmatch inleder uppföljningen.':after===before?'Oförändrat snitt.':(d.lower?after<before:after>before)?'Utvecklingen går i önskad riktning.':'Ännu ingen förbättring i underlaget.'} Små underlag; motstånd, matchlängd och spelform påverkar. Detta visar inte att träningen ensam orsakat utfallet.</p>${f.planned?`<p>Planerat pass ${calText(f.planned)}${f.planned>=state.calendar.date&&calendarSession(f.planned).type!==d.session?' · kalendern har ändrats sedan planeringen':''}.</p>`:''}${coachRatesView(f)}${coachDiagnosisView(f)}${f.results.map(r=>`<p>${safe(r.opponent)}: <strong>${r.value}</strong></p>`).join('')}${f.results.length<(f.target||3)?`<button class="btn" onclick="deskNavigate('calendar')">Planera ${d.session==='tactics'?'taktiskt samspel':TRAINING_SESSIONS[d.session].name.toLowerCase()}</button>`:'<p>Uppföljningen är klar. Välj ett nytt fokus när du är redo.</p>'}<button class="btn secondary" onclick="trainingOpen('lines')">Se över formationerna</button>`;
  }
  return `<section class="coach-cycle"><span class="career-eyebrow">MATCH → TRÄNING → UPPFÖLJNING</span><h2>Tränarens fokus</h2>${content}<details ${f?'':'open'}><summary>${f?'Byt fokus och börja en ny uppföljning':'Välj vad laget ska arbeta med'}</summary><label>Matcher per uppföljning<select onchange="state.analysis.coachWindow=Number(this.value);save();render()">${[3,5,10].map(n=>`<option value="${n}" ${(state.analysis.coachWindow||3)===n?'selected':''}>${n} matcher</option>`).join('')}</select></label><p>Valet gäller nästa fokus. Underlag: ${matches.length} senaste fullständiga tävlingsmatcher denna säsong. Ditt val ändrar inga kedjor automatiskt.</p><div class="coach-cycle-options">${Object.entries(COACH_FOCUSES).map(([key,d])=>`<article><h3>${d.name}</h3><p>${d.label}: ${(matches.reduce((n,m)=>n+coachMeasure(m,key),0)/matches.length).toFixed(1)} per match.</p><p>Träning: ${TRAINING_SESSIONS[d.session].name}.</p><button class="btn secondary" onclick="coachAdopt('${key}')">Välj fokus</button></article>`).join('')}</div></details></section>`;
 }
