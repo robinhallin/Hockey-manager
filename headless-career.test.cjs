@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {headlessCareer}=require('./scripts/headless-career.cjs');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const native=headlessCareer(),r=native.run;
+r("startCareerWithClub('HV71');save()");
+const isolated=boot(native.storage.value),v=isolated.run;
+const normalized=v('JSON.stringify(state)');r('state=JSON.parse('+JSON.stringify(normalized)+')');
+const action="JSON.stringify(rivalSimulate(state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub())))";
+assert.equal(r(action),v(action),'Same career and seed must produce identical fixture results in both test runtimes');
+r('save()');assert.doesNotThrow(()=>boot(native.storage.value));
+console.log('PASS: fast headless runner uses identical production match rules and reloadable state.');

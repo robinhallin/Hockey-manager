@@ -10,7 +10,9 @@
     "check:match-balance": "node scripts/match-balance.cjs",
     "test:development": "node development.test.cjs",
     "test": "node --test --test-concurrency=3 *.test.cjs",
-    "check:match-balance-wide": "node scripts/match-balance-wide.cjs"
+    "check:match-balance-wide": "node scripts/match-balance-wide.cjs",
+    "test:career-long": "node scripts/career-long-run.cjs",
+    "check:match-modes": "node scripts/compare-match-modes.cjs"
   },
   "devDependencies": {
     "vite": "8.0.13"

@@ -33,7 +33,29 @@ function trainingPlanRecord(p,session,effect,before,key){
  const plan=p.trainingReturn;
  if(plan&&plan.club===managerClub())plan[effect.rest?'rested':'trained']++;
  const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
- p.trainingSessions=[{date:state.calendar?.date,type:session.type,before,after:p.fatigue,rest:effect.rest,target:effect.rest?'Återhämtning':fields[key]},...(p.trainingSessions||[])].slice(0,12);
+ p.trainingSessions=[{date:state.calendar?.date,type:session.type,before,after:p.fatigue,rest:effect.rest,injured:!medicalCanTrain(p),key,target:effect.rest?'Återhämtning':fields[key]},...(p.trainingSessions||[])].slice(0,56);
+}
+function developmentReviewStart(id){
+ const p=managerRoster().find(p=>samePlayerId(p.id,id));
+ if(!p||state.live&&!state.live.finished||p.developmentReview?.club===managerClub()&&calGap(p.developmentReview.date,state.calendar.date)<28)return false;
+ p.developmentReview={club:managerClub(),year:state.season.year,date:state.calendar.date,focus:p.developmentFocus,attributes:{...p.attributes},seen:(state.analysis?.matches||[]).map(m=>m.id),sessionsSeen:(p.trainingSessions||[]).map(s=>s.date)};
+ save();render();return true;
+}
+function developmentReviewEvidence(p){
+ const plan=p.developmentReview;if(!plan||plan.club!==managerClub())return null;
+ const sessions=(p.trainingSessions||[]).filter(s=>s.date>=plan.date&&!plan.sessionsSeen.includes(s.date));
+ const matches=analysisCompleteMatches(state.analysis?.matches||[]).filter(m=>m.club===plan.club&&m.date>=plan.date&&!plan.seen.includes(m.id));
+ const rows=matches.map(m=>(m.players||[]).find(q=>samePlayerId(q.id,p.id))).filter(Boolean);
+ const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
+ const changes=Object.keys(plan.attributes).filter(k=>p.attributes[k]!==plan.attributes[k]).map(k=>`${fields[k]} ${p.attributes[k]-plan.attributes[k]>0?'+':''}${p.attributes[k]-plan.attributes[k]}`);
+ return {plan,days:calGap(plan.date,state.calendar.date),sessions,trained:sessions.filter(s=>!s.rest).length,rest:sessions.filter(s=>s.rest&&!s.injured).length,injured:sessions.filter(s=>s.injured).length,games:rows.filter(r=>r.seconds>0).length,seconds:rows.reduce((n,r)=>n+r.seconds,0),changes};
+}
+function developmentReviewView(p){
+ if(!isOwnPlayer(p))return '';
+ const e=developmentReviewEvidence(p),action=`developmentReviewStart(${trainingSafe(JSON.stringify(p.id))})`;
+ if(!e)return `<section><h4>En plan att följa upp</h4><p>Följ valt fokus, genomförd träning och registrerad matchtid under 28 dagar.</p><button onclick="${action}" ${state.live&&!state.live.finished?'disabled':''}>Starta utvecklingsuppföljning</button></section>`;
+ const advice=e.days<14?'Samla mer underlag innan du bedömer utvecklingen.':e.injured>e.trained?'Rehabiliteringen har begränsat träningsarbetet. Prioritera en hållbar återgång.':e.trained<5?'Få genomförda pass. Se över belastning och kalender innan du byter fokus.':e.seconds<600?'Begränsad registrerad matchtid. Överväg mer ansvar, juniorväg eller lån utifrån spelarens nivå.':!e.changes.length?'Arbete är genomfört utan synligt attributsteg. Behåll fokus en period till eller välj en annan rollrelevant färdighet. Potentialen är fortfarande osäker.':'Fortsätt väga utvecklingen mot belastning och spelarens roll.';
+ return `<section><h4>Utvecklingsplan · ${calText(e.plan.date)}</h4><p>Utgångsfokus: ${trainingSafe(e.plan.focus)}. Nu: ${trainingSafe(p.developmentFocus)}. ${e.days} av 28 dagar.</p><p>${e.trained} träningspass · ${e.rest} vilopass · ${e.injured} pass hindrade av medicinskt läge. ${e.games} registrerade matcher med istid · ${analysisTime(e.seconds)}.</p><p>${e.changes.length?trainingSafe(e.changes.join(' · ')):'Inga synliga attributsteg under uppföljningen.'}</p><p>${advice}</p><p>Underlaget omfattar sparade pass och kompletta matchrapporter, inte en beräkning av dold potential. Äldre underlag kan ha gallrats. Anpassa fokus och belastning i spelarens träningsval.</p>${e.days>=28?`<button onclick="${action}" ${state.live&&!state.live.finished?'disabled':''}>Starta nästa uppföljning</button>`:''}</section>`;
 }
 function trainingPlanningPanel(p){
  const t=state.training,session=t.plan[t.day],date=state.calendar?.date;

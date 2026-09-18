@@ -87,25 +87,32 @@ const MatchWorld2=(()=>{
   return pp?{shoot:.012+edge*.22,pass:.010+edge*.18,carry:.004+edge*.08,dump:-.010,shield:.004,clear:-.020,edge}:
    {shoot:-.020,pass:-.012,carry:-.010,dump:.016,shield:.008,clear:.030,edge:0};
  }
- function backgroundDecisionProfile({creation=10,resistance=10,shooterPosition='F',pp=false,plan={},opposition={}}={}){
+ function backgroundDecisionProfile({creation=10,resistance=10,shooterPosition='F',pp=false,plan={},opposition={},attackAttributes=null,defenseAttributes=null}={}){
   const edge=clamp((creation-resistance)/20,-.5,.5);
   const pseudo={shooting:10+edge*8+(shooterPosition==='F'?1:0),passing:10+edge*6,vision:10+edge*6,puckControl:10+edge*6,decisions:10+edge*5,skating:10+edge*4,strength:10,positioning:10+edge*3,workRate:10,discipline:10};
   const context={pressure:clamp(.42-edge*.4+(opposition.forecheck==='aggressive'?.08:0),.08,.85),distance:shooterPosition==='B'?17:12,progress:46,powerPlay:Boolean(pp),shortHanded:false,rebound:false,oneTimer:false};
-  return decisionValues(pseudo,plan,context);
+  if(attackAttributes&&defenseAttributes)context.pressure=clamp(.42-(controlScore(attackAttributes)-defenseScore(defenseAttributes))*.02+(opposition.forecheck==='aggressive'?.08:0),.08,.85);
+  return decisionValues(attackAttributes||pseudo,plan,context);
  }
  function backgroundShotContext(args,rand){
   const {creation,resistance,shooterPosition,pp,plan={},opposition={}}=args;
-  const edge=clamp((creation-resistance)/20,-.5,.5),choices=backgroundDecisionProfile(args),counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
+  const attack=args.attackAttributes,defense=args.defenseAttributes;
+  const edge=clamp((attack&&defense?controlScore(attack)-defenseScore(defense):creation-resistance)/20,-.5,.5),choices=backgroundDecisionProfile(args),counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
   const attackPseudo={passing:creation,vision:creation,puckControl:creation,decisions:creation,shooting:creation,workRate:creation,positioning:creation,discipline:creation,skating:creation};
   const defendPseudo={passing:resistance,vision:resistance,puckControl:resistance,decisions:resistance,shooting:resistance,workRate:resistance,positioning:resistance,discipline:resistance,skating:resistance};
-  const special=pp?specialTeamsEdge(attackPseudo,defendPseudo,plan.pp||'131',opposition.pk||'box'):0;
+  const special=pp?specialTeamsEdge(attack||attackPseudo,defense||defendPseudo,plan.pp||'131',opposition.pk||'box'):0;
   const closeChance=clamp(.30+edge*.4+(pp?.085:0)+(counter?.12:0)+(choices.carry+choices.pass-choices.dump)*.65+special*.35,.1,.65);
   const close=rand()<closeChance;
   const d=close?3+rand()*6:(shooterPosition==='B'?15:9)+rand()*9;
   const angle=rand()*(close?.65:1.05);
   const pressure=clamp(.42-edge*.4-(pp?.12:0)-(counter?.12:0)+(opposition.forecheck==='aggressive'&&!counter?.08:0)-choices.shield*.35-special*.25,.08,.85);
   const screen=clamp((plan.style==='pressure'?.38:.20)+(pp?.10:0)+choices.shoot*.15+special*.20,0,1);
-  return {d,angle,pressure,screen,oneTimer:false,rebound:false,behind:false,lateralSpeed:0};
+  // A completed passing combination can create a first-time finish. It uses
+  // the actual unit's passing/vision, not a fabricated all-round player.
+  const passing=attack?(value(attack,'passing')+value(attack,'vision'))/2:creation;
+  const defending=defense?(value(defense,'positioning')+value(defense,'decisions'))/2:resistance;
+  const oneTimer=Boolean(attack&&defense&&rand()<clamp(.08+(pp?.07:0)+(passing-defending)*.006, .02,.24));
+  return {d,angle,pressure,screen,oneTimer,rebound:false,behind:false,lateralSpeed:oneTimer?1.5:0};
  }
  function liveProfiles(match){
   if(!match)return null;

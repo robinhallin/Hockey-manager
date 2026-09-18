@@ -254,7 +254,7 @@ function aiAcademyDay(club){
   if(mentor&&p.academy.cursor%3===0)developmentAdvance(p,p.pos==='MV'?'composure':'decisions',.8);
   if(match&&p.age<=20){
    const seconds=p.pos==='MV'?1800:900;p.academy.games++;p.academy.seconds+=seconds;
-   developmentAdvance(p,key,2);p.fatigue+=6;
+   developmentAdvance(p,key,2,'Matchvana (akademi)');p.fatigue+=6;
    p.academy.history.unshift({year:state.season.year,date:state.calendar.date,opponent:'Akademins utvecklingsmatch',path:'junior',seconds,goals:0,assists:0});
    p.academy.history=p.academy.history.slice(0,6);
   }
