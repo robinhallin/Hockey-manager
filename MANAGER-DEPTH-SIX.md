@@ -101,10 +101,27 @@ de två återstående säsongerna. Den sista sparfilen är 3 422 932 byte i test
 UTF-16-beräkning, utan att historik tagits bort av komprimeringen.
 
 Matchjämförelsen körde sex parade prover. Skillnader i skottfördelning kvarstår;
-uppdateringen gör inte de två simuleringsmotorerna identiska. Hela projektets
-testsvit har inte slutförts på denna ändring. Visuell Chromium-kontroll kunde
-inte köras eftersom webbläsarhämtningen misslyckades. Detaljer och mätvärden
-finns i `qa/manager-depth-six.json`.
+uppdateringen gör inte de två simuleringsmotorerna identiska. Alla 17 CI-jobb
+på PR #151 passerade, inklusive hela regressionstestsviten och matchbalansen.
+Detaljer från långtestet finns i `qa/manager-depth-six.json`.
 
-Ändringarna är lokala. GitHub-push stoppades av automatisk behörighetskontroll.
-Ingen PR eller merge har därför skapats för denna uppdatering.
+## Slutförd webbläsargranskning
+
+Den publicerade versionen har granskats i Chrome vid 1363 × 936:
+- Ny karriär, dagsskiften och träningsplanering.
+- Värvningsplan med platsval, konsekvenser, sparning och återläsning.
+- Start av 28-dagars utvecklingsuppföljning.
+- Komplett match, skadebesked, omladdning av pausad match och fortsatt spel.
+- Samma slutresultat (0–2) och skott på mål (9–43) i matchvy och rapport.
+- Tränarfokus efter match samt en naturligt uppkommen talanghistoria med powerplaylöfte.
+- Matchvyn ryms utan sidscroll; ingen horisontell overflow i kontor eller rekrytering.
+- Inga JavaScript-fel från spelet registrerades i webbläsarloggen.
+
+Granskningen hittade att värvningsplanen saknades vid första rekryteringsbesöket
+innan laguttagningen hade initierats. PR #152 rättar detta, med regressionstest
+för både visning och sparning. Rättningen verifierades i en ny karriär direkt
+i den publicerade versionen. Planens sparknapp använder nu spelets ordinarie
+knappstil. PR #151 och #152 är mergade; tidigare publiceringsblockering är löst.
+
+Detta är en avgränsad genomgång av uppdateringens flöden, inte ett påstående
+om att varje möjlig spelsituation eller skärmstorlek är felfri.
