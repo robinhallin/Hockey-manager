@@ -1,5 +1,7 @@
 # Bakgrundsmatcher: boxplay och spelformer
 
+Den fortsatta kalibreringen och nyare kontrollresultat finns i [AI-CALIBRATION.md](AI-CALIBRATION.md). Nedanstående siffror beskriver den tidigare kontrollomgången.
+
 Bakgrundsmatchernas tidigare händelsesummering byggdes från slutstatistiken. Skott och mål fick tidpunkten noll och skott kunde tillskrivas andra spelare än dem som faktiskt avslutade. Det gjorde den olämplig för att lokalisera skillnader mot en visad match.
 
 Nu registreras avslut, mål, assist och utvisningar i simuleringens ordning och vid dess verkliga matchtid (bakgrundsmotorns upplösning är 20 sekunder). Returen följer sin räddning. Händelserna innehåller spelare, formation, spelform och den uppskattade skottsituationen. Registreringen använder ingen extra slump. I ett isolerat prov gav 12 matcher exakt samma spelarrader och resultat före och efter enbart loggningsändringen.

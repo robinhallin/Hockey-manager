@@ -23,8 +23,8 @@ for(let round=1;round<=24;round++){
 assert.ok(sawGoal&&sawPenalty&&sawRebound);
 console.log('PASS: 24 fixtures with chronological native events, correct scorers/assists, penalties, rebounds, ice time and strength ledgers.');
 r("globalThis.attrs=Object.fromEntries(MatchWorld2.KEYS.map(k=>[k,12]));globalThis.unit={creation:12,resistance:12,plan:{style:'counter'}};");
-assert.ok(r('MatchWorld2.backgroundAttemptChance({...unit,pk:true})<MatchWorld2.backgroundAttemptChance(unit)*.6'));
-assert.ok(r("MatchWorld2.backgroundAttemptChance({...unit,pk:true,plan:{...unit.plan,counter:'safe'}})<MatchWorld2.backgroundAttemptChance({...unit,pk:true})"));
+assert.ok(r('MatchWorld2.backgroundAttemptRate({...unit,pk:true})<MatchWorld2.backgroundAttemptRate(unit)*.6'));
+assert.ok(r("MatchWorld2.backgroundAttemptRate({...unit,pk:true,plan:{...unit.plan,counter:'safe'}})<MatchWorld2.backgroundAttemptRate({...unit,pk:true})"));
 assert.equal(r("MatchWorld2.specialTeamsEdge(attrs,attrs,'oneThreeOne','box')"),r("MatchWorld2.specialTeamsEdge(attrs,attrs,'131','box')"));
 assert.ok(r("MatchWorld2.backgroundDecisionProfile({...unit,pk:true}).clear>MatchWorld2.backgroundDecisionProfile(unit).clear"));
 assert.equal(r('rivalStrengthEvidenceView([{shots:20,gf:2}])'),'');

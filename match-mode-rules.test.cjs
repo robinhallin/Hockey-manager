@@ -15,8 +15,8 @@ r("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch()
 assert.equal(r('e.teams[1].tactics.shotChoice'),'patient');
 r("state.live.aiTeam.physicality='safe'");
 assert.ok(r("e.attribute(a,'discipline')>hard"));
-assert.ok(r("MatchWorld2.backgroundAttemptChance({plan:{style:'counter'}})>MatchWorld2.backgroundAttemptChance({plan:{style:'control'}})"));
-assert.ok(r("MatchWorld2.backgroundAttemptChance({plan:{shotChoice:'shoot'}})>MatchWorld2.backgroundAttemptChance({plan:{shotChoice:'patient'}})"));
+assert.ok(r("MatchWorld2.backgroundAttemptRate({plan:{style:'counter'}})>MatchWorld2.backgroundAttemptRate({plan:{style:'control'}})"));
+assert.ok(r("MatchWorld2.backgroundAttemptRate({plan:{shotChoice:'shoot'}})>MatchWorld2.backgroundAttemptRate({plan:{shotChoice:'patient'}})"));
 r("state.live=null;globalThis.g=state.schedule.find(g=>g.home!==managerClub()&&g.away!==managerClub());globalThis.result=rivalSimulate(g,{regulationOnly:true});");
 assert.equal(r('result.duration'),3600);
 assert.equal(r('result.reports.every((x,i)=>x.attempts===x.shots+x.blocked+x.wide&&result.eventSummary.attempts[i]===x.attempts)'),true);
@@ -35,3 +35,7 @@ r("globalThis.context=e.shotContext(a);globalThis.model=e.shotModel(a,context);g
 assert.equal(r('model.goalChance'),r('shared.goalChance'),'live and background must apply finishing calibration exactly once');
 assert.equal(r('model.quality'),r('shared.quality'));
 console.log('PASS: side-effect-free observations and identical calibrated finishing probabilities.');
+r("state.tacticalPlan.attackStyle='counter';state.tacticalPlan.shotChoice='patient';state.live.aiTeam.style='counter';state.live.aiTeam.shotChoice='patient';studioSyncPlans();");
+assert.equal(r('e.teams[0].tactics.mentality'),r('e.teams[1].tactics.mentality'),'identical shot instructions must have identical mentalities for manager and AI');
+assert.equal(r('e.teams[1].tactics.mentality'),'direct');
+console.log('PASS: patient counter instructions have the same mentality on both sides.');

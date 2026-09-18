@@ -30,6 +30,35 @@ const StudioHockey = (() => {
       const calibrated=goalChance*.75;
       return {goalChance:calibrated,onTarget,block,quality:(1-block)*onTarget*calibrated,alignment};
   }
+  // Shootouts use the same skill model and resolver in both match paths.
+  // They are separate from ordinary shot/goal statistics.
+  function shootoutChance(shooter,keeper){
+    const skill=a=>a.shooting*.4+a.puckControl*.35+a.composure*.25;
+    if(!keeper)return .95;
+    const save=keeper.reflexes*.4+keeper.positioning*.25+keeper.movement*.2+keeper.composure*.15;
+    return clamp(.30+(skill(shooter)-save)*.017,.06,.70);
+  }
+  function resolveShootout(teams,rand){
+    const squads=teams.map(t=>t.shooters.slice().sort((a,b)=>shootoutChance(b.attributes,{reflexes:10,positioning:10,movement:10,composure:10})-shootoutChance(a.attributes,{reflexes:10,positioning:10,movement:10,composure:10})).slice(0,5));
+    if(squads.some(s=>!s.length))throw new Error('Shootout requires a skater on each team');
+    const score=[0,0],taken=[0,0],attempts=[];
+    const chance=side=>shootoutChance(squads[side][taken[side]%squads[side].length].attributes,teams[1-side].keeper);
+    const take=(side,forced=null)=>{const player=squads[side][taken[side]%squads[side].length],probability=chance(side),goal=forced??(rand()<probability);taken[side]++;if(goal)score[side]++;attempts.push({side,playerId:player.id,player:player.name,round:taken[side],probability,goal});};
+    for(let round=0;round<5;round++)for(let side=0;side<2;side++){
+      take(side);
+      if(score[0]>score[1]+5-taken[1]||score[1]>score[0]+5-taken[0])return {winner:score[0]>score[1]?0:1,score,attempts};
+    }
+    let skippedTies=false;
+    while(score[0]===score[1]){
+      if(taken[0]>=105){
+        // Condition on the next decisive pair after an extreme run of ties.
+        // This preserves its win probability and also bounds pathological RNGs.
+        const a=chance(0),b=chance(1),home=rand()<a*(1-b)/(a*(1-b)+b*(1-a));
+        take(0,home);take(1,!home);skippedTies=true;
+      }else{take(0);take(1);}
+    }
+    return {winner:score[0]>score[1]?0:1,score,attempts,skippedTies};
+  }
   // Identical roll boundaries for spatial and estimated attempts. The spatial
   // keeper is evaluated again on arrival, so finishing remains a separate stage.
   function shotBlockChance(coverage,defender){return clamp(coverage,0,1)*(.14+(defender.positioning*.6+defender.workRate*.4)*.014);}
@@ -735,6 +764,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;

@@ -1,0 +1,4892 @@
+[
+  {
+    "id": 0,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 810031
+  },
+  {
+    "id": 1,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 817938
+  },
+  {
+    "id": 2,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 825845
+  },
+  {
+    "id": 3,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 833752
+  },
+  {
+    "id": 4,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 841659
+  },
+  {
+    "id": 5,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 849566
+  },
+  {
+    "id": 6,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 857473
+  },
+  {
+    "id": 7,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 865380
+  },
+  {
+    "id": 8,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 873287
+  },
+  {
+    "id": 9,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 881194
+  },
+  {
+    "id": 10,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 889101
+  },
+  {
+    "id": 11,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 897008
+  },
+  {
+    "id": 12,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 904915
+  },
+  {
+    "id": 13,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 912822
+  },
+  {
+    "id": 14,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 920729
+  },
+  {
+    "id": 15,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 928636
+  },
+  {
+    "id": 16,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 936543
+  },
+  {
+    "id": 17,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 944450
+  },
+  {
+    "id": 18,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 952357
+  },
+  {
+    "id": 19,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 960264
+  },
+  {
+    "id": 20,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 968171
+  },
+  {
+    "id": 21,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 976078
+  },
+  {
+    "id": 22,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 983985
+  },
+  {
+    "id": 23,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 991892
+  },
+  {
+    "id": 24,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 999799
+  },
+  {
+    "id": 25,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1007706
+  },
+  {
+    "id": 26,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1015613
+  },
+  {
+    "id": 27,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1023520
+  },
+  {
+    "id": 28,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1031427
+  },
+  {
+    "id": 29,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1039334
+  },
+  {
+    "id": 30,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1047241
+  },
+  {
+    "id": 31,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1055148
+  },
+  {
+    "id": 32,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1063055
+  },
+  {
+    "id": 33,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1070962
+  },
+  {
+    "id": 34,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1078869
+  },
+  {
+    "id": 35,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1086776
+  },
+  {
+    "id": 36,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1094683
+  },
+  {
+    "id": 37,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1102590
+  },
+  {
+    "id": 38,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1110497
+  },
+  {
+    "id": 39,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1118404
+  },
+  {
+    "id": 40,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1126311
+  },
+  {
+    "id": 41,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1134218
+  },
+  {
+    "id": 42,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1142125
+  },
+  {
+    "id": 43,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1150032
+  },
+  {
+    "id": 44,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1157939
+  },
+  {
+    "id": 45,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1165846
+  },
+  {
+    "id": 46,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1173753
+  },
+  {
+    "id": 47,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1181660
+  },
+  {
+    "id": 48,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1189567
+  },
+  {
+    "id": 49,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1197474
+  },
+  {
+    "id": 50,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 1205381
+  },
+  {
+    "id": 51,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1213288
+  },
+  {
+    "id": 52,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1221195
+  },
+  {
+    "id": 53,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 1229102
+  },
+  {
+    "id": 54,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1237009
+  },
+  {
+    "id": 55,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1244916
+  },
+  {
+    "id": 56,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1252823
+  },
+  {
+    "id": 57,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1260730
+  },
+  {
+    "id": 58,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1268637
+  },
+  {
+    "id": 59,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1276544
+  },
+  {
+    "id": 60,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1284451
+  },
+  {
+    "id": 61,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1292358
+  },
+  {
+    "id": 62,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1300265
+  },
+  {
+    "id": 63,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1308172
+  },
+  {
+    "id": 64,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1316079
+  },
+  {
+    "id": 65,
+    "phase": "train",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1323986
+  },
+  {
+    "id": 66,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1331893
+  },
+  {
+    "id": 67,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1339800
+  },
+  {
+    "id": 68,
+    "phase": "train",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1347707
+  },
+  {
+    "id": 69,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 1355614
+  },
+  {
+    "id": 70,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 1363521
+  },
+  {
+    "id": 71,
+    "phase": "train",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 1371428
+  },
+  {
+    "id": 72,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2044265
+  },
+  {
+    "id": 73,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2055852
+  },
+  {
+    "id": 74,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2067439
+  },
+  {
+    "id": 75,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2079026
+  },
+  {
+    "id": 76,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2090613
+  },
+  {
+    "id": 77,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2102200
+  },
+  {
+    "id": 78,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2113787
+  },
+  {
+    "id": 79,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2125374
+  },
+  {
+    "id": 80,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2136961
+  },
+  {
+    "id": 81,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2148548
+  },
+  {
+    "id": 82,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2160135
+  },
+  {
+    "id": 83,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2171722
+  },
+  {
+    "id": 84,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2183309
+  },
+  {
+    "id": 85,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2194896
+  },
+  {
+    "id": 86,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2206483
+  },
+  {
+    "id": 87,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2218070
+  },
+  {
+    "id": 88,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2229657
+  },
+  {
+    "id": 89,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2241244
+  },
+  {
+    "id": 90,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2252831
+  },
+  {
+    "id": 91,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2264418
+  },
+  {
+    "id": 92,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2276005
+  },
+  {
+    "id": 93,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2287592
+  },
+  {
+    "id": 94,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2299179
+  },
+  {
+    "id": 95,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 2310766
+  },
+  {
+    "id": 96,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2322353
+  },
+  {
+    "id": 97,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2333940
+  },
+  {
+    "id": 98,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 2345527
+  },
+  {
+    "id": 99,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 2357114
+  },
+  {
+    "id": 100,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 2368701
+  },
+  {
+    "id": 101,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 2380288
+  },
+  {
+    "id": 102,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 2391875
+  },
+  {
+    "id": 103,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 2403462
+  },
+  {
+    "id": 104,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 2415049
+  },
+  {
+    "id": 105,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 2426636
+  },
+  {
+    "id": 106,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 2438223
+  },
+  {
+    "id": 107,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 2449810
+  },
+  {
+    "id": 108,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3590573
+  },
+  {
+    "id": 109,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3604282
+  },
+  {
+    "id": 110,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3617991
+  },
+  {
+    "id": 111,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3631700
+  },
+  {
+    "id": 112,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3645409
+  },
+  {
+    "id": 113,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3659118
+  },
+  {
+    "id": 114,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3672827
+  },
+  {
+    "id": 115,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3686536
+  },
+  {
+    "id": 116,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3700245
+  },
+  {
+    "id": 117,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3713954
+  },
+  {
+    "id": 118,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3727663
+  },
+  {
+    "id": 119,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3741372
+  },
+  {
+    "id": 120,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3755081
+  },
+  {
+    "id": 121,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3768790
+  },
+  {
+    "id": 122,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3782499
+  },
+  {
+    "id": 123,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3796208
+  },
+  {
+    "id": 124,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3809917
+  },
+  {
+    "id": 125,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3823626
+  },
+  {
+    "id": 126,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3837335
+  },
+  {
+    "id": 127,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3851044
+  },
+  {
+    "id": 128,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3864753
+  },
+  {
+    "id": 129,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3878462
+  },
+  {
+    "id": 130,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3892171
+  },
+  {
+    "id": 131,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "seed": 3905880
+  },
+  {
+    "id": 132,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3919589
+  },
+  {
+    "id": 133,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3933298
+  },
+  {
+    "id": 134,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "seed": 3947007
+  },
+  {
+    "id": 135,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 3960716
+  },
+  {
+    "id": 136,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 3974425
+  },
+  {
+    "id": 137,
+    "phase": "train",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 3988134
+  },
+  {
+    "id": 138,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 4001843
+  },
+  {
+    "id": 139,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 4015552
+  },
+  {
+    "id": 140,
+    "phase": "train",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 4029261
+  },
+  {
+    "id": 141,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "defense",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "low",
+      "physicality": "safe"
+    },
+    "seed": 4042970
+  },
+  {
+    "id": 142,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "posture": "attack",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "physicality": "hard"
+    },
+    "seed": 4056679
+  },
+  {
+    "id": 143,
+    "phase": "train",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "posture": "balanced",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "physicality": "normal"
+    },
+    "seed": 4070388
+  },
+  {
+    "id": 144,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 2322473
+  },
+  {
+    "id": 145,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 2336386
+  },
+  {
+    "id": 146,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 2350299
+  },
+  {
+    "id": 147,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 2364212
+  },
+  {
+    "id": 148,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 2378125
+  },
+  {
+    "id": 149,
+    "phase": "train",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 2392038
+  },
+  {
+    "id": 150,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 2405951
+  },
+  {
+    "id": 151,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 2419864
+  },
+  {
+    "id": 152,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 2433777
+  },
+  {
+    "id": 153,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 2447690
+  },
+  {
+    "id": 154,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 2461603
+  },
+  {
+    "id": 155,
+    "phase": "train",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 2475516
+  },
+  {
+    "id": 156,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 2489429
+  },
+  {
+    "id": 157,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 2503342
+  },
+  {
+    "id": 158,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 2517255
+  },
+  {
+    "id": 159,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 2531168
+  },
+  {
+    "id": 160,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 2545081
+  },
+  {
+    "id": 161,
+    "phase": "train",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 2558994
+  },
+  {
+    "id": 162,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8183023
+  },
+  {
+    "id": 163,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8202054
+  },
+  {
+    "id": 164,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8221085
+  },
+  {
+    "id": 165,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8240116
+  },
+  {
+    "id": 166,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8259147
+  },
+  {
+    "id": 167,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8278178
+  },
+  {
+    "id": 168,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8297209
+  },
+  {
+    "id": 169,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8316240
+  },
+  {
+    "id": 170,
+    "phase": "validation",
+    "club": "HV71",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8335271
+  },
+  {
+    "id": 171,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8354302
+  },
+  {
+    "id": 172,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8373333
+  },
+  {
+    "id": 173,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8392364
+  },
+  {
+    "id": 174,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8411395
+  },
+  {
+    "id": 175,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8430426
+  },
+  {
+    "id": 176,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8449457
+  },
+  {
+    "id": 177,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8468488
+  },
+  {
+    "id": 178,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8487519
+  },
+  {
+    "id": 179,
+    "phase": "validation",
+    "club": "Leksands IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8506550
+  },
+  {
+    "id": 180,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8525581
+  },
+  {
+    "id": 181,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8544612
+  },
+  {
+    "id": 182,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8563643
+  },
+  {
+    "id": 183,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8582674
+  },
+  {
+    "id": 184,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8601705
+  },
+  {
+    "id": 185,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8620736
+  },
+  {
+    "id": 186,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8639767
+  },
+  {
+    "id": 187,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8658798
+  },
+  {
+    "id": 188,
+    "phase": "validation",
+    "club": "Brynäs IF",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8677829
+  },
+  {
+    "id": 189,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8696860
+  },
+  {
+    "id": 190,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8715891
+  },
+  {
+    "id": 191,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8734922
+  },
+  {
+    "id": 192,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8753953
+  },
+  {
+    "id": 193,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8772984
+  },
+  {
+    "id": 194,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8792015
+  },
+  {
+    "id": 195,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8811046
+  },
+  {
+    "id": 196,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8830077
+  },
+  {
+    "id": 197,
+    "phase": "validation",
+    "club": "Frölunda HC",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8849108
+  },
+  {
+    "id": 198,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 8868139
+  },
+  {
+    "id": 199,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 8887170
+  },
+  {
+    "id": 200,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8906201
+  },
+  {
+    "id": 201,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 8925232
+  },
+  {
+    "id": 202,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 8944263
+  },
+  {
+    "id": 203,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 8963294
+  },
+  {
+    "id": 204,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 8982325
+  },
+  {
+    "id": 205,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9001356
+  },
+  {
+    "id": 206,
+    "phase": "validation",
+    "club": "Timrå IK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9020387
+  },
+  {
+    "id": 207,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9039418
+  },
+  {
+    "id": 208,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9058449
+  },
+  {
+    "id": 209,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9077480
+  },
+  {
+    "id": 210,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9096511
+  },
+  {
+    "id": 211,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9115542
+  },
+  {
+    "id": 212,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9134573
+  },
+  {
+    "id": 213,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9153604
+  },
+  {
+    "id": 214,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9172635
+  },
+  {
+    "id": 215,
+    "phase": "validation",
+    "club": "Skellefteå AIK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9191666
+  },
+  {
+    "id": 216,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9210697
+  },
+  {
+    "id": 217,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9229728
+  },
+  {
+    "id": 218,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9248759
+  },
+  {
+    "id": 219,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9267790
+  },
+  {
+    "id": 220,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9286821
+  },
+  {
+    "id": 221,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9305852
+  },
+  {
+    "id": 222,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9324883
+  },
+  {
+    "id": 223,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9343914
+  },
+  {
+    "id": 224,
+    "phase": "validation",
+    "club": "Färjestad BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9362945
+  },
+  {
+    "id": 225,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9381976
+  },
+  {
+    "id": 226,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9401007
+  },
+  {
+    "id": 227,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9420038
+  },
+  {
+    "id": 228,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9439069
+  },
+  {
+    "id": 229,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9458100
+  },
+  {
+    "id": 230,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9477131
+  },
+  {
+    "id": 231,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9496162
+  },
+  {
+    "id": 232,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9515193
+  },
+  {
+    "id": 233,
+    "phase": "validation",
+    "club": "Rögle BK",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9534224
+  },
+  {
+    "id": 234,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9553255
+  },
+  {
+    "id": 235,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9572286
+  },
+  {
+    "id": 236,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9591317
+  },
+  {
+    "id": 237,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "diamond"
+    },
+    "seed": 9610348
+  },
+  {
+    "id": 238,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "patient",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "diamond"
+    },
+    "seed": 9629379
+  },
+  {
+    "id": 239,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "shoot",
+      "forecheck": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 9648410
+  },
+  {
+    "id": 240,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "umbrella",
+      "pk": "box"
+    },
+    "seed": 9667441
+  },
+  {
+    "id": 241,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "patient",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "patient",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "box"
+    },
+    "seed": 9686472
+  },
+  {
+    "id": 242,
+    "phase": "validation",
+    "club": "Örebro Hockey",
+    "scenario": "shoot",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "shoot",
+      "forecheck": "aggressive",
+      "tempo": "high"
+    },
+    "special": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "opposition": {
+      "pp": "131",
+      "pk": "box"
+    },
+    "seed": 9705503
+  },
+  {
+    "id": 243,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 11944692
+  },
+  {
+    "id": 244,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 11964629
+  },
+  {
+    "id": 245,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 11984566
+  },
+  {
+    "id": 246,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12004503
+  },
+  {
+    "id": 247,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12024440
+  },
+  {
+    "id": 248,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12044377
+  },
+  {
+    "id": 249,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12064314
+  },
+  {
+    "id": 250,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12084251
+  },
+  {
+    "id": 251,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12104188
+  },
+  {
+    "id": 252,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12124125
+  },
+  {
+    "id": 253,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12144062
+  },
+  {
+    "id": 254,
+    "phase": "train",
+    "purpose": "overloadDiamond",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 12163999
+  },
+  {
+    "id": 255,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13666796
+  },
+  {
+    "id": 256,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "HV71",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13684705
+  },
+  {
+    "id": 257,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13702614
+  },
+  {
+    "id": 258,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Leksands IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13720523
+  },
+  {
+    "id": 259,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13738432
+  },
+  {
+    "id": 260,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Brynäs IF",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13756341
+  },
+  {
+    "id": 261,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13774250
+  },
+  {
+    "id": 262,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Frölunda HC",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13792159
+  },
+  {
+    "id": 263,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13810068
+  },
+  {
+    "id": 264,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Timrå IK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13827977
+  },
+  {
+    "id": 265,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13845886
+  },
+  {
+    "id": 266,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Skellefteå AIK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13863795
+  },
+  {
+    "id": 267,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13881704
+  },
+  {
+    "id": 268,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Färjestad BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "control",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13899613
+  },
+  {
+    "id": 269,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13917522
+  },
+  {
+    "id": 270,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Rögle BK",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "counter",
+      "shotChoice": "balanced",
+      "tempo": "normal",
+      "forecheck": "balanced"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13935431
+  },
+  {
+    "id": 271,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "home",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13953340
+  },
+  {
+    "id": 272,
+    "phase": "validation",
+    "purpose": "targetedControl",
+    "club": "Örebro Hockey",
+    "scenario": "balanced",
+    "venue": "away",
+    "plan": {
+      "attackStyle": "pressure",
+      "shotChoice": "balanced",
+      "tempo": "high",
+      "forecheck": "aggressive"
+    },
+    "special": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "opposition": {
+      "pp": "overload",
+      "pk": "diamond"
+    },
+    "seed": 13971249
+  }
+]

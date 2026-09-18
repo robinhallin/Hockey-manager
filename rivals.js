@@ -319,7 +319,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   if(rebound)Object.assign(context,{d:3+rand()*3,angle:rand()*.6,rebound:true,oneTimer:false,lateralSpeed:0});
   const playerValues=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
   // Background coverage is estimated from pressure; live coverage is measured on ice.
-  const block=StudioHockey.shotBlockChance(context.pressure,{positioning:avg(defenders,['positioning']),workRate:avg(defenders,['workRate'])});
+  const block=StudioHockey.shotBlockChance(context.coverage??context.pressure,{positioning:avg(defenders,['positioning']),workRate:avg(defenders,['workRate'])});
   const model=StudioHockey.evaluateShot({block,shooter:playerValues(shooter,['shooting','puckControl','composure']),keeper:keeper?playerValues(keeper,['reflexes','positioning','composure','movement']):null,context});
   const event={side,seconds:time,playerId:shooter.id,player:shooter.name,powerPlay:pp,situation:pp?'pp':players.length<defenders.length?'pk':'even',probability:force?null:model.quality,context:{...context},estimatedContext:true,forced:force,energy:energy.get(shooter),onIce:players.map(p=>p.id),assists:[]};
   b.attempts++;
@@ -387,12 +387,18 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   const pkKeys=other.l.plan.pk==='diamond'?['skating','workRate','decisions']:['positioning','discipline','decisions'];
   const specialFit=pp?(avg(ice[side],ppKeys)-creation)-(avg(ice[1-side],pkKeys)-resistance):0;
   const familiarity=(rivalsClubState(names[side])?.familiarity||40)-(rivalsClubState(names[1-side])?.familiarity||40);
-  const opportunity=MatchWorld2.backgroundAttemptChance({creation,resistance,familiarity,specialFit,pp,pk:ice[side].length<ice[1-side].length,plan:b.l.plan});
-  let goal=false;if(rand()<opportunity)goal=attempt(side,ice);
+  const opportunity=MatchWorld2.backgroundAttemptRate({creation,resistance,familiarity,specialFit,pp,pk:ice[side].length<ice[1-side].length,plan:b.l.plan,opposition:other.l.plan});
+  let goal=false;
+  const count=MatchWorld2.backgroundAttemptCount(opportunity,rand);
+  for(let i=0;i<count;i++){
+   // A powerplay goal changes the next attempt's manpower immediately.
+   const scored=attempt(side,i?[onIce(0),onIce(1)]:ice);goal=goal||scored;
+   if(scored&&overtime)return true;
+  }
   for(let s=0;s<2;s++){
    sides[s].pens=sides[s].pens.map(p=>({...p,left:p.left-20})).filter(p=>p.left>0);
    const risk=avg(ice[s],['discipline']);
-   if(sides[s].pens.length<2&&ice[s].length&&rand()<.018*(1+(12-risk)/20)*(sides[s].l.plan.style==='pressure'?1.2:1)){
+   if(sides[s].pens.length<2&&ice[s].length&&rand()<.0112*(1+(12-risk)/20)*(sides[s].l.plan.style==='pressure'?1.2:1)){
     const p=ice[s][Math.floor(rand()*ice[s].length)];row(s,p).pim+=2;sides[s].pens.push({id:p.id,left:120});sides[1-s].pp++;
     MatchEventStream.emit(eventStream,'penalty',{side:s,seconds:time,playerId:p.id,player:p.name,minutes:2});
     MatchEventStream.emit(eventStream,'pp-start',{side:1-s,seconds:time});
@@ -403,12 +409,17 @@ function rivalSimulate(game,{regulationOnly=false}={}){
  for(let i=0;i<180;i++){if(i>0&&i%60===0)recover(180);tick();}
  if(!regulationOnly&&sides[0].goals===sides[1].goals){
   overtime=true;
-  for(let i=0;i<(game.seriesId?900:15)&&sides[0].goals===sides[1].goals;i++)tick();
+  for(let i=0;i<(game.seriesId?900:15)&&sides[0].goals===sides[1].goals;i++){if(game.seriesId&&i%60===0)recover(180);tick();}
   if(sides[0].goals===sides[1].goals){
-   const advantage=((sides[0].l.keeper?rating(sides[0].l.keeper):1)-(sides[1].l.keeper?rating(sides[1].l.keeper):1))*.01;
-   const winner=rand()<.5+advantage?0:1;
-   if(game.seriesId)attempt(winner,[onIce(0),onIce(1)],true);
-   else{shootout=true;sides[winner].goals++;eventStream.baseline.score[winner]++;MatchEventStream.emit(eventStream,'shootout-decider',{side:winner,seconds:time});}
+   if(game.seriesId){
+    // Continue actual sudden-death play; never fabricate a skater's deciding goal.
+    while(sides[0].goals===sides[1].goals){if(time%1200===0)recover(180);tick();}
+   }else{
+    const attributes=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
+    const result=StudioHockey.resolveShootout(sides.map(b=>({shooters:[...b.l.forwards,...b.l.defense,...b.l.extras].map(p=>({id:p.id,name:p.name,attributes:attributes(p,['shooting','puckControl','composure'])})),keeper:b.l.keeper?attributes(b.l.keeper,['reflexes','positioning','movement','composure']):null})),rand);
+    shootout=true;sides[result.winner].goals++;eventStream.baseline.score[result.winner]++;
+    MatchEventStream.emit(eventStream,'shootout-decider',{side:result.winner,seconds:time,score:result.score,attempts:result.attempts});
+   }
   }
  }
  return {eventStream,homeGoals:sides[0].goals,awayGoals:sides[1].goals,overtime,shootout,duration:time,

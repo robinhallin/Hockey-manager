@@ -1,0 +1,1662 @@
+{
+  "passed": true,
+  "method": "24 fresh-roster sudden-death 3v3 overtime samples; eight background seeds each. Test-only entry skips regulation; actual career and background overtime rules run. Both sides pooled, minutes end at decisive goal. Fatigue carryover is covered separately by readiness and full-game rules tests.",
+  "checks": {
+    "shots": true,
+    "quality": true
+  },
+  "totals": {
+    "live": {
+      "seconds": 4786.4999999986485,
+      "shots": 90,
+      "attempts": 177,
+      "xg": 8.956388431490199,
+      "goals": 13,
+      "shotsPer60": 33.84518959574757,
+      "xgPerAttempt": 0.05060106458469039
+    },
+    "background": {
+      "seconds": 49460,
+      "shots": 864,
+      "attempts": 1606,
+      "xg": 72.96555213258607,
+      "goals": 64,
+      "shotsPer60": 31.44359078042863,
+      "xgPerAttempt": 0.045433095972967664
+    }
+  },
+  "rows": [
+    {
+      "id": 0,
+      "live": {
+        "seconds": 300,
+        "shots": 8,
+        "attempts": 11,
+        "xg": 0.5061801837361953,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.47365664412442005,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.46536575287621307,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 11,
+          "xg": 0.46789593508606864,
+          "goals": 0
+        },
+        {
+          "seconds": 260,
+          "shots": 5,
+          "attempts": 12,
+          "xg": 0.4733169936765466,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 11,
+          "xg": 0.501185358562247,
+          "goals": 0
+        },
+        {
+          "seconds": 120,
+          "shots": 2,
+          "attempts": 3,
+          "xg": 0.10384569782627825,
+          "goals": 1
+        },
+        {
+          "seconds": 260,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.21199101327209463,
+          "goals": 1
+        },
+        {
+          "seconds": 40,
+          "shots": 1,
+          "attempts": 1,
+          "xg": 0.061100965885443455,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "live": {
+        "seconds": 300,
+        "shots": 0,
+        "attempts": 6,
+        "xg": 0.2905427212753562,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 7,
+          "xg": 0.34044707527025614,
+          "goals": 0
+        },
+        {
+          "seconds": 280,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.23261666177910975,
+          "goals": 1
+        },
+        {
+          "seconds": 180,
+          "shots": 3,
+          "attempts": 4,
+          "xg": 0.20409493612747437,
+          "goals": 1
+        },
+        {
+          "seconds": 120,
+          "shots": 3,
+          "attempts": 4,
+          "xg": 0.2324982937879619,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.34791973059307846,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.19284248611480181,
+          "goals": 0
+        },
+        {
+          "seconds": 140,
+          "shots": 1,
+          "attempts": 3,
+          "xg": 0.11043886113471545,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 11,
+          "attempts": 13,
+          "xg": 0.7515954106787754,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "live": {
+        "seconds": 300,
+        "shots": 3,
+        "attempts": 13,
+        "xg": 0.6678807664730135,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 13,
+          "xg": 0.6069682352237706,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 7,
+          "attempts": 8,
+          "xg": 0.5125337991275656,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 9,
+          "xg": 0.5190089551402554,
+          "goals": 0
+        },
+        {
+          "seconds": 280,
+          "shots": 5,
+          "attempts": 8,
+          "xg": 0.3381856188343412,
+          "goals": 1
+        },
+        {
+          "seconds": 120,
+          "shots": 4,
+          "attempts": 5,
+          "xg": 0.15925558465167483,
+          "goals": 1
+        },
+        {
+          "seconds": 140,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.35745780770689495,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 10,
+          "xg": 0.3888697832814566,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 14,
+          "xg": 0.6697711364925136,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "live": {
+        "seconds": 15.79999999998563,
+        "shots": 1,
+        "attempts": 1,
+        "xg": 0.02000842009780523,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 160,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.16889664469957397,
+          "goals": 1
+        },
+        {
+          "seconds": 60,
+          "shots": 1,
+          "attempts": 2,
+          "xg": 0.07953693021377534,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 11,
+          "attempts": 14,
+          "xg": 0.7552204439310621,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 8,
+          "xg": 0.2886608782401201,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 10,
+          "xg": 0.44069386811279143,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 13,
+          "xg": 0.5384339369643233,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.3329431983179271,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 13,
+          "xg": 0.3791975617298944,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "live": {
+        "seconds": 300,
+        "shots": 5,
+        "attempts": 12,
+        "xg": 0.6445371177594714,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.4616858789341425,
+          "goals": 0
+        },
+        {
+          "seconds": 40,
+          "shots": 1,
+          "attempts": 1,
+          "xg": 0.06566935837481377,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 6,
+          "xg": 0.2844500431414869,
+          "goals": 0
+        },
+        {
+          "seconds": 80,
+          "shots": 5,
+          "attempts": 5,
+          "xg": 0.28155880331962546,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.3419464403664443,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 7,
+          "xg": 0.32451870473038447,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.3635547538882228,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.14825632822264107,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "live": {
+        "seconds": 300,
+        "shots": 9,
+        "attempts": 17,
+        "xg": 0.6319241795191315,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 16,
+          "xg": 0.5894552827966668,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 14,
+          "xg": 0.40259970778263265,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 9,
+          "attempts": 16,
+          "xg": 0.5625750333840065,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 10,
+          "attempts": 16,
+          "xg": 0.6239241505094987,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 11,
+          "attempts": 15,
+          "xg": 0.6944592285006151,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 11,
+          "attempts": 17,
+          "xg": 0.6552789508071586,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 9,
+          "attempts": 18,
+          "xg": 0.6689214037192908,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 14,
+          "attempts": 17,
+          "xg": 0.8898529291428801,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "live": {
+        "seconds": 300,
+        "shots": 5,
+        "attempts": 9,
+        "xg": 0.4194193218083064,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.6091552347265343,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 12,
+          "xg": 0.4576975239774366,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.4793476745103331,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.4139728783209107,
+          "goals": 0
+        },
+        {
+          "seconds": 180,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.20343991017701873,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.526656527303519,
+          "goals": 0
+        },
+        {
+          "seconds": 20,
+          "shots": 1,
+          "attempts": 1,
+          "xg": 0.023263402250877096,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 14,
+          "xg": 0.7294335557039084,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "live": {
+        "seconds": 300,
+        "shots": 4,
+        "attempts": 8,
+        "xg": 0.29852504322969864,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 180,
+          "shots": 3,
+          "attempts": 6,
+          "xg": 0.2802322587449841,
+          "goals": 1
+        },
+        {
+          "seconds": 40,
+          "shots": 1,
+          "attempts": 2,
+          "xg": 0.09418520145451453,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.25356954446210733,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.29889703614802937,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 12,
+          "xg": 0.5905600711205372,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 11,
+          "xg": 0.35968044894071094,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 11,
+          "xg": 0.38921506842112374,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 13,
+          "xg": 0.5675146285306769,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "live": {
+        "seconds": 64.49999999994134,
+        "shots": 6,
+        "attempts": 8,
+        "xg": 0.3793063790625992,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 10,
+          "xg": 0.3620850795787079,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 11,
+          "attempts": 15,
+          "xg": 0.700323266240344,
+          "goals": 0
+        },
+        {
+          "seconds": 40,
+          "shots": 1,
+          "attempts": 1,
+          "xg": 0.033004889254094734,
+          "goals": 1
+        },
+        {
+          "seconds": 140,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.5367465138531895,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 11,
+          "xg": 0.30631080456044213,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 11,
+          "xg": 0.42543808805379385,
+          "goals": 0
+        },
+        {
+          "seconds": 100,
+          "shots": 4,
+          "attempts": 4,
+          "xg": 0.1986542064000948,
+          "goals": 1
+        },
+        {
+          "seconds": 220,
+          "shots": 5,
+          "attempts": 9,
+          "xg": 0.44500876188438976,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "live": {
+        "seconds": 191.0999999998262,
+        "shots": 7,
+        "attempts": 8,
+        "xg": 0.4842947291931379,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.4481351863108599,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.3050685167586765,
+          "goals": 0
+        },
+        {
+          "seconds": 220,
+          "shots": 1,
+          "attempts": 4,
+          "xg": 0.2904194128787273,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.29841322758154226,
+          "goals": 0
+        },
+        {
+          "seconds": 280,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.3435847932450077,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 11,
+          "xg": 0.6963582284596934,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.44669565708858094,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 6,
+          "xg": 0.3595168335679848,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "live": {
+        "seconds": 300,
+        "shots": 5,
+        "attempts": 9,
+        "xg": 0.6481499824090107,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 280,
+          "shots": 4,
+          "attempts": 5,
+          "xg": 0.2917031633934307,
+          "goals": 1
+        },
+        {
+          "seconds": 60,
+          "shots": 1,
+          "attempts": 1,
+          "xg": 0.07025758111072208,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 0,
+          "attempts": 3,
+          "xg": 0.1454447612192064,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 3,
+          "xg": 0.1928772029734369,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 5,
+          "xg": 0.28536038823706805,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 3,
+          "xg": 0.14639164845150268,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.7136116604335654,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.283811964018303,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "live": {
+        "seconds": 147.0999999998662,
+        "shots": 5,
+        "attempts": 11,
+        "xg": 0.5834031203286147,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 100,
+          "shots": 2,
+          "attempts": 4,
+          "xg": 0.1638390426186873,
+          "goals": 1
+        },
+        {
+          "seconds": 60,
+          "shots": 1,
+          "attempts": 2,
+          "xg": 0.0406124540885718,
+          "goals": 1
+        },
+        {
+          "seconds": 120,
+          "shots": 3,
+          "attempts": 6,
+          "xg": 0.3211398790024036,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 11,
+          "xg": 0.4668764502566612,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.3649323056386035,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 7,
+          "xg": 0.3166258492545105,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 6,
+          "attempts": 11,
+          "xg": 0.4672381403656134,
+          "goals": 1
+        },
+        {
+          "seconds": 280,
+          "shots": 7,
+          "attempts": 8,
+          "xg": 0.32067446576883285,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "live": {
+        "seconds": 142.19999999987067,
+        "shots": 3,
+        "attempts": 5,
+        "xg": 0.33255118678340867,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 11,
+          "xg": 0.5639815496624702,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 1,
+          "attempts": 5,
+          "xg": 0.17280637978266444,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 5,
+          "xg": 0.26496121763772973,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 11,
+          "xg": 0.598569984805035,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 5,
+          "attempts": 7,
+          "xg": 0.37735697760467746,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 7,
+          "xg": 0.4097370421266895,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 12,
+          "xg": 0.7418256647725848,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 8,
+          "xg": 0.55813696276882,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "live": {
+        "seconds": 11.099999999989905,
+        "shots": 1,
+        "attempts": 1,
+        "xg": 0.026314252522685433,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.4547915508630077,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.4481622796305315,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 1,
+          "attempts": 7,
+          "xg": 0.3721718425936535,
+          "goals": 0
+        },
+        {
+          "seconds": 220,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.2650527819257743,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.3898058028804371,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.3210469554747637,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.6594080360643702,
+          "goals": 0
+        },
+        {
+          "seconds": 80,
+          "shots": 2,
+          "attempts": 3,
+          "xg": 0.13687558125438176,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "live": {
+        "seconds": 132.99999999987904,
+        "shots": 5,
+        "attempts": 5,
+        "xg": 0.22441551121171435,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 100,
+          "shots": 1,
+          "attempts": 4,
+          "xg": 0.1425224732037486,
+          "goals": 1
+        },
+        {
+          "seconds": 40,
+          "shots": 2,
+          "attempts": 3,
+          "xg": 0.0610756548654194,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.3092662453515788,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.37178916522199584,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 14,
+          "xg": 0.542648266472364,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 12,
+          "xg": 0.3451855262532705,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 14,
+          "xg": 0.6566067481065702,
+          "goals": 0
+        },
+        {
+          "seconds": 160,
+          "shots": 3,
+          "attempts": 6,
+          "xg": 0.220436218127698,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "live": {
+        "seconds": 182.09999999983438,
+        "shots": 2,
+        "attempts": 4,
+        "xg": 0.1990719286467767,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 9,
+          "xg": 0.36666952720777146,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 8,
+          "xg": 0.4370147030510623,
+          "goals": 0
+        },
+        {
+          "seconds": 240,
+          "shots": 4,
+          "attempts": 9,
+          "xg": 0.46015457253592157,
+          "goals": 1
+        },
+        {
+          "seconds": 200,
+          "shots": 6,
+          "attempts": 8,
+          "xg": 0.4550263374479366,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 4,
+          "xg": 0.1282647056849599,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 12,
+          "xg": 0.7870463670800273,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 10,
+          "xg": 0.5055065442558052,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.19324011498630897,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "live": {
+        "seconds": 229.09999999979163,
+        "shots": 2,
+        "attempts": 5,
+        "xg": 0.282472841651264,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 1,
+          "attempts": 4,
+          "xg": 0.21121640726673113,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 7,
+          "xg": 0.49953924258004395,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 1,
+          "attempts": 7,
+          "xg": 0.341788380552691,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 9,
+          "xg": 0.4119548033561331,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 7,
+          "xg": 0.39235245170985117,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 4,
+          "xg": 0.18313785973985586,
+          "goals": 0
+        },
+        {
+          "seconds": 180,
+          "shots": 3,
+          "attempts": 5,
+          "xg": 0.4295967194144174,
+          "goals": 1
+        },
+        {
+          "seconds": 100,
+          "shots": 2,
+          "attempts": 2,
+          "xg": 0.11691808335669701,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "live": {
+        "seconds": 165.39999999984957,
+        "shots": 2,
+        "attempts": 10,
+        "xg": 0.3271395038261041,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 280,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.3484839577743358,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 11,
+          "xg": 0.3297036321466028,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 11,
+          "xg": 0.5056903306395337,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 9,
+          "xg": 0.23652083363043508,
+          "goals": 0
+        },
+        {
+          "seconds": 260,
+          "shots": 7,
+          "attempts": 11,
+          "xg": 0.3592419329120416,
+          "goals": 1
+        },
+        {
+          "seconds": 260,
+          "shots": 8,
+          "attempts": 12,
+          "xg": 0.41683978459713966,
+          "goals": 1
+        },
+        {
+          "seconds": 220,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.4333748411231484,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 9,
+          "xg": 0.323206970093726,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "live": {
+        "seconds": 141.79999999987103,
+        "shots": 3,
+        "attempts": 6,
+        "xg": 0.1908466943001968,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.399743436664306,
+          "goals": 0
+        },
+        {
+          "seconds": 260,
+          "shots": 2,
+          "attempts": 6,
+          "xg": 0.26558147853342257,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 9,
+          "xg": 0.4266579219680013,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.30085360630689645,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 4,
+          "xg": 0.1692718614911777,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 1,
+          "attempts": 5,
+          "xg": 0.25927922979696544,
+          "goals": 0
+        },
+        {
+          "seconds": 120,
+          "shots": 1,
+          "attempts": 2,
+          "xg": 0.12935862318330713,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 11,
+          "xg": 0.4551351061702059,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "live": {
+        "seconds": 300,
+        "shots": 2,
+        "attempts": 7,
+        "xg": 0.45403009927899096,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 160,
+          "shots": 2,
+          "attempts": 5,
+          "xg": 0.28469381124635623,
+          "goals": 1
+        },
+        {
+          "seconds": 100,
+          "shots": 4,
+          "attempts": 5,
+          "xg": 0.42899188038125563,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 6,
+          "xg": 0.2857465436011133,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.46159531069742743,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 4,
+          "xg": 0.19653401560941486,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 3,
+          "xg": 0.1455677880831787,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 7,
+          "xg": 0.23103721596368626,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.5292271872192909,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "live": {
+        "seconds": 300,
+        "shots": 4,
+        "attempts": 7,
+        "xg": 0.41100770774354245,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 10,
+          "xg": 0.3988876860404532,
+          "goals": 0
+        },
+        {
+          "seconds": 60,
+          "shots": 1,
+          "attempts": 3,
+          "xg": 0.10283685065271678,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 7,
+          "xg": 0.33910477715839915,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.3412897343155086,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 14,
+          "xg": 0.38761119391371923,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.5584132309473084,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 9,
+          "xg": 0.34660006535196375,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.3830454264115849,
+          "goals": 0
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "live": {
+        "seconds": 26.599999999975807,
+        "shots": 1,
+        "attempts": 1,
+        "xg": 0.05998003292366804,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 280,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.52857521267556,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.4090570420388745,
+          "goals": 0
+        },
+        {
+          "seconds": 260,
+          "shots": 6,
+          "attempts": 8,
+          "xg": 0.2614047774280429,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 6,
+          "attempts": 12,
+          "xg": 0.7085933635901525,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 13,
+          "xg": 0.6503719465489117,
+          "goals": 0
+        },
+        {
+          "seconds": 280,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.3540040190070635,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 2,
+          "attempts": 6,
+          "xg": 0.3358530192300485,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 3,
+          "attempts": 8,
+          "xg": 0.3060689400401738,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "live": {
+        "seconds": 300,
+        "shots": 6,
+        "attempts": 10,
+        "xg": 0.7291558561239551,
+        "goals": 0
+      },
+      "background": [
+        {
+          "seconds": 200,
+          "shots": 3,
+          "attempts": 6,
+          "xg": 0.3964774707812966,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 11,
+          "xg": 0.521723297606235,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 10,
+          "xg": 0.5265168848459999,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 9,
+          "xg": 0.5205359485775408,
+          "goals": 0
+        },
+        {
+          "seconds": 200,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.37886005669664585,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 11,
+          "xg": 0.5463765280043762,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.43336277108313515,
+          "goals": 0
+        },
+        {
+          "seconds": 140,
+          "shots": 4,
+          "attempts": 6,
+          "xg": 0.2903829613855946,
+          "goals": 1
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "live": {
+        "seconds": 36.69999999996662,
+        "shots": 1,
+        "attempts": 3,
+        "xg": 0.1452308515855512,
+        "goals": 1
+      },
+      "background": [
+        {
+          "seconds": 300,
+          "shots": 4,
+          "attempts": 8,
+          "xg": 0.26474582993036533,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 10,
+          "attempts": 14,
+          "xg": 0.440219204485733,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 12,
+          "attempts": 18,
+          "xg": 0.5903012018876528,
+          "goals": 0
+        },
+        {
+          "seconds": 160,
+          "shots": 7,
+          "attempts": 9,
+          "xg": 0.36905718126727666,
+          "goals": 1
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 14,
+          "xg": 0.547531298386193,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 7,
+          "attempts": 15,
+          "xg": 0.5209524827489205,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 8,
+          "attempts": 11,
+          "xg": 0.3466174895932238,
+          "goals": 0
+        },
+        {
+          "seconds": 300,
+          "shots": 5,
+          "attempts": 15,
+          "xg": 0.5050546280215735,
+          "goals": 0
+        }
+      ]
+    }
+  ]
+}

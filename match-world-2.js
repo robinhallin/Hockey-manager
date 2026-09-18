@@ -29,17 +29,22 @@ const MatchWorld2=(()=>{
   return {volume:(choice==='shoot'?1.12:choice==='patient'?.88:1)*(posture==='attack'?1.06:posture==='defense'?.94:1),
    patience:choice==='patient'?1:choice==='shoot'?-1:0,risk:posture==='attack'?1:posture==='defense'?-1:0};
  }
- // Coarse attack opportunities use the same tactical shot utility as the rink.
- // These are attempt rates: targeting and blocking are resolved afterwards.
- function backgroundAttemptChance({creation=10,resistance=10,familiarity=0,specialFit=0,pp=false,pk=false,plan={}}={}){
+ // Expected primary attempts per selected 20-second possession. Values may
+ // exceed one in powerplay; a probability ceiling would suppress that phase.
+ function backgroundAttemptRate({creation=10,resistance=10,familiarity=0,specialFit=0,pp=false,pk=false,plan={},opposition={}}={}){
+  const style=['control','counter','pressure'].includes(plan.style)?plan.style:'control';
+  const choice=['patient','shoot'].includes(plan.shotChoice)?plan.shotChoice:'balanced';
+  const ppKey='pp:'+(['umbrella','overload'].includes(plan.pp)?plan.pp:'131')+':'+(opposition.pk==='diamond'?'diamond':'box');
+  const key=pp?ppKey:pk?style+':pk':style+':'+choice;
+  const selectedTicks=180*(pp?.57:pk?.43:.5);
   const tempo=plan.tempo==='high'?1.12:plan.tempo==='low'?.91:1;
-  const bias=StudioHockey.shotTacticalBias(plan);
-  // A short-handed recovery usually clears the zone rather than starting a
-  // full attack. Estimate the surviving counter from transition skill; safe
-  // instructions surrender more of those recoveries to get the unit off ice.
-  const counter=pk?clamp(.35+(creation-resistance)*.015,.18,.55)*(plan.counter==='safe'?.45:1):1;
-  return clamp((.44+bias*3+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo+(pp?.1:0),.12,.85)*(1+tacticalIntent(plan).risk*.06)*counter;
+  const referenceTempo=pp?tempo:style==='pressure'&&!pk?1.12:1;
+  const counter=pk?(plan.counter==='safe'?.45:1)*(choice==='patient'?.7:choice==='shoot'?1.3:1):1;
+  const ppUtility=pp?(AI_CALIBRATION.ppModifiers?.style[style]??1)*(AI_CALIBRATION.ppModifiers?.shotChoice[choice]??1):1;
+  const base=AI_CALIBRATION.attemptsPer60[key]*ppUtility/selectedTicks/(pp?1.10:1.025);
+  return clamp((base+(creation-resistance)*.012+familiarity*.0005+specialFit*.008)*tempo/referenceTempo*(1+tacticalIntent(plan).risk*.06)*counter,.005,2.5);
  }
+ function backgroundAttemptCount(rate,rand){const bounded=clamp(Number.isFinite(rate)?rate:0,0,2.5);return Math.floor(bounded)+(rand()<bounded%1?1:0);}
  function profileFromAttributes(attrs,plan={},count=5,goalie=null){
   const a={...Object.fromEntries(KEYS.map(key=>[key,value(attrs,key)]))};
   return {version:2,count,attrs:a,control:controlScore(a),attack:attackScore(a),defense:defenseScore(a),transition:transitionScore(a),discipline:a.discipline,
@@ -115,25 +120,23 @@ const MatchWorld2=(()=>{
   return decisionValues(attackAttributes||pseudo,plan,context);
  }
  function backgroundShotContext(args,rand){
-  const {creation,resistance,shooterPosition,pp,plan={},opposition={}}=args;
+  const {creation=10,resistance=10,pp=false,pk=false,plan={},opposition={}}=args;
   const attack=args.attackAttributes,defense=args.defenseAttributes;
-  const edge=clamp((attack&&defense?controlScore(attack)-defenseScore(defense):creation-resistance)/20,-.5,.5),choices=backgroundDecisionProfile(args),counter=plan.style==='counter'&&opposition.forecheck==='aggressive';
-  const attackPseudo={passing:creation,vision:creation,puckControl:creation,decisions:creation,shooting:creation,workRate:creation,positioning:creation,discipline:creation,skating:creation};
-  const defendPseudo={passing:resistance,vision:resistance,puckControl:resistance,decisions:resistance,shooting:resistance,workRate:resistance,positioning:resistance,discipline:resistance,skating:resistance};
-  const special=pp?specialTeamsEdge(attack||attackPseudo,defense||defendPseudo,plan.pp||'131',opposition.pk||'box'):0;
-  const intent=tacticalIntent(plan);
-  const closeChance=clamp(.30+intent.patience*.045+edge*.4+(pp?.085:0)+(counter?.12:0)+(choices.carry+choices.pass-choices.dump)*.65+special*.35,.1,.65);
-  const close=rand()<closeChance;
-  const d=close?3+rand()*6:(shooterPosition==='B'?15:9)+rand()*9;
-  const angle=rand()*(close?.65:1.05);
-  const pressure=clamp(.42-edge*.4-(pp?.12:0)-(counter?.12:0)-tacticalIntent(opposition).risk*.025+(opposition.forecheck==='aggressive'&&!counter?.08:0)-choices.shield*.35-special*.25,.08,.85);
-  const screen=clamp((plan.style==='pressure'?.38:.20)+(pp?.10:0)+choices.shoot*.15+special*.20,0,1);
-  // A completed passing combination can create a first-time finish. It uses
-  // the actual unit's passing/vision, not a fabricated all-round player.
+  const style=['control','counter','pressure'].includes(plan.style)?plan.style:'control';
+  const choice=['patient','shoot'].includes(plan.shotChoice)?plan.shotChoice:'balanced';
+  const ppKey='pp:'+(['umbrella','overload'].includes(plan.pp)?plan.pp:'131')+':'+(opposition.pk==='diamond'?'diamond':'box');
+  const group=AI_CALIBRATION.geometry[pp?ppKey:pk?'pk':style+':'+choice];
+  const row=group.bins[Math.min(group.bins.length-1,Math.floor(rand()*group.bins.length))];
+  const edge=clamp((attack&&defense?controlScore(attack)-defenseScore(defense):creation-resistance)/20,-.5,.5);
+  const special=pp&&attack&&defense?specialTeamsEdge(attack,defense,plan.pp||'131',opposition.pk||'box'):0;
+  const counter=style==='counter'&&opposition.forecheck==='aggressive';
+  const d=clamp(row[0]+(pp?.65:pk?1:0)-edge*2-special*4-(counter?.4:0),1,35);
+  const pressure=clamp(row[2]-edge*.2-special*.25-(counter?.025:0),0,1);
+  const screen=clamp(row[3]+special*.2,0,1);
   const passing=attack?(value(attack,'passing')+value(attack,'vision'))/2:creation;
   const defending=defense?(value(defense,'positioning')+value(defense,'decisions'))/2:resistance;
-  const oneTimer=Boolean(attack&&defense&&rand()<clamp(.08+(pp?.07:0)+(passing-defending)*.006, .02,.24));
-  return {d,angle,pressure,screen,oneTimer,rebound:false,behind:false,lateralSpeed:oneTimer?1.5:0};
+  const oneTimer=rand()<clamp(.008+(passing-defending)*.002,0,.04);
+  return {d,angle:clamp(row[1]+(pk?.1:0),0,Math.PI/2),pressure,screen,oneTimer,rebound:false,behind:false,lateralSpeed:row[4],coverage:clamp(row[5]/.28,0,1)};
  }
  function liveProfiles(match){
   if(!match)return null;
@@ -172,7 +175,7 @@ const MatchWorld2=(()=>{
   const profiles=liveProfiles(match);if(!profiles)return null;
   return {version:2,decisionVersion:1,specialTeamsVersion:1,profiles:profiles.map(p=>({count:p.count,control:+p.control.toFixed(2),attack:+p.attack.toFixed(2),defense:+p.defense.toFixed(2),transition:+p.transition.toFixed(2),discipline:+p.discipline.toFixed(2),plan:p.plan})),initiative:[+liveInitiative(match,0).toFixed(4),+liveInitiative(match,1).toFixed(4)],energy:[+liveTeamEnergy(match,0).toFixed(1),+liveTeamEnergy(match,1).toFixed(1)]};
  }
- return {version:2,decisionVersion:1,specialTeamsVersion:1,KEYS,ACTIONS,backgroundAttemptChance,livePlan,tacticalIntent,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,specialUnitScore,shiftTarget,specialTeamsEdge,specialDecisionBias,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveTeamEnergy,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
+ return {version:2,decisionVersion:1,specialTeamsVersion:1,KEYS,ACTIONS,backgroundAttemptRate,backgroundAttemptCount,livePlan,tacticalIntent,attributes,controlScore,attackScore,defenseScore,transitionScore,profileFromAttributes,initiativeChance,decisionValues,specialUnitScore,shiftTarget,specialTeamsEdge,specialDecisionBias,backgroundDecisionProfile,backgroundShotContext,liveProfiles,liveTeamEnergy,liveInitiative,liveDecisionContext,liveDecisionValues,describe};
 })();
 
 if(typeof rivalInitiativeChance==='function')rivalInitiativeChance=function(home,away,homePlan,awayPlan,homeCount=5,awayCount=5){return MatchWorld2.initiativeChance(home,away,homePlan,awayPlan,homeCount,awayCount);};
