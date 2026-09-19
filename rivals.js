@@ -125,6 +125,7 @@ function rivalsDay(){
   c.familiarity=Math.min(85,c.familiarity+1);
   if(!fixture){const l=rivalLineup(club);dynamicsTrain(club,[...l.lines.map(ps=>ps.filter(p=>p.fatigue<55&&medicalCanTrain(p)).map(p=>p.id)),...[0,1,2].map(i=>l.defense.slice(i*2,i*2+2).filter(p=>p.fatigue<55&&medicalCanTrain(p)).map(p=>p.id))],'tactics',today);}
   for(const p of state.clubRosters[club]||[]){
+   if(internationalAway(p,today))continue;
    if(fixture){p.fatigue=Math.max(0,(p.fatigue||0)-12);continue;}
    if(p.health?.injury){p.fatigue=Math.max(0,(p.fatigue||0)-25);continue;}
    const session={type:tomorrow?'matchprep':'skills',intensity:'normal'},load=p.fatigue>=55?'rest':'normal';

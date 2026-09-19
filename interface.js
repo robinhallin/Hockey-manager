@@ -9,7 +9,7 @@ const DESK_AREAS = [
   {id:'matches',label:'Matcher',icon:'calendar',pages:[['calendar','Kalender'],['match','Matchcenter'],['opponents','Motståndsrapport'],['statistics','Matchanalys']],details:{schedule:'calendar',round:'calendar'}},
   {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Rekrytering']],details:{marketPlayer:'transfers',scouting:'transfers'}},
   {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
-  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
+  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['international','Landslag & JVM'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
 ];
 const DESK_RECRUIT_TABS = [['needs','Planering'],['search','Spelare'],['missions','Scouting'],['shortlist','Önskelista'],['deals','Affärer']];
 const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];

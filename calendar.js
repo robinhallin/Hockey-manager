@@ -57,8 +57,9 @@ function calendarMarketDay(){
 }
 function calendarStep(recovered=false){
  const c=state.calendar;if(!c)return;
- if(!recovered){medicalDay();managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
- c.date=calAdd(c.date,1);trainingReturnDay();for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();
+ internationalProcess(c.date);
+ if(!recovered){medicalDay();managerRoster().filter(p=>!internationalAway(p)).forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
+ c.date=calAdd(c.date,1);trainingReturnDay();for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();internationalPrepare();
 }
 function calendarToMatch(){
  ensureCalendar();if(state.calendar.active)return true;
@@ -77,7 +78,7 @@ function calendarContinue(){
  const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
  const c=state.calendar,start=c.date;
  if(c.completedMatchDate===c.date){
-  managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));calendarStep(true);delete c.completedMatchDate;state.live=null;
+  managerRoster().filter(p=>!internationalAway(p)).forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));calendarStep(true);delete c.completedMatchDate;state.live=null;
   state.training.calendarKey=null;state.training.day=0;state.training.logs=[];
  }else{
   if(state.season.phase==='review'){state.page='season';save();render();return;}

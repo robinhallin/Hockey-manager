@@ -6,12 +6,12 @@ function ensureMedical(){
  for(const roster of [...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[],state.juniors?.roster||[],aiAcademyPlayers()])for(const p of roster)if(!p.health)p.health={load:0,injury:null,clearance:'rest'};
 }
 function medicalRoll(){const s=state.medical;s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
-function medicalReady(p){return Boolean(p&&(!p.health?.injury||(p.health.injury.remaining===0&&p.health.clearance!=='rest')));}
+function medicalReady(p){return Boolean(p&&!internationalAway(p)&&(!p.health?.injury||(p.health.injury.remaining===0&&p.health.clearance!=='rest')));}
 function medicalLimit(p){return p.health?.injury&&p.health.clearance==='limited'?(p.pos==='MV'?1800:600):Infinity;}
 function medicalAvailable(p){return medicalReady(p)&&depthEligible(p)&&(!state.live||state.live.finished||(state.live.iceTime?.[p.id]||0)<medicalLimit(p));}
-function medicalCanTrain(p){return !p.health?.injury;}
-function medicalExcused(p,required=900){return Boolean(p.health?.injury||state.live?.medicalInjured?.includes(String(p.id)))&&(state.live?.iceTime?.[p.id]||0)<required;}
-function medicalStatus(p){const i=p.health?.injury;if(!i)return 'Spelklar';return i.remaining>2?'Skadad':i.remaining>0?'Rehabilitering':p.health.clearance==='rest'?'Återgångsträning':p.health.clearance==='limited'?'Begränsad comeback':'Full comeback · förhöjd risk';}
+function medicalCanTrain(p){return !internationalAway(p)&&!p.health?.injury;}
+function medicalExcused(p,required=900){return internationalAway(p)||Boolean(p.health?.injury||state.live?.medicalInjured?.includes(String(p.id)))&&(state.live?.iceTime?.[p.id]||0)<required;}
+function medicalStatus(p){if(internationalAway(p))return 'På landslagsuppdrag';const i=p.health?.injury;if(!i)return 'Spelklar';return i.remaining>2?'Skadad':i.remaining>0?'Rehabilitering':p.health.clearance==='rest'?'Återgångsträning':p.health.clearance==='limited'?'Begränsad comeback':'Full comeback · förhöjd risk';}
 function medicalRisk(p,hard=false){const h=p.health||{load:0};return 1+(p.fatigue||0)/45+h.load/60+(hard?1:0)+(h.injury?(h.clearance==='full'?4:2):0);}
 function medicalRiskLabel(p){const r=medicalRisk(p);return r>=4?'Hög':r>=2.5?'Förhöjd':'Normal';}
 function medicalReport(title,body){const s=state.medical;s.history.unshift({id:s.nextId++,day:s.day,title,body});s.history=s.history.slice(0,70);managerMessage(`medical:${s.nextId}`,title,body,'Medicinskt team',{link:'medical'});}
@@ -31,6 +31,7 @@ function injurePlayer(p,source='match',days=null){
 function medicalDay(session=null){
  ensureMedical();const s=state.medical;ensureClub();s.day++;
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[]),...(state.juniors?.roster||[]),...aiAcademyPlayers()]){
+   if(internationalAway(p))continue;
    const h=p.health;
    if(!isOwnPlayer(p)){h.load*=.8;if(h.injury){if(h.injury.remaining>0)h.injury.remaining--;else{h.injury.readiness=Math.min(100,h.injury.readiness+15);if(h.injury.readiness===100){h.injury=null;h.clearance='rest';}}}continue;}
    const exposure=session?trainingSessionEffect(p,session):{rest:true,hard:false};

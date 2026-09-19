@@ -30,7 +30,8 @@ function relationshipTalk(p,topic,delta,text){
  const recent=profile.talks.filter(t=>b.turn-t.turn<=8),repeat=recent.filter(t=>t.topic===topic).length;
  if(delta>0&&repeat){delta=Math.max(0,delta-repeat*2);text+=' Samma budskap har återkommit. Spelaren vill se handling; effekten av orden avtar.';}
  if(topic==='bench'&&delta>0&&p.social.ambition>=14&&p.social.missed>=2){delta=0;text+=' Ambitionen och den återkommande bristen på istid gör att förklaringen inte räcker.';}
- if(topic==='bench'&&!medicalReady(p)){delta=0;text='Den medicinska frånvaron behöver hanteras som återhämtning, inte som konkurrens om platsen. Ingen förtroendebelöning för att förklara frånvaron som en petning.';}
+ if(topic==='bench'&&internationalAway(p)){delta=0;text='Landslagsuppdraget är en giltig frånvaro. Vi följer upp din roll när du är hemma.';}
+ else if(topic==='bench'&&!medicalReady(p)){delta=0;text='Den medicinska frånvaron behöver hanteras som återhämtning, inte som konkurrens om platsen. Ingen förtroendebelöning för att förklara frånvaron som en petning.';}
  if(delta>0&&profile.publicMisses>=2){delta=Math.min(delta,1);text+=' Tidigare brutna offentliga besked gör spelaren försiktig med nya ord.';}
  profile.talks.push({topic,turn:b.turn,date:state.calendar?.date,delta,text});profile.talks=profile.talks.slice(-12);
  return {delta,text};

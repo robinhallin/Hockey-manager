@@ -94,6 +94,7 @@ function juniorMentor(p){const m=managerRoster().find(q=>samePlayerId(q.id,p.aca
 function juniorTraining(session,key){
  ensureJuniors();const s=state.juniors;if(s.trainingKeys.includes(key))return;s.trainingKeys.push(key);s.trainingKeys=s.trainingKeys.slice(-240);
  for(const p of juniorPlayers()){
+  if(internationalAway(p))continue;
   const a=p.academy;a.observations=Math.min(100,a.observations+1);
   if(isOwnPlayer(p)){
    const mentor=juniorMentor(p);if(mentor&&session.type!=='recovery'&&medicalCanTrain(p)&&p.trainingLoad!=='rest'){juniorGrow(p,1.2*(mentor.social?.leadership||10)/10,p.pos==='MV'?'composure':'workRate');p.morale=Math.min(85,p.morale+.3);}continue;
@@ -108,6 +109,7 @@ function juniorTraining(session,key){
  }
 }
 function juniorAppearance(p,seconds,level,opponent){
+ if(internationalAway(p))return {id:p.id,name:p.name,seconds:0,goals:0,assists:0};
  const a=p.academy;seconds=Math.max(0,Math.min(seconds,medicalLimit(p)));if(!medicalReady(p))seconds=0;
  const skill=attributeWeighted(p.attributes,PLAYER_ROLES[a.role]),challenge=Math.max(.25,1-Math.abs(skill-level)/12);
  const goals=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/4000?1:0,assists=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/3000?1:0;
@@ -160,6 +162,7 @@ function juniorAssessment(p){
  return {staff,current:starRatingHTML(stars(value-error),stars(value+error),false,staff.name),potential:starRatingHTML(stars(future-potError),stars(future+potError),true,staff.name),confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};
 }
 function juniorAdvice(p){
+ if(internationalAway(p))return `På JVM-uppdrag med ${INT_NATIONS[p.internationalDuty.nation]}. Tillbaka ${calText(p.internationalDuty.until)}; klubbträningen är pausad.`;
  const a=p.academy,changes=Object.keys(p.attributes).filter(k=>p.attributes[k]>(a.baseline[k]||0)),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
  const trend=changes.length?`Framsteg i ${changes.map(k=>labels[k].toLowerCase()).join(', ')}.`:'Inga hela attributsteg ännu; utveckling tar tid.';
  if(!medicalCanTrain(p))return `Rehabilitering går före utvecklingsplanen. ${trend}`;

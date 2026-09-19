@@ -1,0 +1,11 @@
+.international-page .mw-heading{align-items:flex-start;flex-wrap:wrap}
+.international-page .mw-heading>div{flex:1;min-width:260px}
+.international-page .mw-heading>div>p{color:var(--ui-muted);font-size:12px;line-height:1.6;max-width:70ch}
+.international-page .mw-heading>label{display:grid;gap:6px;min-width:180px;font-size:12px;color:var(--ui-muted)}
+.international-page .mw-panel>details{padding:0 2px;border-bottom:1px solid var(--ui-border)}
+.international-page .mw-panel>details>summary{cursor:pointer;padding:12px 0;font-size:13px;line-height:1.5}
+.international-page .international-candidate[open]{padding-bottom:14px}
+.international-page .international-candidate[open]>summary{color:var(--ui-text);font-weight:600}
+.international-page .international-candidate p{max-width:90ch}
+.international-page .mw-panel>.btn{margin:12px 8px 0 0}
+.international-page .mw-scroll{max-height:560px}

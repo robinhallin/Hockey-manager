@@ -245,6 +245,7 @@ function aiAcademyDay(club){
  const match=calGap(a.lastMatch,state.calendar.date)>=7;if(match)a.lastMatch=state.calendar.date;
  const coach=rivalsClubState(club)?.coach.coaching||12;
  for(const p of a.roster){
+  if(internationalAway(p))continue;
   p.fatigue=Math.max(0,(p.fatigue||0)-8);if(!medicalCanTrain(p))continue;
   const weights=PLAYER_ROLES[p.academy.role]||PLAYER_ROLES[juniorRoles(p)[0]],keys=Object.keys(weights);
   const key=keys[(p.academy.cursor||0)%keys.length];p.academy.cursor=(p.academy.cursor||0)+1;
