@@ -26,3 +26,4 @@
 .nas-series{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:8px 24px}
 .nas-highlight{background:var(--ui-panel)}
 .nas-champion{color:var(--ui-accent)!important;font-weight:700}
+.nar-search{display:flex;align-items:end;gap:12px;margin:16px 0}.nar-search label{display:grid;gap:7px;min-width:240px}.nar-search input{font:inherit;color:var(--ui-text,#e8edf2);background:var(--ui-panel,#101d2b);border:1px solid var(--ui-border,#354657);border-radius:6px;padding:10px 12px}.nar-search input:focus-visible{outline:2px solid var(--ui-accent,#f4d96e);outline-offset:2px}
