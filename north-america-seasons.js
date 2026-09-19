@@ -121,9 +121,19 @@ function nasOffseason(){
  const end=`${w.season.year+1}-06-22`;let date=w.processed?calAdd(w.lastDate,1):w.lastDate;
  for(;date<=end;date=calAdd(date,1)){nasRecoverDay(date);nasProcess(date);w.lastDate=date;w.processed=date;}
 }
+// A structural dictionary stays compressible inside the outer career save. No nested compressed bytes.
+function nasArchiveEncode(season){
+ const strings=[],ids=new Map(),shapes=[],shapeIds=new Map();
+ const encode=v=>{if(v===null)return 'n';if(v===true)return 't';if(v===false)return 'f';if(typeof v==='number')return Number.isInteger(v)&&v>=0&&v<=50000?String.fromCharCode(1024+v):'#'+v+';';if(typeof v==='string'){if(!ids.has(v)){ids.set(v,strings.length);strings.push(v);}return '^'+ids.get(v).toString(36)+';';}if(Array.isArray(v))return '['+v.length.toString(36)+';'+v.map(encode).join('');const keys=Object.keys(v),signature=JSON.stringify(keys);if(!shapeIds.has(signature)){shapeIds.set(signature,shapes.length);shapes.push(keys);}if(shapes.length>768)throw Error('För många arkivformat');return String.fromCharCode(256+shapeIds.get(signature))+keys.map(k=>encode(v[k])).join('');};
+ const root=encode(season);return {strings,shapes,root};
+}
+function nasArchiveDecode(data){
+ let nodes=0,at=0;const word=()=>{const end=data.root.indexOf(';',at);if(end<at)throw Error('Ogiltigt arkivfält');const text=data.root.slice(at,end);at=end+1;return text;};
+ const decode=(depth=0)=>{if(++nodes>1000000||depth>32||at>=data.root.length)throw Error('Ogiltigt ligaarkiv');const c=data.root[at++],code=c.charCodeAt(0);if(code>=1024)return code-1024;if(code>=256){const keys=data.shapes[code-256];if(!keys)throw Error('Ogiltig arkivrad');return Object.fromEntries(keys.map(k=>[k,decode(depth+1)]));}if(c==='n')return null;if(c==='t')return true;if(c==='f')return false;if(c==='#'){const n=Number(word());if(!Number.isFinite(n))throw Error('Ogiltigt arkivtal');return n;}if(c==='^'){const value=data.strings[parseInt(word(),36)];if(typeof value!=='string')throw Error('Ogiltig arkivtext');return value;}if(c==='['){const length=parseInt(word(),36);if(!Number.isInteger(length)||length<0||length>100000)throw Error('Ogiltig arkivlista');return Array.from({length},()=>decode(depth+1));}throw Error('Ogiltig arkivsymbol');};const result=decode();if(at!==data.root.length)throw Error('Överbliven arkivdata');return result;
+}
 function nasNewYear(){
  const w=ensureNASeasons();if(!w||w.season.year>=state.season.year)return;
- const old=w.season;w.history.unshift({year:old.year,leagues:Object.fromEntries(Object.entries(old.leagues).map(([key,l])=>[key,{champion:l.champion}])),packed:careerPack(JSON.stringify(old))});w.history=w.history.slice(0,3);nasArchiveCache=null;w.season=nasNewSeason(state.season.year);w.lastDate=state.calendar.date;w.processed=null;
+ const old=w.season;w.history.unshift({year:old.year,leagues:Object.fromEntries(Object.entries(old.leagues).map(([key,l])=>[key,{champion:l.champion}])),data:nasArchiveEncode(old)});w.history=w.history.slice(0,3);nasArchiveCache=null;w.season=nasNewSeason(state.season.year);w.lastDate=state.calendar.date;w.processed=null;
 }
 function nasPlayerSummary(p){const rows=(p.naSeasons||[]).filter(r=>r.year===state.season.year),games=rows.reduce((n,r)=>n+r.games,0),goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0),seconds=rows.reduce((n,r)=>n+r.seconds,0);return games?`${games} NHL/AHL-matcher · ${goals}+${assists} · ${Math.round(seconds/60/games)} min/match`:'Inga registrerade NHL/AHL-matcher denna säsong.';}
 function nasSet(key,value){
@@ -136,7 +146,7 @@ function nasSet(key,value){
  else if(key==='game'){const season=nasSelectedSeason();if(!season?.leagues[nasUI.league].games.some(g=>g.id===value&&g.played))return;nasUI.game=value;nasUI.tab='games';}
  else return;render();
 }
-function nasSelectedSeason(){const w=state.naLeagues;if(nasUI.year==='current')return w?.season;const item=w?.history.find(s=>String(s.year)===nasUI.year);if(!item)return w?.season;if(!item.packed)return item;if(nasArchiveCache?.item===item)return nasArchiveCache.season;try{const season=careerRead(item.packed);nasArchiveCache={item,season};return season;}catch{return null;}}
+function nasSelectedSeason(){const w=state.naLeagues;if(nasUI.year==='current')return w?.season;const item=w?.history.find(s=>String(s.year)===nasUI.year);if(!item)return w?.season;if(!item.data&&!item.packed)return item;if(nasArchiveCache?.item===item)return nasArchiveCache.season;try{const season=item.data?nasArchiveDecode(item.data):careerRead(item.packed);nasArchiveCache={item,season};return season;}catch{return null;}}
 function nasOpen(){nhlUI.tab='leagues';deskNavigate('nhl');}
 function nasView(){
  const season=nasSelectedSeason();if(!season)return '<p>Det valda ligaarkivet kunde inte läsas. Välj den aktuella säsongen igen via NHL & draft.</p>';const league=nasUI.league,l=season.leagues[league],safe=trainingSafe,finished=l.games.filter(g=>g.played).length;
