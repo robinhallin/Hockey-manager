@@ -103,6 +103,7 @@ function socialTalk(id,topic){
    delta=fair&&s.ambition>=12&&s.sensitivity<=12?3:-3;
    text=delta>0?'Spelaren svarar på din tydliga utmaning och vill ta mer ansvar.':'Kraven landar illa. Spelaren behöver trygghet, återhämtning eller en faktisk chans att visa sig.';
  }
+ if(typeof relationshipTalk==='function')({delta,text}=relationshipTalk(p,topic,delta,text));
  const before=s.trust;s.trust=trainingClamp(s.trust+delta);delta=s.trust-before;s.lastTalk=r.turn;s.lastResponse=text;
  socialRemember(p,({praise:'Beröm för utvecklingen',bench:'Samtal om petning',listen:'Tränaren lyssnar',challenge:'Utmanad av tränaren'})[topic],text,delta);
  socialLog(`Samtal med ${p.name}`,`${text} Förtroende ${delta>0?'+':''}${delta}.`);lockerNotice(`${p.name}: ${text}`);
@@ -128,6 +129,7 @@ function afterLockerMatch(){
    for(const p of managerRoster())if(p!==captain)p.social.trust=trainingClamp(p.social.trust+effect);
    if(effect&&r.turn%3===0)socialLog('Kaptenens röst i gruppen',effect>0?`${captain.name} hjälper laget att behålla förtroendet för ditt arbete.`:`${captain.name}s tveksamhet till ditt ledarskap påverkar gruppen.`);
  }
+ if(typeof relationshipAfterMatch==='function')relationshipAfterMatch();
 }
 function socialTalkSlot(m=state.live){return m?.finished?'post':m?.period===4?`ot${m.overtimePeriods||1}`:`p${m?.period||1}`;}
 function canTeamTalk(){const m=state.live;if(!m||m.running)return false;const slot=socialTalkSlot(m);return !m.socialTalks?.[slot]&&(m.finished||(!m.socialStarted?.[slot]&&m.minute===0&&m.second===0));}
