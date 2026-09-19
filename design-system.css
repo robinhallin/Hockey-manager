@@ -1,0 +1,133 @@
+/* Shared visual contract. Loaded last; geometry of the live rink is owned by
+   match-control-integration.css. New workspaces should reuse these tokens. */
+@font-face{font-family:'HM Inter';src:url('assets/fonts/InterVariable.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
+:root{
+ --ui-font:'HM Inter',Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
+ --ui-bg:#0c1420;--ui-panel:#131f2e;--ui-raised:#192839;--ui-hover:#203247;
+ --ui-border:#2b3b4e;--ui-text:#edf2f7;--ui-muted:#aab9c9;--ui-faint:#8e9fb3;
+ --ui-link:#b8d5f2;--ui-positive:#a3d7bb;--ui-warning:#efca89;--ui-negative:#f0adb3;
+ --ui-radius:8px;--ui-space:16px;
+}
+html,body{font-family:var(--ui-font);background:var(--ui-bg);color:var(--ui-text);font-optical-sizing:auto}
+.game-shell{
+ --ui-accent:color-mix(in srgb,var(--club-accent,#dfc574) 72%,#fff);
+ --desk-bg:var(--ui-bg);--desk-panel:var(--ui-panel);--desk-line:var(--ui-border);
+ --desk-muted:var(--ui-muted);--desk-accent:var(--ui-accent);--muted:var(--ui-muted);
+ --border:var(--ui-border);font-family:var(--ui-font);font-size:13px;line-height:1.5;
+ color:var(--ui-text);background:var(--ui-bg);font-variant-numeric:tabular-nums;
+}
+.game-shell :is(button,input,select,textarea){font-family:var(--ui-font)}
+.game-shell :is(h1,h2,h3,h4){font-family:var(--ui-font);color:var(--ui-text);text-wrap:balance}
+.game-shell :is(.desk-page,.office-overview,.squad-workspace,.recruit-hub,.matches-workspace){color:var(--ui-text)}
+.game-shell .sidebar{background:#101b29;border-top:0;border-right:1px solid var(--ui-border);box-shadow:none}
+.game-shell .sidebar-brand{border-bottom:1px solid #253448}
+.game-shell .brand-text strong{font-weight:700;letter-spacing:.12em}
+.game-shell .brand-text span{letter-spacing:.17em;color:var(--ui-faint)}
+.game-shell .club-box{border-bottom:1px solid #253448;padding-bottom:18px}
+.game-shell .nav-item{border-radius:6px;font-weight:500;color:var(--ui-muted);border-color:transparent}
+.game-shell .nav-item:hover{background:var(--ui-raised);color:var(--ui-text)}
+.game-shell .nav-item.active{background:color-mix(in srgb,var(--ui-accent) 9%,var(--ui-panel));border-color:transparent;box-shadow:inset 3px 0 var(--ui-accent);color:var(--ui-accent)}
+.game-shell .nav-item.active .nav-icon{color:var(--ui-accent)}
+.game-shell .topbar{background:#101b29;border-top:0;border-bottom:1px solid var(--ui-border);box-shadow:none}
+.game-shell .current-section{font-weight:650;letter-spacing:-.015em}
+.game-shell .game-content{background:var(--ui-bg)}
+/* Headings and reading rhythm. Deliberately exclude the live match panel. */
+.game-shell .desk-page:not([data-page=match]) :is(.desk-heading,.sw-heading,.mw-heading,.dv-heading,.cw-heading,.lw-heading,.office-heading,.daily-heading,.rh-header,.press-heading,.workspace-heading){margin-bottom:22px;gap:16px}
+.game-shell .desk-page:not([data-page=match]) h1{font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.035em;margin:6px 0 9px}
+.game-shell .desk-page:not([data-page=match]) h2{font-size:17px;line-height:1.35;font-weight:650;letter-spacing:-.02em}
+.game-shell .desk-page:not([data-page=match]) h3{font-weight:600;letter-spacing:-.01em}
+.game-shell :is(.desk-kicker,.career-eyebrow,.office2-meta,.office-pulse-card>span){font-size:10px;line-height:1.5;font-weight:650;letter-spacing:.1em;color:var(--ui-faint)}
+.game-shell .desk-page:not([data-page=match]) :is(.mw-panel,.rival-panel,.dv-panel,.lw-panel,.club-panel,.rh-inspector,.office-panel,.coach-cycle) p{font-size:13px;line-height:1.65;color:var(--ui-muted)}
+/* Shared surfaces keep status stripes, charts and hockey markings intact. */
+.game-shell :is(.fm-panel,.office-panel,.office-match,.office-pulse,.office2-command,.sw-summary,.sw-table-wrap,.rh-header,.rh-sidebar,.rh-list,.rh-inspector,.mw-panel,.mw-result,.mw-metrics,.dv-panel,.dv-summary,.lw-panel,.lw-summary,.club-panel,.cw-metrics,.rival-panel,.rival-identity,.coach-cycle,.coach-report,.performance-report,.scout-report-card,.scout-staff,.desk-panel,.desk-fold,.press-metrics,.press-article,.press-fan-group){background:var(--ui-panel);border-color:var(--ui-border);border-radius:var(--ui-radius);box-shadow:none}
+.game-shell :is(.office-panel,.dv-panel,.lw-panel,.club-panel,.mw-panel,.rival-panel)>header{border-color:var(--ui-border)}
+.game-shell :is(.office-panel,.mw-panel,.dv-panel,.lw-panel,.club-panel,.rival-panel) :is(.office-panel,.mw-panel,.dv-panel,.lw-panel,.club-panel,.rival-panel){background:transparent;box-shadow:none;border-radius:4px}
+.game-shell :is(.office-pulse-card,.cw-metrics>div,.dv-summary>div,.mw-metrics>div){border-color:var(--ui-border)}
+/* Buttons: one solid action family, bordered secondary actions, quiet links. */
+.game-shell :is(.btn,.desk-primary,.continue-button){border-radius:6px;font-weight:600;letter-spacing:0;box-shadow:none;text-decoration:none;transition:background .12s,border-color .12s}
+.game-shell :is(.btn:not(.secondary),.desk-primary,.continue-button){background:var(--ui-accent);color:#101b29;border:1px solid transparent}
+.game-shell :is(.btn:not(.secondary),.desk-primary,.continue-button):hover{background:var(--ui-accent);filter:brightness(1.06);transform:none}
+.game-shell .btn.secondary{background:var(--ui-raised);border:1px solid #3a4e64;color:var(--ui-text)}
+.game-shell .btn.secondary:hover{background:var(--ui-hover);border-color:#627b96;transform:none}
+.game-shell .desk-page:not([data-page=match]) .btn{font-size:12px;min-height:34px;padding:8px 12px;line-height:1.4}
+.game-shell :is(.desk-link,.fm-link,.rival-text-button){color:var(--ui-link);font-weight:500}
+.game-shell :is(button,input,select,textarea,a,summary,[tabindex]):focus-visible{outline:2px solid #a9d1ff;outline-offset:3px}
+.game-shell button:disabled{opacity:.45;cursor:not-allowed;filter:none;transform:none}
+/* Navigation levels share typography, but the top level retains more space. */
+.game-shell :is(.desk-subnav,.sw-toolbar,.mw-tabs,.dv-tabs,.cw-tabs,.lw-tabs,.fm-tabs,.workspace-tabs,.press-tabs){border-color:var(--ui-border)}
+.game-shell :is(.desk-subnav,.sw-toolbar,.mw-tabs,.dv-tabs,.cw-tabs,.lw-tabs,.fm-tabs,.workspace-tabs,.press-tabs) button{font-size:12px;font-weight:550;letter-spacing:0;border-radius:0;color:var(--ui-muted);background:transparent}
+.game-shell :is(.desk-subnav,.sw-toolbar,.mw-tabs,.dv-tabs,.cw-tabs,.lw-tabs,.fm-tabs,.workspace-tabs,.press-tabs) button:is([aria-current=page],[aria-pressed=true]){color:var(--ui-accent);border-bottom-color:var(--ui-accent)}
+.game-shell :is(.desk-subnav,.sw-toolbar,.mw-tabs,.dv-tabs,.cw-tabs,.lw-tabs,.fm-tabs,.workspace-tabs,.press-tabs) button:hover{color:var(--ui-text);background:#ffffff04}
+/* Forms: readable labels, consistent input contrast, no change to checkboxes. */
+.game-shell .desk-page:not([data-page=match]) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){background:#101b29;color:var(--ui-text);border:1px solid #40546b;border-radius:6px;font-size:12px;line-height:1.4;padding:8px 10px;min-height:34px;max-width:100%;accent-color:var(--ui-accent)}
+.game-shell input::placeholder,.game-shell textarea::placeholder{color:var(--ui-faint);opacity:1}
+.game-shell :is(.sw-filters,.rh-sidebar,.rh-inspector,.mw-selection,.fm-orders) label{font-size:12px;color:var(--ui-muted)}
+.game-shell :is(input[type=checkbox],input[type=radio],input[type=range],progress){accent-color:var(--ui-accent)}
+/* A shared table treatment: alignment and semantic colours stay page-owned. */
+.game-shell .desk-page:not([data-page=match]) table{font-size:12px;line-height:1.5;background:var(--ui-panel);font-variant-numeric:tabular-nums}
+.game-shell .desk-page:not([data-page=match]) table :is(th,td){border-color:#27394c;padding:10px 12px;letter-spacing:0;text-transform:none}
+.game-shell .desk-page:not([data-page=match]) table thead th{background:var(--ui-raised);color:var(--ui-muted);font-size:11px;font-weight:550;box-shadow:inset 0 -1px var(--ui-border)}
+.game-shell .desk-page:not([data-page=match]) table tbody tr:nth-child(even){background:#ffffff02}
+.game-shell .desk-page:not([data-page=match]) table tbody tr:hover{background:var(--ui-hover)}
+.game-shell .desk-page:not([data-page=match]) table :is(button,.fm-name){font-size:inherit;font-family:var(--ui-font)}
+.game-shell .desk-page:not([data-page=match]) table tbody th[scope=row]{font-weight:550}
+.game-shell .desk-page:not([data-page=match]) table :is(tr.selected,tr.office-own,tr.own){background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-panel))}
+.game-shell :is(.sw-table-wrap,.rh-table-scroll,.cw-scroll,.mw-scroll,.fm-table-scroll,.analysis-scroll){scrollbar-color:#41556d var(--ui-panel);scrollbar-width:thin}
+/* Overview: the decisions are one list; supporting context is a quieter column. */
+.game-shell .office-desk-grid{gap:22px}
+.game-shell .office-desk .office2-command{padding:18px}
+.game-shell .office-desk .office2-command>header{padding-bottom:12px;border-bottom:1px solid var(--ui-border)}
+.game-shell .office-desk .office2-priority{background:transparent;border-top:0;border-right:0;border-bottom:1px solid var(--ui-border);border-radius:0;padding:12px 10px}
+.game-shell .office-desk .office2-priority:last-child{border-bottom:0}
+.game-shell .office-desk .office2-rank{background:var(--ui-raised);color:var(--ui-muted);font-weight:500;border-radius:5px}
+.game-shell .office-desk .office2-copy strong{font-size:14px;line-height:1.5;font-weight:550}
+.game-shell .office-desk .office2-copy p{font-size:12px;line-height:1.6}
+.game-shell .office-roster-strip{background:transparent;border:0;border-bottom:1px solid var(--ui-border);padding:8px 0 14px;color:var(--ui-muted)}
+.game-shell .office-context-pane{min-width:0}
+.game-shell .office-context-pane>nav{margin-bottom:16px}
+.game-shell .office2-command>header>strong{background:var(--ui-raised);color:var(--ui-text);font-weight:500}
+/* Squad: calm summary strip, compact filters and prominent player names. */
+.game-shell .sw-summary{padding:14px 16px;gap:10px 24px;background:transparent;border-width:1px 0;border-radius:0}
+.game-shell .sw-summary span{font-size:12px;color:var(--ui-muted)}
+.game-shell .sw-summary strong{font-weight:600;color:var(--ui-text)}
+.game-shell .sw-filters{flex-wrap:wrap;gap:12px;padding:16px 0}
+.game-shell .sw-filters input{width:240px}
+.game-shell .sw-filters button{background:var(--ui-raised);color:var(--ui-text);border-color:#40546b;border-radius:6px;font-size:12px;min-height:34px}
+.game-shell .squad-workspace table tbody th button{color:var(--ui-text);font-weight:550}
+.game-shell .squad-workspace table tbody th button:hover{color:var(--ui-link);text-decoration:underline}
+.game-shell .squad-workspace footer{font-size:12px;line-height:1.6;color:var(--ui-muted);padding-top:12px}
+.game-shell .sw-health{background:#1d3531;color:var(--ui-positive);border-radius:4px;font-size:11px;padding:4px 7px}
+.game-shell .sw-health.warning{background:#3c3023;color:var(--ui-warning)}
+/* Recruitment, reports and training use the same document hierarchy. */
+.game-shell .rh-header{background:transparent;border:0;border-bottom:1px solid var(--ui-border);padding:0 0 18px}
+.game-shell .rh-sidebar,.game-shell .rh-inspector{padding:16px}
+.game-shell .rh-sidebar :is(p,small),.game-shell .rh-inspector small{font-size:12px;color:var(--ui-muted);line-height:1.6}
+.game-shell .rival-identity{border-left:3px solid var(--ui-accent)}
+.game-shell .rival-identity h2{font-size:24px}
+.game-shell .coach-cycle-options{gap:12px}
+.game-shell .coach-cycle-options>article{background:var(--ui-raised);border-color:var(--ui-border);border-radius:6px}
+.game-shell :is(.press-page,.press-desk){--press-ink:var(--ui-text);--press-muted:var(--ui-muted);--press-line:var(--ui-border);--press-paper:var(--ui-panel);--press-accent:var(--ui-accent)}
+.game-shell :is(.press-article,.press-lead,.press-column){font-family:var(--ui-font)}
+.game-shell :is(.cal-month,.calendar-booking,.calendar-future,.calendar-save-grid>section){background:var(--ui-panel);border-color:var(--ui-border);border-radius:var(--ui-radius)}
+/* Match: share the palette and font without increasing control geometry. */
+.game-shell .mc-page{--mc-bg:var(--ui-bg);--mc-panel:var(--ui-panel);--mc-line:var(--ui-border);--mc-muted:var(--ui-muted);--mc-accent:var(--ui-accent);font-family:var(--ui-font)}
+.game-shell .mc-live :is(.mc-header,.mc-coach,.mc-stats,.mc-details,.mc-situation,.mc-scorers){background:var(--ui-panel);border-color:var(--ui-border);box-shadow:none}
+.game-shell .mc-live :is(.mc-choice,.mc-order select){background:var(--ui-raised);border-color:#40546b;color:var(--ui-text);border-radius:5px}
+.game-shell .mc-live .mc-choice.selected{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-panel))}
+.game-shell .mc-live .mc-result>b{font-weight:650;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.game-shell .mc-live .mc-evidence{background:var(--ui-panel);border-color:var(--ui-border);border-left-color:var(--ui-accent)}
+.game-shell .mc-live .mc-tabs button[aria-selected=true]{color:var(--ui-accent);border-color:var(--ui-accent)}
+.game-shell .career-menu{font-family:var(--ui-font)}
+.game-shell .career-menu-copy h1{font-family:var(--ui-font);font-weight:750;letter-spacing:-.06em}
+@media(min-width:1100px){
+ .game-shell:not(.career-mode):not(.match-mode){grid-template-columns:184px minmax(0,1fr)}
+ .game-shell:not(.career-mode) .game-content:not(:has(.mc-live)){padding:24px 28px 32px}
+ .game-shell .desk-page:not([data-page=match])>.desk-subnav{margin-bottom:24px}
+}
+@media(min-width:1600px){.game-shell:not(.career-mode) .game-content:not(:has(.mc-live)){padding-inline:40px}}
+@media(max-width:1099px){
+ .game-shell .desk-page:not([data-page=match]) h1{font-size:25px}
+ .game-shell .office-desk-grid{gap:14px}
+ .game-shell .sw-filters{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){.game-shell *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
