@@ -1,0 +1,18 @@
+.nhl-page .mw-heading{align-items:flex-start;gap:20px;flex-wrap:wrap}
+.nhl-page .mw-heading>span,.nhl-page .mw-heading p{color:var(--ui-muted);font-size:12px;line-height:1.6}
+.nhl-page .mw-panel{margin-top:18px}
+.nhl-page .mw-panel p,.nhl-profile p{font-size:12px;line-height:1.7;color:var(--ui-muted);max-width:95ch}
+.nhl-candidate{border-bottom:1px solid var(--ui-border);padding:12px 0}
+.nhl-candidate>summary{cursor:pointer;font-size:13px;line-height:1.7}
+.nhl-candidate>summary span{margin-left:16px;color:var(--ui-muted);font-size:12px}
+.nhl-actions,.nhl-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:16px 0}
+.nhl-filters label{display:grid;gap:6px;font-size:12px;color:var(--ui-muted)}
+.nhl-filters input{min-width:240px}
+.nhl-page .mw-scroll{max-height:560px;overflow:auto}
+.nhl-page table small{display:block;font-weight:400;color:var(--ui-muted);margin-top:5px}
+.nhl-page td:last-child{max-width:360px}
+.nhl-profile{padding:14px 0;border-bottom:1px solid var(--ui-border);margin:0 0 14px}
+.nhl-profile h3{margin:0 0 8px;font-size:13px}
+.nhl-notice{padding:14px 18px;background:var(--ui-panel);border-left:3px solid var(--ui-accent);font-size:13px}
+.nhl-edition>summary,.nhl-scope>summary{cursor:pointer;padding:10px 0;font-size:13px}
+.nhl-calendar h2{font-size:15px}

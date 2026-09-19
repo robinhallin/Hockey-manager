@@ -98,6 +98,7 @@ function watchRemainingPlayoffs(){
 }
 function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
+ nhlOffseason();
  loansNewYear();s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
   developmentBirthday(p);p.contractYears=Math.max(0,(p.contractYears||1)-1);
@@ -114,6 +115,7 @@ function beginPreseason(){
  playerWorldNewYear();
  managerPreseason();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
+ nhlDay();
  state.page='season';save();render();
 }
 function releaseExpiredPlayer(id){
