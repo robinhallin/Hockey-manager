@@ -4278,6 +4278,7 @@ function render(){
   ensureInternational();
   ensureNHL();
   ensureNorthAmerica();
+  ensureNASeasons();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 

@@ -57,7 +57,7 @@ function calendarMarketDay(){
 }
 function calendarStep(recovered=false){
  const c=state.calendar;if(!c)return;
- internationalProcess(c.date);
+ internationalProcess(c.date);nasDay(c.date);
  if(!recovered){medicalDay();managerRoster().filter(p=>!internationalAway(p)).forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
  c.date=calAdd(c.date,1);trainingReturnDay();for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();internationalPrepare();nhlDay();naDay();
 }

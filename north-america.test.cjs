@@ -52,6 +52,8 @@ test('nine seasons retain unique players, bounded ledgers and funded contracts',
   assert.equal(r("(()=>{const rows=[...Object.values(state.clubRosters).flat(),...state.juniors.roster,...Object.entries(state.clubAI.clubs).filter(([c])=>c!==managerClub()).flatMap(([,c])=>c.academy.roster),...state.playerWorld.freeAgents,...state.international.pool,...state.northAmerica.abroad];return new Set(rows.map(p=>String(p.id))).size===rows.length})()"),true);
   assert.ok(r('state.northAmerica.events.length')<=180);assert.ok(r('state.northAmerica.offers.filter(o=>o.status!=="pending").length')<=96);
   assert.ok(r('Object.keys(state.northAmerica.signings).length')<=64);
+  assert.ok(r('state.naLeagues.history.length')<=3);
+  assert.equal(r('state.naLeagues.history.every(s=>s.leagues.NHL.champion&&s.leagues.AHL.champion)'),true);
   assert.equal(r('naPlayers().every(p=>p.naContract.end>=state.calendar.date)'),true);
  }
  assert.ok(signed>30,'actual AI signings, not empty-state assertions');

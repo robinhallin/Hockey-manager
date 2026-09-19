@@ -12,10 +12,10 @@ The [official AHL affiliations directory](https://theahl.com/nhl-affiliations), 
 - The manager explicitly accepts, accepts with an offered loanback, or rejects an outgoing offer. AI clubs decide within the same constraints. An offer expires after fourteen days. Draft selection itself still changes no club contract or salary.
 - Eligible young players can return on loan through June 30, paying half the AHL wage. AHL prospects can also accept Swedish season loans during the domestic window when the receiving role and wage budget fit. The standard loan ledger handles wages, actual ice time, role follow-up, expiry and voluntary recall after 28 days.
 - NHL placement requires role strength of at least 14.5 and a place among the tracked organization's top one goalkeeper, two defenders or three forwards. Reviews run on the 1st and 15th. This does not claim real-world depth-chart accuracy.
-- Players abroad recover daily and receive registered development sessions September–April. A calendar day processes once, JVM duty excludes duplicate foreign training/recovery, and birthdays occur once each season. No NHL/AHL games, goals, assists or standings are fabricated.
+- Players abroad recover daily and receive registered development sessions September–April. A calendar day processes once, JVM duty excludes duplicate foreign training/recovery, and birthdays occur once each season. The league simulation, registered match statistics and disclosed anonymous depth model are described in NORTH-AMERICA-SEASONS.md.
 - At NHL contract expiry the same player enters the shared free-agent market. A return to Sweden uses ordinary wage/role negotiations. An active NHL contract cannot be bypassed through the domestic transfer or future-contract actions.
 
-Full NHL/AHL league calendars, complete senior rosters, playoffs, CBA waivers, RFA rules, entry-level slides and exact salary-cap accounting remain outside this stage. European league seasons and senior national teams are also later stages.
+NHL/AHL calendars, tables and playoffs now run in the league simulation. Complete real senior rosters, CBA waivers, RFA rules, entry-level slides and exact salary-cap accounting remain outside this stage. European league seasons and senior national teams are also later stages.
 
 ## Identity, persistence and integration
 
