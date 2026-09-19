@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');const app=boot(),r=app.run;
 r("startCareerWithClub('HV71');deskNavigate('transfers','search')");
-assert.equal(r('(deskSubnav().match(/<button/g)||[]).length'),5);assert.ok(!r('deskSubnav()').includes('desk-more'));
+assert.equal(r('(deskSubnav().match(/<button/g)||[]).length'),6);assert.ok(!r('deskSubnav()').includes('desk-more'));
 r("globalThis.list=hubCandidates('search');hubPick(list[3].id);globalThis.chosen=recruitHub.player;hubPanel('transfer')");assert.equal(r('state.page'),'transfers');assert.ok(r('recruitmentView()').includes('Skicka köpbud'));
 r('recruitOpen(chosen);deskBack()');assert.equal(r('recruitHub.player'),r('chosen'));assert.equal(r('recruitHub.panel'),'transfer');
 r("toggleRecruitShortlist(chosen);deskNavigate('transfers','shortlist')");assert.equal(r("hubCandidates('shortlist').length"),1);r("recruitHub.market='own';recruitFilters().query='zzzz'");assert.equal(r("hubCandidates('shortlist').length"),1,'wishlist is independent of search filters');r("resetRecruitFilters();recruitHub.market='all'");

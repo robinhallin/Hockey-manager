@@ -235,6 +235,7 @@ function calendarActivateFuture(){
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[])]){
   const f=p.futureContract;if(!f||f.joinYear>state.season.year)continue;
   if(!state.clubRosters[f.buyer])continue;
+  if(f.buyer===managerClub())scoutingArrival(p,0,f.salary,f.years,f.role);
   const feedbackPlan=feedbackBeforeArrival(p,f.buyer);
   const seller=getPlayerClub(p.id);if(seller===WORLD_FREE)worldRemoveFree(p.id);else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
   state.clubRosters[f.buyer].push(p);Object.assign(p,{club:f.buyer,salary:f.salary,contractYears:f.years,squadRole:f.role,promisedRole:f.role,transferListed:false});delete p.futureContract;
@@ -248,6 +249,6 @@ function calendarActivateFuture(){
 function calendarFuturePanel(p){
  if(p.futureContract)return `<section class="calendar-future"><h2>Nästa säsong</h2><p>Avtal med ${trainingSafe(p.futureContract.buyer)} från ${seasonLabel(p.futureContract.joinYear)}. Spelaren stannar i sin nuvarande klubb fram till säsongsskiftet.</p></section>`;
  if(p.contractYears!==1||isOwnPlayer(p)||state.season.phase==='preseason')return '';
- const w=recruitPlayerWishes(p);
- return `<details class="calendar-future"><summary>Värva till nästa säsong</summary>${rolePromiseOfferView(p)}<p>Ingen övergångssumma. Beräknat ledigt löneutrymme: ${careerMoney(calendarFutureRoom())}/år. Prognosen utgår från dagens lönebudget. Avtalet är bindande även om budgeten senare minskar.</p><form onsubmit="event.preventDefault();submitFutureOffer('${p.id}',this.elements.salary.value,this.elements.years.value,this.elements.role.value)"><label>Årslön<input name="salary" type="number" min="1" step="1" required value="${w.salary}"></label><label>Avtalslängd<select name="years">${recruitOptions({1:'1 år',2:'2 år',3:'3 år',4:'4 år',5:'5 år'},Math.min(2,w.maxYears))}</select></label><label>Spelarens roll<select name="role">${recruitOptions(Object.fromEntries(SQUAD_ROLES.map(r=>[r,r])),w.role)}</select></label><button class="btn">Erbjud avtal inför nästa säsong</button></form></details>`;
+ const cost=scoutingCost(p),w=scoutingContactKnown(p)||{salary:Math.round((cost.low+cost.high)/2),role:'Rotation',maxYears:3};
+ return `<details class="calendar-future"><summary>Värva till nästa säsong</summary>${rolePromiseOfferView(p)}${scoutingContactView(p)}<p>Ingen övergångssumma. Beräknat ledigt löneutrymme: ${careerMoney(calendarFutureRoom())}/år. Prognosen utgår från dagens lönebudget. Avtalet är bindande även om budgeten senare minskar.</p><form onsubmit="event.preventDefault();submitFutureOffer('${p.id}',this.elements.salary.value,this.elements.years.value,this.elements.role.value)"><label>Årslön<input name="salary" type="number" min="1" step="1" required value="${w.salary}"></label><label>Avtalslängd<select name="years">${recruitOptions({1:'1 år',2:'2 år',3:'3 år',4:'4 år',5:'5 år'},Math.min(2,w.maxYears))}</select></label><label>Spelarens roll<select name="role">${recruitOptions(Object.fromEntries(SQUAD_ROLES.map(r=>[r,r])),w.role)}</select></label><button class="btn">Erbjud avtal inför nästa säsong</button></form></details>`;
 }

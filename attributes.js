@@ -64,16 +64,16 @@ function scoutFreshnessView(p){
 }
 function playerAssessment(p){
   ensureAssessmentData();
-  const staff=state.staff.find(x=>x.id===state.assessorId)||state.staff[0];
   const own=isOwnPlayer(p),report=state.scoutReports[String(p.id)];
+  const staff=(!own&&report?.observer)||(state.staff.find(x=>x.id===state.assessorId)||state.staff[0]);
   const visits=report?.visits||0;
-  const baseFamiliarity=own?.9:Math.min(.9,.12+visits*.26);
+  const baseFamiliarity=own?.9:Math.min(.9,.12+visits*.26)*(report?.quality||1);
   const familiarity=own?baseFamiliarity:Math.max(.12,baseFamiliarity-Math.min(.5,Math.max(0,scoutReportAge(report)-60)/360));
   const specialized=roleWeights(p).includes(staff.specialty);
   const ability=attrClamp(staff.ability+(specialized?2:0));
   const uncertainty=own?0:(1-familiarity)*4+(20-ability)*.08*(1-familiarity);
   const observationUncertainty=own?0:(1-baseFamiliarity)*4+(20-ability)*.08*(1-baseFamiliarity);
-  const attributes=own?ensurePlayerAttributes(p):report?.snapshot||ensurePlayerAttributes(p),estimated={};
+  const attributes=own?ensurePlayerAttributes(p):report?.snapshot||scoutingPrior(p),estimated={};
   for(const key of Object.keys(attributes))estimated[key]=attrClamp(attributes[key]+(attrSeed(`${p.id}:${staff.personId||staff.id}:${key}`)-.5)*2*observationUncertainty);
   const roles=roleWeights(p).map(name=>({name,value:attributeWeighted(estimated,PLAYER_ROLES[name])})).sort((a,b)=>b.value-a.value);
   const peers=managerRoster().filter(x=>x.pos==='MV'?(p.pos==='MV'):(p.pos!=='MV'));
@@ -81,9 +81,9 @@ function playerAssessment(p){
   const stars=value=>Math.round(attrClamp(2.5+(value-baseline)*.65,0,5)*2)/2;
   const judgment=(20-ability)*.045+.12;
   const judged=roles[0].value+(attrSeed(`${p.id}:${staff.personId||staff.id}:judgment`)-.5)*2*judgment;
-  const potentialError=(p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2;
-  const potentialEstimate=Math.max(...roleWeights(p).map(role=>attributeWeighted(ensureDevelopment(p).ceiling,PLAYER_ROLES[role])))+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
-  return {staff,own,visits,familiarity,estimated,uncertainty,roles,current:stars(judged),low:stars(judged-uncertainty-judgment),high:stars(judged+uncertainty+judgment),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
+  const potentialError=((p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2)*(report?.focus==='potential'?.8:1);
+  const potentialEstimate=roles[0].value+Math.max(0,25-p.age)*.18+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
+  return {staff,own,known:own||Boolean(report?.snapshot),visits,familiarity,estimated,uncertainty,roles,current:stars(judged),low:stars(judged-uncertainty-judgment),high:stars(judged+uncertainty+judgment),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
 function starsText(value){const n=Math.max(0,Math.min(5,Math.round(value)));return '★'.repeat(n)+'☆'.repeat(5-n);}
 function starRatingHTML(low,high,potential=false,assessor='Personalens bedömning'){
@@ -91,17 +91,18 @@ function starRatingHTML(low,high,potential=false,assessor='Personalens bedömnin
  const label=`${potential?'Potential':'Förmåga'}: ${lo===hi?lo:lo+'–'+hi} av 5 stjärnor. ${assessor}. Ljusa stjärnor visar osäkerheten.`;
  return `<span class="assessment-stars star-rating ${potential?'star-potential':'star-ability'}" role="img" aria-label="${trainingSafe(label)}" title="${trainingSafe(label)}">${Array.from({length:5},(_,i)=>`<span class="rating-star" aria-hidden="true"><span class="star-empty">☆</span><span class="star-possible" style="width:${Math.max(0,Math.min(1,hi-i))*100}%">★</span><span class="star-certain" style="width:${Math.max(0,Math.min(1,lo-i))*100}%">★</span></span>`).join('')}</span>`;
 }
-function assessmentBadge(p,potential=false){const r=playerAssessment(p);return starRatingHTML(potential?r.potentialLow:r.low,potential?r.potentialHigh:r.high,potential,r.staff.name);}
+function assessmentBadge(p,potential=false){const r=playerAssessment(p);if(!r.known)return '<span class="sc-unknown">Ej bedömd</span>';return starRatingHTML(potential?r.potentialLow:r.low,potential?r.potentialHigh:r.high,potential,r.staff.name);}
 function assessmentShort(p){const r=playerAssessment(p);return `${starsText(r.current)} · ${r.roles[0].name}`;}
 function assessmentBounds(center,spread){return {low:attrClamp(Math.floor(center-spread)),high:attrClamp(Math.ceil(center+spread))};}
-function attributeInterval(p,key,r){const {low:lo,high:hi}=assessmentBounds(r.estimated[key],r.uncertainty);return lo===hi?String(lo):`${lo}–${hi}`;}
+function attributeInterval(p,key,r){if(!r.known)return '—';const {low:lo,high:hi}=assessmentBounds(r.estimated[key],r.uncertainty);return lo===hi?String(lo):`${lo}–${hi}`;}
 function assessmentPanel(p){
   const r=playerAssessment(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
+  if(!r.known)return `<section class="assessment-panel">${scoutingReport(p)}<button class="btn" onclick="scoutingDraft(['${haEscape(p.id)}'])">Planera observationer</button></section>`;
   const ordered=Object.keys(fields).sort((a,b)=>r.estimated[b]-r.estimated[a]);
   const pending=state.scoutReports[String(p.id)]?.dueDate||state.recruitment?.missions.find(m=>m.status==='active'&&m.players.some(id=>samePlayerId(id,p.id)))?.nextDate;
   return `<section class="assessment-panel"><div class="assessment-heading"><div><span class="panel-label">PERSONALENS RAPPORT</span><h2>Så kan ${p.name.split(' ')[0]} användas</h2></div><label>Bedömare<select onchange="state.assessorId=this.value;save();render()">${state.staff.map(s=>`<option value="${s.id}" ${s.id===r.staff.id?'selected':''}>${s.name}</option>`).join('')}</select></label></div>
   <div class="assessment-summary"><div><small>Nuvarande förmåga</small>${assessmentBadge(p)}</div><div><small>Potential</small>${assessmentBadge(p,true)}</div><div><small>Kunskap om spelaren</small><strong>${Math.round(r.familiarity*100)} % · ${r.own?'Tränarteamet':r.familiarity>.8?'Hög':r.familiarity>.4?'Medel':'Låg'}</strong></div></div>
-  <p>${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
+  <p>${!r.known?'Ingen spelarspecifik bedömning finns ännu. Nedan visas enbart en generell positionsprofil. ':''}${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
   <p class="muted">Guld visar förmåga, blått visar potential. Fyllda stjärnor är den säkrare delen av bedömningen; ljusa stjärnor visar möjlig nivå. Båda jämförs med din trupp. Attribut visas på skalan 1–20.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
   ${scoutFreshnessView(p)}${haResearchPanel(p)}
@@ -109,8 +110,8 @@ function assessmentPanel(p){
   ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||!scoutNeedsObservation(p)?'disabled':''}>${pending?`Nästa rapport ${calText(pending)}`:!scoutNeedsObservation(p)?'Aktuell rapport':`Scouta · ${money(Math.round(clubMissionFee()/3))}`}</button><span>${r.visits} av 3 observationer · rapport efter sju dagar</span></div>`:'<p class="muted">Daglig träning ger exakta attribut. Stjärnorna är fortfarande bedömarens värdering relativt truppen; potentialen är osäker.</p>'}</section>`;
 }
 // One observation per player and date window, shared by individual and group assignments.
-function scoutPending(id){return Boolean(state.scoutReports[String(id)]?.dueDate||state.recruitment?.missions.some(m=>m.status==='active'&&m.players.some(x=>samePlayerId(x,id))));}
-function scoutActiveCount(){return (state.recruitment?.missions.filter(m=>m.status==='active').length||0)+Object.values(state.scoutReports).filter(r=>r.dueDate&&!r.missionId).length;}
+function scoutPending(id){return Boolean(scoutingOffice()?.jobs.some(j=>j.status==='active'&&j.players.some(x=>samePlayerId(x,id)))||state.scoutReports[String(id)]?.dueDate||state.recruitment?.missions.some(m=>m.status==='active'&&m.players.some(x=>samePlayerId(x,id))));}
+function scoutActiveCount(){return (scoutingOffice()?.jobs.filter(j=>j.status==='active').length||0)+(state.recruitment?.missions.filter(m=>m.status==='active').length||0)+Object.values(state.scoutReports).filter(r=>r.dueDate&&!r.missionId).length;}
 function requestScoutReport(id,stay=false){
  ensureAssessmentData();ensureCalendar();const p=findPlayerAnywhere(id);if(!p||isOwnPlayer(p)||!managerCanPlay()||loanLocked())return;
  const r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
@@ -121,15 +122,18 @@ function requestScoutReport(id,stay=false){
  clubPost('scouting',-fee,'Observation · '+p.name);r.dueDate=calAdd(state.calendar.date,7);r.started=state.calendar.date;delete r.dueRound;
  if(!stay)state.page='scouting';save();render();
 }
-function scoutObserve(id,date){
+function scoutObserve(id,date,options={}){
  const p=findPlayerAnywhere(id),r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
- if(!p||isOwnPlayer(p)||!scoutNeedsObservation(p,date)||r.lastObserved&&calGap(r.lastObserved,date)<7)return false;
+ if(!p||isOwnPlayer(p)||(!options.force&&!scoutNeedsObservation(p,date))||r.lastObserved&&calGap(r.lastObserved,date)<7)return false;
  const refresh=r.visits>=3;
+ if(r.snapshot)(r.history??=[]).unshift({date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1});
+ if(r.history)r.history=r.history.slice(0,6);
+ if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
  r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.origin='observation';delete r.dueRound;
  managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,`${refresh?'Ny observation uppdaterar det tidigare underlaget.':`Observation ${r.visits} av 3.`} Kunskap ${Math.round(playerAssessment(p).familiarity*100)} %. Läs rollanalysen i Scoutcentralen.`,'Chefsscout',{link:'scouting'});return true;
 }
 function scoutDay(){
- if(!state.calendar||!state.recruitment)return;const date=state.calendar.date;
+ if(!state.calendar||!state.recruitment)return;scoutingDay();const date=state.calendar.date;
  for(const [id,r] of Object.entries(state.scoutReports)){
   if(r.dueRound&&!r.dueDate){r.dueDate=calAdd(date,7);delete r.dueRound;}
   if(r.dueDate&&r.dueDate<=date){scoutObserve(id,date);delete r.dueDate;}

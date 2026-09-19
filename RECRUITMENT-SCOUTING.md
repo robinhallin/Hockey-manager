@@ -1,0 +1,38 @@
+# Recruitment and scouting — first integrated workflow
+
+The recruitment centre now has Overview, Squad planning, Player search, Scout assignments, Reports & watchlists, and Deals. The existing player IDs, ownership ledger, contracts, loans, finances and daily calendar remain authoritative.
+
+## Playable loop
+
+1. Open an identified role need and filter the player market. Public position, age, club, known handedness and statistics are distinct from assessments. Unknown handedness is never guessed.
+2. Give an available named staff member a brief covering up to three matching players. Screening delivers one observation, detailed/potential work three. The search filters, role and horizon are captured with the assignment. Regional experience, travel, method and candidate count change time, quality and cost. Injury/international absence postpones work, rather than inventing observations. A scout has one simultaneous assignment, and the club also has its existing aggregate capacity.
+3. The daily calendar delivers dated, frozen observations. The report stores its observer, quality, focus and six previous assessed bases. Reading the report or changing the selected staff member cannot reroll it. Old reports become less certain after 60 days. New observations are at least seven days apart.
+4. Add candidates to Now, Next season or Youth watchlists. Club/contract changes generate inbox notices. Compare up to four players. Column presets expose recruitment, development or contract information.
+5. Contact the player/club for an indication; a reply arrives after two days, is valid for 30 days in the same club, and is explicitly not an accepted agreement. Before contact, salary and compensation use wide estimated ranges. Search and sorting never read actual salary, value, attributes or development ceiling.
+6. Preview the offer's total nominal commitment, current and next-season wage room. Use the existing negotiation engine for acceptance, counteroffers, rejection, competition and registration. Existing identity and budget validation prevents double registration. Free agents, contracted players, future contracts and loans keep their distinct existing transaction paths.
+7. The existing role promises, real match minutes, arrival feedback, lineup competition and junior consequences apply. Save current/next-season planning slots for lines, pairs, two goalies and PP/PK units. Planning is not a silent change to the actual lineup.
+8. An immediate or future permanent arrival captures the decision basis. After 42 days, an inbox review considers recorded minutes, the promise, health and the difference from current training assessment. No point-total verdict is assigned. Reviews explain that development and uncertainty both affect the comparison.
+
+## Information model
+
+Unknown candidates have a generic public league/position prior for market discovery, not their actual attributes. Their UI displays “Ej bedömd” and no attribute numbers. Attribute filters exclude unobserved players. No potential assessment reads a hidden development ceiling: age and observed ability form an explicitly uncertain projection. Stated stars are relative to the managed squad.
+
+AI clubs likewise use saved observations for external players; own players/academy are known through training. Unknown targets can enter discovery without passing a secretly omniscient ability gate. Actual observations then determine whether the club proceeds. Existing club needs, style, cash forecasts, wage commitments, rival offers and role-capacity checks still control decisions. Old AI records without snapshots need new observations.
+
+Scout costs are fictional game balancing parameters. A cancelled assignment refunds 70% of unperformed work once; travel/planning costs are retained. Delegation can start one screening brief on the first day of each month, subject to a saved monthly cap, availability and real cash. It never submits a player offer.
+
+## Persistence and compatibility
+
+`recruitment.scouting` is additive version 1. Existing individual reports and legacy missions continue through their existing daily path; old visits/dates/snapshots are not overwritten on migration. Completed job history is bounded (60), report history six, reviews 40, contact records 180 days. Current/future planning uses season keys. Changing employer archives the old club's scouting and cancels remaining work with the refund posted to the old employer. A new employer receives its own office.
+
+## Rules and scope
+
+No new official SHL transfer deadline, compensation tariff, registration restriction or loan rule is claimed or implemented here. Attempts to retrieve the relevant 2026/27 SIF competition regulations and SHL/HA agreement did not produce a verifiable primary document in this environment. Existing dates, compensation formula and loan limits remain **game approximations** and require a separate sourced rules pass before being described as the real 2026/27 rules. The attempted authority was https://www.swehockey.se/ . Do not extrapolate football regulations.
+
+This is the complete first playable loop, not parity with the full Football Manager simulation. Remaining depth includes observations tied to individually scheduled external matches/video, independently selectable search-based ongoing regional discovery, contractually explicit PP/PK promises, a richer contextual statistical model using verified league/ice-time data, detailed agent relationships, and a full official season-specific regulatory model. Column presets are supported; arbitrary drag-and-drop column ordering is not. Planning currently covers this season and the next; longer-term cash commitments appear in contract totals. Loan outcomes continue in the existing loan follow-up rather than permanent-arrival reviews.
+
+## Verification
+
+`scouting-system.test.cjs` exercises hidden-attribute/pay/potential invariance, daily observation delivery, fixed observer, repeat-day idempotence, save/reload during the assignment, contact, a real negotiated offer resolved through calendarMarketDay, exact fee/wage changes, unique ownership, duplicate-transfer rejection, 42-day review, cancellation refunds, comparison, persistent planning and AI frozen assessment.
+
+Existing scouting refresh, attribute migration, knowledge filters, recruitment, hub/navigation and AI role-budget tests cover compatibility. AI test fixtures explicitly record their controlled candidates instead of granting omniscient knowledge when test attributes change.

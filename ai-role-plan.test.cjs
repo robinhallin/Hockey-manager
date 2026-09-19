@@ -4,6 +4,7 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');globalThi
  globalThis.p=state.playerWorld.freeAgents.find(p=>worldGroup(p)==='F');
  for(const k of Object.keys(p.attributes))p.attributes[k]=10;
  for(const q of state.clubRosters[club]){q.contractYears=3;for(const k of Object.keys(q.attributes))q.attributes[k]=18;}
+ clubAIState(club).scouting[p.id]={visits:3,snapshot:{...p.attributes}};
  globalThis.need=aiSquadNeeds(club).find(n=>n.role==='forward');
  globalThis.terms={salary:1000000,fee:0,years:2,role:'Nyckelspelare'};`);return app;}
 {
@@ -16,7 +17,7 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');globalThi
  assert.match(r("aiRoleOfferIssue(club,p,{...terms,kind:'transfer'})"),/bedömd plats/,'injuries do not erase competition');
  r('save()');const restored=boot(a.storage.value);
  assert.match(restored.run(`aiRoleOfferIssue(${JSON.stringify(r('club'))},findPlayerAnywhere(${JSON.stringify(r('p.id'))}),{kind:'transfer',years:2,role:'Nyckelspelare'})`),/bedömd plats/);
- r('for(const k of Object.keys(p.attributes))p.attributes[k]=20');
+ r('for(const k of Object.keys(p.attributes))p.attributes[k]=20;clubAIState(club).scouting[p.id]={visits:3,snapshot:{...p.attributes}}');
  assert.equal(r("aiRoleOfferIssue(club,p,{...terms,kind:'transfer'})"),'','a stronger recruit can credibly compete for a key role');
  assert.equal(r("aiSubmitMarket(club,p,need,'transfer',terms)"),true);
  assert.equal(r('state.clubAI.offers[0].role'),'Nyckelspelare');
@@ -30,7 +31,7 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');globalThi
  const {run:r}=setup();r('for(const q of state.clubRosters[club])q.contractYears=1');
  assert.equal(r("aiRoleOfferIssue(club,p,{...terms,kind:'future'})"),'');
  r(`globalThis.arrivals=state.clubRosters['Luleå Hockey'].filter(q=>worldGroup(q)==='F').slice(0,7);
- for(const q of arrivals){for(const k of Object.keys(q.attributes))q.attributes[k]=19;
+ for(const q of arrivals){for(const k of Object.keys(q.attributes))q.attributes[k]=19;clubAIState(club).scouting[q.id]={visits:3,snapshot:{...q.attributes}};
  state.clubAI.offers.push({playerId:q.id,buyer:club,status:'pending',kind:'future',years:2,salary:1000});}`);
  assert.match(r("aiRoleOfferIssue(club,p,{...terms,kind:'future'})"),/nästa säsong/);
  r("p.contractYears=1");
@@ -40,7 +41,7 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');globalThi
 }
 // Own pending offer never competes against its candidate. Loan roles keep their existing model.
 {
- const {run:r}=setup();r('for(const k of Object.keys(p.attributes))p.attributes[k]=20');
+ const {run:r}=setup();r('for(const k of Object.keys(p.attributes))p.attributes[k]=20;clubAIState(club).scouting[p.id]={visits:3,snapshot:{...p.attributes}}');
  r("state.clubAI.offers.push({playerId:p.id,buyer:club,status:'pending',kind:'transfer',years:2})");
  assert.equal(r("aiRoleOfferIssue(club,p,{...terms,kind:'transfer'})"),'');
  assert.equal(r("aiRoleOfferIssue(club,p,{kind:'loan',role:'starter'})"),'');

@@ -59,8 +59,9 @@ function aiCanCommit(club,p,fee,salary,{future=false,years=0}={}){
 }
 function aiScoutEstimate(club,p,role){
  const c=clubAIState(club),r=c?.scouting[p.id],visits=r?.visits||0;
+ if(getPlayerClub(p.id)===club||c?.academy.roster.some(q=>samePlayerId(q.id,p.id)))return aiRoleValue(p,role);
  const uncertainty=Math.max(.35,3.4-(c?.director.judgement||12)*.075-visits*.9);
- const attrs=ensurePlayerAttributes(p),estimated=Object.fromEntries(Object.entries(attrs).map(([k,v])=>
+ const attrs=r?.snapshot||scoutingPrior(p),estimated=Object.fromEntries(Object.entries(attrs).map(([k,v])=>
   [k,attrClamp(v+(attrSeed(`${club}:${p.id}:${k}:observation`)-.5)*uncertainty*2,1,20)]));
  return aiRoleValue(p,role,estimated);
 }
@@ -169,12 +170,12 @@ function aiScoutClub(club,candidates=null){
   }
   if(kind==='transfer'&&!recruitWillingToSell(p,seller))continue;
   if(future?terms.salary>futureRoom:terms.salary>maxSalary||terms.fee+reserved.fee>b.cash||forecast.cash-terms.fee-terms.salary*forecast.remaining/52<0)continue;
-  const roleIssue=aiRoleOfferIssue(club,p,{...terms,kind});
+  const observed=Boolean(c.scouting[p.id]?.snapshot),roleIssue=observed?aiRoleOfferIssue(club,p,{...terms,kind}):'';
   if(roleIssue){roleBlocked??=`${p.name}: ${roleIssue}`;continue;}
   const estimate=aiScoutEstimate(club,p,need.role),own=(state.clubRosters[club]||[]).filter(q=>aiRoleFits(q,need.role));
-  if(estimate<need.minimumAbility)continue;
+  if(observed&&estimate<need.minimumAbility)continue;
   const current=own.reduce((n,q)=>n+aiRoleValue(q,need.role),0)/Math.max(1,own.length);
-  if(!emergency&&estimate<Math.max(leagueOf(club)==='HA'?8:9,current-(need.missing?2:0)))continue;
+  if(observed&&!emergency&&estimate<Math.max(leagueOf(club)==='HA'?8:9,current-(need.missing?2:0)))continue;
   const ageFit=(c.project==='develop'||c.project==='rebuild')?(24-p.age)*.1:c.project==='title'&&p.age>=23&&p.age<=31?.5:0;
   const score=estimate+ageFit-terms.fee/4000000-terms.salary/12000000+(kind==='loan'&&need.temporary?1:0);
   shortlist.push({p,kind,terms,score});
@@ -182,9 +183,9 @@ function aiScoutClub(club,candidates=null){
  shortlist.sort((a,b)=>b.score-a.score||String(a.p.id).localeCompare(String(b.p.id)));
  for(const candidate of shortlist.slice(0,3)){
   const report=c.scouting[candidate.p.id]??={visits:0};
-  if(report.date!==state.calendar.date){report.visits=Math.min(3,report.visits+1);report.date=state.calendar.date;report.role=need.role;}
+  if(report.date!==state.calendar.date){report.visits=Math.min(3,report.visits+1);report.date=state.calendar.date;report.role=need.role;report.snapshot={...ensurePlayerAttributes(candidate.p)};}
  }
- const selected=shortlist.find(x=>(c.scouting[x.p.id]?.visits||0)>=(emergency?1:2)&&aiCanCommit(club,x.p,x.terms.fee,x.terms.salary,{future,years:x.terms.years}));
+ const selected=shortlist.find(x=>aiScoutEstimate(club,x.p,need.role)>=need.minimumAbility&&(c.scouting[x.p.id]?.visits||0)>=(emergency?1:2)&&aiCanCommit(club,x.p,x.terms.fee,x.terms.salary,{future,years:x.terms.years}));
  const rc=rivalsClubState(club);
  if(selected){
   aiSubmitMarket(club,selected.p,need,selected.kind,selected.terms);
