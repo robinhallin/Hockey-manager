@@ -4,11 +4,13 @@ assert.equal(r("scoutingHand({research:{shoots:'R'}})"),'R');
 assert.equal(r("scoutingFilterMatches(original,{hand:'R'})===((original.shoots||original.research?.shoots)==='R')"),true);
 assert.equal(r("scoutingFilterMatches(state.clubRosters[RECRUIT_CLUBS[0][0]][0],{league:'SHL'})"),false);
 assert.equal(r('scoutingCash(8333)'),r('money(8333)'));
+r("recruitHub.market='loan';globalThis.loanBefore=JSON.stringify(hubCandidates('search').map(p=>p.id))");
 // Public assessments, cost sorting and filters cannot be changed by invisible skills/pay/ceiling.
 r("globalThis.before=JSON.stringify([playerAssessment(original),scoutingCost(original)]);globalThis.attrs={...original.attributes};globalThis.pay=original.salary;globalThis.val=original.value;for(const k in original.attributes)original.attributes[k]=20;original.salary=987654321;original.value=99999999;ensureDevelopment(original);for(const k in ensureDevelopment(original).ceiling)ensureDevelopment(original).ceiling[k]=20");
 assert.equal(r('JSON.stringify([playerAssessment(original),scoutingCost(original)])'),r('before'));
 assert.equal(r("recruitAttributeMatches(original,{attribute:'faceoffs',minAttribute:1})"),false);
-r('original.attributes=attrs;original.salary=pay;original.value=val');
+assert.equal(r("JSON.stringify(hubCandidates('search').map(p=>p.id))"),r('loanBefore'),'loan candidate filter also protects private skills');r("recruitHub.market='all';original.attributes=attrs;original.salary=pay;original.value=val");assert.equal(r('scoutingCost(managerRoster()[0]).low'),r('managerRoster()[0].salary'));
+
 r("scoutingDraft([id]);globalThis.draft={...scoutDesk.draft};globalThis.cash=state.money;globalThis.quote=scoutingQuote(draft.players,draft.method,draft.person);scoutingStart()");assert.equal(r('cash-state.money'),r('quote.fee'));assert.equal(r('scoutPending(id)'),true);assert.equal(r('scoutActiveCount()'),1);
 r('globalThis.afterPay=state.money;scoutingStart(draft)');assert.equal(r('state.money'),r('afterPay'),'duplicate assignment never charges');
 r("globalThis.job=scoutingOffice().jobs[0];state.calendar.date=calAdd(job.next,-1);calendarStep(true)");assert.equal(r('state.scoutReports[String(id)].visits'),1,'daily calendar drives observations');
@@ -27,5 +29,7 @@ l("scoutingCompare(id);scoutingCompare(other.id)");assert.doesNotMatch(l('scouti
 for(const tab of ['overview','needs','missions','search','shortlist','deals']){l(`deskNavigate('transfers','${tab}')`);assert.doesNotMatch(l('recruitmentView()'),/NaN|undefined/);}
 l("globalThis.aiClub=Object.keys(state.clubAI.clubs).find(c=>c!==managerClub());globalThis.aiCandidate=getTransferMarketPlayers()[0];globalThis.aiReport=clubAIState(aiClub).scouting[aiCandidate.id]={visits:2,snapshot:{...ensurePlayerAttributes(aiCandidate)}};globalThis.aiBefore=aiScoutEstimate(aiClub,aiCandidate,'forward');aiCandidate.attributes.shooting=1;");assert.equal(l("aiScoutEstimate(aiClub,aiCandidate,'forward')"),l('aiBefore'));
 l('save()');const again=boot(loaded.storage.value);assert.equal(again.run('scoutingOffice().reviews[0].done'),true);
-l("scoutingPlanSave(state.season.year+1,'forwards:0',managerRoster().find(p=>p.pos==='C').id);save()");const planner=boot(loaded.storage.value);assert.ok(planner.run('Object.keys(scoutingOffice().lineupPlans[state.season.year+1]).length>0'));
+l("scoutingPlanSave(state.season.year+1,'forwards:0',managerRoster().find(p=>p.pos==='C').id);save()");const planner=boot(loaded.storage.value);assert.ok(planner.run('Object.keys(scoutingOffice().lineupPlans[state.season.year+1]).length>0'));planner.run('scoutDesk.horizon=1');assert.match(planner.run("scoutingPlannedPlace(managerRoster().find(p=>p.pos==='C'))"),/Kedja 1/);
+l("globalThis.unseen=findPlayerAnywhere(getTransferMarketPlayers().find(p=>!playerAssessment(p).known&&!p.futureContract&&!playerLoan(p)&&!naActive(p)).id);transferRecruitPlayer(unseen,getPlayerClub(unseen.id),managerClub(),0,100000,1,'Rotation')");assert.equal(l('scoutingOffice().reviews[0].known'),false);assert.equal(l('Object.keys(scoutingOffice().reviews[0].estimated).length'),0);l('state.calendar.date=calAdd(state.calendar.date,42);scoutDay()');assert.match(l('scoutingOffice().reviews[0].outcome'),/Ingen scoutbedömning fanns/);
+l("globalThis.forward=getTransferMarketPlayers().find(p=>p.pos==='F');scoutObserve(forward.id,state.calendar.date,{observer:scoutingStaff()[0],quality:.9,force:true});");assert.doesNotMatch(l('scoutingReport(forward)+scoutingUsageView(forward)'),/undefined|NaN/);assert.ok(l("recruitRoleValue(forward,'Målskytt')")>0);
 console.log('PASS: hidden attributes/pay/potential protected, daily named observations, save/reload, contact, fees/wages, unique transfer, review and refunds.');

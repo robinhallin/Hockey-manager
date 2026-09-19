@@ -97,7 +97,7 @@ function assessmentBounds(center,spread){return {low:attrClamp(Math.floor(center
 function attributeInterval(p,key,r){if(!r.known)return '—';const {low:lo,high:hi}=assessmentBounds(r.estimated[key],r.uncertainty);return lo===hi?String(lo):`${lo}–${hi}`;}
 function assessmentPanel(p){
   const r=playerAssessment(p),fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
-  if(!r.known)return `<section class="assessment-panel">${scoutingReport(p)}<button class="btn" onclick="scoutingDraft(['${haEscape(p.id)}'])">Planera observationer</button></section>`;
+  if(!r.known)return `<section class="assessment-panel">${scoutingReport(p)}${haResearchPanel(p)}<button class="btn" onclick="scoutingDraft(['${haEscape(p.id)}'])">Planera observationer</button></section>`;
   const ordered=Object.keys(fields).sort((a,b)=>r.estimated[b]-r.estimated[a]);
   const pending=state.scoutReports[String(p.id)]?.dueDate||state.recruitment?.missions.find(m=>m.status==='active'&&m.players.some(id=>samePlayerId(id,p.id)))?.nextDate;
   return `<section class="assessment-panel"><div class="assessment-heading"><div><span class="panel-label">PERSONALENS RAPPORT</span><h2>Så kan ${p.name.split(' ')[0]} användas</h2></div><label>Bedömare<select onchange="state.assessorId=this.value;save();render()">${state.staff.map(s=>`<option value="${s.id}" ${s.id===r.staff.id?'selected':''}>${s.name}</option>`).join('')}</select></label></div>

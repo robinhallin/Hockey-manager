@@ -5,9 +5,9 @@ const RECRUIT_COUNTRIES={ALL:'Alla länder',SWE:'Sverige',FIN:'Finland',SUI:'Sch
 const RECRUIT_CLUBS=[['Åbo Skärgård HC','FIN'],['Tammerfors Norr HC','FIN'],['Alpenstadt HC','SUI'],['Lac Bleu HC','SUI'],['Rhein Adler HC','GER'],['Isar Wölfe HC','GER']];
 const RECRUIT_PROFILES={
   'Defensiv center':{positions:['C'],weights:PLAYER_ROLES['Tvåvägsforward'],target:2},
-  'Målskytt':{positions:['C','VF','HF'],weights:PLAYER_ROLES['Målskytt'],target:3},
-  'Spelfördelare':{positions:['C','VF','HF'],weights:PLAYER_ROLES['Spelfördelare'],target:2},
-  'Checkingforward':{positions:['C','VF','HF'],weights:PLAYER_ROLES['Checkingforward'],target:3},
+  'Målskytt':{positions:['C','VF','HF','F'],weights:PLAYER_ROLES['Målskytt'],target:3},
+  'Spelfördelare':{positions:['C','VF','HF','F'],weights:PLAYER_ROLES['Spelfördelare'],target:2},
+  'Checkingforward':{positions:['C','VF','HF','F'],weights:PLAYER_ROLES['Checkingforward'],target:3},
   'Powerplayback':{positions:['B'],weights:PLAYER_ROLES['Offensiv back'],target:2},
   'Defensiv back':{positions:['B'],weights:PLAYER_ROLES['Defensiv back'],target:3},
   'Målvakt':{positions:['MV'],weights:PLAYER_ROLES['Målvakt'],target:2}
