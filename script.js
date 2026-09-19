@@ -1345,9 +1345,10 @@ function createMatch(){
   if(!medicalMatchReady()){state.page="medical";render();return;}
   if(opponent()==="Ingen match"){state.page="season";render();return;}
 
-  const opp=opponent();
+  const opp=opponent(),brief=matchBriefCapture(opp);
 
   state.live={
+    matchBrief:brief,
 
     opponent:opp,
 

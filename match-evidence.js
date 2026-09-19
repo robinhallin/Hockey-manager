@@ -27,9 +27,9 @@ function matchEvidenceReport(){
 }
 function matchEvidenceBody(){
  const current=matchCoachCurrent();
- if(current)return matchCoachFollowupView(current.row,current.closed,!state.live.finished);
+ if(current)return matchBriefLive()+matchCoachFollowupView(current.row,current.closed,!state.live.finished);
  const report=matchEvidenceReport();
- return `<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.length>1?`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(report.advice[1].title)}</summary>${matchCoachAdviceView(report.advice[1])}</details>`:''}<p class="mc-note">${trainingSafe(report.note)}</p>`;
+ return `${matchBriefLive()}<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.length>1?`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(report.advice[1].title)}</summary>${matchCoachAdviceView(report.advice[1])}</details>`:''}<p class="mc-note">${trainingSafe(report.note)}</p>`;
 }
 function matchEvidenceView(){
  if(state.live?.finished){const last=[...tacticalReviewSnapshot()].reverse().find(r=>r.coachDecision);return last?`<section class="mc-evidence"><h3>Ditt senaste matchbeslut</h3>${matchCoachFollowupView(last,true)}</section>`:'';}
