@@ -16,7 +16,7 @@ const INT_NAMES={
 function internationalAway(p,date=state.calendar?.date){const d=p?.internationalDuty;return Boolean(d&&!d.returned&&date>=d.from&&date<d.until);}
 function internationalFit(p){return Boolean(p&&!p.health?.injury&&(p.fatigue||0)<80);}
 function internationalPlayers(){
- const rows=[...Object.entries(state.clubRosters||{}).flatMap(([club,ps])=>ps.map(p=>({p,club}))),...(state.juniors?.roster||[]).map(p=>({p,club:managerClub()})),...Object.entries(state.clubAI?.clubs||{}).flatMap(([club,c])=>(club===managerClub()?[]:c.academy?.roster||[]).map(p=>({p,club}))),...(state.playerWorld?.freeAgents||[]).map(p=>({p,club:WORLD_FREE})),...(state.international?.pool||[]).map(p=>({p,club:'Internationell juniorpool'}))];
+ const rows=[...(state.northAmerica?.abroad||[]).map(p=>({p,club:naLocation(p)})),...Object.entries(state.clubRosters||{}).flatMap(([club,ps])=>ps.map(p=>({p,club}))),...(state.juniors?.roster||[]).map(p=>({p,club:managerClub()})),...Object.entries(state.clubAI?.clubs||{}).flatMap(([club,c])=>(club===managerClub()?[]:c.academy?.roster||[]).map(p=>({p,club}))),...(state.playerWorld?.freeAgents||[]).map(p=>({p,club:WORLD_FREE})),...(state.international?.pool||[]).map(p=>({p,club:'Internationell juniorpool'}))];
  return [...new Map(rows.map(r=>[String(r.p.id),r])).values()];
 }
 function internationalIdentity(p){

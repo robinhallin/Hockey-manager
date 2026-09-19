@@ -4,7 +4,7 @@
 
 Thirty-two real NHL franchise names, persistent career draft choices, separate NHL rights on existing player objects, uncertain scouting forecasts and a concrete post-draft development dialogue. Access under **Ligorna → NHL & draft**. Player and junior profiles and the recruitment inspector show rights; the calendar links to the draft year. Existing save files initialize prospectively. No past choices, money or departures are invented.
 
-A player selected in the draft stays in the same roster with the same ID, attributes, salary, Swedish contract, future agreement and statistics. Promotion and domestic transfers therefore carry the draft record naturally. Rights expire on June 30 four years after the choice; the historical draft record remains. Expiry never terminates a Swedish contract. There are no NHL contracts or transatlantic transfers in this stage.
+A player selected in the draft stays in the same roster with the same ID, attributes, salary, Swedish contract, future agreement and statistics. Promotion and domestic transfers therefore carry the draft record naturally. Rights expire on June 30 four years after the choice; the historical draft record remains. Expiry never terminates a Swedish contract. NHL contracts and transatlantic transfers are handled separately in [NORTH-AMERICA.md](NORTH-AMERICA.md).
 
 ## Explicit simulation assumptions
 
@@ -17,7 +17,7 @@ The NHL club names were checked against the NHL's [official club directory](http
 - All new career choices use a uniform four-year rights term. Real CBA exceptions by league, nationality, education or previous registration are not implemented.
 - NHL clubs have individual reproducible scout opinions and positional preferences for that draft. These do not claim to represent real NHL rosters, current needs or actual scout opinions.
 
-Full NHL/AHL seasons, NHL contracts and departures, a complete researched historical rights database, tradeable picks, European league seasons and senior national teams remain later stages.
+Full NHL/AHL seasons, a complete researched historical rights database, tradeable picks, European league seasons and senior national teams remain later stages.
 
 ## Scouting and decisions
 

@@ -128,7 +128,7 @@ function recruitPlayerWishes(p,club=managerClub()){
  return {role,salary,minYears:p.age<24?2:1,maxYears:p.age>=32?2:5,priority:ambition?'Sportsliga ambitioner':'Speltid och trygghet',stretch};
 }
 function recruitCanSell(p,club){
- if(p.futureContract||playerLoan(p))return false;if(club===WORLD_FREE)return true;
+ if(p.futureContract||playerLoan(p)||naActive(p))return false;if(club===WORLD_FREE)return true;
  const roster=state.clubRosters[club]||[],group=q=>q.pos==='MV'?'MV':q.pos==='B'?'B':'F';
  if(roster.filter(q=>group(q)===group(p)).length<=({MV:2,B:6,F:12})[group(p)])return false;
  if(club!==managerClub()&&positionFit(p,'C')>=.98&&roster.filter(q=>q!==p&&medicalReady(q)&&positionFit(q,'C')>=.98).length<4)return false;
@@ -152,6 +152,7 @@ function submitRecruitOffer(id,fee,salary,years,role){
  ensureRecruitment();const r=state.recruitment,p=findPlayerAnywhere(id),seller=getPlayerClub(id);
  if(state.live&&!state.live.finished)return recruitMessage('Avsluta matchen innan du skickar ett transferbud.');
  if(!p||!seller||seller===managerClub())return;
+ if(naActive(p))return recruitMessage('Spelaren har NHL-avtal. Tillgängliga AHL-lån hanteras under NHL & draft → Kontrakt & Nordamerika.');
  fee=Math.round(Number(fee));salary=Math.round(Number(salary));years=Number(years);
  if(!Number.isFinite(fee)||!Number.isFinite(salary)||(worldIsFree(id)?fee!==0:fee<=0)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return recruitMessage('Ange giltigt bud, årslön, kontraktslängd och spelarens roll.');
  if(!recruitCanAfford(managerClub(),p,fee,salary))return recruitMessage('Budet ryms inte i din kassa eller lönebudget.');
@@ -198,7 +199,7 @@ function acceptRecruitCounter(id){
  delete d.counter;d.negotiationRounds=1;d.dueDate=calAdd(state.calendar.date,1);d.due=state.recruitment.tick+1;d.reason='Motbudet accepterat. Slutlig registrering i morgon.';recruitMessage(d.reason);
 }
 function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
- if(!calendarWindowOpen()||p.futureContract)return false;
+ if(!calendarWindowOpen()||p.futureContract||naActive(p))return false;
  if(buyer!==managerClub()&&aiRoleOfferIssue(buyer,p,{kind:'transfer',years,role}))return false;
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;

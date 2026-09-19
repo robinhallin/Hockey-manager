@@ -4089,7 +4089,7 @@ function getPlayerClub(playerId){
 
   }
 
-  return state.playerWorld?.freeAgents.some(p=>samePlayerId(p.id,playerId))?WORLD_FREE:null;
+  return state.playerWorld?.freeAgents.some(p=>samePlayerId(p.id,playerId))?WORLD_FREE:(state.northAmerica?.abroad||[]).find(p=>samePlayerId(p.id,playerId))?.club||null;
 
 }
 
@@ -4107,7 +4107,7 @@ function findPlayerAnywhere(playerId){
 
   }
 
-  return state.playerWorld?.freeAgents.find(p=>samePlayerId(p.id,playerId))||null;
+  return state.playerWorld?.freeAgents.find(p=>samePlayerId(p.id,playerId))||(state.northAmerica?.abroad||[]).find(p=>samePlayerId(p.id,playerId))||null;
 
 }
 
@@ -4277,6 +4277,7 @@ function render(){
   ensureRelationships();
   ensureInternational();
   ensureNHL();
+  ensureNorthAmerica();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
