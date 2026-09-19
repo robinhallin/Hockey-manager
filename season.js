@@ -112,10 +112,11 @@ function beginPreseason(){
  clubNewYear();clubPost("grant",s.grant,"Styrelsens försäsongstilldelning");
  juniorNewYear();
  leagueApplyMovement();
+ naNewYear();
  playerWorldNewYear();
  managerPreseason();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
- nhlDay();
+ nhlDay();naDay();
  state.page='season';save();render();
 }
 function releaseExpiredPlayer(id){

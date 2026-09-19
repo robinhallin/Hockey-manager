@@ -99,7 +99,7 @@ function loanOffersView(){return (state.loans.offers||[]).slice(0,20).map(o=>{co
 function loanReturn(l,reason){
  const p=(state.clubRosters[l.borrower]||[]).find(p=>samePlayerId(p.id,l.playerId));if(!p)return false;
  state.clubRosters[l.borrower]=state.clubRosters[l.borrower].filter(q=>!samePlayerId(q.id,p.id));delete p.loanId;p.club=l.owner;
- if(state.clubRosters[l.owner])state.clubRosters[l.owner].push(p);else state.loans.external.push(p);
+ if(l.northAmerica)naReceiveReturn(p,l,reason);else if(state.clubRosters[l.owner])state.clubRosters[l.owner].push(p);else state.loans.external.push(p);
  state.loans.active=state.loans.active.filter(q=>q.id!==l.id);state.loans.history.unshift({...l,returned:state.calendar.date,reason});state.loans.history=state.loans.history.slice(0,100);
  if([l.owner,l.borrower].includes(managerClub()))managerMessage(`loan-return:${l.id}`,`${p.name} återvänder till ${l.owner}`,`${reason}. Kontrakt, utveckling och skadehistorik följer med spelaren.`,'Sportchef',{link:'transfers'});
  syncManagerRoster();repairMedicalLines();return true;

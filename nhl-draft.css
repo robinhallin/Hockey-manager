@@ -16,3 +16,9 @@
 .nhl-notice{padding:14px 18px;background:var(--ui-panel);border-left:3px solid var(--ui-accent);font-size:13px}
 .nhl-edition>summary,.nhl-scope>summary{cursor:pointer;padding:10px 0;font-size:13px}
 .nhl-calendar h2{font-size:15px}
+.na-offer{padding:16px 0;border-bottom:1px solid var(--ui-border)}
+.na-offer h3{font-size:15px;margin:0 0 10px}
+.na-offer dl{display:grid;grid-template-columns:minmax(170px,240px) 1fr;gap:8px;font-size:12px}
+.na-offer dt{color:var(--ui-muted)}
+.na-offer dd{margin:0}
+.na-filter{display:grid;gap:6px;max-width:290px;font-size:12px;margin-top:18px}
