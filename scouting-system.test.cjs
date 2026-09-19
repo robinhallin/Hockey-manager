@@ -1,5 +1,9 @@
 const assert=require('node:assert/strict');const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;r("startCareerWithClub('HV71');globalThis.target=getTransferMarketPlayers().find(p=>p.pos==='C'&&medicalReady(p)&&!p.futureContract&&!naActive(p)&&recruitCanSell(p,getPlayerClub(p.id)));globalThis.id=target.id;globalThis.original=findPlayerAnywhere(id)");
+assert.equal(r("scoutingHand({research:{shoots:'R'}})"),'R');
+assert.equal(r("scoutingFilterMatches(original,{hand:'R'})===((original.shoots||original.research?.shoots)==='R')"),true);
+assert.equal(r("scoutingFilterMatches(state.clubRosters[RECRUIT_CLUBS[0][0]][0],{league:'SHL'})"),false);
+assert.equal(r('scoutingCash(8333)'),r('money(8333)'));
 // Public assessments, cost sorting and filters cannot be changed by invisible skills/pay/ceiling.
 r("globalThis.before=JSON.stringify([playerAssessment(original),scoutingCost(original)]);globalThis.attrs={...original.attributes};globalThis.pay=original.salary;globalThis.val=original.value;for(const k in original.attributes)original.attributes[k]=20;original.salary=987654321;original.value=99999999;ensureDevelopment(original);for(const k in ensureDevelopment(original).ceiling)ensureDevelopment(original).ceiling[k]=20");
 assert.equal(r('JSON.stringify([playerAssessment(original),scoutingCost(original)])'),r('before'));
