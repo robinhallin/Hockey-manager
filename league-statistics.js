@@ -85,6 +85,8 @@ function leagueCommitRows(game,rows,partial=false,live=false){
  }
  game.statsRecorded=true;game.statsPartial=partial;s.recorded[stage][league]++;
  const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,workload:{...state.live.rink?.oppFatigue},coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.style||'control',decisions:state.live.aiTeam?.coachChanges||[],pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
+ nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.home,rows,partial);
+ nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.away,rows,partial);
  loansAfterFixture(game,rows);rivalAfterFixture(game,rows,reports,partial);pressAfterFixture(game,rows,reports,partial);
 }
 function leagueCommitLive(){
