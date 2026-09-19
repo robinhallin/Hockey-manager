@@ -2,6 +2,7 @@
 // Real club/division names; schedules, untracked depth and competitive strengths are game models.
 const NAS_DIVISIONS={NHL:{Atlantic:['Boston Bruins','Buffalo Sabres','Detroit Red Wings','Florida Panthers','Montréal Canadiens','Ottawa Senators','Tampa Bay Lightning','Toronto Maple Leafs'],Metropolitan:['Carolina Hurricanes','Columbus Blue Jackets','New Jersey Devils','New York Islanders','New York Rangers','Philadelphia Flyers','Pittsburgh Penguins','Washington Capitals'],Central:['Chicago Blackhawks','Colorado Avalanche','Dallas Stars','Minnesota Wild','Nashville Predators','St. Louis Blues','Utah Mammoth','Winnipeg Jets'],Pacific:['Anaheim Ducks','Calgary Flames','Edmonton Oilers','Los Angeles Kings','San Jose Sharks','Seattle Kraken','Vancouver Canucks','Vegas Golden Knights']},AHL:{Atlantic:['Charlotte Checkers','Hartford Wolf Pack','Hershey Bears','Lehigh Valley Phantoms','Providence Bruins','Springfield Thunderbirds','Wilkes-Barre/Scranton Penguins'],North:['Belleville Senators','Cleveland Monsters','Hamilton Hammers','Laval Rocket','Rochester Americans','Syracuse Crunch','Toronto Marlies','Utica Comets'],Central:['Chicago Wolves','Grand Rapids Griffins','Iowa Wild','Manitoba Moose','Milwaukee Admirals','Rockford IceHogs','Texas Stars'],Pacific:['Abbotsford Canucks','Bakersfield Condors','Calgary Wranglers','Coachella Valley Firebirds','Colorado Eagles','Henderson Silver Knights','Ontario Reign','San Diego Gulls','San Jose Barracuda','Tucson Roadrunners']}};
 const nasUI={league:'NHL',tab:'table',division:'all',club:'all',stage:'regular',year:'current',game:null};
+let nasArchiveCache=null;
 const NAS_FIELDS=['games','seconds','goals','assists','shots','saves','against'];
 function nasClubs(league){return Object.values(NAS_DIVISIONS[league]).flat();}
 function nasDivision(league,club){return Object.keys(NAS_DIVISIONS[league]).find(d=>NAS_DIVISIONS[league][d].includes(club));}
@@ -122,7 +123,7 @@ function nasOffseason(){
 }
 function nasNewYear(){
  const w=ensureNASeasons();if(!w||w.season.year>=state.season.year)return;
- w.history.unshift(w.season);w.history=w.history.slice(0,3);w.season=nasNewSeason(state.season.year);w.lastDate=state.calendar.date;w.processed=null;
+ const old=w.season;w.history.unshift({year:old.year,leagues:Object.fromEntries(Object.entries(old.leagues).map(([key,l])=>[key,{champion:l.champion}])),packed:careerPack(JSON.stringify(old))});w.history=w.history.slice(0,3);nasArchiveCache=null;w.season=nasNewSeason(state.season.year);w.lastDate=state.calendar.date;w.processed=null;
 }
 function nasPlayerSummary(p){const rows=(p.naSeasons||[]).filter(r=>r.year===state.season.year),games=rows.reduce((n,r)=>n+r.games,0),goals=rows.reduce((n,r)=>n+r.goals,0),assists=rows.reduce((n,r)=>n+r.assists,0),seconds=rows.reduce((n,r)=>n+r.seconds,0);return games?`${games} NHL/AHL-matcher · ${goals}+${assists} · ${Math.round(seconds/60/games)} min/match`:'Inga registrerade NHL/AHL-matcher denna säsong.';}
 function nasSet(key,value){
@@ -135,10 +136,10 @@ function nasSet(key,value){
  else if(key==='game'){const season=nasSelectedSeason();if(!season?.leagues[nasUI.league].games.some(g=>g.id===value&&g.played))return;nasUI.game=value;nasUI.tab='games';}
  else return;render();
 }
-function nasSelectedSeason(){const w=state.naLeagues;return nasUI.year==='current'?w?.season:w?.history.find(s=>String(s.year)===nasUI.year)||w?.season;}
+function nasSelectedSeason(){const w=state.naLeagues;if(nasUI.year==='current')return w?.season;const item=w?.history.find(s=>String(s.year)===nasUI.year);if(!item)return w?.season;if(!item.packed)return item;if(nasArchiveCache?.item===item)return nasArchiveCache.season;try{const season=careerRead(item.packed);nasArchiveCache={item,season};return season;}catch{return null;}}
 function nasOpen(){nhlUI.tab='leagues';deskNavigate('nhl');}
 function nasView(){
- const season=nasSelectedSeason();if(!season)return '';const league=nasUI.league,l=season.leagues[league],safe=trainingSafe,finished=l.games.filter(g=>g.played).length;
+ const season=nasSelectedSeason();if(!season)return '<p>Det valda ligaarkivet kunde inte läsas. Välj den aktuella säsongen igen via NHL & draft.</p>';const league=nasUI.league,l=season.leagues[league],safe=trainingSafe,finished=l.games.filter(g=>g.played).length;
  const options=(values,selected)=>values.map(([v,label])=>`<option value="${safe(v)}" ${v===selected?'selected':''}>${safe(label)}</option>`).join('');
  const filters=`<div class="nhl-filters"><label>Liga<select onchange="nasSet('league',this.value)">${options(['NHL','AHL'].map(v=>[v,v]),league)}</select></label><label>Säsong<select onchange="nasSet('year',this.value)">${options([['current',state.naLeagues.season.year+'/'+String(state.naLeagues.season.year+1).slice(-2)],...state.naLeagues.history.map(s=>[String(s.year),s.year+'/'+String(s.year+1).slice(-2)])],nasUI.year)}</select></label><label>Klubb<select onchange="nasSet('club',this.value)">${options([['all','Alla klubbar'],...nasClubs(league).map(c=>[c,c])],nasUI.club)}</select></label></div>`;
  const tabs=`<nav class="mw-tabs" aria-label="Nordamerikanskt ligaspel">${[['table','Tabell'],['games','Matcher & rapporter'],['playoffs','Slutspel'],['players','Bevakade spelare'],['history','Mästare']].map(([id,name])=>`<button onclick="nasSet('tab','${id}')" aria-pressed="${nasUI.tab===id}">${name}</button>`).join('')}</nav>`;
