@@ -49,7 +49,7 @@ test('late-save migration starts next year; views preserve state; paused match b
 test('real preseason transition completes season before aging, retains player ledger and archives',()=>{
  const a=game(),r=a.run;prospect(a);r("globalThis.age=p.age;state.season.phase='review';state.season.boardResult=[];beginPreseason()");assert.equal(r('p.age'),r('age+1'));assert.equal(r('state.naLeagues.history[0].year'),2026);assert.ok(r('state.naLeagues.history[0].leagues.NHL.champion'));assert.ok(r('state.naLeagues.history[0].leagues.AHL.champion'));assert.equal(r('state.naLeagues.season.year'),2027);assert.ok(r('p.naSeasons.some(s=>s.year===2026&&s.games>0)'));
  r('save()');const b=boot(a.storage.value);assert.equal(b.run('JSON.stringify(state.naLeagues)'),r('JSON.stringify(state.naLeagues)'));
- assert.ok(r('saveExportText().length')<4500000);
+ assert.ok(r('saveExportText().length')<4500000);assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
  r("nasUI.year='2026';globalThis.before=JSON.stringify(state);globalThis.archived=nasSelectedSeason();nasView()");assert.equal(r('archived.leagues.NHL.games.every(g=>g.played)'),true);assert.equal(r('JSON.stringify(state)'),r('before'));
  b.run("nasUI.year='2026'");assert.equal(b.run('JSON.stringify(nasSelectedSeason())'),r('JSON.stringify(archived)'));
 });
