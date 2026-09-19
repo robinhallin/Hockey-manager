@@ -73,6 +73,9 @@ html,body{font-family:var(--ui-font);background:var(--ui-bg);color:var(--ui-text
 .game-shell .desk-page:not([data-page=match]) table tbody th[scope=row]{font-weight:550}
 .game-shell .desk-page:not([data-page=match]) table :is(tr.selected,tr.office-own,tr.own){background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-panel))}
 .game-shell :is(.sw-table-wrap,.rh-table-scroll,.cw-scroll,.mw-scroll,.fm-table-scroll,.analysis-scroll){scrollbar-color:#41556d var(--ui-panel);scrollbar-width:thin}
+.game-shell .desk-page:not([data-page=match]) table tbody :is(th,td){font-size:12px}
+/* Recruitment's older selected-row rule was important; keep this override local. */
+.game-shell .recruit-hub tr.selected{background:color-mix(in srgb,var(--ui-accent) 12%,var(--ui-panel))!important}
 /* Overview: the decisions are one list; supporting context is a quieter column. */
 .game-shell .office-desk-grid{gap:22px}
 .game-shell .office-desk .office2-command{padding:18px}
@@ -121,6 +124,13 @@ html,body{font-family:var(--ui-font);background:var(--ui-bg);color:var(--ui-text
 .game-shell .career-menu-copy h1{font-family:var(--ui-font);font-weight:750;letter-spacing:-.06em}
 @media(min-width:1100px){
  .game-shell:not(.career-mode):not(.match-mode){grid-template-columns:184px minmax(0,1fr)}
+ .game-shell .desk-page:has(>.office-desk){height:auto;display:block}
+ .game-shell .office-desk{display:block;height:auto}
+ .game-shell .office-desk-grid{align-items:start}
+ .game-shell .office-desk .office2-command{display:block}
+ .game-shell .office-desk .office2-list{overflow:visible;max-height:none;display:block}
+ .game-shell .office-context-content{overflow:visible;max-height:none}
+ .game-shell .sw-table-wrap{max-height:max(220px,calc(100dvh - 460px))}
  .game-shell:not(.career-mode) .game-content:not(:has(.mc-live)){padding:24px 28px 32px}
  .game-shell .desk-page:not([data-page=match])>.desk-subnav{margin-bottom:24px}
 }
