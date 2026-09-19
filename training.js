@@ -131,6 +131,7 @@ function runTrainingSession(){
   let fatigueChange=0,trained=0,resting=0,improvements=0;
   const before=managerRoster().reduce((n,p)=>n+p.fatigue,0)/managerRoster().length;
   for(const p of managerRoster()){
+    if(internationalAway(p))continue;
     const previous=p.fatigue,effect=trainingSessionEffect(p,session);
     p.fatigue=effect.fatigue;
     const key=effect.rest?null:trainingTarget(p,session.type);

@@ -3575,7 +3575,7 @@ function playerView(){
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
 
   const r=playerAssessment(player),tab=profileWorkspace.tab;
-  return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${player.pos}</div><div><small>${trainingSafe(managerClub())} · ${positionName}</small><h1>${trainingSafe(player.name)}</h1><p>${player.age} år · ${nationality} · ${role}</p></div><div class="fm-profile-rating"><small>Förmåga / potential</small><div>${assessmentBadge(player)} / ${assessmentBadge(player,true)}</div></div></header>
+  return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${player.pos}</div><div><small>${trainingSafe(managerClub())} · ${positionName}</small><h1>${trainingSafe(player.name)}</h1><p>${player.age} år · ${nationality} · ${role}</p></div><div class="fm-profile-rating"><small>Förmåga / potential</small><div>${assessmentBadge(player)} / ${assessmentBadge(player,true)}</div></div></header>${internationalProfile(player)}
   <nav class="fm-tabs" aria-label="Spelarprofil">${[['overview','Översikt'],['contract','Kontrakt & övergång'],['development','Utveckling & hälsa'],['report','Rapport & historik'],['person','Person & relation']].map(([key,label])=>`<button aria-pressed="${tab===key}" onclick="profileWorkspace.tab='${key}';render()">${label}</button>`).join('')}</nav>
   ${tab==='contract'?`        <section class="dashboard-panel">
 
@@ -4275,6 +4275,7 @@ function render(){
   ensureStories();
   ensurePress();
   ensureRelationships();
+  ensureInternational();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
@@ -4327,6 +4328,9 @@ careerScreen === "files" ? saveSettingsView()
 
 : state.page==="opponents"
 ? rivalsView()
+
+: state.page==="international"
+? internationalView()
 
 : state.page==="press"
 ? pressView()

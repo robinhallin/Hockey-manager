@@ -24,7 +24,7 @@ function managerJ20TrainingRecord(player,before,session,key){
 const managerJ20TrainingBase=juniorTraining;
 juniorTraining=function(session,key){
   if(state.juniors?.trainingKeys?.includes(key))return;
-  const guests=(state.juniors?.roster||[]).filter(p=>p.academy?.path==='guest'&&!p.academy?.loan).map(p=>({id:p.id,fatigue:p.fatigue||0,profile:managerJ20TrainingProfile(p),participated:medicalCanTrain(p)&&p.trainingLoad!=='rest'&&session?.type!=='recovery'}));
+  const guests=(state.juniors?.roster||[]).filter(p=>p.academy?.path==='guest'&&!p.academy?.loan&&!internationalAway(p)).map(p=>({id:p.id,fatigue:p.fatigue||0,profile:managerJ20TrainingProfile(p),participated:medicalCanTrain(p)&&p.trainingLoad!=='rest'&&session?.type!=='recovery'}));
   const result=managerJ20TrainingBase(session,key);
   for(const before of guests){const player=(state.juniors?.roster||[]).find(p=>samePlayerId(p.id,before.id));if(player)managerJ20TrainingRecord(player,before,session,key);}
   return result;

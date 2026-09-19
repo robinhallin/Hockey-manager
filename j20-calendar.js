@@ -35,6 +35,7 @@ function juniorCalendarNext(club=managerClub()){
   return null;
 }
 function juniorCalendarLoanAppearance(p,round,date){
+  if(internationalAway(p))return;
   const a=p.academy;if(!a?.loan)return;
   const offer=JUNIOR_LOANS[a.loan.destination],quality=attributeWeighted(p.attributes,PLAYER_ROLES[a.role]);
   const minutes=p.pos==='MV'?(juniorRoll()<.55?60:0):Math.round(Math.max(0,Math.min(24,offer.minutes+(quality-offer.level)*1.5-p.fatigue/12+(juniorRoll()-.5)*6)));
@@ -45,6 +46,7 @@ function juniorCalendarLoanAppearance(p,round,date){
 function juniorCalendarManagerReport(pair,round,date,forecast){
   const home=pair.home===managerClub(),opponent=home?pair.away:pair.home,plan=juniorMatchPlan(managerClub(),round),rows=[];
   for(const p of state.juniors.roster){
+    if(internationalAway(p))continue;
     if(p.academy.loan){juniorCalendarLoanAppearance(p,round,date);continue;}
     const seconds=plan.playable?(plan.seconds.get(String(p.id))||0):0;
     const row={id:p.id,name:p.name,seconds,goals:0,assists:0};rows.push(row);

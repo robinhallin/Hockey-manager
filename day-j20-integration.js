@@ -11,7 +11,7 @@ function calendarContinue(){
  const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
  const c=state.calendar,start=c.date,dayBefore=managerDaySnapshot();
  if(c.completedMatchDate===c.date){
-  managerRoster().forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));calendarStep(true);delete c.completedMatchDate;state.live=null;
+  managerRoster().filter(p=>!internationalAway(p)).forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));calendarStep(true);delete c.completedMatchDate;state.live=null;
   state.training.calendarKey=null;state.training.day=0;state.training.logs=[];
  }else{
   if(state.season.phase==='review'){state.page='season';save();render();return;}
@@ -66,6 +66,7 @@ function aiAcademyDay(club){
  const match=state.season.phase!=='regular'&&calGap(a.lastMatch,state.calendar.date)>=7;if(match)a.lastMatch=state.calendar.date;
  const coach=rivalsClubState(club)?.coach.coaching||12;
  for(const p of a.roster){
+  if(internationalAway(p))continue;
   p.fatigue=Math.max(0,(p.fatigue||0)-8);if(!medicalCanTrain(p))continue;
   const weights=PLAYER_ROLES[p.academy.role]||PLAYER_ROLES[juniorRoles(p)[0]],keys=Object.keys(weights);
   const key=keys[(p.academy.cursor||0)%keys.length];p.academy.cursor=(p.academy.cursor||0)+1;
