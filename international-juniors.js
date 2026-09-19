@@ -44,14 +44,15 @@ function ensureInternational(){
   const elapsed=Math.max(0,year-w.year);w.year=year;
   for(const p of w.pool){p.age+=elapsed;for(const key of Object.keys(p.attributes))p.attributes[key]=Math.min(18,p.attributes[key]+Math.min(elapsed,3)*.25);}
   const leaving=w.pool.filter(p=>p.age>20);w.pool=w.pool.filter(p=>p.age<=20);
-  for(const p of leaving){if(p.age>24)continue;p.club=WORLD_FREE;p.previousClub='Internationell juniorpool';p.freeSince=year;if(!worldIsFree(p.id))state.playerWorld.freeAgents.push(p);}
+  // Only a bounded scouting intake enters the simulated domestic market.
+  const slots=Math.max(0,Math.min(20,60-state.playerWorld.freeAgents.filter(p=>p.internationalOrigin).length));
+  const graduates=leaving.filter(p=>p.age<=24).sort((a,b)=>internationalScore(b)-internationalScore(a)||String(a.id).localeCompare(String(b.id))).slice(0,slots);
+  for(const p of graduates){p.club=WORLD_FREE;p.previousClub='Internationell juniorpool';p.freeSince=year;if(!worldIsFree(p.id))state.playerWorld.freeAgents.push(p);}
  }
  for(const nation of Object.keys(INT_NATIONS))for(const [pos,count] of [['MV',4],['B',10],['C',6],['VF',6],['HF',6]]){
   const n=w.pool.filter(p=>p.nationality===nation&&p.pos===pos).length;
   for(let i=n;i<count;i++)w.pool.push(internationalMakePlayer(nation,pos,w.nextId++,year,w.created===state.calendar.date?16+(i%4):16));
  }
- // Anchor estimated birth years once, so transfers and season birthdays cannot change eligibility.
- for(const {p} of internationalPlayers())if(!p.internationalIdentity)p.internationalIdentity=internationalIdentity(p);
  if(!w.tournament)w.tournament={year:year+1,status:'upcoming',skipped:state.calendar.date>`${year}-12-15`,announced:false,departed:false,returned:false,rosters:{},games:[],groups:[],reports:[],medals:[]};
  return w;
 }
@@ -65,6 +66,8 @@ function internationalScore(p,role='balanced'){
 function internationalCandidates(nation){return internationalPlayers().filter(({p})=>internationalEligible(p,state.international.tournament.year)&&internationalIdentity(p).nation===nation);}
 function internationalSelect(){
  const w=ensureInternational(),t=w?.tournament;if(!t||t.skipped||t.announced)return;
+ // Anchor identities on selection, never when opening a view.
+ for(const {p} of internationalPlayers())if(!p.internationalIdentity)p.internationalIdentity=internationalIdentity(p);
  t.announced=true;t.status='selected';
  for(const nation of Object.keys(INT_NATIONS)){
   const pool=internationalCandidates(nation).filter(({p})=>internationalFit(p)),chosen=[];
@@ -201,7 +204,7 @@ function internationalView(){
  <section class="mw-panel"><h2>${INT_NATIONS[nation]} · ${entries.length?entries.length+' uttagna':'Uttagningen återstår'}</h2><div class="mw-scroll"><table><thead><tr><th>Spelare</th><th>Position</th><th>Klubb / bakgrund</th><th>Matcher</th><th>Minuter</th><th>Mål</th><th>Assist</th></tr></thead><tbody>${entries.map(e=>`<tr><th>${safe(e.name)}${e.withdrawn?' · återbud':''}${e.fictional?' · fiktiv':''}</th><td>${e.pos}</td><td>${safe(e.club)}</td><td>${e.games}</td><td>${Math.round(e.seconds/60)}</td><td>${e.goals}</td><td>${e.assists}</td></tr>`).join('')}</tbody></table></div></section>
  ${t.groups.map((group,i)=>`<section class="mw-panel"><h2>Grupp ${i?'B':'A'}</h2><table><thead><tr><th>Lag</th><th>Matcher</th><th>Poäng</th><th>Mål</th></tr></thead><tbody>${internationalStandings(t,group).map(r=>`<tr><th>${INT_NATIONS[r.nation]}</th><td>${r.gp}</td><td>${r.pts}</td><td>${r.gf}–${r.ga}</td></tr>`).join('')}</tbody></table></section>`).join('')}
  <section class="mw-panel"><h2>Matcher & rapporter</h2>${t.games.map(g=>`<details><summary>${calText(g.date)} · ${g.stage} · ${INT_NATIONS[g.home]} ${g.played?g.hg+'–'+g.ag:'–'} ${INT_NATIONS[g.away]}${g.shootout?' · straffar':g.overtime?' · förlängning':''}</summary>${g.played?`<p>${g.administrative?'Administrativt resultat: otillräcklig matchtrupp.':`Skott på mål ${g.shots[0]}–${g.shots[1]}. ${(g.injuries||[]).length?'Skador: '+g.injuries.map(p=>safe(p.name)).join(', ')+'. ':''}Straffavgörandet ingår inte i spelarpoängen.`}</p>${(g.players||[]).map((ps,i)=>`<h3>${INT_NATIONS[i?g.away:g.home]}</h3>${ps.map(r=>`<p>${safe(r.name)}: ${Math.round(r.seconds/60)} min · ${r.goals}+${r.assists}${r.pos==='MV'?' · '+r.saves+' räddningar':''}</p>`).join('')}`).join('')}`:'<p>Rapporten skapas när matchdagen avslutas.</p>'}</details>`).join('')||'<p>Spelschemat publiceras vid samlingen.</p>'}</section>
- <details class="mw-panel"><summary>Spelvärldens omfattning och uttagningsunderlag</summary><p>Detta är din karriärs simulerade JVM med tio landslag. Grupper, matchdagar, åldersgränser (födelseår ${t.year-20}–${t.year-16}) och skiljeregler är spelmodellens upplägg, inte en verifierad kopia av det officiella årets turnering. Lika grupppoäng skiljs på målskillnad, gjorda mål och landskod. Plats 9–10 avgörs utan divisionsbyte i denna etapp.</p><p>Befintliga spelaridentiteter återanvänds. Övriga landslag kompletteras från en uttryckligen fiktiv internationell juniorpool. Poolen åldras och spelare över 20 går vidare till den vanliga kontraktslösa marknaden. NHL, draft, AHL, europeiska ligasäsonger och seniorlandslag är nästa etapper.</p><p>Matchrapporterna kommer från en separat sammanfattad landslagssimulering med spelarattribut, målvakter, roller, belastning, skador och registrerade händelser. Klubbens poängliga och matchmotor ändras inte av landslagsstatistiken.</p><p>${internationalCandidates(nation).length} kandidater i ${INT_NATIONS[nation]} inom den bevakade spelarvärlden. Uttagningen prioriterar rollbalans och nuvarande spelstyrka; okända födelsedatum markeras som uppskattade.</p></details>
+ <details class="mw-panel"><summary>Spelvärldens omfattning och uttagningsunderlag</summary><p>Detta är din karriärs simulerade JVM med tio landslag. Grupper, matchdagar, åldersgränser (födelseår ${t.year-20}–${t.year-16}) och skiljeregler är spelmodellens upplägg, inte en verifierad kopia av det officiella årets turnering. Lika grupppoäng skiljs på målskillnad, gjorda mål och landskod. Plats 9–10 avgörs utan divisionsbyte i denna etapp.</p><p>Befintliga spelaridentiteter återanvänds. Övriga landslag kompletteras från en uttryckligen fiktiv internationell juniorpool. Poolen åldras. Högst 20 av de starkaste överåriga spelarna per år blir tillgängliga på den kontraktslösa marknaden, med högst 60 osignerade spelare från poolen samtidigt. Övriga lämnar den bevakade spelarvärlden. NHL, draft, AHL, europeiska ligasäsonger och seniorlandslag är nästa etapper.</p><p>Matchrapporterna kommer från en separat sammanfattad landslagssimulering med spelarattribut, målvakter, roller, belastning, skador och registrerade händelser. Klubbens poängliga och matchmotor ändras inte av landslagsstatistiken.</p><p>${internationalCandidates(nation).length} kandidater i ${INT_NATIONS[nation]} inom den bevakade spelarvärlden. Uttagningen prioriterar rollbalans och nuvarande spelstyrka; okända födelsedatum markeras som uppskattade.</p></details>
  ${w.archive.length?`<section class="mw-panel"><h2>Tidigare turneringar</h2>${w.archive.map(a=>`<p>JVM ${a.year}: ${a.medals?.length?INT_NATIONS[a.medals[0]]+' · guld':'Ingen komplett turnering registrerad'}</p>`).join('')}</section>`:''}</section>`;
 }
 

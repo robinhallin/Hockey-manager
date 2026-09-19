@@ -37,6 +37,6 @@ test('medical withdrawal replaces a player; late saves do not invent a tournamen
 });
 test('daily integration, immutable birth year and bounded next-season player pool',()=>{
  const a=setup(),r=a.run;r("state.calendar.date='2026-12-14';calendarStep(true)");assert.equal(r('state.international.tournament.announced'),true);
- r("globalThis.p=state.international.pool.find(p=>p.age===19);globalThis.id=p.id;globalThis.birth=p.internationalIdentity.birthYear;state.season.year=2028;state.calendar.date='2028-08-01';ensureInternational()");
- assert.equal(r('state.international.pool.length'),320);assert.equal(r('state.playerWorld.freeAgents.some(p=>p.id===id)'),true);assert.equal(r('p.internationalIdentity.birthYear'),r('birth'));assert.equal(r('state.international.archive.length'),1);
+ r("globalThis.p=state.international.pool.find(p=>p.age===19);for(const k of Object.keys(p.attributes))p.attributes[k]=20;globalThis.id=p.id;globalThis.birth=p.internationalIdentity.birthYear;state.season.year=2028;state.calendar.date='2028-08-01';ensureInternational()");
+ assert.equal(r('state.international.pool.length'),320);assert.ok(r('state.playerWorld.freeAgents.filter(p=>p.internationalOrigin).length')<=20);assert.equal(r('state.playerWorld.freeAgents.some(p=>p.id===id)'),true);assert.equal(r('p.internationalIdentity.birthYear'),r('birth'));assert.equal(r('state.international.archive.length'),1);
 });

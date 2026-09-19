@@ -12,7 +12,7 @@ This is explicitly a **career simulation**, not a researched reproduction of an 
 
 Known birth dates use their actual birth year. Older records with only an age receive an anchored, explicitly estimated birth year; identity does not drift when age changes. The game uses birth cohorts tournament-year minus 20 through minus 16. Nationality represents one national identity; dual citizenship, federation transfers and the full legal eligibility rules are not implemented.
 
-The international pool contains clearly fictional players with stable IDs and country-appropriate names. It does not pretend to be NHL/AHL or a real European club database. Each country has 32 development players across positions. The pool ages annually; over-20 players enter the existing free-agent market and normal contract process. The main club world remains authoritative for employed players. NHL, AHL, draft rights, European league seasons and senior national teams are later stages.
+The international pool contains clearly fictional players with stable IDs and country-appropriate names. It does not pretend to be NHL/AHL or a real European club database. Each country has 32 development players across positions. The pool ages annually; up to 20 of the strongest over-20 graduates per year enter the existing free-agent market and normal contract process, with at most 60 unsigned pool-origin players present at intake. Other graduates leave the tracked world. Existing market players are never removed by this intake. The main club world remains authoritative for employed players. NHL, AHL, draft rights, European league seasons and senior national teams are later stages.
 
 ## Selection and effects
 
