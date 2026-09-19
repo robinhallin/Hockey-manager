@@ -104,11 +104,12 @@ function managerInterviewAnswer(answer){
 }
 function managerShowInterview(){document.querySelector('.manager-interview')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
 function managerStoreClub(){
+ for(const j of scoutingOffice()?.jobs||[])if(j.status==='active')scoutingClose(j,'cancelled','Klubbuppdraget avslutades när tränaren lämnade klubben.');
  for(const p of state.training?.promises||[])if(!p.resolved){p.resolved=true;p.result='Tränaren lämnade klubben';}
  for(const p of managerRoster())if(p.recruitmentPromise&&!p.recruitmentPromise.resolved){p.recruitmentPromise.resolved=true;p.recruitmentPromise.result='Tränaren lämnade klubben';}
  const c=state.managerCareer,snapshot={year:clubYear(),money:state.money,wageLimit:wageBudget()};
  for(const field of MANAGER_CLUB_FIELDS)snapshot[field]=state[field]??null;
- snapshot.recruitment={missions:state.recruitment.missions.map(m=>m.status==='active'?{...m,status:'cancelled'}:m),shortlist:[...state.recruitment.shortlist]};
+ snapshot.recruitment={scouting:state.recruitment.scouting,missions:state.recruitment.missions.map(m=>m.status==='active'?{...m,status:'cancelled'}:m),shortlist:[...state.recruitment.shortlist]};
 
  c.bank[managerClub()]=snapshot;
  state.recruitment.ai[managerClub()]={cash:state.money,wageLimit:wageBudget(),year:clubYear()};
@@ -131,6 +132,7 @@ function managerAcceptJob(){
  state.boardPlan=null;state.season.nextWageLimit=offer.wageLimit;state.season.grant=0;state.season.freeAgents=state.playerWorld.freeAgents;state.season.departures=[];delete state.season.boardResult;
  delete state.recruitment.ai[j.club];
  // Assignments and reports belong to the former employer; market history stays global.
+ state.recruitment.scouting=saved?.recruitment?.scouting;ensureScoutingOffice();
  state.recruitment.missions=saved?.recruitment?.missions||[];state.recruitment.shortlist=saved?.recruitment?.shortlist||[];state.recruitment.incoming=[];state.recruitment.message='';state.recruitment.tab='search';
  state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];
  if(state.training){state.training.promises=[];state.training.messages=[];state.training.selectedMessage=null;}

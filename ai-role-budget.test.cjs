@@ -3,6 +3,8 @@ function setup(){const a=boot();a.run(`startCareerWithClub('HV71');globalThis.cl
  for(const q of state.clubRosters[club]){q.contractYears=3;q.promisedRole='Breddspelare';q.squadRole='Breddspelare';for(const k of Object.keys(q.attributes))q.attributes[k]=12;}
  state.recruitment.ai[club].cash=100000000;state.recruitment.ai[club].wageLimit=100000000;
  globalThis.p=state.playerWorld.freeAgents.find(q=>worldGroup(q)==='F');for(const k of Object.keys(p.attributes))p.attributes[k]=20;
+ // Recruitment decisions require an observed basis, even for this strong test candidate.
+ clubAIState(club).scouting[p.id]={visits:3,date:state.calendar.date,snapshot:{...p.attributes}};
  globalThis.terms={kind:'transfer',role:'Nyckelspelare',years:2,fee:0,salary:1000000};
  `);return a;}
 {

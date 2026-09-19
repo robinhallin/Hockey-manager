@@ -16,8 +16,8 @@ function recruitmentYear(){return state.season?.year||2026;}
 function ensureRecruitment(){
   if(!state.careerStarted)return;
   ensureSeason();ensurePlayerWorld();
-  if(state.recruitment)return;
-  state.recruitment={version:1,tick:0,lastRound:`${recruitmentYear()}:${state.round}`,shortlist:[],missions:[],deals:[],incoming:[],history:[],nextId:1,filters:{country:'ALL',profile:'ALL',maxAge:40,maxFee:50000000,query:'',attribute:'',minAttribute:10},tab:'search',ai:{},weeks:0};
+  if(state.recruitment){ensureScoutingOffice();return;}
+  state.recruitment={version:1,tick:0,lastRound:`${recruitmentYear()}:${state.round}`,shortlist:[],missions:[],deals:[],incoming:[],history:[],nextId:1,filters:{country:'ALL',profile:'ALL',maxAge:40,maxFee:50000000,query:'',attribute:'',minAttribute:10},tab:'overview',ai:{},weeks:0};
   const first={FIN:['Eero','Mikko','Joonas','Oskari','Antti','Aleksi','Ville','Lauri'],SUI:['Luca','Noah','Nico','Jan','Sandro','Marc','Joel','Dario'],GER:['Leon','Moritz','Felix','Lukas','Tim','Max','Jonas','Florian']};
   const last={FIN:['Koskela','Laakso','Salonen','Kivinen','Rantala','Niemelä','Lehtola','Aalto'],SUI:['Keller','Meier','Steiner','Baumann','Frei','Huber','Graf','Brunner'],GER:['Weber','Fischer','Wagner','Koch','Braun','Richter','Wolf','Hartmann']};
   RECRUIT_CLUBS.forEach(([club,country],ci)=>{
@@ -29,6 +29,7 @@ function ensureRecruitment(){
       ensurePlayerAttributes(p);return p;
     });
   });
+  ensureScoutingOffice();
   ensureManagementData();
   state.recruitment.history=(state.transferOffers||[]).filter(o=>o.status==='completed').map(o=>({id:state.recruitment.nextId++,year:recruitmentYear(),tick:0,name:o.playerName,playerId:o.playerId,seller:o.sellingClub,buyer:o.buyingClub,fee:o.amount}));
   for(const club of Object.keys(state.clubRosters))if(club!==managerClub()){
@@ -71,6 +72,7 @@ function recruitFilters(){return state.recruitment.filters;}
 function setRecruitFilter(key,value){recruitHub.page=0;const f=recruitFilters();f[key]=['maxAge','maxFee','minAttribute'].includes(key)?Number(value):String(value);queueInterfaceSave();render();}
 function recruitAttributeMatches(p,filters){
  if(!filters.attribute)return true;
+ if(!playerAssessment(p).known)return false;
  const a=playerAssessment(p),center=a.estimated[filters.attribute];
  if(!Number.isFinite(center))return false;
  const bounds=assessmentBounds(center,a.uncertainty),mode=filters.attributeMode||'estimate';
@@ -83,7 +85,7 @@ function recruitRoleAssessment(p,profile){
 }
 function recruitCandidates(filters=recruitFilters()){
  const roleValues=new Map(),roleValue=p=>{if(!roleValues.has(p.id))roleValues.set(p.id,recruitRoleValue(p,filters.profile));return roleValues.get(p.id);};
- return getTransferMarketPlayers().filter(p=>(filters.availability!=='free'||worldIsFree(p.id))&&(filters.country==='ALL'||(worldIsFree(p.id)?p.nationality:recruitCountry(p.team))===filters.country)&&(filters.profile==='ALL'||roleValue(p)>0)&&p.age<=filters.maxAge&&recruitFee(p)<=filters.maxFee&&(!filters.query||`${p.name} ${p.team}`.toLowerCase().includes(filters.query.toLowerCase()))&&recruitAttributeMatches(p,filters)).sort((a,b)=>filters.profile==='ALL'?a.name.localeCompare(b.name,'sv'):roleValue(b)-roleValue(a));
+ return getTransferMarketPlayers().filter(p=>(filters.availability!=='free'||worldIsFree(p.id))&&(filters.country==='ALL'||(worldIsFree(p.id)?p.nationality:recruitCountry(p.team))===filters.country)&&(filters.profile==='ALL'||roleValue(p)>0)&&p.age<=filters.maxAge&&scoutingCost(p).feeLow<=filters.maxFee&&scoutingFilterMatches(p,filters)&&(!filters.query||`${p.name} ${p.team}`.toLowerCase().includes(filters.query.toLowerCase()))&&recruitAttributeMatches(p,filters)).sort((a,b)=>filters.profile==='ALL'?a.name.localeCompare(b.name,'sv'):roleValue(b)-roleValue(a));
 }
 function recruitSelectProfile(name){if(!RECRUIT_PROFILES[name])return;deskNavigate('transfers','search');recruitFilters().profile=name;save();render();deskBrowserBefore();}
 function recruitOpen(id){deskOpenPlayer(id,true);}
@@ -203,6 +205,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  if(buyer!==managerClub()&&aiRoleOfferIssue(buyer,p,{kind:'transfer',years,role}))return false;
  const r=state.recruitment;if(playerLoan(p)||getPlayerClub(p.id)!==seller||seller===buyer||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
+ if(buyer===managerClub())scoutingArrival(p,fee,salary,years,role);
  const feedbackPlan=feedbackBeforeArrival(p,buyer);
  if(seller===managerClub())state.scoutReports[String(p.id)]=scoutRemember(p);
  if(seller===WORLD_FREE){worldRemoveFree(p.id);}else state.clubRosters[seller]=state.clubRosters[seller].filter(q=>!samePlayerId(q.id,p.id));
@@ -261,7 +264,7 @@ function followRecruitmentPromises(m){
    }
  }
 }
-function recruitTab(tab){if(!['needs','search','missions','shortlist','deals','history','free','world','loans','reports'].includes(tab))return;deskNavigate('transfers',tab);}
+function recruitTab(tab){if(!['overview','needs','search','missions','shortlist','deals','history','free','world','loans','reports'].includes(tab))return;deskNavigate('transfers',tab);}
 function recruitOptions(options,value){return Object.entries(options).map(([key,label])=>`<option value="${trainingSafe(key)}" ${String(key)===String(value)?'selected':''}>${trainingSafe(label)}</option>`).join('');}
 function recruitmentView(){return recruitmentHubView();}
 function legacyRecruitmentView(){

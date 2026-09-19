@@ -11,7 +11,7 @@ const DESK_AREAS = [
   {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
   {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['international','Landslag & JVM'],['nhl','NHL & draft'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']]}
 ];
-const DESK_RECRUIT_TABS = [['needs','Planering'],['search','Spelare'],['missions','Scouting'],['shortlist','Önskelista'],['deals','Affärer']];
+const DESK_RECRUIT_TABS = [['overview','Översikt'],['needs','Truppplanering'],['search','Spelarsökning'],['missions','Scoutuppdrag'],['shortlist','Rapporter & bevakning'],['deals','Affärer']];
 const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
 
 function deskIcon(name){
