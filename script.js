@@ -4273,6 +4273,7 @@ function render(){
   ensureManager();
   ensureStories();
   ensurePress();
+  ensureRelationships();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 
