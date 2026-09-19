@@ -26,8 +26,8 @@ r('relMatch();relMatch()');assert.equal(r('c.spread'),true);
 r("state.live=null;state.locker.turn+=3;p.social.lastTalk=-100;p.social.lastMinutes=5;p.social.loyalty=20;globalThis.trust=p.social.trust;socialTalk(p.id,'bench')");assert.equal(r('p.social.trust'),r('trust'),'ambitious overlooked player needs action');
 r("globalThis.first=relationshipTalk(q,'listen',3,'Besked');globalThis.second=relationshipTalk(q,'listen',3,'Besked')");assert.ok(r('second.delta')<r('first.delta'));
 // New arrivals can receive a real mentor assignment, completed only by participation.
-r("globalThis.newcomer=state.clubRosters['Brynäs IF'].find(x=>x.pos!=='MV');state.clubRosters['Brynäs IF']=state.clubRosters['Brynäs IF'].filter(x=>x!==newcomer);state.clubRosters[managerClub()].push(newcomer);newcomer.club=managerClub();ensureRelationships();relationshipAssign(newcomer.id,q.id)");
-assert.equal(r('state.relationships.mentors[0].status'),'active');
+r("globalThis.newcomer=state.clubRosters['Brynäs IF'].find(x=>x.pos!=='MV');state.clubRosters['Brynäs IF']=state.clubRosters['Brynäs IF'].filter(x=>x!==newcomer);state.clubRosters[managerClub()].push(newcomer);newcomer.club=managerClub();ensureRelationships();state.season.phase='preseason';ensureRelationships();relationshipAssign(newcomer.id,q.id)");
+assert.equal(r('state.relationships.mentors[0].status'),'active');r("ensureRelationships();state.season.phase='regular';ensureRelationships()");assert.equal(r('state.relationships.mentors[0].status'),'active','preseason introduction survives launch');
 r('globalThis.trust=newcomer.social.trust;globalThis.mentorBond=socialPair(newcomer.id,q.id)?.bond||30;for(let i=0;i<3;i++)relMatch(900,{iceTime:{[newcomer.id]:600,[q.id]:600,[p.id]:900}})');
 assert.equal(r('state.relationships.mentors[0].status'),'complete');assert.equal(r('newcomer.social.trust'),r('trust')+2);assert.equal(r('socialPair(newcomer.id,q.id).bond'),r('mentorBond')+3);
 r('relationshipAssign(newcomer.id,q.id)');assert.equal(r('state.relationships.mentors.length'),1);

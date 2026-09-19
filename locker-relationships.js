@@ -7,8 +7,8 @@ function ensureRelationships(){
  if(!state.careerStarted||!state.locker||!state.season)return;
  const ids=managerRoster().map(p=>String(p.id));
  if(!state.relationships)state.relationships={version:1,club:managerClub(),year:state.season.year,turn:0,seen:[],members:ids,profiles:{},cases:[],archive:[],mentors:[],events:[],pressSeen:[],nextId:1,recent:[]};
- const b=state.relationships;
- if(b.club!==managerClub()||b.year!==state.season.year||!managerEmployed()||!['regular','playoffs'].includes(state.season.phase)&&(b.cases.length||b.mentors.some(m=>m.status==='active'))){
+ const b=state.relationships;b.phase??=state.season.phase;
+ if(b.club!==managerClub()||b.year!==state.season.year||!managerEmployed()||b.phase!==state.season.phase&&state.season.phase==='review'){
   for(const c of [...b.cases])relationshipClose(c,'neutral',b.club!==managerClub()||!managerEmployed()?'Uppdraget avslutades utan ytterligare påföljd.':'Säsongen avslutades utan ytterligare påföljd.');
   for(const m of b.mentors.filter(m=>m.status==='active')){m.status='closed';m.outcome='Uppdraget avslutades utan påföljd.';}
   if(b.club!==managerClub()){b.members=ids;b.profiles={};b.recent=[];}
@@ -17,7 +17,7 @@ function ensureRelationships(){
  for(const p of managerRoster())if(!b.profiles[p.id])b.profiles[p.id]={talks:[],publicMisses:0,lastShield:-100,lastLeader:-100,settledAt:-100,arrival:b.members.includes(String(p.id))?null:b.turn};
  for(const c of [...b.cases])if(!ids.includes(c.playerId))relationshipClose(c,'neutral','Spelaren lämnade truppen. Uppföljningen avslutas utan påföljd.');
  for(const m of b.mentors.filter(m=>m.status==='active'))if(!ids.includes(m.playerId)||!ids.includes(m.mentorId)){m.status='closed';m.outcome='En deltagare lämnade truppen. Ingen påföljd.';}
- b.members=ids;for(const id of Object.keys(b.profiles))if(!ids.includes(id))delete b.profiles[id];
+ b.phase=state.season.phase;b.members=ids;for(const id of Object.keys(b.profiles))if(!ids.includes(id))delete b.profiles[id];
  b.mentors=b.mentors.filter(m=>m.status==='active').concat(b.mentors.filter(m=>m.status!=='active').slice(0,20));
 }
 function relationshipProfile(p){return state.relationships?.profiles[p.id];}
@@ -30,6 +30,7 @@ function relationshipTalk(p,topic,delta,text){
  const recent=profile.talks.filter(t=>b.turn-t.turn<=8),repeat=recent.filter(t=>t.topic===topic).length;
  if(delta>0&&repeat){delta=Math.max(0,delta-repeat*2);text+=' Samma budskap har återkommit. Spelaren vill se handling; effekten av orden avtar.';}
  if(topic==='bench'&&delta>0&&p.social.ambition>=14&&p.social.missed>=2){delta=0;text+=' Ambitionen och den återkommande bristen på istid gör att förklaringen inte räcker.';}
+ if(topic==='bench'&&!medicalReady(p)){delta=0;text='Den medicinska frånvaron behöver hanteras som återhämtning, inte som konkurrens om platsen. Ingen förtroendebelöning för att förklara frånvaron som en petning.';}
  if(delta>0&&profile.publicMisses>=2){delta=Math.min(delta,1);text+=' Tidigare brutna offentliga besked gör spelaren försiktig med nya ord.';}
  profile.talks.push({topic,turn:b.turn,date:state.calendar?.date,delta,text});profile.talks=profile.talks.slice(-12);
  return {delta,text};
@@ -41,7 +42,7 @@ function relationshipAfterMatch(){
  b.seen.push(key);b.seen=b.seen.slice(-160);b.turn++;b.recent.push(m.hv>m.opp);b.recent=b.recent.slice(-5);
  const partial=!!m.analysis?.partial;
  for(const p of managerRoster()){
-  const profile=relationshipProfile(p),required=relationshipRequired(p),eligible=p.pos!=='MV'&&required>0&&!partial&&!medicalExcused(p,required)&&!playerLoan(p)&&p.trainingLoad!=='rest';
+  const profile=relationshipProfile(p),required=relationshipRequired(p),eligible=p.pos!=='MV'&&required>0&&!partial&&!medicalExcused(p,required)&&!playerLoan(p)&&p.trainingLoad!=='rest'&&((m.iceTime?.[p.id]||0)>=required||(p.fatigue||0)<65);
   let c=b.cases.find(c=>c.playerId===String(p.id));
   if(!c&&eligible&&p.social.missed>=2&&b.turn-profile.settledAt>=4){
    c={id:'relation-'+b.nextId++,playerId:String(p.id),name:p.name,club:b.club,year:b.year,status:'open',tension:25,required,role:p.promisedRole,started:b.turn,good:0,eligible:0,attempts:0,heard:false,mediated:false,spread:false,evidence:`${p.name} har fått mindre istid än rollen ${p.promisedRole} i minst två tillgängliga matcher.`};b.cases.push(c);
@@ -94,7 +95,7 @@ function relationshipAction(id,action){
 function relationshipMentors(p){return managerRoster().filter(q=>q!==p&&q.social.leadership>=14&&q.social.trust>=50&&!state.relationships.mentors.some(m=>m.mentorId===String(q.id)&&m.status==='active'));}
 function relationshipAssign(playerId,mentorId){
  ensureRelationships();const b=state.relationships,p=relationshipPlayer(playerId),mentor=relationshipPlayer(mentorId);
- if(!p||!mentor||p===mentor||!managerEmployed()||state.live&&!state.live.finished||relationshipProfile(p).arrival===null||b.turn-relationshipProfile(p).arrival>8||mentor.social.leadership<14||mentor.social.trust<50||b.mentors.some(m=>m.playerId===String(p.id)||m.mentorId===String(mentor.id)&&m.status==='active'))return;
+ if(!p||!mentor||p===mentor||!managerEmployed()||state.season.phase==='review'||state.live&&!state.live.finished||relationshipProfile(p).arrival===null||b.turn-relationshipProfile(p).arrival>8||mentor.social.leadership<14||mentor.social.trust<50||b.mentors.some(m=>m.playerId===String(p.id)||m.mentorId===String(mentor.id)&&m.status==='active'))return;
  b.mentors.unshift({playerId:String(p.id),mentorId:String(mentor.id),name:p.name,mentor:mentor.name,status:'active',shared:0,games:0,attempts:0,club:b.club});socialRemember(p,'En fadder i laget',`${mentor.name} får ansvar för din introduktion. Tre matcher där båda spelar minst fem minuter följs upp, inom högst åtta tävlingsmatcher.`);save();render();
 }
 function relationshipPublic(e,choice){
@@ -127,7 +128,7 @@ function relationshipPublicOutcome(c,p){
  relationshipEvent('Offentligt besked · intern uppföljning',changes.join(' · '));
 }
 function relationshipView(){
- ensureRelationships();const b=state.relationships,locked=!!(state.live&&!state.live.finished),leaders=relationshipLeaders();
+ ensureRelationships();const b=state.relationships,locked=!!(state.live&&!state.live.finished)||state.season.phase==='review',leaders=relationshipLeaders();
  return `<section class="lr-view"><header><h2>Relationer som förändras över tid</h2><p>Istid, tidigare besked och verkligt samspel avgör. Samtal kan minska spänningen; förtroendet kräver handling.</p></header><div class="lr-grid"><section class="lw-panel"><h3>Ledare i gruppen</h3>${leaders.map(({p,peers})=>`<article class="lr-item"><strong>${samePlayerId(p.id,state.locker.captainId)?'C · ':''}${trainingSafe(p.name)}</strong><p>${p.social.trust>=65?'Stöttar ditt ledarskap':p.social.trust<50?'Har egna tvivel':'Avvaktar utvecklingen'} · ${peers.length} etablerade relationer</p><small>${peers.length?trainingSafe(peers.map(q=>q.name).join(', ')):'Inflytandet växer med registrerat samspel.'}</small></article>`).join('')||'<p>Ingen tydlig informell ledare ännu.</p>'}<p>Samspel minst 45/100 ger en etablerad relation. Informella ledare kan stötta högst tre nära lagkamrater efter tre förluster, tidigast var fjärde match. Kaptenens befintliga grupproll gäller separat.</p></section><section class="lw-panel"><h3>Nya i gruppen</h3>${managerRoster().filter(p=>relationshipProfile(p).arrival!==null&&b.turn-relationshipProfile(p).arrival<=8&&!b.mentors.some(m=>m.playerId===String(p.id))).map(p=>`<form class="lr-item" onsubmit="event.preventDefault();relationshipAssign('${p.id}',this.elements.mentor.value)"><strong>${trainingSafe(p.name)}</strong><label>Välj fadder<select name="mentor">${relationshipMentors(p).map(q=>`<option value="${q.id}">${trainingSafe(q.name)}</option>`).join('')}</select></label><button class="btn secondary" ${locked||!relationshipMentors(p).length?'disabled':''}>Ge introduktionsansvar</button></form>`).join('')||'<p>Ingen nytillkommen spelare väntar på en fadder.</p>'}${b.mentors.map(m=>`<article class="lr-item"><strong>${trainingSafe(m.mentor)} → ${trainingSafe(m.name)}</strong><p>${m.status==='active'?`${m.shared}/3 matcher med minst fem minuter för båda · ${m.attempts}/8 matcher passerade.`:trainingSafe(m.outcome)}</p></article>`).join('')}<p>En lyckad introduktion ger +2 i förtroende och +3 i relationen till faddern. Medicinska hinder ursäktas; uteblivna tillfällen ger ingen bestraffning.</p></section></div><section class="lw-panel"><h3>Konflikter & vägen tillbaka</h3>${b.cases.map(c=>`<article class="lr-item"><h4>${trainingSafe(c.name)} · ${c.tension>=55?'Tilltagande konflikt':c.status==='following'?'Planen följs upp':'Frågor om rollen'}</h4><p>${trainingSafe(c.evidence)}</p><p>Spänning ${c.tension}/100. Tre raka bedömbara matcher med minst ${c.required/60} minuter lugnar konflikten. Ordinarie rollregler återställer förtroende.</p><div class="lr-actions"><button class="btn secondary" onclick="relationshipAction('${c.id}','listen')" ${locked||c.heard||state.locker.turn-relationshipPlayer(c.playerId).social.lastTalk<3?'disabled':''}>Erkänn problemet · spänning −3</button><button class="btn secondary" onclick="relationshipAction('${c.id}','plan')" ${locked||c.plan?'disabled':''}>Prioritera rollen · fyra matcher</button><button class="btn secondary" onclick="relationshipAction('${c.id}','mediate')" ${locked||c.mediated||!leaders.some(l=>l.p.id!==relationshipPlayer(c.playerId).id&&l.p.social.trust>=50&&(samePlayerId(l.p.id,state.locker.captainId)||l.peers.some(p=>samePlayerId(p.id,c.playerId))))?'disabled':''}>Be en ledare medla · spänning −5</button></div><small>En prioriterad plan som saknar tre raka matcher med rätt istid efter fyra bedömbara matcher ger −2 i förtroende. Vanliga istidslöften gäller parallellt.</small></article>`).join('')||'<p>Inga pågående rollkonflikter. Äldre matcher skapar inga retroaktiva ärenden.</p>'}</section><details class="lw-panel"><summary>Händelser & tidigare konflikter</summary>${b.events.map(e=>`<article class="lr-item"><small>${trainingSafe(e.date)} · ${trainingSafe(e.club)}</small><h4>${trainingSafe(e.title)}</h4><p>${trainingSafe(e.text)}</p></article>`).join('')||'<p>Nya händelser sparas här.</p>'}${b.archive.map(c=>`<p><strong>${trainingSafe(c.name)}</strong> · ${trainingSafe(c.outcome)}</p>`).join('')}</details></section>`;
 }
 function relationshipPlayerView(p){
