@@ -17,7 +17,7 @@ The NHL club names were checked against the NHL's [official club directory](http
 - All new career choices use a uniform four-year rights term. Real CBA exceptions by league, nationality, education or previous registration are not implemented.
 - NHL clubs have individual reproducible scout opinions and positional preferences for that draft. These do not claim to represent real NHL rosters, current needs or actual scout opinions.
 
-Full NHL/AHL seasons, a complete researched historical rights database, tradeable picks, European league seasons and senior national teams remain later stages.
+NHL/AHL seasons now run as documented in NORTH-AMERICA-SEASONS.md. A complete researched historical rights database, tradeable picks, European league seasons and senior national teams remain later stages.
 
 ## Scouting and decisions
 

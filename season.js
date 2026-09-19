@@ -98,7 +98,7 @@ function watchRemainingPlayoffs(){
 }
 function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
- nhlOffseason();
+ nasOffseason();nhlOffseason();
  loansNewYear();s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
   developmentBirthday(p);p.contractYears=Math.max(0,(p.contractYears||1)-1);
@@ -112,7 +112,7 @@ function beginPreseason(){
  clubNewYear();clubPost("grant",s.grant,"Styrelsens försäsongstilldelning");
  juniorNewYear();
  leagueApplyMovement();
- naNewYear();
+ naNewYear();nasNewYear();
  playerWorldNewYear();
  managerPreseason();
  state.live=null;state.contractNegotiation=null;state.transferNegotiation=null;state.transferOffers=[];

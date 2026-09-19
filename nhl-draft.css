@@ -22,3 +22,7 @@
 .na-offer dt{color:var(--ui-muted)}
 .na-offer dd{margin:0}
 .na-filter{display:grid;gap:6px;max-width:290px;font-size:12px;margin-top:18px}
+
+.nas-series{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:8px 24px}
+.nas-highlight{background:var(--ui-panel)}
+.nas-champion{color:var(--ui-accent)!important;font-weight:700}
