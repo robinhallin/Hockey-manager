@@ -19,11 +19,11 @@ function scoutingStart(draft=scoutDesk.draft,automatic=false){
  const ids=[...new Set((draft.players||[]).map(String))];if(ids.length<1||ids.length>3)return false;
  const ps=ids.map(findPlayerAnywhere);if(ps.some(p=>!p||isOwnPlayer(p)||scoutPending(p.id)))return false;
  const q=scoutingQuote(ids,draft.method,draft.person);if(!q||scoutingBusy(q.s)||scoutActiveCount()>=clubMissionLimit()||state.money-clubForecast().reserved<q.fee)return automatic?false:recruitMessage('Uppdraget ryms inte i tillgänglig scoutkapacitet eller kassa.');
- const job={id:o.nextId++,club:managerClub(),players:ids,person:scoutingPerson(q.s),observer:{...q.s},method:draft.method,filters:{...recruitFilters()},profile:RECRUIT_PROFILES[draft.profile]?draft.profile:'ALL',horizon:SCOUT_LISTS[draft.horizon]?draft.horizon:'now',fee:q.fee,interval:q.interval,knowledge:q.knowledge,regions:q.regions,start:state.calendar.date,next:calAdd(state.calendar.date,q.interval),steps:0,delays:0,status:'active',automatic};
+ const job={id:o.nextId++,club:managerClub(),players:ids,person:scoutingPerson(q.s),observer:{...q.s},method:draft.method,filters:{...recruitFilters()},profile:RECRUIT_PROFILES[draft.profile]?draft.profile:'ALL',horizon:SCOUT_LISTS[draft.horizon]?draft.horizon:'now',fee:q.fee,interval:q.interval,knowledge:q.knowledge,regions:q.regions,start:state.calendar.date,next:calAdd(state.calendar.date,q.interval),steps:0,delays:0,status:'active',automatic,evidenceVersion:1};
  clubPost('scouting',-q.fee,`${q.m.name} · ${q.s.name}`);o.jobs.unshift(job);o.jobs=o.jobs.filter(j=>j.status==='active').concat(o.jobs.filter(j=>j.status!=='active').slice(0,60));scoutDesk.draft=null;
  if(!automatic){save();render();}return true;
 }
-function scoutingClose(j,status,reason){if(j.status!=='active')return;j.status=status;j.ended=state.calendar.date;j.reason=reason;const m=SCOUT_METHODS[j.method];j.refund=j.club===managerClub()?Math.round(j.fee*Math.max(0,m.steps-j.steps)/m.steps*.7):0;if(j.refund)clubPost('scouting',j.refund,'Återstående scoutarbete · '+j.observer.name);}
+function scoutingClose(j,status,reason){if(j.status!=='active')return;j.status=status;j.ended=state.calendar.date;j.reason=reason;const m=SCOUT_METHODS[j.method];j.refund=j.club===managerClub()?Math.round(j.fee*Math.max(0,(j.totalSteps||m.steps)-j.steps)/(j.totalSteps||m.steps)*.7):0;if(j.refund)clubPost('scouting',j.refund,'Återstående scoutarbete · '+j.observer.name);}
 function scoutingCancel(id){const j=scoutingOffice()?.jobs.find(j=>j.id===Number(id));if(!j||loanLocked())return;scoutingClose(j,'cancelled','Avbrutet av klubben. 70 % av ej utfört arbete återbetalas; planering och resor har kostat.');save();render();}
 function scoutingContact(id){const p=findPlayerAnywhere(id),o=ensureScoutingOffice();if(!p||isOwnPlayer(p)||loanLocked()||!managerCanPlay())return false;const c=o.contacts[String(id)];if(c&&(c.status==='pending'||c.club===getPlayerClub(id)&&calGap(c.date,state.calendar.date)<30))return false;o.contacts[String(id)]={owner:managerClub(),status:'pending',due:calAdd(state.calendar.date,2),date:state.calendar.date,club:getPlayerClub(id)};save();render();return true;}
 function scoutingContactKnown(p){const c=scoutingOffice()?.contacts[String(p.id)];return c&&(!c.owner||c.owner===managerClub())&&c.status==='answered'&&c.club===getPlayerClub(p.id)&&calGap(c.date,state.calendar.date)<30?c:null;}
@@ -35,14 +35,15 @@ function scoutingArrival(p,fee,salary,years,role){const o=ensureScoutingOffice()
 function scoutingDay(){
  const o=ensureScoutingOffice(),date=state.calendar?.date;if(!o||!date||loanLocked()||o.lastDay===date)return;o.lastDay=date;
  for(const j of o.jobs.filter(j=>j.status==='active'&&j.next<=date)){
+  if(j.method==='discovery'){scoutingDiscoveryDay(j);continue;}
   if(j.club!==managerClub()||!scoutingStaff().some(s=>scoutingPerson(s)===j.person)){scoutingClose(j,'cancelled','Ansvarig scout eller klubb har ändrats. Ett nytt uppdrag behövs.');continue;}
   const ps=j.players.map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p));if(!ps.length){scoutingClose(j,'cancelled','Spelarna är inte längre aktuella på marknaden.');continue;}
   if(ps.some(p=>!medicalReady(p)||internationalAway(p,date))){j.delays++;j.next=calAdd(date,7);j.note='Observationen flyttas: skada eller landslagsuppdrag begränsar underlaget.';if(j.delays>=3)scoutingClose(j,'limited','Otillräcklig tillgång till spelarna. Tidigare observationer finns kvar.');continue;}
   const m=SCOUT_METHODS[j.method];let observed=0;
   for(const p of ps){const r=state.scoutReports[String(p.id)];if(r?.lastObserved&&calGap(r.lastObserved,date)<7)continue;
-   if(scoutObserve(p.id,date,{observer:j.observer,quality:m.quality*(.8+j.knowledge/500),focus:j.method,force:true,job:j.id}))observed++;
+   if((j.observedCounts?.[String(p.id)]||0)<m.steps&&scoutingObserveJob(p,j)){observed++;j.observedCounts??={};j.observedCounts[String(p.id)]=(j.observedCounts[String(p.id)]||0)+1;}
   }
-  if(!observed){j.next=calAdd(date,7);continue;}j.steps++;j.note='Daterat observationsunderlag levererat.';j.next=calAdd(date,j.interval);
+  if(!observed){j.next=calAdd(date,1);j.note='Inväntar ny registrerad match med spelaren på isen.';if(calGap(j.start,date)>90)scoutingClose(j,'limited','Inga nya matcher gav tillräckligt underlag under 90 dagar.');continue;}j.steps=Math.min(...ps.map(p=>j.observedCounts?.[String(p.id)]||0));j.note='Daterat observationsunderlag levererat.';j.next=calAdd(date,j.interval);
   for(const region of j.regions){const key=j.person+':'+region;o.coverage[key]=Math.min(30,(o.coverage[key]||0)+2);}
   if(j.steps>=m.steps){j.status='completed';j.ended=date;for(const p of ps)if(!o.lists[String(p.id)])scoutingListQuiet(p,j.horizon);}
  }

@@ -32,7 +32,7 @@ function managerOffice2Items(){
   if(tired.length)add({id:'training:fatigue',title:`${tired.length} spelare högt belastade`,detail:'Belastningen kan påverka både träningseffekt och matchprestation inför nästa match.',tag:'Träning',area:'training',owner:managerOffice2Delegated('training')?'Tränarstaben':'Du',level:tired.length>=5?'high':'medium',score:tired.length>=5?74:54,action:{page:'training'}});
   const contracts=roster.filter(contractNeedsDecision);
   if(contracts.length)add({id:'contracts:expiring',title:`${contracts.length} kontrakt behöver plan`,detail:'Avtal på sista året bör prioriteras innan marknadsläget förändras.',tag:'Kontrakt',area:'contracts',owner:managerOffice2Delegated('contracts')?'Sportchef/stab':'Du',level:contracts.length>=4?'high':'medium',score:contracts.length>=4?72:52,action:{page:'squad',tab:'contracts'}});
-  const missions=(state.recruitment?.missions||[]).filter(m=>m.status==='active');
+  const missions=[...(state.recruitment?.missions||[]),...(scoutingOffice()?.jobs||[])].filter(m=>m.status==='active');
   if(missions.length)add({id:'scouting:missions',title:`${missions.length} aktiva scoutuppdrag`,detail:'Staben samlar observationer. Du behöver bara ingripa om prioritering eller mål ändras.',tag:'Scouting',area:'scouting',owner:managerOffice2Delegated('scouting')?'Scoutchef':'Du',level:'low',score:32,action:{page:'transfers',tab:'missions'}});
   const promises=lockerPromises().filter(({p,q,source})=>p&&!q.resolved&&source!=='Tidigare avtal'&&(!q.club||q.club===managerClub()));
   for(const {p,q,source} of promises){
@@ -50,6 +50,7 @@ function managerOffice2Items(){
     const score=days===0?92:days===1?84:days<=3?66:40;
     add({id:'match:'+next.date+':'+next.opponent,title:days===0?`Matchdag mot ${next.opponent}`:`${next.opponent} ${days===1?'imorgon':`om ${days} dagar`}`,detail:`${next.venue} · ${next.type}. Säkerställ kedjor, målvakt, special teams och matchplan.`,tag:'Match',area:'match',level:days===0?'critical':days===1?'high':days<=3?'medium':'low',score,action:{page:days<=1?'lines':'opponents'}});
   }
+  items.push(...recruitmentDecisionItems());
   return items.map(item=>({...item,score:(item.score??managerOffice2Priority(item.level))+(item.requiresDecision?20:0)})).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title,'sv'));
 }
 function managerOffice2VisibleItems(){
@@ -57,6 +58,7 @@ function managerOffice2VisibleItems(){
   return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
 }
 function managerOffice2Action(item){
+  if(item.action?.scoutPlayer!==undefined)return `scoutingOpenDecision(${JSON.stringify(item.action.scoutPlayer)},${Boolean(item.action.contact)})`;
   if(item.action?.promisePlayer!==undefined)return `managerOfficeOpenPromise(${JSON.stringify(item.action.promisePlayer)})`;
   if(item.action?.deal)return `officeOpenDeal(${JSON.stringify(item.action.deal)})`;
   return item.action?deskAction(item.action):'';

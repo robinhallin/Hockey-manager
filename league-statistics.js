@@ -38,8 +38,8 @@ function leagueKeeper(side){
 }
 function leagueTrackIce(ownPlayers,seconds){
  if(!ensureLeagueLive())return;
- for(const p of ownPlayers){const row=leagueLivePlayer('own',p.id);if(row)row.seconds+=Math.max(0,Math.min(seconds,medicalLimit(p)-(state.live.iceTime?.[p.id]||0)));}
- for(const p of rinkOpponentPlayers()){const row=leagueLivePlayer('opponent',p.id);if(row)row.seconds+=seconds;}
+ for(const p of ownPlayers){const row=leagueLivePlayer('own',p.id);if(row){const used=Math.max(0,Math.min(seconds,medicalLimit(p)-(state.live.iceTime?.[p.id]||0)));row.seconds+=used;scoutingTrackUsage(row,used,analysisSituation(),p,true);}}
+ for(const p of rinkOpponentPlayers()){const row=leagueLivePlayer('opponent',p.id);if(row){row.seconds+=seconds;const situation=analysisSituation();scoutingTrackUsage(row,seconds,situation==='pp'?'pk':situation==='pk'?'pp':situation,p,false);}}
 }
 function leagueTrackShot(side,id,name,outcome){
  if(!['goal','save','rebound'].includes(outcome))return;
@@ -87,6 +87,7 @@ function leagueCommitRows(game,rows,partial=false,live=false){
  const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,workload:{...state.live.rink?.oppFatigue},coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.style||'control',decisions:state.live.aiTeam?.coachChanges||[],pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
  nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.home,rows,partial);
  nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.away,rows,partial);
+ scoutingCaptureFixture(game,rows,reports,partial);
  loansAfterFixture(game,rows);rivalAfterFixture(game,rows,reports,partial);pressAfterFixture(game,rows,reports,partial);
 }
 function leagueCommitLive(){
