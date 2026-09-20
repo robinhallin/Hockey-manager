@@ -67,7 +67,7 @@ function managerDayPreviewView(){
 }
 function managerDaySnapshot(){
   return {date:state.calendar.date,club:managerClub(),messages:new Set((state.training?.messages||[]).map(m=>m.id)),
-    money:state.money,fatigue:managerRoster().map(p=>({id:String(p.id),fatigue:p.fatigue})),
+    news:new Set((state.managerFeedback?.news||[]).map(n=>n.id)),money:state.money,fatigue:managerRoster().map(p=>({id:String(p.id),fatigue:p.fatigue})),
     matchId:(state.analysis?.matches||[]).find(m=>m.club===managerClub()&&m.date===state.calendar.date)?.id||null};
 }
 function managerDayComplete(before){
@@ -77,11 +77,13 @@ function managerDayComplete(before){
   state.calendar.dayReview={club:before.club,date:before.date,nextDate:state.calendar.date,
     session:log?{type:log.type,trained:log.trained,resting:log.resting,before:log.before,after:log.after,improvements:log.improvements||0}:null,
     matchId:before.matchId,moneyChange:Math.round(state.money-before.money),
+    worldNews:(state.managerFeedback?.news||[]).filter(n=>!before.news?.has(n.id)).sort((a,b)=>(b.club===managerClub())-(a.club===managerClub())||(b.league===leagueOf())-(a.league===leagueOf())).slice(0,4).map(n=>({title:n.title,body:n.body})),
+    decisionHeadlines:messages.slice().sort((a,b)=>Number(Boolean(b.decisionType||/scout|sc-contact|usage-promise|recruit/.test(b.key)))-Number(Boolean(a.decisionType||/scout|sc-contact|usage-promise|recruit/.test(a.key)))).slice(0,6).map(m=>({id:m.id,title:m.title})),
     reports:messages.length,headlines:messages.slice(0,3).map(m=>({id:m.id,title:m.title})),
     changes:managerRoster().map(p=>{const previous=before.fatigue.find(r=>r.id===String(p.id));return previous?{name:p.name,delta:Math.round(previous.fatigue-p.fatigue)}:null;}).filter(r=>r&&Math.abs(r.delta)>=1).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,3)};
 }
 function managerDayReviewView(){
   const r=state.calendar?.dayReview;if(!r||r.club!==managerClub()||r.nextDate!==state.calendar.date||!Array.isArray(r.changes)||!Array.isArray(r.headlines))return '';
   const s=r.session,title=s?TRAINING_SESSIONS[s.type]?.name:r.matchId?'Matchdag':'Återhämtning & klubbdag';
-  return `<details class="manager-day-review"><summary>${calText(r.date)} avslutad · ${trainingSafe(title||'Klubbdag')} · ${r.reports} nya besked</summary>${s?`<p>${s.trained} tränade och ${s.resting} återhämtade sig. Ork efter lagpasset: ${Math.round(100-s.before)} → ${Math.round(100-s.after)} %. ${s.improvements} hela attributsteg.</p>`:'<p>Inget extra lagpass genomfördes.</p>'}${r.moneyChange?`<p>Klubbkassans förändring under dagssteget: ${careerMoney(r.moneyChange)}.</p>`:''}${r.changes.length?`<p>Största förändringarna i ork under hela dagen: ${r.changes.map(p=>trainingSafe(p.name)+' '+(p.delta>0?'+':'')+p.delta).join(' · ')} procentenheter.</p>`:''}${r.headlines.map(m=>`<button type="button" class="desk-link" onclick="${trainingSafe('openManagerMessage('+JSON.stringify(m.id)+')')}">${trainingSafe(m.title)} →</button>`).join('')}${r.matchId?managerLifeAction({matchId:r.matchId,button:'Öppna matchrapporten'}):''}<small>Summeringen visar faktiska förändringar, inte att en enskild order orsakade dem.</small></details>`;
+  return `${managerDailyBriefView()}<details class="manager-day-review"><summary>${calText(r.date)} avslutad · ${trainingSafe(title||'Klubbdag')} · ${r.reports} nya besked</summary>${s?`<p>${s.trained} tränade och ${s.resting} återhämtade sig. Ork efter lagpasset: ${Math.round(100-s.before)} → ${Math.round(100-s.after)} %. ${s.improvements} hela attributsteg.</p>`:'<p>Inget extra lagpass genomfördes.</p>'}${r.moneyChange?`<p>Klubbkassans förändring under dagssteget: ${careerMoney(r.moneyChange)}.</p>`:''}${r.changes.length?`<p>Största förändringarna i ork under hela dagen: ${r.changes.map(p=>trainingSafe(p.name)+' '+(p.delta>0?'+':'')+p.delta).join(' · ')} procentenheter.</p>`:''}${r.headlines.map(m=>`<button type="button" class="desk-link" onclick="${trainingSafe('openManagerMessage('+JSON.stringify(m.id)+')')}">${trainingSafe(m.title)} →</button>`).join('')}${r.matchId?managerLifeAction({matchId:r.matchId,button:'Öppna matchrapporten'}):''}<small>Summeringen visar faktiska förändringar, inte att en enskild order orsakade dem.</small></details>`;
 }

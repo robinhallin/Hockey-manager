@@ -371,7 +371,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
     energy.set(p,readinessEnergy(energy.get(p)??100,20,playing,stamina,goalie,load,ice[side].length<ice[1-side].length,1,readinessCeiling((p.fatigue||0)+(workload.get(p)||0))));
    }
    if(l.keeper&&row(side,l.keeper).seconds>=medicalLimit(l.keeper))l.keeper=l.keepers.filter(p=>row(side,p).seconds<medicalLimit(p)).sort((a,b)=>rating(b)-rating(a))[0]||null;
-   for(const p of ice[side]){row(side,p).seconds+=20;MatchEventStream.addIce(eventStream,side,p.id,20);}
+   for(const p of ice[side]){row(side,p).seconds+=20;scoutingTrackUsage(row(side,p),20,ice[side].length>ice[1-side].length?'pp':ice[side].length<ice[1-side].length?'pk':'even',p,false);MatchEventStream.addIce(eventStream,side,p.id,20);}
    for(let i=0;i<ice[side].length;i++)for(let j=i+1;j<ice[side].length;j++){const key=dynamicsKey(ice[side][i].id,ice[side][j].id);sides[side].pairSeconds[key]=(sides[side].pairSeconds[key]||0)+20;}
    if(sides[side].l.keeper){row(side,sides[side].l.keeper).seconds+=20;MatchEventStream.addIce(eventStream,side,sides[side].l.keeper.id,20);}
   }

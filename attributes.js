@@ -105,9 +105,9 @@ function assessmentPanel(p){
   <p>${!r.known?'Ingen spelarspecifik bedömning finns ännu. Nedan visas enbart en generell positionsprofil. ':''}${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
   <p class="muted">Guld visar förmåga, blått visar potential. Fyllda stjärnor är den säkrare delen av bedömningen; ljusa stjärnor visar möjlig nivå. Båda jämförs med din trupp. Attribut visas på skalan 1–20.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
-  ${scoutFreshnessView(p)}${haResearchPanel(p)}
+  ${scoutFreshnessView(p)}${scoutingMatchEvidenceView(p)}${haResearchPanel(p)}
   <div class="role-reports">${r.roles.map(role=>`<span><b>${role.name}</b> · ${role.value>=14?'Tydliga styrkor':role.value>=11?'Användbar profil':'Behöver utvecklas'}</span>`).join('')}</div>
-  ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||!scoutNeedsObservation(p)?'disabled':''}>${pending?`Nästa rapport ${calText(pending)}`:!scoutNeedsObservation(p)?'Aktuell rapport':`Scouta · ${money(Math.round(clubMissionFee()/3))}`}</button><span>${r.visits} av 3 observationer · rapport efter sju dagar</span></div>`:'<p class="muted">Daglig träning ger exakta attribut. Stjärnorna är fortfarande bedömarens värdering relativt truppen; potentialen är osäker.</p>'}</section>`;
+  ${!r.own?`<div class="player-actions"><button class="btn" onclick="scoutingDraft(['${p.id}'])" ${pending||!scoutNeedsObservation(p)?'disabled':''}>${pending?`Nästa rapport ${calText(pending)}`:!scoutNeedsObservation(p)?'Aktuell rapport':`Scouta · ${money(Math.round(clubMissionFee()/3))}`}</button><span>${r.visits} av 3 observationer · matchunderlag krävs</span></div>`:'<p class="muted">Daglig träning ger exakta attribut. Stjärnorna är fortfarande bedömarens värdering relativt truppen; potentialen är osäker.</p>'}</section>`;
 }
 // One observation per player and date window, shared by individual and group assignments.
 function scoutPending(id){return Boolean(scoutingOffice()?.jobs.some(j=>j.status==='active'&&j.players.some(x=>samePlayerId(x,id)))||state.scoutReports[String(id)]?.dueDate||state.recruitment?.missions.some(m=>m.status==='active'&&m.players.some(x=>samePlayerId(x,id))));}
@@ -128,8 +128,9 @@ function scoutObserve(id,date,options={}){
  const refresh=r.visits>=3;
  if(r.snapshot)(r.history??=[]).unshift({date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1});
  if(r.history)r.history=r.history.slice(0,6);
- if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
- r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.origin='observation';delete r.dueRound;
+ if(options.observer){r.observer={...options.observer};r.quality=r.quality&&r.visits?(r.quality*Math.min(2,r.visits)+options.quality)/(Math.min(2,r.visits)+1):options.quality;r.focus=options.focus;r.job=options.job;}
+ r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...(options.snapshot||ensurePlayerAttributes(p))};r.origin='observation';r.source=options.source||'Bakgrundsbedömning';
+ if(options.evidence){const {snapshot,...publicEvidence}=options.evidence;r.matchHistory=[publicEvidence,...(r.matchHistory||[]).filter(e=>e.key!==publicEvidence.key)].slice(0,6);} delete r.dueRound;
  managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,`${refresh?'Ny observation uppdaterar det tidigare underlaget.':`Observation ${r.visits} av 3.`} Kunskap ${Math.round(playerAssessment(p).familiarity*100)} %. Läs rollanalysen i Scoutcentralen.`,'Chefsscout',{link:'scouting'});return true;
 }
 function scoutDay(){
