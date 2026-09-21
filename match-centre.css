@@ -11,3 +11,9 @@
 .mc-pause-settings{padding:10px 14px;margin:8px 0;border:1px solid var(--border,#344155);border-radius:8px}.mc-pause-settings>div{display:grid;gap:10px;padding:12px 0}.mc-pause-settings label{display:flex;align-items:center;gap:8px}.mc-pause-settings input{width:20px;height:20px;flex:none}.mc-pause-settings p,.mc-pause-reason{font-size:13px;line-height:1.5}.mc-pause-reason{padding:8px 14px;background:#443819;color:#fff2c4;border-radius:8px}
 
 .mc-tactical-review{margin-top:16px;padding:14px;border:1px solid #344457;background:#18212e;color:#d8e2ec;border-radius:4px;font-size:12px;line-height:1.5}.mc-tactical-review summary{cursor:pointer;font-weight:600;color:#f5df8b}.mc-tactical-review article{border-top:1px solid #344457;margin-top:12px;padding-top:10px}.mc-tactical-review h4{margin:0 0 8px}.mc-tactical-review p{margin:8px 0}
+
+/* Keep both pacing controls visible without widening the scoreboard off-screen. */
+.mc-page .mc-playback:has(.mc-highlight-speed){grid-template-columns:minmax(130px,1fr) minmax(130px,1fr);max-width:360px}
+.mc-page .mc-playback:has(.mc-highlight-speed)>.btn,.mc-page .mc-playback:has(.mc-highlight-speed)>label:first-of-type{grid-column:auto}
+@media(max-width:1250px) and (min-width:761px){.mc-page .mc-playback:has(.mc-highlight-speed){grid-template-columns:140px minmax(180px,1fr) minmax(150px,1fr) minmax(135px,1fr);max-width:none}.mc-page .mc-playback:has(.mc-highlight-speed)>label:first-of-type{grid-column:auto}}
+@media(max-width:760px){.mc-page:has(.mc-highlight-speed){padding-bottom:160px}.mc-page .mc-live-controls:has(.mc-highlight-speed){max-width:none;grid-template-columns:1fr 1fr}.mc-page .mc-live-controls:has(.mc-highlight-speed)>label:first-of-type{grid-column:auto}}
