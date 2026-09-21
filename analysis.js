@@ -84,7 +84,7 @@ function performanceGrade(row,partial=false){
  }
  const facets=[];
  if(keeper&&row.xGA!=null){const prevented=row.xGA-row.against;score+=Math.max(-.7,Math.min(.7,prevented*.25));facets.push(`Förväntade insläppta: ${row.xGA.toFixed(2)}; mål förhindrade: ${prevented.toFixed(2)}`);}
- if(!keeper&&row.passAttempts!=null){const completion=row.passes/Math.max(1,row.passAttempts);score+=Math.max(-.3,Math.min(.3,(completion-.72)*1.5));facets.push(`Uppspel: ${row.passes||0}/${row.passAttempts} passningar (${Math.round(completion*100)} %)`);}
+ if(!keeper&&row.passAttempts!=null){const completion=(row.passes||0)/Math.max(1,row.passAttempts);score+=Math.max(-.3,Math.min(.3,(completion-.72)*1.5));facets.push(`Uppspel: ${row.passes||0}/${row.passAttempts} passningar (${Math.round(completion*100)} %)`);}
  if(!keeper&&(row.battleWins!=null||row.battleLosses!=null)){const net=(row.battleWins||0)-(row.battleLosses||0);score+=Math.max(-.35,Math.min(.35,net*.055));facets.push(`Puckdueller: ${row.battleWins||0} vunna, ${row.battleLosses||0} förlorade`);}
  if(!keeper){score+=Math.min(.3,(row.blocks||0)*.07+(row.hits||0)*.015);if(row.xG!=null)facets.push(`Avslutskvalitet: ${row.xG.toFixed(2)} xG`);if(row.blocks||row.hits)facets.push(`Försvarsarbete: ${row.blocks||0} blockeringar, ${row.hits||0} tacklingar`);}
  reason+=facets.length?' · '+facets.join(' · '):'';

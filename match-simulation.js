@@ -647,7 +647,7 @@ const StudioHockey = (() => {
       for(let remaining=dt;remaining>1e-9;){
         const h=Math.min(.05,remaining);remaining-=h;
         const speed=Math.hypot(v.x,v.y);if(speed<=.12){rest();return;}
-        const next=Math.max(0,speed-(1.1+.025*speed*speed)*h);
+        const next=Math.max(0,speed-1.8*h);
         // Integrate the average speed, then retain the damped velocity.
         const travel=(speed+next)*.5*h;let distanceLeft=travel,turnLoss=1;
         while(distanceLeft>1e-9){
