@@ -1,13 +1,13 @@
 "use strict";
 // Read-only evidence for the office and reports; actions use the existing systems.
-function managerRecentMatches(){return (state.analysis?.matches||[]).filter(m=>coachEligible(m)&&matchBriefMeasures(m));}
+function managerDecisionMatches(){return (state.analysis?.matches||[]).filter(m=>coachEligible(m)&&matchBriefMeasures(m));}
 function managerDecisionItems(){
  const items=[],add=x=>items.push({owner:'Du',requiresDecision:false,level:'high',area:'general',...x});
  for(const c of state.relationships?.club===managerClub()?state.relationships.cases:[]){
   if(c.status==='closed'||!relationshipPlayer(c.playerId))continue;
   add({id:'relationship:'+c.id,title:c.name+(c.wantsMove?': överväger att lämna':': rollen behöver följas upp'),detail:c.evidence,tag:'Relationer',area:'locker',score:c.wantsMove?98:c.tension>=55?87:73,action:{page:'locker',tab:'relationships'},guidance:c.wantsMove?'Återställ ansvaret eller diskutera en mindre roll. Olöst konflikt höjer lönekravet vid förlängning med 10 %.':'Ge rollen verklig istid, erbjud mindre ansvar eller be en ledare medla. Mer istid åt en spelare minskar andras utrymme.'});
  }
- const recent=managerRecentMatches(),latest=recent[0];
+ const recent=managerDecisionMatches(),latest=recent[0];
  if(latest)add({id:'learning:'+latest.id,title:'Följ upp matchen mot '+latest.opponent,detail:matchLearningText(latest),tag:'Matchlärdom',area:'match',score:68,action:{page:'statistics'},reportId:latest.id,guidance:'Läs utfallet innan du väljer nästa matchplan. Ett enskilt resultat räcker inte för att bedöma en taktik.'});
  const units=analysisAggregateUnits(recent.slice(0,5).filter(m=>Array.isArray(m.units))).filter(u=>u.kind==='forward'&&u.matches>=3&&u.seconds>=900&&u.dangerAgainst-u.dangerFor>=4).sort((a,b)=>(b.dangerAgainst-b.dangerFor)/b.seconds-(a.dangerAgainst-a.dangerFor)/a.seconds);
  if(units[0]){const u=units[0];add({id:'formation:'+u.key,title:'En forwardskombination släpper till fler lägen',detail:`${(u.names||u.players||[]).filter(x=>typeof x==='string').join(' / ')||u.name||'Registrerad kombination'}: ${u.dangerFor}–${u.dangerAgainst} farliga lägen på ${analysisTime(u.seconds)}, ${u.matches} matcher. Registrerat spel vid lika styrka.`,tag:'Kedjor',area:'match',score:77,action:{page:'statistics'},guidance:'Granska kombinationens motstånd och spelformer före ändring. Byt matchning eller spelare; en ny kombination tappar etablerat samspel.'});}
@@ -28,7 +28,7 @@ function matchDecisionReview(m){
  return `<section class="mw-panel"><h3>Från beslut till observation</h3>${rows.map(r=>{const a=r.baseline,b=r.result,enough=!m.partial&&!m.strengthPartial&&!m.abandoned&&!r.partial&&a?.seconds>=300&&b?.seconds>=300;return `<article><h4>${analysisTime(r.time)} · ${trainingSafe(r.label)}</h4><p>${enough?`Farliga lägen per tio minuter lika styrka: skapade ${rate(a,'dangerFor')} → ${rate(b,'dangerFor')}, insläppta ${rate(a,'dangerAgainst')} → ${rate(b,'dangerAgainst')}. Före: ${analysisTime(a.seconds)}. Efter: ${analysisTime(b.seconds)}.`:'Minst fem fullständigt registrerade minuter lika styrka behövs både före och efter beslutet. Ingen effektbedömning ännu.'}</p></article>`;}).join('')}<p>Perioderna avgränsas av tränarbesluten. Motstånd, matchläge och spelare kan förändras samtidigt. Detta är observationer, inte bevis för en taktisk effekt. Fullständiga order finns i beslutsloggen.</p></section>`;
 }
 function managerMatchLearningView(){
- const m=managerRecentMatches()[0];if(!m)return '<section><h3>Lärdom till nästa match</h3><p>Spela en match med minst tio minuter fullständigt registrerat spel vid lika styrka för att få underlag här.</p></section>';
+ const m=managerDecisionMatches()[0];if(!m)return '<section><h3>Lärdom till nästa match</h3><p>Spela en match med minst tio minuter fullständigt registrerat spel vid lika styrka för att få underlag här.</p></section>';
  const g=matchBriefFixture();
  return `<section class="mw-panel"><h3>Lärdom till nästa match</h3><p>${trainingSafe(calText(m.date))} · ${trainingSafe(m.opponent)}. ${trainingSafe(matchLearningText(m))}</p>${matchDecisionReview(m)}<button class="btn secondary" onclick="matchesOpenReport(${trainingSafe(JSON.stringify(m.id))})">Läs hela matchrapporten</button>${g?`<button class="btn secondary" onclick="matchesOpponent(${trainingSafe(JSON.stringify(g.opponent))})">Förbered ${trainingSafe(g.opponent)}</button>`:''}<p>Nästa plan väljs av dig. Tidigare order ändras inte när du läser uppföljningen.</p></section>`;
 }

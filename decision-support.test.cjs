@@ -31,8 +31,8 @@ assert.match(r('matchDecisionReview({...report,tacticalReviews:[{...report.tacti
 assert.match(r('managerMatchLearningView()'),/Förbered/);
 assert.equal(r('JSON.stringify(state)'),r('before'));
 assert.equal(r("managerOffice2Action(managerDecisionItems().find(i=>i.reportId))"),'matchesOpenReport("evidence")');
-r("state.analysis.matches=[{...report,club:'Wrong club'}]");assert.equal(r('managerRecentMatches().length'),0);
-r('state.analysis.matches=[{...report,strengthPartial:true}]');assert.equal(r('managerRecentMatches().length'),0);
+r("state.analysis.matches=[{...report,club:'Wrong club'}]");assert.equal(r('managerDecisionMatches().length'),0);
+r('state.analysis.matches=[{...report,strengthPartial:true}]');assert.equal(r('managerDecisionMatches().length'),0);
 // Real forward combination evidence, only after sufficient games and exposure.
 r(`state.analysis.matches=[0,1,2].map(i=>({...report,id:'m'+i,units:[{key:'line',kind:'forward',names:['A','B','C'],seconds:400,dangerFor:1,dangerAgainst:3,shotsFor:2,shotsAgainst:4,goalsFor:0,goalsAgainst:0}]}))`);
 assert.ok(r("managerDecisionItems().some(i=>i.id==='formation:line')"));
