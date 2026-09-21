@@ -3458,8 +3458,8 @@ function toggleTransferStatus(playerId){
 
 function contractNeedsDecision(p){return p.contractYears<=1&&!p.futureContract&&!playerLoan(p);}
 function renewalWishes(p){
- const w=recruitPlayerWishes(p),trust=p.social?.trust??60;
- return {...w,salary:Math.round(p.salary*(p.contractYears<=1?1.10:1.04)*(trust<40?1.10:trust>=80?.97:1)/10000)*10000,role:p.age>=34&&p.social?.lastMinutes!==null&&p.social?.lastMinutes<10?'Rotation':p.promisedRole||p.squadRole};
+ const w=recruitPlayerWishes(p),trust=p.social?.trust??60,unsettled=state.relationships?.club===managerClub()&&state.relationships?.cases.some(c=>c.playerId===String(p.id)&&c.wantsMove);
+ return {...w,salary:Math.round(p.salary*(p.contractYears<=1?1.10:1.04)*(trust<40?1.10:trust>=80?.97:1)*(unsettled?1.10:1)/10000)*10000,role:p.age>=34&&p.social?.lastMinutes!==null&&p.social?.lastMinutes<10?'Rotation':p.promisedRole||p.squadRole};
 }
 function openContractNegotiation(playerId){
  profileWorkspace.tab="contract";

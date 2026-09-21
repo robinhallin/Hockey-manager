@@ -25,6 +25,7 @@ function managerOffice2Items(){
     const must=task.tag==='Beslut'||task.tag==='Affär'||task.tag==='Ekonomi';
     add({id:'decision:'+(task.key||task.action?.messageId||task.action?.page||task.title),title:task.title,detail:task.detail,tag:task.tag,level:must?'critical':'high',score:must?110:80,requiresDecision:must,action:task.key?{deal:task.key}:task.action||null});
   }
+  for(const m of state.training?.messages||[])if(m.decisionType&&!m.resolved&&!items.some(i=>i.action?.messageId===m.id))add({id:'decision:'+m.id,title:m.title,detail:m.body||'Ditt svar krävs innan tiden går vidare.',tag:'Beslut',level:'critical',score:110,requiresDecision:true,action:{messageId:m.id}});
   const roster=managerRoster();
   const injured=roster.filter(p=>!medicalReady(p)&&p.health?.injury);
   if(injured.length)add({id:'medical:injured',title:`${injured.length} spelare ej matchklara`,detail:`${injured.slice(0,2).map(p=>p.name).join(', ')}${injured.length>2?' med flera':''} kräver uttagnings- och återgångsplanering.`,tag:'Medicinskt',area:'medical',owner:managerOffice2Delegated('medical')?'Medicinska staben':'Du',level:injured.length>=3?'high':'medium',score:injured.length>=3?76:58,action:{page:'medical'}});
@@ -50,6 +51,7 @@ function managerOffice2Items(){
     const score=days===0?92:days===1?84:days<=3?66:40;
     add({id:'match:'+next.date+':'+next.opponent,title:days===0?`Matchdag mot ${next.opponent}`:`${next.opponent} ${days===1?'imorgon':`om ${days} dagar`}`,detail:`${next.venue} · ${next.type}. Säkerställ kedjor, målvakt, special teams och matchplan.`,tag:'Match',area:'match',level:days===0?'critical':days===1?'high':days<=3?'medium':'low',score,action:{page:days<=1?'lines':'opponents'}});
   }
+  items.push(...managerDecisionItems());
   return items.map(item=>({...item,score:(item.score??managerOffice2Priority(item.level))+(item.requiresDecision?20:0)})).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title,'sv'));
 }
 function managerOffice2VisibleItems(){
@@ -57,6 +59,7 @@ function managerOffice2VisibleItems(){
   return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
 }
 function managerOffice2Action(item){
+  if(item.reportId!==undefined)return `matchesOpenReport(${JSON.stringify(item.reportId)})`;
   if(item.action?.promisePlayer!==undefined)return `managerOfficeOpenPromise(${JSON.stringify(item.action.promisePlayer)})`;
   if(item.action?.deal)return `officeOpenDeal(${JSON.stringify(item.action.deal)})`;
   return item.action?deskAction(item.action):'';
@@ -66,16 +69,16 @@ function managerOfficeOpenPromise(playerId){
   render();queueInterfaceSave();
 }
 function managerOffice2Row(item,index){
-  const action=managerOffice2Action(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;
-  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p></div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben hanterar rutinen</small>':''}</div></article>`;
+  const action=managerOffice2Action(item),guidance=managerDecisionGuidance(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;
+  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p>${guidance?`<p><strong>Val & avvägning:</strong> ${trainingSafe(guidance)}</p>`:''}</div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben hanterar rutinen</small>':''}</div></article>`;
 }
 function managerOffice2DelegationView(){
   const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt'};
   return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning och medicinskt kan utföra försiktiga rutinåtgärder. Scouting och kontrakt bevakas av staben. Beslut som kräver ditt svar visas alltid.</small></div>`;
 }
 function managerOffice2View(){
-  const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length;
-  return `<section class="office2-command" aria-label="Dagens prioriteringar"><header><div><span class="desk-kicker">DAGENS AGENDA</span><h2>Dagens prioriteringar</h2><p>${must?`${must} ärende${must===1?'':'n'} kräver ditt svar. `:''}Listan rangordnas efter deadline, matchnärhet, medicinsk risk och klubbpåverkan.</p></div><strong>${items.length}</strong></header><div class="office2-list">${items.map(managerOffice2Row).join('')||'<p class="office-empty">Inga prioriterade ärenden just nu.</p>'}</div>${managerOffice2DelegationView()}</section>`;
+  const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length,primary=items.slice(0,Math.max(5,items.filter(i=>i.requiresDecision).length)),remaining=items.slice(primary.length);
+  return `<section class="office2-command" aria-label="Dagens prioriteringar"><header><div><span class="desk-kicker">DAGENS AGENDA</span><h2>Dagens prioriteringar</h2><p>${must?`${must} ärende${must===1?'':'n'} kräver ditt svar. `:''}Listan rangordnas efter deadline, matchnärhet, medicinsk risk och klubbpåverkan.</p></div><strong>${items.length}</strong></header><div class="office2-list">${primary.map(managerOffice2Row).join('')||'<p class="office-empty">Inga prioriterade ärenden just nu.</p>'}</div>${remaining.length?`<details><summary>Övriga ${remaining.length} ärenden</summary>${remaining.map((item,i)=>managerOffice2Row(item,primary.length+i)).join('')}</details>`:''}${managerOffice2DelegationView()}</section>`;
 }
 
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
@@ -84,7 +87,7 @@ function officeTodayView(){
   return `<div class="office-today">${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
 }
 function officeFollowupView(){
-  return `${managerWeekFollowupView()}${managerLifeMorningView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
+  return `${managerMatchLearningView()}${managerWeekFollowupView()}${managerLifeMorningView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
 }
 function officeClubView(){
   const fixtures=deskFixtures(),table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,index-2);
