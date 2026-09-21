@@ -59,6 +59,8 @@ function managerOffice2VisibleItems(){
   return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
 }
 function managerOffice2Action(item){
+  if(item.id.startsWith('relationship:'))return `managerDecisionNavigate('locker','relationships')`;
+  if(item.id.startsWith('formation:'))return `managerDecisionNavigate('statistics','trends')`;
   if(item.reportId!==undefined)return `matchesOpenReport(${JSON.stringify(item.reportId)})`;
   if(item.action?.promisePlayer!==undefined)return `managerOfficeOpenPromise(${JSON.stringify(item.action.promisePlayer)})`;
   if(item.action?.deal)return `officeOpenDeal(${JSON.stringify(item.action.deal)})`;

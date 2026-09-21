@@ -57,3 +57,8 @@ function relationshipDiscussRole(id){
  managerMessage('relationship-role:'+c.id,p.name+' · samtal om rollen',text,'Omklädningsrum',{link:'locker'});
  save();render();
 }
+
+function managerDecisionNavigate(page,tab){
+ if(page==='locker'&&tab==='relationships'){deskNavigate(page);lockerSet('tab',tab);}
+ else if(page==='statistics'&&tab==='trends'){deskNavigate(page);matchesSet('analysis',tab);}
+}

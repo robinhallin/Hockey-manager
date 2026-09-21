@@ -37,6 +37,8 @@ r('state.analysis.matches=[{...report,strengthPartial:true}]');assert.equal(r('m
 r(`state.analysis.matches=[0,1,2].map(i=>({...report,id:'m'+i,units:[{key:'line',kind:'forward',names:['A','B','C'],seconds:400,dangerFor:1,dangerAgainst:3,shotsFor:2,shotsAgainst:4,goalsFor:0,goalsAgainst:0}]}))`);
 assert.ok(r("managerDecisionItems().some(i=>i.id==='formation:line')"));
 r('state.analysis.matches.pop()');assert.ok(!r("managerDecisionItems().some(i=>i.id==='formation:line')"));
+r("state.analysis.matches=[];managerDecisionNavigate('locker','relationships')");assert.equal(r('lockerUI.tab'),'relationships');
+r("managerDecisionNavigate('statistics','trends')");assert.equal(r('matchesUI.analysis'),'trends');
 // Overflow collapses routine work but all mandatory decisions stay in the main list.
 r("for(let i=0;i<7;i++)managerMessage('required-'+i,'Beslut '+i,'Svar krävs','Spelare',{decisionType:'role'});globalThis.html=managerOffice2View()");
 assert.equal(r("html.split('<details>')[0].match(/Beslut [0-6]/g).length"),7);
