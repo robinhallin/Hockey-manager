@@ -4252,7 +4252,7 @@ function placeholderView(title){
 
 }
 
-function continueGame(){calendarContinue();}
+function continueGame(){dayTransitionStart();}
 
 function render(){
   ensureSeason();
