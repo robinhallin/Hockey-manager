@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const r=boot().run;
+r("startCareerWithClub('HV71');globalThis.row={pos:'B',seconds:442,goals:0,assists:0,shots:2,pim:0,passAttempts:1};globalThis.grade=performanceGrade(row)");
+assert.ok(r('Number.isFinite(grade.stars)&&Number.isFinite(grade.score)'));
+assert.match(r('grade.reason'),/0\/1 passningar \(0 %\)/);
+assert.equal(r('JSON.stringify(grade)'),r('JSON.stringify(performanceGrade({...row,passes:0}))'),'a sparse event ledger with no completed pass means zero completions');
+assert.doesNotMatch(r('performanceStars(grade.stars)'),/NaN|undefined/);
+console.log('PASS: players with attempted but no completed passes receive finite ratings and a zero-percent passing record.');

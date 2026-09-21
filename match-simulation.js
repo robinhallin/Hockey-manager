@@ -640,14 +640,45 @@ const StudioHockey = (() => {
       }return false;
     }
     moveFreePuck(dt){
-      const v=this.puckVelocity;if(!v)return;const before={...this.puck};
-      let speed=Math.hypot(v.x,v.y);
-      if(this.rimPath?.length){const target=this.rimPath[0],d=distance(this.puck,target);if(d<Math.max(.3,speed*dt)){this.rimPath.shift();}else{v.x=(target.x-this.puck.x)/d*speed;v.y=(target.y-this.puck.y)/d*speed;}}
-      this.puck.x+=v.x*dt;this.puck.y+=v.y*dt;
-      if(this.checkIcing(before))return;
-      if(this.puck.x<.35||this.puck.x>59.65){this.puck.x=clamp(this.puck.x,.35,59.65);v.x*=-.72;}
-      if(this.puck.y<.35||this.puck.y>29.65){this.puck.y=clamp(this.puck.y,.35,29.65);v.y*=-.72;}
-      const decay=Math.max(0,1-.45*dt/Math.max(.01,speed));v.x*=decay;v.y*=decay;
+      const v=this.puckVelocity;if(!v||!Number.isFinite(dt)||dt<=0)return;
+      // Tuned loose-puck damping: ice drag, dissipative board contact and rest.
+      // Small physics slices keep corner handling stable at the fixed match step.
+      const rest=()=>{this.puckVelocity=null;this.rimPath=null;this.icingCandidate=null;};
+      for(let remaining=dt;remaining>1e-9;){
+        const h=Math.min(.05,remaining);remaining-=h;
+        const speed=Math.hypot(v.x,v.y);if(speed<=.12){rest();return;}
+        const next=Math.max(0,speed-1.8*h);
+        // Integrate the average speed, then retain the damped velocity.
+        const travel=(speed+next)*.5*h;let distanceLeft=travel,turnLoss=1;
+        while(distanceLeft>1e-9){
+          const target=this.rimPath?.[0],length=Math.hypot(v.x,v.y);
+          if(target){
+            const d=distance(this.puck,target);
+            if(d<1e-7){this.rimPath.shift();continue;}
+            const ux=(target.x-this.puck.x)/d,uy=(target.y-this.puck.y)/d;
+            const cosine=clamp((v.x*ux+v.y*uy)/length,-1,1),loss=.85+.15*cosine;
+            // Guiding a rim around a corner must not preserve all its energy.
+            turnLoss*=loss;distanceLeft*=loss;v.x=ux*length*loss;v.y=uy*length*loss;
+            const step=Math.min(d,distanceLeft),before={...this.puck};
+            this.puck.x+=ux*step;this.puck.y+=uy*step;distanceLeft-=step;
+            if(this.checkIcing(before))return;
+            if(step>=d-1e-9)this.rimPath.shift();
+          }else{
+            const before={...this.puck};
+            this.puck.x+=v.x/length*distanceLeft;this.puck.y+=v.y/length*distanceLeft;distanceLeft=0;
+            if(this.checkIcing(before))return;
+          }
+        }
+        const length=Math.hypot(v.x,v.y),scale=next*turnLoss/length;v.x*=scale;v.y*=scale;
+        // Reflect the overshoot with loss in normal and tangential motion.
+        if(this.puck.x<.35||this.puck.x>59.65){
+          const wall=this.puck.x<.35?.35:59.65;this.puck.x=wall+(wall-this.puck.x)*.48;v.x*=-.48;v.y*=.9;this.rimPath=null;
+        }
+        if(this.puck.y<.35||this.puck.y>29.65){
+          const wall=this.puck.y<.35?.35:29.65;this.puck.y=wall+(wall-this.puck.y)*.48;v.y*=-.48;v.x*=.9;this.rimPath=null;
+        }
+        if(next<=.12||Math.hypot(v.x,v.y)<=.12){rest();return;}
+      }
     }
     decide(){
       const a=this.actor(this.carrier);if(!a)return;
