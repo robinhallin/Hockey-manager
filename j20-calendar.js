@@ -41,7 +41,7 @@ function juniorCalendarLoanAppearance(p,round,date){
   const minutes=p.pos==='MV'?(juniorRoll()<.55?60:0):Math.round(Math.max(0,Math.min(24,offer.minutes+(quality-offer.level)*1.5-p.fatigue/12+(juniorRoll()-.5)*6)));
   const row=juniorAppearance(p,minutes*60,offer.level,offer.name);a.loan.games+=row.seconds>0?1:0;a.loan.seconds+=row.seconds;a.loan.remaining--;
   if(a.history?.[0])a.history[0].date=date;
-  if(a.loan.remaining<=0){juniorReport(`${p.name} är tillbaka från lån`,`${offer.name}: ${a.loan.games} matcher och ${Math.round(a.loan.seconds/60)} minuter. Läs utvecklingsrapporten innan nästa steg.`);a.loan=null;a.path='junior';}
+  if(a.loan.remaining<=0){juniorReport(playerHeadline(p," är tillbaka från lån"),`${offer.name}: ${a.loan.games} matcher och ${Math.round(a.loan.seconds/60)} minuter. Läs utvecklingsrapporten innan nästa steg.`);a.loan=null;a.path='junior';}
 }
 function juniorCalendarManagerReport(pair,round,date,forecast){
   const home=pair.home===managerClub(),opponent=home?pair.away:pair.home,plan=juniorMatchPlan(managerClub(),round),rows=[];
@@ -49,7 +49,7 @@ function juniorCalendarManagerReport(pair,round,date,forecast){
     if(internationalAway(p))continue;
     if(p.academy.loan){juniorCalendarLoanAppearance(p,round,date);continue;}
     const seconds=plan.playable?(plan.seconds.get(String(p.id))||0):0;
-    const row={id:p.id,name:p.name,seconds,goals:0,assists:0};rows.push(row);
+    const row={id:p.id,name:p.name,pos:p.pos,seconds,goals:0,assists:0};rows.push(row);
     const a=p.academy;a.observations=Math.min(100,(a.observations||0)+1);
     a.history.unshift({year:state.season.year,round,date,opponent:opponent+' J20',seconds,goals:0,assists:0,path:'junior'});a.history=a.history.slice(0,16);
     if(seconds>0){a.games=(a.games||0)+1;a.seconds=(a.seconds||0)+seconds;a.missed=0;if(medicalCanTrain(p))developmentAdvance(p,juniorTarget(p),2*Math.min(2,seconds/900),'Matchvana (J20)');}
@@ -66,7 +66,7 @@ function juniorCalendarManagerReport(pair,round,date,forecast){
   if(juniorWorldRecord(result,leagueOf(),round)&&!forfeit)juniorWorldAIReport(opponent,managerClub(),round,against);
   state.juniors.matches.unshift({year:state.season.year,club:managerClub(),round,date,opponent,own,against,players:rows,j20:true,overtime,forfeit});state.juniors.matches=state.juniors.matches.slice(0,16);
   if(!forfeit)nhlObserveFixture('junior',`j20:${state.season.year}:${round}:${managerClub()}`,date,managerClub(),rows);
-  if(round%4===0||forfeit)juniorReport('J20-avstämning',`${forfeit?'Juniorlaget kunde inte ställa upp med en komplett matchtrupp.':`${managerClub()} J20 ${own}–${against} ${opponent} J20.`}\n${juniorPlayers().slice().sort((a,b)=>(b.academy.missed||0)-(a.academy.missed||0)).slice(0,3).map(p=>`${p.name}: ${juniorAdvice(p)}`).join('\n')}`);
+  if(round%4===0||forfeit)juniorReport('J20-avstämning',[forfeit?'Juniorlaget kunde inte ställa upp med en komplett matchtrupp.':`${managerClub()} J20 ${own}–${against} ${opponent} J20.`,...juniorPlayers().slice().sort((a,b)=>(b.academy.missed||0)-(a.academy.missed||0)).slice(0,3).flatMap(p=>['\n',playerMention(p),': '+juniorAdvice(p)])]);
 }
 function juniorCalendarPlayRound(league,round,date){
   const world=ensureJuniorWorld();if(!world||world.results.some(r=>r.year===state.season.year&&r.league===league&&r.round===round))return;
