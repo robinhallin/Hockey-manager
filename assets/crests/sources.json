@@ -1,0 +1,242 @@
+{
+  "Björklöven": {
+    "file": "assets/crests/ifb1_ifb.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/ifb1_ifb.svg"
+  },
+  "Brynäs IF": {
+    "file": "assets/crests/bif1_bif.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/bif1_bif.svg"
+  },
+  "Djurgårdens IF": {
+    "file": "assets/crests/dif1_dif.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/dif1_dif.svg"
+  },
+  "Frölunda HC": {
+    "file": "assets/crests/fhc1_fhc.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/fhc1_fhc.svg"
+  },
+  "Färjestad BK": {
+    "file": "assets/crests/fbk1_fbk.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/fbk1_fbk.svg"
+  },
+  "HV71": {
+    "file": "assets/crests/hv711_hv71.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/hv711_hv71.svg"
+  },
+  "Linköping HC": {
+    "file": "assets/crests/lhc1_lhc.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/lhc1_lhc.svg"
+  },
+  "Luleå Hockey": {
+    "file": "assets/crests/lhf1_lhf.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/lhf1_lhf.svg"
+  },
+  "Malmö Redhawks": {
+    "file": "assets/crests/mif1_mif.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/mif1_mif.svg"
+  },
+  "Rögle BK": {
+    "file": "assets/crests/rbk1_rbk.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/rbk1_rbk.svg"
+  },
+  "Skellefteå AIK": {
+    "file": "assets/crests/saik1_saik.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/saik1_saik.svg"
+  },
+  "Timrå IK": {
+    "file": "assets/crests/tik1_tik.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/tik1_tik.svg"
+  },
+  "Växjö Lakers": {
+    "file": "assets/crests/vlh1_vlh.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/vlh1_vlh.svg"
+  },
+  "Örebro Hockey": {
+    "file": "assets/crests/ohk1_ohk.svg",
+    "source": "https://sportality.cdn.s8y.se/team-logos/ohk1_ohk.svg"
+  },
+  "AIK": {
+    "file": "assets/crests/ha-aik.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/AIK_logo_aeaee9d0d7/AIK_logo_aeaee9d0d7.webp"
+  },
+  "Almtuna IS": {
+    "file": "assets/crests/ha-ais.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/AIS_logo_1630847fab/AIS_logo_1630847fab.webp"
+  },
+  "BIK Karlskoga": {
+    "file": "assets/crests/ha-bik.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/BIK_logo_87df9b9f59/BIK_logo_87df9b9f59.webp"
+  },
+  "IK Oskarshamn": {
+    "file": "assets/crests/ha-iko.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/IKO_logo_0a5ec7f1c3/IKO_logo_0a5ec7f1c3.webp"
+  },
+  "Kalmar HC": {
+    "file": "assets/crests/ha-khc.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/KHC_logo_c216f7d7ef/KHC_logo_c216f7d7ef.webp"
+  },
+  "Leksands IF": {
+    "file": "assets/crests/ha-lif.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/Lekand_Logotyp_9c11e17e1f/Lekand_Logotyp_9c11e17e1f.webp"
+  },
+  "MoDo Hockey": {
+    "file": "assets/crests/ha-modo.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/MODO_logowebp_7958fa798d/MODO_logowebp_7958fa798d.webp"
+  },
+  "Mora IK": {
+    "file": "assets/crests/ha-mora.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/MIK_logo_c9f61b7bb4/MIK_logo_c9f61b7bb4.webp"
+  },
+  "Nybro Vikings": {
+    "file": "assets/crests/ha-nvif.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/NYB_logo_9177238de1/NYB_logo_9177238de1.webp"
+  },
+  "Södertälje SK": {
+    "file": "assets/crests/ha-ssk.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/SSK_Logotyp_Krans_9e983a8dff/SSK_Logotyp_Krans_9e983a8dff.webp"
+  },
+  "Vimmerby HC": {
+    "file": "assets/crests/ha-vhc.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/VHC_logo_b2656683bb/VHC_logo_b2656683bb.webp"
+  },
+  "Visby/Roma": {
+    "file": "assets/crests/ha-vis.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/Visby_Logotyp_f3c19bb9ba/Visby_Logotyp_f3c19bb9ba.webp"
+  },
+  "Västerås IK": {
+    "file": "assets/crests/ha-vik.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/VIK_logo_dca4566eac/VIK_logo_dca4566eac.webp"
+  },
+  "Östersunds IK": {
+    "file": "assets/crests/ha-oik.svg",
+    "source": "https://ha-media.hadigital.se/ha-league/Oe_IK_Logotyp_07abdb2a3f/Oe_IK_Logotyp_07abdb2a3f.webp"
+  },
+  "Anaheim Ducks": {
+    "file": "assets/crests/nhl-ana.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/ANA_dark.svg"
+  },
+  "Boston Bruins": {
+    "file": "assets/crests/nhl-bos.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/BOS_dark.svg"
+  },
+  "Buffalo Sabres": {
+    "file": "assets/crests/nhl-buf.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/BUF_dark.svg"
+  },
+  "Calgary Flames": {
+    "file": "assets/crests/nhl-cgy.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/CGY_dark.svg"
+  },
+  "Carolina Hurricanes": {
+    "file": "assets/crests/nhl-car.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/CAR_dark.svg"
+  },
+  "Chicago Blackhawks": {
+    "file": "assets/crests/nhl-chi.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/CHI_dark.svg"
+  },
+  "Colorado Avalanche": {
+    "file": "assets/crests/nhl-col.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/COL_dark.svg"
+  },
+  "Columbus Blue Jackets": {
+    "file": "assets/crests/nhl-cbj.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/CBJ_dark.svg"
+  },
+  "Dallas Stars": {
+    "file": "assets/crests/nhl-dal.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/DAL_dark.svg"
+  },
+  "Detroit Red Wings": {
+    "file": "assets/crests/nhl-det.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/DET_dark.svg"
+  },
+  "Edmonton Oilers": {
+    "file": "assets/crests/nhl-edm.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/EDM_dark.svg"
+  },
+  "Florida Panthers": {
+    "file": "assets/crests/nhl-fla.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/FLA_dark.svg"
+  },
+  "Los Angeles Kings": {
+    "file": "assets/crests/nhl-lak.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/LAK_dark.svg"
+  },
+  "Minnesota Wild": {
+    "file": "assets/crests/nhl-min.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/MIN_dark.svg"
+  },
+  "Montréal Canadiens": {
+    "file": "assets/crests/nhl-mtl.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/MTL_dark.svg"
+  },
+  "Nashville Predators": {
+    "file": "assets/crests/nhl-nsh.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/NSH_dark.svg"
+  },
+  "New Jersey Devils": {
+    "file": "assets/crests/nhl-njd.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/NJD_dark.svg"
+  },
+  "New York Islanders": {
+    "file": "assets/crests/nhl-nyi.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/NYI_dark.svg"
+  },
+  "New York Rangers": {
+    "file": "assets/crests/nhl-nyr.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/NYR_dark.svg"
+  },
+  "Ottawa Senators": {
+    "file": "assets/crests/nhl-ott.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/OTT_dark.svg"
+  },
+  "Philadelphia Flyers": {
+    "file": "assets/crests/nhl-phi.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/PHI_dark.svg"
+  },
+  "Pittsburgh Penguins": {
+    "file": "assets/crests/nhl-pit.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/PIT_dark.svg"
+  },
+  "San Jose Sharks": {
+    "file": "assets/crests/nhl-sjs.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/SJS_dark.svg"
+  },
+  "Seattle Kraken": {
+    "file": "assets/crests/nhl-sea.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/SEA_dark.svg"
+  },
+  "St. Louis Blues": {
+    "file": "assets/crests/nhl-stl.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/STL_dark.svg"
+  },
+  "Tampa Bay Lightning": {
+    "file": "assets/crests/nhl-tbl.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/TBL_dark.svg"
+  },
+  "Toronto Maple Leafs": {
+    "file": "assets/crests/nhl-tor.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/TOR_dark.svg"
+  },
+  "Utah Mammoth": {
+    "file": "assets/crests/nhl-uta.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/UTA_dark.svg"
+  },
+  "Vancouver Canucks": {
+    "file": "assets/crests/nhl-van.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/VAN_dark.svg"
+  },
+  "Vegas Golden Knights": {
+    "file": "assets/crests/nhl-vgk.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/VGK_dark.svg"
+  },
+  "Washington Capitals": {
+    "file": "assets/crests/nhl-wsh.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/WSH_dark.svg"
+  },
+  "Winnipeg Jets": {
+    "file": "assets/crests/nhl-wpg.svg",
+    "source": "https://assets.nhle.com/logos/nhl/svg/WPG_dark.svg"
+  }
+}

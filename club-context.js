@@ -3,8 +3,8 @@
 function clubReference(club,context={}){
  if(!club)return 'Klubb saknas';
  const known=Object.hasOwn(state.clubRosters||{},club)||Object.hasOwn(CAREER_CLUBS,club);
- if(!known)return trainingSafe(club);
- return `<a class="player-reference" href="#club/${encodeURIComponent(club)}" onclick="${trainingSafe('openClubContext('+JSON.stringify(club)+','+JSON.stringify(context)+');return false;')}">${trainingSafe(club)}</a>`;
+ if(!known)return (CLUB_CRESTS[club]?clubCrest(club,'small'):'')+trainingSafe(club);
+ return `<a class="player-reference" href="#club/${encodeURIComponent(club)}" onclick="${trainingSafe('openClubContext('+JSON.stringify(club)+','+JSON.stringify(context)+');return false;')}">${clubCrest(club,'small')}${trainingSafe(club)}</a>`;
 }
 function openClubContext(club,context={}){
  if(!Object.hasOwn(state.clubRosters||{},club)&&!Object.hasOwn(CAREER_CLUBS,club))return false;

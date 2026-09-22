@@ -1,0 +1,10 @@
+"use strict";
+function modernClubHero(){
+ const club=managerClub(),table=leagueTable(leagueOf()),rank=table.findIndex(t=>t.name===club)+1,played=table.some(t=>t.gp>0);
+ return `<header class="modern-club-hero">${clubCrest(club,'hero')}<div><small>HOCKEY MANAGER · ${seasonLabel()}</small><h1>${trainingSafe(club)}</h1><p>${trainingSafe(leagueName())}${played&&rank?' · '+rank+' plats':' · Säsongen framför oss'}</p></div><div class="hero-date"><small>DIN KLUBB. DINA BESLUT.</small><p>${calText(state.calendar.date)}</p></div></header>`;
+}
+function modernOfficeSummary(){
+ const next=calendarFixtures().filter(f=>!f.played&&f.date>=state.calendar.date).sort((a,b)=>a.date.localeCompare(b.date))[0];
+ const table=leagueTable(leagueOf()).slice(0,5),matches=(state.analysis?.matches||[]).filter(m=>m.finished&&m.club===managerClub()).slice(0,3);
+ return `<div class="modern-overview-grid"><section class="modern-overview-card"><h2>Nästa match</h2>${next?`<div class="modern-fixture"><div>${clubCrest(managerClub())}<strong>${trainingSafe(managerClub())}</strong></div><span>–</span><div>${clubCrest(next.opponent)}<strong>${clubReference(next.opponent)}</strong></div></div><p class="modern-fixture-date">${calText(next.date)} · ${trainingSafe(next.venue)} · ${trainingSafe(next.kind)}</p><button class="desk-link" onclick="${trainingSafe('matchesOpenDay('+JSON.stringify(next.date)+')')}">Matchförberedelser →</button>`:'<p>Ingen kommande match är fastställd.</p>'}</section><section class="modern-overview-card"><h2>Tabell · ${trainingSafe(leagueName())}</h2>${table.map((t,i)=>`<div class="modern-table-row"><span>${i+1}</span>${clubReference(t.name)}<strong>${t.pts} p</strong></div>`).join('')}${deskLink('Hela tabellen',{page:'table'})}</section><section class="modern-overview-card"><h2>Senaste matchrapporter</h2>${matches.map(m=>`<div class="modern-result-row"><div>${clubReference(m.opponent,{year:m.year})}<small>${m.date?calText(m.date):seasonLabel(m.year)} · Egna mål först</small></div>${matchReportReference(m)}</div>`).join('')||'<p>Inga avslutade matchrapporter ännu.</p>'}${deskLink('Matcher & resultat',{page:'calendar'})}</section></div>`;
+}

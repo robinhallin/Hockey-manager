@@ -41,7 +41,7 @@ function applyClubTheme(){
 
 function careerMoney(value){return `${(value/1000000).toLocaleString('sv-SE',{maximumFractionDigits:1})} mkr`;}
 function careerGroup(group){return {title:'Titelutmanare',playoff:'Slutspelsjakt',build:'Byggprojekt'}[group];}
-function careerBadge(name,size=''){const c=careerIdentity(name);return `<span class="career-badge ${size}" style="--club-color:${c.color}">${c.code}</span>`;}
+function careerBadge(name,size=''){const c=careerIdentity(name);return `<span class="career-badge ${size}" style="--club-color:${c.color}">${clubCrest(name,size)}</span>`;}
 function careerOffer(name,rosters){
   const c=leagueCareerOffer(careerIdentity(name),name,rosters),roster=rosters[name]||[];
   const wages=roster.reduce((n,p)=>n+(p.salary||0),0);
