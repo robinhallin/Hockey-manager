@@ -45,11 +45,19 @@ function dayTransitionRun(tx){
   calendarContinue();
   if(state.calendar.date===tx.date){dayTransitionDispose();return;}
   tx.rows=dayTransitionSummary(tx.before);tx.phase='ready';
+  state.calendar.lastDaySummary={date:tx.date,currentDate:state.calendar.date,club:tx.club,rows:tx.rows.slice(0,12),total:tx.rows.length};
+  save();
+  if(!pendingManagerDecision()){dayTransitionDispose();render();document.getElementById('continueGame')?.focus?.();return;}
  }catch(error){
   // A callback is never retried: a failure may occur after some work is saved.
   tx.phase='error';console.error('Day transition failed',error);
  }
  dayTransitionRender();
+}
+function daySummaryView(){
+ const s=state.calendar?.lastDaySummary;
+ if(!s||s.club!==managerClub()||s.currentDate!==state.calendar.date)return '';
+ return `<details class="mw-panel"><summary>${trainingSafe(calText(s.date))} avslutad · ${s.total} nya rapporter och resultat</summary>${s.rows.map(r=>`<article><small>${trainingSafe(r.label)}</small><p>${trainingSafe(r.title)}</p>${r.kind==='message'?`<button type="button" class="desk-link" onclick="openManagerMessage(${trainingSafe(JSON.stringify(r.id))})">Läs rapporten →</button>`:''}</article>`).join('')||'<p>Inga nya rapporter eller resultat. Du kan planera nästa dag.</p>'}${s.total>s.rows.length?'<p>Fler händelser finns i inkorgen och ligornas resultat.</p>':''}</details>`;
 }
 function dayTransitionRender(){
  const tx=dayTransition,root=document.getElementById('day-transition-root');if(!tx||!root)return;
