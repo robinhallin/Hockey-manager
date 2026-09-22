@@ -1,6 +1,16 @@
 # Spelararbetsplats – första implementationen
 
-Två genomförda etapper. Detta är inte ett påstående om att hela utvecklingsbeställningen är färdig.
+Tre genomförda etapper. Detta är inte ett påstående om att hela utvecklingsbeställningen är färdig.
+
+## Etapp 3: klubbar, ligor och matchrapporter
+
+- Gemensamma klubb-, liga- och matchreferenser används från profiler, säsongshistorik, poängliga, tabell, ligavärld, matchlista och analys. Global klubbsökning öppnar samma klubbsida.
+- Klubbsidan visar aktuell offentlig trupp, serieschema, sparade rapporter och genvägar till trupparbete eller motståndsrapport. Dolda AI-värden och scoutingfacit ingår inte.
+- Historiska klubblänkar visar bara registrerade spelare för den valda säsongen. Liga hämtas från dåtidens ligastatistik, inte dagens ligatillhörighet. Saknad historik och saknade detaljrapporter anges uttryckligen.
+- Ligastatistik kan öppnas med klubb, liga och säsong redan valda. Klubbesök och rapportbesök bevarar föregående arbetsvy även när två klubbar eller rapporter öppnas i följd.
+- Resultat i matchlistan öppnar rätt sparad rapport. Klubbschemats resultat visas hemma–borta; rapportlistan anger lagordningen uttryckligen. Kommande egna seriematcher öppnar rätt dagsprogram.
+- Externa spelares prestationsflik visar nu också de sparade matchprestationerna.
+- Automatiserade tester använder spelets verkliga moduler med simulerad DOM. Ingen visuell provspelning har genomförts.
 
 ## Etapp 2: sammanlänkade rapporter och beslut
 
@@ -24,7 +34,7 @@ Testerna är headless och använder bland annat uttryckliga rapport-fixtures. Ve
 - Felaktiga gamla egna/externa länkar väljer profil efter spelarens nuvarande tillhörighet.
 - Attribut, bedömning, prestation, utveckling, kontrakt och registrerad historik kan öppnas separat. Statistik visar registrerade säsonger, liga, tävlingsfas och dåvarande klubb.
 - Egna och externa spelare kan läggas till samma jämförelse från profilen. Urvalet lagras med scoutingkontoret och överlever sparning/laddning.
-- Sökning efter spelare och klubbar från arbetsvyerna. Spelarresultat visar ID-länk, position, ålder och klubb; klubbresultat öppnar klubbens spelarstatistik, inte en ny fullständig klubbsida.
+- Sökning efter spelare och klubbar från arbetsvyerna. Spelarresultat visar ID-länk, position, ålder och klubb; klubbresultat öppnar nu klubbens sida med trupp, schema och sparade rapporter.
 - Poängliga, analysens spelartabell och jämförelse, formationer med registrerade ID:n, scoutjämförelse och uppdragsutkast använder gemensamma spelarreferenser.
 - Medicinska meddelanden bär spelar-ID. Inkorgens ärende visar en direkt spelarlänk när ett ID finns. Nya strukturerade meddelandetexter kan innehålla uttryckliga spelarreferenser; gamla namn i fritext matchas aldrig automatiskt.
 - Pensionering sparar en liten offentlig identitetspost, inte dolda attribut eller hälsodata. Äldre sparfiler kan använda redan registrerade spelar-ID:n i ligastatistik och världshändelser. Arkivet ingår inte i transfermarknadens uppslagning.
@@ -42,7 +52,7 @@ Testerna är headless och använder bland annat uttryckliga rapport-fixtures. Ve
 
 - Fullständig inventering och konvertering av varje spelarnamn, mål/assistnotering, nyhet, historikpost och junioryta. Juniorprofilen återanvänds fortfarande som ett särskilt innehåll.
 - Fler nyhets-/meddelandeproducenter måste skriva strukturerade referenser; API-stöd är inte detsamma som full täckning.
-- Egen fullständig klubbsida och konsekventa liga-, match-, skade- och förhandlingslänkar.
+- Fortsatt spridning av de gemensamma klubb-, liga- och matchlänkarna samt skade- och förhandlingslänkar.
 - Alla tabellers/arbetsvyns scroll och alla formulärtyper; nuvarande återställning är avgränsad och ska inte kallas generell draft-hantering.
 - Utbyggd roll-/kedjekonkurrens, taktiska avvägningar, arbetsbelastning, ekonomiska konsekvenser, moral, delegering, styrelse- och AI-flöden enligt beställningen. Befintliga funktioner bevaras, men har inte alla fördjupats i denna etapp.
 - Full UI-provspelning inklusive tangentbord, webbläsarens bakåtknapp, pågående match, klubbbyte, lån och pensionering.

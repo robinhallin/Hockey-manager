@@ -4306,6 +4306,7 @@ careerScreen === "files" ? saveSettingsView()
    
   ? clubSelectView()
 
+: state.page==="clubDetail" ? clubContextView()
 : state.page==="home"
 
   ? homeView()
