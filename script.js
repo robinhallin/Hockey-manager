@@ -4458,7 +4458,7 @@ careerScreen === "files" ? saveSettingsView()
   if(unread)unread.textContent=state.training?.messages.filter(m=>!m.read).length||"";
   if(section) section.textContent = sectionNames[state.page] || "HOCKEY MANAGER";
   if(topClub) topClub.textContent = clubName;
-  if(badge){badge.textContent=careerIdentity(clubName).code;if(badge.style){badge.style.background=careerIdentity(clubName).color;badge.style.color="#0c1720";}}
+  if(badge){badge.innerHTML=clubCrest(clubName);if(badge.style){badge.style.background=careerIdentity(clubName).color;badge.style.color="#0c1720";}}
   if(clubInfoName) clubInfoName.textContent = clubName;
   if(clubInfoLeague) clubInfoLeague.textContent = club ? leagueName() : "";
 

@@ -1,0 +1,59 @@
+/* Modern Dark: neutral steel/navy surfaces, blue actions, club colours in crests. */
+:root{color-scheme:dark;--ui-bg:#0e171e;--ui-panel:#16232c;--ui-raised:#1d2e3a;--ui-hover:#243c4e;--ui-border:#31434f;--ui-text:#edf3f7;--ui-muted:#b5c3cd;--ui-faint:#91a5b4;--ui-link:#9fc9ec;--ui-radius:6px;--ui-positive:#95d2ae;--ui-warning:#eac66e;--ui-negative:#f0a2a9}
+body .game-shell{--ui-accent:#78b4e3;--desk-accent:#78b4e3;--accent:#78b4e3;--gold:#eac66e;--panel:#16232c;--bg:#0e171e;--text:#edf3f7;--muted:#b5c3cd;background:var(--ui-bg)}
+body .game-shell :is(.sidebar,.topbar){background:#101b23;border-color:#30414d}
+body .game-shell .sidebar-brand{gap:10px;padding:19px 16px;border-bottom:1px solid #30414d}
+body .game-shell .logo{background:#213b50;border:1px solid #54738b;color:#dceaf5;border-radius:4px;box-shadow:none}
+body .game-shell .brand-text strong{letter-spacing:.04em}body .game-shell .brand-text span{color:#93bee0;letter-spacing:.12em}
+body .game-shell .club-box{gap:12px;padding:16px 10px;border-color:#30414d}
+body .game-shell .club-badge{background:transparent!important;box-shadow:none;border:0;padding:0;width:48px;height:52px}
+body .game-shell .nav-item{border-radius:4px;color:#becbd4;min-height:40px}
+body .game-shell .nav-item.active{background:linear-gradient(#2c4b63,#21394c);color:#fff;box-shadow:inset 3px 0 #88bce6;border:1px solid #3a5b75}
+body .game-shell .nav-item.active .nav-icon{color:#c5e2f7}
+body .game-shell .topbar{height:62px;min-height:62px;padding:0 24px}
+body .game-shell:not(:has(.mc-live)) .game-content{background:radial-gradient(ellipse at 70% 0,#1c303c55,transparent 55%),#0e171e;padding:22px 26px 32px}
+body .game-shell .desk-subnav{gap:20px;border-bottom:1px solid #30414d;padding-bottom:4px}
+body .game-shell .desk-subnav>button{font-size:13px;color:#b5c3cd}
+body .game-shell :is(.desk-subnav>button.active,[role=tab][aria-selected=true]){color:#b9dcf6;border-color:#78b4e3}
+body .game-shell .entity-search{padding:8px 0 14px;margin-bottom:16px;border-color:#263945;color:#aebfcb;font-size:12px}
+body .game-shell :is(.btn:not(.secondary),.continue-button,.career-primary,.desk-primary,.mc-play){background:linear-gradient(#477da6,#2c5677);border:1px solid #668ead;color:#fff;border-radius:4px;box-shadow:inset 0 1px #ffffff12;font-weight:650}
+body .game-shell :is(.btn:not(.secondary),.continue-button,.career-primary,.desk-primary,.mc-play):hover{background:#447fae;color:#fff;border-color:#98c6e8}
+body .game-shell :is(.btn.secondary,.career-text-button,.desk-link){background:#1c2d39;border:1px solid #3a5264;color:#d4e5f1;border-radius:4px}
+body .game-shell button:disabled{opacity:.45;cursor:not-allowed}
+body .game-shell :is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid #abd8fa;outline-offset:3px}
+body .game-shell :is(input,select,textarea){background:#101d26;border-color:#405766;color:#eaf1f6;border-radius:4px;font-size:13px}
+body .game-shell .desk-page :is([class$="-panel"],[class$="-inspector"],[class$="-card"],.office2-command,.rh-list,.rh-sidebar,.scouting-workspace,.lg-panel,.cw-metrics,.fm-profile-rating,.mw-result,.mw-metrics,.dv-summary,.lw-summary,.sw-summary,.desk-fold){background-color:var(--ui-panel);border-color:var(--ui-border);border-radius:6px;box-shadow:0 2px 8px #00000012}
+body .game-shell .desk-page :is(h1,h2,h3){color:#edf3f7}
+body .game-shell .desk-page:not([data-page=match]) h1{font-size:27px;letter-spacing:-.025em;font-weight:700}
+body .game-shell .desk-page:not([data-page=match]) h2{font-size:16px;font-weight:650}
+body .game-shell .desk-page:not([data-page=match]) table{background:#15232c;font-size:13px}
+body .game-shell .desk-page:not([data-page=match]) table :is(th,td){border-color:#2a3c48;padding:10px 12px}
+body .game-shell .desk-page:not([data-page=match]) table thead th{background:#1c2e3b;color:#afc3d2;font-size:11px}
+body .game-shell .desk-page:not([data-page=match]) table tbody tr:nth-child(even){background:#ffffff03}
+body .game-shell .desk-page:not([data-page=match]) table tbody tr:hover{background:#233c4e}
+body .game-shell .desk-page table :is(tr.selected,tr.league-own,tr.office-own){background:#244158}
+body .game-shell :is(.fm-tabs,.dv-tabs,.lw-tabs,.lg-tabs,.mw-tabs,.rh-inspector-tabs,.league-stat-tabs) button{background:transparent;color:#b5c3cd;border-color:#354b5b;border-radius:4px}
+body .game-shell :is(.fm-tabs,.dv-tabs,.lw-tabs,.lg-tabs,.mw-tabs,.rh-inspector-tabs,.league-stat-tabs) button[aria-pressed=true]{background:#2a4860;color:#e8f4fd;border-color:#6285a1}
+body .game-shell :is(.fm-back,.fm-link,.rh-link,.player-reference){color:#bedcf3}
+body .game-shell .player-reference:hover{color:#fff}
+body .game-shell .mc-header{background:linear-gradient(#1b2e3b,#101c25);border-color:#3a5264;box-shadow:none}
+body .game-shell :is(.mc-situation,.mc-utility,.mc-coach-panel,.mc-controls,.match-controls,.mc-analysis){background-color:#162630;border-color:#354b5b;color:#dfeaf2}
+body .game-shell .mc-result>b{color:#fff;text-shadow:none}
+body .game-shell :is(.career-menu,.career-select,.career-review){color:var(--ui-text)}
+body .game-shell :is(.career-club-card,.career-contract,.career-menu-panel){background-color:#15232dee;border-color:#3a5162}
+.club-crest{display:inline-grid;place-items:center;vertical-align:middle;width:32px;height:34px;flex:0 0 auto;position:relative;background:transparent}
+.club-crest img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 2px #0005)}
+.club-crest.small{width:23px;height:25px;margin-right:7px}.club-crest.large{width:76px;height:82px}.club-crest.hero{width:88px;height:94px}
+.club-crest-fallback{display:grid;place-items:center;border:1px solid #526c80;border-radius:6px;background:#253c4e;color:#e2edf5;font-size:11px;font-weight:700;width:100%;height:100%}
+body .game-shell :is(.career-badge,.mc-badge){background:transparent;clip-path:none;border:0;box-shadow:none;padding:0}
+.career-badge .club-crest,.mc-badge .club-crest,.club-badge .club-crest{width:100%;height:100%;min-width:30px;min-height:34px}
+.modern-club-hero{display:flex;align-items:center;gap:24px;min-height:170px;padding:28px 30px;border:1px solid #3b5261;border-radius:6px;margin-bottom:18px;background:linear-gradient(90deg,#0c1724f5 0%,#132635b8 50%,#101b2370),url('assets/arena-career.jpg') center 45%/cover}
+body .game-shell .modern-club-hero h1{font-size:31px;margin:4px 0 8px;letter-spacing:.01em}.modern-club-hero p{margin:0;color:#c2d3df;font-size:13px}.modern-club-hero small{color:#a4c4dd;letter-spacing:.14em;font-size:10px;font-weight:650}.modern-club-hero .hero-date{margin-left:auto;align-self:flex-end;text-align:right}
+.modern-overview-grid{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:16px;margin:0 0 24px}.modern-overview-card{padding:18px;border:1px solid #314652;border-radius:6px;background:linear-gradient(#182832,#13212a);min-width:0}.modern-overview-card h2{margin:0 0 16px}.modern-fixture{display:flex;align-items:center;justify-content:space-around;gap:14px;margin:12px 0}.modern-fixture>div{text-align:center;display:grid;justify-items:center;gap:8px;font-size:12px}.modern-fixture .club-crest{width:52px;height:58px}.modern-fixture-date{text-align:center;color:#aec2d1;font-size:12px}.modern-overview-card .desk-link{display:inline-flex;margin-top:10px}.modern-table-row{display:grid;grid-template-columns:22px 1fr 38px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #293c49;font-size:12px}.modern-table-row>span:first-child{color:#eac66e}.modern-table-row a{min-width:0}.modern-result-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #293c49;font-size:12px}.modern-result-row small{display:block;color:#93acbd;margin-top:3px}
+body .game-shell .office-heading{margin-top:8px}.modern-overview-card .club-crest.small{width:20px;height:22px}
+@media(min-width:1200px){body .game-shell:not(:has(.mc-live)){grid-template-columns:192px minmax(0,1fr)}body .game-shell .office-desk-grid{grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:18px}}
+@media(max-width:1100px){.modern-overview-grid{grid-template-columns:1fr 1fr}.modern-overview-card:last-child{grid-column:1/-1}.modern-club-hero{padding:22px;gap:16px}.modern-club-hero .hero-date{display:none}}
+@media(max-width:700px){body .game-shell:not(:has(.mc-live)) .game-content{padding:14px}.modern-overview-grid{grid-template-columns:1fr}.modern-overview-card:last-child{grid-column:auto}.modern-club-hero{min-height:145px;padding:18px}body .game-shell .modern-club-hero h1{font-size:24px}.club-crest.hero{width:64px;height:70px}}
+@media(prefers-reduced-motion:reduce){body .game-shell *{scroll-behavior:auto;transition:none}}
+.club-crest [hidden]{display:none!important}
+body .game-shell .career-club-card.selected{background:#223d50;border-color:#78b4e3;box-shadow:inset 3px 0 #78b4e3}body .game-shell .club-brief-hero{background:linear-gradient(135deg,#263f51,#12212c);border-color:#3c5567}body .game-shell .career-contract{border-color:#435c70}body .game-shell .career-tag{background:#274157;color:#d8e9f6;border-color:#52738f}body .game-shell .club-selected-mark{color:#abd4f4}
