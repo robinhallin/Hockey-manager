@@ -11,6 +11,7 @@ function matchCoachOption(advice){
  const plan=state.tacticalPlan||{};
  if(advice.key==='energy'&&(plan.shiftLength!=='short'||plan.lineUsage!=='rollFour'))return {orders:[['shiftLength','short'],['lineUsage','rollFour']],label:'Korta byten · rulla fyra'};
  if(advice.key==='quality'&&plan.shotChoice!=='patient')return {field:'shotChoice',value:'patient',label:'Sök bättre lägen'};
+ if(advice.key==='discipline'&&plan.physicality!=='safe')return {field:'physicality',value:'safe',label:'Spela mer disciplinerat'};
  if(advice.key==='danger'&&plan.forecheck!=='passive')return {field:'forecheck',value:'passive',label:'Sänk forechecken'};
  if(advice.key==='chase')return {plan:'pressure',label:'Jaga kvitteringen'};
  if(advice.key==='protect')return {plan:'protect',label:'Skydda ledningen'};
@@ -25,7 +26,10 @@ function matchCoachEnergy(decision){
  const levels=ps.map(p=>state.live?.energy?.players?.[p.id]?.level);
  return levels.every(Number.isFinite)?levels.reduce((n,x)=>n+x,0)/levels.length:null;
 }
-function matchCoachReady(current){return current.closed||(current.row.coachDecision.key==='energy'?current.row.end-current.row.time>=180:(current.row.result?.seconds||0)>=180);}
+function matchCoachReady(current){return current.closed||(['energy','discipline'].includes(current.row.coachDecision.key)?current.row.end-current.row.time>=180:(current.row.result?.seconds||0)>=180);}
+function matchCoachPenalties(start,end,includeStart=false){
+ return (state.live?.analysis?.events||[]).filter(e=>e.type==='penalty'&&e.side==='own'&&Number.isFinite(e.time)&&(includeStart?e.time>=start:e.time>start)&&e.time<=end).length;
+}
 function matchCoachCurrent(){
  const rows=tacticalReviewSnapshot(),row=[...rows].reverse().find(r=>r.coachDecision&&!r.coachDecision.reviewed);
  return row?{row,closed:state.live.finished||row!==rows.at(-1)}:null;
@@ -37,7 +41,9 @@ function matchCoachChoose(key,choice){
  if(!option){matchPause();matchNotice('Matchbilden har ändrats. Läs assistentens aktuella bedömning.');return;}
  matchPause();
  const decision={key,title:advice.title,evidence:advice.evidence,risk:advice.risk,choice,label:choice==='keep'?'Behåll matchplanen':option.label};
+ if(advice.players?.length)decision.players=advice.players.map(p=>({...p}));
  if(key==='energy'){decision.energy={players:matchCoachEnergyPlayers()};decision.energy.before=matchCoachEnergy(decision);}
+ if(key==='discipline'){const end=analysisClock(),start=Math.max(0,end-300);decision.discipline={seconds:end-start,count:matchCoachPenalties(start,end,true)};}
  if(choice==='keep'){
   tacticalReviewRecord(tacticalReviewPlan(),decision.label,decision);
   addEvent('Coach behåller matchplanen: '+advice.title,'strategy');
@@ -45,7 +51,7 @@ function matchCoachChoose(key,choice){
  else if(option.plan)matchPlan(option.plan,decision);
  else matchOrder(option.field,option.value,decision);
  matchDesk.tab='feedback';
- matchNotice(decision.label+'. Vi följer '+(key==='energy'?'femmans energi i minst tre spelminuter':'nästa tre minuter vid lika styrka')+'. Tryck Fortsätt när du är klar.');
+ matchNotice(decision.label+'. Vi följer '+(key==='energy'?'femmans energi i minst tre spelminuter':key==='discipline'?'egna utvisningar i alla spelformer under minst tre spelminuter':'nästa tre minuter vid lika styrka')+'. Tryck Fortsätt när du är klar.');
  matchFocus('match-coach-followup');
 }
 function matchCoachReview(){
@@ -56,6 +62,10 @@ function matchCoachReview(){
  matchDesk.notice='';save();render();matchFocus('match-tab-feedback');
 }
 function matchCoachOutcome(row,closed=false){
+ if(row.coachDecision.key==='discipline'){
+  const elapsed=Math.max(0,row.end-row.time),measured=!row.partial&&Number.isFinite(row.coachPenalties)&&Number.isFinite(row.coachDecision.discipline?.count),enough=measured&&elapsed>=180&&row.coachDecision.discipline.seconds>=180;
+  return {enough,text:!measured?'Utvisningsunderlaget är ofullständigt.':!enough?(closed?'För kort uppföljning för en jämförelse.':`Följer egna utvisningar · ${analysisTime(Math.floor(elapsed))} av minst 3:00.`):`${row.coachPenalties} egna utvisningar under ${analysisTime(Math.floor(elapsed))} efter beslutet. En kort period visar inte att den fysiska nivån orsakade utfallet.`};
+ }
  if(row.coachDecision.key==='energy'){
   const measured=Number.isFinite(row.coachDecision.energy?.before)&&Number.isFinite(row.coachEnergy),elapsed=Math.max(0,row.end-row.time),enough=measured&&elapsed>=180;
   return {enough,text:!measured?'Energimätning saknas för någon spelare.':!enough?(closed?'Uppföljningen avslutades före tre spelminuter.':`Följer femmans energi · ${analysisTime(Math.floor(elapsed))} av minst 3:00.`):'Femmans medelenergi har '+(Math.abs(row.coachEnergy-row.coachDecision.energy.before)<5?'knappt förändrats.':row.coachEnergy>row.coachDecision.energy.before?'ökat.':'minskat.')};
@@ -71,10 +81,15 @@ function matchCoachFollowupView(row,closed=false,interactive=false){
  const d=row.coachDecision;if(!d)return '';
  const outcome=matchCoachOutcome(row,closed),metric=(x,key)=>x?.seconds>=180&&!row.partial?(x[key]*600/x.seconds).toFixed(1):'—';
  const energy=d.energy?`<p><b>Femman vid beslutet:</b> ${Number.isFinite(d.energy.before)?Math.round(d.energy.before)+' %':'—'} → ${Number.isFinite(row.coachEnergy)?Math.round(row.coachEnergy)+' %':'—'} medelenergi</p><p class="mc-note">Samma spelare följs även på bänken och i special teams. Periodpaus ger också återhämtning.</p>`:'';
+ const discipline=d.discipline?`<p>Egna utvisningar, alla spelformer: ${d.discipline.count} under ${analysisTime(d.discipline.seconds)} före · ${Number.isFinite(row.coachPenalties)?row.coachPenalties:'–'} under ${analysisTime(Math.max(0,row.end-row.time))} efter. Perioderna kan vara olika långa.</p>`:'';
  const chances=`<table><caption>Farliga lägen per 10 minuter · lika styrka</caption><thead><tr><th></th><th>Före</th><th>Efter</th></tr></thead><tbody><tr><th>Skapade</th><td>${metric(row.baseline,'dangerFor')}</td><td>${metric(row.result,'dangerFor')}</td></tr><tr><th>Insläppta</th><td>${metric(row.baseline,'dangerAgainst')}</td><td>${metric(row.result,'dangerAgainst')}</td></tr></tbody></table><p class="mc-note">Speltid: ${analysisTime(Math.floor(row.baseline?.seconds||0))} före · ${analysisTime(Math.floor(row.result?.seconds||0))} efter. PP och BP räknas separat.</p>`;
- return `<article class="mc-decision-followup" id="${interactive?'match-coach-followup':'match-coach-report-'+row.time}" tabindex="-1"><strong>${trainingSafe(d.label)} · ${analysisTime(row.time)}</strong><p class="mc-decision-status" role="status">${trainingSafe(outcome.text)}</p>${energy}${d.energy?`<details><summary>Matchbilden vid lika styrka</summary>${chances}</details>`:chances}<details><summary>Varför beslutet togs</summary><p>${trainingSafe(d.evidence)}</p><p><b>Avvägning:</b> ${trainingSafe(d.risk)}</p><p>Före: sedan föregående registrerade tränarbeslut eller nedsläpp. Efter: fram till nästa beslut eller nu. Motstånd och spelare på isen kan ändras. Siffrorna visar förloppet, inte en bevisad effekt.${d.additionalChanges?' Flera ändringar gjordes vid samma paus.':''}</p></details>${interactive?`<div class="mc-decision-actions">${matchCoachReady({row,closed})?'<button type="button" class="btn secondary" onclick="matchCoachReview()">Bedöm matchbilden igen</button>':''}<button type="button" class="mc-text-button" onclick="matchTab('tactics')">Justera taktiken</button></div>`:''}</article>`;
+ return `<article class="mc-decision-followup" id="${interactive?'match-coach-followup':'match-coach-report-'+row.time}" tabindex="-1"><strong>${trainingSafe(d.label)} · ${analysisTime(row.time)}</strong><p class="mc-decision-status" role="status">${trainingSafe(outcome.text)}</p>${energy}${discipline}${d.energy||d.discipline?`<details><summary>Matchbilden vid lika styrka</summary>${chances}</details>`:chances}<details><summary>Varför beslutet togs</summary><p>${trainingSafe(d.evidence)}</p>${matchCoachSubjects(d)}<p><b>Avvägning:</b> ${trainingSafe(d.risk)}</p><p>Före: sedan föregående registrerade tränarbeslut eller nedsläpp. Efter: fram till nästa beslut eller nu. Motstånd och spelare på isen kan ändras. Siffrorna visar förloppet, inte en bevisad effekt.${d.additionalChanges?' Flera ändringar gjordes vid samma paus.':''}</p></details>${interactive?`<div class="mc-decision-actions">${matchCoachReady({row,closed})?'<button type="button" class="btn secondary" onclick="matchCoachReview()">Bedöm matchbilden igen</button>':''}<button type="button" class="mc-text-button" onclick="matchTab('tactics')">Justera taktiken</button></div>`:''}</article>`;
 }
 function matchCoachAdviceView(advice){
  const option=matchCoachOption(advice);
- return `<article class="mc-decision-advice"><strong>${trainingSafe(advice.title)}</strong><p>${trainingSafe(advice.evidence)}</p><p>${trainingSafe(option?.orders?'Sikta på 30-sekundersbyten och rulla fyra kedjor. Ork och spelform kan korta bytena ytterligare.':advice.suggestion)}</p><p class="mc-note"><b>Avvägning:</b> ${trainingSafe(advice.risk)}</p><div class="mc-decision-actions">${option?`<button type="button" class="btn" onclick="matchCoachChoose('${advice.key}','apply')">${option.label}</button><button type="button" class="btn secondary" onclick="matchCoachChoose('${advice.key}','keep')">Behåll planen</button>`:`<button type="button" class="btn secondary" onclick="matchTab('${advice.tab}')">${advice.action}</button>`}</div></article>`;
+ return `<article class="mc-decision-advice"><strong>${trainingSafe(advice.title)}</strong><p>${trainingSafe(advice.evidence)}</p>${matchCoachSubjects(advice)}<p>${trainingSafe(option?.orders?'Sikta på 30-sekundersbyten och rulla fyra kedjor. Ork och spelform kan korta bytena ytterligare.':advice.suggestion)}</p><p class="mc-note"><b>Avvägning:</b> ${trainingSafe(advice.risk)}</p><div class="mc-decision-actions">${option?`<button type="button" class="btn" onclick="matchCoachChoose('${advice.key}','apply')">${option.label}</button><button type="button" class="btn secondary" onclick="matchCoachChoose('${advice.key}','keep')">Behåll planen</button>`:`<button type="button" class="btn secondary" onclick="matchTab('${advice.tab}')">${advice.action}</button>`}</div></article>`;
+}
+function matchCoachSubjects(advice){
+ const ps=advice.players||[];
+ return ps.length?`<p>${ps.map(p=>`${p.id!=null?playerReference(p.id,p.name):trainingSafe(p.name)}${Number.isFinite(p.energy)?' · '+Math.round(p.energy)+' % energi':''}`).join(' · ')}</p>`:'';
 }
