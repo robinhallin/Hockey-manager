@@ -64,7 +64,7 @@ function juniorCalendarManagerReport(pair,round,date,forecast){
   }
   const result=home?{home:managerClub(),away:opponent,homeGoals:own,awayGoals:against,overtime,forfeit}:{home:opponent,away:managerClub(),homeGoals:against,awayGoals:own,overtime,forfeit};
   if(juniorWorldRecord(result,leagueOf(),round)&&!forfeit)juniorWorldAIReport(opponent,managerClub(),round,against);
-  state.juniors.matches.unshift({year:state.season.year,round,date,opponent,own,against,players:rows,j20:true,overtime,forfeit});state.juniors.matches=state.juniors.matches.slice(0,16);
+  state.juniors.matches.unshift({year:state.season.year,club:managerClub(),round,date,opponent,own,against,players:rows,j20:true,overtime,forfeit});state.juniors.matches=state.juniors.matches.slice(0,16);
   if(!forfeit)nhlObserveFixture('junior',`j20:${state.season.year}:${round}:${managerClub()}`,date,managerClub(),rows);
   if(round%4===0||forfeit)juniorReport('J20-avstämning',`${forfeit?'Juniorlaget kunde inte ställa upp med en komplett matchtrupp.':`${managerClub()} J20 ${own}–${against} ${opponent} J20.`}\n${juniorPlayers().slice().sort((a,b)=>(b.academy.missed||0)-(a.academy.missed||0)).slice(0,3).map(p=>`${p.name}: ${juniorAdvice(p)}`).join('\n')}`);
 }
