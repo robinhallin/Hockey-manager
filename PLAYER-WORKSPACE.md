@@ -1,6 +1,21 @@
 # Spelararbetsplats – första implementationen
 
-Detta är första etappen, inte ett påstående om att hela utvecklingsbeställningen är färdig.
+Två genomförda etapper. Detta är inte ett påstående om att hela utvecklingsbeställningen är färdig.
+
+## Etapp 2: sammanlänkade rapporter och beslut
+
+- Målskyttar och assistgivare öppnar rätt spelarprofil både under matchen och i sparad matchrapport. Saknade ID:n i äldre rapporter gissas inte fram.
+- Matchbetygens spelarnamn och stabsuppföljning av värvningar/löften länkar till rätt person.
+- Profiler visar upp till tio registrerade avslutade matcher med datum, tävlingsfas, dåvarande klubb, istid, mål/assist, skott och verkligt registrerat matchbetyg. Varje match öppnar sin rapport. Saknade PP/BP-minuter uppskattas inte.
+- En spelaridentitet kan återfinnas i befintliga matchrapporter även när aktiv spelarpost och pensionsarkiv saknas. Inga historiska attribut kopieras till transfermarknaden.
+- Nyheter om genomförd övergång, lån, förhandsavtal, junioruppflyttning, NHL-avtal, NHL-draft, AI-skador och genombrott bär uttryckliga ID-referenser från händelsens källa. Rubrik och brödtext behåller också vanlig text för äldre konsumenter och sparvalidering.
+- Individuella utvecklingsrapporter och spelarsamtal stöder strukturerade ID-referenser. Inkorgens detaljrubrik länkar direkt när meddelandet har ett explicit spelar-ID.
+- Medicinska ärenden öppnar spelarens hälsodel; träningsrapporter öppnar utvecklingsdelen. Historiska meddelanden kan öppna historisk spelarpost.
+- J20-poängliga, NHL-prognos, drafthistorik och rättighetslistor använder samma spelar-ID-länkar. AI-akademier och internationell juniorpool kan öppnas utan att interna attribut eller hälsa visas. NHL-filter följer med tillbaka.
+- Egen spelarprofil öppnar kedjeplats och konkurrenter. En bänkspelare visar en relevant positionsplats, inte en påstådd tilldelning. Ingen laguttagning ändras genom navigationen.
+- Nytt automatiserat test täcker två namnlika personer i samma nyhet, källans ID:n, mål/assist, sparad nyhetsstruktur, historisk klubb i prestationsfliken, profil → matchrapport → tillbaka, kedjeplats utan automatisk förändring och medicinskt ärende.
+
+Testerna är headless och använder bland annat uttryckliga rapport-fixtures. Verklig webbläsarprovspelning är fortfarande inte genomförd.
 
 ## Implementerat
 

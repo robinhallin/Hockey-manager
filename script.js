@@ -3582,7 +3582,7 @@ function playerView(){
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
 
   const r=playerAssessment(player),tab=profileWorkspace.tab;
-  if(['attributes','performance','history'].includes(tab))return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${playerProfileTabs(player)}${tab==='attributes'?desktopAttributes(player):playerHistoryView(player.id)}</article>`;
+  if(['attributes','performance','history'].includes(tab))return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${playerProfileTabs(player)}${tab==='attributes'?desktopAttributes(player):tab==='performance'?playerPerformanceView(player.id)+playerHistoryView(player.id):playerHistoryView(player.id)}</article>`;
   return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}
   ${playerProfileTabs(player)}
   ${tab==='contract'?`        <section class="dashboard-panel">

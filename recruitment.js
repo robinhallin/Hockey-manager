@@ -232,7 +232,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role){
  r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();repairMedicalLines();ensureSpecialTeams();depthSelection();}
  feedbackArrival(p,feedbackPlan,'transfer');
- feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',p.name+' klar för '+buyer,seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
+ feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',playerHeadline(p,' klar för '+buyer),seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
  // Rebuild team strength so background results respond to roster changes too.
  for(const club of [seller,buyer]){const t=team(club);if(t)t.strength=Math.round(state.clubRosters[club].reduce((n,q)=>n+matchAttributeRating(q),0)/state.clubRosters[club].length);}
  return true;

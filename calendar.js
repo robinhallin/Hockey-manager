@@ -243,7 +243,7 @@ function calendarActivateFuture(){
   state.clubRosters[f.buyer].push(p);Object.assign(p,{club:f.buyer,salary:f.salary,contractYears:f.years,squadRole:f.role,promisedRole:f.role,transferListed:false});delete p.futureContract;
   if(f.buyer===managerClub())rolePromiseAssign(p,f.role,f.rolePromiseVersion!==2);
   state.recruitment.history.unshift({id:state.recruitment.nextId++,year:state.season.year,tick:state.recruitment.tick,name:p.name,playerId:p.id,seller,buyer:f.buyer,fee:0});state.recruitment.history=state.recruitment.history.slice(0,250);
-  feedbackArrival(p,feedbackPlan,'future');feedbackNews('future-arrival:'+state.season.year+':'+p.id,f.buyer,'transfer',p.name+' ansluter till '+f.buyer,'Förhandsavtalet träder i kraft. Spelaren kommer från '+seller+'.');
+  feedbackArrival(p,feedbackPlan,'future');feedbackNews('future-arrival:'+state.season.year+':'+p.id,f.buyer,'transfer',playerHeadline(p,' ansluter till '+f.buyer),'Förhandsavtalet träder i kraft. Spelaren kommer från '+seller+'.');
   for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&d.status==='future_signed'){d.status='signed';d.reason='Spelaren har anslutit enligt förhandsavtalet.';}
   if(f.buyer===managerClub()||seller===managerClub())managerMessage(`future:${state.season.year}:${p.id}`,`${p.name}: förhandsavtalet träder i kraft`,`${seller} → ${f.buyer}. Det avtalade löneåtagandet gäller även om nästa säsongs budget har ändrats.`,'Sportchefen',{link:'transfers'});
  }

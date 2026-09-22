@@ -74,7 +74,7 @@ function loanCompleteOffer(o){
  if(p.recruitmentPromise&&!p.recruitmentPromise.resolved){p.recruitmentPromise.resolved=true;p.recruitmentPromise.result='Utvecklingslån överenskommet';}
  state.loans.active.push(l);o.status='agreed';o.agreedDate=state.calendar.date;p.morale=trainingClamp((p.morale||70)+2);syncManagerRoster();repairMedicalLines();ensureSpecialTeams();
  feedbackArrival(p,feedbackPlan,'loan');
- feedbackNews('loan:'+l.id,o.borrower,'transfer',p.name+' går på lån',o.owner+' → '+o.borrower+' till '+calText(until)+'.');
+ feedbackNews('loan:'+l.id,o.borrower,'transfer',playerHeadline(p,' går på lån'),o.owner+' → '+o.borrower+' till '+calText(until)+'.');
  if([o.owner,o.borrower].includes(managerClub()))managerMessage(`loan:${l.id}`,`${p.name} går på lån`,`${o.owner} → ${o.borrower} till ${calText(until)}. Löneandel ${t.share*100} %. Roll: ${LOAN_ROLES[t.role]}. Återkallelse ${t.recall==='anytime'?'mellan matcher':'efter 28 dagar'}. Tränarteamet följer upp faktisk speltid.`,'Sportchef',{link:'transfers'});return true;
 }
 function loanResolveOffer(o,accept=false){
