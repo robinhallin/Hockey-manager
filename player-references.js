@@ -25,6 +25,10 @@ function playerIdentity(id){
   const row=[...(match.performance?.rows||[]),...(match.players||[])].find(p=>samePlayerId(p.id,id));
   if(row)return {player:{id:row.id,name:row.name,pos:row.pos},active:false,club:row.club||match.club};
  }
+ for(const match of state.juniors?.matches||[]){
+  const row=(match.players||[]).find(p=>samePlayerId(p.id,id));
+  if(row)return {player:{id:row.id,name:row.name,pos:row.pos},active:false,club:match.club||null};
+ }
  for(const draft of [state.nhl?.draft,...(state.nhl?.history||[])]){
   const pick=(draft?.picks||[]).find(p=>samePlayerId(p.id,id));
   if(pick)return {player:{id:pick.id,name:pick.name,pos:pick.pos},active:false,club:pick.origin};
@@ -68,6 +72,12 @@ function playerPerformanceView(id){
  }).join('')+'</tbody></table></div>':'<p>Inga matchrapporter med registrerad istid för den här spelaren.</p>')+'<p>Spelformsspecifik istid saknas i detta underlag; inga PP/BP-minuter uppskattas.</p></section>';
 }
 
+function playerJuniorHistoryView(id){
+ const records=(state.juniors?.matches||[]).flatMap(m=>{const p=(m.players||[]).find(p=>samePlayerId(p.id,id));return p&&p.seconds>0?[{m,p}]:[];});
+ if(!records.length)return '';
+ return '<h3>Registrerade juniormatcher</h3><ul>'+records.map(({m,p})=>'<li>'+trainingSafe(m.date||String(m.year??'År saknas'))+' · '+(m.club?clubReference(m.club,{year:m.year}):'Representerad klubb ej registrerad')+' · Mot '+trainingSafe(m.opponent||'Motstånd saknas')+' · '+Math.floor(p.seconds/60)+' min · '+(p.goals??'—')+' mål + '+(p.assists??'—')+' assist</li>').join('')+'</ul>';
+}
+
 function playerHistoryView(id){
  const rows=[];
  for(const ledger of [state.leagueStatistics,...(state.leagueStatistics?.archives||[])]){
@@ -81,7 +91,7 @@ function playerHistoryView(id){
  const pickEntries=[state.nhl?.draft,...(state.nhl?.history||[])].flatMap(d=>(d?.picks||[]).filter(p=>samePlayerId(p.id,id)).map(p=>[String(p.year)+':'+String(p.overall),p]));
  const picks=[...new Map(pickEntries).values()];
  const draftHistory=picks.length?'<h3>Registrerad NHL-draft</h3><ul>'+picks.map(p=>'<li>'+trainingSafe(String(p.year??'År saknas'))+' · '+trainingSafe(p.club||'Klubb saknas')+' · Val '+trainingSafe(String(p.overall??'saknas'))+' · Från '+trainingSafe(p.origin||'Klubb saknas')+'</li>').join('')+'</ul>':'';
- return `<section class="fm-panel"><h2>Registrerad historik</h2><p>Klubben nedan är den spelaren representerade då. Saknade säsonger och uppgifter fylls inte i efterhand.</p>${draftHistory}${rows.length?`<div class="workspace-table"><table><thead><tr><th>Säsong</th><th>Liga / fas</th><th>Klubb</th><th>Matcher</th><th>Mål</th><th>Assist</th><th>Istid totalt</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${trainingSafe(String(r.year))}</td><td>${leagueReference(r.league,r.year)} · ${r.stage==='regular'?'Grundserie':r.stage==='playoffs'?'Slutspel / kval':'Ej registrerad'}</td><td>${clubReference(r.club,{year:r.year,league:r.league})}</td><td>${r.games??'—'}</td><td>${r.goals??'—'}</td><td>${r.assists??'—'}</td><td>${Number.isFinite(r.seconds)?Math.round(r.seconds/60)+' min':'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>Ingen säsongsstatistik registrerad.</p>'}${events.length?`<ul>${events.map(e=>`<li>${e.year} · ${clubReference(e.club,{year:e.year})} · ${trainingSafe(e.reason)}</li>`).join('')}</ul>`:'<p>Inga registrerade händelser.</p>'}</section>`;
+ return `<section class="fm-panel"><h2>Registrerad historik</h2><p>Klubben nedan är den spelaren representerade då. Saknade säsonger och uppgifter fylls inte i efterhand.</p>${draftHistory}${playerJuniorHistoryView(id)}${rows.length?`<div class="workspace-table"><table><thead><tr><th>Säsong</th><th>Liga / fas</th><th>Klubb</th><th>Matcher</th><th>Mål</th><th>Assist</th><th>Istid totalt</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${trainingSafe(String(r.year))}</td><td>${leagueReference(r.league,r.year)} · ${r.stage==='regular'?'Grundserie':r.stage==='playoffs'?'Slutspel / kval':'Ej registrerad'}</td><td>${clubReference(r.club,{year:r.year,league:r.league})}</td><td>${r.games??'—'}</td><td>${r.goals??'—'}</td><td>${r.assists??'—'}</td><td>${Number.isFinite(r.seconds)?Math.round(r.seconds/60)+' min':'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>Ingen säsongsstatistik registrerad.</p>'}${events.length?`<ul>${events.map(e=>`<li>${e.year} · ${clubReference(e.club,{year:e.year})} · ${trainingSafe(e.reason)}</li>`).join('')}</ul>`:'<p>Inga registrerade händelser.</p>'}</section>`;
 }
 
 function historicalPlayerView(id){
@@ -143,7 +153,7 @@ function deskWorkspaceContext(){
   analysis:state.analysis?Object.fromEntries(['selected','window','side','compareA','compareB'].map(key=>[key,state.analysis[key]])):null,
   // Comparison is a working selection, not a filter. Keep edits made inside profiles.
   scout:{list:scoutDesk.list,columns:scoutDesk.columns,horizon:scoutDesk.horizon},
-  scrolls:[...document.querySelectorAll('#content [data-scroll-key], #content .rh-table-scroll, #content .league-table-scroll, #inbox-message-list')].map((el,index)=>({index,top:el.scrollTop,left:el.scrollLeft||0})),
+  scrolls:[...document.querySelectorAll('#content [data-scroll-key], #content .rh-table-scroll, #content .league-table-scroll, #content .fm-table-scroll, #content .dv-scroll, #content .lw-scroll, #content .special-candidate-list, #content .lineup-candidate-list, #inbox-message-list')].map((el,index)=>({index,top:el.scrollTop,left:el.scrollLeft||0})),
   drafts:[...document.querySelectorAll('#content form')].map((form,index)=>({index,action:form.getAttribute('onsubmit'),fields:[...form.elements].filter(el=>el.name&&!['password','file','submit','button'].includes(el.type)).map(el=>({name:el.name,type:el.type,value:el.value,checked:el.checked}))}))};
 }
 function deskRestoreWorkspace(context){
@@ -157,7 +167,7 @@ function deskRestoreWorkspace(context){
 }
 function deskRestoreWorkspaceDOM(context){
  if(!context)return;
- const scrolls=document.querySelectorAll('#content [data-scroll-key], #content .rh-table-scroll, #content .league-table-scroll, #inbox-message-list');
+ const scrolls=document.querySelectorAll('#content [data-scroll-key], #content .rh-table-scroll, #content .league-table-scroll, #content .fm-table-scroll, #content .dv-scroll, #content .lw-scroll, #content .special-candidate-list, #content .lineup-candidate-list, #inbox-message-list');
  for(const row of context.scrolls||[]){const el=scrolls[row.index];if(el){el.scrollTop=row.top;el.scrollLeft=row.left;}}
  const forms=document.querySelectorAll('#content form');
  for(const draft of context.drafts||[]){const form=forms[draft.index];if(!form||form.getAttribute('onsubmit')!==draft.action)continue;

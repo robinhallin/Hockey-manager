@@ -1,6 +1,15 @@
 # Spelararbetsplats – första implementationen
 
-Tre genomförda etapper. Detta är inte ett påstående om att hela utvecklingsbeställningen är färdig.
+Fyra genomförda etapper. Detta är inte ett påstående om att hela utvecklingsbeställningen är färdig.
+
+## Etapp 4: namn och handlingar i lagarbetet
+
+- Desktop-rink, spelarval och PP/BP använder gemensamma ID-länkar. Namnet öppnar profil; positionsknappen väljer plats och bytesknappen genomför ändringen. Drag/drop och spärrarna för tillgänglighet och icing bevaras.
+- Tränings-, medicin- och juniorlistor skiljer profilbesök från val av arbetsplan. Rekryteringspanelen, kaptenen och mentorhänvisningar länkar till samma profiler.
+- Nya juniorrapporter, intag och omklädningsrumshändelser lagrar uttryckliga spelarreferenser. Vanliga textfält behålls för äldre sparfiler och konsumenter. Gamla namn utan ID gissas inte fram.
+- Juniorernas matchrapporter länkar till deltagarna. En historisk identitet kan återfinnas i en sparad juniorrapport. Nya juniorrapporter bevarar den representerade klubben; äldre rapporter utan klubb får ingen påhittad tillhörighet.
+- Fler interna tabellers scrollposition ingår i återgången från profilbesök, inklusive desktopens spelarval och utvecklingsvyerna.
+- Automatiserade tester kör de renderade namnlänkarnas handlers, kontrollerar att profiler inte ändrar uppställningen, återgår till vald plats och genomför ett verkligt byte. Dubbla namn, rapportreferenser och sparning/laddning testas också. Detta är headless-testning, inte visuell provspelning.
 
 ## Etapp 3: klubbar, ligor och matchrapporter
 

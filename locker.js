@@ -66,7 +66,7 @@ function trainSocialPairs(session){
  const seen=new Set();
  for(const ids of units){const players=ids.map(playerById).filter(p=>p&&medicalCanTrain(p)&&p.trainingLoad!=='rest');socialPairs(players,(a,b)=>{const key=socialPairKey(a,b);if(seen.has(key))return;seen.add(key);const pair=socialPair(a,b,true);pair.bond=Math.min(90,pair.bond+(session.type==='tactics'?.8:.4));});}
 }
-function socialLog(title,body){const r=state.locker;r.log.unshift({turn:r.turn,year:state.season?.year||2026,title,body});r.log=r.log.slice(0,60);managerMessage(`locker:${r.turn}:${r.log.length}:${title}`,title,body,'Omklädningsrum',{link:'locker'});}
+function socialLog(title,body){const r=state.locker;r.log.unshift({turn:r.turn,year:state.season?.year||2026,title:referencePlainText(title),body:referencePlainText(body),...(Array.isArray(title)?{titleParts:title}:{}),...(Array.isArray(body)?{bodyParts:body}:{})});r.log=r.log.slice(0,60);managerMessage(`locker:${r.turn}:${r.log.length}:${JSON.stringify(title)}`,title,body,'Omklädningsrum',{link:'locker'});}
 function lockerNotice(text){state.locker.message=text;save();render();}
 function appointCaptain(id,reason='leadership'){
  ensureLocker();const r=state.locker,p=managerRoster().find(p=>samePlayerId(p.id,id));
@@ -81,7 +81,7 @@ function appointCaptain(id,reason='leadership'){
  socialRemember(p,'Utsedd till lagkapten','Du får ansvaret att företräda laget och påverka gruppens förtroende.',p.social.trust-before);
  if(previous)socialRemember(previous,'Lämnar kaptensuppdraget',reason==='generation'?'Tränaren förklarar beslutet som en generationsväxling.':'Tränaren väljer en annan ledare för laget.',previous.social.trust-previousTrust);
  const why={leadership:'Du lyfter fram spelarens ledarskap.',generation:'Du förklarar att laget går in i en generationsväxling.',rotation:'Du vill fördela ansvaret på ett nytt sätt.'}[reason];
- socialLog(`${p.name} utses till kapten`,`${why} ${previous?`${previous.name} lämnar uppdraget och ${reason==='generation'&&previous.age>=30?'accepterar förklaringen, men är besviken.':'tappar en del förtroende för beslutet.'}`:'Laget har fått en ny representant.'}`);
+ socialLog(playerHeadline(p," utses till kapten"),[why+' ',...(previous?[playerMention(previous),' lämnar uppdraget och ',reason==='generation'&&previous.age>=30?'accepterar förklaringen, men är besviken.':'tappar en del förtroende för beslutet.']:['Laget har fått en ny representant.'])]);
  lockerNotice('Kaptensvalet är meddelat till truppen.');
 }
 function socialTalk(id,topic){
@@ -106,7 +106,7 @@ function socialTalk(id,topic){
  if(typeof relationshipTalk==='function')({delta,text}=relationshipTalk(p,topic,delta,text));
  const before=s.trust;s.trust=trainingClamp(s.trust+delta);delta=s.trust-before;s.lastTalk=r.turn;s.lastResponse=text;
  socialRemember(p,({praise:'Beröm för utvecklingen',bench:'Samtal om petning',listen:'Tränaren lyssnar',challenge:'Utmanad av tränaren'})[topic],text,delta);
- socialLog(`Samtal med ${p.name}`,`${text} Förtroende ${delta>0?'+':''}${delta}.`);lockerNotice(`${p.name}: ${text}`);
+ socialLog(["Samtal med ",playerMention(p)],`${text} Förtroende ${delta>0?'+':''}${delta}.`);lockerNotice(`${p.name}: ${text}`);
 }
 function afterLockerMatch(){
  ensureLocker();const r=state.locker,m=state.live,key=`${state.season?.year||2026}:${state.round}`;
@@ -116,18 +116,18 @@ function afterLockerMatch(){
    squadRecordRole(p,m);s.lastMinutes=seconds/60;
    const missed=p.pos==='MV'?squadGoalieMissed(p):expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
    const beforeRole=s.trust;
-   if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(`${p.name} undrar över sin roll`,`${p.name} har fått mindre istid än sin utlovade roll under de senaste tillgängliga matcherna. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked.`);}
+   if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(playerHeadline(p," undrar över sin roll"),[playerMention(p)," har fått mindre istid än sin utlovade roll under de senaste tillgängliga matcherna. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked."]);}
    socialRoleFollowup(p,missed,expected>0&&seconds>=expected&&!medicalExcused(p,expected)&&!playerLoan(p),beforeRole-s.trust);
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
      const neutral=promise.result&&!['Uppfyllt','Brutet'].includes(promise.result);
-     if(!neutral){const met=promise.result?promise.result==='Uppfyllt':promise.qualified>=rolePromiseRule(promise).required;const beforePromise=s.trust;s.trust=trainingClamp(s.trust+(met?4:-8));socialRemember(p,met?'Istidslöftet uppfyllt':'Istidslöftet brutet',met?'Tränaren gav den speltid som utlovats.':'Den utlovade speltiden infriades inte.',s.trust-beforePromise);socialLog(`${p.name}: förtroende efter löftet`,met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
+     if(!neutral){const met=promise.result?promise.result==='Uppfyllt':promise.qualified>=rolePromiseRule(promise).required;const beforePromise=s.trust;s.trust=trainingClamp(s.trust+(met?4:-8));socialRemember(p,met?'Istidslöftet uppfyllt':'Istidslöftet brutet',met?'Tränaren gav den speltid som utlovats.':'Den utlovade speltiden infriades inte.',s.trust-beforePromise);socialLog(playerHeadline(p,": förtroende efter löftet"),met?'Du höll löftet om istid. Förtroendet stärks.':'Löftet om istid höll inte. Spelaren tappar förtroende.');}
    }
  }
  const captain=managerRoster().find(p=>samePlayerId(p.id,r.captainId));
  if(captain&&captain.social.leadership>=14){const effect=captain.social.trust>=65?1:captain.social.trust<35?-1:0;
    for(const p of managerRoster())if(p!==captain)p.social.trust=trainingClamp(p.social.trust+effect);
-   if(effect&&r.turn%3===0)socialLog('Kaptenens röst i gruppen',effect>0?`${captain.name} hjälper laget att behålla förtroendet för ditt arbete.`:`${captain.name}s tveksamhet till ditt ledarskap påverkar gruppen.`);
+   if(effect&&r.turn%3===0)socialLog('Kaptenens röst i gruppen',[playerMention(captain),effect>0?' hjälper laget att behålla förtroendet för ditt arbete.':'s tveksamhet till ditt ledarskap påverkar gruppen.']);
  }
  if(typeof relationshipAfterMatch==='function')relationshipAfterMatch();
 }
