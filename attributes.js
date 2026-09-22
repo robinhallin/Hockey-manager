@@ -130,7 +130,8 @@ function scoutObserve(id,date,options={}){
  if(r.history)r.history=r.history.slice(0,6);
  if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
  r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.origin='observation';delete r.dueRound;
- managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,`${refresh?'Ny observation uppdaterar det tidigare underlaget.':`Observation ${r.visits} av 3.`} Kunskap ${Math.round(playerAssessment(p).familiarity*100)} %. Läs rollanalysen i Scoutcentralen.`,'Chefsscout',{link:'scouting'});return true;
+ const profile=options.job?scoutingOffice()?.jobs.find(j=>j.id===options.job)?.profile:'ALL';
+ managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,scoutingObservationText(p,profile||'ALL')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
 }
 function scoutDay(){
  if(!state.calendar||!state.recruitment)return;scoutingDay();const date=state.calendar.date;

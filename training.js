@@ -281,7 +281,7 @@ function messageOpenContext(id){
  if(m.matchId||(m.key||'').startsWith('analysis:')){const match=state.analysis.matches.find(x=>x.id===(m.matchId||m.key.slice(9)));if(match){matchesOpenReport(match.id);return;}}
  if(m.dealId&&state.recruitment.deals.some(d=>d.id===m.dealId)){officeOpenDeal('transfer:'+m.dealId);state.recruitment.focusDeal=m.dealId;return;}
  if(m.storyId){storiesOpen(m.storyId);return;}
- if(m.playerId!==undefined&&playerIdentity(m.playerId)){deskOpenPlayer(m.playerId);if(['medical','training'].includes(m.link)){profileWorkspace.tab='development';render();deskBrowserBefore();}return;}
+ if(m.playerId!==undefined&&playerIdentity(m.playerId)){deskOpenPlayer(m.playerId);if(m.link==='scouting'){profileWorkspace.tab='overview';recruitHub.panel='report';render();deskBrowserBefore();}if(['medical','training'].includes(m.link)){profileWorkspace.tab='development';render();deskBrowserBefore();}return;}
  if(m.link==='statistics'){state.analysis.selected='latest';matchesUI.analysis='overview';deskNavigate('statistics');return;}
  if(m.link==='transfers'){deskNavigate('transfers','deals');return;}
  deskNavigate(m.link||'home');
