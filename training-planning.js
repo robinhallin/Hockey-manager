@@ -1,4 +1,10 @@
 // Shared by the decision preview, training execution and medical exposure.
+function trainingClubChange(p,from,to){
+ if(from===to)return;
+ // Load instructions belong to the coaching club. Attributes, learned focus,
+ // fatigue and the medical rehabilitation plan belong to the player.
+ p.trainingLoad='normal';delete p.trainingReturn;delete p.trainingManualDate;
+}
 function trainingEffectiveLoad(p){if(trainingAutoRest(p))return 'rest';return p.trainingReturn?.club===managerClub()&&p.trainingReturn.date<=state.calendar?.date?'normal':p.trainingLoad||'normal';}
 function trainingSessionEffect(p,session,load=trainingEffectiveLoad(p),support=null){
  const rest=!medicalCanTrain(p)||load==='rest'||session.type==='recovery';
@@ -22,7 +28,11 @@ function trainingReturnDay(){
  for(const p of managerRoster()){
   const plan=p.trainingReturn;if(!plan)continue;
   // A plan belongs to the club that set it; a transferred player keeps no stale instruction.
-  if(plan.club!==managerClub()||plan.load!==p.trainingLoad){delete p.trainingReturn;continue;}
+  if(plan.club!==managerClub()){
+   if(plan.load===p.trainingLoad)p.trainingLoad='normal';
+   delete p.trainingReturn;continue;
+  }
+  if(plan.load!==p.trainingLoad){delete p.trainingReturn;continue;}
   if(plan.date>state.calendar.date)continue;
   p.trainingLoad='normal';delete p.trainingReturn;
   managerMessage(`training-return:${p.id}:${plan.start}:${plan.date}`,`${p.name}: belastningsplan avslutad`,

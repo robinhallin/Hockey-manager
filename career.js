@@ -129,16 +129,22 @@ function acceptCareer(){
   startCareerWithClub(careerChoice);
 }
 function previousCareer(){
+  const currentState=state,currentScreen=careerScreen;
   try{
     const previous=careerRead(localStorage.getItem(PREVIOUS_CAREER_KEY));
     if(!previous||previous.version!=='0.2'||!previous.clubRosters||!CLUB_DATA[previous.managerClub])return;
     if(state.live?.running)pauseMatch();
     const current=JSON.stringify(state);
-    careerStore(CAREER_SAVE_KEY,JSON.stringify(previous));
-    careerStore(PREVIOUS_CAREER_KEY,current);
     state=previous;state.careerStarted=true;if(state.live)state.live.running=false;
-    syncManagerRoster();ensureManagementData();careerDraft=null;careerScreen=null;state.page='home';save();render();
-  }catch{careerMessage='Den föregående karriären kunde inte öppnas. Din nuvarande karriär är kvar.';render();}
+    syncManagerRoster();ensureManagementData();normalizeCareerState();state.page='home';careerScreen=null;
+    // Build the complete target view before committing to storage. All lazy
+    // migrations run while we can still restore the current in-memory career.
+    render();
+    careerReplaceStored(JSON.stringify(state),currentState.careerStarted?current:null);
+    careerLoadIssue=null;careerUnreadableSave=null;careerSaveError=false;
+    careerDraft=null;careerScreen=null;
+  }catch(error){state=currentState;careerScreen=currentScreen;careerMessage='Den föregående karriären kunde inte öppnas. Din aktiva karriär behålls.'+(error.careerBackupRestoreFailed?' Den tidigare säkerhetskopian kunde inte återställas.':'');}
+  render();
 }
 function previousCareerName(){try{const p=careerRead(localStorage.getItem(PREVIOUS_CAREER_KEY));return p?.careerStarted&&CLUB_DATA[p.managerClub]?p.managerClub:null;}catch{return null;}}
 function careerHeader(step=''){return `<header class="career-top"><button class="career-wordmark" onclick="showCareerMenu()" aria-label="Hockey Manager huvudmeny"><b>HM<span>26</span></b><span>HOCKEY<br>MANAGER</span></button>${step?`<nav class="career-steps" aria-label="Karriärstart"><span class="${step==='select'?'current':''}">01 <b>Välj klubb</b></span><span class="${step==='review'?'current':''}">02 <b>Ditt uppdrag</b></span></nav>`:'<span class="career-season">SÄSONG 2026/27</span>'}${step?'<button class="career-text-button" onclick="showCareerMenu()">Till huvudmenyn</button>':''}</header>`;}

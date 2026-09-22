@@ -1,5 +1,12 @@
 "use strict";
 let saveFileNotice='',saveFilePreview=null;
+function downloadUnreadableCareer(){
+ if(careerUnreadableSave===null)return;
+ try{
+  const url=URL.createObjectURL(new Blob([careerUnreadableSave],{type:'application/json'})),a=document.createElement('a');
+  a.href=url;a.download='hockey-manager-ursprunglig-sparning.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
+ }catch{saveFileNotice='Kunde inte ladda ner originalet. Det ligger kvar i webbläsaren.';render();}
+}
 function showSaveFiles(){if(state.live?.running)pauseMatch();careerScreen='files';render();}
 function saveExportText(){
  if(state.live?.running)pauseMatch();
@@ -70,17 +77,17 @@ async function readCareerFile(file){
 function applyCareerImport(){
  if(!saveFilePreview)return;
  const old=state,oldScreen=careerScreen;
- const oldRaw=localStorage.getItem(CAREER_SAVE_KEY),oldBackup=localStorage.getItem(PREVIOUS_CAREER_KEY);
  try{
   if(state.live?.running)pauseMatch();
-  state=saveFilePreview;haRepairClubIdentity(state);syncManagerRoster();ensureManagementData();ensureSeason();ensureAssessmentData();ensureLeagues();ensureRecruitment();ensureCalendar();ensureTrainingData();ensureLocker();ensureMedical();ensureJuniors();ensureClub();ensureManager();
+  state=saveFilePreview;haRepairClubIdentity(state);syncManagerRoster();ensureManagementData();normalizeCareerState();
   // Validate the primary views before replacing the device's active save.
-  state.page='settings';saveSettingsView();calendarView();
+  state.page='settings';careerScreen=null;calendarView();render();
   const encoded=JSON.stringify(state);
-  if(old.careerStarted)careerStore(PREVIOUS_CAREER_KEY,JSON.stringify(old));
-  try{careerStore(CAREER_SAVE_KEY,encoded);}catch(error){if(oldBackup!==null)localStorage.setItem(PREVIOUS_CAREER_KEY,oldBackup);else localStorage.removeItem(PREVIOUS_CAREER_KEY);throw error;}
-  careerScreen=null;careerDraft=null;saveFilePreview=null;saveFileNotice='Karriären är inläst.'+(old.careerStarted?' Din tidigare karriär finns kvar som föregående sparning i huvudmenyn.':'');render();
- }catch(e){state=old;careerScreen=oldScreen;saveFileNotice='Importen avbröts. Din nuvarande karriär behålls. '+e.message;saveFilePreview=null;try{if(oldRaw!==null)localStorage.setItem(CAREER_SAVE_KEY,oldRaw);}catch{}render();}
+  careerReplaceStored(encoded,old.careerStarted?JSON.stringify(old):null);
+  careerLoadIssue=null;careerUnreadableSave=null;careerSaveError=false;
+  careerScreen=null;careerDraft=null;saveFilePreview=null;saveFileNotice='Karriären är inläst.'+(old.careerStarted?' Din tidigare karriär finns kvar som föregående sparning i huvudmenyn.':'');
+ }catch(e){state=old;careerScreen=oldScreen;saveFileNotice='Importen avbröts. Din nuvarande karriär behålls. '+e.message+(e.careerBackupRestoreFailed?' Den tidigare säkerhetskopian kunde inte återställas.':'');saveFilePreview=null;}
+ render();
 }
 function saveSettingsView(){
  return `<section class="calendar-page"><button class="btn secondary" onclick="showCareerMenu()">Till huvudmenyn</button><header class="daily-heading"><div><span class="career-eyebrow">DIN KARRIÄR</span><h1>Sparfiler & inställningar</h1><p>Spelet sparas automatiskt i den här webbläsaren. En exporterad fil fungerar som säkerhetskopia och kan flyttas mellan mobilen och datorn.</p></div></header>${rosterDatabaseNotice()}${state.careerStarted?matchPreferencesView():''}<div class="calendar-save-grid"><section><h2>Säkerhetskopiera</h2><p>${trainingSafe(managerClub())} · ${seasonLabel()}${state.calendar?` · ${calText(state.calendar.date)}`:''}</p><button class="btn" ${state.careerStarted?'':'disabled'} onclick="downloadCareer()">Exportera sparfil</button><p>På iPhone sparar du JSON-filen i Filer. Öppna sedan spelet på den andra enheten och välj filen där.</p></section><section><h2>Läs in en karriär</h2><label>Välj sparfil<input type="file" accept=".json,application/json" onchange="readCareerFile(this.files[0])"></label><p>Importen ersätter den aktiva karriären efter din granskning. Nuvarande karriär sparas som föregående karriär.</p>${saveFilePreview?`<div class="calendar-import"><strong>${trainingSafe(saveFilePreview.managerClub)} · ${saveFilePreview.season?.year||2026}</strong><p>Omgång ${saveFilePreview.round} · ${careerMoney(saveFilePreview.money)}</p><button class="btn" onclick="applyCareerImport()">Läs in denna karriär</button><button class="btn secondary" onclick="saveFilePreview=null;render()">Avbryt</button></div>`:''}</section></div>${saveFileNotice?`<p role="status">${trainingSafe(saveFileNotice)}</p>`:''}</section>`;

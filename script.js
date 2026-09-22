@@ -1009,24 +1009,26 @@ function simulateOtherGames(){
    LADDA / SPARA
    ========================================================= */
 
-let state;
+let state,careerLoadIssue=null,careerUnreadableSave=null;
 
 try{
 
-  const saved=
-    careerRead(
-      localStorage.getItem("hockey_manager_alpha02")
-    );
+  careerUnreadableSave=localStorage.getItem("hockey_manager_alpha02");
+  const saved=careerRead(careerUnreadableSave);
+  if(careerUnreadableSave!==null&&(!saved||saved.version!=="0.2"))throw Error('Sparningens version stöds inte.');
+  if(saved&&(!Array.isArray(saved.teams)||!saved.teams.length||saved.teams.some(t=>!t||typeof t.name!=='string')||!Number.isFinite(saved.money)||!Number.isInteger(saved.round)||saved.round<1||saved.clubRosters&&(typeof saved.clubRosters!=='object'||Array.isArray(saved.clubRosters)||Object.values(saved.clubRosters).some(ps=>!Array.isArray(ps)||ps.some(p=>!p||typeof p.name!=='string')))))throw Error('Sparningens grunddata är skadade.');
 
   state=
     saved &&
     saved.version==="0.2"
     ? saved
     : newState();
+  careerUnreadableSave=null;
 
-}catch{
+}catch(error){
 
   state=newState();
+  careerLoadIssue=error?.name==='SecurityError'?'Webbläsaren blockerar åtkomst till sparningen.':'Din sparning kunde inte läsas. Originalet har behållits och automatisk sparning är stoppad.';
 
 }
 if(
@@ -1069,11 +1071,11 @@ if(
 let careerSaveError=false,careerSaveErrorCode="";
 function renderSaveStatus(){
  const root=document.getElementById("save-status-root");if(!root)return;
+ if(careerLoadIssue){root.innerHTML='<aside class="save-status-warning" role="alert"><strong>'+careerLoadIssue+'</strong><span>Du kan läsa in en säkerhetskopia eller välja att starta en ny karriär.</span>'+(careerUnreadableSave!==null?'<button onclick="downloadUnreadableCareer()">Ladda ner ursprunglig sparning</button>':'')+'<button onclick="showSaveFiles()">Öppna sparfiler</button></aside>';return;}
  const detail=careerSaveErrorCode==='SecurityError'?'Webbläsaren blockerar lagring för spelet.':['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(careerSaveErrorCode)?'Webbläsarens sparutrymme räcker inte, även med komprimering.':'Karriären kunde inte sparas i webbläsaren.';
  root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>'+detail+'</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
 }
-function save({normalize=true}={}){
-  if(normalize){
+function normalizeCareerState(){
   haRepairClubIdentity(state);
   ensureSeason();
   ensureAssessmentData();
@@ -1095,7 +1097,10 @@ function save({normalize=true}={}){
 
   for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
 
-  }
+}
+function save({normalize=true}={}){
+  if(careerLoadIssue){renderSaveStatus();return false;}
+  if(normalize)normalizeCareerState();
   try{
     careerStore("hockey_manager_alpha02",JSON.stringify(state));
     careerSaveError=false;careerSaveErrorCode="";
@@ -3477,8 +3482,7 @@ function submitContractRenewal(playerId,salary,years,role){
  if(p.futureContract)return fail('Spelaren har redan ett bindande avtal med nästa klubb.');
  if(p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date)return fail(`Diskussionen kan återupptas ${calText(p.renewalPausedUntil)}.`);
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return fail('Ange giltig årslön, kontraktslängd och roll.');
- const reserve=state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future').reduce((v,d)=>v+d.salary,0)+loanReserved(managerClub());
- if(annualWageCost()-p.salary+salary+reserve>wageBudget())return fail('Lönebudgeten räcker inte när pågående transfer- och lånebud räknas med.');
+ const budgetIssue=managerCommitmentIssue(p,0,salary,years,{renewal:true});if(budgetIssue)return fail(budgetIssue);
  let reason=salary<w.salary?`Motbud: ${money(w.salary)}/år.`:years<w.minYears||years>w.maxYears?`Spelaren vill ha ${w.minYears}–${w.maxYears} år, med hänsyn till sin ålder och trygghet.`:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?`Spelaren vill ha rollen ${w.role.toLowerCase()}.`:'';
  if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;
   if(p.renewalAttempts>=3){p.renewalPausedUntil=calAdd(state.calendar.date,7);p.renewalAttempts=0;if(p.social)p.social.trust=trainingClamp(p.social.trust-2);reason+=` Tre avslag: agenten pausar till ${calText(p.renewalPausedUntil)}.`;}
@@ -4188,6 +4192,7 @@ function startCareerWithClub(clubName){
   freshState.page = "home";
 
   state = freshState;
+  careerLoadIssue=null;careerUnreadableSave=null;
   state.careerStarted=true;
   careerDraft=null;
   careerScreen=null;
