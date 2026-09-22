@@ -3506,6 +3506,9 @@ function setDevelopmentFocus(playerId,focus){
 }
 function playerView(){
  depthSelection();
+ const current=findPlayerAnywhere(state.selectedPlayer);
+ if(current&&!isOwnPlayer(current))return externalPlayerProfile(current);
+ if(!current)return historicalPlayerView(state.selectedPlayer);
 
   const player =
     managerRoster().find(
@@ -3579,8 +3582,9 @@ function playerView(){
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
 
   const r=playerAssessment(player),tab=profileWorkspace.tab;
-  return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${player.pos}</div><div><small>${trainingSafe(managerClub())} · ${positionName}</small><h1>${trainingSafe(player.name)}</h1><p>${player.age} år · ${nationality} · ${role}</p></div><div class="fm-profile-rating"><small>Förmåga / potential</small><div>${assessmentBadge(player)} / ${assessmentBadge(player,true)}</div></div></header>${internationalProfile(player)}${nhlProfile(player)}
-  <nav class="fm-tabs" aria-label="Spelarprofil">${[['overview','Översikt'],['contract','Kontrakt & övergång'],['development','Utveckling & hälsa'],['report','Rapport & historik'],['person','Person & relation']].map(([key,label])=>`<button aria-pressed="${tab===key}" onclick="profileWorkspace.tab='${key}';render()">${label}</button>`).join('')}</nav>
+  if(['attributes','performance','history'].includes(tab))return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${playerProfileTabs(player)}${tab==='attributes'?desktopAttributes(player):playerHistoryView(player.id)}</article>`;
+  return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}
+  ${playerProfileTabs(player)}
   ${tab==='contract'?`        <section class="dashboard-panel">
 
           <div class="panel-header">

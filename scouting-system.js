@@ -3,7 +3,13 @@
 const SCOUT_METHODS={screen:{name:'Första kartläggning',days:7,steps:1,factor:1,quality:.65,text:'Ett första underlag. Bra för att välja vilka spelare som förtjänar mer tid.'},detail:{name:'Fördjupad bevakning',days:7,steps:3,factor:3,quality:1,text:'Tre observationstillfällen. Starkare stöd för aktuell nivå och rollpassning.'},potential:{name:'Utvecklingsbedömning',days:7,steps:3,factor:3.3,quality:.9,text:'Tre tillfällen med fokus på utvecklingsmöjligheter. Potential är alltid en prognos.'}};
 const SCOUT_LISTS={now:'Värva nu',next:'Nästa säsong',youth:'Framtidstalanger'};
 const scoutDesk={draft:null,compare:[],list:'all',columns:'standard',horizon:0};
-function ensureScoutingOffice(){if(!state.recruitment)return null;if(!state.recruitment.scouting){scoutDesk.draft=null;scoutDesk.compare=[];scoutDesk.list='all';scoutDesk.horizon=0;}return state.recruitment.scouting??={version:1,jobs:[],nextId:1,lists:{},contacts:{},reviews:[],coverage:{},delegation:{enabled:false,monthly:25000,spent:0,month:''},lastDay:null};}
+let scoutingUIOwner=null;
+function ensureScoutingOffice(){
+ if(!state.recruitment)return null;
+ const o=state.recruitment.scouting??={version:1,jobs:[],nextId:1,lists:{},contacts:{},reviews:[],coverage:{},delegation:{enabled:false,monthly:25000,spent:0,month:''},lastDay:null};
+ if(scoutingUIOwner!==state){scoutingUIOwner=state;scoutDesk.draft=null;scoutDesk.list='all';scoutDesk.columns='standard';scoutDesk.horizon=0;o.compare=Array.isArray(o.compare)?o.compare.filter(id=>typeof id==='string'||typeof id==='number').slice(0,4):[];scoutDesk.compare=o.compare;}
+ return o;
+}
 function scoutingOffice(){return state.recruitment?.scouting;}
 function scoutingStaff(){return (state.staff||[]).filter(s=>['scout','assistant','goalie'].includes(s.id));}
 function scoutingPerson(s){return String(s.personId||s.id);}
@@ -29,7 +35,7 @@ function scoutingContact(id){const p=findPlayerAnywhere(id),o=ensureScoutingOffi
 function scoutingContactKnown(p){const c=scoutingOffice()?.contacts[String(p.id)];return c&&(!c.owner||c.owner===managerClub())&&c.status==='answered'&&c.club===getPlayerClub(p.id)&&calGap(c.date,state.calendar.date)<30?c:null;}
 function scoutingCost(p){if(isOwnPlayer(p))return {low:p.salary,high:p.salary,feeLow:recruitFee(p),feeHigh:recruitFee(p),known:true,interest:'Egen spelare'};const c=scoutingContactKnown(p);if(c)return {low:c.salary,high:c.salary,feeLow:c.fee,feeHigh:c.fee,known:true,interest:c.interest};const a=playerAssessment(p),level=attributeWeighted(a.estimated,p.pos==='MV'?PLAYER_ROLES.Målvakt:PLAYER_ROLES[roleWeights(p)[0]]),base=Math.round(Math.max(250000,(level-6)*150000)/50000)*50000;return {low:Math.round(base*.65),high:Math.round(base*1.55),feeLow:worldIsFree(p.id)?0:Math.round(base*.5),feeHigh:worldIsFree(p.id)?0:Math.round(base*3.5),known:false,interest:scoutingOffice()?.contacts[String(p.id)]?.status==='pending'?'Inväntar kontaktbesked':'Ej kontaktad'};}
 function scoutingList(id,value){const p=findPlayerAnywhere(id),o=ensureScoutingOffice();if(!p||!SCOUT_LISTS[value])return;o.lists[String(id)]={purpose:value,club:getPlayerClub(id),contract:p.contractYears,date:state.calendar.date};if(!state.recruitment.shortlist.some(x=>samePlayerId(x,id)))state.recruitment.shortlist.push(p.id);save();render();}
-function scoutingCompare(id){const p=findPlayerAnywhere(id);if(!p)return;const i=scoutDesk.compare.findIndex(x=>samePlayerId(x,id));if(i>=0)scoutDesk.compare.splice(i,1);else if(scoutDesk.compare.length<4)scoutDesk.compare.push(p.id);render();}
+function scoutingCompare(id){ensureScoutingOffice();const i=scoutDesk.compare.findIndex(x=>samePlayerId(x,id));if(i>=0)scoutDesk.compare.splice(i,1);else {const p=findPlayerAnywhere(id);if(!p||scoutDesk.compare.length>=4)return;scoutDesk.compare.push(p.id);}queueInterfaceSave();render();}
 function scoutingDelegate(enabled,budget){const o=ensureScoutingOffice(),n=Number(budget);if(!Number.isFinite(n)||n<0||n>200000||loanLocked())return;o.delegation.enabled=Boolean(enabled);o.delegation.monthly=Math.round(n);save();render();}
 function scoutingArrival(p,fee,salary,years,role){const o=ensureScoutingOffice();if(!o)return;const a=playerAssessment(p);o.reviews.unshift({id:p.id,name:p.name,date:state.calendar.date,club:managerClub(),fee,salary,years,known:a.known,estimated:a.known?{...a.estimated}:{},uncertainty:a.uncertainty,observer:a.known?a.staff.name:'Ingen tidigare observation',role:role||p.promisedRole||'Rotation',plan:squadPlacementPlan(p)||null,done:false});o.reviews=o.reviews.slice(0,40);}
 function scoutingDay(){

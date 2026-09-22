@@ -39,12 +39,15 @@ function worldRetires(p){
  return p.age>=44||attrSeed(`${p.id}:${state.season.year}:retirement`)<Math.min(.85,.08+(p.age-start)*.12);
 }
 function worldRetire(p,club,type='retire'){
+ // A public identity record, never an active roster member or a hidden-attribute snapshot.
+ state.playerArchive??={};
+ state.playerArchive[String(p.id)]={id:p.id,name:p.name,pos:p.pos,nationality:p.nationality,age:p.age,club,year:state.season.year,status:type};
  worldLog(type,p,club,type==='retire'?'Avslutar spelarkarriären':'Tre säsonger utan avtal – lämnar den bevakade marknaden');
  for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&['pending','future_signed'].includes(d.status)){d.status='rejected';d.reason='Spelaren har lämnat marknaden.';}
  state.recruitment.incoming.forEach(o=>{if(samePlayerId(o.playerId,p.id)&&o.status==='pending')o.status='expired';});
  if(club===managerClub()){
   state.season.departures.push(p.name);
-  managerMessage(`retire:${state.season.year}:${p.id}`,`${p.name} avslutar karriären`,'Spelaren lämnar truppen vid säsongsskiftet. Se över kedjor och rekryteringsbehov. Beslutet gäller denna spelkarriär.','Spelarvärlden',{link:'transfers'});
+  managerMessage(`retire:${state.season.year}:${p.id}`,`${p.name} avslutar karriären`,'Spelaren lämnar truppen vid säsongsskiftet. Se över kedjor och rekryteringsbehov. Beslutet gäller denna spelkarriär.','Spelarvärlden',{link:'transfers',playerId:p.id});
  }
 }
 function worldAIContracts(club){

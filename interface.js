@@ -43,6 +43,7 @@ function deskBrowserAfter(){
  if(typeof window!=='undefined'&&window.history?.pushState)window.history.pushState({hm:deskBrowserToken,index:++deskBrowserIndex,view:deskSnapshot()},'');
 }
 function deskRestore(previous){
+ deskRestoreWorkspace(previous.workspace);
  if(previous.officeFixtures)officeUI.fixtures=previous.officeFixtures;
  if(previous.officePanel)officeUI.panel=previous.officePanel;
  if(previous.staffReviewTab)staffReviewUI.tab=previous.staffReviewTab;
@@ -65,6 +66,7 @@ function deskRestore(previous){
  state.selectedPlayer=previous.player;state.selectedMarketPlayer=previous.market;lineupWorkspace=previous.lineup;
  if(previous.filters)state.recruitment.filters={...previous.filters};
  deskNavigate(previous.page,previous.tab,false);inboxUI.detail=previous.inboxDetail;render();
+ deskRestoreWorkspaceDOM(previous.workspace);
  const content=document.getElementById('content');if(content)content.scrollTop=previous.scroll;
  if(typeof window!=='undefined')window.scrollTo?.({top:previous.windowScroll||0,behavior:'instant'});
 }
@@ -76,7 +78,7 @@ if(typeof window!=='undefined'){
  window.addEventListener('pagehide',flushInterfaceSave);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushInterfaceSave();});
 }
-function deskSnapshot(){return {officePanel:officeUI.panel||'today',officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
+function deskSnapshot(){return {workspace:deskWorkspaceContext(),officePanel:officeUI.panel||'today',officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
  deskHistorySync();deskActionNotice='';const previousPage=state.page,previousTab=state.recruitment?.tab;let nextLineup,nextAvailability;
  if(page==='tactics'){page='lines';nextLineup='even';}
@@ -112,9 +114,13 @@ function deskBack(fallback='home'){
  deskRestore(previous);
 }
 function deskOpenPlayer(id,market=false){
- if(!market)profileWorkspace.tab='overview';
  deskHistorySync();
  const old=deskSnapshot();deskBrowserBefore(old);if(market)state.selectedMarketPlayer=id;else state.selectedPlayer=id;
+ // Capture the previous profile tab before selecting a new identity.
+ profileWorkspace.tab='overview';
+ const active=findPlayerAnywhere(id);
+ market=!active||!isOwnPlayer(active);
+ state.selectedPlayer=id;state.selectedMarketPlayer=id;
  deskHistory.push(old);if(deskHistory.length>30)deskHistory.shift();deskNavigate(market?'marketPlayer':'player',undefined,false);deskBrowserAfter();
 }
 function deskAction(action){return action.messageId!==undefined?`openManagerMessage(${JSON.stringify(action.messageId)})`:`deskNavigate(${JSON.stringify(action.page)}${action.tab?','+JSON.stringify(action.tab):''})`;}
@@ -137,7 +143,7 @@ function deskSubnav(){
 function deskClearWorkspaceNotices(){
  for(const key of ['clubOffice','recruitment','loans','juniors','medical'])if(state[key])state[key].message='';
 }
-function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${state.page}">${deskSubnav()}${html}</div>`;}
+function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${state.page}">${deskSubnav()}${playerSearchView()}${html}</div>`;}
 function deskCloseMenu(restoreFocus=false){
   document.querySelector('.game-shell')?.classList.toggle('mobile-nav-open',false);
   document.getElementById('mobileMenu')?.setAttribute?.('aria-expanded','false');
