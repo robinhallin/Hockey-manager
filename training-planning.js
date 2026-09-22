@@ -54,18 +54,28 @@ function developmentReviewStart(id){
 function developmentReviewEvidence(p){
  const plan=p.developmentReview;if(!plan||plan.club!==managerClub())return null;
  const sessions=(p.trainingSessions||[]).filter(s=>s.date>=plan.date&&!plan.sessionsSeen.includes(s.date));
- const matches=analysisCompleteMatches(state.analysis?.matches||[]).filter(m=>m.club===plan.club&&m.date>=plan.date&&!plan.seen.includes(m.id));
+ const complete=analysisCompleteMatches(state.analysis?.matches||[]).filter(m=>m.club===plan.club&&m.date<=state.calendar.date);
+ const matches=complete.filter(m=>m.date>=plan.date&&!plan.seen.includes(m.id));
+ const baseline=complete.filter(m=>plan.seen.includes(m.id)&&m.year===plan.year&&m.date<=plan.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
  const rows=matches.map(m=>(m.players||[]).find(q=>samePlayerId(q.id,p.id))).filter(Boolean);
  const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
  const changes=Object.keys(plan.attributes).filter(k=>p.attributes[k]!==plan.attributes[k]).map(k=>`${fields[k]} ${p.attributes[k]-plan.attributes[k]>0?'+':''}${p.attributes[k]-plan.attributes[k]}`);
- return {plan,days:calGap(plan.date,state.calendar.date),sessions,trained:sessions.filter(s=>!s.rest).length,rest:sessions.filter(s=>s.rest&&!s.injured).length,injured:sessions.filter(s=>s.injured).length,games:rows.filter(r=>r.seconds>0).length,seconds:rows.reduce((n,r)=>n+r.seconds,0),changes};
+ return {plan,baseline,matches,days:calGap(plan.date,state.calendar.date),sessions,trained:sessions.filter(s=>!s.rest).length,rest:sessions.filter(s=>s.rest&&!s.injured).length,injured:sessions.filter(s=>s.injured).length,games:rows.filter(r=>r.seconds>0).length,seconds:rows.reduce((n,r)=>n+r.seconds,0),changes};
+}
+function developmentUsageView(p,e){
+ const period=(label,matches)=>{
+  const rows=matches.map(m=>(m.players||[]).find(r=>samePlayerId(r.id,p.id))).filter(r=>r&&r.seconds>0);
+  const seconds=rows.reduce((n,r)=>n+r.seconds,0),points=rows.reduce((n,r)=>n+(r.goals||0)+(r.assists||0),0);
+  return `<tr><th>${label}</th><td>${matches.length} rapporter · ${rows.length} med registrerad istid</td><td>${rows.length?(seconds/60/rows.length).toFixed(1)+' min':'Saknar registrerad istid'}</td><td>${rows.length?points:'–'}</td></tr>`;
+ };
+ return `<details><summary>Användning före och efter din utvecklingsplan</summary><table><thead><tr><th>Period</th><th>Underlag</th><th>Per match med istid</th><th>Poäng</th></tr></thead><tbody>${period('Före · upp till tre senaste matcher',e.baseline)}${period('Efter planens start',e.matches)}</tbody></table><p>Endast kompletta tävlingsrapporter för ${trainingSafe(e.plan.club)}. Saknad spelarrad bevisar inte att spelaren var frisk och petad. Motstånd och matchning skiljer sig; poäng visar inte ensam hur väl en roll utförts.</p>${e.matches.slice(0,5).map(m=>`<p><a href="#match/${encodeURIComponent(m.id)}" onclick="event.preventDefault();matchesOpenReport(${trainingSafe(JSON.stringify(m.id))})">${trainingSafe(calText(m.date))} · ${trainingSafe(m.opponent)}</a></p>`).join('')}</details><button type="button" class="desk-link" onclick="squadOpenPlace(${trainingSafe(JSON.stringify(p.id))})">Bedöm matchuttagningen →</button>`;
 }
 function developmentReviewView(p){
  if(!isOwnPlayer(p))return '';
  const e=developmentReviewEvidence(p),action=`developmentReviewStart(${trainingSafe(JSON.stringify(p.id))})`;
  if(!e)return `<section><h4>En plan att följa upp</h4><p>Följ valt fokus, genomförd träning och registrerad matchtid under 28 dagar.</p><button onclick="${action}" ${state.live&&!state.live.finished?'disabled':''}>Starta utvecklingsuppföljning</button></section>`;
  const advice=e.days<14?'Samla mer underlag innan du bedömer utvecklingen.':e.injured>e.trained?'Rehabiliteringen har begränsat träningsarbetet. Prioritera en hållbar återgång.':e.trained<5?'Få genomförda pass. Se över belastning och kalender innan du byter fokus.':e.seconds<600?'Begränsad registrerad matchtid. Överväg mer ansvar, juniorväg eller lån utifrån spelarens nivå.':!e.changes.length?'Arbete är genomfört utan synligt attributsteg. Behåll fokus en period till eller välj en annan rollrelevant färdighet. Potentialen är fortfarande osäker.':'Fortsätt väga utvecklingen mot belastning och spelarens roll.';
- return `<section><h4>Utvecklingsplan · ${calText(e.plan.date)}</h4><p>Utgångsfokus: ${trainingSafe(e.plan.focus)}. Nu: ${trainingSafe(p.developmentFocus)}. ${e.days} av 28 dagar.</p><p>${e.trained} träningspass · ${e.rest} vilopass · ${e.injured} pass hindrade av medicinskt läge. ${e.games} registrerade matcher med istid · ${analysisTime(e.seconds)}.</p><p>${e.changes.length?trainingSafe(e.changes.join(' · ')):'Inga synliga attributsteg under uppföljningen.'}</p><p>${advice}</p><p>Underlaget omfattar sparade pass och kompletta matchrapporter, inte en beräkning av dold potential. Äldre underlag kan ha gallrats. Anpassa fokus och belastning i spelarens träningsval.</p>${e.days>=28?`<button onclick="${action}" ${state.live&&!state.live.finished?'disabled':''}>Starta nästa uppföljning</button>`:''}</section>`;
+ return `<section><h4>Utvecklingsplan · ${calText(e.plan.date)}</h4><p>Utgångsfokus: ${trainingSafe(e.plan.focus)}. Nu: ${trainingSafe(p.developmentFocus)}. ${e.days} av 28 dagar.</p><p>${e.trained} träningspass · ${e.rest} vilopass · ${e.injured} pass hindrade av medicinskt läge. ${e.games} registrerade matcher med istid · ${analysisTime(e.seconds)}.</p><p>${e.changes.length?trainingSafe(e.changes.join(' · ')):'Inga synliga attributsteg under uppföljningen.'}</p><p>${advice}</p>${developmentUsageView(p,e)}<p>Underlaget omfattar sparade pass och kompletta matchrapporter, inte en beräkning av dold potential. Äldre underlag kan ha gallrats. Anpassa fokus och belastning i spelarens träningsval.</p>${e.days>=28?`<button onclick="${action}" ${state.live&&!state.live.finished?'disabled':''}>Starta nästa uppföljning</button>`:''}</section>`;
 }
 function trainingPlanningPanel(p){
  const t=state.training,session=t.plan[t.day],date=state.calendar?.date;
