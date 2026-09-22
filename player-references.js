@@ -49,7 +49,7 @@ function playerMention(p){return {playerId:p.id,text:p.name};}
 function playerHeadline(p,suffix){return [playerMention(p),suffix];}
 function referencePlainText(parts){return Array.isArray(parts)?parts.map(p=>typeof p==='string'?p:p?.text??'').join(''):String(parts??'');}
 function matchEventReference(e){
- if(e.type==='goal'&&e.scorerId!=null)return playerReference(e.scorerId,e.scorer||'Målskytt')+(Number.isFinite(e.own)&&Number.isFinite(e.against)?' · '+e.own+'–'+e.against:'')+(e.assists?.length?' · Assist: '+e.assists.map(p=>playerReference(p.id,p.name)).join(', '):'');
+ if(e.type==='goal')return (e.scorerId!=null?playerReference(e.scorerId,e.scorer||'Målskytt'):playerReferenceText(e.textParts||e.text))+(Number.isFinite(e.own)&&Number.isFinite(e.against)?' · '+e.own+'–'+e.against:'')+(e.assists?.length?' · Assist: '+e.assists.map(p=>playerReference(p.id,p.name)).join(', '):'');
  return playerReferenceText(e.textParts||e.text)+(e.playerId!=null?' · '+playerReference(e.playerId,e.playerName):'');
 }
 function playerMatchRecords(id){

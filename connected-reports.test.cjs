@@ -23,6 +23,7 @@ test('news identities, match links, contextual performance, save/load and legacy
  assert.ok(goal.includes('data-player-id="'+run('bId')+'"'));
  assert.match(goal,/1–0/);
  assert.equal(run('matchEventReference({type:"goal",text:"Gammal målnotering"})'),'Gammal målnotering');
+ assert.match(run('matchEventReference({type:"goal",text:"Målskytt saknas",assists:[{id:bId,name:b.name}]})'),/data-player-id=/);
  run('globalThis.originalLive=state.live;state.live={analysis:{events:[event]}};');
  const scoreboard=run('matchScoringView()');
  assert.ok(scoreboard.includes('data-player-id="'+run('aId')+'"'));
