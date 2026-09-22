@@ -33,7 +33,7 @@ function managerOffice2Items(){
   if(tired.length)add({id:'training:fatigue',title:`${tired.length} spelare högt belastade`,detail:'Belastningen kan påverka både träningseffekt och matchprestation inför nästa match.',tag:'Träning',area:'training',owner:managerOffice2Delegated('training')?'Tränarstaben':'Du',level:tired.length>=5?'high':'medium',score:tired.length>=5?74:54,action:{page:'training'}});
   const contracts=roster.filter(contractNeedsDecision);
   if(contracts.length)add({id:'contracts:expiring',title:`${contracts.length} kontrakt behöver plan`,detail:'Avtal på sista året bör prioriteras innan marknadsläget förändras.',tag:'Kontrakt',area:'contracts',owner:managerOffice2Delegated('contracts')?'Sportchef/stab':'Du',level:contracts.length>=4?'high':'medium',score:contracts.length>=4?72:52,action:{page:'squad',tab:'contracts'}});
-  const missions=(state.recruitment?.missions||[]).filter(m=>m.status==='active');
+  const missions=officeScoutMissions();
   if(missions.length)add({id:'scouting:missions',title:`${missions.length} aktiva scoutuppdrag`,detail:'Staben samlar observationer. Du behöver bara ingripa om prioritering eller mål ändras.',tag:'Scouting',area:'scouting',owner:managerOffice2Delegated('scouting')?'Scoutchef':'Du',level:'low',score:32,action:{page:'transfers',tab:'missions'}});
   const promises=lockerPromises().filter(({p,q,source})=>p&&!q.resolved&&source!=='Tidigare avtal'&&(!q.club||q.club===managerClub()));
   for(const {p,q,source} of promises){
@@ -56,7 +56,7 @@ function managerOffice2Items(){
 }
 function managerOffice2VisibleItems(){
   const all=managerOffice2Items();
-  return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||item.level==='critical');
+  return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||['critical','high'].includes(item.level));
 }
 function managerOffice2Action(item){
   if(item.id.startsWith('relationship:'))return `managerDecisionNavigate('locker','relationships')`;
@@ -76,7 +76,7 @@ function managerOffice2Row(item,index){
 }
 function managerOffice2DelegationView(){
   const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt'};
-  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning och medicinskt kan utföra försiktiga rutinåtgärder. Scouting och kontrakt bevakas av staben. Beslut som kräver ditt svar visas alltid.</small></div>`;
+  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning och medicinskt kan utföra försiktiga rutinåtgärder. Scouting och kontrakt bevakas av staben. Beslut som kräver ditt svar och högprioriterade avvikelser visas alltid.</small></div>`;
 }
 function managerOffice2View(){
   const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length,primary=items.slice(0,Math.max(5,items.filter(i=>i.requiresDecision).length)),remaining=items.slice(primary.length);
@@ -86,7 +86,7 @@ function managerOffice2View(){
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
 function officeTodayView(){
   const waiting=officeWaiting();
-  return `<div class="office-today">${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
+  return `<div class="office-today">${daySummaryView()}${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
 }
 function officeFollowupView(){
   return `${managerMatchLearningView()}${managerWeekFollowupView()}${managerLifeMorningView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;

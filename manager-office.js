@@ -19,17 +19,17 @@ function officeDecisions(){
   r.incoming.filter(d=>d.status==='pending'&&d.expires>=r.tick).forEach(d=>add('incoming:'+d.id,d.name||'Försäljningsbud',`${d.buyer||'En klubb'} erbjuder ${careerMoney(d.fee||0)}`));
   return tasks;
 }
+function officeScoutMissions(){
+ return [...(state.recruitment?.missions||[]).filter(m=>m.status==='active'&&(!m.club||m.club===managerClub())),...(state.recruitment?.scouting?.jobs||[]).filter(m=>m.status==='active'&&m.club===managerClub()).map(m=>({...m,nextDate:m.next}))];
+}
 function officeWaiting(){
-  const r=state.recruitment||{},missions=(r.missions||[]).filter(m=>m.status==='active');
-  if(missions.length){
-    const next=missions.map(m=>m.nextDate).filter(Boolean).sort()[0];
-    return {label:'Väntar på',value:`${missions.length} scoutuppdrag`,detail:next?`Nästa observation ${calText(next)}.`:'Scoutstaben arbetar vidare med sina observationer.',action:{page:'transfers',tab:'missions'},button:'Öppna scouting',tone:'blue'};
-  }
+  const r=state.recruitment||{},missions=officeScoutMissions(),waiting=[];
+  for(const m of missions)waiting.push({date:m.nextDate,value:`${missions.length} scoutuppdrag · nästa observation`,detail:m.note||'Scouten arbetar vidare med sitt uppdrag.',tab:'missions'});
+  for(const [id,c] of Object.entries(r.scouting?.contacts||{}))if(c.status==='pending'&&(!c.owner||c.owner===managerClub()))waiting.push({date:c.due,playerId:id,value:'Kontaktbesked',detail:'Spelarens och klubbens villkor väntas. Inget avtal är ingånget.',tab:'deals'});
   const deals=(r.deals||[]).filter(d=>d.status==='pending'&&!d.counter);
-  if(deals.length){
-    const next=deals.map(d=>d.dueDate).filter(Boolean).sort()[0];
-    return {label:'Väntar på',value:`${deals.length} värvningssvar`,detail:next?`Nästa besked väntas senast ${calText(next)}.`:'Agent- eller klubbsvar är fortfarande utestående.',action:{page:'transfers',tab:'deals'},button:'Visa affärer',tone:'blue'};
-  }
+  for(const d of deals)waiting.push({date:d.dueDate,value:'Värvningssvar',detail:'Agent- eller klubbsvar är utestående.',tab:'deals'});
+  const next=waiting.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'))[0];
+  if(next)return {label:'Väntar på',value:next.value,detail:(next.date?`Planerat besked ${calText(next.date)}. `:'Datum saknas. ')+next.detail,action:next.playerId?{contactId:next.playerId}:{page:'transfers',tab:next.tab},button:next.tab==='missions'?'Öppna scouting':'Öppna underlaget',tone:'blue'};
   const rehab=managerRoster().filter(p=>!medicalReady(p)&&p.health?.injury);
   if(rehab.length){
     const soonest=rehab.slice().sort((a,b)=>(a.health?.injury?.remaining??999)-(b.health?.injury?.remaining??999))[0],days=soonest?.health?.injury?.remaining;
@@ -77,4 +77,9 @@ function managerOfficeView(){
     <section class="office-panel office-club"><header><h2>Klubb & planering</h2>${deskLink('Ekonomi',{page:'finance'})}</header><dl class="office-finance"><dt>Klubbkassa</dt><dd>${careerMoney(state.money)}</dd><dt>Löneutrymme före bud</dt><dd>${careerMoney(wageBudget()-annualWageCost())}</dd></dl><div class="office-followup"><strong>${focus?'Aktivt träningsfokus':'Stabens uppföljning'}</strong><p>${focus?`${COACH_FOCUSES[focus.key].name} · ${focus.results.length}/${focus.target||3} matcher följda`:'Följ upp matchplanen och dina beslut med staben.'}</p>${deskLink('Visa råd & uppföljning',{page:'staffReview'})}</div></section>
 
   </div></section>`;
+}
+
+function officeOpenContact(id){
+ const p=findPlayerAnywhere(id);if(!p)return;
+ deskOpenPlayer(p.id,true);profileWorkspace.tab='contract';recruitHub.panel='transfer';render();deskBrowserBefore();
 }

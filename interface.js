@@ -123,7 +123,7 @@ function deskOpenPlayer(id,market=false){
  state.selectedPlayer=id;state.selectedMarketPlayer=id;
  deskHistory.push(old);if(deskHistory.length>30)deskHistory.shift();deskNavigate(market?'marketPlayer':'player',undefined,false);deskBrowserAfter();
 }
-function deskAction(action){return action.messageId!==undefined?`openManagerMessage(${JSON.stringify(action.messageId)})`:`deskNavigate(${JSON.stringify(action.page)}${action.tab?','+JSON.stringify(action.tab):''})`;}
+function deskAction(action){if(action.contactId!==undefined)return `officeOpenContact(${JSON.stringify(action.contactId)})`;return action.messageId!==undefined?`openManagerMessage(${JSON.stringify(action.messageId)})`:`deskNavigate(${JSON.stringify(action.page)}${action.tab?','+JSON.stringify(action.tab):''})`;}
 function deskLink(label,action,cls='desk-link'){return `<button class="${cls}" onclick="${trainingSafe(deskAction(action))}">${trainingSafe(label)}${deskIcon('arrow')}</button>`;}
 function deskPrimaryNav(){
   const area=deskArea();
