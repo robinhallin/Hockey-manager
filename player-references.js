@@ -64,7 +64,7 @@ function playerPerformanceView(id){
  return '<section class="fm-panel"><h2>Senaste registrerade matcher</h2><p>Högst tio avslutade matcher ur ditt rapportarkiv, inklusive träningsmatcher. Urvalet är inte hela spelarens karriär. Betygen avser respektive match, inte spelarens förmåga eller potential.</p>'+
  (records.length?'<div class="workspace-table"><table><thead><tr><th>Match / rapport</th><th>Representerad klubb</th><th>Sammanhang</th><th>Istid</th><th>Mål + assist</th><th>Skott</th><th>Matchbetyg</th></tr></thead><tbody>'+records.map(({match:m,row:r,performance:p})=>{
   const action='matchesOpenReport('+JSON.stringify(m.id)+');return false;';
-  return '<tr><td><a class="player-reference" href="#match/'+encodeURIComponent(m.id)+'" onclick="'+trainingSafe(action)+'">'+trainingSafe(m.club)+' '+m.own+'–'+m.against+' '+trainingSafe(m.opponent)+'</a><small>'+trainingSafe(m.date||String(m.year))+'</small></td><td>'+trainingSafe(r.club||m.club)+'</td><td>'+trainingSafe(String(m.year))+' · '+trainingSafe(m.stage||'Tävlingsfas saknas')+(m.partial?' · Delvis registrerad':'')+'</td><td>'+analysisTime(r.seconds)+'</td><td>'+(r.goals??'—')+' + '+(r.assists??'—')+'</td><td>'+(r.shots??'—')+'</td><td>'+performanceStars(p?.stars??null)+'</td></tr>';
+  return '<tr><td><a class="player-reference" href="#match/'+encodeURIComponent(m.id)+'" onclick="'+trainingSafe(action)+'">'+trainingSafe(m.club)+' '+m.own+'–'+m.against+' '+trainingSafe(m.opponent)+'</a><small>'+trainingSafe(m.date||String(m.year))+'</small></td><td>'+clubReference(r.club||m.club,{year:m.year})+'</td><td>'+trainingSafe(String(m.year))+' · '+trainingSafe(m.stage||'Tävlingsfas saknas')+(m.partial?' · Delvis registrerad':'')+'</td><td>'+analysisTime(r.seconds)+'</td><td>'+(r.goals??'—')+' + '+(r.assists??'—')+'</td><td>'+(r.shots??'—')+'</td><td>'+performanceStars(p?.stars??null)+'</td></tr>';
  }).join('')+'</tbody></table></div>':'<p>Inga matchrapporter med registrerad istid för den här spelaren.</p>')+'<p>Spelformsspecifik istid saknas i detta underlag; inga PP/BP-minuter uppskattas.</p></section>';
 }
 
@@ -81,7 +81,7 @@ function playerHistoryView(id){
  const pickEntries=[state.nhl?.draft,...(state.nhl?.history||[])].flatMap(d=>(d?.picks||[]).filter(p=>samePlayerId(p.id,id)).map(p=>[String(p.year)+':'+String(p.overall),p]));
  const picks=[...new Map(pickEntries).values()];
  const draftHistory=picks.length?'<h3>Registrerad NHL-draft</h3><ul>'+picks.map(p=>'<li>'+trainingSafe(String(p.year??'År saknas'))+' · '+trainingSafe(p.club||'Klubb saknas')+' · Val '+trainingSafe(String(p.overall??'saknas'))+' · Från '+trainingSafe(p.origin||'Klubb saknas')+'</li>').join('')+'</ul>':'';
- return `<section class="fm-panel"><h2>Registrerad historik</h2><p>Klubben nedan är den spelaren representerade då. Saknade säsonger och uppgifter fylls inte i efterhand.</p>${draftHistory}${rows.length?`<div class="workspace-table"><table><thead><tr><th>Säsong</th><th>Liga / fas</th><th>Klubb</th><th>Matcher</th><th>Mål</th><th>Assist</th><th>Istid totalt</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${trainingSafe(String(r.year))}</td><td>${trainingSafe(r.league||'Ej registrerad')} · ${r.stage==='regular'?'Grundserie':r.stage==='playoffs'?'Slutspel / kval':'Ej registrerad'}</td><td>${trainingSafe(r.club)}</td><td>${r.games??'—'}</td><td>${r.goals??'—'}</td><td>${r.assists??'—'}</td><td>${Number.isFinite(r.seconds)?Math.round(r.seconds/60)+' min':'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>Ingen säsongsstatistik registrerad.</p>'}${events.length?`<ul>${events.map(e=>`<li>${e.year} · ${trainingSafe(e.club)} · ${trainingSafe(e.reason)}</li>`).join('')}</ul>`:'<p>Inga registrerade händelser.</p>'}</section>`;
+ return `<section class="fm-panel"><h2>Registrerad historik</h2><p>Klubben nedan är den spelaren representerade då. Saknade säsonger och uppgifter fylls inte i efterhand.</p>${draftHistory}${rows.length?`<div class="workspace-table"><table><thead><tr><th>Säsong</th><th>Liga / fas</th><th>Klubb</th><th>Matcher</th><th>Mål</th><th>Assist</th><th>Istid totalt</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${trainingSafe(String(r.year))}</td><td>${leagueReference(r.league,r.year)} · ${r.stage==='regular'?'Grundserie':r.stage==='playoffs'?'Slutspel / kval':'Ej registrerad'}</td><td>${clubReference(r.club,{year:r.year,league:r.league})}</td><td>${r.games??'—'}</td><td>${r.goals??'—'}</td><td>${r.assists??'—'}</td><td>${Number.isFinite(r.seconds)?Math.round(r.seconds/60)+' min':'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>Ingen säsongsstatistik registrerad.</p>'}${events.length?`<ul>${events.map(e=>`<li>${e.year} · ${clubReference(e.club,{year:e.year})} · ${trainingSafe(e.reason)}</li>`).join('')}</ul>`:'<p>Inga registrerade händelser.</p>'}</section>`;
 }
 
 function historicalPlayerView(id){
@@ -92,7 +92,7 @@ function historicalPlayerView(id){
 }
 
 function playerProfileHeader(p,club){
- return `<header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${trainingSafe(p.pos)}</div><div><small>${trainingSafe(club||'Klubb saknas')}</small><h1>${trainingSafe(p.name)}</h1><p>${p.age} år · ${trainingSafe(p.nationality||'Nationalitet saknas')}</p></div><div class="fm-profile-rating"><small>Förmåga</small>${assessmentBadge(p)}<small>Potential · stabens prognos</small>${assessmentBadge(p,true)}</div></header>`;
+ return `<header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${trainingSafe(p.pos)}</div><div><small>${clubReference(club)}</small><h1>${trainingSafe(p.name)}</h1><p>${p.age} år · ${trainingSafe(p.nationality||'Nationalitet saknas')}</p></div><div class="fm-profile-rating"><small>Förmåga</small>${assessmentBadge(p)}<small>Potential · stabens prognos</small>${assessmentBadge(p,true)}</div></header>`;
 }
 function playerLineupContext(id){
  const p=managerRoster().find(q=>samePlayerId(q.id,id));if(!p)return false;
@@ -114,7 +114,7 @@ function externalPlayerProfile(p){
  const tab=profileWorkspace.tab;
  let body;
  if(tab==='attributes')body=desktopAttributes(p);
- else if(tab==='history'||tab==='performance')body=playerHistoryView(p.id);
+ else if(tab==='history'||tab==='performance')body=(tab==='performance'?playerPerformanceView(p.id):'')+playerHistoryView(p.id);
  else if(tab==='development')body='<section class="fm-panel"><h2>Utveckling & hälsa</h2><p>Interna träningsrapporter, fysisk status och rehabiliteringsplaner är inte tillgängliga för externa spelare. Potential är en scoutbedömning, inte en garanterad utveckling.</p></section>'+assessmentPanel(p);
  else if(tab==='report')body=assessmentPanel(p)+scoutingPlayerActions(p);
  else if(tab==='contract')body=hubInspector(p);
@@ -134,12 +134,12 @@ function playerSearchResults(query){
 }
 function playerSearchView(){
  const query=state.playerSearchQuery||'',results=playerSearchResults(query);
- return `<details class="entity-search" ${query?'open':''}><summary>Sök spelare och klubbar</summary><form onsubmit="event.preventDefault();state.playerSearchQuery=this.elements.entityQuery.value.trim();render();queueInterfaceSave()"><label>Namn <input type="search" name="entityQuery" minlength="2" value="${trainingSafe(query)}" placeholder="Minst två tecken"></label><button class="btn secondary">Sök</button><button type="button" class="btn secondary" onclick="state.playerSearchQuery='';render()">Rensa</button></form>${query?`<div role="status">${results.total} träffar${results.total>results.players.length+results.clubs.length?' · Förfina sökningen för att se fler':''}</div><ul>${results.players.map(p=>{const i=playerIdentity(p.id);return `<li>${playerReference(p.id,p.name)} · ${trainingSafe(p.pos)} · ${p.age??'Ålder saknas'} · ${trainingSafe(i?.club||'Klubb saknas')}${i?.active?'':' · Historisk post'}</li>`;}).join('')}${results.clubs.map(c=>`<li><a class="player-reference" href="#club/${encodeURIComponent(c)}" onclick="${trainingSafe('leagueStatsClub('+JSON.stringify(c)+');return false;')}">${trainingSafe(c)}</a> · Klubbens spelarstatistik</li>`).join('')}</ul>`:''}</details>`;
+ return `<details class="entity-search" ${query?'open':''}><summary>Sök spelare och klubbar</summary><form onsubmit="event.preventDefault();state.playerSearchQuery=this.elements.entityQuery.value.trim();render();queueInterfaceSave()"><label>Namn <input type="search" name="entityQuery" minlength="2" value="${trainingSafe(query)}" placeholder="Minst två tecken"></label><button class="btn secondary">Sök</button><button type="button" class="btn secondary" onclick="state.playerSearchQuery='';render()">Rensa</button></form>${query?`<div role="status">${results.total} träffar${results.total>results.players.length+results.clubs.length?' · Förfina sökningen för att se fler':''}</div><ul>${results.players.map(p=>{const i=playerIdentity(p.id);return `<li>${playerReference(p.id,p.name)} · ${trainingSafe(p.pos)} · ${p.age??'Ålder saknas'} · ${trainingSafe(i?.club||'Klubb saknas')}${i?.active?'':' · Historisk post'}</li>`;}).join('')}${results.clubs.map(c=>`<li><a class="player-reference" href="#club/${encodeURIComponent(c)}" onclick="${trainingSafe('openClubContext('+JSON.stringify(c)+');return false;')}">${trainingSafe(c)}</a> · Klubb, trupp och matcher</li>`).join('')}</ul>`:''}</details>`;
 }
 
 function deskWorkspaceContext(){
  return {calendar:{month:calendarUI.month,date:calendarUI.date},inbox:{...inboxUI},worldLeague:state.world?.selected,
-  nhl:{...nhlUI},
+  clubBrowser:state.clubBrowser?{...state.clubBrowser}:null,nhl:{...nhlUI},
   analysis:state.analysis?Object.fromEntries(['selected','window','side','compareA','compareB'].map(key=>[key,state.analysis[key]])):null,
   // Comparison is a working selection, not a filter. Keep edits made inside profiles.
   scout:{list:scoutDesk.list,columns:scoutDesk.columns,horizon:scoutDesk.horizon},
@@ -148,6 +148,7 @@ function deskWorkspaceContext(){
 }
 function deskRestoreWorkspace(context){
  if(!context)return;
+ state.clubBrowser=context.clubBrowser?{...context.clubBrowser}:null;
  Object.assign(nhlUI,context.nhl||{});
  Object.assign(calendarUI,context.calendar||{});calendarUI.calendar=state.calendar;
  Object.assign(inboxUI,context.inbox||{});Object.assign(scoutDesk,context.scout||{});
