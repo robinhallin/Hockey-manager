@@ -34,7 +34,7 @@ function tacticalReviewRecord(before,label,coachDecision=null){
 }
 function tacticalReviewSnapshot(){
  const rows=state.live?.tacticalReviews||[],totals=tacticalReviewTotals(),specialTotals=specialReviewTotals();
- return rows.map((r,i)=>({...r,...(r.coachDecision?.energy?{coachEnergy:i===rows.length-1?matchCoachEnergy(r.coachDecision):r.coachEnergy}:{}),specialResult:i===rows.length-1&&r.specialTotals?specialReviewDelta(specialTotals,r.specialTotals):r.specialResult,result:i===rows.length-1?tacticalReviewDelta(totals,r.totals):r.result,end:i===rows.length-1?analysisClock():r.end}));
+ return rows.map((r,i)=>({...r,...(r.coachDecision?.discipline?{coachPenalties:matchCoachPenalties(r.time,i===rows.length-1?analysisClock():r.end)}:{}),...(r.coachDecision?.energy?{coachEnergy:i===rows.length-1?matchCoachEnergy(r.coachDecision):r.coachEnergy}:{}),specialResult:i===rows.length-1&&r.specialTotals?specialReviewDelta(specialTotals,r.specialTotals):r.specialResult,result:i===rows.length-1?tacticalReviewDelta(totals,r.totals):r.result,end:i===rows.length-1?analysisClock():r.end}));
 }
 function tacticalReviewView(rows,finished=false){
  if(!rows?.length)return '';
