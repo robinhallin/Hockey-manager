@@ -48,6 +48,9 @@ test('player identity, profile context, retirement and knowledge boundaries',()=
  const loaded=boot(app.storage.value),id=JSON.stringify(run('otherId'));
  assert.equal(loaded.run('playerIdentity('+id+').active'),false);
  assert.equal(loaded.run('scoutDesk.compare.length'),2);
+ assert.match(loaded.run('scoutingComparison()'),/Aktivt jämförelseunderlag saknas/);
+ loaded.run('scoutingCompare('+id+')');
+ assert.equal(loaded.run('scoutDesk.compare.length'),1);
  assert.match(loaded.run('historicalPlayerView('+id+')'),/Tidigare klubb/);
  loaded.run('delete state.playerArchive;state.playerWorld.events=[]');
  assert.equal(loaded.run('playerIdentity('+id+').player.name'),run('own.name'));
