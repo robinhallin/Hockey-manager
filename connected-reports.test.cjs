@@ -68,4 +68,8 @@ test('news identities, match links, contextual performance, save/load and legacy
  run('deskBack()');
  assert.equal(run('nhlUI.tab'),'board');
  assert.equal(run('nhlUI.query'),run('prospect.name'));
+ run('state.nhl.history.push({year:2025,picks:[{id:"legacy-draft-only",name:"Arkiverad junior",pos:"C",origin:"Tidigare klubb",club:"Toronto",year:2025,overall:82}]});');
+ assert.equal(run('playerIdentity("legacy-draft-only").player.name'),'Arkiverad junior');
+ assert.match(run('historicalPlayerView("legacy-draft-only")'),/Val 82/);
+ assert.match(run('historicalPlayerView("legacy-draft-only")'),/Tidigare klubb/);
 });
