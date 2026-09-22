@@ -52,7 +52,7 @@ function juniorPromote(id){
  const p=state.juniors.roster.find(p=>samePlayerId(p.id,id));if(!p)return;
  if(juniorLocked())return juniorNotice('Spelare flyttas mellan trupperna mellan matcher.');
  if(p.academy.loan)return juniorNotice('Återkalla lånet innan spelaren flyttas upp.');
- if(annualWageCost()+(p.academy.seniorContract?0:p.salary)>wageBudget())return juniorNotice('Löneutrymmet räcker inte för uppflyttningen.');
+ const issue=!p.academy.seniorContract&&managerCommitmentIssue(p,0,p.salary,p.contractYears>0?p.contractYears:3);if(issue)return juniorNotice(issue);
  const feedbackPlan=feedbackBeforeArrival(p,managerClub());
  state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);managerRoster().push(p);p.academy.path='senior';p.academy.seniorContract=true;if(p.contractYears<=0)p.contractYears=3;
  syncManagerRoster();ensureManagementData();ensureMedical();ensureLocker();ensureTrainingData();repairMedicalLines();

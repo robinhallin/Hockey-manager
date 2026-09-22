@@ -1,0 +1,244 @@
+{
+  "scope": "Headless integration and generated markup; not browser visual QA",
+  "views": [
+    {
+      "page": "home",
+      "markupMs": 3,
+      "characters": 8177
+    },
+    {
+      "page": "staffReview",
+      "markupMs": 2,
+      "characters": 2500
+    },
+    {
+      "page": "stories",
+      "markupMs": 1,
+      "characters": 1246
+    },
+    {
+      "page": "press",
+      "markupMs": 2,
+      "characters": 3531
+    },
+    {
+      "page": "squad",
+      "markupMs": 31,
+      "characters": 39258
+    },
+    {
+      "page": "lines",
+      "markupMs": 8,
+      "characters": 57623
+    },
+    {
+      "page": "locker",
+      "markupMs": 3,
+      "characters": 9029
+    },
+    {
+      "page": "training",
+      "markupMs": 3,
+      "characters": 12220
+    },
+    {
+      "page": "juniors",
+      "markupMs": 3,
+      "characters": 12679
+    },
+    {
+      "page": "medical",
+      "markupMs": 2,
+      "characters": 7769
+    },
+    {
+      "page": "calendar",
+      "markupMs": 16,
+      "characters": 14365
+    },
+    {
+      "page": "match",
+      "markupMs": 2,
+      "characters": 5590
+    },
+    {
+      "page": "opponents",
+      "markupMs": 18,
+      "characters": 11842
+    },
+    {
+      "page": "statistics",
+      "markupMs": 2,
+      "characters": 1858
+    },
+    {
+      "page": "transfers",
+      "markupMs": 15,
+      "characters": 2225
+    },
+    {
+      "page": "finance",
+      "markupMs": 2,
+      "characters": 3359
+    },
+    {
+      "page": "board",
+      "markupMs": 1,
+      "characters": 3433
+    },
+    {
+      "page": "staff",
+      "markupMs": 1,
+      "characters": 4943
+    },
+    {
+      "page": "manager",
+      "markupMs": 1,
+      "characters": 2752
+    },
+    {
+      "page": "leagues",
+      "markupMs": 1,
+      "characters": 6016
+    },
+    {
+      "page": "international",
+      "markupMs": 2,
+      "characters": 10331
+    },
+    {
+      "page": "nhl",
+      "markupMs": 8,
+      "characters": 9448
+    },
+    {
+      "page": "news",
+      "markupMs": 1,
+      "characters": 1534
+    },
+    {
+      "page": "table",
+      "markupMs": 1,
+      "characters": 8345
+    },
+    {
+      "page": "leagueStats",
+      "markupMs": 3,
+      "characters": 21106
+    },
+    {
+      "page": "season",
+      "markupMs": 1,
+      "characters": 3421
+    },
+    {
+      "page": "inbox",
+      "markupMs": 1,
+      "characters": 2061
+    },
+    {
+      "page": "settings",
+      "markupMs": 1,
+      "characters": 1727
+    }
+  ],
+  "workflows": {
+    "C": {
+      "recovered": true,
+      "replacedInLineup": true,
+      "planFollowup": true
+    },
+    "E": [
+      {
+        "mode": "full",
+        "score": [
+          2,
+          5
+        ],
+        "signedPlayerSeconds": 1163.20000000048,
+        "savedReport": true
+      },
+      {
+        "mode": "extended",
+        "score": [
+          2,
+          5
+        ],
+        "signedPlayerSeconds": 1163.20000000048,
+        "savedReport": true
+      },
+      {
+        "mode": "highlights",
+        "score": [
+          2,
+          5
+        ],
+        "signedPlayerSeconds": 1163.20000000048,
+        "savedReport": true
+      },
+      {
+        "mode": "commentary",
+        "score": [
+          2,
+          5
+        ],
+        "signedPlayerSeconds": 1163.20000000048,
+        "savedReport": true
+      }
+    ],
+    "A": {
+      "club": "HV71",
+      "date": "2026-09-10",
+      "played": 1,
+      "savedTable": true,
+      "savedReport": true
+    },
+    "B": {
+      "player": "Oula Palve",
+      "observations": 1,
+      "salary": 840000,
+      "uniqueRoster": true,
+      "played": true
+    }
+  },
+  "emptySearch": true,
+  "careerSoak": {
+    "scope": "Background career, real contracts/jobs, no protected employment or contract extension; no browser UI",
+    "passed": true,
+    "seasons": 3,
+    "years": [
+      2026,
+      2027,
+      2028
+    ],
+    "clubRosterRange": [
+      20,
+      28
+    ],
+    "cashRange": [
+      1106758,
+      105742024
+    ],
+    "saveBytes": [
+      3257104,
+      3946368,
+      4576570
+    ],
+    "transfers": [
+      28,
+      10,
+      27
+    ],
+    "validation": [
+      "728 registered regular fixtures per season",
+      "2184 total regular-season league points",
+      "goals for equal goals against",
+      "AI cash equals opening balance plus ledger",
+      "exact saved state and successful export validation at each checkpoint",
+      "unique player identities across clubs, free agents, external loans and academies",
+      "all player attributes within 1–20",
+      "saved state below simulated 5 MiB quota"
+    ]
+  },
+  "startingCommit": "e5b0e05ddb9e9440eba98d244d852868190d7d8e"
+}

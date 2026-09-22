@@ -24,8 +24,8 @@ function hubRoleFit(p){
  return `<small title="${trainingSafe(profile)}: bedömd rollpassning på attributskalan 1–20. Intervallet visar osäkerheten.">${trainingSafe(profile)} · ${a.low===a.high?a.low:`${a.low}–${a.high}`}/20</small>`;
 }
 function hubHeader(){
- const r=state.recruitment,offers=r.deals.filter(d=>d.status==='pending'),reserved=offers.filter(d=>d.kind!=='future').reduce((n,d)=>n+d.fee,0);
- return `<header class="rh-header"><div><h1>Rekrytering</h1><span>${trainingSafe(managerClub())} · ${calendarDeadlineText()}</span></div><dl><div><dt>Klubbkassa</dt><dd>${careerMoney(state.money)}</dd></div><div><dt>Reserverat i köpbud</dt><dd>${careerMoney(reserved)}</dd></div><div><dt>Löneutrymme före bud / år</dt><dd>${careerMoney(wageBudget()-annualWageCost())}</dd></div><div><dt>Scoutuppdrag</dt><dd>${scoutActiveCount()} / ${clubMissionLimit()}</dd></div></dl></header>`;
+ const b=managerRecruitmentBudget();
+ return `<header class="rh-header"><div><h1>Rekrytering</h1><span>${trainingSafe(managerClub())} · ${calendarDeadlineText()}</span></div><dl><div><dt>Kassa efter reserverade bud</dt><dd>${careerMoney(b.availableCash)}</dd></div><div><dt>Reserverat i köpbud</dt><dd>${careerMoney(b.fees)}</dd></div><div><dt>Ledigt löneutrymme / år</dt><dd>${careerMoney(b.wageRoom)}</dd></div><div><dt>Nästa säsongs löneutrymme</dt><dd>${careerMoney(b.futureRoom)}</dd></div></dl></header>`;
 }
 function hubFilters(tab){
  const f=recruitFilters();

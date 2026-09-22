@@ -9,7 +9,7 @@ function boot(saved,options={}){
     setAttribute(k,v){this.attrs[k]=v;},addEventListener(){},focus(){this.focused=true;},scrollIntoView(options){this.scrolledIntoView=options;}};};
   const get=k=>{if(!nodes.has(k))nodes.set(k,node());return nodes.get(k);};
   const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},...(options.window?{window:options.window}:{}),
-    localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value||null:storage.extra[k]||null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;}},
+    localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value??null:storage.extra[k]??null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;},removeItem:k=>{if(k==='hockey_manager_alpha02')storage.value=null;else delete storage.extra[k];}},
     document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:(key,handler)=>events[key]=handler}});
   // Use the actual entrypoint order so this suite also catches missing modules.
   for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});

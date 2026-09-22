@@ -44,10 +44,11 @@ function naDetach(p){
 function naLoanRoom(p,club,share=.5,existingCost=0){
  const cost=p.naContract?p.naContract.ahlSalary*share:900000*share,own=club===managerClub();
  const used=own?annualWageCost():loanWageCost(club),limit=own?wageBudget():state.recruitment.ai[club]?.wageLimit||0;
- const reserved=loanReserved(club)+state.recruitment.deals.filter(d=>d.status==='pending'&&d.buyer===club&&d.kind!=='future').reduce((n,d)=>n+d.salary,0);
+ const reserved=own?managerRecruitmentBudget().salaryReserved:loanReserved(club)+state.recruitment.deals.filter(d=>d.status==='pending'&&d.buyer===club&&d.kind!=='future').reduce((n,d)=>n+d.salary,0);
  return (state.clubRosters[club]||[]).filter(q=>!samePlayerId(q.id,p.id)).length<30&&used-existingCost+cost+reserved<=limit;
 }
 function naAttachLoan(p,club,share=.5){
+ trainingClubChange(p,p.club,club);
  const c=p.naContract;c.assignment='Sweden';p.club=club;p.salary=c.ahlSalary;p.contractYears=Math.max(1,Number(c.end.slice(0,4))-state.season.year);
  if(p.academy){p.academy.path='senior';p.academy.seniorContract=false;p.academy.loan=null;}
  state.clubRosters[club].push(p);

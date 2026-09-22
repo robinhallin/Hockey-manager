@@ -1,5 +1,7 @@
 # Hockey-manager
 
+Senaste genomgång: [sparsäkerhet, spelaråtaganden och sammanhängande karriärflöden](CAREER-INTEGRITY-AUDIT.md).
+
 Senaste utvecklingsarbetet: [Klubb-AI med långsiktiga truppplaner, ekonomi,
 akademier och taktiskt minne](CLUB_AI.md).
 

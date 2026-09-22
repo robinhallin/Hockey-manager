@@ -75,3 +75,17 @@ function careerStore(key,text){
   localStorage.setItem(key,packed);careerPackedKeys.add(key);
  }
 }
+// Keep the active save authoritative until both preparations have succeeded.
+// A failed backup must never replace the career that will load on refresh.
+function careerReplaceStored(text,previousText){
+ const backup=localStorage.getItem(PREVIOUS_CAREER_KEY);
+ if(previousText!==null)careerStore(PREVIOUS_CAREER_KEY,previousText);
+ try{careerStore(CAREER_SAVE_KEY,text);}
+ catch(error){
+  if(previousText!==null)try{
+   if(backup===null)localStorage.removeItem(PREVIOUS_CAREER_KEY);
+   else localStorage.setItem(PREVIOUS_CAREER_KEY,backup);
+  }catch{error.careerBackupRestoreFailed=true;}
+  throw error;
+ }
+}

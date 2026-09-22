@@ -65,6 +65,7 @@ function loanSubmit(id,destination,days,share,role='regular',recall='day28'){
 }
 function loanCompleteOffer(o){
  const p=findPlayerAnywhere(o.playerId);if(!p||getPlayerClub(p.id)!==o.owner)return false;
+ trainingClubChange(p,o.owner,o.borrower);
  const feedbackPlan=feedbackBeforeArrival(p,o.borrower);
  const t=o.counter||o,until=t.days?calAdd(state.calendar.date,t.days):`${state.season.year+1}-05-15`;
  const l={id:state.loans.nextId++,playerId:p.id,name:p.name,owner:o.owner,borrower:o.borrower,start:state.calendar.date,until,share:t.share,role:t.role,recall:t.recall,initial:false,termsEstimated:true,baseline:{games:p.games||0,goals:p.goals||0,assists:p.assists||0},seconds:0,games:0,starts:0,goals:0,assists:0,appearances:[]};
@@ -98,11 +99,12 @@ function loanAnswer(id,accept){
 function loanOffersView(){return (state.loans.offers||[]).slice(0,20).map(o=>{const t=o.counter||o;return `<article class="loan-negotiation"><header><h3>${trainingSafe(o.name)}</h3><strong>${({pending:'Inväntar klubb & spelare',counter:'Motbud att ta ställning till',agreed:'Överens',rejected:'Avslag',expired:'Utgånget',cancelled:'Avslutat'})[o.status]}</strong></header><p>${trainingSafe(o.owner)} → ${trainingSafe(o.borrower)}</p>${o.counter?`<p>Ditt förslag: ${o.share*100} % lön · ${o.days?o.days+' dagar':'säsongen ut'} · ${LOAN_ROLES[o.role]}.</p>`:''}<div class="loan-terms"><b>${t.share*100} % lön</b><span>${t.days?t.days+' dagar':'Säsongen ut'}</span><span>${LOAN_ROLES[t.role]}</span><span>Återkallelse ${t.recall==='anytime'?'direkt':'efter 28 dagar'}</span></div><p>${trainingSafe(o.reason||'Svar '+calText(o.due))}</p>${o.status==='counter'?`<p>Gäller till ${calText(o.expires)}.</p><button class="btn" onclick="loanAnswer(${o.id},true)">Acceptera motbudet</button>`:''}${['pending','counter'].includes(o.status)?`<button class="btn secondary" onclick="loanAnswer(${o.id},false)">${o.status==='counter'?'Avböj':'Återkalla förslag'}</button>`:''}</article>`;}).join('');}
 function loanReturn(l,reason){
  const p=(state.clubRosters[l.borrower]||[]).find(p=>samePlayerId(p.id,l.playerId));if(!p)return false;
+ trainingClubChange(p,l.borrower,l.owner);
  state.clubRosters[l.borrower]=state.clubRosters[l.borrower].filter(q=>!samePlayerId(q.id,p.id));delete p.loanId;p.club=l.owner;
  if(l.northAmerica)naReceiveReturn(p,l,reason);else if(state.clubRosters[l.owner])state.clubRosters[l.owner].push(p);else state.loans.external.push(p);
  state.loans.active=state.loans.active.filter(q=>q.id!==l.id);state.loans.history.unshift({...l,returned:state.calendar.date,reason});state.loans.history=state.loans.history.slice(0,100);
  if([l.owner,l.borrower].includes(managerClub()))managerMessage(`loan-return:${l.id}`,`${p.name} återvänder till ${l.owner}`,`${reason}. Kontrakt, utveckling och skadehistorik följer med spelaren.`,'Sportchef',{link:'transfers'});
- syncManagerRoster();repairMedicalLines();return true;
+ syncManagerRoster();repairMedicalLines();ensureSpecialTeams();depthSelection();return true;
 }
 function loanRecall(id){
  const l=state.loans?.active.find(l=>l.id===id);if(!l||![l.owner,l.borrower].includes(managerClub()))return;
