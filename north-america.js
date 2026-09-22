@@ -81,7 +81,7 @@ function naSign(o,mode='move'){
  if(o.origin===managerClub())clubPost('transfer',o.fee,`NHL-övergång · ${p.name}`);else if(clubAIState(o.origin))aiFinancePost(o.origin,'transfer',o.fee,`NHL-övergång · ${p.name}`);else if(state.recruitment.ai[o.origin])state.recruitment.ai[o.origin].cash+=o.fee;
  naLog(p,'signed',`Avtal med ${o.team} till ${calText(o.end)}. Förhandlad klubbersättning ${careerMoney(o.fee)}.`);
  if(back)naAttachLoan(p,o.origin,o.share);else {w.abroad.push(p);naAssignTeam(o.team);}
- if(state.world.membership[o.origin])feedbackNews(`na-sign:${o.id}`,o.origin,'transfer',`${p.name} skriver NHL-avtal`,`${o.team} tar över kontraktet.${back?' Spelaren stannar på ett säsongslån.':' Spelaren lämnar truppen för Nordamerika.'}`);
+ if(state.world.membership[o.origin])feedbackNews(`na-sign:${o.id}`,o.origin,'transfer',playerHeadline(p,' skriver NHL-avtal'),`${o.team} tar över kontraktet.${back?' Spelaren stannar på ett säsongslån.':' Spelaren lämnar truppen för Nordamerika.'}`);
  if(owned){(state.season.departures??=[]).push(back?`${p.name} (NHL-avtal, återlån)`:p.name);managerMessage(`na-signed:${o.id}`,`${p.name}: NHL-avtalet är klart`,`${o.team} · till ${calText(o.end)}. ${back?'Ett återlån är registrerat.':'Registreringen har flyttats till '+naLocation(p)+'.'} ${careerMoney(o.fee)} har bokförts i klubbkassan.`,'Sportchefen',{link:'nhl'});}
  syncManagerRoster();repairMedicalLines();return true;
 }

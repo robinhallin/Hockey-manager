@@ -172,7 +172,7 @@ function aiPromote(club,p,reason){
  p.academy.path='senior';p.academy.seniorContract=true;p.contractYears=Math.max(2,p.contractYears);p.club=club;
  p.aiRoleReview={games:0,seconds:0,missed:0};
  aiDecision(club,'academy',`${p.name} flyttas upp: ${reason}`);
- rivalEvent(club,'development',`${p.name} får chansen`,`${club} flyttar upp ${p.age}-åringen. ${reason}`);return true;
+ rivalEvent(club,'development',playerHeadline(p,' får chansen'),`${club} flyttar upp ${p.age}-åringen. ${reason}`);return true;
 }
 function aiReviewClub(club){
  const c=clubAIState(club);if(!c||club===managerClub())return;

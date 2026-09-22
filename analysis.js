@@ -46,7 +46,8 @@ function recordAnalysisShot(side,name,id,dangerous,location,probability,result,o
 function analysisEvent(type,side,text,id=null){
  ensureAnalysis();const a=state.live?.analysis;if(!a)return;
  const scorer=type==='goal'?findPlayerAnywhere(id):null;
- a.events.push({time:analysisClock(),period:state.live.period,clock:gameTime(),type,side,text,situation:analysisSituation(),...(type==='goal'?{scorerId:id,scorer:scorer?.name||null,assists:[],own:state.live.hv,against:state.live.opp}: {})});
+ const subject=id!=null?findPlayerAnywhere(id):null;
+ a.events.push({time:analysisClock(),period:state.live.period,clock:gameTime(),type,side,text,situation:analysisSituation(),...(subject?{playerId:subject.id,playerName:subject.name}:{}),...(type==='goal'?{scorerId:id,scorer:scorer?.name||null,assists:[],own:state.live.hv,against:state.live.opp}: {})});
  if(type==="goal"||type==="penalty")leagueTrackEvent(type,side,id);
  if(type==='goal'){
   for(const unit of analysisUnits())analysisUnitRecord(unit)[side==='own'?'goalsFor':'goalsAgainst']++;
@@ -104,7 +105,7 @@ function performanceStars(value){
 function performanceView(report){
  if(!report)return '<p class="mc-note">Den äldre matchen saknar underlag för prestationsbetyg.</p>';
  const rows=report.rows.filter(r=>r.club===report.club).sort((a,b)=>a.club.localeCompare(b.club)||(b.stars??0)-(a.stars??0)||b.seconds-a.seconds);
- return `<section class="performance-report"><h2>Matchens spelarinsatser</h2><p>Betyg för just denna match, från en till fem stjärnor. Poäng, avslutskvalitet, passningsspel, puckdueller, blockeringar, disciplin och spel i lika styrka vägs ihop. Målvaktens räddningar bedöms även mot skottens kvalitet när sådant underlag finns. Kort istid och små målvaktsunderlag lämnas utan betyg. Förmåga och potential är separata bedömningar.</p><div class="mc-table-scroll"><table><caption>Prestationsbetyg · ${report.date?calText(report.date):'Matchrapport'}</caption><thead><tr><th>Spelare</th><th>Matchbetyg</th><th>Bakom betyget</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${trainingSafe(r.name)} <small>${r.pos}</small></th><td>${performanceStars(r.stars)}${r.score?`<small>${r.score.toFixed(1)} / 10</small>`:''}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')||'<tr><td colspan="3">Ingen registrerad istid. Oanvända reserver får inga betyg.</td></tr>'}</tbody></table></div></section>`;
+ return `<section class="performance-report"><h2>Matchens spelarinsatser</h2><p>Betyg för just denna match, från en till fem stjärnor. Poäng, avslutskvalitet, passningsspel, puckdueller, blockeringar, disciplin och spel i lika styrka vägs ihop. Målvaktens räddningar bedöms även mot skottens kvalitet när sådant underlag finns. Kort istid och små målvaktsunderlag lämnas utan betyg. Förmåga och potential är separata bedömningar.</p><div class="mc-table-scroll"><table><caption>Prestationsbetyg · ${report.date?calText(report.date):'Matchrapport'}</caption><thead><tr><th>Spelare</th><th>Matchbetyg</th><th>Bakom betyget</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${playerReference(r.id,r.name)} <small>${r.pos}</small></th><td>${performanceStars(r.stars)}${r.score?`<small>${r.score.toFixed(1)} / 10</small>`:''}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')||'<tr><td colspan="3">Ingen registrerad istid. Oanvända reserver får inga betyg.</td></tr>'}</tbody></table></div></section>`;
 }
 function archiveMatchSummaries(){
  const a=state.analysis;if(!a)return;

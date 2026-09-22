@@ -154,7 +154,7 @@ function juniorWorldAIReport(club,opponent,round,goals){
 }
 function juniorWorldScoringView(league){
   const rows=juniorWorldClubs(league).flatMap(club=>juniorWorldRoster(club).map(p=>({p,club,stats:p.academy?.leagueStats}))).filter(r=>r.stats?.year===state.season.year&&r.stats.games).sort((a,b)=>(b.stats.goals+b.stats.assists)-(a.stats.goals+a.stats.assists)||b.stats.goals-a.stats.goals).slice(0,12);
-  return `<details class="dv-report"><summary>J20-poängliga · registrerade juniormatcher</summary><p class="dv-note">Statistik börjar samlas med den här uppdateringen. Äldre mål och matcher återskapas inte.</p><table><thead><tr><th>Spelare</th><th>Klubb</th><th>M</th><th>Mål</th><th>Ass</th><th>Poäng</th></tr></thead><tbody>${rows.map(({p,club,stats:l})=>`<tr><th>${trainingSafe(p.name)}</th><td>${trainingSafe(club)}</td><td>${l.games}</td><td>${l.goals}</td><td>${l.assists}</td><td>${l.goals+l.assists}</td></tr>`).join('')||'<tr><td colspan="6">Ingen registrerad seriematch ännu.</td></tr>'}</tbody></table></details>`;
+  return `<details class="dv-report"><summary>J20-poängliga · registrerade juniormatcher</summary><p class="dv-note">Statistik börjar samlas med den här uppdateringen. Äldre mål och matcher återskapas inte.</p><table><thead><tr><th>Spelare</th><th>Klubb</th><th>M</th><th>Mål</th><th>Ass</th><th>Poäng</th></tr></thead><tbody>${rows.map(({p,club,stats:l})=>`<tr><th>${playerReference(p.id,p.name)}</th><td>${trainingSafe(club)}</td><td>${l.games}</td><td>${l.goals}</td><td>${l.assists}</td><td>${l.goals+l.assists}</td></tr>`).join('')||'<tr><td colspan="6">Ingen registrerad seriematch ännu.</td></tr>'}</tbody></table></details>`;
 }
 
 function juniorWorldManagerResult(pair,match,round,projected=null){

@@ -246,8 +246,8 @@ function aiResolveMarket(){
   if(!signed){o.status='rejected';o.reason='Affären klarade inte den slutliga kontrollen.';continue;}
   aiMarkMarketPlayer(p.id,o.buyer);
   const text=`${o.kind==='future'?'Säkrar nästa säsong med':o.kind==='loan'?'Lånar':'Värvar'} ${p.name} från ${o.seller}. ${o.decisionReason}`;
-  if(o.kind==='future')feedbackNews('future-sign:'+o.id,o.buyer,'transfer',p.name+' skriver förhandsavtal',text);
-  aiDecision(o.buyer,'market',text);rivalEvent(o.buyer,'transfer',`${o.buyer}: ${p.name}`,text);
+  if(o.kind==='future')feedbackNews('future-sign:'+o.id,o.buyer,'transfer',playerHeadline(p,' skriver förhandsavtal'),text);
+  aiDecision(o.buyer,'market',text);rivalEvent(o.buyer,'transfer',[o.buyer+': ',playerMention(p)],text);
  }
  w.offers=w.offers.filter(o=>o.status==='pending'||calGap(o.date,state.calendar.date)<=90).slice(-160);
 }
