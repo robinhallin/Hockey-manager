@@ -13,7 +13,7 @@ async function launch(){
  page=await application.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',error=>errors.push(error.message));
  await page.waitForFunction(()=>typeof state!=='undefined' && typeof window.hockeyDesktop!=='undefined');
  await page.locator('.career-menu').waitFor();
- savePath=await application.evaluate(({app})=>require('node:path').join(app.getPath('userData'),'saves','career.json'));
+ savePath=path.join(await application.evaluate(({app})=>app.getPath('userData')),'saves','career.json');
 }
 async function close(){
  const closed=application.waitForEvent('close',{timeout:30000});
