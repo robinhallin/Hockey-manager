@@ -94,11 +94,19 @@ function evidenceStartingRow(row){
   return update?{...s,...update}: {...s};
  })};
 }
-function evidenceSaveSummary(model){
- // Omitted keys are position/level priors with high uncertainty. Retain each
- // observed field as [method, sample, uncertainty]; method defines sample units.
- // Source statistics and model version are saved separately. No career result,
- // source fact or private development ceiling is discarded to reduce file size.
- return {version:model.version,checked:PLAYER_EVIDENCE_MODEL.checked,
-  observations:Object.fromEntries(Object.entries(model.evidence).filter(([,e])=>e.kind!=='position-level-prior').map(([key,e])=>[key,[e.kind,e.sample,e.uncertainty]]))};
+// Save schema 2 identifies this frozen method/date definition. Keep it when future
+// models are introduced. Avoid repeating definitions and derived samples 684 times.
+function evidenceSavedModel(research){return research?.model===2?{version:'se-evidence-2',asOf:'2026-09-07',checked:'2026-09-23'}:null;}
+const EVIDENCE_SOURCE_ROOT='https://stats.swehockey.se/Players/Statistics/';
+function evidenceSourceURL(source){return typeof source==='string'?EVIDENCE_SOURCE_ROOT+source:source.url;}
+function evidenceSavedStats(stats){
+ return stats.map(s=>{
+  const row=JSON.parse(JSON.stringify(s));
+  if(row.sources)row.sources=row.sources.map(source=>{
+   // Lossless URL-prefix/date interning for this dated batch only. Preserve any
+   // other source verbatim so unknown or later metadata cannot be relabelled.
+   return source.checked==='2026-09-23'&&source.url?.startsWith(EVIDENCE_SOURCE_ROOT)?source.url.slice(EVIDENCE_SOURCE_ROOT.length):source;
+  });
+  return row;
+ });
 }

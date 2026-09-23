@@ -14,8 +14,9 @@ assert.equal(r('haAge("2000-09-15")'),25,'age uses start date, not verification 
 assert.equal(r('haAge("2000-09-15","2026-09-23")'),26);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.weight'),88);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.height'),190);
-assert.ok(r('findPlayerAnywhere("ep-29607").research.model.observations.reflexes[1]>0'),'compact save retains observed sample');
+assert.ok(r('findPlayerAnywhere("ep-29607").research.stats.some(s=>s.shotsAgainst>0)'),'compact save retains observed sample');
 assert.ok(r('haResearchPanel(findPlayerAnywhere("ep-29607")).includes("Returkontroll")'),'unmeasured trait still explained');
+assert.ok(r('findPlayerAnywhere("ep-29607").research.stats.flatMap(s=>s.sources||[]).every(s=>evidenceSourceURL(s).startsWith("https://stats.swehockey.se/Players/Statistics/"))'),'interned source paths restore original public URLs');
 assert.equal(r('ALLSVENSKAN_DATABASE.clubs["Mora IK"].players.find(p=>p.id==="ep-29607").weight'),194,'raw facts retained for reproducibility');
 assert.ok(r('Object.values(state.clubRosters).flat().every(p=>!p.research||p.research.weight>=45&&p.research.weight<=140)'));
 assert.ok(r('Object.values(state.clubRosters).flat().filter(p=>p.research?.model).every(p=>p.social.basis==="neutral-unobserved"&&p.social.sensitivity===10&&p.social.loyalty===10)'));
@@ -41,16 +42,17 @@ r('globalThis.young={birth:"2006-01-01",position:"D",stats:[{season:"25-26",leag
 assert.ok(r('evidencePotential(young).central!==evidencePotential(sparse).central'));
 assert.ok(r('(evidencePotential(sparse).high-evidencePotential(sparse).low)>(evidencePotential(young).high-evidencePotential(young).low)'));
 // Profiles share public sources, but cannot reveal live private attributes/ceilings.
-r('globalThis.external=state.clubRosters.AIK.find(p=>p.pos==="C");globalThis.unknown=JSON.stringify(playerAssessment(external));globalThis.sourceHTML=haResearchPanel(external);external.attributes.shooting=20;external.attributeGrowth=8;external.developmentForecast.central=8');
+r('globalThis.external=state.clubRosters.AIK.find(p=>p.pos==="C");globalThis.unknown=JSON.stringify(playerAssessment(external));globalThis.sourceHTML=haResearchPanel(external);external.attributes.shooting=20;external.attributeGrowth=8;external.developmentForecast[1]=8');
 assert.equal(r('JSON.stringify(playerAssessment(external))'),r('unknown'));
 assert.equal(r('haResearchPanel(external)'),r('sourceHTML'));
-r('scoutObserve(external.id,state.calendar.date,{force:true});globalThis.observed=JSON.stringify(playerAssessment(external));external.attributes.shooting=1;external.attributeGrowth=0;external.developmentForecast.central=0');
+r('scoutObserve(external.id,state.calendar.date,{force:true});globalThis.observed=JSON.stringify(playerAssessment(external));external.attributes.shooting=1;external.attributeGrowth=0;external.developmentForecast[1]=0');
 assert.equal(r('JSON.stringify(playerAssessment(external))'),r('observed'),'snapshot frozen until next observation');
 // Real training consumes the new room and survives save/reload; source facts do not.
 r('globalThis.junior=managerRoster().find(p=>p.age<24&&p.pos!=="MV");globalThis.key=Object.keys(junior.attributes).find(k=>ensureDevelopment(junior).ceiling[k]>junior.attributes[k]);globalThis.before=junior.attributes[key];globalThis.facts=JSON.stringify(junior.research);junior.health.injury=null;developmentAdvance(junior,key,10000,"Individuellt fokus");save()');
 assert.equal(r('junior.attributes[key]'),r('before+1'));
 assert.equal(r('JSON.stringify(junior.research)'),r('facts'));
 const loaded=boot(storage.value),id=r('junior.id'),key=r('key');
+assert.equal(loaded.run('haResearchPanel(findPlayerAnywhere("ep-29607"))'),r('haResearchPanel(findPlayerAnywhere("ep-29607"))'),'source definitions and public history survive compact save');
 assert.equal(loaded.run(`findPlayerAnywhere(${JSON.stringify(id)}).attributes[${JSON.stringify(key)}]`),r('before+1'));
 assert.equal(loaded.run(`JSON.stringify(findPlayerAnywhere(${JSON.stringify(id)}).developmentModel)`),r('JSON.stringify(junior.developmentModel)'));
 // An earlier real career remains authoritative, including data corrected for new games.

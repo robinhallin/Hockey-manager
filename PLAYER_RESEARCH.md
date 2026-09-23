@@ -165,6 +165,12 @@ avtal, ledarskapsomdömen eller scoutingtexter har inte konstruerats.
 6. `node scripts/build-player-evidence.cjs --check` verifierar identisk
    generering utan skrivningar. Inga liveanrop görs när spelet startas.
 
+Sparningen lagrar metodidentifieraren 2 och potentialens låg-/höggränser
+kompakt. Upprepade URL-prefix och kontroll­datum i denna källbatch följer
+den fasta metoddefinitionen. Källstatistiken, individuella utvecklingstak
+och karriärhistoriken bevaras. Befintligt sparfilsformat används; båda
+regressionstesterna för export under 4,5 miljoner tecken är oförändrade.
+
 [Truppgranskningen](data/roster-review-2026-09-23.json) redovisar aktuella
 HA-listor, SHL:s officiella översikt och daterade händelser efter starten.
 Komuls till HV71 och Zetterberg till Västerås den 8 september backdateras

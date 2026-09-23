@@ -1528,8 +1528,7 @@
           "low": 0.5,
           "high": 3.9,
           "basis": "age-level-two-seasons",
-          "weightedGames": 35,
-          "version": "se-evidence-2"
+          "weightedGames": 35
         }
       },
       "officialSources": []
@@ -1569,8 +1568,7 @@
           "low": 0,
           "high": 0.4,
           "basis": "age-level-limited-sample",
-          "weightedGames": 42.5,
-          "version": "se-evidence-2"
+          "weightedGames": 42.5
         }
       },
       "officialSources": [
@@ -1612,8 +1610,7 @@
           "low": 0.4,
           "high": 2,
           "basis": "age-level-two-seasons",
-          "weightedGames": 35,
-          "version": "se-evidence-2"
+          "weightedGames": 35
         }
       },
       "officialSources": [
@@ -1674,8 +1671,7 @@
           "low": 0,
           "high": 0.4,
           "basis": "age-level-two-seasons",
-          "weightedGames": 76.5,
-          "version": "se-evidence-2"
+          "weightedGames": 76.5
         }
       },
       "officialSources": [
@@ -1736,8 +1732,7 @@
           "low": 0,
           "high": 0.4,
           "basis": "age-level-two-seasons",
-          "weightedGames": 65.5,
-          "version": "se-evidence-2"
+          "weightedGames": 65.5
         }
       },
       "officialSources": [
@@ -1798,8 +1793,7 @@
           "low": 0,
           "high": 0.4,
           "basis": "age-level-two-seasons",
-          "weightedGames": 61.5,
-          "version": "se-evidence-2"
+          "weightedGames": 61.5
         }
       },
       "officialSources": []
@@ -1857,8 +1851,7 @@
           "low": 2.1,
           "high": 4.5,
           "basis": "age-level-two-seasons",
-          "weightedGames": 57.5,
-          "version": "se-evidence-2"
+          "weightedGames": 57.5
         }
       },
       "officialSources": []
@@ -1916,8 +1909,7 @@
           "low": 1.8,
           "high": 5.2,
           "basis": "age-level-two-seasons",
-          "weightedGames": 47.5,
-          "version": "se-evidence-2"
+          "weightedGames": 47.5
         }
       },
       "officialSources": []

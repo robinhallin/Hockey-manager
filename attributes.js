@@ -59,7 +59,8 @@ function scoutPotentialSnapshot(p){
  // A projection of remaining development room, never the private per-attribute
  // ceiling. Freeze it with the observation; later private changes cannot leak.
  const f=p.developmentForecast;
- return {growth:Math.max(0,p.attributeGrowth)*.675,uncertainty:Math.max(.4,(f.high-f.low)*.3375),age:p.age};
+ const spread=Array.isArray(f)?f[1]-f[0]:f.high-f.low;
+ return {growth:Math.max(0,p.attributeGrowth)*.675,uncertainty:Math.max(.4,spread*.3375),age:p.age};
 }
 function scoutRemember(p){return {visits:3,lastObserved:state.calendar.date,snapshotDate:state.calendar.date,snapshot:{...ensurePlayerAttributes(p)},potentialSnapshot:scoutPotentialSnapshot(p),origin:'club'};}
 function scoutFreshnessView(p){
