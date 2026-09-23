@@ -5,7 +5,8 @@ function officeOpenDeal(key){
   deskNavigate('transfers','deals');
   state.recruitment.focusDeal=null;
   state.loans.selected=null;
-  recruitHub.affairs='open';
+  const row=hubAffairRows().find(x=>x.key===key);
+  recruitHub.affairs=row?.status==='active'?'active':row&&!['pending','counter'].includes(row.status)?'history':'open';
   recruitHub.deal=key;
   render();queueInterfaceSave();
 }
@@ -16,7 +17,7 @@ function officeDecisions(){
   const add=(key,title,detail)=>tasks.push({key,title,detail,tag:'Affär'});
   (state.loans?.offers||[]).filter(o=>o.status==='counter').forEach(o=>add('loan:'+o.id,o.name||'Låneförhandling','Motbud om lån · granska nya villkor'));
   r.deals.filter(d=>d.status==='pending'&&d.counter).forEach(d=>add('transfer:'+d.id,d.name||'Värvning','Agentens motbud · granska nya villkor'));
-  r.incoming.filter(d=>d.status==='pending'&&d.expires>=r.tick).forEach(d=>add('incoming:'+d.id,d.name||'Försäljningsbud',`${d.buyer||'En klubb'} erbjuder ${careerMoney(d.fee||0)}`));
+  r.incoming.filter(incomingOfferOpen).forEach(d=>add('incoming:'+d.id,d.name||'Inkommande bud',`${d.buyer} · ${d.kind==='loan'?'Lånebud':careerMoney(d.fee||0)} · ${incomingStage(d)}`));
   return tasks;
 }
 function officeScoutMissions(){

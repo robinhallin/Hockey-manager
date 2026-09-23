@@ -101,7 +101,7 @@ function identities(app){return app.run('JSON.stringify([...Object.values(state.
  r(`globalThis.buyers=['Färjestad BK','Luleå Hockey'];
   for(const club of buyers){
    const forwards=state.clubRosters[club].filter(p=>worldGroup(p)==='F');
-   for(const p of forwards.slice(12)){state.clubRosters[club]=state.clubRosters[club].filter(q=>q!==p);worldRelease(p,club,'Test fixture: transfer-listed surplus');}
+   for(const p of forwards.slice(11)){state.clubRosters[club]=state.clubRosters[club].filter(q=>q!==p);worldRelease(p,club,'Test fixture: transfer-listed surplus');}
    state.recruitment.ai[club].cash=100000000;state.recruitment.ai[club].wageLimit=100000000;
   }
   globalThis.target=state.playerWorld.freeAgents.find(p=>p.name==='Oula Palve');

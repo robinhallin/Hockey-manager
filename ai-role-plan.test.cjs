@@ -52,8 +52,8 @@ function setup(){const app=boot();app.run(`startCareerWithClub('HV71');globalThi
  for(const k of Object.keys(own.attributes))own.attributes[k]=10;
  globalThis.o={id:999,playerId:own.id,buyer:club,...terms,status:'pending',expires:state.recruitment.tick+3};
  state.recruitment.incoming.push(o);globalThis.cash=state.money;answerIncomingOffer(999,true);`);
- assert.equal(r('o.status'),'expired');assert.match(r('o.reason'),/Rollen/);
- assert.match(r('state.recruitment.message'),/drar tillbaka budet/);
+ assert.equal(r('o.status'),'rejected');assert.match(r('o.reason'),/Rollen/);
+ assert.match(r('state.recruitment.message'),/Rollen/);
  assert.equal(r('getPlayerClub(own.id)'),'HV71');assert.equal(r('state.money'),r('cash'));
 }
 console.log('PASS: role feasibility, actual submission/signing, injury return, future arrivals, cancelled bids, candidate deduplication, stronger recruits and save reload.');
