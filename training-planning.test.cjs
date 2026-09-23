@@ -11,11 +11,11 @@ for(const load of ['normal','light','rest']){
  assert.equal(run('p.trainingSessions[0].after'),expected,'Real pass must agree with preview');
  assert.equal(run('p.trainingSessions[0].rest'),load==='rest');
  assert.equal(run('p.health.load'),16+(load==='rest'?0:load==='normal'?12:5));
- assert.equal(run('state.calendar.date'),'2026-09-08');
+ assert.equal(run('state.calendar.date'),'2026-09-24');
 }
 const app=boot(),run=app.run;
 run(`startCareerWithClub('HV71');globalThis.p=managerRoster().find(p=>p.pos==='C');p.fatigue=70;setIndividualLoad(p.id,'rest');setTrainingReturn(p.id,3);`);
-assert.equal(run('p.trainingReturn.date'),'2026-09-10');
+assert.equal(run('p.trainingReturn.date'),'2026-09-26');
 run('managerContinue();managerContinue();save()');
 const restored=boot(app.storage.value),r=restored.run;
 r(`resumeCareer();globalThis.p=managerRoster().find(p=>p.pos==='C');`);

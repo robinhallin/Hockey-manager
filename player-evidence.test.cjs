@@ -10,7 +10,7 @@ assert.throws(()=>measurement(88,'','weight'));
 execFileSync(process.execPath,['scripts/build-player-evidence.cjs','--check']);
 const {run:r,storage}=boot();
 r('startCareerWithClub("Mora IK")');
-assert.equal(r('haAge("2000-09-15")'),25,'age uses start date, not verification date');
+assert.equal(r('haAge("2000-09-15")'),26,'age uses start date, not verification date');
 assert.equal(r('haAge("2000-09-15","2026-09-23")'),26);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.weight'),88);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.height'),190);
@@ -18,7 +18,7 @@ assert.ok(r('findPlayerAnywhere("ep-29607").research.stats.some(s=>s.shotsAgains
 assert.ok(r('haResearchPanel(findPlayerAnywhere("ep-29607")).includes("Returkontroll")'),'unmeasured trait still explained');
 assert.ok(r('findPlayerAnywhere("ep-29607").research.stats.flatMap(s=>s.sources||[]).every(s=>evidenceSourceURL(s).startsWith("https://stats.swehockey.se/Players/Statistics/"))'),'interned source paths restore original public URLs');
 assert.equal(r('ALLSVENSKAN_DATABASE.clubs["Mora IK"].players.find(p=>p.id==="ep-29607").weight'),194,'raw facts retained for reproducibility');
-assert.ok(r('Object.values(state.clubRosters).flat().every(p=>!p.research||p.research.weight>=45&&p.research.weight<=140)'));
+assert.ok(r('Object.values(state.clubRosters).flat().every(p=>!p.research||(p.research.weight===null||p.research.weight>=45&&p.research.weight<=140))'));
 assert.ok(r('Object.values(state.clubRosters).flat().filter(p=>p.research?.model).every(p=>p.social.basis==="neutral-unobserved"&&p.social.sensitivity===10&&p.social.loyalty===10)'));
 // Unmeasured physical/mental traits do not become fake facts through convenient proxies.
 r('globalThis.input={birth:"2002-03-01",position:"C",weight:70,stats:[{season:"25-26",league:"SHL",gp:40,goals:8,assists:12,pim:2}]};globalThis.changed=JSON.parse(JSON.stringify(input));changed.weight=120;changed.stats[0].pim=200');

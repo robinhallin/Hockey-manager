@@ -3,13 +3,13 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 run('startCareerWithClub("HV71")');
-assert.equal(run('managerRoster().length'),25);assert.equal(run('goalies().length'),3);
-assert.equal(run('Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).reduce((n,c)=>n+c.players.length,0)'),680);
-assert.equal(run('new Set(Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).flatMap(c=>c.players.map(p=>p.id))).size'),680);
-assert.equal(run('state.loans.active.length'),23);
+assert.equal(run('managerRoster().length'),28);assert.equal(run('goalies().length'),3);
+assert.equal(run('Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).reduce((n,c)=>n+c.players.length,0)'),709);
+assert.equal(run('new Set(Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).flatMap(c=>c.players.map(p=>p.id))).size'),709);
+assert.equal(run('state.loans.active.length'),35);
 assert.equal(run('state.loans.active.find(l=>l.name==="Edvin Hammarlund").owner'),'Almtuna IS');
 assert.equal(run('getPlayerClub(state.loans.active.find(l=>l.name==="Edvin Hammarlund").playerId)'),'Örebro Hockey');
-assert.ok(run('Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).flatMap(c=>c.players).every(p=>p.stats.length&&p.stats.every(s=>s.gp>0&&Number.isFinite(HA_LEAGUE_LEVEL[s.league])&&(s.pim==null||s.pim>=0)))'));
+assert.ok(run('Object.values({...ALLSVENSKAN_DATABASE.clubs,...SHL_DATABASE.clubs}).flatMap(c=>c.players).every(p=>(p.stats.length||p.statsUnavailable===true)&&p.stats.every(s=>s.gp>0&&Number.isFinite(HA_LEAGUE_LEVEL[s.league])&&(s.pim==null||s.pim>=0)))'));
 // Independent published controls: offence, penalties and a starting goalkeeper.
 run('globalThis.ang=managerRoster().find(p=>p.name==="Jonathan Ang").research.stats.find(s=>s.season==="25-26"&&s.league==="SHL")');
 assert.deepEqual(JSON.parse(run('JSON.stringify([ang.gp,ang.goals,ang.assists,ang.pim])')),[52,21,25,38]);
@@ -62,7 +62,7 @@ run('state.playerDatabaseVersion="ha-2026-09-05";managerRoster()[0].attributes.r
 const old=boot(app.storage.value);assert.equal(old.run('JSON.stringify(managerRoster().map(p=>p.id))'),run('ids'));
 assert.equal(old.run('managerRoster()[0].attributes.reflexes'),19);assert.match(old.run('rosterDatabaseNotice()'),/ny karriär/i);
 run('deskNavigate("transfers","loans")');assert.match(get('#content').innerHTML,/Aktiva lån/);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);
-console.log('PASS: 680 sourced identities, all 28 match squads, locked bench substitutions/injuries, real goalkeeper loan games/growth/wages, contract and save continuity, recall/expiry/external ownership, invalid import rejection and legacy preservation.');
+console.log('PASS: 709 sourced identities, all 28 match squads, locked bench substitutions/injuries, real goalkeeper loan games/growth/wages, contract and save continuity, recall/expiry/external ownership, invalid import rejection and legacy preservation.');
 
 // Incoming loans cannot become permanent signings; player contracts age at the owner once.
 run('startCareerWithClub("AIK");globalThis.borrow=state.clubRosters["HV71"].find(p=>p.pos!=="MV"&&p.contractYears>1&&loanCanLeave(p,"HV71")&&loanFit(p,"AIK").interested);globalThis.originalYears=borrow.contractYears;globalThis.originalSalary=borrow.salary;loanSubmit(borrow.id,"AIK",56,.5);calendarStep(true);calendarStep(true);if(state.loans.offers[0].status==="counter")loanAnswer(state.loans.offers[0].id,true);globalThis.inloan=playerLoan(borrow);');
@@ -75,5 +75,13 @@ assert.equal(run('playerLoan(borrow)'),null);assert.notEqual(run('getPlayerClub(
 assert.equal(run('borrow.contractYears'),run('originalYears-1'));assert.equal(run('borrow.salary'),run('originalSalary'));
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>samePlayerId(p.id,borrow.id)).length'),1);
 assert.doesNotThrow(()=>run('validateSaveText(saveExportText())'));
-assert.ok(run('saveExportText().length<4500000'));
+// The expanded roster may need the existing lossless storage fallback after a
+// season transition. Verify the actual storage quota, not the JSON export size.
+run(`globalThis.realStore=localStorage.setItem;localStorage.setItem=(key,value)=>{
+ if(value.length>=4500000){const e=new Error('Storage quota');e.name='QuotaExceededError';throw e;}
+ realStore(key,value);
+};save()`);
+assert.ok(app.storage.value.length<4500000);
+assert.equal(run('JSON.stringify(careerRead(localStorage.getItem(CAREER_SAVE_KEY)))'),run('JSON.stringify(state)'));
+assert.doesNotThrow(()=>boot(app.storage.value));
 console.log('PASS: incoming loans block owner-contract mutations and return before annual contract processing; active save fits the storage budget.');

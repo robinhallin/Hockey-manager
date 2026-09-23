@@ -6,7 +6,7 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 const {run,storage}=boot();
 run('startCareerWithClub("AIK")');
 assert.equal(run('leagueOf()'),'HA');assert.equal(run('state.teams.length'),28);assert.equal(run('state.schedule.length'),728);
-assert.equal(run('managerRoster().length'),24);assert.ok(run('managerRoster().every(p=>!p.fictional&&p.research)'));
+assert.equal(run('managerRoster().length'),26);assert.ok(run('managerRoster().every(p=>!p.fictional&&p.research)'));
 for(const name of run('Object.keys(CLUB_DATA)')){
  const n=JSON.stringify(name);
  assert.equal(run(`state.schedule.filter(g=>g.home===${n}||g.away===${n}).length`),52);

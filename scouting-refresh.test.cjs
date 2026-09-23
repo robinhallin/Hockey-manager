@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;
-r(`startCareerWithClub('HV71');calendarInitialPreseason();globalThis.target=getTransferMarketPlayers()[0];
+r(`startCareerWithClub('HV71');useHistoricalCalendarFixture();calendarInitialPreseason();globalThis.target=getTransferMarketPlayers()[0];
  globalThis.fee=Math.round(clubMissionFee()/3);globalThis.cash=state.money;
  requestScoutReport(target.id,true);requestScoutReport(target.id,true);`);
 assert.equal(r('cash-state.money'),r('fee'),'pending requests charge once');

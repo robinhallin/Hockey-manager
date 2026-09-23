@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;
 r("startCareerWithClub('HV71');ensureJuniors();ensureJuniorCalendar()");
-while(r("state.calendar.date<'2026-09-09'"))r('calendarStep(true)');
+while(r("state.calendar.date<'2026-09-25'"))r('calendarStep(true)');
 const review=r('managerJ20Review()');
 assert.ok(review?.best&&review?.match?.j20,'need a real J20 recommendation before promotion');
 const id=String(review.best.id),date=review.match.date;
@@ -16,23 +16,23 @@ assert.match(r('managerSeniorProspectFollowupView()'),/A-LAGSUPPFÖLJNING/);
 assert.equal(r('JSON.stringify(state)'),before,'rendering senior follow-up must be read-only');
 // Senior reports are the source of truth for the promoted player's actual usage.
 r(`state.analysis??={matches:[]};state.analysis.matches=[
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-12',players:[{id:${JSON.stringify(id)},seconds:720,goals:0,assists:1}]},
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-11',players:[{id:${JSON.stringify(id)},seconds:660,goals:0,assists:0}]},
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-10',players:[{id:${JSON.stringify(id)},seconds:600,goals:1,assists:0}]}
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-09-28',players:[{id:${JSON.stringify(id)},seconds:720,goals:0,assists:1}]},
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-09-27',players:[{id:${JSON.stringify(id)},seconds:660,goals:0,assists:0}]},
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-09-26',players:[{id:${JSON.stringify(id)},seconds:600,goals:1,assists:0}]}
 ]`);
 follow=r('managerSeniorProspectFollowup()');
 assert.equal(follow.totals.games,3);
 assert.equal(follow.totals.goals,1);
 assert.equal(follow.totals.assists,1);
 assert.equal(follow.level,'Etableras i A-laget');
-assert.equal(follow.debut.match.date,'2026-09-10');
+assert.equal(follow.debut.match.date,'2026-09-26');
 assert.match(r('managerSeniorProspectFollowupView()'),/3 A-lagsmatcher/);
 assert.match(r('managerSeniorProspectFollowupView()'),/Debut/);
 // Three straight senior games without usage must surface a genuine manager warning and return option.
 r(`state.analysis.matches=[
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-15',players:[]},
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-14',players:[]},
- {finished:true,abandoned:false,club:managerClub(),date:'2026-09-13',players:[]}
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-10-01',players:[]},
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-09-30',players:[]},
+ {finished:true,abandoned:false,club:managerClub(),date:'2026-09-29',players:[]}
 ]`);
 follow=r('managerSeniorProspectFollowup()');
 assert.equal(follow.level,'Behöver matchtid');

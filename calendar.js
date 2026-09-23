@@ -1,11 +1,12 @@
 "use strict";
 // Generated career dates. This is not the published SHL/HA fixture list.
 const CAL_DAY=86400000;
+function calSeasonOpening(year=state.season.year){return state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,3):`${year}-09-10`;}
 function calAdd(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*CAL_DAY).toISOString().slice(0,10);}
 function calGap(a,b){return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/CAL_DAY);}
 function calText(date){return new Date(date+'T12:00:00Z').toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});}
 function calRoundDate(round,year=state.season.year){
- let day=`${year}-09-10`;for(let i=1;i<Math.min(round,53);i++)day=calAdd(day,[2,3,2,5,4,3,5][(i-1)%7]);
+ let day=calSeasonOpening(year);for(let i=1;i<Math.min(round,53);i++)day=calAdd(day,[2,3,2,5,4,3,5][(i-1)%7]);
  return round<=52?day:calAdd(day,3+(round-53)*2);
 }
 function ensureCalendar(){
@@ -14,7 +15,7 @@ function ensureCalendar(){
  if(!state.calendar){
   const fixtureDate=calRoundDate(state.round,s.year),remaining=Math.max(0,3-(state.training?.day||0));
   const date=s.phase==='preseason'?`${s.year}-07-01`:s.phase==='review'?calRoundDate(Math.max(53,state.round),s.year):state.live&&!state.live.finished?fixtureDate:calAdd(fixtureDate,-remaining);
-  state.calendar={initialPreseasonUsed:s.phase!=='regular'||state.round>1||state.teams.some(t=>t.gp),version:1,year:s.year,date,marketDay:calAdd(date,7),friendlies:[],nextId:1,futureHistory:[],notice:'',lastTraining:null};
+  state.calendar={initialPreseasonUsed:Boolean(state.rosterStartDate)||s.phase!=='regular'||state.round>1||state.teams.some(t=>t.gp),version:1,year:s.year,date,marketDay:calAdd(date,7),friendlies:[],nextId:1,futureHistory:[],notice:'',lastTraining:null};
  }
  const c=state.calendar;
  if(!c.plans)c.plans={};
@@ -107,6 +108,7 @@ function calendarWeek(){
  calendarContinue();
 }
 function calendarInitialPreseason(){
+ if(state.rosterStartDate?.startsWith(state.season.year+'-'))return;
  if(state.calendar.initialPreseasonUsed||state.season.phase!=='regular'||state.round!==1||state.teams.some(t=>t.gp)||state.live&&!state.live.finished)return;
  state.calendar.initialPreseasonUsed=true;state.season.phase='preseason';state.season.grant=0;state.season.departures=[];state.season.nextWageLimit=wageBudget();
  state.calendar.date=`${state.season.year}-08-01`;state.calendar.marketDay=calAdd(state.calendar.date,7);state.training.calendarKey=null;state.training.day=0;state.live=null;

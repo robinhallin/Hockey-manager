@@ -1,9 +1,9 @@
 "use strict";
 // Dated public player facts; game estimates are documented in PLAYER_RESEARCH.md.
 const ALLSVENSKAN_DATABASE = {
-  "version": "se-2026-09-07-evidence2",
+  "version": "se-2026-09-23-rosters1",
   "season": "2026/27",
-  "checked": "2026-09-06",
+  "checked": "2026-09-23",
   "clubs": {
     "AIK": {
       "source": "https://www.eliteprospects.com/team/1/aik",
@@ -37,60 +37,6 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 91
-        },
-        {
-          "birth": "2005-07-28",
-          "height": 188,
-          "id": "ep-718912",
-          "name": "Simon Carlsson",
-          "nationality": "SWE",
-          "position": "G",
-          "registration": "26/27",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/718912/simon-carlsson",
-          "stats": [
-            {
-              "gaa": 2.22,
-              "gp": 22,
-              "league": "HockeyEttan",
-              "season": "25-26",
-              "sv": 0.913,
-              "team": "Väsby IK"
-            },
-            {
-              "gaa": 2.9,
-              "gp": 4,
-              "league": "HockeyAllsvenskan",
-              "season": "25-26",
-              "sv": 0.88,
-              "team": "AIK"
-            },
-            {
-              "gaa": 2.68,
-              "gp": 33,
-              "league": "J20 Nationell",
-              "season": "24-25",
-              "sv": 0.915,
-              "team": "AIK J20"
-            },
-            {
-              "gaa": 2.93,
-              "gp": 4,
-              "league": "HockeyAllsvenskan",
-              "season": "24-25",
-              "sv": 0.883,
-              "team": "AIK"
-            },
-            {
-              "gaa": 3.41,
-              "gp": 2,
-              "league": "HockeyEttan",
-              "season": "24-25",
-              "sv": 0.904,
-              "team": "Vallentuna Hockey"
-            }
-          ],
-          "weight": 83
         },
         {
           "birth": "1988-06-25",
@@ -937,6 +883,142 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 83
+        },
+        {
+          "id": "ep-946878",
+          "name": "Leon Contreras",
+          "birth": "2007-08-24",
+          "position": "G",
+          "nationality": "SWE",
+          "height": 179,
+          "weight": 74,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/946878/leon-contreras",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "AIK U20",
+              "league": "U20 Nationell",
+              "gp": 22,
+              "gaa": 3.07,
+              "sv": 0.909
+            },
+            {
+              "season": "25-26",
+              "team": "AIK",
+              "league": "HockeyAllsvenskan",
+              "gp": 2,
+              "gaa": 2.53,
+              "sv": 0.896
+            },
+            {
+              "season": "24-25",
+              "team": "AIK J18",
+              "league": "J18 Region",
+              "gp": 11,
+              "gaa": 1.72,
+              "sv": 0.923
+            },
+            {
+              "season": "24-25",
+              "team": "AIK J18",
+              "league": "J18 Nationell",
+              "gp": 9,
+              "gaa": 2.41,
+              "sv": 0.927
+            }
+          ]
+        },
+        {
+          "birth": "2002-10-31",
+          "height": 188,
+          "id": "ep-412008",
+          "name": "Martin Schreiber",
+          "nationality": "SWE",
+          "position": "D",
+          "registration": "26/27",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/412008/martin-schreiber",
+          "stats": [
+            {
+              "assists": 3,
+              "goals": 0,
+              "gp": 50,
+              "league": "SHL",
+              "pim": 43,
+              "season": "25-26",
+              "team": "Malmö Redhawks"
+            },
+            {
+              "assists": 13,
+              "goals": 6,
+              "gp": 51,
+              "league": "HockeyAllsvenskan",
+              "pim": 51,
+              "season": "24-25",
+              "team": "Kalmar HC"
+            }
+          ],
+          "weight": 93,
+          "loan": {
+            "owner": "Malmö Redhawks",
+            "start": "2026-09-11",
+            "until": "2027-05-15",
+            "source": "https://www.malmoredhawks.com/article/89yatl5-33nad/view",
+            "termsEstimated": true,
+            "recall": "anytime"
+          }
+        },
+        {
+          "id": "ep-859967",
+          "name": "Max Eriksson",
+          "birth": "2007-01-05",
+          "position": "LW",
+          "nationality": "SWE",
+          "height": 187,
+          "weight": 77,
+          "shoots": "R",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/859967/max-eriksson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "AIK U20",
+              "league": "U20 Nationell",
+              "gp": 33,
+              "goals": 5,
+              "assists": 10,
+              "pim": 37
+            },
+            {
+              "season": "24-25",
+              "team": "AIK J18",
+              "league": "J18 Region",
+              "gp": 22,
+              "goals": 7,
+              "assists": 20,
+              "pim": 22
+            },
+            {
+              "season": "24-25",
+              "team": "AIK J18",
+              "league": "J18 Nationell",
+              "gp": 14,
+              "goals": 4,
+              "assists": 9,
+              "pim": 24
+            },
+            {
+              "season": "24-25",
+              "team": "AIK J20",
+              "league": "J20 Nationell",
+              "gp": 2,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            }
+          ]
         }
       ]
     },
@@ -1422,47 +1504,6 @@ const ALLSVENSKAN_DATABASE = {
           "weight": 190
         },
         {
-          "birth": "2006-01-11",
-          "height": null,
-          "id": "ep-788657",
-          "name": "Daniel Meyer",
-          "nationality": "SWE",
-          "position": "C",
-          "registration": "26/27",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/788657/daniel-meyer",
-          "stats": [
-            {
-              "assists": 10,
-              "goals": 7,
-              "gp": 25,
-              "league": "U20 Region",
-              "pim": 8,
-              "season": "25-26",
-              "team": "Almtuna IS U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 8,
-              "league": "HockeyAllsvenskan",
-              "pim": 2,
-              "season": "25-26",
-              "team": "Almtuna IS"
-            },
-            {
-              "assists": 5,
-              "goals": 1,
-              "gp": 49,
-              "league": "J20 Nationell",
-              "pim": 14,
-              "season": "24-25",
-              "team": "Almtuna IS J20"
-            }
-          ],
-          "weight": 161
-        },
-        {
           "birth": "2004-10-19",
           "height": null,
           "id": "ep-570439",
@@ -1599,56 +1640,6 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 187
-        },
-        {
-          "birth": "2006-03-01",
-          "height": null,
-          "id": "ep-734717",
-          "name": "Lukas Nikolaj Pettersen-Finckenhagen",
-          "nationality": "NOR",
-          "position": "RW",
-          "registration": "26/27",
-          "shoots": "R",
-          "source": "https://www.eliteprospects.com/player/734717/lukas-nikolaj-pettersen-finckenhagen",
-          "stats": [
-            {
-              "assists": 16,
-              "goals": 14,
-              "gp": 25,
-              "league": "U20 Nationell",
-              "pim": 6,
-              "season": "25-26",
-              "team": "Mora IK U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 2,
-              "league": "HockeyAllsvenskan",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Mora IK"
-            },
-            {
-              "assists": 15,
-              "goals": 18,
-              "gp": 40,
-              "league": "J20 Nationell",
-              "pim": 8,
-              "season": "24-25",
-              "team": "Mora IK J20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 1,
-              "league": "HockeyAllsvenskan",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Mora IK"
-            }
-          ],
-          "weight": 225
         },
         {
           "birth": "2000-03-22",
@@ -1881,6 +1872,204 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 185
+        },
+        {
+          "id": "ep-866157",
+          "name": "Alexander Proos",
+          "birth": "2007-04-26",
+          "position": "D",
+          "nationality": "SWE",
+          "height": null,
+          "weight": null,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/866157/alexander-proos",
+          "stats": [],
+          "statsUnavailable": true
+        },
+        {
+          "birth": "2006-05-04",
+          "height": 193,
+          "id": "ep-741439",
+          "name": "Charlie Forslund",
+          "nationality": "SWE",
+          "position": "LW/RW",
+          "registration": "27/28+1",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/741439/charlie-forslund",
+          "stats": [
+            {
+              "assists": 4,
+              "goals": 5,
+              "gp": 28,
+              "league": "HockeyAllsvenskan",
+              "pim": 12,
+              "season": "25-26",
+              "team": "Almtuna IS"
+            },
+            {
+              "assists": 4,
+              "goals": 3,
+              "gp": 12,
+              "league": "U20 Nationell",
+              "pim": 6,
+              "season": "25-26",
+              "team": "Mora IK U20"
+            },
+            {
+              "assists": 14,
+              "goals": 9,
+              "gp": 44,
+              "league": "J20 Nationell",
+              "pim": 8,
+              "season": "24-25",
+              "team": "Mora IK J20"
+            },
+            {
+              "assists": 1,
+              "goals": 0,
+              "gp": 6,
+              "league": "HockeyAllsvenskan",
+              "pim": 0,
+              "season": "24-25",
+              "team": "Mora IK"
+            }
+          ],
+          "weight": 99,
+          "loan": {
+            "owner": "Brynäs IF",
+            "start": "2026-09-14",
+            "until": "2027-05-15",
+            "source": "https://www.brynas.se/article/i71atlc-1ekad/view",
+            "termsEstimated": true,
+            "recall": "anytime"
+          }
+        },
+        {
+          "id": "ep-863966",
+          "name": "Neo Karling",
+          "birth": "2007-05-30",
+          "position": "LW",
+          "nationality": "SWE",
+          "height": 186,
+          "weight": 78,
+          "shoots": "R",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/863966/neo-karling",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Leksands IF U20",
+              "league": "U20 Nationell",
+              "gp": 24,
+              "goals": 4,
+              "assists": 2,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Region",
+              "gp": 15,
+              "goals": 8,
+              "assists": 6,
+              "pim": 16
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Nationell",
+              "gp": 15,
+              "goals": 2,
+              "assists": 6,
+              "pim": 6
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J20",
+              "league": "J20 Nationell",
+              "gp": 6,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "birth": "2007-06-12",
+          "height": 175,
+          "id": "ep-880546",
+          "name": "Leo Sundqvist",
+          "nationality": "SWE",
+          "position": "RW",
+          "registration": "27/28",
+          "shoots": "R",
+          "source": "https://www.eliteprospects.com/player/880546/leo-sundqvist",
+          "stats": [
+            {
+              "assists": 16,
+              "goals": 29,
+              "gp": 35,
+              "league": "U20 Nationell",
+              "pim": 16,
+              "season": "25-26",
+              "team": "Brynäs IF U20"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 11,
+              "league": "SHL",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Brynäs IF"
+            },
+            {
+              "assists": 11,
+              "goals": 15,
+              "gp": 33,
+              "league": "J20 Nationell",
+              "pim": 10,
+              "season": "24-25",
+              "team": "Brynäs IF J20"
+            },
+            {
+              "assists": 2,
+              "goals": 0,
+              "gp": 16,
+              "league": "SHL",
+              "pim": 0,
+              "season": "24-25",
+              "team": "Brynäs IF"
+            },
+            {
+              "assists": 3,
+              "goals": 0,
+              "gp": 3,
+              "league": "J18 Region",
+              "pim": 2,
+              "season": "24-25",
+              "team": "Brynäs IF J18"
+            },
+            {
+              "assists": 0,
+              "goals": 2,
+              "gp": 2,
+              "league": "J18 Nationell",
+              "pim": 0,
+              "season": "24-25",
+              "team": "Brynäs IF J18"
+            }
+          ],
+          "weight": 77,
+          "loan": {
+            "owner": "Brynäs IF",
+            "start": "2026-09-14",
+            "until": "2027-05-15",
+            "source": "https://www.brynas.se/article/i71atlc-1ekad/view",
+            "termsEstimated": true,
+            "recall": "anytime"
+          }
         }
       ]
     },
@@ -2311,47 +2500,6 @@ const ALLSVENSKAN_DATABASE = {
           "weight": 82
         },
         {
-          "birth": "2001-08-14",
-          "height": 178,
-          "id": "ep-349832",
-          "name": "Elias Ekström",
-          "nationality": "SWE",
-          "position": "LW/RW",
-          "registration": "26/27",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/349832/elias-ekstrom",
-          "stats": [
-            {
-              "assists": 4,
-              "goals": 1,
-              "gp": 16,
-              "league": "HockeyAllsvenskan",
-              "pim": 2,
-              "season": "25-26",
-              "team": "BIK Karlskoga"
-            },
-            {
-              "assists": 12,
-              "goals": 2,
-              "gp": 27,
-              "league": "HockeyAllsvenskan",
-              "pim": 8,
-              "season": "24-25",
-              "team": "Västerås IK"
-            },
-            {
-              "assists": 4,
-              "goals": 1,
-              "gp": 26,
-              "league": "SHL",
-              "pim": 2,
-              "season": "24-25",
-              "team": "Örebro HK"
-            }
-          ],
-          "weight": 77
-        },
-        {
           "birth": "2000-05-22",
           "height": 183,
           "id": "ep-347998",
@@ -2765,6 +2913,155 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 80
+        },
+        {
+          "id": "ep-921532",
+          "name": "William Bråtner",
+          "birth": "2007-01-17",
+          "position": "RW",
+          "nationality": "SWE",
+          "height": 188,
+          "weight": 88,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/921532/william-bratner",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "BIK Karlskoga U20",
+              "league": "U20 Region",
+              "gp": 28,
+              "goals": 15,
+              "assists": 17,
+              "pim": 18
+            },
+            {
+              "season": "25-26",
+              "team": "BIK Karlskoga",
+              "league": "HockeyAllsvenskan",
+              "gp": 1,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "BIK Karlskoga J18",
+              "league": "J18 Region",
+              "gp": 32,
+              "goals": 14,
+              "assists": 17,
+              "pim": 28
+            },
+            {
+              "season": "24-25",
+              "team": "BIK Karlskoga J20",
+              "league": "J20 Region",
+              "gp": 4,
+              "goals": 0,
+              "assists": 0,
+              "pim": 2
+            }
+          ]
+        },
+        {
+          "id": "ep-388725",
+          "name": "Jonathan Hermansson",
+          "birth": "2000-10-05",
+          "position": "F",
+          "nationality": "NOR",
+          "height": 184,
+          "weight": 89,
+          "shoots": "L",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/388725/jonathan-hermansson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Sparta Sarpsborg",
+              "league": "Norway",
+              "gp": 43,
+              "goals": 13,
+              "assists": 15,
+              "pim": 32
+            },
+            {
+              "season": "24-25",
+              "team": "Sparta Sarpsborg",
+              "league": "Norway",
+              "gp": 43,
+              "goals": 9,
+              "assists": 12,
+              "pim": 30
+            }
+          ]
+        },
+        {
+          "birth": "2008-03-21",
+          "height": 185,
+          "id": "ep-874176",
+          "name": "Oscar Holmertz",
+          "nationality": "SWE",
+          "position": "C",
+          "registration": "27/28",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/874176/oscar-holmertz",
+          "stats": [
+            {
+              "assists": 23,
+              "goals": 13,
+              "gp": 34,
+              "league": "U20 Nationell",
+              "pim": 2,
+              "season": "25-26",
+              "team": "Linköping HC U20"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 11,
+              "league": "SHL",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Linköping HC"
+            },
+            {
+              "assists": 4,
+              "goals": 4,
+              "gp": 5,
+              "league": "U18 Region",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Linköping HC U18"
+            },
+            {
+              "assists": 2,
+              "goals": 1,
+              "gp": 4,
+              "league": "U18 Nationell",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Linköping HC U18"
+            },
+            {
+              "assists": 20,
+              "goals": 10,
+              "gp": 32,
+              "league": "J20 Nationell",
+              "pim": 4,
+              "season": "24-25",
+              "team": "Linköping HC J20"
+            }
+          ],
+          "weight": 91,
+          "loan": {
+            "owner": "Linköping HC",
+            "start": "2026-09-15",
+            "until": "2027-05-15",
+            "source": "https://www.lhc.eu/article/q90atlc-30c01/view",
+            "termsEstimated": false,
+            "recall": "anytime"
+          }
         }
       ]
     },
@@ -3789,6 +4086,82 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 82
+        },
+        {
+          "birth": "2008-10-10",
+          "height": 181,
+          "id": "ep-937082",
+          "name": "Olle Karlsson",
+          "nationality": "SWE",
+          "position": "F",
+          "registration": "Junior",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/937082/olle-karlsson",
+          "stats": [
+            {
+              "assists": 16,
+              "goals": 6,
+              "gp": 31,
+              "league": "U20 Nationell",
+              "pim": 16,
+              "season": "25-26",
+              "team": "Växjö Lakers HC U20"
+            },
+            {
+              "assists": 4,
+              "goals": 1,
+              "gp": 5,
+              "league": "U18 Region",
+              "pim": 8,
+              "season": "25-26",
+              "team": "Växjö Lakers HC U18"
+            },
+            {
+              "assists": 5,
+              "goals": 5,
+              "gp": 5,
+              "league": "U18 Nationell",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Växjö Lakers HC U18"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 5,
+              "league": "SHL",
+              "pim": 2,
+              "season": "25-26",
+              "team": "Växjö Lakers HC"
+            },
+            {
+              "assists": 7,
+              "goals": 11,
+              "gp": 22,
+              "league": "J18 Region",
+              "pim": 10,
+              "season": "24-25",
+              "team": "Växjö Lakers HC J18"
+            },
+            {
+              "assists": 10,
+              "goals": 7,
+              "gp": 17,
+              "league": "J18 Nationell",
+              "pim": 8,
+              "season": "24-25",
+              "team": "Växjö Lakers HC J18"
+            }
+          ],
+          "weight": 79,
+          "loan": {
+            "owner": "Växjö Lakers",
+            "start": "2026-09-17",
+            "until": "2027-05-15",
+            "source": "https://www.ikoskarshamn.se/article/ffyatli-2egc1/view",
+            "termsEstimated": false,
+            "recall": "anytime"
+          }
         }
       ]
     },
@@ -4702,6 +5075,155 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 99
+        },
+        {
+          "id": "ep-325238",
+          "name": "Christian Felton",
+          "birth": "2000-02-04",
+          "position": "D",
+          "nationality": "USA",
+          "height": 185,
+          "weight": 84,
+          "shoots": "R",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/325238/christian-felton",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Utah Grizzlies",
+              "league": "ECHL",
+              "gp": 30,
+              "goals": 3,
+              "assists": 6,
+              "pim": 15
+            },
+            {
+              "season": "25-26",
+              "team": "Abbotsford Canucks",
+              "league": "AHL",
+              "gp": 14,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "25-26",
+              "team": "Cincinnati Cyclones",
+              "league": "ECHL",
+              "gp": 5,
+              "goals": 0,
+              "assists": 2,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Abbotsford Canucks",
+              "league": "AHL",
+              "gp": 13,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Kalamazoo Wings",
+              "league": "ECHL",
+              "gp": 7,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "id": "ep-962056",
+          "name": "Gustav Dunegård",
+          "birth": "2008-09-18",
+          "position": "C/W",
+          "nationality": "SWE",
+          "height": 183,
+          "weight": 85,
+          "shoots": "L",
+          "registration": "Ej angivet",
+          "source": "https://www.eliteprospects.com/player/962056/gustav-dunegard",
+          "stats": [
+            {
+              "season": "24-25",
+              "team": "Malmö Redhawks J18",
+              "league": "J18 Region",
+              "gp": 3,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "birth": "2007-02-01",
+          "height": 190,
+          "id": "ep-866571",
+          "name": "Jakob Ihs-Wozniak",
+          "nationality": "SWE",
+          "position": "RW/C",
+          "registration": "26/27",
+          "shoots": "R",
+          "source": "https://www.eliteprospects.com/player/866571/jakob-ihs-wozniak",
+          "stats": [
+            {
+              "assists": 14,
+              "goals": 9,
+              "gp": 36,
+              "league": "HockeyAllsvenskan",
+              "pim": 12,
+              "season": "25-26",
+              "team": "IF Björklöven"
+            },
+            {
+              "assists": 0,
+              "goals": 2,
+              "gp": 17,
+              "league": "SHL",
+              "pim": 2,
+              "season": "25-26",
+              "team": "Luleå HF"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 1,
+              "league": "U20 Nationell",
+              "pim": 6,
+              "season": "25-26",
+              "team": "Luleå HF U20"
+            },
+            {
+              "assists": 34,
+              "goals": 23,
+              "gp": 40,
+              "league": "J20 Nationell",
+              "pim": 18,
+              "season": "24-25",
+              "team": "Luleå HF J20"
+            },
+            {
+              "assists": 1,
+              "goals": 1,
+              "gp": 13,
+              "league": "SHL",
+              "pim": 0,
+              "season": "24-25",
+              "team": "Luleå HF"
+            }
+          ],
+          "weight": 86,
+          "loan": {
+            "owner": "Luleå HF",
+            "start": "2026-09-15",
+            "until": "2027-05-15",
+            "source": "https://www.luleahockey.se/article/7hbatle-30c4d/view",
+            "termsEstimated": true,
+            "recall": "anytime"
+          }
         }
       ]
     },
@@ -5589,6 +6111,255 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 85
+        },
+        {
+          "id": "ep-964660",
+          "name": "Viggo Tamm",
+          "birth": "2008-06-04",
+          "position": "G",
+          "nationality": "SWE",
+          "height": 195,
+          "weight": 80,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/964660/viggo-tamm",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Leksands IF U20",
+              "league": "U20 Nationell",
+              "gp": 25,
+              "gaa": 2.69,
+              "sv": 0.9
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Region",
+              "gp": 1,
+              "gaa": 3.05,
+              "sv": 0.842
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Region",
+              "gp": 13,
+              "gaa": 2.56,
+              "sv": 0.892
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J20",
+              "league": "J20 Nationell",
+              "gp": 12,
+              "gaa": 3.06,
+              "sv": 0.884
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Nationell",
+              "gp": 8,
+              "gaa": 3.06,
+              "sv": 0.886
+            }
+          ]
+        },
+        {
+          "id": "ep-919690",
+          "name": "Vilgot Lidén",
+          "birth": "2008-12-03",
+          "position": "D",
+          "nationality": "SWE",
+          "height": 181,
+          "weight": 88,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/919690/vilgot-liden",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Leksands IF U20",
+              "league": "U20 Nationell",
+              "gp": 28,
+              "goals": 3,
+              "assists": 16,
+              "pim": 8
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Region",
+              "gp": 2,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J20",
+              "league": "J20 Nationell",
+              "gp": 24,
+              "goals": 0,
+              "assists": 2,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Region",
+              "gp": 14,
+              "goals": 2,
+              "assists": 16,
+              "pim": 8
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Nationell",
+              "gp": 1,
+              "goals": 0,
+              "assists": 0,
+              "pim": 22
+            }
+          ]
+        },
+        {
+          "id": "ep-879786",
+          "name": "Adam Andersson",
+          "birth": "2008-07-02",
+          "position": "C",
+          "nationality": "SWE",
+          "height": 193,
+          "weight": 95,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/879786/adam-andersson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Leksands IF U20",
+              "league": "U20 Nationell",
+              "gp": 30,
+              "goals": 3,
+              "assists": 14,
+              "pim": 24
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Region",
+              "gp": 3,
+              "goals": 1,
+              "assists": 2,
+              "pim": 8
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Nationell",
+              "gp": 3,
+              "goals": 2,
+              "assists": 4,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Region",
+              "gp": 21,
+              "goals": 9,
+              "assists": 20,
+              "pim": 34
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Nationell",
+              "gp": 16,
+              "goals": 2,
+              "assists": 6,
+              "pim": 14
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J20",
+              "league": "J20 Nationell",
+              "gp": 7,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "id": "ep-955306",
+          "name": "Pax Kleffner",
+          "birth": "2008-05-07",
+          "position": "C/W",
+          "nationality": "SWE",
+          "height": 185,
+          "weight": 90,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/955306/pax-kleffner",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Leksands IF U20",
+              "league": "U20 Nationell",
+              "gp": 32,
+              "goals": 7,
+              "assists": 14,
+              "pim": 12
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Region",
+              "gp": 6,
+              "goals": 5,
+              "assists": 3,
+              "pim": 2
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF U18",
+              "league": "U18 Nationell",
+              "gp": 6,
+              "goals": 6,
+              "assists": 8,
+              "pim": 4
+            },
+            {
+              "season": "25-26",
+              "team": "Leksands IF",
+              "league": "SHL",
+              "gp": 2,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J18",
+              "league": "J18 Nationell",
+              "gp": 18,
+              "goals": 10,
+              "assists": 9,
+              "pim": 10
+            },
+            {
+              "season": "24-25",
+              "team": "Leksands IF J20",
+              "league": "J20 Nationell",
+              "gp": 16,
+              "goals": 1,
+              "assists": 2,
+              "pim": 6
+            }
+          ]
         }
       ]
     },
@@ -6505,6 +7276,210 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 88
+        },
+        {
+          "id": "ep-974093",
+          "name": "Theodor Knights",
+          "birth": "2008-04-16",
+          "position": "D",
+          "nationality": "SWE",
+          "height": 194,
+          "weight": 94,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/974093/theodor-knights",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U20",
+              "league": "U20 Nationell",
+              "gp": 24,
+              "goals": 0,
+              "assists": 2,
+              "pim": 78
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Nationell",
+              "gp": 2,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Region",
+              "gp": 1,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Almtuna IS J18",
+              "league": "J18 Region",
+              "gp": 20,
+              "goals": 1,
+              "assists": 4,
+              "pim": 12
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J18",
+              "league": "J18 Nationell",
+              "gp": 14,
+              "goals": 2,
+              "assists": 3,
+              "pim": 8
+            },
+            {
+              "season": "24-25",
+              "team": "Almtuna IS J20",
+              "league": "J20 Nationell",
+              "gp": 6,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "id": "ep-876026",
+          "name": "Malcom Gästrin",
+          "birth": "2008-08-19",
+          "position": "RW",
+          "nationality": "SWE",
+          "height": 184,
+          "weight": 79,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/876026/malcom-gastrin",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U20",
+              "league": "U20 Nationell",
+              "gp": 24,
+              "goals": 9,
+              "assists": 16,
+              "pim": 8
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Region",
+              "gp": 15,
+              "goals": 9,
+              "assists": 14,
+              "pim": 35
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Nationell",
+              "gp": 4,
+              "goals": 3,
+              "assists": 4,
+              "pim": 6
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey",
+              "league": "HockeyAllsvenskan",
+              "gp": 4,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J18",
+              "league": "J18 Region",
+              "gp": 22,
+              "goals": 10,
+              "assists": 15,
+              "pim": 12
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J18",
+              "league": "J18 Nationell",
+              "gp": 18,
+              "goals": 5,
+              "assists": 7,
+              "pim": 2
+            }
+          ]
+        },
+        {
+          "id": "ep-1010942",
+          "name": "Milan Sundström",
+          "birth": "2009-05-06",
+          "position": "C",
+          "nationality": "SWE",
+          "height": 189,
+          "weight": 90,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/1010942/milan-sundstrom",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Region",
+              "gp": 16,
+              "goals": 8,
+              "assists": 24,
+              "pim": 12
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U20",
+              "league": "U20 Nationell",
+              "gp": 12,
+              "goals": 12,
+              "assists": 8,
+              "pim": 8
+            },
+            {
+              "season": "25-26",
+              "team": "MoDo Hockey U18",
+              "league": "U18 Nationell",
+              "gp": 3,
+              "goals": 2,
+              "assists": 3,
+              "pim": 4
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J18",
+              "league": "J18 Region",
+              "gp": 20,
+              "goals": 11,
+              "assists": 17,
+              "pim": 35
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J18",
+              "league": "J18 Nationell",
+              "gp": 17,
+              "goals": 4,
+              "assists": 10,
+              "pim": 4
+            },
+            {
+              "season": "24-25",
+              "team": "MoDo Hockey J20",
+              "league": "J20 Nationell",
+              "gp": 3,
+              "goals": 1,
+              "assists": 1,
+              "pim": 2
+            }
+          ]
         }
       ]
     },
@@ -7582,6 +8557,173 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 187
+        },
+        {
+          "birth": "2007-09-13",
+          "height": 180,
+          "id": "ep-876952",
+          "name": "Mikkel Eriksen",
+          "nationality": "NOR",
+          "position": "C",
+          "registration": "Junior",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/876952/mikkel-eriksen",
+          "stats": [
+            {
+              "assists": 25,
+              "goals": 19,
+              "gp": 25,
+              "league": "U20 Nationell",
+              "pim": 16,
+              "season": "25-26",
+              "team": "Färjestad BK U20"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 15,
+              "league": "SHL",
+              "pim": 0,
+              "season": "25-26",
+              "team": "Färjestad BK"
+            },
+            {
+              "assists": 0,
+              "goals": 1,
+              "gp": 5,
+              "league": "HockeyAllsvenskan",
+              "pim": 4,
+              "season": "25-26",
+              "team": "Mora IK"
+            },
+            {
+              "assists": 21,
+              "goals": 22,
+              "gp": 40,
+              "league": "J20 Nationell",
+              "pim": 8,
+              "season": "24-25",
+              "team": "Färjestad BK J20"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 1,
+              "league": "J18 Region",
+              "pim": 2,
+              "season": "24-25",
+              "team": "Färjestad BK J18"
+            }
+          ],
+          "weight": 85,
+          "loan": {
+            "owner": "Färjestad BK",
+            "start": "2026-09-22",
+            "until": "2027-05-15",
+            "source": "https://www.farjestadbk.se/article/bm2atlr-23h01/view",
+            "termsEstimated": true,
+            "recall": "anytime"
+          }
+        },
+        {
+          "id": "ep-690427",
+          "name": "Florian Schenk",
+          "birth": "2007-04-25",
+          "position": "C",
+          "nationality": "SUI",
+          "height": 193,
+          "weight": 95,
+          "shoots": "L",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/690427/florian-schenk",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "SC Bern",
+              "league": "NL",
+              "gp": 9,
+              "goals": 0,
+              "assists": 1,
+              "pim": 0
+            },
+            {
+              "season": "25-26",
+              "team": "EHC Basel",
+              "league": "SL",
+              "gp": 7,
+              "goals": 1,
+              "assists": 2,
+              "pim": 0
+            },
+            {
+              "season": "25-26",
+              "team": "Lausanne HC",
+              "league": "NL",
+              "gp": 2,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Saint John Sea Dogs",
+              "league": "QMJHL",
+              "gp": 24,
+              "goals": 2,
+              "assists": 2,
+              "pim": 8
+            }
+          ]
+        },
+        {
+          "id": "ep-864684",
+          "name": "Hugo Östberg",
+          "birth": "2007-04-12",
+          "position": "LW/RW",
+          "nationality": "SWE",
+          "height": 187,
+          "weight": 80,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/864684/hugo-ostberg",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Brynäs IF U20",
+              "league": "U20 Nationell",
+              "gp": 36,
+              "goals": 12,
+              "assists": 37,
+              "pim": 6
+            },
+            {
+              "season": "24-25",
+              "team": "Brynäs IF J20",
+              "league": "J20 Nationell",
+              "gp": 42,
+              "goals": 12,
+              "assists": 14,
+              "pim": 16
+            },
+            {
+              "season": "24-25",
+              "team": "Brynäs IF J18",
+              "league": "J18 Nationell",
+              "gp": 4,
+              "goals": 2,
+              "assists": 2,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Brynäs IF J18",
+              "league": "J18 Region",
+              "gp": 3,
+              "goals": 0,
+              "assists": 2,
+              "pim": 2
+            }
+          ]
         }
       ]
     },
@@ -9490,6 +10632,83 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 77
+        },
+        {
+          "birth": "2007-10-08",
+          "height": 194,
+          "id": "ep-689901",
+          "name": "William Håkansson",
+          "nationality": "SWE",
+          "position": "D",
+          "registration": "28/29",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/689901/william-hakansson",
+          "stats": [
+            {
+              "assists": 2,
+              "goals": 0,
+              "gp": 22,
+              "league": "SHL",
+              "pim": 8,
+              "season": "25-26",
+              "team": "Luleå HF"
+            },
+            {
+              "assists": 2,
+              "goals": 2,
+              "gp": 16,
+              "league": "HockeyAllsvenskan",
+              "pim": 39,
+              "season": "25-26",
+              "team": "Almtuna IS"
+            },
+            {
+              "assists": 4,
+              "goals": 0,
+              "gp": 6,
+              "league": "U20 Nationell",
+              "pim": 36,
+              "season": "25-26",
+              "team": "Luleå HF U20"
+            },
+            {
+              "assists": 15,
+              "goals": 7,
+              "gp": 42,
+              "league": "J20 Nationell",
+              "pim": 82,
+              "season": "24-25",
+              "team": "Luleå HF J20"
+            },
+            {
+              "assists": 0,
+              "goals": 0,
+              "gp": 3,
+              "league": "SHL",
+              "pim": 0,
+              "season": "24-25",
+              "team": "Luleå HF"
+            },
+            {
+              "assists": 1,
+              "goals": 0,
+              "gp": 1,
+              "league": "J18 Region",
+              "pim": 2,
+              "season": "24-25",
+              "team": "Luleå HF J18"
+            }
+          ],
+          "weight": 98,
+          "loan": {
+            "owner": "Luleå HF",
+            "start": "2026-09-16",
+            "until": "2027-05-15",
+            "source": "https://www.luleahockey.se/article/p1fatlg-30c4d/view",
+            "termsEstimated": true,
+            "recall": "anytime",
+            "contractOwner": "Carolina Hurricanes"
+          }
         }
       ]
     },
@@ -12382,6 +13601,70 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 82
+        },
+        {
+          "id": "ep-319508",
+          "name": "Oscar Lundin",
+          "birth": "2001-11-07",
+          "position": "D",
+          "nationality": "SWE",
+          "height": 183,
+          "weight": 87,
+          "shoots": "L",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/319508/oscar-lundin",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Mariestad BoIS",
+              "league": "HockeyEttan",
+              "gp": 36,
+              "goals": 7,
+              "assists": 23,
+              "pim": 53
+            },
+            {
+              "season": "24-25",
+              "team": "Brödernas/Väsby",
+              "league": "HockeyEttan",
+              "gp": 29,
+              "goals": 2,
+              "assists": 9,
+              "pim": 20
+            }
+          ]
+        },
+        {
+          "id": "ep-212396",
+          "name": "Lukas Zetterberg",
+          "birth": "1997-03-27",
+          "position": "RW",
+          "nationality": "SWE",
+          "height": 185,
+          "weight": 92,
+          "shoots": "R",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/212396/lukas-zetterberg",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Pelicans",
+              "league": "Liiga",
+              "gp": 26,
+              "goals": 6,
+              "assists": 4,
+              "pim": 8
+            },
+            {
+              "season": "24-25",
+              "team": "AIK",
+              "league": "HockeyAllsvenskan",
+              "gp": 37,
+              "goals": 10,
+              "assists": 9,
+              "pim": 39
+            }
+          ]
         }
       ]
     },
@@ -12463,36 +13746,6 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 85
-        },
-        {
-          "birth": "1991-01-01",
-          "height": 196,
-          "id": "ep-13991",
-          "name": "Tex Williamsson",
-          "nationality": "SWE",
-          "position": "G",
-          "registration": "Ej angivet",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/13991/tex-williamsson",
-          "stats": [
-            {
-              "gaa": 1.77,
-              "gp": 5,
-              "league": "HockeyAllsvenskan",
-              "season": "25-26",
-              "sv": 0.93,
-              "team": "Nybro Vikings IF"
-            },
-            {
-              "gaa": 2.55,
-              "gp": 26,
-              "league": "HockeyAllsvenskan",
-              "season": "24-25",
-              "sv": 0.908,
-              "team": "Nybro Vikings IF"
-            }
-          ],
-          "weight": 95
         },
         {
           "birth": "2001-08-11",
@@ -13397,6 +14650,69 @@ const ALLSVENSKAN_DATABASE = {
             }
           ],
           "weight": 83
+        },
+        {
+          "birth": "2005-07-28",
+          "height": 188,
+          "id": "ep-718912",
+          "name": "Simon Carlsson",
+          "nationality": "SWE",
+          "position": "G",
+          "registration": "26/27",
+          "shoots": "L",
+          "source": "https://www.eliteprospects.com/player/718912/simon-carlsson",
+          "stats": [
+            {
+              "gaa": 2.22,
+              "gp": 22,
+              "league": "HockeyEttan",
+              "season": "25-26",
+              "sv": 0.913,
+              "team": "Väsby IK"
+            },
+            {
+              "gaa": 2.9,
+              "gp": 4,
+              "league": "HockeyAllsvenskan",
+              "season": "25-26",
+              "sv": 0.88,
+              "team": "AIK"
+            },
+            {
+              "gaa": 2.68,
+              "gp": 33,
+              "league": "J20 Nationell",
+              "season": "24-25",
+              "sv": 0.915,
+              "team": "AIK J20"
+            },
+            {
+              "gaa": 2.93,
+              "gp": 4,
+              "league": "HockeyAllsvenskan",
+              "season": "24-25",
+              "sv": 0.883,
+              "team": "AIK"
+            },
+            {
+              "gaa": 3.41,
+              "gp": 2,
+              "league": "HockeyEttan",
+              "season": "24-25",
+              "sv": 0.904,
+              "team": "Vallentuna Hockey"
+            }
+          ],
+          "weight": 83,
+          "loan": {
+            "owner": "AIK",
+            "start": "2026-09-17",
+            "until": "2026-10-17",
+            "source": "https://www.ostersundik.com/article/xvwatlg-55c5i1/view",
+            "termsEstimated": true,
+            "recall": "anytime",
+            "termNote": "Minst en månad; 17 oktober används som sista lånedag tills avtalet ändras i karriären."
+          }
         }
       ]
     }
@@ -13408,12 +14724,374 @@ const ALLSVENSKAN_DATABASE = {
       "reason": "Provspel, inte bekräftat ordinarie kontrakt",
       "source": "https://www.eliteprospects.com/team/28/leksands-if"
     }
-  ]
+  ],
+  "outside": [
+    {
+      "club": "Kontraktslös",
+      "previousClub": "Frölunda HC",
+      "status": "free",
+      "date": "2026-09-14",
+      "source": "https://www.frolundahockey.com/article/6uoatlb-24601/view",
+      "player": {
+        "birth": "2000-05-17",
+        "height": 181,
+        "id": "ep-300505",
+        "name": "Linus Nässén",
+        "nationality": "SWE",
+        "position": "C/W",
+        "registration": "Sep 18",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/300505/linus-nassen",
+        "stats": [
+          {
+            "assists": 3,
+            "goals": 0,
+            "gp": 17,
+            "league": "Liiga",
+            "pim": 6,
+            "season": "25-26",
+            "team": "TPS"
+          },
+          {
+            "assists": 3,
+            "goals": 1,
+            "gp": 36,
+            "league": "SHL",
+            "pim": 12,
+            "season": "24-25",
+            "team": "Frölunda HC"
+          }
+        ],
+        "weight": 81
+      }
+    },
+    {
+      "club": "Kontraktslös",
+      "previousClub": "BIK Karlskoga",
+      "status": "free",
+      "date": "2026-09-16",
+      "source": "https://www.bikkarlskoga.se/article/6nxatlg-1eki1/view",
+      "player": {
+        "birth": "2001-08-14",
+        "height": 178,
+        "id": "ep-349832",
+        "name": "Elias Ekström",
+        "nationality": "SWE",
+        "position": "LW/RW",
+        "registration": "26/27",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/349832/elias-ekstrom",
+        "stats": [
+          {
+            "assists": 4,
+            "goals": 1,
+            "gp": 16,
+            "league": "HockeyAllsvenskan",
+            "pim": 2,
+            "season": "25-26",
+            "team": "BIK Karlskoga"
+          },
+          {
+            "assists": 12,
+            "goals": 2,
+            "gp": 27,
+            "league": "HockeyAllsvenskan",
+            "pim": 8,
+            "season": "24-25",
+            "team": "Västerås IK"
+          },
+          {
+            "assists": 4,
+            "goals": 1,
+            "gp": 26,
+            "league": "SHL",
+            "pim": 2,
+            "season": "24-25",
+            "team": "Örebro HK"
+          }
+        ],
+        "weight": 77
+      }
+    },
+    {
+      "club": "Östersunds IK",
+      "previousClub": "Östersunds IK",
+      "status": "retire",
+      "date": "2026-09-21",
+      "source": "https://www.eliteprospects.com/transfer/2026/09/21/tex-williamsson-in-a-confirmed-transaction-leaving-ostersunds-ik/650334",
+      "player": {
+        "birth": "1991-01-01",
+        "height": 196,
+        "id": "ep-13991",
+        "name": "Tex Williamsson",
+        "nationality": "SWE",
+        "position": "G",
+        "registration": "Ej angivet",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/13991/tex-williamsson",
+        "stats": [
+          {
+            "gaa": 1.77,
+            "gp": 5,
+            "league": "HockeyAllsvenskan",
+            "season": "25-26",
+            "sv": 0.93,
+            "team": "Nybro Vikings IF"
+          },
+          {
+            "gaa": 2.55,
+            "gp": 26,
+            "league": "HockeyAllsvenskan",
+            "season": "24-25",
+            "sv": 0.908,
+            "team": "Nybro Vikings IF"
+          }
+        ],
+        "weight": 95
+      }
+    },
+    {
+      "club": "Karlskrona HK",
+      "previousClub": "Malmö Redhawks",
+      "status": "loan",
+      "date": "2026-09-14",
+      "source": "https://www.malmoredhawks.com/article/w8zatl6-33nad/view",
+      "player": {
+        "birth": "2006-02-20",
+        "height": 173,
+        "id": "ep-719785",
+        "name": "Viktor Olofsson",
+        "nationality": "SWE",
+        "position": "LW",
+        "registration": "26/27",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/719785/viktor-olofsson",
+        "stats": [
+          {
+            "assists": 8,
+            "goals": 6,
+            "gp": 11,
+            "league": "U20 Nationell",
+            "pim": 0,
+            "season": "25-26",
+            "team": "Malmö Redhawks U20"
+          },
+          {
+            "assists": 0,
+            "goals": 0,
+            "gp": 4,
+            "league": "SHL",
+            "pim": 0,
+            "season": "25-26",
+            "team": "Malmö Redhawks"
+          },
+          {
+            "assists": 41,
+            "goals": 16,
+            "gp": 43,
+            "league": "J20 Nationell",
+            "pim": 2,
+            "season": "24-25",
+            "team": "HV71 J20"
+          },
+          {
+            "assists": 0,
+            "goals": 0,
+            "gp": 1,
+            "league": "SHL",
+            "pim": 0,
+            "season": "24-25",
+            "team": "HV71"
+          }
+        ],
+        "weight": 78,
+        "loan": {
+          "owner": "Malmö Redhawks",
+          "start": "2026-09-14",
+          "until": "2027-05-15",
+          "source": "https://www.malmoredhawks.com/article/w8zatl6-33nad/view",
+          "termsEstimated": true,
+          "recall": "anytime"
+        }
+      }
+    },
+    {
+      "club": "Wings HC",
+      "previousClub": "Almtuna IS",
+      "status": "loan",
+      "date": "2026-09-18",
+      "source": "https://www.eliteprospects.com/team/13/almtuna-is/transfers",
+      "player": {
+        "birth": "2006-01-11",
+        "height": null,
+        "id": "ep-788657",
+        "name": "Daniel Meyer",
+        "nationality": "SWE",
+        "position": "C",
+        "registration": "26/27",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/788657/daniel-meyer",
+        "stats": [
+          {
+            "assists": 10,
+            "goals": 7,
+            "gp": 25,
+            "league": "U20 Region",
+            "pim": 8,
+            "season": "25-26",
+            "team": "Almtuna IS U20"
+          },
+          {
+            "assists": 0,
+            "goals": 0,
+            "gp": 8,
+            "league": "HockeyAllsvenskan",
+            "pim": 2,
+            "season": "25-26",
+            "team": "Almtuna IS"
+          },
+          {
+            "assists": 5,
+            "goals": 1,
+            "gp": 49,
+            "league": "J20 Nationell",
+            "pim": 14,
+            "season": "24-25",
+            "team": "Almtuna IS J20"
+          }
+        ],
+        "weight": 161,
+        "loan": {
+          "owner": "Almtuna IS",
+          "start": "2026-09-18",
+          "until": "2027-05-15",
+          "source": "https://www.eliteprospects.com/team/13/almtuna-is/transfers",
+          "termsEstimated": true,
+          "recall": "anytime"
+        }
+      }
+    },
+    {
+      "club": "Lindlövens IF",
+      "previousClub": "Almtuna IS",
+      "status": "loan",
+      "date": "2026-09-16",
+      "source": "https://www.eliteprospects.com/transfer/2026/09/16/lukas-nikolaj-pettersen-finckenhagen-in-a-loan-to-lindlovens-if/649866",
+      "player": {
+        "birth": "2006-03-01",
+        "height": null,
+        "id": "ep-734717",
+        "name": "Lukas Nikolaj Pettersen-Finckenhagen",
+        "nationality": "NOR",
+        "position": "RW",
+        "registration": "26/27",
+        "shoots": "R",
+        "source": "https://www.eliteprospects.com/player/734717/lukas-nikolaj-pettersen-finckenhagen",
+        "stats": [
+          {
+            "assists": 16,
+            "goals": 14,
+            "gp": 25,
+            "league": "U20 Nationell",
+            "pim": 6,
+            "season": "25-26",
+            "team": "Mora IK U20"
+          },
+          {
+            "assists": 0,
+            "goals": 0,
+            "gp": 2,
+            "league": "HockeyAllsvenskan",
+            "pim": 0,
+            "season": "25-26",
+            "team": "Mora IK"
+          },
+          {
+            "assists": 15,
+            "goals": 18,
+            "gp": 40,
+            "league": "J20 Nationell",
+            "pim": 8,
+            "season": "24-25",
+            "team": "Mora IK J20"
+          },
+          {
+            "assists": 0,
+            "goals": 0,
+            "gp": 1,
+            "league": "HockeyAllsvenskan",
+            "pim": 0,
+            "season": "24-25",
+            "team": "Mora IK"
+          }
+        ],
+        "weight": 225,
+        "loan": {
+          "owner": "Almtuna IS",
+          "start": "2026-09-16",
+          "until": "2027-05-15",
+          "source": "https://www.eliteprospects.com/transfer/2026/09/16/lukas-nikolaj-pettersen-finckenhagen-in-a-loan-to-lindlovens-if/649866",
+          "termsEstimated": true,
+          "recall": "anytime"
+        }
+      }
+    },
+    {
+      "club": "Nashville Predators",
+      "previousClub": "Rögle BK",
+      "status": "abroad",
+      "date": "2026-05-29",
+      "source": "https://www.nhl.com/predators/news/offseason-recap-look-back-at-nashville-s-summer-of-2026-before-the-start-of-a-new-preds-campaign-2026-09-09",
+      "player": {
+        "birth": "2005-06-22",
+        "height": 184,
+        "id": "ep-702288",
+        "name": "Felix Nilsson",
+        "nationality": "SWE",
+        "position": "C/W",
+        "registration": "28/29",
+        "shoots": "L",
+        "source": "https://www.eliteprospects.com/player/702288/felix-nilsson",
+        "stats": [
+          {
+            "assists": 26,
+            "goals": 14,
+            "gp": 52,
+            "league": "SHL",
+            "pim": 14,
+            "season": "25-26",
+            "team": "Rögle BK"
+          },
+          {
+            "assists": 17,
+            "goals": 5,
+            "gp": 40,
+            "league": "SHL",
+            "pim": 4,
+            "season": "24-25",
+            "team": "Rögle BK"
+          },
+          {
+            "assists": 0,
+            "goals": 1,
+            "gp": 5,
+            "league": "HockeyAllsvenskan",
+            "pim": 0,
+            "season": "24-25",
+            "team": "IK Oskarshamn"
+          }
+        ],
+        "weight": 87
+      }
+    }
+  ],
+  "asOf": "2026-09-23"
 };
+
 const SHL_DATABASE = {
-  "version": "se-2026-09-07-evidence2",
+  "version": "se-2026-09-23-rosters1",
   "season": "2026/27",
-  "checked": "2026-09-06",
+  "checked": "2026-09-23",
   "clubs": {
     "Björklöven": {
       "source": "https://www.eliteprospects.com/team/15/if-bjorkloven",
@@ -14767,56 +16445,6 @@ const SHL_DATABASE = {
           "weight": 92
         },
         {
-          "birth": "2006-05-04",
-          "height": 193,
-          "id": "ep-741439",
-          "name": "Charlie Forslund",
-          "nationality": "SWE",
-          "position": "LW/RW",
-          "registration": "27/28+1",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/741439/charlie-forslund",
-          "stats": [
-            {
-              "assists": 4,
-              "goals": 5,
-              "gp": 28,
-              "league": "HockeyAllsvenskan",
-              "pim": 12,
-              "season": "25-26",
-              "team": "Almtuna IS"
-            },
-            {
-              "assists": 4,
-              "goals": 3,
-              "gp": 12,
-              "league": "U20 Nationell",
-              "pim": 6,
-              "season": "25-26",
-              "team": "Mora IK U20"
-            },
-            {
-              "assists": 14,
-              "goals": 9,
-              "gp": 44,
-              "league": "J20 Nationell",
-              "pim": 8,
-              "season": "24-25",
-              "team": "Mora IK J20"
-            },
-            {
-              "assists": 1,
-              "goals": 0,
-              "gp": 6,
-              "league": "HockeyAllsvenskan",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Mora IK"
-            }
-          ],
-          "weight": 99
-        },
-        {
           "birth": "1997-10-15",
           "height": 193,
           "id": "ep-213464",
@@ -15172,74 +16800,6 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 94
-        },
-        {
-          "birth": "2007-06-12",
-          "height": 175,
-          "id": "ep-880546",
-          "name": "Leo Sundqvist",
-          "nationality": "SWE",
-          "position": "RW",
-          "registration": "27/28",
-          "shoots": "R",
-          "source": "https://www.eliteprospects.com/player/880546/leo-sundqvist",
-          "stats": [
-            {
-              "assists": 16,
-              "goals": 29,
-              "gp": 35,
-              "league": "U20 Nationell",
-              "pim": 16,
-              "season": "25-26",
-              "team": "Brynäs IF U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 11,
-              "league": "SHL",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Brynäs IF"
-            },
-            {
-              "assists": 11,
-              "goals": 15,
-              "gp": 33,
-              "league": "J20 Nationell",
-              "pim": 10,
-              "season": "24-25",
-              "team": "Brynäs IF J20"
-            },
-            {
-              "assists": 2,
-              "goals": 0,
-              "gp": 16,
-              "league": "SHL",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Brynäs IF"
-            },
-            {
-              "assists": 3,
-              "goals": 0,
-              "gp": 3,
-              "league": "J18 Region",
-              "pim": 2,
-              "season": "24-25",
-              "team": "Brynäs IF J18"
-            },
-            {
-              "assists": 0,
-              "goals": 2,
-              "gp": 2,
-              "league": "J18 Nationell",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Brynäs IF J18"
-            }
-          ],
-          "weight": 77
         },
         {
           "birth": "1999-01-19",
@@ -16168,6 +17728,56 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 81
+        },
+        {
+          "id": "ep-241370",
+          "name": "Oliver Wahlstrom",
+          "birth": "2000-06-13",
+          "position": "RW/LW",
+          "nationality": "USA",
+          "height": 188,
+          "weight": 93,
+          "shoots": "R",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/241370/oliver-wahlstrom",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "San Jose Barracuda",
+              "league": "AHL",
+              "gp": 62,
+              "goals": 24,
+              "assists": 18,
+              "pim": 45
+            },
+            {
+              "season": "24-25",
+              "team": "New York Islanders",
+              "league": "NHL",
+              "gp": 27,
+              "goals": 2,
+              "assists": 2,
+              "pim": 9
+            },
+            {
+              "season": "24-25",
+              "team": "Providence Bruins",
+              "league": "AHL",
+              "gp": 19,
+              "goals": 9,
+              "assists": 6,
+              "pim": 10
+            },
+            {
+              "season": "24-25",
+              "team": "Boston Bruins",
+              "league": "NHL",
+              "gp": 16,
+              "goals": 1,
+              "assists": 1,
+              "pim": 28
+            }
+          ]
         }
       ]
     },
@@ -16898,38 +18508,6 @@ const SHL_DATABASE = {
           "weight": 76
         },
         {
-          "birth": "2000-05-17",
-          "height": 181,
-          "id": "ep-300505",
-          "name": "Linus Nässén",
-          "nationality": "SWE",
-          "position": "C/W",
-          "registration": "Sep 18",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/300505/linus-nassen",
-          "stats": [
-            {
-              "assists": 3,
-              "goals": 0,
-              "gp": 17,
-              "league": "Liiga",
-              "pim": 6,
-              "season": "25-26",
-              "team": "TPS"
-            },
-            {
-              "assists": 3,
-              "goals": 1,
-              "gp": 36,
-              "league": "SHL",
-              "pim": 12,
-              "season": "24-25",
-              "team": "Frölunda HC"
-            }
-          ],
-          "weight": 81
-        },
-        {
           "birth": "2002-11-10",
           "height": 187,
           "id": "ep-430916",
@@ -17142,6 +18720,47 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 79
+        },
+        {
+          "id": "ep-286955",
+          "name": "Graeme Clarke",
+          "birth": "2001-04-24",
+          "position": "RW/LW",
+          "nationality": "CAN",
+          "height": 183,
+          "weight": 79,
+          "shoots": "R",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/286955/graeme-clarke",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Hershey Bears",
+              "league": "AHL",
+              "gp": 50,
+              "goals": 15,
+              "assists": 9,
+              "pim": 24
+            },
+            {
+              "season": "25-26",
+              "team": "Belleville Senators",
+              "league": "AHL",
+              "gp": 15,
+              "goals": 5,
+              "assists": 14,
+              "pim": 18
+            },
+            {
+              "season": "24-25",
+              "team": "Iowa Wild",
+              "league": "AHL",
+              "gp": 64,
+              "goals": 16,
+              "assists": 21,
+              "pim": 36
+            }
+          ]
         }
       ]
     },
@@ -17683,65 +19302,6 @@ const SHL_DATABASE = {
           "weight": 98
         },
         {
-          "birth": "2007-09-13",
-          "height": 180,
-          "id": "ep-876952",
-          "name": "Mikkel Eriksen",
-          "nationality": "NOR",
-          "position": "C",
-          "registration": "Junior",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/876952/mikkel-eriksen",
-          "stats": [
-            {
-              "assists": 25,
-              "goals": 19,
-              "gp": 25,
-              "league": "U20 Nationell",
-              "pim": 16,
-              "season": "25-26",
-              "team": "Färjestad BK U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 15,
-              "league": "SHL",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Färjestad BK"
-            },
-            {
-              "assists": 0,
-              "goals": 1,
-              "gp": 5,
-              "league": "HockeyAllsvenskan",
-              "pim": 4,
-              "season": "25-26",
-              "team": "Mora IK"
-            },
-            {
-              "assists": 21,
-              "goals": 22,
-              "gp": 40,
-              "league": "J20 Nationell",
-              "pim": 8,
-              "season": "24-25",
-              "team": "Färjestad BK J20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 1,
-              "league": "J18 Region",
-              "pim": 2,
-              "season": "24-25",
-              "team": "Färjestad BK J18"
-            }
-          ],
-          "weight": 85
-        },
-        {
           "birth": "1998-06-20",
           "height": 192,
           "id": "ep-270160",
@@ -18069,6 +19629,60 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 84
+        },
+        {
+          "id": "ep-905354",
+          "name": "Douglas Nilsson",
+          "birth": "2008-03-28",
+          "position": "G",
+          "nationality": "SWE",
+          "height": 193,
+          "weight": 82,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/905354/douglas-nilsson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Färjestad BK U20",
+              "league": "U20 Nationell",
+              "gp": 14,
+              "gaa": 3.16,
+              "sv": 0.889
+            },
+            {
+              "season": "25-26",
+              "team": "Färjestad BK U18",
+              "league": "U18 Nationell",
+              "gp": 9,
+              "gaa": 2.56,
+              "sv": 0.91
+            },
+            {
+              "season": "25-26",
+              "team": "Färjestad BK U18",
+              "league": "U18 Region",
+              "gp": 6,
+              "gaa": 0.99,
+              "sv": 0.958
+            },
+            {
+              "season": "24-25",
+              "team": "Färjestad BK J18",
+              "league": "J18 Region",
+              "gp": 11,
+              "gaa": 2.81,
+              "sv": 0.889
+            },
+            {
+              "season": "24-25",
+              "team": "Färjestad BK J18",
+              "league": "J18 Nationell",
+              "gp": 9,
+              "gaa": 2.51,
+              "sv": 0.912
+            }
+          ]
         }
       ]
     },
@@ -19060,6 +20674,174 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 82
+        },
+        {
+          "id": "ep-217795",
+          "name": "Markuss Komuls",
+          "birth": "1998-01-04",
+          "position": "D",
+          "nationality": "LAT",
+          "height": 183,
+          "weight": 86,
+          "shoots": "R",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/217795/markuss-komuls",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "HC Litvínov",
+              "league": "Czechia",
+              "gp": 28,
+              "goals": 2,
+              "assists": 8,
+              "pim": 8
+            },
+            {
+              "season": "25-26",
+              "team": "HIFK",
+              "league": "Liiga",
+              "gp": 1,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "HC Nove Zamky",
+              "league": "Slovakia",
+              "gp": 35,
+              "goals": 2,
+              "assists": 5,
+              "pim": 20
+            },
+            {
+              "season": "24-25",
+              "team": "Rytíři Kladno",
+              "league": "Czechia",
+              "gp": 11,
+              "goals": 1,
+              "assists": 2,
+              "pim": 2
+            }
+          ]
+        },
+        {
+          "id": "ep-249755",
+          "name": "Pavol Regenda",
+          "birth": "1999-12-07",
+          "position": "LW/RW",
+          "nationality": "SVK",
+          "height": 193,
+          "weight": 98,
+          "shoots": "L",
+          "registration": "26/27",
+          "source": "https://www.eliteprospects.com/player/249755/pavol-regenda",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "San Jose Barracuda",
+              "league": "AHL",
+              "gp": 28,
+              "goals": 4,
+              "assists": 8,
+              "pim": 16
+            },
+            {
+              "season": "25-26",
+              "team": "San Jose Sharks",
+              "league": "NHL",
+              "gp": 24,
+              "goals": 9,
+              "assists": 1,
+              "pim": 20
+            },
+            {
+              "season": "24-25",
+              "team": "San Diego Gulls",
+              "league": "AHL",
+              "gp": 36,
+              "goals": 4,
+              "assists": 12,
+              "pim": 36
+            },
+            {
+              "season": "24-25",
+              "team": "San Jose Barracuda",
+              "league": "AHL",
+              "gp": 36,
+              "goals": 9,
+              "assists": 16,
+              "pim": 30
+            }
+          ]
+        },
+        {
+          "id": "ep-871864",
+          "name": "Noel Skarby",
+          "birth": "2007-01-15",
+          "position": "LW",
+          "nationality": "SWE",
+          "height": 181,
+          "weight": 80,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/871864/noel-skarby",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "HV71 U20",
+              "league": "U20 Nationell",
+              "gp": 34,
+              "goals": 17,
+              "assists": 19,
+              "pim": 48
+            },
+            {
+              "season": "25-26",
+              "team": "HV71",
+              "league": "SHL",
+              "gp": 6,
+              "goals": 0,
+              "assists": 0,
+              "pim": 2
+            },
+            {
+              "season": "25-26",
+              "team": "HC Dalen",
+              "league": "HockeyEttan",
+              "gp": 2,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "HV71 J20",
+              "league": "J20 Nationell",
+              "gp": 27,
+              "goals": 5,
+              "assists": 7,
+              "pim": 4
+            },
+            {
+              "season": "24-25",
+              "team": "HV71 J18",
+              "league": "J18 Region",
+              "gp": 10,
+              "goals": 6,
+              "assists": 12,
+              "pim": 4
+            },
+            {
+              "season": "24-25",
+              "team": "HV71 J18",
+              "league": "J18 Nationell",
+              "gp": 6,
+              "goals": 6,
+              "assists": 3,
+              "pim": 6
+            }
+          ]
         }
       ]
     },
@@ -19690,65 +21472,6 @@ const SHL_DATABASE = {
           "weight": 90
         },
         {
-          "birth": "2008-03-21",
-          "height": 185,
-          "id": "ep-874176",
-          "name": "Oscar Holmertz",
-          "nationality": "SWE",
-          "position": "C",
-          "registration": "27/28",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/874176/oscar-holmertz",
-          "stats": [
-            {
-              "assists": 23,
-              "goals": 13,
-              "gp": 34,
-              "league": "U20 Nationell",
-              "pim": 2,
-              "season": "25-26",
-              "team": "Linköping HC U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 11,
-              "league": "SHL",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Linköping HC"
-            },
-            {
-              "assists": 4,
-              "goals": 4,
-              "gp": 5,
-              "league": "U18 Region",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Linköping HC U18"
-            },
-            {
-              "assists": 2,
-              "goals": 1,
-              "gp": 4,
-              "league": "U18 Nationell",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Linköping HC U18"
-            },
-            {
-              "assists": 20,
-              "goals": 10,
-              "gp": 32,
-              "league": "J20 Nationell",
-              "pim": 4,
-              "season": "24-25",
-              "team": "Linköping HC J20"
-            }
-          ],
-          "weight": 91
-        },
-        {
           "birth": "1993-01-16",
           "height": 178,
           "id": "ep-16813",
@@ -20189,6 +21912,60 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 89
+        },
+        {
+          "id": "ep-902858",
+          "name": "Anton Emil Wilde Larsen",
+          "birth": "2008-03-04",
+          "position": "G",
+          "nationality": "DEN",
+          "height": 192,
+          "weight": 92,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/902858/anton-emil-wilde-larsen",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Frederikshavn White Hawks",
+              "league": "Denmark",
+              "gp": 13,
+              "gaa": 4.8,
+              "sv": 0.85
+            }
+          ]
+        },
+        {
+          "id": "ep-92502",
+          "name": "Sami Niku",
+          "birth": "1996-10-10",
+          "position": "D",
+          "nationality": "FIN",
+          "height": 185,
+          "weight": 88,
+          "shoots": "L",
+          "registration": "27/28",
+          "source": "https://www.eliteprospects.com/player/92502/sami-niku",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Lausanne HC",
+              "league": "NL",
+              "gp": 50,
+              "goals": 8,
+              "assists": 16,
+              "pim": 22
+            },
+            {
+              "season": "24-25",
+              "team": "EHC Kloten",
+              "league": "NL",
+              "gp": 52,
+              "goals": 5,
+              "assists": 25,
+              "pim": 32
+            }
+          ]
         }
       ]
     },
@@ -20318,74 +22095,6 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 90
-        },
-        {
-          "birth": "2007-10-08",
-          "height": 194,
-          "id": "ep-689901",
-          "name": "William Håkansson",
-          "nationality": "SWE",
-          "position": "D",
-          "registration": "28/29",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/689901/william-hakansson",
-          "stats": [
-            {
-              "assists": 2,
-              "goals": 0,
-              "gp": 22,
-              "league": "SHL",
-              "pim": 8,
-              "season": "25-26",
-              "team": "Luleå HF"
-            },
-            {
-              "assists": 2,
-              "goals": 2,
-              "gp": 16,
-              "league": "HockeyAllsvenskan",
-              "pim": 39,
-              "season": "25-26",
-              "team": "Almtuna IS"
-            },
-            {
-              "assists": 4,
-              "goals": 0,
-              "gp": 6,
-              "league": "U20 Nationell",
-              "pim": 36,
-              "season": "25-26",
-              "team": "Luleå HF U20"
-            },
-            {
-              "assists": 15,
-              "goals": 7,
-              "gp": 42,
-              "league": "J20 Nationell",
-              "pim": 82,
-              "season": "24-25",
-              "team": "Luleå HF J20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 3,
-              "league": "SHL",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Luleå HF"
-            },
-            {
-              "assists": 1,
-              "goals": 0,
-              "gp": 1,
-              "league": "J18 Region",
-              "pim": 2,
-              "season": "24-25",
-              "team": "Luleå HF J18"
-            }
-          ],
-          "weight": 98
         },
         {
           "birth": "1999-07-02",
@@ -20792,65 +22501,6 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 78
-        },
-        {
-          "birth": "2007-02-01",
-          "height": 190,
-          "id": "ep-866571",
-          "name": "Jakob Ihs-Wozniak",
-          "nationality": "SWE",
-          "position": "RW/C",
-          "registration": "26/27",
-          "shoots": "R",
-          "source": "https://www.eliteprospects.com/player/866571/jakob-ihs-wozniak",
-          "stats": [
-            {
-              "assists": 14,
-              "goals": 9,
-              "gp": 36,
-              "league": "HockeyAllsvenskan",
-              "pim": 12,
-              "season": "25-26",
-              "team": "IF Björklöven"
-            },
-            {
-              "assists": 0,
-              "goals": 2,
-              "gp": 17,
-              "league": "SHL",
-              "pim": 2,
-              "season": "25-26",
-              "team": "Luleå HF"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 1,
-              "league": "U20 Nationell",
-              "pim": 6,
-              "season": "25-26",
-              "team": "Luleå HF U20"
-            },
-            {
-              "assists": 34,
-              "goals": 23,
-              "gp": 40,
-              "league": "J20 Nationell",
-              "pim": 18,
-              "season": "24-25",
-              "team": "Luleå HF J20"
-            },
-            {
-              "assists": 1,
-              "goals": 1,
-              "gp": 13,
-              "league": "SHL",
-              "pim": 0,
-              "season": "24-25",
-              "team": "Luleå HF"
-            }
-          ],
-          "weight": 86
         },
         {
           "birth": "2007-10-25",
@@ -21487,38 +23137,6 @@ const SHL_DATABASE = {
           "weight": 81
         },
         {
-          "birth": "2002-10-31",
-          "height": 188,
-          "id": "ep-412008",
-          "name": "Martin Schreiber",
-          "nationality": "SWE",
-          "position": "D",
-          "registration": "26/27",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/412008/martin-schreiber",
-          "stats": [
-            {
-              "assists": 3,
-              "goals": 0,
-              "gp": 50,
-              "league": "SHL",
-              "pim": 43,
-              "season": "25-26",
-              "team": "Malmö Redhawks"
-            },
-            {
-              "assists": 13,
-              "goals": 6,
-              "gp": 51,
-              "league": "HockeyAllsvenskan",
-              "pim": 51,
-              "season": "24-25",
-              "team": "Kalmar HC"
-            }
-          ],
-          "weight": 93
-        },
-        {
           "birth": "2002-04-03",
           "height": 183,
           "id": "ep-499518",
@@ -21850,56 +23468,6 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 83
-        },
-        {
-          "birth": "2006-02-20",
-          "height": 173,
-          "id": "ep-719785",
-          "name": "Viktor Olofsson",
-          "nationality": "SWE",
-          "position": "LW",
-          "registration": "26/27",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/719785/viktor-olofsson",
-          "stats": [
-            {
-              "assists": 8,
-              "goals": 6,
-              "gp": 11,
-              "league": "U20 Nationell",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Malmö Redhawks U20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 4,
-              "league": "SHL",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Malmö Redhawks"
-            },
-            {
-              "assists": 41,
-              "goals": 16,
-              "gp": 43,
-              "league": "J20 Nationell",
-              "pim": 2,
-              "season": "24-25",
-              "team": "HV71 J20"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 1,
-              "league": "SHL",
-              "pim": 0,
-              "season": "24-25",
-              "team": "HV71"
-            }
-          ],
-          "weight": 78
         },
         {
           "birth": "1999-09-12",
@@ -22862,47 +24430,6 @@ const SHL_DATABASE = {
           "weight": 86
         },
         {
-          "birth": "2005-06-22",
-          "height": 184,
-          "id": "ep-702288",
-          "name": "Felix Nilsson",
-          "nationality": "SWE",
-          "position": "C/W",
-          "registration": "28/29",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/702288/felix-nilsson",
-          "stats": [
-            {
-              "assists": 26,
-              "goals": 14,
-              "gp": 52,
-              "league": "SHL",
-              "pim": 14,
-              "season": "25-26",
-              "team": "Rögle BK"
-            },
-            {
-              "assists": 17,
-              "goals": 5,
-              "gp": 40,
-              "league": "SHL",
-              "pim": 4,
-              "season": "24-25",
-              "team": "Rögle BK"
-            },
-            {
-              "assists": 0,
-              "goals": 1,
-              "gp": 5,
-              "league": "HockeyAllsvenskan",
-              "pim": 0,
-              "season": "24-25",
-              "team": "IK Oskarshamn"
-            }
-          ],
-          "weight": 87
-        },
-        {
           "birth": "1996-05-27",
           "height": 188,
           "id": "ep-195218",
@@ -23102,6 +24629,79 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 88
+        },
+        {
+          "id": "ep-946883",
+          "name": "Mikael Kim",
+          "birth": "2008-08-08",
+          "position": "C",
+          "nationality": "SWE",
+          "height": 181,
+          "weight": 83,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/946883/mikael-kim",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Rögle BK U20",
+              "league": "U20 Nationell",
+              "gp": 27,
+              "goals": 5,
+              "assists": 11,
+              "pim": 48
+            },
+            {
+              "season": "25-26",
+              "team": "Rögle BK U18",
+              "league": "U18 Nationell",
+              "gp": 7,
+              "goals": 1,
+              "assists": 2,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Rögle BK J20",
+              "league": "J20 Nationell",
+              "gp": 35,
+              "goals": 5,
+              "assists": 3,
+              "pim": 10
+            },
+            {
+              "season": "24-25",
+              "team": "Rögle BK J18",
+              "league": "J18 Region",
+              "gp": 14,
+              "goals": 4,
+              "assists": 4,
+              "pim": 58
+            },
+            {
+              "season": "24-25",
+              "team": "Rögle BK J18",
+              "league": "J18 Nationell",
+              "gp": 3,
+              "goals": 2,
+              "assists": 1,
+              "pim": 4
+            }
+          ]
+        },
+        {
+          "id": "ep-619086",
+          "name": "Johannes Neumann",
+          "birth": "2006-05-10",
+          "position": "F",
+          "nationality": "AUT",
+          "height": 176,
+          "weight": 82,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/619086/johannes-neumann",
+          "stats": [],
+          "statsUnavailable": true
         }
       ]
     },
@@ -24098,6 +25698,215 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 83
+        },
+        {
+          "id": "ep-1063798",
+          "name": "Douglas Johnsson",
+          "birth": "2009-07-01",
+          "position": "D",
+          "nationality": "SWE",
+          "height": 178,
+          "weight": 77,
+          "shoots": "R",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/1063798/douglas-johnsson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Skellefteå AIK U18",
+              "league": "U18 Region",
+              "gp": 15,
+              "goals": 7,
+              "assists": 18,
+              "pim": 30
+            },
+            {
+              "season": "25-26",
+              "team": "Skellefteå AIK U20",
+              "league": "U20 Nationell",
+              "gp": 12,
+              "goals": 3,
+              "assists": 9,
+              "pim": 10
+            },
+            {
+              "season": "25-26",
+              "team": "Skellefteå AIK U18",
+              "league": "U18 Nationell",
+              "gp": 1,
+              "goals": 1,
+              "assists": 2,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Skellefteå AIK J18",
+              "league": "J18 Region",
+              "gp": 15,
+              "goals": 4,
+              "assists": 9,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Skellefteå AIK J18",
+              "league": "J18 Nationell",
+              "gp": 11,
+              "goals": 1,
+              "assists": 6,
+              "pim": 6
+            },
+            {
+              "season": "24-25",
+              "team": "Skellefteå AIK U16",
+              "league": "U16 Region",
+              "gp": 2,
+              "goals": 0,
+              "assists": 1,
+              "pim": 4
+            }
+          ]
+        },
+        {
+          "id": "ep-879627",
+          "name": "Lukas Nilsson",
+          "birth": "2007-02-21",
+          "position": "D",
+          "nationality": "SWE",
+          "height": 184,
+          "weight": 83,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/879627/lukas-nilsson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Östersunds IK U20",
+              "league": "U20 Region",
+              "gp": 29,
+              "goals": 8,
+              "assists": 22,
+              "pim": 12
+            },
+            {
+              "season": "24-25",
+              "team": "Östersunds IK J18",
+              "league": "J18 Region",
+              "gp": 31,
+              "goals": 8,
+              "assists": 17,
+              "pim": 20
+            },
+            {
+              "season": "24-25",
+              "team": "Östersunds IK J20",
+              "league": "J20 Region",
+              "gp": 13,
+              "goals": 0,
+              "assists": 4,
+              "pim": 2
+            }
+          ]
+        },
+        {
+          "id": "ep-875502",
+          "name": "Edwin Annerstedt",
+          "birth": "2007-05-16",
+          "position": "F",
+          "nationality": "SWE",
+          "height": 181,
+          "weight": 80,
+          "shoots": "R",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/875502/edwin-annerstedt",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Timrå IK U20",
+              "league": "U20 Nationell",
+              "gp": 34,
+              "goals": 22,
+              "assists": 24,
+              "pim": 6
+            },
+            {
+              "season": "25-26",
+              "team": "Timrå IK",
+              "league": "SHL",
+              "gp": 8,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J20",
+              "league": "J20 Nationell",
+              "gp": 45,
+              "goals": 7,
+              "assists": 17,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J18",
+              "league": "J18 Region",
+              "gp": 6,
+              "goals": 2,
+              "assists": 4,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J18",
+              "league": "J18 Nationell",
+              "gp": 3,
+              "goals": 3,
+              "assists": 3,
+              "pim": 0
+            }
+          ]
+        },
+        {
+          "id": "ep-879635",
+          "name": "Johan Stenberg",
+          "birth": "2007-02-25",
+          "position": "F",
+          "nationality": "SWE",
+          "height": 186,
+          "weight": 88,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/879635/johan-stenberg",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Skellefteå AIK U20",
+              "league": "U20 Nationell",
+              "gp": 36,
+              "goals": 5,
+              "assists": 15,
+              "pim": 10
+            },
+            {
+              "season": "24-25",
+              "team": "Skellefteå AIK J18",
+              "league": "J18 Nationell",
+              "gp": 15,
+              "goals": 3,
+              "assists": 7,
+              "pim": 2
+            },
+            {
+              "season": "24-25",
+              "team": "Skellefteå AIK J20",
+              "league": "J20 Nationell",
+              "gp": 4,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            }
+          ]
         }
       ]
     },
@@ -24954,6 +26763,52 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 81
+        },
+        {
+          "id": "ep-744765",
+          "name": "Max Berglund",
+          "birth": "2007-01-18",
+          "position": "G",
+          "nationality": "SWE",
+          "height": 181,
+          "weight": 85,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/744765/max-berglund",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Timrå IK U20",
+              "league": "U20 Nationell",
+              "gp": 19,
+              "gaa": 3.36,
+              "sv": 0.888
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J18",
+              "league": "J18 Region",
+              "gp": 12,
+              "gaa": 2.75,
+              "sv": 0.905
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J18",
+              "league": "J18 Nationell",
+              "gp": 11,
+              "gaa": 3.81,
+              "sv": 0.892
+            },
+            {
+              "season": "24-25",
+              "team": "Timrå IK J20",
+              "league": "J20 Nationell",
+              "gp": 2,
+              "gaa": 3.54,
+              "sv": 0.881
+            }
+          ]
         }
       ]
     },
@@ -25573,74 +27428,6 @@ const SHL_DATABASE = {
           "weight": 80
         },
         {
-          "birth": "2008-10-10",
-          "height": 181,
-          "id": "ep-937082",
-          "name": "Olle Karlsson",
-          "nationality": "SWE",
-          "position": "F",
-          "registration": "Junior",
-          "shoots": "L",
-          "source": "https://www.eliteprospects.com/player/937082/olle-karlsson",
-          "stats": [
-            {
-              "assists": 16,
-              "goals": 6,
-              "gp": 31,
-              "league": "U20 Nationell",
-              "pim": 16,
-              "season": "25-26",
-              "team": "Växjö Lakers HC U20"
-            },
-            {
-              "assists": 4,
-              "goals": 1,
-              "gp": 5,
-              "league": "U18 Region",
-              "pim": 8,
-              "season": "25-26",
-              "team": "Växjö Lakers HC U18"
-            },
-            {
-              "assists": 5,
-              "goals": 5,
-              "gp": 5,
-              "league": "U18 Nationell",
-              "pim": 0,
-              "season": "25-26",
-              "team": "Växjö Lakers HC U18"
-            },
-            {
-              "assists": 0,
-              "goals": 0,
-              "gp": 5,
-              "league": "SHL",
-              "pim": 2,
-              "season": "25-26",
-              "team": "Växjö Lakers HC"
-            },
-            {
-              "assists": 7,
-              "goals": 11,
-              "gp": 22,
-              "league": "J18 Region",
-              "pim": 10,
-              "season": "24-25",
-              "team": "Växjö Lakers HC J18"
-            },
-            {
-              "assists": 10,
-              "goals": 7,
-              "gp": 17,
-              "league": "J18 Nationell",
-              "pim": 8,
-              "season": "24-25",
-              "team": "Växjö Lakers HC J18"
-            }
-          ],
-          "weight": 79
-        },
-        {
           "birth": "2004-09-25",
           "height": 186,
           "id": "ep-641348",
@@ -25904,6 +27691,124 @@ const SHL_DATABASE = {
             }
           ],
           "weight": 83
+        },
+        {
+          "id": "ep-689907",
+          "name": "Noa Bräutigam",
+          "birth": "2007-05-27",
+          "position": "LW",
+          "nationality": "SWE",
+          "height": 185,
+          "weight": 83,
+          "shoots": "R",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/689907/noa-brautigam",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Växjö Lakers HC U20",
+              "league": "U20 Nationell",
+              "gp": 35,
+              "goals": 8,
+              "assists": 11,
+              "pim": 42
+            },
+            {
+              "season": "24-25",
+              "team": "Växjö Lakers HC J20",
+              "league": "J20 Nationell",
+              "gp": 24,
+              "goals": 4,
+              "assists": 2,
+              "pim": 14
+            },
+            {
+              "season": "24-25",
+              "team": "Växjö Lakers HC J18",
+              "league": "J18 Region",
+              "gp": 13,
+              "goals": 5,
+              "assists": 3,
+              "pim": 14
+            },
+            {
+              "season": "24-25",
+              "team": "Växjö Lakers HC J18",
+              "league": "J18 Nationell",
+              "gp": 5,
+              "goals": 3,
+              "assists": 1,
+              "pim": 36
+            }
+          ]
+        },
+        {
+          "id": "ep-885789",
+          "name": "Max Isaksson",
+          "birth": "2008-01-28",
+          "position": "C",
+          "nationality": "SWE",
+          "height": 183,
+          "weight": 84,
+          "shoots": "L",
+          "registration": "Junior",
+          "source": "https://www.eliteprospects.com/player/885789/max-isaksson",
+          "stats": [
+            {
+              "season": "25-26",
+              "team": "Växjö Lakers HC U20",
+              "league": "U20 Nationell",
+              "gp": 30,
+              "goals": 14,
+              "assists": 14,
+              "pim": 18
+            },
+            {
+              "season": "25-26",
+              "team": "Växjö Lakers HC U18",
+              "league": "U18 Nationell",
+              "gp": 4,
+              "goals": 3,
+              "assists": 6,
+              "pim": 4
+            },
+            {
+              "season": "25-26",
+              "team": "Växjö Lakers HC U18",
+              "league": "U18 Region",
+              "gp": 3,
+              "goals": 3,
+              "assists": 1,
+              "pim": 2
+            },
+            {
+              "season": "25-26",
+              "team": "Växjö Lakers HC",
+              "league": "SHL",
+              "gp": 3,
+              "goals": 0,
+              "assists": 0,
+              "pim": 0
+            },
+            {
+              "season": "24-25",
+              "team": "Växjö Lakers HC J20",
+              "league": "J20 Nationell",
+              "gp": 29,
+              "goals": 8,
+              "assists": 10,
+              "pim": 41
+            },
+            {
+              "season": "24-25",
+              "team": "Växjö Lakers HC J18",
+              "league": "J18 Region",
+              "gp": 17,
+              "goals": 7,
+              "assists": 15,
+              "pim": 18
+            }
+          ]
         }
       ]
     },
@@ -26925,6 +28830,6 @@ const SHL_DATABASE = {
         }
       ]
     }
-  }
+  },
+  "asOf": "2026-09-23"
 };
-const HA_LINKED_SHL_PLAYERS = [];

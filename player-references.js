@@ -12,6 +12,8 @@ function playerIdentity(id){
  }
  const pool=(state.international?.pool||[]).find(p=>samePlayerId(p.id,id));
  if(pool)return {player:pool,active:true,restricted:true,club:'Internationell juniorpool'};
+ const external=(state.loans?.external||[]).find(p=>samePlayerId(p.id,id));
+ if(external)return {player:external,active:false,external:true,club:external.club};
  const archived=Object.values(state.playerArchive||{}).find(p=>samePlayerId(p.id,id));
  if(archived)return {player:archived,active:false,club:archived.club};
  // Old saves: recover only evidence carrying an ID; never infer identity from names.
@@ -99,7 +101,7 @@ function historicalPlayerView(id){
  const identity=playerIdentity(id),p=identity?.player;
  if(identity?.junior)return '<article class="fm-profile"><button class="fm-back" onclick="deskBack(\'juniors\')" aria-label="Tillbaka till föregående vy">←</button>'+juniorProfile(p)+'</article>';
  if(identity?.restricted)return '<article class="fm-profile"><button class="fm-back" onclick="deskBack(\'nhl\')" aria-label="Tillbaka till föregående vy">←</button><h1>'+trainingSafe(p.name)+'</h1><p>'+trainingSafe(identity.club)+' · '+trainingSafe(p.pos)+' · '+p.age+' år</p><p>Spelaren finns i juniorvärlden men ingår inte i seniorernas rekryteringsmarknad. Interna attribut, potential, träningsdata och hälsa är inte tillgängliga här.</p>'+playerPerformanceView(id)+playerHistoryView(id)+'</article>';
- return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('leagueStats')" aria-label="Tillbaka till föregående vy">←</button><div><h1>${trainingSafe(p?.name||'Spelaruppgifter saknas')}</h1><p>${p?trainingSafe(p.pos||'Position ej registrerad')+' · Senast registrerad klubb: '+trainingSafe(identity.club||'Saknas'):'Spelar-ID: '+trainingSafe(String(id))}</p></div></header><p>${p?.status==='retire'?'Pensionerad.':p?.status==='inactive'?'Lämnat den bevakade marknaden.':'Ingen aktiv spelarpost finns tillgänglig.'} Aktuell form, hälsa, attribut och avtal är inte tillgängliga. Inga spelaråtgärder kan utföras här.</p>${playerPerformanceView(id)}${playerHistoryView(id)}</article>`;
+ return `<article class="fm-profile"><header class="fm-profile-header"><button class="fm-back" onclick="deskBack('leagueStats')" aria-label="Tillbaka till föregående vy">←</button><div><h1>${trainingSafe(p?.name||'Spelaruppgifter saknas')}</h1><p>${p?trainingSafe(p.pos||'Position ej registrerad')+' · Senast registrerad klubb: '+trainingSafe(identity.club||'Saknas'):'Spelar-ID: '+trainingSafe(String(id))}</p></div></header><p>${p?.status==='retire'?'Pensionerad.':p?.status==='inactive'?'Lämnat den bevakade marknaden.':identity?.external?'Registrerad utanför den svenska rekryteringsmarknaden.':'Ingen aktiv spelarpost finns tillgänglig.'} Aktuell form, hälsa, attribut och avtal är inte tillgängliga. ${playerLoan(p)?'Följ eller återkalla lånet i lånecentralen.':'Inga spelaråtgärder kan utföras här.'}</p>${playerLoan(p)?loanPlayerPanel(p):''}${p?.research?haResearchPanel(p):''}${playerPerformanceView(id)}${playerHistoryView(id)}</article>`;
 }
 
 function playerProfileHeader(p,club){
@@ -137,7 +139,7 @@ function playerSearchResults(query){
  const needle=String(query||'').trim().toLocaleLowerCase('sv');
  if(needle.length<2)return {players:[],clubs:[],total:0};
  const byId=new Map();
- const pools=[...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.northAmerica?.abroad||[],state.juniors?.roster||[],...Object.values(state.clubAI?.clubs||{}).map(c=>c.academy?.roster||[]),state.international?.pool||[],Object.values(state.playerArchive||{})];
+ const pools=[...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.northAmerica?.abroad||[],state.juniors?.roster||[],...Object.values(state.clubAI?.clubs||{}).map(c=>c.academy?.roster||[]),state.international?.pool||[],state.loans?.external||[],Object.values(state.playerArchive||{})];
  for(const pool of pools)for(const p of pool)if(!byId.has(String(p.id)))byId.set(String(p.id),p);
  const players=[...byId.values()].filter(p=>String(p.name).toLocaleLowerCase('sv').includes(needle));
  const clubs=Object.keys(state.clubRosters||{}).filter(c=>c.toLocaleLowerCase('sv').includes(needle));
@@ -145,7 +147,7 @@ function playerSearchResults(query){
 }
 function playerSearchView(){
  const query=state.playerSearchQuery||'',results=playerSearchResults(query);
- return `<details class="entity-search" ${query?'open':''}><summary>Sök spelare och klubbar</summary><form onsubmit="event.preventDefault();state.playerSearchQuery=this.elements.entityQuery.value.trim();render();queueInterfaceSave()"><label>Namn <input type="search" name="entityQuery" minlength="2" value="${trainingSafe(query)}" placeholder="Minst två tecken"></label><button class="btn secondary">Sök</button><button type="button" class="btn secondary" onclick="state.playerSearchQuery='';render()">Rensa</button></form>${query?`<div role="status">${results.total} träffar${results.total>results.players.length+results.clubs.length?' · Förfina sökningen för att se fler':''}</div><ul>${results.players.map(p=>{const i=playerIdentity(p.id);return `<li>${playerReference(p.id,p.name)} · ${trainingSafe(p.pos)} · ${p.age??'Ålder saknas'} · ${trainingSafe(i?.club||'Klubb saknas')}${i?.active?'':' · Historisk post'}</li>`;}).join('')}${results.clubs.map(c=>`<li><a class="player-reference" href="#club/${encodeURIComponent(c)}" onclick="${trainingSafe('openClubContext('+JSON.stringify(c)+');return false;')}">${trainingSafe(c)}</a> · Klubb, trupp och matcher</li>`).join('')}</ul>`:''}</details>`;
+ return `<details class="entity-search" ${query?'open':''}><summary>Sök spelare och klubbar</summary><form onsubmit="event.preventDefault();state.playerSearchQuery=this.elements.entityQuery.value.trim();render();queueInterfaceSave()"><label>Namn <input type="search" name="entityQuery" minlength="2" value="${trainingSafe(query)}" placeholder="Minst två tecken"></label><button class="btn secondary">Sök</button><button type="button" class="btn secondary" onclick="state.playerSearchQuery='';render()">Rensa</button></form>${query?`<div role="status">${results.total} träffar${results.total>results.players.length+results.clubs.length?' · Förfina sökningen för att se fler':''}</div><ul>${results.players.map(p=>{const i=playerIdentity(p.id);return `<li>${playerReference(p.id,p.name)} · ${trainingSafe(p.pos)} · ${p.age??'Ålder saknas'} · ${trainingSafe(i?.club||'Klubb saknas')}${i?.external?' · Utanför marknaden':i?.active?'':' · Historisk post'}</li>`;}).join('')}${results.clubs.map(c=>`<li><a class="player-reference" href="#club/${encodeURIComponent(c)}" onclick="${trainingSafe('openClubContext('+JSON.stringify(c)+');return false;')}">${trainingSafe(c)}</a> · Klubb, trupp och matcher</li>`).join('')}</ul>`:''}</details>`;
 }
 
 function deskWorkspaceContext(){

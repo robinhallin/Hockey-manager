@@ -1,7 +1,7 @@
 "use strict";
 // Pure, deterministic start estimates. No career state, RNG, rendering or network.
 // Parameters are conservative game priors, not fitted biological/scouting facts.
-const PLAYER_EVIDENCE_MODEL={version:'se-evidence-2',asOf:'2026-09-07',checked:'2026-09-23',seasonWeights:{'25-26':1,'24-25':.5}};
+const PLAYER_EVIDENCE_MODEL={version:'se-evidence-2',asOf:'2026-09-23',checked:'2026-09-23',seasonWeights:{'25-26':1,'24-25':.5}};
 function evidenceStats(row){
  return (row.stats||[]).filter(s=>s.gp>0&&Number.isFinite(HA_LEAGUE_LEVEL[s.league])&&Object.hasOwn(PLAYER_EVIDENCE_MODEL.seasonWeights,s.season));
 }
@@ -96,7 +96,7 @@ function evidenceStartingRow(row){
 }
 // Save schema 2 identifies this frozen method/date definition. Keep it when future
 // models are introduced. Avoid repeating definitions and derived samples 684 times.
-function evidenceSavedModel(research){return research?.model===2?{version:'se-evidence-2',asOf:'2026-09-07',checked:'2026-09-23'}:null;}
+function evidenceSavedModel(research){return research?.model===3?{version:'se-evidence-2',asOf:'2026-09-23',checked:'2026-09-23'}:research?.model===2?{version:'se-evidence-2',asOf:'2026-09-07',checked:'2026-09-23'}:null;}
 const EVIDENCE_SOURCE_ROOT='https://stats.swehockey.se/Players/Statistics/';
 function evidenceSourceURL(source){return typeof source==='string'?EVIDENCE_SOURCE_ROOT+source:source.url;}
 function evidenceSavedStats(stats){

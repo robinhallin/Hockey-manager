@@ -63,7 +63,7 @@ Existing careers, attributes, fixtures, loan ownership and paused matches are re
 
 ## Previous release: researched rosters, match squads and club loans
 
-New careers use 680 sourced players across all 28 Swedish clubs, including 25 HV71 players and 23 initial loans. Each player has a dated source profile and prior-season statistics; all attributes are conservative game estimates derived from that evidence. See [PLAYER_RESEARCH.md](PLAYER_RESEARCH.md) for the roster counts, sources, loan exceptions and full method.
+New careers start on 23 September 2026 with 709 sourced players across all 28 Swedish clubs, including 28 HV71 players and 35 registered loans (three to external clubs). Existing careers retain their own rosters and dates. See [the dated roster update](ROSTER_UPDATE_2026-09-23.md). Each player has a dated source profile; prior-season statistics are included where verified; all attributes are conservative game estimates derived from that evidence. See [PLAYER_RESEARCH.md](PLAYER_RESEARCH.md) for the roster counts, sources, loan exceptions and full method.
 
 The match squad has up to 20 skaters and two goalkeepers, with a selectable bench and no mid-match additions from outside the registered squad. The loan centre moves one player object to a real borrowing club, splits wages, records actual fixtures and ice time, preserves the owner contract, and supports recall and automatic return. Old careers keep their existing rosters and development.
 
