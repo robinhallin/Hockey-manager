@@ -33,13 +33,14 @@ async function close(){
   await page.waitForFunction(()=>careerScreen===null && state.careerStarted);
   await page.screenshot({path:path.join(out,'01-klubbkontoret.png'),fullPage:true});
   await page.locator('.manager-nav button').filter({hasText:/Trupp/}).first().click();
-  await page.locator('input[name="query"]').fill('André');
+  const selectedName=await page.evaluate(()=>managerRoster()[0].name);
+  await page.locator('input[name="query"]').fill(selectedName);
   await page.getByRole('button',{name:'Sök',exact:true}).click();
   const link=page.locator('#content .player-reference').first();const id=await link.getAttribute('data-player-id');
   await link.click();await page.waitForFunction(id=>String(state.selectedPlayer)===id,id);
   await page.screenshot({path:path.join(out,'02-spelarprofil.png'),fullPage:true});
   await page.locator('#content button[onclick*="deskBack"]').first().click();
-  await page.locator('input[name="query"]').waitFor();assert.equal(await page.locator('input[name="query"]').inputValue(),'André');
+  await page.locator('input[name="query"]').waitFor();assert.equal(await page.locator('input[name="query"]').inputValue(),selectedName);
   // Advance the actual daily engine to the first scheduled fixture, without changing its date.
   await page.evaluate(()=>{for(let i=0;i<10 && state.calendar.date<calendarTarget();i++)calendarContinue();deskNavigate('match');});
   await page.locator('#content button[onclick*="createMatch"]').click();
@@ -73,5 +74,5 @@ async function close(){
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
  }catch(error){if(page)try{await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}
- finally{if(application)await application.close();}
+ finally{if(application)try{await application.evaluate(({app})=>app.exit(1));}catch{}}
 })().catch(error=>{console.error(error);process.exitCode=1;});
