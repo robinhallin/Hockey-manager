@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;
 r("startCareerWithClub('HV71');ensureJuniors();ensureJuniorCalendar()");
-while(r("state.calendar.date<'2026-09-09'"))r('calendarStep(true)');
+while(r("state.calendar.date<'2026-09-25'"))r('calendarStep(true)');
 let review=r('managerJ20Review()');
 assert.ok(review?.best&&review?.match?.j20,'latest J20 match should surface a prospect');
 const id=String(review.best.id),date=review.match.date;

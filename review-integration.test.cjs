@@ -9,7 +9,7 @@ assert.equal(r("state.loans.active.every(l=>l.owner!=='Luleå HF')"),true);
 assert.equal(r("Object.keys(state.world.membership).every(c=>state.clubRosters[c].every(p=>p.research))"),true);
 // A fresh Luleå manager receives the very roster used by scouting and league games.
 r("startCareerWithClub('Luleå Hockey')");
-assert.equal(r("managerRoster().length"),24);
+assert.equal(r("managerRoster().length"),22);
 assert.equal(r("managerRoster().every(p=>p.research)"),true);
 // Build the erroneous prior-save shape with an established legacy player and a
 // duplicate source roster. Keep progress and pending selections through repair.
@@ -76,7 +76,7 @@ h(`startCareerWithClub('HV71');globalThis.canonical=haRemoveStartingDuplicates;
  for(const p of state.clubRosters['Luleå HF'])p.club='Luleå HF';
  state.clubRosters['Luleå Hockey']=oldRoster;for(const l of state.loans.active)if(l.owner==='Luleå Hockey')l.owner='Luleå HF';globalThis.originalWhole=JSON.stringify(state);`);
 const consolidated=boot(h('originalWhole')),c=consolidated.run;
-assert.equal(c("state.clubRosters['Luleå Hockey'].length"),24);
+assert.equal(c("state.clubRosters['Luleå Hockey'].length"),22);
 assert.equal(c("Object.values(state.clubRosters).flat().filter(p=>p.name==='Isak Sörqvist').length"),1);
 assert.equal(c("getPlayerClub(Object.values(state.clubRosters).flat().find(p=>p.name==='Isak Sörqvist').id)"),'Vimmerby HC');
 assert.equal(c("state.clubRosters['Luleå Hockey'].filter(p=>p.name==='Casper Juustovaara Karlsson').length"),1);

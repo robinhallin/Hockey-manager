@@ -5,14 +5,14 @@ const assert=require('node:assert/strict');
 // Legacy saved matches remain supported; current broadcast coverage is in career-match suites.
 const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 const {run,storage}=boot();run('startCareerWithClub("HV71")');
-assert.equal(run('state.calendar.date'),'2026-09-07');
+assert.equal(run('state.calendar.date'),'2026-09-23');
 assert.equal(run('state.schedule.every(g=>/^202[67]-/.test(g.date))'),true);
 run('globalThis.dateBefore=state.calendar.date;globalThis.historyBefore=state.training.history.length;runTrainingSession()');
-assert.equal(run('state.calendar.date'),'2026-09-08');assert.equal(run('state.training.history.length-historyBefore'),1);
-run('save();render()');assert.equal(run('state.calendar.date'),'2026-09-08');
-const reloaded=boot(storage.value);assert.equal(reloaded.run('state.calendar.date'),'2026-09-08');
+assert.equal(run('state.calendar.date'),'2026-09-24');assert.equal(run('state.training.history.length-historyBefore'),1);
+run('save();render()');assert.equal(run('state.calendar.date'),'2026-09-24');
+const reloaded=boot(storage.value);assert.equal(reloaded.run('state.calendar.date'),'2026-09-24');
 // Next event advances planned days and halts at the match, with no automatic fixture result.
-run('calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-09');run('calendarContinue();calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-10');assert.equal(run('state.page'),'match');assert.equal(run('state.teams.some(t=>t.gp)'),false);
+run('calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-25');run('calendarContinue();calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-26');assert.equal(run('state.page'),'match');assert.equal(run('state.teams.some(t=>t.gp)'),false);
 // Deadline applies both at submission and at completion, including incoming sales and free agents.
 run('state.live=null;state.calendar.date="2027-02-14";state.money=1000000000;state.boardPlan.offer.wageLimit=1000000000;globalThis.target=state.clubRosters["AIK"].find(p=>p.pos==="B");target.transferListed=true;submitRecruitOffer(target.id,recruitFee(target),recruitPlayerWishes(target).salary*2,2,"Nyckelspelare");globalThis.offer=state.recruitment.deals[0];calendarStep(true);calendarStep(true)');
 assert.equal(run('offer.status'),'rejected');assert.match(run('offer.reason'),/stängning/);assert.equal(run('getPlayerClub(target.id)'),'AIK');
@@ -24,7 +24,7 @@ run('state.season.phase="review";state.season.boardResult=[];beginPreseason()');
 run('globalThis.wages=annualWageCost();calendarActivateFuture()');assert.equal(run('annualWageCost()'),run('wages'));
 assert.equal(run('Object.values(state.clubRosters).flat().filter(p=>samePlayerId(p.id,target.id)).length'),1);
 // A full 2D preseason game keeps season standings and player production intact.
-run('startCareerWithClub("HV71");calendarInitialPreseason();calendarBookFriendly("AIK","2026-08-04");globalThis.f=state.calendar.friendlies[0];calendarContinue();calendarContinue();calendarContinue();calendarContinue();if(!state.live)calendarPlayFriendly(f.id);globalThis.table=JSON.stringify(state.teams);globalThis.prod=JSON.stringify(Object.values(state.clubRosters).flat().map(p=>[p.id,p.goals||0,p.assists||0,p.games||0]));(!state.live&&(state.calendar.date=calendarTarget()),startMatch())');
+run('startCareerWithClub("HV71");useHistoricalCalendarFixture();calendarInitialPreseason();calendarBookFriendly("AIK","2026-08-04");globalThis.f=state.calendar.friendlies[0];calendarContinue();calendarContinue();calendarContinue();calendarContinue();if(!state.live)calendarPlayFriendly(f.id);globalThis.table=JSON.stringify(state.teams);globalThis.prod=JSON.stringify(Object.values(state.clubRosters).flat().map(p=>[p.id,p.goals||0,p.assists||0,p.games||0]));(!state.live&&(state.calendar.date=calendarTarget()),startMatch())');
 assert.equal(run('state.live.friendly'),true);
 run('for(let i=0;i<1800&&!state.live.finished;i++){if(!state.live.running){if(!medicalMatchReady()){medicalConcede();break;}state.live.running=true;}liveStep()}');
 assert.equal(run('state.live.finished'),true);assert.equal(run('f.played'),true);
@@ -43,6 +43,6 @@ assert.throws(()=>run(`validateSaveText(${JSON.stringify(text.replace('"HV71"','
 run('saveFilePreview=validateSaveText(saveExportText());applyCareerImport()');assert.equal(run('state.managerClub'),'HV71');assert.equal(run('saveFilePreview'),null);assert.match(run('saveFileNotice'),/inläst/);
 const oldSave=run('JSON.stringify(state)');run('saveFilePreview={...JSON.parse(JSON.stringify(state)),schedule:null};applyCareerImport()');assert.equal(run('JSON.stringify(state)'),oldSave);
 run('globalThis.originalSet=localStorage.setItem;saveFilePreview=validateSaveText(saveExportText());localStorage.setItem=(k,v)=>{if(k===CAREER_SAVE_KEY)throw Error("quota");originalSet(k,v)};applyCareerImport();localStorage.setItem=originalSet');assert.match(run('saveFileNotice'),/avbröts/);
-const single=boot();single.run('startCareerWithClub("HV71");calendarInitialPreseason();managerContinue()');assert.equal(single.run('state.calendar.date'),'2026-08-02');
+const single=boot();single.run('startCareerWithClub("HV71");useHistoricalCalendarFixture();calendarInitialPreseason();managerContinue()');assert.equal(single.run('state.calendar.date'),'2026-08-02');
 const empty=boot();empty.run('showSaveFiles()');assert.doesNotMatch(empty.run('saveSettingsView()'),/undefined|NaN/);
 console.log('PASS: dates, once-only training, event continuation, deadline boundaries, future arrivals, full 2D friendly/stat isolation, tight schedule, paused reload and safe save import/export.');

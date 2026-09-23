@@ -25,6 +25,7 @@ function validateSaveText(text){
  const data=JSON.parse(text),s=data.format==='hockey-manager-career'?data.career:data;
  if(data.format&&data.formatVersion!==1)throw Error('Sparfilens formatversion stöds inte.');
  if(!s||s.version!=='0.2'||s.careerStarted!==true||!CLUB_DATA[s.managerClub]||!s.clubRosters||!Array.isArray(s.clubRosters[s.managerClub])||!Array.isArray(s.schedule)||!Array.isArray(s.teams)||!Number.isInteger(s.round)||s.round<1||!Number.isFinite(s.money))throw Error('Filen innehåller ingen giltig Hockey Manager-karriär.');
+ if(s.rosterStartDate!==undefined&&(typeof s.rosterStartDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(s.rosterStartDate)||!Number.isFinite(Date.parse(s.rosterStartDate))||new Date(s.rosterStartDate).toISOString().slice(0,10)!==s.rosterStartDate))throw Error('Truppdatabasens startdatum är ogiltigt.');
  const walk=(value,depth=0)=>{
   if(depth>70)throw Error('Sparfilens struktur är för djup.');
   if(typeof value==='number'&&!Number.isFinite(value))throw Error('Ogiltiga tal i sparfilen.');
@@ -52,11 +53,11 @@ function validateSaveText(text){
   }
   const loanIds=new Set(),borrowed=new Set();
   for(const l of s.loans.active){
-   const p=s.clubRosters[l.borrower]?.find(p=>String(p.id)===String(l.playerId));
-   if(!Number.isInteger(l.id)||loanIds.has(l.id)||borrowed.has(String(l.playerId))||!p||p.loanId!==l.id||p.club!==l.borrower||typeof l.owner!=='string'||l.owner===l.borrower||!Number.isFinite(l.share)||l.share<0||l.share>1||!/^\d{4}-\d{2}-\d{2}$/.test(l.until)||!Number.isFinite(Date.parse(l.until))||!Array.isArray(l.appearances))throw Error('Låneavtalet stämmer inte med spelarens klubb.');
+   const p=(l.external?s.loans.external:s.clubRosters[l.borrower])?.find(p=>String(p.id)===String(l.playerId));
+   if(l.external&&s.clubRosters[l.borrower]||!Number.isInteger(l.id)||loanIds.has(l.id)||borrowed.has(String(l.playerId))||!p||p.loanId!==l.id||p.club!==l.borrower||typeof l.owner!=='string'||l.owner===l.borrower||!Number.isFinite(l.share)||l.share<0||l.share>1||!/^\d{4}-\d{2}-\d{2}$/.test(l.until)||!Number.isFinite(Date.parse(l.until))||!Array.isArray(l.appearances))throw Error('Låneavtalet stämmer inte med spelarens klubb.');
    loanIds.add(l.id);borrowed.add(String(l.playerId));
   }
-  for(const roster of Object.values(s.clubRosters))for(const p of roster)if(p.loanId&&!borrowed.has(String(p.id)))throw Error('Spelaren saknar sitt låneavtal.');
+  for(const roster of [...Object.values(s.clubRosters),s.loans.external])for(const p of roster)if(p.loanId&&!borrowed.has(String(p.id)))throw Error('Spelaren saknar sitt låneavtal.');
   for(const p of s.loans.external){if(!p||ids.has(String(p.id))||typeof p.name!=='string'||typeof p.club!=='string')throw Error('En återvänd spelare är dubbelregistrerad.');ids.add(String(p.id));}
  }
  if(s.training&&(!Array.isArray(s.training.plan)||s.training.plan.some(p=>!p||!TRAINING_SESSIONS[p.type]||!['light','normal','hard'].includes(p.intensity))||!Array.isArray(s.training.messages)||!Array.isArray(s.training.history)||!Number.isInteger(s.training.day)||s.training.day<0))throw Error('Träningsplanen är felaktig.');

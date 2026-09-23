@@ -69,7 +69,7 @@ const noPass=s('JSON.stringify(state.training.history)');s('runTrainingSession()
 s(`globalThis.steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}`);
 assert.equal(s('state.live.finished'),true);assert.equal(s('state.live.analysis.saved'),true);
 s('calendarContinue();calendarContinue();save()');
-assert.equal(s('state.calendar.date'),'2026-09-12');
+assert.equal(s('state.calendar.date'),'2026-09-28');
 assert.equal(s('state.training.history.length'),4);
 const final=boot(restored.storage.value);
 assert.equal(final.run('JSON.stringify(state.training.history)'),s('JSON.stringify(state.training.history)'));

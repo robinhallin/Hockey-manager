@@ -13,6 +13,12 @@ function boot(saved,options={}){
     document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:(key,handler)=>events[key]=handler}});
   // Use the actual entrypoint order so this suite also catches missing modules.
   for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
+  // Explicit fixture for retained historical preseason/calendar workflows. Normal
+  // boot() always exercises the current dated new-career start.
+  vm.runInContext(`function useHistoricalCalendarFixture(){
+    delete state.rosterStartDate;state.calendar.initialPreseasonUsed=false;
+    for(const g of state.schedule)g.date=calRoundDate(g.round,state.season.year);
+  }`,context);
   return {run:code=>vm.runInContext(code,context),storage,nodes,get,events};
 }
 // Exercise the retained pre-broadcast engine as a legacy-save compatibility path.

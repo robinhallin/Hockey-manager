@@ -650,6 +650,8 @@ return {
 
 clubRosters: createClubRosters(),
 playerDatabaseVersion: ALLSVENSKAN_DATABASE.version,
+rosterStartDate: ALLSVENSKAN_DATABASE.asOf,
+seedRosterUpdate: true,
 
    transferOffers: [],
 

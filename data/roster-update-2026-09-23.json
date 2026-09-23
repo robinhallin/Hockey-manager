@@ -1,0 +1,735 @@
+{
+  "asOf": "2026-09-23",
+  "checked": "2026-09-23",
+  "season": "2026/27",
+  "clubs": [
+    {
+      "club": "AIK",
+      "source": "https://www.eliteprospects.com/team/1/aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Almtuna IS",
+      "source": "https://www.eliteprospects.com/team/13/almtuna-is",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "BIK Karlskoga",
+      "source": "https://www.eliteprospects.com/team/25/bik-karlskoga",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "IK Oskarshamn",
+      "source": "https://www.eliteprospects.com/team/31/ik-oskarshamn",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Kalmar HC",
+      "source": "https://www.eliteprospects.com/team/778/kalmar-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Leksands IF",
+      "source": "https://www.eliteprospects.com/team/28/leksands-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "MoDo Hockey",
+      "source": "https://www.eliteprospects.com/team/9/modo-hockey",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Mora IK",
+      "source": "https://www.eliteprospects.com/team/29/mora-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Nybro Vikings",
+      "source": "https://www.eliteprospects.com/team/335/nybro-vikings-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Södertälje SK",
+      "source": "https://www.eliteprospects.com/team/10/sodertalje-sk",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Vimmerby HC",
+      "source": "https://www.eliteprospects.com/team/498/vimmerby-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Visby/Roma",
+      "source": "https://www.eliteprospects.com/team/1226/visby-roma",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Västerås IK",
+      "source": "https://www.eliteprospects.com/team/308/vasteras-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Östersunds IK",
+      "source": "https://www.eliteprospects.com/team/1595/ostersunds-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Björklöven",
+      "source": "https://www.eliteprospects.com/team/15/if-bjorkloven",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Brynäs IF",
+      "source": "https://www.eliteprospects.com/team/2/brynas-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Djurgårdens IF",
+      "source": "https://www.eliteprospects.com/team/3/djurgardens-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Frölunda HC",
+      "source": "https://www.eliteprospects.com/team/12/frolunda-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Färjestad BK",
+      "source": "https://www.eliteprospects.com/team/4/farjestad-bk",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "HV71",
+      "source": "https://www.eliteprospects.com/team/5/hv71",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Linköping HC",
+      "source": "https://www.eliteprospects.com/team/6/linkoping-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Luleå HF",
+      "source": "https://www.eliteprospects.com/team/7/lulea-hf",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Malmö Redhawks",
+      "source": "https://www.eliteprospects.com/team/8/malmo-redhawks",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Rögle BK",
+      "source": "https://www.eliteprospects.com/team/32/rogle-bk",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Skellefteå AIK",
+      "source": "https://www.eliteprospects.com/team/22/skelleftea-aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Timrå IK",
+      "source": "https://www.eliteprospects.com/team/11/timra-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Växjö Lakers",
+      "source": "https://www.eliteprospects.com/team/339/vaxjo-lakers-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "club": "Örebro Hockey",
+      "source": "https://www.eliteprospects.com/team/36/orebro-hk",
+      "checked": "2026-09-23"
+    }
+  ],
+  "changes": [
+    {
+      "id": "ep-241370",
+      "birth": "2000-06-13",
+      "name": "Oliver Wahlstrom",
+      "from": null,
+      "to": "Djurgårdens IF",
+      "kind": "signing",
+      "source": "https://www.difhockey.se/article/5apatlf-1lead/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-15"
+    },
+    {
+      "id": "ep-286955",
+      "birth": "2001-04-24",
+      "name": "Graeme Clarke",
+      "from": null,
+      "to": "Frölunda HC",
+      "kind": "signing",
+      "source": "https://www.frolundahockey.com/article/s8datl1-24601/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-08"
+    },
+    {
+      "id": "ep-905354",
+      "birth": "2008-03-28",
+      "name": "Douglas Nilsson",
+      "from": null,
+      "to": "Färjestad BK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/4/farjestad-bk",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-217795",
+      "birth": "1998-01-04",
+      "name": "Markuss Komuls",
+      "from": null,
+      "to": "HV71",
+      "kind": "signing",
+      "source": "https://www.hv71.se/article/a6uatl1-3iaijd/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-08"
+    },
+    {
+      "id": "ep-249755",
+      "birth": "1999-12-07",
+      "name": "Pavol Regenda",
+      "from": null,
+      "to": "HV71",
+      "kind": "signing",
+      "source": "https://www.hv71.se/article/ckvatli-3iaijd/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-17"
+    },
+    {
+      "id": "ep-871864",
+      "birth": "2007-01-15",
+      "name": "Noel Skarby",
+      "from": null,
+      "to": "HV71",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/5/hv71",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-902858",
+      "birth": "2008-03-04",
+      "name": "Anton Emil Wilde Larsen",
+      "from": null,
+      "to": "Linköping HC",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/6/linkoping-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-92502",
+      "birth": "1996-10-10",
+      "name": "Sami Niku",
+      "from": null,
+      "to": "Linköping HC",
+      "kind": "signing",
+      "source": "https://www.lhc.eu/article/rtgatl9-30c01/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-14"
+    },
+    {
+      "id": "ep-946883",
+      "birth": "2008-08-08",
+      "name": "Mikael Kim",
+      "from": null,
+      "to": "Rögle BK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/32/rogle-bk",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-619086",
+      "birth": "2006-05-10",
+      "name": "Johannes Neumann",
+      "from": null,
+      "to": "Rögle BK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/32/rogle-bk",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-1063798",
+      "birth": "2009-07-01",
+      "name": "Douglas Johnsson",
+      "from": null,
+      "to": "Skellefteå AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/22/skelleftea-aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-879627",
+      "birth": "2007-02-21",
+      "name": "Lukas Nilsson",
+      "from": null,
+      "to": "Skellefteå AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/22/skelleftea-aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-875502",
+      "birth": "2007-05-16",
+      "name": "Edwin Annerstedt",
+      "from": null,
+      "to": "Skellefteå AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/22/skelleftea-aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-879635",
+      "birth": "2007-02-25",
+      "name": "Johan Stenberg",
+      "from": null,
+      "to": "Skellefteå AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/22/skelleftea-aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-744765",
+      "birth": "2007-01-18",
+      "name": "Max Berglund",
+      "from": null,
+      "to": "Timrå IK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/11/timra-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-689907",
+      "birth": "2007-05-27",
+      "name": "Noa Bräutigam",
+      "from": null,
+      "to": "Växjö Lakers",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/339/vaxjo-lakers-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-885789",
+      "birth": "2008-01-28",
+      "name": "Max Isaksson",
+      "from": null,
+      "to": "Växjö Lakers",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/339/vaxjo-lakers-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-946878",
+      "birth": "2007-08-24",
+      "name": "Leon Contreras",
+      "from": null,
+      "to": "AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/1/aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-412008",
+      "birth": "2002-10-31",
+      "name": "Martin Schreiber",
+      "from": "Malmö Redhawks",
+      "to": "AIK",
+      "kind": "loan",
+      "source": "https://www.malmoredhawks.com/article/89yatl5-33nad/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-11"
+    },
+    {
+      "id": "ep-859967",
+      "birth": "2007-01-05",
+      "name": "Max Eriksson",
+      "from": null,
+      "to": "AIK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/1/aik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-866157",
+      "birth": "2007-04-26",
+      "name": "Alexander Proos",
+      "from": null,
+      "to": "Almtuna IS",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/13/almtuna-is",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-741439",
+      "birth": "2006-05-04",
+      "name": "Charlie Forslund",
+      "from": "Brynäs IF",
+      "to": "Almtuna IS",
+      "kind": "loan",
+      "source": "https://www.brynas.se/article/i71atlc-1ekad/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-14"
+    },
+    {
+      "id": "ep-863966",
+      "birth": "2007-05-30",
+      "name": "Neo Karling",
+      "from": null,
+      "to": "Almtuna IS",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/13/almtuna-is",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-880546",
+      "birth": "2007-06-12",
+      "name": "Leo Sundqvist",
+      "from": "Brynäs IF",
+      "to": "Almtuna IS",
+      "kind": "loan",
+      "source": "https://www.brynas.se/article/i71atlc-1ekad/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-14"
+    },
+    {
+      "id": "ep-921532",
+      "birth": "2007-01-17",
+      "name": "William Bråtner",
+      "from": null,
+      "to": "BIK Karlskoga",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/25/bik-karlskoga",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-388725",
+      "birth": "2000-10-05",
+      "name": "Jonathan Hermansson",
+      "from": null,
+      "to": "BIK Karlskoga",
+      "kind": "signing",
+      "source": "https://www.eliteprospects.com/team/25/bik-karlskoga",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-874176",
+      "birth": "2008-03-21",
+      "name": "Oscar Holmertz",
+      "from": "Linköping HC",
+      "to": "BIK Karlskoga",
+      "kind": "loan",
+      "source": "https://www.lhc.eu/article/q90atlc-30c01/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-15"
+    },
+    {
+      "id": "ep-937082",
+      "birth": "2008-10-10",
+      "name": "Olle Karlsson",
+      "from": "Växjö Lakers",
+      "to": "IK Oskarshamn",
+      "kind": "loan",
+      "source": "https://www.ikoskarshamn.se/article/ffyatli-2egc1/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-17"
+    },
+    {
+      "id": "ep-325238",
+      "birth": "2000-02-04",
+      "name": "Christian Felton",
+      "from": null,
+      "to": "Kalmar HC",
+      "kind": "signing",
+      "source": "https://www.eliteprospects.com/transfer/2026/09/09/christian-felton-in-a-confirmed-transaction-to-kalmar-hc/649145",
+      "checked": "2026-09-23",
+      "effective": "2026-09-09"
+    },
+    {
+      "id": "ep-962056",
+      "birth": "2008-09-18",
+      "name": "Gustav Dunegård",
+      "from": null,
+      "to": "Kalmar HC",
+      "kind": "signing",
+      "source": "https://www.eliteprospects.com/team/778/kalmar-hc",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-866571",
+      "birth": "2007-02-01",
+      "name": "Jakob Ihs-Wozniak",
+      "from": "Luleå HF",
+      "to": "Kalmar HC",
+      "kind": "loan",
+      "source": "https://www.luleahockey.se/article/7hbatle-30c4d/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-15"
+    },
+    {
+      "id": "ep-964660",
+      "birth": "2008-06-04",
+      "name": "Viggo Tamm",
+      "from": null,
+      "to": "Leksands IF",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/28/leksands-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-919690",
+      "birth": "2008-12-03",
+      "name": "Vilgot Lidén",
+      "from": null,
+      "to": "Leksands IF",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/28/leksands-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-879786",
+      "birth": "2008-07-02",
+      "name": "Adam Andersson",
+      "from": null,
+      "to": "Leksands IF",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/28/leksands-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-955306",
+      "birth": "2008-05-07",
+      "name": "Pax Kleffner",
+      "from": null,
+      "to": "Leksands IF",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/28/leksands-if",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-974093",
+      "birth": "2008-04-16",
+      "name": "Theodor Knights",
+      "from": null,
+      "to": "MoDo Hockey",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/9/modo-hockey",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-876026",
+      "birth": "2008-08-19",
+      "name": "Malcom Gästrin",
+      "from": null,
+      "to": "MoDo Hockey",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/9/modo-hockey",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-1010942",
+      "birth": "2009-05-06",
+      "name": "Milan Sundström",
+      "from": null,
+      "to": "MoDo Hockey",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/9/modo-hockey",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-876952",
+      "birth": "2007-09-13",
+      "name": "Mikkel Eriksen",
+      "from": "Färjestad BK",
+      "to": "Mora IK",
+      "kind": "loan",
+      "source": "https://www.farjestadbk.se/article/bm2atlr-23h01/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-22"
+    },
+    {
+      "id": "ep-690427",
+      "birth": "2007-04-25",
+      "name": "Florian Schenk",
+      "from": null,
+      "to": "Mora IK",
+      "kind": "signing",
+      "source": "https://www.eliteprospects.com/team/29/mora-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-864684",
+      "birth": "2007-04-12",
+      "name": "Hugo Östberg",
+      "from": null,
+      "to": "Mora IK",
+      "kind": "junior",
+      "source": "https://www.eliteprospects.com/team/29/mora-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-689901",
+      "birth": "2007-10-08",
+      "name": "William Håkansson",
+      "from": "Luleå HF",
+      "to": "Södertälje SK",
+      "kind": "loan",
+      "source": "https://www.luleahockey.se/article/p1fatlg-30c4d/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-16"
+    },
+    {
+      "id": "ep-319508",
+      "birth": "2001-11-07",
+      "name": "Oscar Lundin",
+      "from": null,
+      "to": "Västerås IK",
+      "kind": "signing",
+      "source": "https://www.eliteprospects.com/team/308/vasteras-ik",
+      "checked": "2026-09-23"
+    },
+    {
+      "id": "ep-212396",
+      "birth": "1997-03-27",
+      "name": "Lukas Zetterberg",
+      "from": null,
+      "to": "Västerås IK",
+      "kind": "signing",
+      "source": "https://www.vik.se/article/ai8atl1-4a8i1/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-08"
+    },
+    {
+      "id": "ep-718912",
+      "birth": "2005-07-28",
+      "name": "Simon Carlsson",
+      "from": "AIK",
+      "to": "Östersunds IK",
+      "kind": "loan",
+      "source": "https://www.ostersundik.com/article/xvwatlg-55c5i1/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-17"
+    },
+    {
+      "id": "ep-300505",
+      "birth": "2000-05-17",
+      "name": "Linus Nässén",
+      "from": "Frölunda HC",
+      "to": "Kontraktslös",
+      "kind": "free",
+      "source": "https://www.frolundahockey.com/article/6uoatlb-24601/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-14"
+    },
+    {
+      "id": "ep-349832",
+      "birth": "2001-08-14",
+      "name": "Elias Ekström",
+      "from": "BIK Karlskoga",
+      "to": "Kontraktslös",
+      "kind": "free",
+      "source": "https://www.bikkarlskoga.se/article/6nxatlg-1eki1/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-16"
+    },
+    {
+      "id": "ep-13991",
+      "birth": "1991-01-01",
+      "name": "Tex Williamsson",
+      "from": "Östersunds IK",
+      "to": "Östersunds IK",
+      "kind": "retire",
+      "source": "https://www.eliteprospects.com/transfer/2026/09/21/tex-williamsson-in-a-confirmed-transaction-leaving-ostersunds-ik/650334",
+      "checked": "2026-09-23",
+      "effective": "2026-09-21"
+    },
+    {
+      "id": "ep-719785",
+      "birth": "2006-02-20",
+      "name": "Viktor Olofsson",
+      "from": "Malmö Redhawks",
+      "to": "Karlskrona HK",
+      "kind": "loan",
+      "source": "https://www.malmoredhawks.com/article/w8zatl6-33nad/view",
+      "checked": "2026-09-23",
+      "effective": "2026-09-14"
+    },
+    {
+      "id": "ep-788657",
+      "birth": "2006-01-11",
+      "name": "Daniel Meyer",
+      "from": "Almtuna IS",
+      "to": "Wings HC",
+      "kind": "loan",
+      "source": "https://www.eliteprospects.com/team/13/almtuna-is/transfers",
+      "checked": "2026-09-23",
+      "effective": "2026-09-18"
+    },
+    {
+      "id": "ep-734717",
+      "birth": "2006-03-01",
+      "name": "Lukas Nikolaj Pettersen-Finckenhagen",
+      "from": "Almtuna IS",
+      "to": "Lindlövens IF",
+      "kind": "loan",
+      "source": "https://www.eliteprospects.com/transfer/2026/09/16/lukas-nikolaj-pettersen-finckenhagen-in-a-loan-to-lindlovens-if/649866",
+      "checked": "2026-09-23",
+      "effective": "2026-09-16"
+    },
+    {
+      "id": "ep-702288",
+      "birth": "2005-06-22",
+      "name": "Felix Nilsson",
+      "from": "Rögle BK",
+      "to": "Nashville Predators",
+      "kind": "abroad",
+      "source": "https://www.nhl.com/predators/news/offseason-recap-look-back-at-nashville-s-summer-of-2026-before-the-start-of-a-new-preds-campaign-2026-09-09",
+      "checked": "2026-09-23",
+      "effective": "2026-05-29"
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "ep-619086",
+      "name": "Johannes Neumann",
+      "reason": "Ingen verifierad historisk matchstatistik i det läsbara underlaget. Neutral osäker startbedömning används.",
+      "source": "https://www.eliteprospects.com/player/619086/johannes-neumann"
+    },
+    {
+      "id": "ep-177879",
+      "name": "Edvin Hammarlund",
+      "reason": "Lån till Örebro gäller till 30 september. Ägarklubbens truppsida bevisar inte återkallelse.",
+      "source": "https://www.orebrohockey.se/article/cnyatix-3afc1/view"
+    },
+    {
+      "id": "ep-866157",
+      "name": "Alexander Proos",
+      "reason": "Ingen verifierad historisk matchstatistik i det läsbara underlaget. Neutral osäker startbedömning används.",
+      "source": "https://www.eliteprospects.com/player/866157/alexander-proos"
+    },
+    {
+      "id": "ep-619002",
+      "name": "Melvin Nilsson",
+      "reason": "Återkallad till Linköping 15 september enligt båda klubbarna.",
+      "source": "https://www.lhc.eu/article/q90atlc-30c01/view"
+    },
+    {
+      "id": "ep-508310",
+      "name": "Elliot Ekefjärd",
+      "reason": "Lånet till Kalmar avsåg matchen 21 september; inte ett säsongslån.",
+      "source": "https://www.eliteprospects.com/player/508310/elliot-ekefjard"
+    },
+    {
+      "id": "ep-424479",
+      "name": "Nathan Staios",
+      "reason": "Provspel i Leksand, inget säsongsavtal bekräftat.",
+      "source": "https://www.eliteprospects.com/player/424479/nathan-staios"
+    },
+    {
+      "name": "Philip Lantz",
+      "club": "Södertälje SK",
+      "reason": "Profilen kunde inte läsas; fullständigt födelsedatum saknas. Ingen ny identitet skapad."
+    }
+  ]
+}

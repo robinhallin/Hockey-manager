@@ -1,11 +1,11 @@
 {
-  "asOf": "2026-09-07",
+  "asOf": "2026-09-23",
   "checked": "2026-09-23",
-  "players": 684,
+  "players": 720,
   "identityMethod": "Existing stable ID and full DOB retained. Tables attached only after unique name + position + historical club/league/season/GP match, plus goals/assists or rounded SV fingerprint where published. No new identities inferred.",
   "factsCorrected": 46,
-  "officialRowsMatched": 263,
-  "officialPlayers": 156,
+  "officialRowsMatched": 264,
+  "officialPlayers": 157,
   "clubs": [
     {
       "club": "Björklöven",
@@ -19,7 +19,7 @@
     },
     {
       "club": "Brynäs IF",
-      "players": 26,
+      "players": 24,
       "physicalCorrections": 0,
       "officialPlayers": 7,
       "goaliePlayers": 1,
@@ -29,7 +29,7 @@
     },
     {
       "club": "Djurgårdens IF",
-      "players": 24,
+      "players": 25,
       "physicalCorrections": 0,
       "officialPlayers": 6,
       "goaliePlayers": 2,
@@ -39,7 +39,7 @@
     },
     {
       "club": "Frölunda HC",
-      "players": 26,
+      "players": 27,
       "physicalCorrections": 0,
       "officialPlayers": 7,
       "goaliePlayers": 2,
@@ -59,27 +59,27 @@
     },
     {
       "club": "HV71",
-      "players": 25,
+      "players": 28,
       "physicalCorrections": 0,
       "officialPlayers": 6,
       "goaliePlayers": 3,
       "faceoffPlayers": 1,
       "loanPlayers": 1,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 1
     },
     {
       "club": "Linköping HC",
-      "players": 28,
+      "players": 29,
       "physicalCorrections": 0,
       "officialPlayers": 5,
       "goaliePlayers": 1,
       "faceoffPlayers": 1,
       "loanPlayers": 0,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 1
     },
     {
       "club": "Luleå HF",
-      "players": 24,
+      "players": 22,
       "physicalCorrections": 0,
       "officialPlayers": 7,
       "goaliePlayers": 2,
@@ -89,7 +89,7 @@
     },
     {
       "club": "Malmö Redhawks",
-      "players": 27,
+      "players": 26,
       "physicalCorrections": 0,
       "officialPlayers": 9,
       "goaliePlayers": 2,
@@ -99,43 +99,43 @@
     },
     {
       "club": "Rögle BK",
-      "players": 26,
+      "players": 28,
       "physicalCorrections": 0,
       "officialPlayers": 8,
       "goaliePlayers": 1,
       "faceoffPlayers": 4,
       "loanPlayers": 1,
-      "juniorRegistrations": 1
+      "juniorRegistrations": 3
     },
     {
       "club": "Skellefteå AIK",
-      "players": 26,
+      "players": 30,
       "physicalCorrections": 0,
       "officialPlayers": 8,
       "goaliePlayers": 3,
       "faceoffPlayers": 2,
       "loanPlayers": 0,
-      "juniorRegistrations": 1
+      "juniorRegistrations": 5
     },
     {
       "club": "Timrå IK",
-      "players": 24,
+      "players": 25,
       "physicalCorrections": 0,
       "officialPlayers": 5,
       "goaliePlayers": 2,
       "faceoffPlayers": 1,
       "loanPlayers": 1,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 1
     },
     {
       "club": "Växjö Lakers",
-      "players": 25,
+      "players": 26,
       "physicalCorrections": 0,
       "officialPlayers": 8,
       "goaliePlayers": 2,
       "faceoffPlayers": 1,
       "loanPlayers": 0,
-      "juniorRegistrations": 2
+      "juniorRegistrations": 3
     },
     {
       "club": "Örebro Hockey",
@@ -149,47 +149,47 @@
     },
     {
       "club": "AIK",
-      "players": 24,
+      "players": 26,
       "physicalCorrections": 0,
       "officialPlayers": 5,
       "goaliePlayers": 3,
       "faceoffPlayers": 0,
       "loanPlayers": 0,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 2
     },
     {
       "club": "Almtuna IS",
-      "players": 21,
+      "players": 25,
       "physicalCorrections": 21,
       "officialPlayers": 2,
       "goaliePlayers": 1,
       "faceoffPlayers": 1,
       "loanPlayers": 2,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 2
     },
     {
       "club": "BIK Karlskoga",
-      "players": 23,
+      "players": 26,
       "physicalCorrections": 0,
       "officialPlayers": 7,
       "goaliePlayers": 2,
       "faceoffPlayers": 3,
       "loanPlayers": 1,
-      "juniorRegistrations": 1
+      "juniorRegistrations": 2
     },
     {
       "club": "IK Oskarshamn",
-      "players": 23,
+      "players": 24,
       "physicalCorrections": 0,
       "officialPlayers": 3,
       "goaliePlayers": 2,
       "faceoffPlayers": 1,
       "loanPlayers": 2,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 1
     },
     {
       "club": "Kalmar HC",
-      "players": 23,
+      "players": 26,
       "physicalCorrections": 0,
       "officialPlayers": 4,
       "goaliePlayers": 1,
@@ -199,33 +199,33 @@
     },
     {
       "club": "Leksands IF",
-      "players": 21,
+      "players": 25,
       "physicalCorrections": 0,
       "officialPlayers": 5,
       "goaliePlayers": 2,
       "faceoffPlayers": 1,
       "loanPlayers": 0,
-      "juniorRegistrations": 1
+      "juniorRegistrations": 5
     },
     {
       "club": "MoDo Hockey",
-      "players": 22,
+      "players": 25,
       "physicalCorrections": 0,
       "officialPlayers": 3,
       "goaliePlayers": 2,
       "faceoffPlayers": 1,
       "loanPlayers": 1,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 3
     },
     {
       "club": "Mora IK",
-      "players": 25,
+      "players": 28,
       "physicalCorrections": 25,
       "officialPlayers": 3,
       "goaliePlayers": 2,
       "faceoffPlayers": 0,
       "loanPlayers": 1,
-      "juniorRegistrations": 0
+      "juniorRegistrations": 2
     },
     {
       "club": "Nybro Vikings",
@@ -239,7 +239,7 @@
     },
     {
       "club": "Södertälje SK",
-      "players": 23,
+      "players": 24,
       "physicalCorrections": 0,
       "officialPlayers": 8,
       "goaliePlayers": 2,
@@ -269,7 +269,7 @@
     },
     {
       "club": "Västerås IK",
-      "players": 23,
+      "players": 25,
       "physicalCorrections": 0,
       "officialPlayers": 2,
       "goaliePlayers": 1,
@@ -279,10 +279,10 @@
     },
     {
       "club": "Östersunds IK",
-      "players": 26,
+      "players": 27,
       "physicalCorrections": 0,
-      "officialPlayers": 6,
-      "goaliePlayers": 2,
+      "officialPlayers": 7,
+      "goaliePlayers": 3,
       "faceoffPlayers": 3,
       "loanPlayers": 1,
       "juniorRegistrations": 0
@@ -1046,6 +1046,13 @@
       "kind": "goalies"
     },
     {
+      "id": "ep-946878",
+      "birth": "2007-08-24",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
       "id": "ep-643247",
       "birth": "2005-07-05",
       "club": "Västerås IK",
@@ -1055,7 +1062,7 @@
     {
       "id": "ep-718912",
       "birth": "2005-07-28",
-      "club": "AIK",
+      "club": "Östersunds IK",
       "season": "25-26",
       "kind": "goalies"
     },
@@ -1909,7 +1916,7 @@
     {
       "id": "ep-718912",
       "birth": "2005-07-28",
-      "club": "AIK",
+      "club": "Östersunds IK",
       "season": "24-25",
       "kind": "goalies"
     },
@@ -2425,14 +2432,6 @@
       "season": "25-26",
       "league": "HockeyAllsvenskan",
       "team": "VIK",
-      "kind": "goalies",
-      "reason": "not-in-start-database"
-    },
-    {
-      "name": "Leon Contreras",
-      "season": "25-26",
-      "league": "HockeyAllsvenskan",
-      "team": "AIK",
       "kind": "goalies",
       "reason": "not-in-start-database"
     },
@@ -3825,12 +3824,28 @@
       "departure": "https://www.instagram.com/p/DXMYka7iIzA/",
       "checked": "2026-09-23",
       "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    },
+    {
+      "id": "ep-300505",
+      "birth": "2000-05-17",
+      "name": "Linus Nässén",
+      "source": "https://www.eliteprospects.com/player/300505/linus-nassen",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    },
+    {
+      "id": "ep-349832",
+      "birth": "2001-08-14",
+      "name": "Elias Ekström",
+      "source": "https://www.eliteprospects.com/player/349832/elias-ekstrom",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
     }
   ],
   "limits": [
-    "Current roster pages do not prove all historical registrations. No post-start transfers backdated.",
+    "New careers start September 23 with a generated schedule. Dated club announcements override cumulative roster pages; see roster-update-2026-09-23.json.",
     "Original two-season statistics retained; new official data cover published goalie tables and skater top-25 leader lists only.",
     "No skater time-on-ice, shift role, PP/PK usage or tracking measurements imported.",
-    "Academy teams remain explicitly fictional. Free-agent pool is four documented starting assumptions, not every available professional."
+    "Academy teams remain explicitly fictional. Free-agent pool is a documented selection, not every available professional."
   ]
 }

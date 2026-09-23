@@ -4,11 +4,11 @@ const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 const {run,storage}=boot();
 const rows=run('Object.values(ALLSVENSKAN_DATABASE.clubs).flatMap(c=>c.players)');
-assert.equal(rows.length,324);assert.equal(new Set(rows.map(p=>p.id)).size,324);
+assert.equal(rows.length,347);assert.equal(new Set(rows.map(p=>p.id)).size,347);
 assert.equal(run('Object.keys(ALLSVENSKAN_DATABASE.clubs).length'),14);
 for(const p of rows){
  assert.match(p.source,/^https:\/\/www.eliteprospects.com\/player\/\d+\//);
- assert.ok(p.stats.length>0&&p.stats.length<=6,p.name);
+ assert.ok((p.stats.length>0||p.statsUnavailable===true)&&p.stats.length<=6,p.name);
  assert.ok(p.stats.every(s=>s.gp>0&&['24-25','25-26'].includes(s.season)),p.name);
  assert.ok(p.stats.every(s=>run(`Number.isFinite(HA_LEAGUE_LEVEL[${JSON.stringify(s.league)}])`)),p.name);
 }
@@ -71,4 +71,4 @@ ancient.managerClub='HV71';ancient.roster=ancient.clubRosters.HV71;
 const migrated=boot(JSON.stringify(ancient));
 assert.ok(migrated.run('state.clubRosters.AIK.every(p=>p.fictional)'));
 assert.equal(migrated.run(`getPlayerClub(${JSON.stringify(id)})`),'HV71');
-console.log('PASS: 324 sourced HA players, 14 HA clubs, all 28 lineups, role and league calibration, separate real stats, no new identity collisions, transfers/training/reload and untouched legacy careers.');
+console.log('PASS: 347 sourced HA players, 14 HA clubs, all 28 lineups, role and league calibration, separate real stats, no new identity collisions, transfers/training/reload and untouched legacy careers.');

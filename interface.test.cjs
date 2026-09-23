@@ -30,7 +30,7 @@ run('recruitOpen(state.clubRosters["AIK"][0].id)');assert.equal(run('deskArea().
 run('managerMessage("desk-test", "Ett samtal", "Vi behöver prata", "Spelare", {decisionType:"role"});state.recruitment.incoming.push({id:999,status:"pending",expires:state.recruitment.tick+2});deskNavigate("home")');
 assert.equal(run('deskTasks()[0].title'),'Ett samtal');assert.ok(run('deskTasks().some(t=>t.action.tab==="deals")'));
 run('state.recruitment.incoming[0].expires=-1');assert.equal(run('deskTasks().some(t=>t.action.tab==="deals")'),false);
-run('state.training.messages.find(m=>m.key==="desk-test").resolved=true;state.recruitment.incoming=[];calendarInitialPreseason();deskNavigate("home")');
+run('state.training.messages.find(m=>m.key==="desk-test").resolved=true;state.recruitment.incoming=[];useHistoricalCalendarFixture();calendarInitialPreseason();deskNavigate("home")');
 assert.match(get('#content').innerHTML,/Forma laget inför premiären/);assert.equal(run('deskFixtures().upcoming.length'),0);
 run('calendarBookFriendly("AIK",calAdd(state.calendar.date,3));deskNavigate("home")');assert.match(get('#content').innerHTML,/Nästa träningsmatch/);assert.equal(run('deskFixtures().upcoming[0].opponent'),'AIK');
 run('state.season.phase="review";state.season.boardResult=[];deskNavigate("home")');assert.match(get('#content').innerHTML,/Dags att summera säsongen/);assert.equal(run('deskFixtures().upcoming.length'),0);

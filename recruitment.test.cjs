@@ -8,7 +8,7 @@ run('startCareerWithClub("HV71");state.money=1000000000;state.boardPlan.offer.wa
 assert.equal(run('RECRUIT_CLUBS.length'),6);
 assert.equal(run('RECRUIT_CLUBS.reduce((n,[c])=>n+state.clubRosters[c].length,0)'),156);
 assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),run('Object.values(state.clubRosters).flat().length'));
-const allPlayers=run('Object.values(state.clubRosters).flat().length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length');
+const allPlayers=run('Object.values(state.clubRosters).flat().length+state.loans.external.length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length');
 run('ensureRecruitment();save();render()');assert.equal(run('Object.values(state.clubRosters).flat().length+state.loans.external.length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length'),allPlayers);
 // Scouting spends once, follows filters, advances with actual time and survives reload.
 run('state.recruitment.filters={country:"FIN",profile:"Defensiv center",maxAge:40,maxFee:50000000,query:""};globalThis.cashBefore=state.money;createScoutMission();globalThis.mission=state.recruitment.missions[0]');

@@ -1,6 +1,8 @@
 const assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 function setup(){const a=boot();a.run(`startCareerWithClub('HV71');globalThis.club='Färjestad BK';globalThis.c=clubAIState(club);
+ // Renewal scenario explicitly needs two senior goalkeepers; the current real roster also lists a junior.
+ state.clubRosters[club]=state.clubRosters[club].filter(p=>p.pos!=='MV'||['ep-151877','ep-707277'].includes(p.id));
  state.loans.active=[];state.recruitment.ai[club].cash=100000000;state.recruitment.ai[club].wageLimit=100000000;
  for(const p of state.clubRosters[club])p.contractYears=3;
  globalThis.p=state.clubRosters[club].find(p=>p.pos==='MV');p.contractYears=1;p.age=28;

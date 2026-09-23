@@ -7,7 +7,7 @@ const {headlessCareer}=require('./headless-career.cjs');
 const {boot}=require('./career-test-fixture.cjs');
 const app=headlessCareer(),r=app.run;
 const result={scope:'Headless integration and generated markup; not browser visual QA',views:[],workflows:{}};
-r("beginCareerSelection();chooseCareerClub('HV71');careerReview();acceptCareer();desktopOrder('tempo','low');calendarInitialPreseason()");
+r("beginCareerSelection();chooseCareerClub('HV71');careerReview();acceptCareer();desktopOrder('tempo','low');delete state.rosterStartDate;state.calendar.initialPreseasonUsed=false;for(const g of state.schedule)g.date=calRoundDate(g.round,state.season.year);calendarInitialPreseason()");
 assert.equal(r('state.season.phase'),'preseason');
 assert.equal(r('state.tacticalPlan.tempo'),'low');
 const pages=r('DESK_AREAS.flatMap(a=>a.pages.map(p=>p[0])).concat(["inbox","settings"])');
@@ -44,7 +44,9 @@ assert.equal(r('cashBefore-state.money'),r('deal.fee'));
 assert.equal(r('annualWageCost()-wageBefore'),r('deal.salary'));
 r("ensureLines();lineupUI.slot={type:'forwards',index:1};lineupPlace(target.id);globalThis.injured=playerById(state.lines.defense[0]);globalThis.injuryId=injured.id;injurePlayer(injured,'träning',2);setIndividualLoad(injured.id,'rest');setTrainingReturn(injured.id,3)");
 assert.equal(r('state.lines.defense.includes(injuryId)'),false);
-for(let day=0;day<7;day++)nextDay();
+// Observe the actual recovery, before a later ordinary training session can
+// cause a separate injury. Seven days is not a guarantee against new injuries.
+for(let day=0;day<30&&!r('medicalReady(injured)');day++)nextDay();
 assert.equal(r('medicalReady(injured)'),true);
 assert.equal(r('injured.trainingLoad'),'normal');
 assert.ok(r('state.training.messages.some(m=>m.title.includes(injured.name)&&m.title.includes("belastningsplan"))'));
