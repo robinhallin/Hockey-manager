@@ -68,7 +68,7 @@ async function close(){
   await page.waitForFunction(()=>innerWidth===1366 && innerHeight===768);
   const layout=await page.evaluate(()=>{
    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
-   return {viewport:{width:innerWidth,height:innerHeight},rink:rect('.rink-view'),controls:rect('.mc-playback')};
+   return {viewport:{width:innerWidth,height:innerHeight},rink:rect('#career-ice'),controls:rect('.mc-playback')};
   });
   for(const [name,rect] of Object.entries({rink:layout.rink,controls:layout.controls})){
    assert.ok(rect.width>0 && rect.height>0 && rect.x>=0 && rect.y>=0 && rect.right<=layout.viewport.width+1 && rect.bottom<=layout.viewport.height+1,name+' fits the desktop viewport');
