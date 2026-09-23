@@ -1309,7 +1309,8 @@ function gameTime(){
 
 function addEvent(
   text,
-  type="chance"
+  type="chance",
+  details={}
 ){
 
   if(!state.live)
@@ -1326,7 +1327,8 @@ function addEvent(
 
     text,
 
-    type
+    type,
+    ...details
 
   });
 
@@ -1707,8 +1709,8 @@ function simulateAttack(){
   /* powerplay */
 
   if(
-    m.penaltiesOpp.length>
-    m.penaltiesHV.length
+    StudioHockey.penaltyCount(m.penaltiesOpp)>
+    StudioHockey.penaltyCount(m.penaltiesHV)
   ){
 
     hvProbability+=0.08;
@@ -1716,8 +1718,8 @@ function simulateAttack(){
   }
 
   if(
-    m.penaltiesHV.length>
-    m.penaltiesOpp.length
+    StudioHockey.penaltyCount(m.penaltiesHV)>
+    StudioHockey.penaltyCount(m.penaltiesOpp)
   ){
 
     hvProbability-=0.08;
@@ -1878,8 +1880,8 @@ function hvShot(
 
 
   if(
-    m.penaltiesOpp.length>
-    m.penaltiesHV.length
+    StudioHockey.penaltyCount(m.penaltiesOpp)>
+    StudioHockey.penaltyCount(m.penaltiesHV)
   ){
 
     goalChance+=.035;
@@ -2106,8 +2108,8 @@ function opponentShot(
 
 
   if(
-    m.penaltiesHV.length>
-    m.penaltiesOpp.length
+    StudioHockey.penaltyCount(m.penaltiesHV)>
+    StudioHockey.penaltyCount(m.penaltiesOpp)
   ){
 
     goalChance+=.035;
@@ -2229,8 +2231,8 @@ function goalHV(
 
 
   if(
-    m.penaltiesOpp.length>
-    m.penaltiesHV.length
+    StudioHockey.penaltyCount(m.penaltiesOpp)>
+    StudioHockey.penaltyCount(m.penaltiesHV)
   ){
 
     m.ppGoalsHV++;
@@ -2269,8 +2271,8 @@ addEvent(
 
 
   if(
-    m.penaltiesHV.length>
-    m.penaltiesOpp.length
+    StudioHockey.penaltyCount(m.penaltiesHV)>
+    StudioHockey.penaltyCount(m.penaltiesOpp)
   ){
 
     m.ppGoalsOpp++;

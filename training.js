@@ -75,8 +75,8 @@ function trainingMatchBonus(){
   const t=state.training;if(!t)return 0;
   let bonus=(currentTrainingFamiliarity()-45)/25;
   const m=state.live;
-  if(m&&Math.min(2,m.penaltiesOpp.length)>Math.min(2,m.penaltiesHV.length))bonus+=(t.powerplay-40)/30;
-  if(m&&Math.min(2,m.penaltiesHV.length)>Math.min(2,m.penaltiesOpp.length))bonus+=(t.penaltykill-40)/30;
+  if(m&&StudioHockey.penaltyCount(m.penaltiesOpp)>StudioHockey.penaltyCount(m.penaltiesHV))bonus+=(t.powerplay-40)/30;
+  if(m&&StudioHockey.penaltyCount(m.penaltiesHV)>StudioHockey.penaltyCount(m.penaltiesOpp))bonus+=(t.penaltykill-40)/30;
   return bonus;
 }
 function trainingOpen(page){deskNavigate(page);}

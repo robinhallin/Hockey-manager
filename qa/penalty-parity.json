@@ -1,0 +1,367 @@
+{
+  "passed": true,
+  "matches": 12,
+  "independentSeeds": 3,
+  "displayModes": [
+    "full",
+    "extended",
+    "highlights",
+    "commentary"
+  ],
+  "controls": "Same start state, lineups, seed and timed physicality/tempo instructions. Injury rolls disabled and other fixtures skipped only in this harness. Natural player decisions, penalties, energy, AI coaching, overtime, shootout and career commit remain active. Highlight/commentary runs also export/import at 900 simulated seconds. Automated integration, not visual playtesting or sufficient balance proof.",
+  "averages": {
+    "totalGoals": 6.666666666666667,
+    "totalShots": 65.33333333333333,
+    "totalPenalties": 5.666666666666667
+  },
+  "results": [
+    {
+      "sample": 1,
+      "seed": 710031,
+      "mode": "full",
+      "reloaded": false,
+      "score": [
+        4,
+        6
+      ],
+      "shots": [
+        22,
+        43
+      ],
+      "penalties": 5,
+      "minutes": [
+        8,
+        2
+      ],
+      "powerplays": [
+        1,
+        4
+      ],
+      "ppGoals": [
+        0,
+        3
+      ],
+      "duration": 3600,
+      "rng": 2557409152
+    },
+    {
+      "sample": 1,
+      "seed": 710031,
+      "mode": "extended",
+      "reloaded": false,
+      "score": [
+        4,
+        6
+      ],
+      "shots": [
+        22,
+        43
+      ],
+      "penalties": 5,
+      "minutes": [
+        8,
+        2
+      ],
+      "powerplays": [
+        1,
+        4
+      ],
+      "ppGoals": [
+        0,
+        3
+      ],
+      "duration": 3600,
+      "rng": 2557409152
+    },
+    {
+      "sample": 1,
+      "seed": 710031,
+      "mode": "highlights",
+      "reloaded": true,
+      "score": [
+        4,
+        6
+      ],
+      "shots": [
+        22,
+        43
+      ],
+      "penalties": 5,
+      "minutes": [
+        8,
+        2
+      ],
+      "powerplays": [
+        1,
+        4
+      ],
+      "ppGoals": [
+        0,
+        3
+      ],
+      "duration": 3600,
+      "rng": 2557409152
+    },
+    {
+      "sample": 1,
+      "seed": 710031,
+      "mode": "commentary",
+      "reloaded": true,
+      "score": [
+        4,
+        6
+      ],
+      "shots": [
+        22,
+        43
+      ],
+      "penalties": 5,
+      "minutes": [
+        8,
+        2
+      ],
+      "powerplays": [
+        1,
+        4
+      ],
+      "ppGoals": [
+        0,
+        3
+      ],
+      "duration": 3600,
+      "rng": 2557409152
+    },
+    {
+      "sample": 2,
+      "seed": 711138,
+      "mode": "full",
+      "reloaded": false,
+      "score": [
+        3,
+        2
+      ],
+      "shots": [
+        27,
+        37
+      ],
+      "penalties": 8,
+      "minutes": [
+        8,
+        8
+      ],
+      "powerplays": [
+        4,
+        4
+      ],
+      "ppGoals": [
+        1,
+        1
+      ],
+      "duration": 3900,
+      "rng": 3651341996
+    },
+    {
+      "sample": 2,
+      "seed": 711138,
+      "mode": "extended",
+      "reloaded": false,
+      "score": [
+        3,
+        2
+      ],
+      "shots": [
+        27,
+        37
+      ],
+      "penalties": 8,
+      "minutes": [
+        8,
+        8
+      ],
+      "powerplays": [
+        4,
+        4
+      ],
+      "ppGoals": [
+        1,
+        1
+      ],
+      "duration": 3900,
+      "rng": 3651341996
+    },
+    {
+      "sample": 2,
+      "seed": 711138,
+      "mode": "highlights",
+      "reloaded": true,
+      "score": [
+        3,
+        2
+      ],
+      "shots": [
+        27,
+        37
+      ],
+      "penalties": 8,
+      "minutes": [
+        8,
+        8
+      ],
+      "powerplays": [
+        4,
+        4
+      ],
+      "ppGoals": [
+        1,
+        1
+      ],
+      "duration": 3900,
+      "rng": 3651341996
+    },
+    {
+      "sample": 2,
+      "seed": 711138,
+      "mode": "commentary",
+      "reloaded": true,
+      "score": [
+        3,
+        2
+      ],
+      "shots": [
+        27,
+        37
+      ],
+      "penalties": 8,
+      "minutes": [
+        8,
+        8
+      ],
+      "powerplays": [
+        4,
+        4
+      ],
+      "ppGoals": [
+        1,
+        1
+      ],
+      "duration": 3900,
+      "rng": 3651341996
+    },
+    {
+      "sample": 3,
+      "seed": 712245,
+      "mode": "full",
+      "reloaded": false,
+      "score": [
+        2,
+        3
+      ],
+      "shots": [
+        27,
+        40
+      ],
+      "penalties": 4,
+      "minutes": [
+        6,
+        2
+      ],
+      "powerplays": [
+        1,
+        3
+      ],
+      "ppGoals": [
+        1,
+        0
+      ],
+      "duration": 3900,
+      "rng": 435822430
+    },
+    {
+      "sample": 3,
+      "seed": 712245,
+      "mode": "extended",
+      "reloaded": false,
+      "score": [
+        2,
+        3
+      ],
+      "shots": [
+        27,
+        40
+      ],
+      "penalties": 4,
+      "minutes": [
+        6,
+        2
+      ],
+      "powerplays": [
+        1,
+        3
+      ],
+      "ppGoals": [
+        1,
+        0
+      ],
+      "duration": 3900,
+      "rng": 435822430
+    },
+    {
+      "sample": 3,
+      "seed": 712245,
+      "mode": "highlights",
+      "reloaded": true,
+      "score": [
+        2,
+        3
+      ],
+      "shots": [
+        27,
+        40
+      ],
+      "penalties": 4,
+      "minutes": [
+        6,
+        2
+      ],
+      "powerplays": [
+        1,
+        3
+      ],
+      "ppGoals": [
+        1,
+        0
+      ],
+      "duration": 3900,
+      "rng": 435822430
+    },
+    {
+      "sample": 3,
+      "seed": 712245,
+      "mode": "commentary",
+      "reloaded": true,
+      "score": [
+        2,
+        3
+      ],
+      "shots": [
+        27,
+        40
+      ],
+      "penalties": 4,
+      "minutes": [
+        6,
+        2
+      ],
+      "powerplays": [
+        1,
+        3
+      ],
+      "ppGoals": [
+        1,
+        0
+      ],
+      "duration": 3900,
+      "rng": 435822430
+    }
+  ]
+}

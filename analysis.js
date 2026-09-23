@@ -9,7 +9,7 @@ function ensureAnalysis(){
  ensureLeagueLive();
 }
 function analysisClock(){const m=state.live;return (m.period<=3?(m.period-1)*1200:3600+((m.overtimePeriods||1)-1)*1200)+m.minute*60+m.second;}
-function analysisSituation(){const m=state.live;if(m.accountingSituation)return m.accountingSituation;return Math.min(2,m.penaltiesOpp.length)>Math.min(2,m.penaltiesHV.length)?'pp':Math.min(2,m.penaltiesHV.length)>Math.min(2,m.penaltiesOpp.length)?'pk':m.period===4&&!isPlayoffMatch()?'ot':'even';}
+function analysisSituation(){const m=state.live;if(m.accountingSituation)return m.accountingSituation;return StudioHockey.penaltyCount(m.penaltiesOpp)>StudioHockey.penaltyCount(m.penaltiesHV)?'pp':StudioHockey.penaltyCount(m.penaltiesHV)>StudioHockey.penaltyCount(m.penaltiesOpp)?'pk':m.period===4&&!isPlayoffMatch()?'ot':'even';}
 function analysisUnits(){
  const m=state.live;if(!m)return [];
  const situation=analysisSituation(),skaters=[...currentLinePlayers(),...currentDefensePlayers()];
@@ -43,17 +43,18 @@ function recordAnalysisShot(side,name,id,dangerous,location,probability,result,o
  for(const unit of analysisUnits()){const u=analysisUnitRecord(unit);if(analysisOnTarget(shot))u[side==='own'?'shotsFor':'shotsAgainst']++;if(dangerous)u[side==='own'?'dangerFor':'dangerAgainst']++;}
  if(side==='own'){const p=playerById(id);if(p&&analysisOnTarget(shot))analysisPlayer(p).shots++;}
 }
-function analysisEvent(type,side,text,id=null){
+function analysisEvent(type,side,text,id=null,details={}){
  ensureAnalysis();const a=state.live?.analysis;if(!a)return;
+ if(details.penaltyId&&a.events.some(e=>e.type==='penalty'&&e.penaltyId===details.penaltyId))return;
  const scorer=type==='goal'?findPlayerAnywhere(id):null;
  const subject=id!=null?findPlayerAnywhere(id):null;
- a.events.push({time:analysisClock(),period:state.live.period,clock:gameTime(),type,side,text,situation:analysisSituation(),...(subject?{playerId:subject.id,playerName:subject.name}:{}),...(type==='goal'?{scorerId:id,scorer:scorer?.name||null,assists:[],own:state.live.hv,against:state.live.opp}: {})});
- if(type==="goal"||type==="penalty")leagueTrackEvent(type,side,id);
+ a.events.push({time:analysisClock(),period:state.live.period,clock:gameTime(),type,side,text,situation:analysisSituation(),...(subject?{playerId:subject.id,playerName:subject.name}:{}),...(type==='penalty'?{...details,minutes:details.minutes??2}:{}),...(type==='goal'?{scorerId:id,scorer:scorer?.name||null,assists:[],own:state.live.hv,against:state.live.opp}: {})});
+ if(type==="goal"||type==="penalty")leagueTrackEvent(type,side,id,null,details);
  if(type==='goal'){
   for(const unit of analysisUnits())analysisUnitRecord(unit)[side==='own'?'goalsFor':'goalsAgainst']++;
   if(side==='own'){const p=playerById(id);if(p)analysisPlayer(p).goals++;}
  }
- if(type==='penalty'&&side==='own'){const p=playerById(id);if(p)analysisPlayer(p).pim+=2;}
+ if(type==='penalty'&&side==='own'){const p=playerById(id);if(p)analysisPlayer(p).pim+=details.minutes??2;}
 }
 function analysisAssist(p){ensureAnalysis();leagueTrackEvent("assist","own",p.id);if(state.live?.analysis)analysisPlayer(p).assists++;}
 function analysisSnapshot(){

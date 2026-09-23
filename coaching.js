@@ -42,7 +42,7 @@ function specialUnitOnIce(){
   const m=state.live;
   if(!m||m.finished) return null;
   if(studioActive()&&!studioEngine().isShortHanded(0)&&!studioEngine().hasPowerPlay(0))return null;
-  const own=Math.min(2,m.penaltiesHV.length),other=Math.min(2,m.penaltiesOpp.length);
+  const own=StudioHockey.penaltyCount(m.penaltiesHV),other=StudioHockey.penaltyCount(m.penaltiesOpp);
   if(!own&&!other&&(m.period!==4||isPlayoffMatch())) return null;
   ensureSpecialTeams();
   const unitNumber=(m.rotationIndex||0)%2+1;
