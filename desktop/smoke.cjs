@@ -32,11 +32,12 @@ async function close(){
   await page.getByRole('button',{name:/Acceptera uppdraget/}).click();
   await page.waitForFunction(()=>careerScreen===null && state.careerStarted);
   await page.screenshot({path:path.join(out,'01-klubbkontoret.png'),fullPage:true});
-  await page.locator('.manager-nav button').filter({hasText:/Trupp/}).first().click();
-  const selectedName=await page.evaluate(()=>managerRoster()[0].name);
-  await page.locator('input[name="query"]').fill(selectedName);
-  await page.getByRole('button',{name:'Sök',exact:true}).click();
-  const link=page.locator('#content .player-reference').first();const id=await link.getAttribute('data-player-id');
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
+  const selected=await page.evaluate(()=>({name:managerRoster()[0].name,id:String(managerRoster()[0].id)}));
+  const selectedName=selected.name,id=selected.id;
+  await page.locator('.sw-filters input[name="query"]').fill(selectedName);
+  await page.locator('.sw-filters').getByRole('button',{name:'Sök',exact:true}).click();
+  const link=page.getByRole('region',{name:'Spelartrupp',exact:true}).getByRole('button',{name:selectedName,exact:true});
   await link.click();await page.waitForFunction(id=>String(state.selectedPlayer)===id,id);
   await page.screenshot({path:path.join(out,'02-spelarprofil.png'),fullPage:true});
   await page.locator('#content button[onclick*="deskBack"]').first().click();
