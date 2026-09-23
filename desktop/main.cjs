@@ -45,8 +45,11 @@ app.whenReady().then(()=>{
     else quitDecision('Karriären kunde inte sparas. Stanna för att exportera en sparfil eller försöka igen.');
   });
   window=new BrowserWindow({width:1600,height:1000,minWidth:1100,minHeight:720,backgroundColor:'#08111f',show:false,title:'Hockey Manager · Beta '+app.getVersion(),webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
-  window.webContents.session.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
-  window.webContents.session.setPermissionCheckHandler(()=>false);
+  // The local game's user-initiated fullscreen control needs this permission.
+  // Requests from other contents/frames and every other capability stay denied.
+  const allowFullscreen=(wc,permission,details)=>wc===window.webContents && permission==='fullscreen' && details?.isMainFrame===true && trustedPage(details.requestingUrl) && trustedPage(wc.getURL());
+  window.webContents.session.setPermissionRequestHandler((wc,permission,callback,details)=>callback(allowFullscreen(wc,permission,details)));
+  window.webContents.session.setPermissionCheckHandler((wc,permission,_origin,details)=>allowFullscreen(wc,permission,details));
   const openExternal=url=>{try{const u=new URL(url);if(u.protocol==='https:' && !u.username && !u.password)shell.openExternal(u.href);}catch{}};
   window.webContents.setWindowOpenHandler(({url})=>{openExternal(url);return {action:'deny'};});
   window.webContents.on('will-navigate',(event,url)=>{if(!trustedPage(url)){event.preventDefault();openExternal(url);}});
