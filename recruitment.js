@@ -148,10 +148,14 @@ function managerRecruitmentBudget(excludePlayerId=null){
  return {fees,salaryReserved,availableCash:state.money-fees,wageRoom:wageBudget()-annualWageCost()-salaryReserved,futureRoom:calendarFutureRoom(managerClub(),excludePlayerId)};
 }
 function managerCommitmentIssue(p,fee,salary,years,{renewal=false}={}){
- const b=managerRecruitmentBudget(p.id),current=renewal?p.salary:0,future=renewal&&p.contractYears>1&&!p.futureContract?p.salary:0;
- if(fee>b.availableCash||salary-current>b.wageRoom)return 'Åtagandet ryms inte i årets kassa eller lönebudget när pågående köp- och lånebud räknas med.';
- if(years>1&&salary-future>b.futureRoom)return 'Nästa säsongs löneutrymme räcker inte när förhandsavtal, återvändande lån och andra fleråriga bud räknas med.';
+ const b=managerCommitmentPreview(p,fee,salary,years,{renewal});
+ if(b.cashAfter<0||b.wageAfter<0)return 'Åtagandet ryms inte i årets kassa eller lönebudget när pågående köp- och lånebud räknas med.';
+ if(years>1&&b.futureAfter<0)return 'Nästa säsongs löneutrymme räcker inte när förhandsavtal, återvändande lån och andra fleråriga bud räknas med.';
  return '';
+}
+function managerCommitmentPreview(p,fee,salary,years,{renewal=false}={}){
+ const b=managerRecruitmentBudget(p?.id??null),current=renewal?p.salary:0,future=renewal&&p.contractYears>1&&!p.futureContract?p.salary:0;
+ return {cashAfter:b.availableCash-fee,wageAfter:b.wageRoom-salary+current,futureAfter:b.futureRoom-(years>1?salary:0)+future,total:fee+salary*years,change:salary-current};
 }
 function recruitWillingToSell(p,club){if(club===WORLD_FREE)return true;return recruitCanSell(p,club)&&(p.transferListed||p.contractYears<=1||(aiMarketSnapshot?.ratings.get(String(p.id))??matchAttributeRating(p))<(aiMarketSnapshot?.clubs.get(club)?.max??Math.max(...state.clubRosters[club].map(q=>matchAttributeRating(q))))-2);}
 function recruitRival(p,seller){
@@ -273,7 +277,7 @@ function followRecruitmentPromises(m){
    q.lastFixture=key;q.games++;if(qualified)q.qualified++;
    q.evidence=[...(q.evidence||[]),{key,date:state.calendar.date,opponent:m.opponent,seconds,qualified}].slice(-6);
    if(q.games>=rule.total){q.resolved=true;const met=q.qualified>=rule.required;q.result=met?'Uppfyllt':'Brutet';p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
-     recruitReport(`${p.name}: uppföljning av rollen`,`${q.role}: minst ${rule.minutes} minuter i ${rule.required} av ${rule.total} tillgängliga tävlingsmatcher. Utfallet blev ${q.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`);
+     recruitReport(playerHeadline(p,': uppföljning av rollen'),`${q.role}: minst ${rule.minutes} minuter i ${rule.required} av ${rule.total} tillgängliga tävlingsmatcher. Utfallet blev ${q.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`,{playerId:p.id,link:'player'});
    }
  }
 }
