@@ -1,0 +1,3227 @@
+{
+  "checked": "2026-09-23",
+  "asOf": "2026-09-07",
+  "scope": "Current roster pages are cross-checks, not proof of a historical registration. No automatic transfer or identity changes.",
+  "clubs": {
+    "Almtuna IS": [
+      {
+        "name": "Hugo Hävelid",
+        "position": "G",
+        "born": 2004,
+        "height": "182",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Oskar Asplund",
+        "position": "D",
+        "born": 2003,
+        "height": "180",
+        "weight": "78",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Elias Degnell",
+        "position": "D",
+        "born": 2004,
+        "height": "184",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Edvin Hammarlund",
+        "position": "D",
+        "born": 1997,
+        "height": "195",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Léon Lerebäck",
+        "position": "D",
+        "born": 2000,
+        "height": "187",
+        "weight": "90",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Alexander Proos",
+        "position": "D",
+        "born": 2007,
+        "height": "-",
+        "weight": "-",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Jakob Ragnarsson",
+        "position": "D",
+        "born": 1999,
+        "height": "183",
+        "weight": "80",
+        "shoots": "L",
+        "registration": ""
+      },
+      {
+        "name": "Nikodemus Wernquist",
+        "position": "D",
+        "born": 2006,
+        "height": "179",
+        "weight": "78",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Filip Engarås",
+        "position": "C/RW",
+        "born": 1999,
+        "height": "185",
+        "weight": "91",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Charlie Forslund",
+        "position": "LW/RW",
+        "born": 2006,
+        "height": "193",
+        "weight": "99",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Marwin Jarbsjö",
+        "position": "RW",
+        "born": 2006,
+        "height": "181",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viktor Johansson",
+        "position": "C/W",
+        "born": 2002,
+        "height": "190",
+        "weight": "86",
+        "shoots": "R",
+        "registration": ""
+      },
+      {
+        "name": "Neo Karling",
+        "position": "LW",
+        "born": 2007,
+        "height": "186",
+        "weight": "78",
+        "shoots": "R",
+        "registration": "Junior"
+      },
+      {
+        "name": "Anton Ohlsson",
+        "position": "C",
+        "born": 2004,
+        "height": "185",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Bruno Osmanis",
+        "position": "RW",
+        "born": 2006,
+        "height": "180",
+        "weight": "78",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Oscar Pentler",
+        "position": "C",
+        "born": 1999,
+        "height": "185",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Samuel Salonen",
+        "position": "LW",
+        "born": 2000,
+        "height": "192",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Fredrik Schlyter",
+        "position": "C/W",
+        "born": 2001,
+        "height": "183",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Lukas Smith",
+        "position": "C/W",
+        "born": 2001,
+        "height": "184",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Karl Sterner",
+        "position": "W/C",
+        "born": 2006,
+        "height": "191",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Leo Sundqvist",
+        "position": "RW",
+        "born": 2007,
+        "height": "175",
+        "weight": "77",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Lukas Vesterlund",
+        "position": "C",
+        "born": 2004,
+        "height": "188",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tim Forslund",
+        "position": "G",
+        "born": 2004,
+        "height": "185",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Victor Aronsson",
+        "position": "D",
+        "born": 1992,
+        "height": "180",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      }
+    ],
+    "BIK Karlskoga": [
+      {
+        "name": "Olof Lindbom",
+        "position": "G",
+        "born": 2000,
+        "height": "187",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viktor Lang",
+        "position": "D",
+        "born": 1995,
+        "height": "192",
+        "weight": "96",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Alexander Leandersson",
+        "position": "D",
+        "born": 1997,
+        "height": "192",
+        "weight": "96",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Melvin Nilsson",
+        "position": "D",
+        "born": 2006,
+        "height": "188",
+        "weight": "81",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Rikard Olsén",
+        "position": "D",
+        "born": 1995,
+        "height": "182",
+        "weight": "79",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Eero Teräväinen",
+        "position": "D",
+        "born": 1999,
+        "height": "179",
+        "weight": "79",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Wilhelm Westlund",
+        "position": "D",
+        "born": 1995,
+        "height": "182",
+        "weight": "81",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Lucas Ölvestad",
+        "position": "D",
+        "born": 2002,
+        "height": "185",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Henrik Björklund",
+        "position": "RW",
+        "born": 1990,
+        "height": "189",
+        "weight": "95",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Harrison Blaisdell",
+        "position": "C",
+        "born": 2001,
+        "height": "82",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "William Bråtner",
+        "position": "RW",
+        "born": 2007,
+        "height": "188",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Jesper Emanuelsson",
+        "position": "W",
+        "born": 2000,
+        "height": "183",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Gustaf Franzén",
+        "position": "C/RW",
+        "born": 1996,
+        "height": "180",
+        "weight": "78",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Carson Golder",
+        "position": "LW/RW",
+        "born": 2002,
+        "height": "89",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Jonatan Harju",
+        "position": "LW",
+        "born": 1997,
+        "height": "191",
+        "weight": "93",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jonathan Hermansson",
+        "position": "F",
+        "born": 2000,
+        "height": "184",
+        "weight": "89",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oscar Holmertz",
+        "position": "C",
+        "born": 2008,
+        "height": "185",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Kalle Jellvert",
+        "position": "C",
+        "born": 1995,
+        "height": "184",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oscar Lawner",
+        "position": "LW/RW",
+        "born": 2001,
+        "height": "181",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Nick Pastujov",
+        "position": "C/LW",
+        "born": 1998,
+        "height": "92",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Tobias Sjökvist",
+        "position": "C/W",
+        "born": 1995,
+        "height": "178",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Douglas Sättermann",
+        "position": "RW",
+        "born": 2007,
+        "height": "181",
+        "weight": "77",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Gustaf Thorell",
+        "position": "C/LW",
+        "born": 1989,
+        "height": "181",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Travis Treloar",
+        "position": "C",
+        "born": 2001,
+        "height": "180",
+        "weight": "80",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Måns Goos",
+        "position": "G",
+        "born": 2007,
+        "height": "196",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Karl-Alfred Järås",
+        "position": "D",
+        "born": 2007,
+        "height": "187",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "Junior"
+      }
+    ],
+    "IK Oskarshamn": [
+      {
+        "name": "Emil Vuorio",
+        "position": "G",
+        "born": 2002,
+        "height": "186",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Allvin",
+        "position": "D",
+        "born": 2007,
+        "height": "185",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Axel Elofsson",
+        "position": "D",
+        "born": 2008,
+        "height": "178",
+        "weight": "77",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Ludvig Georgsson",
+        "position": "D",
+        "born": 2000,
+        "height": "194",
+        "weight": "96",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Ville Jonsson",
+        "position": "D",
+        "born": 2004,
+        "height": "186",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ludvig Markman",
+        "position": "D",
+        "born": 2003,
+        "height": "185",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Pontus Näsén",
+        "position": "D",
+        "born": 1996,
+        "height": "182",
+        "weight": "85",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "David Rosander",
+        "position": "D",
+        "born": 2002,
+        "height": "185",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ludvig Östman",
+        "position": "D",
+        "born": 1999,
+        "height": "181",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Axel Björnkvist",
+        "position": "C",
+        "born": 2001,
+        "height": "189",
+        "weight": "87",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Matt Brown",
+        "position": "LW/RW",
+        "born": 1999,
+        "height": "86",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Søren Dietz-Larsen",
+        "position": "W",
+        "born": 1999,
+        "height": "187",
+        "weight": "89",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Danny Dzhaniyev",
+        "position": "LW/C",
+        "born": 2002,
+        "height": "68",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Filiph Engsund",
+        "position": "C",
+        "born": 1993,
+        "height": "183",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Melker Eriksson",
+        "position": "C",
+        "born": 2001,
+        "height": "186",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Herman Hansson",
+        "position": "LW/RW",
+        "born": 1994,
+        "height": "183",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Calle Karlsson",
+        "position": "F",
+        "born": 2004,
+        "height": "191",
+        "weight": "86",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Olle Karlsson",
+        "position": "F",
+        "born": 2008,
+        "height": "181",
+        "weight": "79",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Albin Larsson",
+        "position": "LW",
+        "born": 2007,
+        "height": "178",
+        "weight": "74",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Filip Sveningsson",
+        "position": "LW/RW",
+        "born": 1999,
+        "height": "182",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Joel Svensson",
+        "position": "LW/C",
+        "born": 2005,
+        "height": "186",
+        "weight": "88",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ville Svensson",
+        "position": "C/W",
+        "born": 2005,
+        "height": "188",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Manuel Ågren",
+        "position": "LW/RW",
+        "born": 1994,
+        "height": "180",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28+1"
+      },
+      {
+        "name": "Axel Nyman",
+        "position": "G",
+        "born": 2006,
+        "height": "195",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "Loan"
+      }
+    ],
+    "Kalmar HC": [
+      {
+        "name": "Tobias Aronsson",
+        "position": "D",
+        "born": 1999,
+        "height": "186",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tommy Bergsland",
+        "position": "D",
+        "born": 2001,
+        "height": "84",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "William Eckmyhl",
+        "position": "D",
+        "born": 2000,
+        "height": "179",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Christian Felton",
+        "position": "D",
+        "born": 2000,
+        "height": "84",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Kim Johansson",
+        "position": "D",
+        "born": 1998,
+        "height": "180",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Hugo Jonasson",
+        "position": "D",
+        "born": 2003,
+        "height": "182",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Henrik Nilsson",
+        "position": "D",
+        "born": 1991,
+        "height": "190",
+        "weight": "91",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Philip Törnqvist",
+        "position": "D",
+        "born": 2001,
+        "height": "184",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Gustav Dunegård",
+        "position": "C/W",
+        "born": 2008,
+        "height": "183",
+        "weight": "85",
+        "shoots": "L",
+        "registration": ""
+      },
+      {
+        "name": "Elliot Ekefjärd",
+        "position": "RW/LW",
+        "born": 2002,
+        "height": "194",
+        "weight": "98",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Elliot Ekmark",
+        "position": "C",
+        "born": 2002,
+        "height": "176",
+        "weight": "73",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jakob Ihs-Wozniak",
+        "position": "RW/C",
+        "born": 2007,
+        "height": "190",
+        "weight": "86",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Valdemar Johansson",
+        "position": "C/LW",
+        "born": 2003,
+        "height": "180",
+        "weight": "78",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Viktor Klingsell",
+        "position": "LW",
+        "born": 2007,
+        "height": "178",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Marcus Limpar Lantz",
+        "position": "C",
+        "born": 2003,
+        "height": "183",
+        "weight": "85",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Jesper Lindén",
+        "position": "RW/LW",
+        "born": 1998,
+        "height": "184",
+        "weight": "87",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Allan McShane",
+        "position": "C",
+        "born": 2000,
+        "height": "181",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hampus Plato",
+        "position": "RW",
+        "born": 2002,
+        "height": "179",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Massimo Rizzo",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "180",
+        "weight": "79",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viktor Smeds",
+        "position": "C",
+        "born": 2004,
+        "height": "183",
+        "weight": "91",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Valdemar Vesterlund",
+        "position": "F",
+        "born": 2005,
+        "height": "192",
+        "weight": "95",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Reece Vitelli",
+        "position": "C/RW",
+        "born": 2001,
+        "height": "82",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Arvid Westlin",
+        "position": "LW/RW",
+        "born": 2005,
+        "height": "180",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Mattias Wigley",
+        "position": "C/LW",
+        "born": 1994,
+        "height": "183",
+        "weight": "99",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Brett Brochu",
+        "position": "G",
+        "born": 2002,
+        "height": "184",
+        "weight": "78",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Carl Malmqvist",
+        "position": "G",
+        "born": 2002,
+        "height": "187",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jonathan Andersson",
+        "position": "D",
+        "born": 1993,
+        "height": "178",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      }
+    ],
+    "Leksands IF": [
+      {
+        "name": "Vilgot Lidén",
+        "position": "D",
+        "born": 2008,
+        "height": "181",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Alexander Lundqvist",
+        "position": "D",
+        "born": 2001,
+        "height": "189",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "26/27+1"
+      },
+      {
+        "name": "Riley McCourt",
+        "position": "D",
+        "born": 2000,
+        "height": "84",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Fred Nilsson",
+        "position": "D",
+        "born": 2002,
+        "height": "185",
+        "weight": "81",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Victor Sjöholm",
+        "position": "D",
+        "born": 2003,
+        "height": "178",
+        "weight": "82",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Nathan Staios",
+        "position": "D",
+        "born": 2001,
+        "height": "77",
+        "weight": "L",
+        "shoots": "Try-out",
+        "registration": ""
+      },
+      {
+        "name": "Dennis Altörn",
+        "position": "LW",
+        "born": 2005,
+        "height": "187",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Adam Andersson",
+        "position": "C",
+        "born": 2008,
+        "height": "193",
+        "weight": "95",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Tyler Angle",
+        "position": "C/LW",
+        "born": 2000,
+        "height": "80",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Zaki Crookes",
+        "position": "RW",
+        "born": 2006,
+        "height": "185",
+        "weight": "85",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Arvid Eljas",
+        "position": "C/LW",
+        "born": 2003,
+        "height": "180",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "28/29"
+      },
+      {
+        "name": "Martin Karlsson",
+        "position": "LW/RW",
+        "born": 1991,
+        "height": "183",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tyler Kelleher",
+        "position": "RW",
+        "born": 1995,
+        "height": "168",
+        "weight": "73",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Pax Kleffner",
+        "position": "C/W",
+        "born": 2008,
+        "height": "185",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Jonas Lagerberg Hoen",
+        "position": "RW",
+        "born": 2007,
+        "height": "189",
+        "weight": "86",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oskar Lang",
+        "position": "LW/RW",
+        "born": 1996,
+        "height": "170",
+        "weight": "75",
+        "shoots": "L",
+        "registration": "28/29"
+      },
+      {
+        "name": "Oliver Dejbjerg Larsen",
+        "position": "F",
+        "born": 2007,
+        "height": "181",
+        "weight": "76",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "August Lissel",
+        "position": "C",
+        "born": 2006,
+        "height": "191",
+        "weight": "89",
+        "shoots": "L",
+        "registration": ""
+      },
+      {
+        "name": "Josh Passolt",
+        "position": "F",
+        "born": 1996,
+        "height": "88",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Åke Stakkestad",
+        "position": "C",
+        "born": 2002,
+        "height": "179",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Patrik Zackrisson",
+        "position": "C/RW",
+        "born": 1987,
+        "height": "180",
+        "weight": "85",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Robin Christoffersson",
+        "position": "G",
+        "born": 1997,
+        "height": "184",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Marcus Gidlöf",
+        "position": "G",
+        "born": 2005,
+        "height": "202",
+        "weight": "101",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viggo Tamm",
+        "position": "G",
+        "born": 2008,
+        "height": "195",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Carter Berger",
+        "position": "D",
+        "born": 1999,
+        "height": "185",
+        "weight": "93",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Rocky Langvardt",
+        "position": "D",
+        "born": 2007,
+        "height": "179",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "Junior"
+      }
+    ],
+    "MoDo Hockey": [
+      {
+        "name": "Victor Berglund",
+        "position": "D",
+        "born": 1999,
+        "height": "6'1\"",
+        "weight": "183",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Hallin",
+        "position": "D",
+        "born": 2007,
+        "height": "5'9\"",
+        "weight": "168",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Theodor Knights",
+        "position": "D",
+        "born": 2008,
+        "height": "6'4\"",
+        "weight": "207",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Elias Rosén",
+        "position": "D",
+        "born": 1999,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oskar Wahlberg",
+        "position": "D",
+        "born": 2005,
+        "height": "6'4\"",
+        "weight": "207",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Bryan Yoon",
+        "position": "D",
+        "born": 1998,
+        "height": "181",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Peder Kyrkjeeide Øversveen",
+        "position": "D",
+        "born": 2005,
+        "height": "6'5\"",
+        "weight": "209",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jacob Bjerselius",
+        "position": "C/LW",
+        "born": 1998,
+        "height": "6'2\"",
+        "weight": "192",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Troy Bourke",
+        "position": "C",
+        "born": 1994,
+        "height": "5'11\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "26/27+1"
+      },
+      {
+        "name": "Arvid Caderoth",
+        "position": "C/RW",
+        "born": 2000,
+        "height": "6'5\"",
+        "weight": "220",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Måns Carlsson",
+        "position": "C/W",
+        "born": 1997,
+        "height": "6'3\"",
+        "weight": "209",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "William Falkenhäll",
+        "position": "LW",
+        "born": 2005,
+        "height": "5'10\"",
+        "weight": "159",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Malcom Gästrin",
+        "position": "RW",
+        "born": 2008,
+        "height": "6'0\"",
+        "weight": "174",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Elton Hermansson",
+        "position": "RW/LW",
+        "born": 2008,
+        "height": "6'1\"",
+        "weight": "183",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Erik Jinesjö Karlsson",
+        "position": "C",
+        "born": 1994,
+        "height": "5'11\"",
+        "weight": "170",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Jackson Jutting",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "196",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Marcus Karlberg",
+        "position": "RW",
+        "born": 2000,
+        "height": "5'8\"",
+        "weight": "165",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Emil Larsson",
+        "position": "LW/RW",
+        "born": 1993,
+        "height": "6'2\"",
+        "weight": "190",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Carl Mattsson",
+        "position": "C/LW",
+        "born": 1999,
+        "height": "6'1\"",
+        "weight": "194",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Sebastian Ohlsson",
+        "position": "LW/RW",
+        "born": 1997,
+        "height": "5'9\"",
+        "weight": "181",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Oscar Pettersson",
+        "position": "LW",
+        "born": 1999,
+        "height": "6'0\"",
+        "weight": "194",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Milan Sundström",
+        "position": "C",
+        "born": 2009,
+        "height": "6'2\"",
+        "weight": "198",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Jakob Hellsten",
+        "position": "G",
+        "born": 2000,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Adam Werner",
+        "position": "G",
+        "born": 1997,
+        "height": "6'5\"",
+        "weight": "205",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "August Berg",
+        "position": "D",
+        "born": 1999,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "R",
+        "registration": "27/28"
+      }
+    ],
+    "Mora IK": [
+      {
+        "name": "Marcus Hellgren-Smed",
+        "position": "G",
+        "born": 1994,
+        "height": "190",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Victor Hedin Raftheim",
+        "position": "D",
+        "born": 2007,
+        "height": "195",
+        "weight": "96",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Marcus Karlström",
+        "position": "D",
+        "born": 1995,
+        "height": "188",
+        "weight": "86",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Victor Engebråten Kopperstad",
+        "position": "D",
+        "born": 2006,
+        "height": "188",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Jakob Norén",
+        "position": "D",
+        "born": 2004,
+        "height": "179",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Joel Olerot",
+        "position": "D",
+        "born": 2005,
+        "height": "182",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "August Skiöld",
+        "position": "D",
+        "born": 2003,
+        "height": "198",
+        "weight": "108",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tim Thomsson",
+        "position": "D",
+        "born": 2007,
+        "height": "187",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Albin Udd",
+        "position": "D",
+        "born": 2004,
+        "height": "183",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Olle Carlsson",
+        "position": "LW/RW",
+        "born": 2007,
+        "height": "180",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Patrick Rørbu Elvsveen",
+        "position": "F",
+        "born": 2002,
+        "height": "177",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Damien Giroux",
+        "position": "C/LW",
+        "born": 2000,
+        "height": "177",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Nils Juntorp",
+        "position": "RW",
+        "born": 2003,
+        "height": "186",
+        "weight": "89",
+        "shoots": "R",
+        "registration": ""
+      },
+      {
+        "name": "Hampus Larsson",
+        "position": "C",
+        "born": 2003,
+        "height": "188",
+        "weight": "91",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Loa Milfors",
+        "position": "RW/LW",
+        "born": 2004,
+        "height": "180",
+        "weight": "82",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ryland Mosley",
+        "position": "LW/RW",
+        "born": 2000,
+        "height": "180",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Isak Salqvist",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "178",
+        "weight": "81",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Florian Schenk",
+        "position": "C",
+        "born": 2007,
+        "height": "193",
+        "weight": "95",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Svante Sjödin",
+        "position": "C",
+        "born": 2005,
+        "height": "185",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Karl Smedberg",
+        "position": "C",
+        "born": 1999,
+        "height": "189",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tobias Aase Stensland",
+        "position": "RW",
+        "born": 2008,
+        "height": "185",
+        "weight": "87",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Oliver Tärnström",
+        "position": "C",
+        "born": 2002,
+        "height": "183",
+        "weight": "72",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Karl Umegård",
+        "position": "F",
+        "born": 2003,
+        "height": "175",
+        "weight": "77",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Georg Weigelt",
+        "position": "C",
+        "born": 2002,
+        "height": "185",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Östberg",
+        "position": "LW/RW",
+        "born": 2007,
+        "height": "187",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Tobias Johansen Breivold",
+        "position": "G",
+        "born": 2001,
+        "height": "180",
+        "weight": "77",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tobias Ekberg",
+        "position": "D",
+        "born": 1994,
+        "height": "180",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "27/28"
+      }
+    ],
+    "Södertälje SK": [
+      {
+        "name": "Felix Carell",
+        "position": "D",
+        "born": 2006,
+        "height": "186",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "William Håkansson",
+        "position": "D",
+        "born": 2007,
+        "height": "194",
+        "weight": "98",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Roope Laavainen",
+        "position": "D",
+        "born": 1998,
+        "height": "187",
+        "weight": "91",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jonatan Lundgren",
+        "position": "D",
+        "born": 2001,
+        "height": "197",
+        "weight": "102",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Niklas Nilsson",
+        "position": "D",
+        "born": 2003,
+        "height": "191",
+        "weight": "81",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Daniel Norbe",
+        "position": "D",
+        "born": 1995,
+        "height": "181",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "28/29"
+      },
+      {
+        "name": "Ludvig Söderberg",
+        "position": "D",
+        "born": 2007,
+        "height": "182",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Tarun Fizer",
+        "position": "C",
+        "born": 2001,
+        "height": "180",
+        "weight": "80",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hampus Harlestam",
+        "position": "C/RW",
+        "born": 1993,
+        "height": "177",
+        "weight": "83",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Adam Hesselvall",
+        "position": "RW/C",
+        "born": 2006,
+        "height": "184",
+        "weight": "84",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Filip Holst Persson",
+        "position": "LW/C",
+        "born": 2006,
+        "height": "182",
+        "weight": "73",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Joni Ikonen",
+        "position": "C",
+        "born": 1999,
+        "height": "180",
+        "weight": "78",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Philip Lantz",
+        "position": "LW/RW",
+        "born": 2007,
+        "height": "186",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Måns Lindbäck",
+        "position": "RW/C",
+        "born": 1996,
+        "height": "186",
+        "weight": "83",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Daniel Muzito-Bagenda",
+        "position": "C/LW",
+        "born": 1996,
+        "height": "185",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "28/29"
+      },
+      {
+        "name": "Gabriel Olsson",
+        "position": "RW",
+        "born": 1997,
+        "height": "183",
+        "weight": "84",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Gustav Salmi-Lilja",
+        "position": "LW/RW",
+        "born": 2002,
+        "height": "187",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Linus Skager",
+        "position": "C/RW",
+        "born": 2000,
+        "height": "178",
+        "weight": "75",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Carter Souch",
+        "position": "W",
+        "born": 2001,
+        "height": "82",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Nolan Stevens",
+        "position": "C",
+        "born": 1996,
+        "height": "86",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "A.J. Vanderbeck",
+        "position": "RW",
+        "born": 1997,
+        "height": "84",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Teemu Väyrynen",
+        "position": "W/C",
+        "born": 1997,
+        "height": "177",
+        "weight": "77",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Love Härenstam",
+        "position": "G",
+        "born": 2007,
+        "height": "187",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Teodor Munther",
+        "position": "G",
+        "born": 2005,
+        "height": "185",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Niklas Arell",
+        "position": "D",
+        "born": 1990,
+        "height": "187",
+        "weight": "101",
+        "shoots": "L",
+        "registration": "27/28"
+      }
+    ],
+    "Vimmerby HC": [
+      {
+        "name": "Tomas Rydén",
+        "position": "G",
+        "born": 1993,
+        "height": "6'1\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Isak Sörqvist",
+        "position": "G",
+        "born": 2007,
+        "height": "6'1\"",
+        "weight": "179",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "William Alftberg",
+        "position": "D",
+        "born": 2000,
+        "height": "5'9\"",
+        "weight": "176",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Nick Bochen",
+        "position": "D",
+        "born": 2001,
+        "height": "170",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Alfred Hjälm",
+        "position": "D",
+        "born": 2002,
+        "height": "6'2\"",
+        "weight": "209",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Arvid Hurtig",
+        "position": "D",
+        "born": 2003,
+        "height": "6'2\"",
+        "weight": "194",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oskar Lindgren",
+        "position": "D",
+        "born": 1997,
+        "height": "6'1\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Gustaf Malmkvist",
+        "position": "D",
+        "born": 2000,
+        "height": "6'2\"",
+        "weight": "205",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Linus Millner Westberg",
+        "position": "D",
+        "born": 2003,
+        "height": "6'0\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ludvig Andersson",
+        "position": "C/RW",
+        "born": 2008,
+        "height": "5'11\"",
+        "weight": "187",
+        "shoots": "R",
+        "registration": "Loan"
+      },
+      {
+        "name": "Anton Carlsson",
+        "position": "C/LW",
+        "born": 1996,
+        "height": "5'11\"",
+        "weight": "176",
+        "shoots": "L",
+        "registration": ""
+      },
+      {
+        "name": "Kalle Carlsson",
+        "position": "F",
+        "born": 2005,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hannes Hellberg",
+        "position": "LW/RW",
+        "born": 2004,
+        "height": "6'1\"",
+        "weight": "196",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Gustaf Kangas",
+        "position": "C",
+        "born": 2005,
+        "height": "6'0\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Hampus Karlsson",
+        "position": "C",
+        "born": 2001,
+        "height": "6'5\"",
+        "weight": "179",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Max Karlsson",
+        "position": "C/W",
+        "born": 2005,
+        "height": "6'0\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Lejon",
+        "position": "RW",
+        "born": 2005,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Johan Mörnsjö",
+        "position": "C/W",
+        "born": 1997,
+        "height": "5'9\"",
+        "weight": "179",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jesper Norbäck",
+        "position": "W/C",
+        "born": 1998,
+        "height": "6'0\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Orrsten",
+        "position": "C/LW",
+        "born": 2006,
+        "height": "6'2\"",
+        "weight": "198",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Adam Petersson",
+        "position": "RW",
+        "born": 2003,
+        "height": "6'3\"",
+        "weight": "198",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Kevin Wennström",
+        "position": "C/LW",
+        "born": 2000,
+        "height": "5'11\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      }
+    ],
+    "Visby/Roma": [
+      {
+        "name": "Joona Voutilainen",
+        "position": "G",
+        "born": 1996,
+        "height": "6'1\"",
+        "weight": "159",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Olle Andersson",
+        "position": "D",
+        "born": 2000,
+        "height": "6'1\"",
+        "weight": "192",
+        "shoots": "L",
+        "registration": ""
+      },
+      {
+        "name": "Jacob Bengtsson",
+        "position": "D",
+        "born": 1999,
+        "height": "6'4\"",
+        "weight": "203",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Elias Ewertzh",
+        "position": "D",
+        "born": 2002,
+        "height": "6'3\"",
+        "weight": "205",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Karl Johansson",
+        "position": "D",
+        "born": 1993,
+        "height": "5'9\"",
+        "weight": "168",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Eric Norin",
+        "position": "D",
+        "born": 1991,
+        "height": "6'0\"",
+        "weight": "181",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Janne Peltonen",
+        "position": "D",
+        "born": 2005,
+        "height": "6'3\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Lucas Ramberg",
+        "position": "D",
+        "born": 2002,
+        "height": "6'2\"",
+        "weight": "201",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Andreas Thelander",
+        "position": "D",
+        "born": 2001,
+        "height": "6'2\"",
+        "weight": "201",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Wille Bärehag",
+        "position": "C/LW",
+        "born": 2002,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Andreas Dahl",
+        "position": "W/C",
+        "born": 2002,
+        "height": "6'3\"",
+        "weight": "205",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "John Dahlström",
+        "position": "LW/RW",
+        "born": 1997,
+        "height": "6'1\"",
+        "weight": "194",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hampus Engman",
+        "position": "W",
+        "born": 2002,
+        "height": "6'4\"",
+        "weight": "207",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Giorgio Estephan",
+        "position": "C",
+        "born": 1997,
+        "height": "6'0\"",
+        "weight": "196",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Sebastian Fakt",
+        "position": "C/W",
+        "born": 1995,
+        "height": "6'1\"",
+        "weight": "205",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ryan Gagnier",
+        "position": "C/LW",
+        "born": 2002,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Lucas Jidenius",
+        "position": "LW/RW",
+        "born": 1999,
+        "height": "5'11\"",
+        "weight": "165",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Isak Jonsson",
+        "position": "RW/LW",
+        "born": 2000,
+        "height": "5'10\"",
+        "weight": "174",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Elias Lindström",
+        "position": "C/W",
+        "born": 2000,
+        "height": "6'3\"",
+        "weight": "209",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Juho Liuksiala",
+        "position": "RW",
+        "born": 1995,
+        "height": "5'8\"",
+        "weight": "176",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Karl Påhlsson",
+        "position": "C/LW",
+        "born": 2000,
+        "height": "5'10\"",
+        "weight": "168",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Joakim Thelin",
+        "position": "RW",
+        "born": 1992,
+        "height": "6'4\"",
+        "weight": "220",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jonathan Wikström",
+        "position": "LW",
+        "born": 2001,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Filip Lindblad",
+        "position": "G",
+        "born": 1999,
+        "height": "5'11\"",
+        "weight": "194",
+        "shoots": "L",
+        "registration": ""
+      }
+    ],
+    "Västerås IK": [
+      {
+        "name": "Daniel Gunnarsson",
+        "position": "D",
+        "born": 1992,
+        "height": "194",
+        "weight": "94",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jimmie Jansson Lorek",
+        "position": "D",
+        "born": 1994,
+        "height": "187",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Niclas Lundgren",
+        "position": "D",
+        "born": 1989,
+        "height": "183",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oscar Lundin",
+        "position": "D",
+        "born": 2001,
+        "height": "183",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Anton Mylläri",
+        "position": "D",
+        "born": 1991,
+        "height": "186",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Anton Olsson",
+        "position": "D",
+        "born": 2006,
+        "height": "181",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viktor Pennerborn",
+        "position": "D",
+        "born": 2006,
+        "height": "186",
+        "weight": "88",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Sam Thörnqvist",
+        "position": "D",
+        "born": 2008,
+        "height": "188",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "27/28+1"
+      },
+      {
+        "name": "Melker Bertals",
+        "position": "C",
+        "born": 2005,
+        "height": "183",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oscar Birgersson",
+        "position": "C/W",
+        "born": 2000,
+        "height": "183",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Simen Andre Edvardsen",
+        "position": "C",
+        "born": 1999,
+        "height": "181",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Emil Ekholm",
+        "position": "W",
+        "born": 2001,
+        "height": "192",
+        "weight": "90",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Liam Engström",
+        "position": "F",
+        "born": 2004,
+        "height": "175",
+        "weight": "73",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Sebastian Falk",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "178",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tim Friberg",
+        "position": "LW/RW",
+        "born": 1995,
+        "height": "192",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Fabian Hellström",
+        "position": "LW",
+        "born": 2004,
+        "height": "185",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Carl Jakobsson",
+        "position": "LW/RW",
+        "born": 2000,
+        "height": "186",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Felix Johansson",
+        "position": "C/RW",
+        "born": 2005,
+        "height": "185",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Theo Keilin",
+        "position": "C/LW",
+        "born": 2003,
+        "height": "180",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Victor Pantzare",
+        "position": "LW/C",
+        "born": 2006,
+        "height": "186",
+        "weight": "84",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Alvin Wengrud",
+        "position": "C/RW",
+        "born": 2007,
+        "height": "179",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27+1"
+      },
+      {
+        "name": "Lukas Zetterberg",
+        "position": "RW",
+        "born": 1997,
+        "height": "185",
+        "weight": "92",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oliver Håkanson",
+        "position": "G",
+        "born": 2002,
+        "height": "185",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Benedikt Oschgan",
+        "position": "G",
+        "born": 2005,
+        "height": "83",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Adam Arvedson",
+        "position": "D",
+        "born": 2001,
+        "height": "182",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      }
+    ],
+    "Östersunds IK": [
+      {
+        "name": "Kevin Arvidsson",
+        "position": "D",
+        "born": 2001,
+        "height": "6'0\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Erik Flood",
+        "position": "D",
+        "born": 1996,
+        "height": "6'0\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Joachim Lunde Hermansen",
+        "position": "D",
+        "born": 1999,
+        "height": "6'1\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Fredric Jansson",
+        "position": "D",
+        "born": 2001,
+        "height": "6'3\"",
+        "weight": "218",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Henrik Malmström",
+        "position": "D",
+        "born": 1998,
+        "height": "6'6\"",
+        "weight": "212",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Olle Norberg",
+        "position": "D",
+        "born": 2003,
+        "height": "6'2\"",
+        "weight": "201",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Nils Nordh",
+        "position": "D",
+        "born": 2002,
+        "height": "6'2\"",
+        "weight": "209",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Leo Sundqvist",
+        "position": "D",
+        "born": 2005,
+        "height": "6'0\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Brett Budgell",
+        "position": "LW/C",
+        "born": 2001,
+        "height": "187",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Isak Garfvé",
+        "position": "C/LW",
+        "born": 2002,
+        "height": "6'3\"",
+        "weight": "194",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Filip Hesselvall",
+        "position": "LW/C",
+        "born": 2004,
+        "height": "5'11\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Carl Holmner Härgestam",
+        "position": "LW",
+        "born": 2003,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Anton Klint",
+        "position": "C",
+        "born": 1999,
+        "height": "6'4\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Alexander Ljungkrantz",
+        "position": "LW/RW",
+        "born": 2002,
+        "height": "6'1\"",
+        "weight": "179",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Logan Nijhoff",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "187",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "William Proos",
+        "position": "LW",
+        "born": 2003,
+        "height": "6'3\"",
+        "weight": "192",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Lukas Sagranden",
+        "position": "RW",
+        "born": 2005,
+        "height": "5'9\"",
+        "weight": "181",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Maksims Semjonovs",
+        "position": "C/W",
+        "born": 2000,
+        "height": "5'10\"",
+        "weight": "179",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Albert Sjöberg",
+        "position": "W/C",
+        "born": 2003,
+        "height": "6'0\"",
+        "weight": "183",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Samuel Solem",
+        "position": "LW",
+        "born": 1999,
+        "height": "6'0\"",
+        "weight": "196",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Colin Wetterberg",
+        "position": "C",
+        "born": 2006,
+        "height": "6'0\"",
+        "weight": "185",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Kalle Ångström",
+        "position": "RW",
+        "born": 2007,
+        "height": "5'9\"",
+        "weight": "165",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Daniel Öhrn",
+        "position": "C/LW",
+        "born": 1993,
+        "height": "5'11\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Simon Carlsson",
+        "position": "G",
+        "born": 2005,
+        "height": "6'2\"",
+        "weight": "183",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Hampus Hedman",
+        "position": "G",
+        "born": 2001,
+        "height": "5'11\"",
+        "weight": "203",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Carl Lidö",
+        "position": "G",
+        "born": 2003,
+        "height": "6'0\"",
+        "weight": "187",
+        "shoots": "L",
+        "registration": "26/27"
+      }
+    ],
+    "AIK": [
+      {
+        "name": "Victor Brattström",
+        "position": "G",
+        "born": 1997,
+        "height": "193",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Leon Contreras",
+        "position": "G",
+        "born": 2007,
+        "height": "179",
+        "weight": "74",
+        "shoots": "L",
+        "registration": "Junior"
+      },
+      {
+        "name": "Jhonas Enroth",
+        "position": "G",
+        "born": 1988,
+        "height": "178",
+        "weight": "75",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Anders Grönlund",
+        "position": "D",
+        "born": 1989,
+        "height": "186",
+        "weight": "89",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Edvin Isén",
+        "position": "D",
+        "born": 2003,
+        "height": "184",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Patrik Jernfalk",
+        "position": "D",
+        "born": 2006,
+        "height": "189",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Samuel Jonsson",
+        "position": "D",
+        "born": 1998,
+        "height": "178",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "William Pethrus",
+        "position": "D",
+        "born": 1997,
+        "height": "187",
+        "weight": "83",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Martin Schreiber",
+        "position": "D",
+        "born": 2002,
+        "height": "188",
+        "weight": "93",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Gustav Sjöqvist",
+        "position": "D",
+        "born": 2006,
+        "height": "190",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tim Theocharidis",
+        "position": "D",
+        "born": 1998,
+        "height": "86",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Olli Vainio",
+        "position": "D",
+        "born": 1994,
+        "height": "185",
+        "weight": "81",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Christopher Bengtsson",
+        "position": "C/LW",
+        "born": 1993,
+        "height": "180",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Christoffer Björk",
+        "position": "C",
+        "born": 1999,
+        "height": "181",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Sid Boije",
+        "position": "C/RW",
+        "born": 2007,
+        "height": "182",
+        "weight": "80",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Max Eriksson",
+        "position": "LW",
+        "born": 2007,
+        "height": "187",
+        "weight": "77",
+        "shoots": "R",
+        "registration": "Junior"
+      },
+      {
+        "name": "Oliver Johansson",
+        "position": "LW/C",
+        "born": 2003,
+        "height": "184",
+        "weight": "90",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Borna Kopac",
+        "position": "RW",
+        "born": 2005,
+        "height": "178",
+        "weight": "78",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Viktor Lennartsson",
+        "position": "RW/LW",
+        "born": 1993,
+        "height": "180",
+        "weight": "88",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Daniel Ljungman",
+        "position": "C/RW",
+        "born": 2002,
+        "height": "184",
+        "weight": "80",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oskar Magnusson",
+        "position": "C/RW",
+        "born": 2002,
+        "height": "179",
+        "weight": "75",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Oscar Nord",
+        "position": "C/RW",
+        "born": 1996,
+        "height": "191",
+        "weight": "88",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Scott Pooley",
+        "position": "RW",
+        "born": 1994,
+        "height": "91",
+        "weight": "R",
+        "shoots": "27/28",
+        "registration": ""
+      },
+      {
+        "name": "Ryder Rolston",
+        "position": "RW",
+        "born": 2001,
+        "height": "87",
+        "weight": "R",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Rasmus Rudslätt",
+        "position": "RW",
+        "born": 2004,
+        "height": "182",
+        "weight": "82",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tyler Vesel",
+        "position": "C",
+        "born": 1994,
+        "height": "83",
+        "weight": "R",
+        "shoots": "27/28",
+        "registration": ""
+      }
+    ],
+    "Nybro Vikings": [
+      {
+        "name": "Pontus Eltonius",
+        "position": "G",
+        "born": 1998,
+        "height": "192",
+        "weight": "89",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Hugo Ollas",
+        "position": "G",
+        "born": 2002,
+        "height": "202",
+        "weight": "108",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Aron Dahlqvist",
+        "position": "D",
+        "born": 2007,
+        "height": "193",
+        "weight": "93",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Sander Vold Engebråten",
+        "position": "D",
+        "born": 2002,
+        "height": "182",
+        "weight": "82",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Fredrik Granberg",
+        "position": "D",
+        "born": 2000,
+        "height": "191",
+        "weight": "96",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Kalle Holm",
+        "position": "D",
+        "born": 2002,
+        "height": "177",
+        "weight": "75",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Måns Krämer",
+        "position": "D",
+        "born": 2001,
+        "height": "190",
+        "weight": "92",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Alexander Molldén",
+        "position": "D/F",
+        "born": 1995,
+        "height": "178",
+        "weight": "84",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Jesper Mångs",
+        "position": "D",
+        "born": 1997,
+        "height": "195",
+        "weight": "87",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Zach Wytinck",
+        "position": "D",
+        "born": 1999,
+        "height": "79",
+        "weight": "L",
+        "shoots": "26/27",
+        "registration": ""
+      },
+      {
+        "name": "Kalle Hemström",
+        "position": "C",
+        "born": 2007,
+        "height": "192",
+        "weight": "94",
+        "shoots": "L",
+        "registration": "Loan"
+      },
+      {
+        "name": "Theo Jacobsson",
+        "position": "C/W",
+        "born": 2003,
+        "height": "178",
+        "weight": "79",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oliver Kandergård",
+        "position": "RW",
+        "born": 1998,
+        "height": "176",
+        "weight": "76",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Joel Kant",
+        "position": "C",
+        "born": 2004,
+        "height": "185",
+        "weight": "86",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Filip Lennström",
+        "position": "RW",
+        "born": 1998,
+        "height": "184",
+        "weight": "86",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Tim Lindfors",
+        "position": "RW",
+        "born": 2002,
+        "height": "185",
+        "weight": "88",
+        "shoots": "R",
+        "registration": "27/28"
+      },
+      {
+        "name": "Olli Nikupeteri",
+        "position": "LW/RW",
+        "born": 2002,
+        "height": "177",
+        "weight": "81",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Oscar Nordin",
+        "position": "C/LW",
+        "born": 2001,
+        "height": "192",
+        "weight": "92",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Joachim Rohdin",
+        "position": "RW",
+        "born": 1991,
+        "height": "184",
+        "weight": "92",
+        "shoots": "R",
+        "registration": "26/27"
+      },
+      {
+        "name": "Elias Stenman",
+        "position": "C",
+        "born": 2002,
+        "height": "181",
+        "weight": "85",
+        "shoots": "L",
+        "registration": "27/28"
+      },
+      {
+        "name": "Gabriel Säll",
+        "position": "LW",
+        "born": 2002,
+        "height": "181",
+        "weight": "82",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Ludvig Warg",
+        "position": "C/RW",
+        "born": 2001,
+        "height": "187",
+        "weight": "91",
+        "shoots": "L",
+        "registration": "26/27"
+      },
+      {
+        "name": "Melvin Wersäll",
+        "position": "RW",
+        "born": 2005,
+        "height": "183",
+        "weight": "77",
+        "shoots": "L",
+        "registration": "27/28"
+      }
+    ]
+  },
+  "sources": {
+    "Almtuna IS": "https://www.eliteprospects.com/team/13/almtuna-is",
+    "BIK Karlskoga": "https://www.eliteprospects.com/team/25/bik-karlskoga",
+    "IK Oskarshamn": "https://www.eliteprospects.com/team/31/ik-oskarshamn",
+    "Kalmar HC": "https://www.eliteprospects.com/team/778/kalmar-hc",
+    "Leksands IF": "https://www.eliteprospects.com/team/28/leksands-if",
+    "MoDo Hockey": "https://www.eliteprospects.com/team/9/modo-hockey",
+    "Mora IK": "https://www.eliteprospects.com/team/29/mora-ik",
+    "Södertälje SK": "https://www.eliteprospects.com/team/10/sodertalje-sk",
+    "Vimmerby HC": "https://www.eliteprospects.com/team/498/vimmerby-hc",
+    "Visby/Roma": "https://www.eliteprospects.com/team/1226/visby-roma",
+    "Västerås IK": "https://www.eliteprospects.com/team/308/vasteras-ik",
+    "Östersunds IK": "https://www.eliteprospects.com/team/1595/ostersunds-ik",
+    "AIK": "https://www.eliteprospects.com/team/1/aik",
+    "Nybro Vikings": "https://www.eliteprospects.com/team/335/nybro-vikings-if"
+  },
+  "officialSHLCrossCheck": {
+    "source": "https://www.shl.se/truppkollen",
+    "checked": "2026-09-23",
+    "scope": "All 14 club sections read. Current page cannot certify every historical start registration; existing dated snapshot retained."
+  },
+  "excludedLaterEvents": [
+    {
+      "name": "Markuss Komuls",
+      "club": "HV71",
+      "effective": "2026-09-08",
+      "source": "https://www.hv71.se/article/a6uatl1-3iaijd/view"
+    },
+    {
+      "name": "Lukas Zetterberg",
+      "club": "Västerås IK",
+      "effective": "2026-09-08",
+      "source": "https://www.vik.se/article/ai8atl1-4a8i1/view"
+    }
+  ],
+  "laterFreeAgentNotice": {
+    "id": "ep-155712",
+    "name": "Collin Delia",
+    "noticeDate": "2026-09-17",
+    "status": "Pittsburgh tryout; does not establish a signed season contract at the 7 September game start",
+    "source": "https://www.nhl.com/news/players-signed-to-ptos-for-2026-2027-nhl-training-camps"
+  }
+}

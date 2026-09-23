@@ -1,0 +1,1930 @@
+{
+  "baselineCommit": "de038ac831c3c3632ad7c4175896c942a71c4f26",
+  "model": "se-evidence-2",
+  "periods": 64,
+  "fullMatches": 0,
+  "controls": "64 twenty-minute periods: 2 fixtures × 16 identical seeds × previous/updated player attributes. Same current production engine, roster order, rules and default tactics. Development/social values do not add match bonuses. Random paths diverge after changed decisions; outcomes are descriptive, not proof of improved realism or individual causality.",
+  "totals": {
+    "previous": {
+      "periods": 32,
+      "goals": 61,
+      "shots": 606,
+      "attempts": 1065
+    },
+    "updated": {
+      "periods": 32,
+      "goals": 55,
+      "shots": 568,
+      "attempts": 962
+    }
+  },
+  "rows": [
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 1107,
+      "model": "previous",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 20,
+          "saves": 3
+        },
+        {
+          "shots": 5,
+          "attempts": 14,
+          "saves": 8
+        }
+      ],
+      "rng": 409458726
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 1107,
+      "model": "updated",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 12,
+          "attempts": 16,
+          "saves": 14
+        },
+        {
+          "shots": 16,
+          "attempts": 23,
+          "saves": 12
+        }
+      ],
+      "rng": 3618063181
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 2214,
+      "model": "previous",
+      "score": [
+        4,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 20,
+          "saves": 10
+        },
+        {
+          "shots": 12,
+          "attempts": 18,
+          "saves": 7
+        }
+      ],
+      "rng": 2933213536
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 2214,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 17,
+          "attempts": 19,
+          "saves": 4
+        },
+        {
+          "shots": 4,
+          "attempts": 7,
+          "saves": 17
+        }
+      ],
+      "rng": 2439968274
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 3321,
+      "model": "previous",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 14,
+          "saves": 7
+        },
+        {
+          "shots": 7,
+          "attempts": 15,
+          "saves": 6
+        }
+      ],
+      "rng": 927809255
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 3321,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 13,
+          "attempts": 19,
+          "saves": 3
+        },
+        {
+          "shots": 3,
+          "attempts": 11,
+          "saves": 13
+        }
+      ],
+      "rng": 778627846
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 4428,
+      "model": "previous",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 12,
+          "saves": 9
+        },
+        {
+          "shots": 10,
+          "attempts": 14,
+          "saves": 9
+        }
+      ],
+      "rng": 4226298816
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 4428,
+      "model": "updated",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 13,
+          "saves": 5
+        },
+        {
+          "shots": 5,
+          "attempts": 11,
+          "saves": 10
+        }
+      ],
+      "rng": 1290855137
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 5535,
+      "model": "previous",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 20,
+          "saves": 9
+        },
+        {
+          "shots": 11,
+          "attempts": 14,
+          "saves": 7
+        }
+      ],
+      "rng": 148904186
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 5535,
+      "model": "updated",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 8,
+          "attempts": 12,
+          "saves": 13
+        },
+        {
+          "shots": 14,
+          "attempts": 17,
+          "saves": 6
+        }
+      ],
+      "rng": 1012629547
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 6642,
+      "model": "previous",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 3,
+          "attempts": 11,
+          "saves": 13
+        },
+        {
+          "shots": 13,
+          "attempts": 22,
+          "saves": 3
+        }
+      ],
+      "rng": 773356329
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 6642,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 15,
+          "attempts": 25,
+          "saves": 7
+        },
+        {
+          "shots": 8,
+          "attempts": 15,
+          "saves": 15
+        }
+      ],
+      "rng": 4163858868
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 7749,
+      "model": "previous",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 13,
+          "attempts": 17,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 16,
+          "saves": 13
+        }
+      ],
+      "rng": 1500629784
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 7749,
+      "model": "updated",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 14,
+          "attempts": 18,
+          "saves": 4
+        },
+        {
+          "shots": 6,
+          "attempts": 10,
+          "saves": 13
+        }
+      ],
+      "rng": 3551181806
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 8856,
+      "model": "previous",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 6,
+          "attempts": 13,
+          "saves": 5
+        },
+        {
+          "shots": 6,
+          "attempts": 9,
+          "saves": 6
+        }
+      ],
+      "rng": 1744310201
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 8856,
+      "model": "updated",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 17,
+          "saves": 11
+        },
+        {
+          "shots": 13,
+          "attempts": 23,
+          "saves": 10
+        }
+      ],
+      "rng": 1498868088
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 9963,
+      "model": "previous",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 18,
+          "saves": 3
+        },
+        {
+          "shots": 3,
+          "attempts": 7,
+          "saves": 8
+        }
+      ],
+      "rng": 3189142976
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 9963,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 2,
+          "attempts": 7,
+          "saves": 12
+        },
+        {
+          "shots": 13,
+          "attempts": 21,
+          "saves": 2
+        }
+      ],
+      "rng": 2042587991
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 11070,
+      "model": "previous",
+      "score": [
+        0,
+        4
+      ],
+      "stats": [
+        {
+          "shots": 6,
+          "attempts": 9,
+          "saves": 10
+        },
+        {
+          "shots": 14,
+          "attempts": 24,
+          "saves": 6
+        }
+      ],
+      "rng": 4243734595
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 11070,
+      "model": "updated",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 3,
+          "attempts": 6,
+          "saves": 10
+        },
+        {
+          "shots": 12,
+          "attempts": 18,
+          "saves": 3
+        }
+      ],
+      "rng": 3803956405
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 12177,
+      "model": "previous",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 13,
+          "saves": 11
+        },
+        {
+          "shots": 11,
+          "attempts": 17,
+          "saves": 8
+        }
+      ],
+      "rng": 2556121274
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 12177,
+      "model": "updated",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 14,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 16,
+          "saves": 8
+        }
+      ],
+      "rng": 3192013964
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 13284,
+      "model": "previous",
+      "score": [
+        2,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 19,
+          "attempts": 29,
+          "saves": 14
+        },
+        {
+          "shots": 14,
+          "attempts": 19,
+          "saves": 17
+        }
+      ],
+      "rng": 3544013963
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 13284,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 19,
+          "saves": 4
+        },
+        {
+          "shots": 4,
+          "attempts": 11,
+          "saves": 11
+        }
+      ],
+      "rng": 1347886886
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 14391,
+      "model": "previous",
+      "score": [
+        1,
+        3
+      ],
+      "stats": [
+        {
+          "shots": 14,
+          "attempts": 22,
+          "saves": 4
+        },
+        {
+          "shots": 7,
+          "attempts": 9,
+          "saves": 13
+        }
+      ],
+      "rng": 1517270981
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 14391,
+      "model": "updated",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 14,
+          "saves": 8
+        },
+        {
+          "shots": 10,
+          "attempts": 17,
+          "saves": 9
+        }
+      ],
+      "rng": 607300201
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 15498,
+      "model": "previous",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 6,
+          "attempts": 11,
+          "saves": 7
+        },
+        {
+          "shots": 7,
+          "attempts": 10,
+          "saves": 6
+        }
+      ],
+      "rng": 674314766
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 15498,
+      "model": "updated",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 8,
+          "attempts": 15,
+          "saves": 3
+        },
+        {
+          "shots": 4,
+          "attempts": 10,
+          "saves": 7
+        }
+      ],
+      "rng": 3369952405
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 16605,
+      "model": "previous",
+      "score": [
+        2,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 21,
+          "saves": 7
+        },
+        {
+          "shots": 7,
+          "attempts": 15,
+          "saves": 9
+        }
+      ],
+      "rng": 4197721089
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 16605,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 20,
+          "saves": 6
+        },
+        {
+          "shots": 7,
+          "attempts": 12,
+          "saves": 10
+        }
+      ],
+      "rng": 1976610766
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 17712,
+      "model": "previous",
+      "score": [
+        3,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 14,
+          "saves": 3
+        },
+        {
+          "shots": 4,
+          "attempts": 13,
+          "saves": 4
+        }
+      ],
+      "rng": 2545497630
+    },
+    {
+      "home": "HV71",
+      "away": "Frölunda HC",
+      "seed": 17712,
+      "model": "updated",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 10,
+          "saves": 9
+        },
+        {
+          "shots": 10,
+          "attempts": 15,
+          "saves": 6
+        }
+      ],
+      "rng": 2138431851
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 1107,
+      "model": "previous",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 23,
+          "saves": 4
+        },
+        {
+          "shots": 5,
+          "attempts": 8,
+          "saves": 9
+        }
+      ],
+      "rng": 3798093172
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 1107,
+      "model": "updated",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 4,
+          "attempts": 12,
+          "saves": 4
+        },
+        {
+          "shots": 6,
+          "attempts": 11,
+          "saves": 3
+        }
+      ],
+      "rng": 1268009951
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 2214,
+      "model": "previous",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 14,
+          "attempts": 19,
+          "saves": 10
+        },
+        {
+          "shots": 12,
+          "attempts": 20,
+          "saves": 14
+        }
+      ],
+      "rng": 3379568748
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 2214,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 18,
+          "saves": 6
+        },
+        {
+          "shots": 6,
+          "attempts": 16,
+          "saves": 11
+        }
+      ],
+      "rng": 4088296268
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 3321,
+      "model": "previous",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 1,
+          "attempts": 4,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 21,
+          "saves": 1
+        }
+      ],
+      "rng": 2004191280
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 3321,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 3,
+          "attempts": 11,
+          "saves": 10
+        },
+        {
+          "shots": 10,
+          "attempts": 16,
+          "saves": 3
+        }
+      ],
+      "rng": 3668276475
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 4428,
+      "model": "previous",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 12,
+          "attempts": 20,
+          "saves": 14
+        },
+        {
+          "shots": 16,
+          "attempts": 23,
+          "saves": 11
+        }
+      ],
+      "rng": 113944911
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 4428,
+      "model": "updated",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 4,
+          "attempts": 10,
+          "saves": 9
+        },
+        {
+          "shots": 10,
+          "attempts": 16,
+          "saves": 3
+        }
+      ],
+      "rng": 3152205343
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 5535,
+      "model": "previous",
+      "score": [
+        0,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 21,
+          "saves": 4
+        },
+        {
+          "shots": 6,
+          "attempts": 14,
+          "saves": 10
+        }
+      ],
+      "rng": 88070543
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 5535,
+      "model": "updated",
+      "score": [
+        1,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 17,
+          "saves": 3
+        },
+        {
+          "shots": 5,
+          "attempts": 10,
+          "saves": 10
+        }
+      ],
+      "rng": 3728390595
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 6642,
+      "model": "previous",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 8,
+          "attempts": 17,
+          "saves": 8
+        },
+        {
+          "shots": 8,
+          "attempts": 16,
+          "saves": 8
+        }
+      ],
+      "rng": 3640447598
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 6642,
+      "model": "updated",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 8,
+          "attempts": 17,
+          "saves": 2
+        },
+        {
+          "shots": 2,
+          "attempts": 5,
+          "saves": 8
+        }
+      ],
+      "rng": 37893816
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 7749,
+      "model": "previous",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 3,
+          "attempts": 4,
+          "saves": 5
+        },
+        {
+          "shots": 5,
+          "attempts": 19,
+          "saves": 3
+        }
+      ],
+      "rng": 1238820467
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 7749,
+      "model": "updated",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 13,
+          "attempts": 19,
+          "saves": 7
+        },
+        {
+          "shots": 8,
+          "attempts": 11,
+          "saves": 11
+        }
+      ],
+      "rng": 991592899
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 8856,
+      "model": "previous",
+      "score": [
+        0,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 12,
+          "attempts": 15,
+          "saves": 10
+        },
+        {
+          "shots": 10,
+          "attempts": 16,
+          "saves": 12
+        }
+      ],
+      "rng": 2819032131
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 8856,
+      "model": "updated",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 13,
+          "saves": 8
+        },
+        {
+          "shots": 8,
+          "attempts": 20,
+          "saves": 6
+        }
+      ],
+      "rng": 3852517137
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 9963,
+      "model": "previous",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 29,
+          "saves": 7
+        },
+        {
+          "shots": 8,
+          "attempts": 12,
+          "saves": 10
+        }
+      ],
+      "rng": 3069114973
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 9963,
+      "model": "updated",
+      "score": [
+        3,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 14,
+          "attempts": 14,
+          "saves": 6
+        },
+        {
+          "shots": 6,
+          "attempts": 10,
+          "saves": 11
+        }
+      ],
+      "rng": 650980480
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 11070,
+      "model": "previous",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 13,
+          "saves": 9
+        },
+        {
+          "shots": 10,
+          "attempts": 17,
+          "saves": 8
+        }
+      ],
+      "rng": 294931151
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 11070,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 9,
+          "attempts": 15,
+          "saves": 7
+        },
+        {
+          "shots": 8,
+          "attempts": 14,
+          "saves": 9
+        }
+      ],
+      "rng": 2900856255
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 12177,
+      "model": "previous",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 12,
+          "attempts": 18,
+          "saves": 9
+        },
+        {
+          "shots": 10,
+          "attempts": 18,
+          "saves": 11
+        }
+      ],
+      "rng": 1735406395
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 12177,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 8,
+          "attempts": 15,
+          "saves": 5
+        },
+        {
+          "shots": 6,
+          "attempts": 12,
+          "saves": 8
+        }
+      ],
+      "rng": 710430054
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 13284,
+      "model": "previous",
+      "score": [
+        1,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 7,
+          "attempts": 13,
+          "saves": 13
+        },
+        {
+          "shots": 14,
+          "attempts": 22,
+          "saves": 6
+        }
+      ],
+      "rng": 2918191460
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 13284,
+      "model": "updated",
+      "score": [
+        2,
+        2
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 17,
+          "saves": 2
+        },
+        {
+          "shots": 4,
+          "attempts": 10,
+          "saves": 8
+        }
+      ],
+      "rng": 3325834426
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 14391,
+      "model": "previous",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 19,
+          "attempts": 31,
+          "saves": 13
+        },
+        {
+          "shots": 13,
+          "attempts": 17,
+          "saves": 18
+        }
+      ],
+      "rng": 1883140388
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 14391,
+      "model": "updated",
+      "score": [
+        3,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 20,
+          "saves": 15
+        },
+        {
+          "shots": 15,
+          "attempts": 23,
+          "saves": 7
+        }
+      ],
+      "rng": 909388086
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 15498,
+      "model": "previous",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 22,
+          "saves": 4
+        },
+        {
+          "shots": 4,
+          "attempts": 11,
+          "saves": 9
+        }
+      ],
+      "rng": 1927451727
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 15498,
+      "model": "updated",
+      "score": [
+        1,
+        0
+      ],
+      "stats": [
+        {
+          "shots": 14,
+          "attempts": 26,
+          "saves": 5
+        },
+        {
+          "shots": 5,
+          "attempts": 10,
+          "saves": 13
+        }
+      ],
+      "rng": 2754357998
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 16605,
+      "model": "previous",
+      "score": [
+        3,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 15,
+          "attempts": 18,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 17,
+          "saves": 12
+        }
+      ],
+      "rng": 2790556001
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 16605,
+      "model": "updated",
+      "score": [
+        0,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 11,
+          "attempts": 22,
+          "saves": 7
+        },
+        {
+          "shots": 8,
+          "attempts": 14,
+          "saves": 11
+        }
+      ],
+      "rng": 216423186
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 17712,
+      "model": "previous",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 10,
+          "attempts": 24,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 23,
+          "saves": 8
+        }
+      ],
+      "rng": 2922954835
+    },
+    {
+      "home": "AIK",
+      "away": "Mora IK",
+      "seed": 17712,
+      "model": "updated",
+      "score": [
+        2,
+        1
+      ],
+      "stats": [
+        {
+          "shots": 12,
+          "attempts": 18,
+          "saves": 10
+        },
+        {
+          "shots": 11,
+          "attempts": 19,
+          "saves": 10
+        }
+      ],
+      "rng": 1720244119
+    }
+  ],
+  "examples": [
+    {
+      "id": "ep-701851",
+      "name": "Tim Forslund",
+      "club": "Almtuna IS",
+      "age": 21,
+      "before": {
+        "height": null,
+        "weight": 183,
+        "attributes": {
+          "reflexes": 10,
+          "positioning": 9,
+          "reboundControl": 9,
+          "handling": 9,
+          "movement": 9,
+          "composure": 9
+        },
+        "growth": 2.5
+      },
+      "after": {
+        "height": 185,
+        "weight": 83,
+        "attributes": {
+          "reflexes": 9,
+          "positioning": 9,
+          "reboundControl": 7,
+          "handling": 8,
+          "movement": 7,
+          "composure": 8
+        },
+        "growth": 2.2,
+        "forecast": {
+          "central": 2.2,
+          "low": 0.5,
+          "high": 3.9,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 35,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": []
+    },
+    {
+      "id": "ep-29607",
+      "name": "Marcus Hellgren-Smed",
+      "club": "Mora IK",
+      "age": 32,
+      "before": {
+        "height": null,
+        "weight": 194,
+        "attributes": {
+          "reflexes": 12,
+          "positioning": 12,
+          "reboundControl": 11,
+          "handling": 11,
+          "movement": 11,
+          "composure": 12
+        },
+        "growth": 0
+      },
+      "after": {
+        "height": 190,
+        "weight": 88,
+        "attributes": {
+          "reflexes": 12,
+          "positioning": 12,
+          "reboundControl": 10,
+          "handling": 11,
+          "movement": 10,
+          "composure": 11
+        },
+        "growth": 0,
+        "forecast": {
+          "central": 0,
+          "low": 0,
+          "high": 0.4,
+          "basis": "age-level-limited-sample",
+          "weightedGames": 42.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": [
+        "https://stats.swehockey.se/Players/Statistics/LeadingGoaliesSVS/18266"
+      ]
+    },
+    {
+      "id": "ep-388669",
+      "name": "Tobias Normann",
+      "club": "Frölunda HC",
+      "age": 25,
+      "before": {
+        "height": 186,
+        "weight": 85,
+        "attributes": {
+          "reflexes": 15,
+          "positioning": 15,
+          "reboundControl": 14,
+          "handling": 14,
+          "movement": 14,
+          "composure": 14
+        },
+        "growth": 1
+      },
+      "after": {
+        "height": 186,
+        "weight": 85,
+        "attributes": {
+          "reflexes": 15,
+          "positioning": 14,
+          "reboundControl": 13,
+          "handling": 13,
+          "movement": 13,
+          "composure": 13
+        },
+        "growth": 1.2,
+        "forecast": {
+          "central": 1.2,
+          "low": 0.4,
+          "high": 2,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 35,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": [
+        "https://stats.swehockey.se/Players/Statistics/LeadingGoaliesSVS/18263",
+        "https://stats.swehockey.se/Players/Statistics/LeadingGoaliesSVS/15977"
+      ]
+    },
+    {
+      "id": "ep-27259",
+      "name": "Fredrik Händemark",
+      "club": "Malmö Redhawks",
+      "age": 33,
+      "before": {
+        "height": 194,
+        "weight": 95,
+        "attributes": {
+          "skating": 13,
+          "acceleration": 13,
+          "shooting": 14,
+          "passing": 13,
+          "puckControl": 13,
+          "vision": 13,
+          "positioning": 14,
+          "checking": 13,
+          "faceoffs": 14,
+          "stamina": 14,
+          "strength": 14,
+          "workRate": 14,
+          "decisions": 14,
+          "composure": 14,
+          "discipline": 13
+        },
+        "growth": 0
+      },
+      "after": {
+        "height": 194,
+        "weight": 95,
+        "attributes": {
+          "skating": 13,
+          "acceleration": 13,
+          "shooting": 14,
+          "passing": 13,
+          "puckControl": 13,
+          "vision": 13,
+          "positioning": 14,
+          "checking": 13,
+          "faceoffs": 16,
+          "stamina": 14,
+          "strength": 13,
+          "workRate": 14,
+          "decisions": 14,
+          "composure": 14,
+          "discipline": 13
+        },
+        "growth": 0,
+        "forecast": {
+          "central": 0,
+          "low": 0,
+          "high": 0.4,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 76.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": [
+        "https://stats.swehockey.se/Players/Statistics/FaceOffLeaders/18263",
+        "https://stats.swehockey.se/Players/Statistics/FaceOffLeaders/15977"
+      ]
+    },
+    {
+      "id": "ep-135388",
+      "name": "Scott Pooley",
+      "club": "AIK",
+      "age": 32,
+      "before": {
+        "height": 188,
+        "weight": 91,
+        "attributes": {
+          "skating": 11,
+          "acceleration": 11,
+          "shooting": 13,
+          "passing": 13,
+          "puckControl": 12,
+          "vision": 12,
+          "positioning": 11,
+          "checking": 10,
+          "faceoffs": 8,
+          "stamina": 11,
+          "strength": 11,
+          "workRate": 11,
+          "decisions": 11,
+          "composure": 11,
+          "discipline": 11
+        },
+        "growth": 0
+      },
+      "after": {
+        "height": 188,
+        "weight": 91,
+        "attributes": {
+          "skating": 11,
+          "acceleration": 11,
+          "shooting": 13,
+          "passing": 13,
+          "puckControl": 11,
+          "vision": 11,
+          "positioning": 11,
+          "checking": 10,
+          "faceoffs": 8,
+          "stamina": 11,
+          "strength": 11,
+          "workRate": 11,
+          "decisions": 11,
+          "composure": 11,
+          "discipline": 11
+        },
+        "growth": 0,
+        "forecast": {
+          "central": 0,
+          "low": 0,
+          "high": 0.4,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 65.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": [
+        "https://stats.swehockey.se/Players/Statistics/ScoringLeaders/18266",
+        "https://stats.swehockey.se/Players/Statistics/ScoringEfficiencyLeaders/18266"
+      ]
+    },
+    {
+      "id": "ep-4466",
+      "name": "Anders Grönlund",
+      "club": "AIK",
+      "age": 37,
+      "before": {
+        "height": 186,
+        "weight": 89,
+        "attributes": {
+          "skating": 10,
+          "acceleration": 11,
+          "shooting": 11,
+          "passing": 10,
+          "puckControl": 11,
+          "vision": 11,
+          "positioning": 13,
+          "checking": 12,
+          "faceoffs": 8,
+          "stamina": 11,
+          "strength": 11,
+          "workRate": 11,
+          "decisions": 12,
+          "composure": 11,
+          "discipline": 11
+        },
+        "growth": 0
+      },
+      "after": {
+        "height": 186,
+        "weight": 89,
+        "attributes": {
+          "skating": 10,
+          "acceleration": 11,
+          "shooting": 11,
+          "passing": 10,
+          "puckControl": 11,
+          "vision": 11,
+          "positioning": 13,
+          "checking": 12,
+          "faceoffs": 8,
+          "stamina": 11,
+          "strength": 11,
+          "workRate": 11,
+          "decisions": 12,
+          "composure": 11,
+          "discipline": 11
+        },
+        "growth": 0,
+        "forecast": {
+          "central": 0,
+          "low": 0,
+          "high": 0.4,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 61.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": []
+    },
+    {
+      "id": "ep-788657",
+      "name": "Daniel Meyer",
+      "club": "Almtuna IS",
+      "age": 20,
+      "before": {
+        "height": null,
+        "weight": 161,
+        "attributes": {
+          "skating": 8,
+          "acceleration": 8,
+          "shooting": 7,
+          "passing": 7,
+          "puckControl": 7,
+          "vision": 7,
+          "positioning": 8,
+          "checking": 8,
+          "faceoffs": 9,
+          "stamina": 8,
+          "strength": 9,
+          "workRate": 8,
+          "decisions": 8,
+          "composure": 8,
+          "discipline": 8
+        },
+        "growth": 4
+      },
+      "after": {
+        "height": 183,
+        "weight": 73,
+        "attributes": {
+          "skating": 8,
+          "acceleration": 8,
+          "shooting": 7,
+          "passing": 7,
+          "puckControl": 7,
+          "vision": 7,
+          "positioning": 8,
+          "checking": 7,
+          "faceoffs": 9,
+          "stamina": 8,
+          "strength": 7,
+          "workRate": 8,
+          "decisions": 8,
+          "composure": 8,
+          "discipline": 7
+        },
+        "growth": 3.3,
+        "forecast": {
+          "central": 3.3,
+          "low": 2.1,
+          "high": 4.5,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 57.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": []
+    },
+    {
+      "id": "ep-734717",
+      "name": "Lukas Nikolaj Pettersen-Finckenhagen",
+      "club": "Almtuna IS",
+      "age": 20,
+      "before": {
+        "height": null,
+        "weight": 225,
+        "attributes": {
+          "skating": 8,
+          "acceleration": 8,
+          "shooting": 10,
+          "passing": 9,
+          "puckControl": 9,
+          "vision": 8,
+          "positioning": 8,
+          "checking": 8,
+          "faceoffs": 5,
+          "stamina": 8,
+          "strength": 10,
+          "workRate": 8,
+          "decisions": 8,
+          "composure": 8,
+          "discipline": 8
+        },
+        "growth": 4
+      },
+      "after": {
+        "height": 194,
+        "weight": 102,
+        "attributes": {
+          "skating": 8,
+          "acceleration": 8,
+          "shooting": 10,
+          "passing": 9,
+          "puckControl": 8,
+          "vision": 8,
+          "positioning": 8,
+          "checking": 7,
+          "faceoffs": 5,
+          "stamina": 8,
+          "strength": 8,
+          "workRate": 8,
+          "decisions": 8,
+          "composure": 8,
+          "discipline": 8
+        },
+        "growth": 3.5,
+        "forecast": {
+          "central": 3.5,
+          "low": 1.8,
+          "high": 5.2,
+          "basis": "age-level-two-seasons",
+          "weightedGames": 47.5,
+          "version": "se-evidence-2"
+        }
+      },
+      "officialSources": []
+    }
+  ],
+  "limitations": [
+    "Small four-club sample, not a league calibration or full-season playtest.",
+    "Unmeasured defensive, physical and mental traits remain explicit model priors. No visual playtesting performed."
+  ]
+}

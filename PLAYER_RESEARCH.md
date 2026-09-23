@@ -1,14 +1,26 @@
 # Spelarunderlag – SHL och Hockeyallsvenskan 2026/27
 
-Kontrollerat **6 september 2026**, startdatabas `se-2026-09-06`.
+Startdatum **7 september 2026**, säsong **2026/27**. Modellversion
+`se-evidence-2`, databasversion `se-2026-09-07-evidence2`, granskad
+**23 september 2026**. Kontroll­datum och truppdatum är skilda.
 
-**680 unika verkliga spelare**, 356 i SHL och 324 i Hockeyallsvenskan.
-Alla 28 aktuella truppsidor har kontrollerats. Samtliga spelare har
-individuell källänk och tidigare grundseriestatistik. SHL-profilerna har
-hämtats i denna genomgång. Allsvenskans individunderlag från 5 september
-har återanvänts och granskats mot de nya truppregistreringarna; dess
-stängda säsongsstatistik har inte påståtts vara nyhämtad för varje spelare.
-NHL-importer får nu en uttrycklig ligareferens i attributmodellen.
+680 verkliga spelare i de 28 starttrupperna och fyra befintliga verkliga
+frispelare använder den nya modellen i **nya karriärer**. Den tidigare
+truppsnapshoten från 6 september bevaras: dagens truppsida kan inte ensam
+bevisa vilka som var registrerade vid den historiska starten. SHL:s
+aktuella officiella truppkoll och alla 14 HA-sidor har korslästs; detta
+är inte ett påstående om att varje födelsedatum, lån eller historisk
+registrering har nyverifierats individuellt.
+
+46 fysiska profiler har rättats: Almtunas och Moras vikter hade importerats
+i pund som kilogram, och längderna saknades. Korrigeringarna är ID-bundna,
+har enhetsangivelser och kräver att ursprunglig identitet och värde stämmer.
+
+16 officiella förbundstabeller från 2024/25 och 2025/26 kompletterar
+263 statistikposter för 156 spelare, inklusive en av frispelarna.
+Övriga tvåsäsongsuppgifter återanvänds från den dokumenterade startdatabasen.
+Komplett täckning, avvisade matchningar och begränsningar finns i
+[data/player-evidence-coverage.json](data/player-evidence-coverage.json).
 
 ## Verifierade trupper
 
@@ -68,8 +80,8 @@ SHL-trupper; Västerås Anton Olsson (2006) är en annan person.
   Jonathan Ang 52 matcher, 21 mål och 25 assist. Spelarprofilens 38
   utvisningsminuter hålls skilda från plus/minus −10.
 - [Officiella SHL-målvaktsstatistiken](https://stats.swehockey.se/Players/Statistics/LeadingGoaliesSVS/18263):
-  Tobias Normann 24 matcher, 92,34 procent. Individkällans avrundade
-  räddningsprocent 0,923 behålls i modellen; falsk extra precision skapas inte.
+  Tobias Normann 24 matcher, 92,34 procent. Nu används även de officiella 522 skotten och 482 räddningarna;
+  andelen beräknas från dessa observerade heltal.
 - [Hockeyallsvenskans officiella poängliga 2025/26](https://stats.swehockey.se/Players/Statistics/ScoringLeaders/18266):
   Scott Pooley 51 matcher, 27 mål och 32 assist; Eero Teräväinen
   52 matcher, 15 mål och 23 assist. Kontrollen finns även i föregående underlag.
@@ -82,50 +94,87 @@ SHL-trupper; Västerås Anton Olsson (2006) är en annan person.
   regel 5.1 i 2026/27 års regelbok anger högst 20 utespelare och två
   målvakter i matchtruppen. Det används som spelets uttagningsgräns.
 
-## Hur samtliga attribut bedöms
+## Hur attribut och potential bedöms
 
-Attributen i `allsvenskan.js` är **speluppskattningar**, inte uppmätta
-scoutingbetyg. Alla 680 verkliga spelare får en profil beräknad från sitt
-individuella underlag. Ingen publik totalsiffra används. Personalens
-stjärnor och attributintervall är fortfarande osäkra och relativa till
-truppen. Tränarens val av bedömare ändrar inte spelarens faktiska förmåga.
+`player-evidence-model.js` är en ren, deterministisk startmodell.
+`allsvenskan.js` använder den när en ny spelare skapas; laddning av en
+befintlig spelare räknar inte om förmåga, potential, kontrakt eller historia.
+Skalan är fortfarande 1–20, och samma attribut går till matchmotor,
+träning, roller och AI. Personalens stjärnor jämförs med den egna truppen;
+de är ingen separat matchbonus och visar aldrig utvecklingens privata tak.
 
-1. Upp till sex klubb- och ligarader från 2025/26 och 2024/25 används.
-   Den senaste säsongen väger fullt, den föregående hälften, multiplicerat
-   med antalet matcher. Noll matcher är inte en prestation. Landslag,
-   OS, turneringar och slutspel används inte. Originalstatistiken visas
-   separat från statistik som uppstår i karriären.
-2. Liganivå är ett modellantagande: NHL 15,5, SHL 13, HA 10,5,
-   Hockeyettan 8, nationell U20 7,5. Övriga nivåer är explicita i koden.
-   QMJHL och en konservativ U16-referens har lagts till. Övergången
-   mellan junior- och seniorhockey är särskilt osäker.
-3. Mål och assist per match påverkar avslut respektive passningar,
-   stabiliserat med tolv referensmatcher. Backar jämförs med lägre
-   offensiva referenser än forwards. Bonus/avdrag begränsas så att små
-   stickprov inte ger extrema attribut. Vision och puckkontroll påverkas
-   försiktigare; assist är inte ett exakt mått på dessa egenskaper.
-4. Låg poängproduktion betyder inte dålig defensiv förmåga. Positionering,
-   tacklingar och tekningar använder små positionsbaserade justeringar.
-   Komplett verifierad teknings-, istids- och trackingdata saknas i detta
-   underlag. Vi tillskriver därför inte varje spelare en exakt uppmätt
-   defensiv, fysisk eller mental egenskap.
-5. Vikt ger ett litet styrkepåslag, ålder över 31 en måttlig fartjustering.
-   Saknad vikt använder neutral referens 85 kg i modellen. Vikt, ålder
-   och matchantal är inte direkta mått på skridskoskicklighet, kondition,
-   arbetsmoral eller beslutsfattande. Dessa värden är konservativa antaganden.
-6. Målvakters liganivå och räddningsprocent stabiliseras med tjugo
-   referensmatcher på 90 procent. GP används som approximation eftersom
-   fullständig skottvolym inte finns för varje spelares samtliga ligarader.
-   Returkontroll, rörelse och placering är uppskattningar; lagförsvar och
-   skottkvalitet går inte att särskilja med detta underlag.
-7. Potential är en försiktig åldersbaserad utvecklingsmarginal, ingen
-   säker prognos om en verklig person. Samtliga attribut avrundas och
-   begränsas till 1–20. Samma underlag ger samma nya startprofil.
+- Senaste avslutade säsongen viktas fullt, föregående hälften, tillsammans
+  med faktiskt matchantal. Detta är en transparent försiktighetsregel,
+  inte en statistiskt kalibrerad universell ligaöversättning. Senare
+  säsonger får inte påverka starten. Liganivåerna i `HA_LEAGUE_LEVEL`
+  behålls som uttryckliga spelantaganden.
+- Mål och assist per match stödjer avslut respektive passningar. Tolv
+  referensmatcher dämpar små stickprov. Klubbbyten inom samma liga/säsong
+  summeras **före** utjämning, så samma produktion inte krymps två gånger.
+  Matchantal är en approximation av användning; utespelarnas faktiska
+  istid och PP/PK-roller saknas. Inga falska värden per 60 minuter skapas.
+- Poäng höjer inte längre vision/puckkontroll automatiskt. Vikt höjer inte
+  styrka eller tacklingar. Utvisningsminuter sänker inte automatiskt
+  personlig disciplin; minor/major och sammanhang saknas. Dessa egenskaper
+  har fortsatt osäkra positions- och ligareferenser, vilket anges i profilen.
+- Förbundets registrerade tekningar påverkar tekningsattributet. Resultatet
+  utjämnas mot 50 procent över 200 referenstekningar. Saknad tekningsdata
+  är inte noll prestation. Topplistor täcker endast en del av spelarna.
+- Målvakter har en separat modell. Registrerade räddningar/skott används
+  när de finns. En grundreferens motsvarar 600 skott vid 90 procent;
+  utan skottvolym används en försiktigare proxy om 30 matcher, aldrig
+  påhittade skott. Säsongerna sammanvägs, och utfallet påverkar främst
+  reflexer och i mindre grad positionering. Räddningsprocent används
+  **inte** som bevis för returkontroll, plock/stöt, rörelseteknik eller kyla.
+  Skottkvalitet och lagförsvar är fortfarande okända störfaktorer.
+- Potentialens centrala scenario använder åldersmarginal, observerad
+  tävlingsnivå och nivåförändring mellan två säsonger med minst 15 matcher
+  vardera. Små underlag ger bredare låg-/högscenarier, inte negativa
+  personligheter. Scenarierna är modellantaganden, inte utlovade framtida
+  betyg eller sannolikheter. Den centrala marginalen används av befintlig
+  sparad utvecklingslogik; attributspecifika tak och utvecklingstakt
+  fortsätter vara individuella och deterministiska.
+- Scoutrapporten fryser sitt potentialunderlag vid observationen. En dold
+  attribut- eller potentialändring efteråt avslöjas inte före ny observation.
+  Bättre scouting tar inte bort databasens inneboende osäkerhet. Egna
+  attribut visas exakt enligt spelmodellen, inte som verklighetsfacit.
+- Nya verkliga spelare får neutral, uttryckligen obestämd personlighet.
+  Gamla sparade personligheter och redan inträffade reaktioner behålls.
 
-Publicerade kontraktsslut ger antal garanterade år, utan optionsår.
-Om slutår saknas används en säsong som uttryckligt spelantagande.
-Löner, marknadsvärden, form, humör och relationer är speldata,
-inte påståenden om personernas verkliga avtal eller egenskaper.
+Löner, marknadsvärden, form och humör är fortsatt speluppskattningar.
+Publicerade kontraktsslut ger garanterade år utan optionsår. Okända
+kontraktslängder använder en säsong som deklarerat spelantagande. Exakta
+avtal, ledarskapsomdömen eller scoutingtexter har inte konstruerats.
+
+## Reproducerbar datakedja
+
+1. `allsvenskan-data.js` och `WORLD_START_FREE` bevarar tidigare rådata.
+2. `data/player-fact-corrections.json` innehåller motiverade, daterade
+   enhetskorrigeringar, identitetsvillkor och källor.
+3. `data/player-stat-observations.json` innehåller faktaceller från
+   offentliga förbundstabeller, inte hela kopierade webbsidor.
+4. `python scripts/import-swedish-observations.py /sökväg/till/html`
+   läser tabellerna från lokala HTML-filer. Grundserie kontrolleras;
+   säsongsväljarens länkar kan annars råka leda till kval/slutspel.
+5. `node scripts/build-player-evidence.cjs` normaliserar, kontrollerar
+   identiteter och producerar `player-evidence-data.js` samt täckningsrapport.
+   Namn används endast för kandidatsökning. Även historisk klubb, liga,
+   säsong, position och matchantal måste stämma; där mål/assist eller
+   räddningsprocent finns krävs samma statistikfingeravtryck. Tvetydiga
+   poster avvisas. Slutresultatet binds till befintligt ID och födelsedatum.
+6. `node scripts/build-player-evidence.cjs --check` verifierar identisk
+   generering utan skrivningar. Inga liveanrop görs när spelet startas.
+
+[Truppgranskningen](data/roster-review-2026-09-23.json) redovisar aktuella
+HA-listor, SHL:s officiella översikt och daterade händelser efter starten.
+Komuls till HV71 och Zetterberg till Västerås den 8 september backdateras
+inte. Frispelarnas profiluppgifter har kontrollerats igen. Delias senare
+PTO är inget bevis för ett säsongsavtal vid spelstart; en saknad ny klubb
+är heller ingen garanti att ett opublicerat avtal inte finns.
+
+De 12 verkliga spelarna med juniorregistrering och de 23 lånen i
+starttrupperna omfattas av samma modell. Hela verkliga akademitrupper
+har inte importerats. Spelets separata juniorlag är fortfarande fiktiva.
 
 ## Registrerade lån
 

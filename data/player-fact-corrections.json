@@ -1,0 +1,1106 @@
+[
+  {
+    "id": "ep-701851",
+    "birth": "2004-09-10",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 183
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 183,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 83,
+    "source": "https://www.eliteprospects.com/player/701851/tim-forslund",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-578759",
+    "birth": "2004-01-01",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 183
+    },
+    "observed": {
+      "height": {
+        "value": 182,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 183,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 83,
+    "source": "https://www.eliteprospects.com/player/578759/hugo-havelid",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-22008",
+    "birth": "1992-09-18",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 185
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 185,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 84,
+    "source": "https://www.eliteprospects.com/player/22008/victor-aronsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-509851",
+    "birth": "2003-11-18",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 172
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 172,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 78,
+    "source": "https://www.eliteprospects.com/player/509851/oskar-asplund",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-705283",
+    "birth": "2004-02-13",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 201
+    },
+    "observed": {
+      "height": {
+        "value": 184,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 201,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 91,
+    "source": "https://www.eliteprospects.com/player/705283/elias-degnell",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-345154",
+    "birth": "2000-06-28",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 198
+    },
+    "observed": {
+      "height": {
+        "value": 187,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 198,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 90,
+    "source": "https://www.eliteprospects.com/player/345154/leon-lereback",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-304366",
+    "birth": "1999-09-23",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 176
+    },
+    "observed": {
+      "height": {
+        "value": 183,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 176,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 80,
+    "source": "https://www.eliteprospects.com/player/304366/jakob-ragnarsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-689011",
+    "birth": "2006-09-12",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 172
+    },
+    "observed": {
+      "height": {
+        "value": 179,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 172,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 78,
+    "source": "https://www.eliteprospects.com/player/689011/nikodemus-wernquist",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-246498",
+    "birth": "1999-05-16",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 201
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 201,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 91,
+    "source": "https://www.eliteprospects.com/player/246498/filip-engaras",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-725051",
+    "birth": "2006-03-13",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 192
+    },
+    "observed": {
+      "height": {
+        "value": 181,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 192,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 87,
+    "source": "https://www.eliteprospects.com/player/725051/marwin-jarbsjo",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-411756",
+    "birth": "2002-07-03",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 190
+    },
+    "observed": {
+      "height": {
+        "value": 190,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 190,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 86,
+    "source": "https://www.eliteprospects.com/player/411756/viktor-johansson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-788657",
+    "birth": "2006-01-11",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 161
+    },
+    "observed": {
+      "height": {
+        "value": 183,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 161,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 73,
+    "source": "https://www.eliteprospects.com/player/788657/daniel-meyer",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-570439",
+    "birth": "2004-10-19",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 176
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 176,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 80,
+    "source": "https://www.eliteprospects.com/player/570439/anton-ohlsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-695039",
+    "birth": "2006-12-16",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 172
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 172,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 78,
+    "source": "https://www.eliteprospects.com/player/695039/bruno-osmanis",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-304369",
+    "birth": "1999-04-01",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 187
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 187,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 85,
+    "source": "https://www.eliteprospects.com/player/304369/oscar-pentler",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-734717",
+    "birth": "2006-03-01",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 225
+    },
+    "observed": {
+      "height": {
+        "value": 194,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 225,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 102,
+    "source": "https://www.eliteprospects.com/player/734717/lukas-nikolaj-pettersen-finckenhagen",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-375907",
+    "birth": "2000-03-22",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 198
+    },
+    "observed": {
+      "height": {
+        "value": 192,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 198,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 90,
+    "source": "https://www.eliteprospects.com/player/375907/samuel-salonen",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-392470",
+    "birth": "2001-12-12",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 181
+    },
+    "observed": {
+      "height": {
+        "value": 183,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 181,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 82,
+    "source": "https://www.eliteprospects.com/player/392470/fredrik-schlyter",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-387564",
+    "birth": "2001-11-01",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 192
+    },
+    "observed": {
+      "height": {
+        "value": 184,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 192,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 87,
+    "source": "https://www.eliteprospects.com/player/387564/lukas-smith",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-650875",
+    "birth": "2006-03-29",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 194
+    },
+    "observed": {
+      "height": {
+        "value": 191,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 194,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 88,
+    "source": "https://www.eliteprospects.com/player/650875/karl-sterner",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-535700",
+    "birth": "2004-02-16",
+    "club": "Almtuna IS",
+    "expected": {
+      "height": null,
+      "weight": 185
+    },
+    "observed": {
+      "height": {
+        "value": 188,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 185,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 84,
+    "source": "https://www.eliteprospects.com/player/535700/lukas-vesterlund",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-477908",
+    "birth": "2001-07-26",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 170
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 170,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 77,
+    "source": "https://www.eliteprospects.com/player/477908/tobias-johansen-breivold",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-29607",
+    "birth": "1994-03-05",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 194
+    },
+    "observed": {
+      "height": {
+        "value": 190,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 194,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 88,
+    "source": "https://www.eliteprospects.com/player/29607/marcus-hellgren-smed",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-30250",
+    "birth": "1994-01-13",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 187
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 187,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 85,
+    "source": "https://www.eliteprospects.com/player/30250/tobias-ekberg",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-861251",
+    "birth": "2007-08-19",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 212
+    },
+    "observed": {
+      "height": {
+        "value": 195,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 212,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 96,
+    "source": "https://www.eliteprospects.com/player/861251/victor-hedin-raftheim",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-88843",
+    "birth": "1995-01-06",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 190
+    },
+    "observed": {
+      "height": {
+        "value": 188,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 190,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 86,
+    "source": "https://www.eliteprospects.com/player/88843/marcus-karlstrom",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-797487",
+    "birth": "2006-02-06",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 192
+    },
+    "observed": {
+      "height": {
+        "value": 188,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 192,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 87,
+    "source": "https://www.eliteprospects.com/player/797487/victor-engebraten-kopperstad",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-535688",
+    "birth": "2004-08-26",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 181
+    },
+    "observed": {
+      "height": {
+        "value": 179,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 181,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 82,
+    "source": "https://www.eliteprospects.com/player/535688/jakob-noren",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-680494",
+    "birth": "2005-06-16",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 176
+    },
+    "observed": {
+      "height": {
+        "value": 182,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 176,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 80,
+    "source": "https://www.eliteprospects.com/player/680494/joel-olerot",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-595801",
+    "birth": "2003-02-06",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 238
+    },
+    "observed": {
+      "height": {
+        "value": 198,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 238,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 108,
+    "source": "https://www.eliteprospects.com/player/595801/august-skiold",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-811069",
+    "birth": "2007-03-23",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 183
+    },
+    "observed": {
+      "height": {
+        "value": 187,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 183,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 83,
+    "source": "https://www.eliteprospects.com/player/811069/tim-thomsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-704759",
+    "birth": "2004-06-19",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 181
+    },
+    "observed": {
+      "height": {
+        "value": 183,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 181,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 82,
+    "source": "https://www.eliteprospects.com/player/704759/albin-udd",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-885125",
+    "birth": "2007-08-13",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 181
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 181,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 82,
+    "source": "https://www.eliteprospects.com/player/885125/olle-carlsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-562348",
+    "birth": "2002-09-16",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 187
+    },
+    "observed": {
+      "height": {
+        "value": 177,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 187,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 85,
+    "source": "https://www.eliteprospects.com/player/562348/patrick-rorbu-elvsveen",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-270155",
+    "birth": "2000-03-03",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 185
+    },
+    "observed": {
+      "height": {
+        "value": 177,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 185,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 84,
+    "source": "https://www.eliteprospects.com/player/270155/damien-giroux",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-399861",
+    "birth": "2003-11-23",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 196
+    },
+    "observed": {
+      "height": {
+        "value": 186,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 196,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 89,
+    "source": "https://www.eliteprospects.com/player/399861/nils-juntorp",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-541265",
+    "birth": "2003-06-17",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 201
+    },
+    "observed": {
+      "height": {
+        "value": 188,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 201,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 91,
+    "source": "https://www.eliteprospects.com/player/541265/hampus-larsson",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-645139",
+    "birth": "2004-03-21",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 181
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 181,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 82,
+    "source": "https://www.eliteprospects.com/player/645139/loa-milfors",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-300794",
+    "birth": "2000-02-15",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 190
+    },
+    "observed": {
+      "height": {
+        "value": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 190,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 86,
+    "source": "https://www.eliteprospects.com/player/300794/ryland-mosley",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-346990",
+    "birth": "2001-02-05",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 179
+    },
+    "observed": {
+      "height": {
+        "value": 178,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 179,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 81,
+    "source": "https://www.eliteprospects.com/player/346990/isak-salqvist",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-637581",
+    "birth": "2005-09-15",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 187
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 187,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 85,
+    "source": "https://www.eliteprospects.com/player/637581/svante-sjodin",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-288478",
+    "birth": "1999-08-25",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 201
+    },
+    "observed": {
+      "height": {
+        "value": 189,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 201,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 91,
+    "source": "https://www.eliteprospects.com/player/288478/karl-smedberg",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-966002",
+    "birth": "2008-07-11",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 192
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 192,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 87,
+    "source": "https://www.eliteprospects.com/player/966002/tobias-aase-stensland",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-546952",
+    "birth": "2002-08-30",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 159
+    },
+    "observed": {
+      "height": {
+        "value": 183,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 159,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 72,
+    "source": "https://www.eliteprospects.com/player/546952/oliver-tarnstrom",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-574143",
+    "birth": "2003-09-02",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 170
+    },
+    "observed": {
+      "height": {
+        "value": 175,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 170,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 77,
+    "source": "https://www.eliteprospects.com/player/574143/karl-umegard",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  },
+  {
+    "id": "ep-480052",
+    "birth": "2002-10-27",
+    "club": "Mora IK",
+    "expected": {
+      "height": null,
+      "weight": 187
+    },
+    "observed": {
+      "height": {
+        "value": 185,
+        "unit": "cm"
+      },
+      "weight": {
+        "value": 187,
+        "unit": "lb"
+      }
+    },
+    "confirmedKg": 85,
+    "source": "https://www.eliteprospects.com/player/480052/georg-weigelt",
+    "checked": "2026-09-23",
+    "asOf": "2026-09-06",
+    "reason": "Correct imperial import from the original snapshot, confirmed against current metric profile/roster; not a new measurement date."
+  }
+]

@@ -6,8 +6,9 @@ function ensureLocker(){
  const initial=!state.locker;
  if(initial)state.locker={version:1,turn:0,captainId:null,captainChanged:-10,pairs:{},log:[],lastMatch:null,talkHistory:[]};
  for(const roster of Object.values(state.clubRosters))for(const p of roster)if(!p.social){
-   const trait=key=>1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
-   p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
+   const neutral=p.fictional===false&&Boolean(p.research?.model);
+   const trait=key=>neutral?10:1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
+   p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),basis:neutral?'neutral-unobserved':'fictional',trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
  }
  if(initial)state.locker.captainId=[...managerRoster()].sort((a,b)=>b.social.leadership-a.social.leadership||b.age-a.age)[0]?.id??null;
  else if(!managerRoster().some(p=>samePlayerId(p.id,state.locker.captainId)))state.locker.captainId=null;
@@ -46,7 +47,7 @@ function socialJournalView(p){
  return `<section class="fm-panel player-journal"><h2>Min historia med klubben</h2><p>Registrerade beslut och reaktioner i din karriär. Personligheten är fiktiv speldata.</p>${rows.length?`<div class="player-journal-list" tabindex="0" aria-label="Spelarens klubbjournal">${rows.map(e=>`<article><small>${trainingSafe(e.date||seasonLabel(e.year))} · ${trainingSafe(e.club)}</small><h3>${trainingSafe(e.title)}</h3><p>${trainingSafe(e.body)}</p>${e.change?`<strong>Förtroende ${e.change>0?'+':''}${e.change}</strong>`:''}</article>`).join('')}</div>`:'<p>Journalen börjar med nästa samtal, kaptensbeslut eller rolluppföljning. Äldre händelser återskapas inte.</p>'}</section>`;
 }
 function socialGrowth(p){return Object.values(p.attributes||{}).reduce((sum,n)=>sum+n,0);}
-function socialPersonality(p){const s=p.social;return [s.ambition>=14?'Ambitiös':s.ambition<=7?'Tålmodig':'Målmedveten',s.loyalty>=14?'Lojal':s.loyalty<=7?'Självständig':'Lagorienterad',s.sensitivity>=14?'Behöver trygghet':s.sensitivity<=7?'Tål raka besked':'Lyhörd'].join(' · ');}
+function socialPersonality(p){const s=p.social;if(s.basis==='neutral-unobserved')return 'Personlighet ej verklighetsbedömd · neutral spelmodell';return [s.ambition>=14?'Ambitiös':s.ambition<=7?'Tålmodig':'Målmedveten',s.loyalty>=14?'Lojal':s.loyalty<=7?'Självständig':'Lagorienterad',s.sensitivity>=14?'Behöver trygghet':s.sensitivity<=7?'Tål raka besked':'Lyhörd'].join(' · ');}
 function socialTrustText(n){return n>=75?'Starkt förtroende':n>=50?'Gott förtroende':n>=30?'Tveksam till ledarskapet':'Lågt förtroende';}
 function socialPairKey(a,b){return JSON.stringify([String(a),String(b)].sort());}
 function socialPair(a,b,create=false){const key=socialPairKey(a,b),r=state.locker.pairs;if(create&&!r[key])r[key]={ids:[String(a),String(b)],bond:30,seconds:0};return r[key];}
