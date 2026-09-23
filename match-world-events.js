@@ -106,11 +106,10 @@ if(typeof studioCreate==='function'){
 if(typeof studioRecordShot==='function'){
  const baseStudioRecordShot=studioRecordShot;
  studioRecordShot=function(e,shot,penalty){
-  const impact=Array.isArray(penalty)?penalty:penalty?[penalty]:[],beforePP=[Boolean(e?.hasPowerPlay?.(0)),Boolean(e?.hasPowerPlay?.(1))];
+  const impact=Array.isArray(penalty)?penalty:penalty?[penalty]:[];
   const result=baseStudioRecordShot.apply(this,arguments),stream=MatchEventStream.liveStream(e);
-  const side=shot.side,id=String(shot.playerId||'').replace(/^\d+:/,''),powerPlay=Math.min(2,impact.filter(p=>p.side!==side).length)>Math.min(2,impact.filter(p=>p.side===side).length);
+  const side=shot.side,id=String(shot.playerId||'').replace(/^\d+:/,''),powerPlay=StudioHockey.penaltyCount(impact.filter(p=>p.side!==side))>StudioHockey.penaltyCount(impact.filter(p=>p.side===side));
   MatchEventStream.emit(stream,'shot',{side,seconds:e?.time||0,playerId:id||null,player:shot.player||'',outcome:shot.outcome,powerPlay,quality:shot.quality||0,assists:(shot.assists||[]).map(a=>({id:String(a.id||'').replace(/^\d+:/,''),name:a.name||''}))});
-  const afterPP=[Boolean(e?.hasPowerPlay?.(0)),Boolean(e?.hasPowerPlay?.(1))];for(const s of [0,1])if(!beforePP[s]&&afterPP[s])MatchEventStream.emit(stream,'pp-start',{side:s,seconds:e?.time||0});
   MatchEventStream.syncLive(e);return result;
  };
 }
@@ -123,15 +122,21 @@ if(typeof studioStep==='function'){
   if(e)MatchEventStream.syncLive(e);return result;
  };
 }
-if(typeof CareerBroadcastMatch!=='undefined'){
- const baseGivePenalty=CareerBroadcastMatch.prototype.givePenalty;
- CareerBroadcastMatch.prototype.givePenalty=function(side,name,kind){
-  const before=[Boolean(this.hasPowerPlay?.(0)),Boolean(this.hasPowerPlay?.(1))],offender=this.skaters(side).find(a=>a.player.name===name)||this.skaters(side)[0];
-  const result=baseGivePenalty.call(this,side,name,kind),stream=MatchEventStream.liveStream(this);
-  MatchEventStream.emit(stream,'penalty',{side,seconds:this.time||0,playerId:offender?.player?.id??null,player:offender?.player?.name||name||'',minutes:2,kind:kind||null});
-  const after=[Boolean(this.hasPowerPlay?.(0)),Boolean(this.hasPowerPlay?.(1))];for(const s of [0,1])if(!before[s]&&after[s])MatchEventStream.emit(stream,'pp-start',{side:s,seconds:this.time||0});
-  MatchEventStream.syncLive(this);return result;
- };
+// Career adapters observe one accepted penalty record; they never choose an
+// offender, duration or manpower rule. Re-observing a saved event is harmless.
+function studioRecordPenalty(engine,penalty){
+ const stream=MatchEventStream.liveStream(engine);
+ if(!stream||!penalty?.id||!engine.penaltyList().includes(penalty)||stream.events.some(e=>e.type==='penalty'&&e.penaltyId===penalty.id))return false;
+ const details=StudioHockey.penaltyDetails(penalty);
+ MatchEventStream.emit(stream,'penalty',{...details,side:penalty.side,seconds:penalty.seconds,player:penalty.name});
+ studioMirror(engine);
+ analysisEvent('penalty',penalty.side===0?'own':'opponent',penalty.name+' · '+penalty.minutes+' minuter · '+penalty.label,penalty.playerId,details);
+ if(penalty.side===0){const p=studioPlayer(0,penalty.playerId);if(p)p.pim=(p.pim||0)+penalty.minutes;}
+ MatchEventStream.syncLive(engine);return true;
+}
+function studioRecordPowerplay(engine,side){
+ const stream=MatchEventStream.liveStream(engine);if(!stream)return;
+ MatchEventStream.emit(stream,'pp-start',{side,seconds:engine.time});MatchEventStream.syncLive(engine);
 }
 if(typeof rivalSimulate==='function'){
  const baseRivalSimulate=rivalSimulate;

@@ -11,6 +11,25 @@ const StudioHockey = (() => {
   const ROLES=['LW','C','RW','LD','RD','X'];
   const ROLE_NAMES={LW:'Vänsterforward',C:'Center',RW:'Högerforward',LD:'Vänsterback',RD:'Högerback',G:'Målvakt',X:'Extra forward'};
   const PHASES={faceoff:'Tekning',breakout:'Uppspel',entry:'Zoninträde',attack:'Etablerat anfall',counter:'Omställning',loose:'Lös puck',battle:'Kamp om pucken',dump:'Dump & jakt',clear:'Rensning',stoppage:'Avblåsning',finished:'Periodpaus'};
+  // Shared penalty model. No career, presentation, storage or random access.
+  const penaltyCount=rows=>Math.min(2,(rows||[]).filter(p=>p?.affectsStrength!==false).length);
+  const activePenalties=(rows,side)=>rows.filter(p=>p.side===side&&p.affectsStrength!==false).slice(0,2);
+  function penaltyOffender(match,side,reference){
+    if(![0,1].includes(side)||match.finished)return null;
+    const rows=match.skaters(side),id=reference&&typeof reference==='object'?reference.playerId:reference;
+    const exact=rows.find(a=>String(a.player.id)===String(id));
+    if(exact)return exact;
+    // Compatibility for old callers only. Ambiguous names never select a player.
+    if(reference&&typeof reference==='object')return null;
+    const named=rows.filter(a=>a.player.name===reference);
+    return named.length===1?named[0]:null;
+  }
+  function penaltyRecord(match,offender,type='minor',kind='tripping',label=kind){
+    if(!offender||!['minor','major','misconduct'].includes(type))return null;
+    const minutes=type==='major'?5:type==='misconduct'?10:2,sequence=(match.penaltySequence||0)+1;
+    return {id:'penalty:'+sequence,version:1,sequence,side:offender.side,seconds:match.time,playerId:offender.player.id,name:offender.player.name,type,kind,label,minutes,remaining:minutes*60,affectsStrength:type!=='misconduct',releasable:type==='minor'};
+  }
+  const penaltyDetails=p=>({penaltyId:p.id,playerId:p.playerId,playerName:p.name,minutes:p.minutes,kind:p.kind,label:p.label,affectsStrength:p.affectsStrength,releasable:p.releasable});
   function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return {d:distance(p,{x:a.x+dx*t,y:a.y+dy*t}),t};}
   function rating(p,keys){return keys.reduce((s,k)=>s+(p.attributes[k]||10),0)/keys.length;}
   // Shared finishing model. Callers provide measured or explicitly estimated context.
@@ -688,7 +707,7 @@ const StudioHockey = (() => {
       if(nearest&&distance(a,nearest)<2&&this.time>(a.contactUntil||0)){
         const reaching=distance(a,nearest)>1.5?1.35:1;
         const penaltyRisk=(.003+(20-this.attribute(nearest,'discipline'))*.0012)*reaching;
-        if(this.canGivePenalty(nearest.side)&&this.random()<penaltyRisk){this.givePenalty(nearest.side,nearest.player.name);return;}
+        if(this.canGivePenalty(nearest.side)&&this.random()<penaltyRisk){this.givePenalty(nearest.side,{playerId:nearest.player.id});return;}
         if(this.random()<this.battleChance(nearest,a)&&this.startBattle(a,nearest))return;
       }
       // Delayed offside is a rule constraint, not a preference to gamble on.
@@ -706,11 +725,14 @@ const StudioHockey = (() => {
     canGivePenalty(){return !this.penalty;}
     tickPenalties(dt){if(this.penalty){this.penalty.remaining-=dt;if(this.penalty.remaining<=0)this.endPenalty();}}
     goalPenalty(side){if(this.hasPowerPlay(side))this.endPenalty(true);}
-    givePenalty(side,name){
-      this.penalty={side,remaining:120,name};
+    givePenalty(side,reference){
+      if(!this.canGivePenalty(side))return false;
+      const offender=penaltyOffender(this,side,reference),p=penaltyRecord(this,offender,'minor','hooking','hakning');if(!p)return false;
+      this.penalty=p;this.penaltySequence=p.sequence;
       // Stoppage is the only place where the short-handed unit is installed instantly.
-      this.installUnit(side);this.stop('penalty',name+' utvisas två minuter för hakning.',point(1-side,47,9));
+      this.installUnit(side);this.stop('penalty',p.name+' utvisas två minuter för hakning.',point(1-side,47,9));
       this.advice=side===0?'Boxplay. Håll mitten och rensa när vi vinner pucken.':'Powerplay. Ställ upp och flytta pucken innan avslutet.';
+      return p;
     }
     endPenalty(stopped=false){
       if(!this.penalty)return;const side=this.penalty.side;this.penalty=null;
@@ -795,6 +817,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance,penaltyCount,activePenalties,penaltyOffender,penaltyRecord,penaltyDetails};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;

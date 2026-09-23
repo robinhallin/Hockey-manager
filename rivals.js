@@ -180,7 +180,7 @@ function rivalLivePlayers(){
  const ready=pool.filter(p=>p.pos!=='MV'&&!penalized(p));
  const clock=(m.period-1)*1200+m.minute*60+(m.second||0),sequence=aiCoachRotation(a);
  const line=sequence[Math.floor(clock/45)%sequence.length],pair=Math.floor(clock/60)%3;
- const own=Math.min(2,m.penaltiesHV.length),opp=Math.min(2,m.penaltiesOpp.length),ot=m.period===4&&!isPlayoffMatch();
+ const own=StudioHockey.penaltyCount(m.penaltiesHV),opp=StudioHockey.penaltyCount(m.penaltiesOpp),ot=m.period===4&&!isPlayoffMatch();
  const count=(ot?Math.min(5,3+Math.max(0,own-opp)):5-opp)+(m.aiGoaliePulled?1:0);
  let ids=[...a.forwards.slice(line*3,line*3+3),...a.defense.slice(pair*2,pair*2+2)];
  if(hockeyChangeBlocked('opponent'))ids=m.rink.hockey.icingHold.ids;
@@ -193,7 +193,7 @@ function rivalLiveDecision(){
  const elapsed=(m.period-1)*1200+m.minute*60+m.second,bucket=Math.floor(elapsed/120);if(a.lastDecisionBucket===bucket)return;a.lastDecisionBucket=bucket;
  const e=studioActive()?studioEngine():null;
  const decision=aiCoachDecision(m.opponent,a.basePlan||{style:a.baseStyle,rotation:a.rotation,tempo:'normal'},
-  aiObserveMatch(a,{seconds:elapsed,gf:m.opp,ga:m.hv,shots:e?.stats[1].shots||m.shotsOpp||0,againstShots:e?.stats[0].shots||m.shotsHV||0,previous:a,linePoints:[0,1,2,3].map(i=>(a.forwards||[]).slice(i*3,i*3+3).reduce((n,id)=>{const r=m.leagueBox?.players[m.opponent+':'+id];return n+(r?.goals||0)+(r?.assists||0);},0)),energy:(a.forwards||[]).map(id=>(state.clubRosters[m.opponent]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean).reduce((n,p)=>n+matchEnergy(p),0)/Math.max(1,a.forwards.length),strength:Math.min(2,m.penaltiesHV.length)-Math.min(2,m.penaltiesOpp.length)}));
+  aiObserveMatch(a,{seconds:elapsed,gf:m.opp,ga:m.hv,shots:e?.stats[1].shots||m.shotsOpp||0,againstShots:e?.stats[0].shots||m.shotsHV||0,previous:a,linePoints:[0,1,2,3].map(i=>(a.forwards||[]).slice(i*3,i*3+3).reduce((n,id)=>{const r=m.leagueBox?.players[m.opponent+':'+id];return n+(r?.goals||0)+(r?.assists||0);},0)),energy:(a.forwards||[]).map(id=>(state.clubRosters[m.opponent]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean).reduce((n,p)=>n+matchEnergy(p),0)/Math.max(1,a.forwards.length),strength:StudioHockey.penaltyCount(m.penaltiesHV)-StudioHockey.penaltyCount(m.penaltiesOpp)}));
  if(aiDecisionKey(a)!==aiDecisionKey(decision)){a.adjustment=decision.style;a.coachChanges??=[];a.coachChanges.push({seconds:elapsed,reason:decision.reason,response:decision.response});a.coachChanges=a.coachChanges.slice(-20);addEvent(`${a.coachName}: ${decision.reason} Stabens förslag: ${decision.response}`,'strategy');}
  for(const key of ['style','posture','tempo','forecheck','rotation','shiftLimit','matchup','reason','response','situation','changedAt','hotLine'])a[key]=decision[key];
  if(!a.timeout&&decision.timeout){a.timeout=true;matchTimeoutRecovery('opponent-timeout','opponent');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}

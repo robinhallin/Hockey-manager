@@ -142,7 +142,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(!this.penalties)this.penalties=this.penalty?[this.penalty]:[];
   return this.penalties;
  }
- penaltyCount(side){return Math.min(2,this.penaltyList().filter(p=>p.side===side).length);}
+ penaltyCount(side){return StudioHockey.penaltyCount(this.penaltyList().filter(p=>p.side===side));}
  isShortHanded(side){return this.penaltyCount(side)>this.penaltyCount(1-side);}
  hasPowerPlay(side){return this.isShortHanded(1-side);}
  canGivePenalty(side){return this.skaters(side).length>0;}
@@ -151,48 +151,53 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   const normal=this.threeOnThree?3+Math.max(0,other-own):5-own;
   return this.threeOnThree?Math.max(normal,this.otCounts?.[side]||0):normal;
  }
- syncPenalty(){this.penalty=this.penaltyList()[0]||null;}
- opportunityState(){return {power:[0,1].map(side=>this.hasPowerPlay(side)),active:[0,1].map(side=>this.penaltyList().filter(p=>p.side===side).slice(0,2))};}
+ syncPenalty(){this.penalty=this.penaltyList().find(p=>p.affectsStrength!==false)||null;}
+ opportunityState(){return {power:[0,1].map(side=>this.hasPowerPlay(side)),active:[0,1].map(side=>StudioHockey.activePenalties(this.penaltyList(),side))};}
  recordOpportunities(before){
   for(const side of [0,1])if(this.hasPowerPlay(side)){
-   const added=this.penaltyList().filter(p=>p.side!==side).slice(0,2).filter(p=>!before.active[1-side].includes(p)).length;
-   state.live[side===0?'ppHV':'ppOpp']+=added||(!before.power[side]?1:0);
+   const added=StudioHockey.activePenalties(this.penaltyList(),1-side).filter(p=>!before.active[1-side].includes(p)).length;
+   for(let i=0;i<(added||(!before.power[side]?1:0));i++)studioRecordPowerplay(this,side);
   }
  }
  tickPenalties(dt){
   const before=this.opportunityState();
-  const active=[0,1].flatMap(side=>this.penaltyList().filter(p=>p.side===side).slice(0,2));
+  const active=[...this.penaltyList().filter(p=>p.affectsStrength===false),...[0,1].flatMap(side=>StudioHockey.activePenalties(this.penaltyList(),side))];
   for(const p of active)p.remaining-=dt;
   for(const p of active)if(p.remaining<=1e-7)this.endPenalty(false,p,false);
   this.recordOpportunities(before);
  }
  goalPenalty(side){
   if(!this.hasPowerPlay(side))return;
-  const first=this.penaltyList().filter(p=>p.side!==side).slice(0,2).sort((a,b)=>a.remaining-b.remaining)[0];
+  const first=StudioHockey.activePenalties(this.penaltyList(),1-side).filter(p=>p.releasable!==false).sort((a,b)=>a.remaining-b.remaining)[0];
   if(first)this.endPenalty(true,first);
  }
- givePenalty(side,name,kind=null){
-  const offender=this.skaters(side).find(a=>a.player.name===name)||this.skaters(side)[0];if(!offender)return;
-  const before=this.opportunityState();
+ givePenalty(side,reference,kind=null){
+  const offender=StudioHockey.penaltyOffender(this,side,reference);if(!offender)return false;
   const types=['hakning','tripping','fasthållning','interference','slashing'];
   if(!types.includes(kind))kind=types[Math.floor(this.random()*types.length)];
-  const p={side,remaining:120,name:offender.player.name,playerId:offender.player.id,kind};
+  return this.addPenalty(side,{playerId:offender.player.id},'minor',kind);
+ }
+ addPenalty(side,reference,type,kind,label=kind){
+  const offender=StudioHockey.penaltyOffender(this,side,reference);
+  if(!offender||this.penaltyList().some(p=>p.side===side&&samePlayerId(p.playerId,offender.player.id)))return false;
+  const p=StudioHockey.penaltyRecord(this,offender,type,kind,label);if(!p)return false;
+  const before=this.opportunityState();this.penaltySequence=p.sequence;
   this.penaltyList().push(p);this.syncPenalty();this.otCounts=null;
   for(const i of [0,1])this.installUnit(i);
-  this.stop('penalty',p.name+' utvisas två minuter för '+kind+'.',{x:side===0?13:47,y:9});
-  studioMirror(this);const teamSide=side===0?'own':'opponent';
+  this.stop('penalty',p.name+' utvisas '+p.minutes+' minuter för '+p.label+'.',{x:side===0?13:47,y:9});
+  this.events.at(-1).penaltyDetails=StudioHockey.penaltyDetails(p);
+  studioRecordPenalty(this,p);
   this.recordOpportunities(before);
-  analysisEvent('penalty',teamSide,p.name+' · 2 minuter · '+kind,p.playerId);
-  if(side===0){const player=studioPlayer(side,p.playerId);if(player)player.pim=(player.pim||0)+2;}
+  return p;
  }
  endPenalty(stopped=false,penalty=this.penaltyList()[0],countOpportunity=true){
-  if(!penalty)return;const side=penalty.side,offender=penalty.playerId;
+  if(!penalty||!this.penaltyList().includes(penalty))return;const side=penalty.side,offender=penalty.playerId;
   const before=this.opportunityState();
   const previous=[0,1].map(i=>this.strength(i));
   this.penalties=this.penaltyList().filter(p=>p!==penalty);this.syncPenalty();
   if(countOpportunity)this.recordOpportunities(before);
   if(stopped){this.otExpanded=false;this.otCounts=null;for(const i of [0,1])this.installUnit(i);return;}
-  if(this.threeOnThree){this.otExpanded=true;this.otCounts=previous.map((n,i)=>Math.min(5,n+(i===side?1:0)));}
+  if(this.threeOnThree&&penalty.affectsStrength!==false){this.otExpanded=true;this.otCounts=previous.map((n,i)=>Math.min(5,n+(i===side?1:0)));}
   // A queued third penalty starts now; that team must remain three skaters strong.
   const desired=this.strength(side)+(this.teams[side].pulled?1:0);
   const player=this.teams[side].players.find(p=>samePlayerId(p.id,offender)&&p.available!==false);
@@ -296,7 +301,7 @@ function studioMirror(e=studioEngine()){
  m.faceoffsHV=e.stats[0].faceoffs;m.faceoffsOpp=e.stats[1].faceoffs;
  m.hitsHV=e.stats[0].hits||0;m.hitsOpp=e.stats[1].hits||0;
  m.currentLine=e.teams[0].line;m.currentDefensePair=e.teams[0].pair;m.rotationIndex=e.teams[0].specialIndex||0;m.shiftSeconds=e.teams[0].shift;
- for(const side of [0,1])m[side===0?'penaltiesHV':'penaltiesOpp']=e.penaltyList().filter(p=>p.side===side).map((p,i)=>({player:p.name,playerId:p.playerId,seconds:Math.ceil(p.remaining),kind:p.kind,queued:i>=2}));
+ for(const side of [0,1]){const active=StudioHockey.activePenalties(e.penaltyList(),side);m[side===0?'penaltiesHV':'penaltiesOpp']=e.penaltyList().filter(p=>p.side===side).map(p=>({id:p.id,player:p.name,playerId:p.playerId,seconds:Math.ceil(p.remaining),kind:p.kind,label:p.label,minutes:p.minutes??2,affectsStrength:p.affectsStrength!==false,releasable:p.releasable!==false,queued:p.affectsStrength!==false&&!active.includes(p)}));}
  const total=r.possession.own+r.possession.opponent;m.possessionHV=total?Math.round(r.possession.own/total*100):50;
 }
 function studioRecordShot(e,shot,penalty){
@@ -317,7 +322,7 @@ function studioRecordShot(e,shot,penalty){
   e.pairResults??=[{},{}];for(const teamSide of [0,1]){const ps=(e.accountingActors||e.actors).filter(a=>a.side===teamSide&&a.role!=='G');for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const key=dynamicsKey(ps[i].player.id,ps[j].player.id);e.pairResults[teamSide][key]=(e.pairResults[teamSide][key]||0)+(teamSide===shot.side?1:-1);}}
   m.hv=e.score[0];m.opp=e.score[1];analysisEvent('goal',side,shot.player,id);
   if(own){const p=studioPlayer(0,id);p.goals=(p.goals||0)+1;}
-  if(Math.min(2,impact.filter(p=>p.side!==shot.side).length)>Math.min(2,impact.filter(p=>p.side===shot.side).length))m[own?'ppGoalsHV':'ppGoalsOpp']++;
+  if(StudioHockey.penaltyCount(impact.filter(p=>p.side!==shot.side))>StudioHockey.penaltyCount(impact.filter(p=>p.side===shot.side)))m[own?'ppGoalsHV':'ppGoalsOpp']++;
   const seen=new Set([String(id)]);
   for(const a of shot.assists){const aid=a.id.slice(2);if(seen.has(String(aid)))continue;seen.add(String(aid));const p=studioPlayer(shot.side,aid);if(!p)continue;
    if(own){p.assists=(p.assists||0)+1;analysisAssist(p);}else leagueTrackEvent('assist','opponent',p.id,p.name);
@@ -338,7 +343,7 @@ function studioStep(){
   e.possession=e.possession||{own:0,opponent:0};e.possession[e.owner===0?'own':'opponent']+=seconds;
  }
  // Drain events once. Reloading cannot award a goal or penalty a second time.
- for(const event of e.events){if(!['pass','loose','shot','finished','change'].includes(event.type))addEvent(event.text,event.type==='goal'?'goal':event.type==='penalty'?'penalty':event.type==='save'?'save':'strategy');if(['offside','icing'].includes(event.type))m.rink.hockey.counts[event.type][event.side===0?'own':'opponent']++;}
+ for(const event of e.events){if(!['pass','loose','shot','finished','change'].includes(event.type))addEvent(event.text,event.type==='goal'?'goal':event.type==='penalty'?'penalty':event.type==='save'?'save':'strategy',event.penaltyDetails||{});if(['offside','icing'].includes(event.type))m.rink.hockey.counts[event.type][event.side===0?'own':'opponent']++;}
  e.events=[];e.shots=[];
  matchApplyAutoPause();
  studioMirror(e);
@@ -460,13 +465,20 @@ function studioRefresh(){
  const details=[...document.querySelectorAll('.mc-details')];
  for(const [i,node] of details.entries())if(node.open){
   const summary=node.querySelector('summary').outerHTML;
-  node.innerHTML=summary+(i===0?matchDetailedStats():i===1?matchPlayersView():`<div class="mc-events">${m.events.map(event=>`<p><time>P${event.period} · ${event.time}</time><span>${trainingSafe(event.text)}</span></p>`).join('')}</div>`);
+  node.innerHTML=summary+(i===0?matchDetailedStats():i===1?matchPlayersView():`<div class="mc-events">${m.events.map(event=>`<p><time>P${event.period} · ${event.time}</time><span>${matchEventReference(event)}</span></p>`).join('')}</div>`);
  }
 }
 
 function validateSpatialMatchSave(s){
  const e=s.live?.broadcast;if(!e)return;
  const bad=()=>{throw Error('Matchens spelarbeslut är felaktiga.');};
+ if(e.penaltySequence!==undefined&&(!Number.isSafeInteger(e.penaltySequence)||e.penaltySequence<0))bad();
+ const penaltyIds=new Set();
+ for(const p of e.penalties||(e.penalty?[e.penalty]:[]))if(p.version!==undefined){
+  const minutes=p.type==='minor'?2:p.type==='major'?5:p.type==='misconduct'?10:null;
+  if(p.version!==1||!minutes||p.minutes!==minutes||!Number.isSafeInteger(p.sequence)||p.sequence<1||!(p.sequence<=e.penaltySequence)||p.id!=='penalty:'+p.sequence||penaltyIds.has(p.id)||![0,1].includes(p.side)||!Number.isFinite(p.remaining)||p.remaining<=0||p.remaining>minutes*60||!Number.isFinite(p.seconds)||p.seconds<0||p.affectsStrength!==(p.type!=='misconduct')||p.releasable!==(p.type==='minor')||!e.teams[p.side].players.some(q=>String(q.id)===String(p.playerId)))bad();
+  penaltyIds.add(p.id);
+ }
  const kinds=['carry','pass','shoot','dump','shield','clear'];
  if(e.decisionAudit){const a=e.decisionAudit;if(!a.counts||!Array.isArray(a.recent)||a.recent.length>30)bad();for(const [k,v] of Object.entries(a.counts))if(!kinds.includes(k)||!Number.isInteger(v)||v<0)bad();for(const r of a.recent)if(!r||!kinds.includes(r.kind)||!Number.isFinite(r.time)||r.time<0||![0,1].includes(r.side)||typeof r.player!=='string'||typeof r.reason!=='string'||!Array.isArray(r.alternatives)||r.alternatives.length>3||r.alternatives.some(o=>!o||!kinds.includes(o.kind)||!Number.isFinite(o.value)))bad();}
  for(const a of e.actors||[])for(const key of ['supportPlan','carryPlan'])if(a[key]){const p=a[key];if(!Number.isFinite(p.until)||!p.target||!Number.isFinite(p.target.x)||!Number.isFinite(p.target.y)||p.target.x<0||p.target.x>60||p.target.y<0||p.target.y>30)bad();}

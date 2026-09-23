@@ -55,10 +55,10 @@ function leagueTrackShot(side,id,name,outcome){
   }
  }
 }
-function leagueTrackEvent(type,side,id,name){
+function leagueTrackEvent(type,side,id,name,details={}){
  const row=leagueLivePlayer(side,id,name);if(!row)return;
  if(type==='goal')row.goals++;
- if(type==='penalty')row.pim+=2;
+ if(type==='penalty')row.pim+=details.minutes??2;
  if(type==='assist'){row.assists++;const goal=state.live.analysis?.events.at(-1);if(goal?.type==='goal'&&goal.side===side&&goal.time===analysisClock()&&Array.isArray(goal.assists)&&!samePlayerId(goal.scorerId,id)&&!goal.assists.some(p=>samePlayerId(p.id,id)))goal.assists.push({id:row.id,name:row.name});}
 }
 function leagueCommitRows(game,rows,partial=false,live=false){

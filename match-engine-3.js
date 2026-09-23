@@ -79,35 +79,14 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
   StudioHockey.Match.prototype.matchEngine3Installed=true;
 }
 
-function matchEngine3PenaltyOffender(match,side,name){
-  return match.skaters(side).find(a=>a.player.name===name)||match.skaters(side)[0]||null;
-}
-function matchEngine3AddPenalty(match,side,name,{kind='boarding',minutes=5,affectsStrength=true,releasable=false,label=null}={}){
-  const offender=matchEngine3PenaltyOffender(match,side,name);if(!offender)return false;
-  const before=match.opportunityState?.();
-  const p={side,remaining:minutes*60,name:offender.player.name,playerId:offender.player.id,kind,minutes,affectsStrength,releasable,label:label||kind};
-  match.penaltyList().push(p);match.syncPenalty();match.otCounts=null;
-  for(const i of [0,1])match.installUnit(i);
-  match.stop('penalty',p.name+' utvisas '+minutes+' minuter för '+p.label+'.',{x:side===0?13:47,y:9});
-  if(typeof studioMirror==='function')studioMirror(match);
-  if(before&&typeof match.recordOpportunities==='function')match.recordOpportunities(before);
-  if(typeof analysisEvent==='function')analysisEvent('penalty',side===0?'own':'opponent',p.name+' · '+minutes+' minuter · '+p.label,p.playerId);
-  if(side===0&&typeof studioPlayer==='function'){
-    const player=studioPlayer(side,p.playerId);if(player)player.pim=(player.pim||0)+minutes;
-  }
-  return p;
+function matchEngine3PenaltyOffender(match,side,reference){return StudioHockey.penaltyOffender(match,side,reference);}
+function matchEngine3AddPenalty(match,side,reference,{kind='boarding',minutes=5,affectsStrength=true,label=null}={}){
+  const type=minutes===10&&affectsStrength===false?'misconduct':minutes===5&&affectsStrength?'major':null;
+  return type?match.addPenalty(side,reference,type,kind,label||kind):false;
 }
 
 if(typeof CareerBroadcastMatch!=="undefined"&&!CareerBroadcastMatch.prototype.matchEngine3PenaltiesInstalled){
   const baseGivePenalty=CareerBroadcastMatch.prototype.givePenalty;
-  CareerBroadcastMatch.prototype.penaltyCount=function(side){
-    return Math.min(2,this.penaltyList().filter(p=>p.side===side&&p.affectsStrength!==false).length);
-  };
-  CareerBroadcastMatch.prototype.goalPenalty=function(side){
-    if(!this.hasPowerPlay(side))return;
-    const first=this.penaltyList().filter(p=>p.side!==side&&p.affectsStrength!==false&&p.releasable!==false).slice(0,2).sort((a,b)=>a.remaining-b.remaining)[0];
-    if(first)this.endPenalty(true,first);
-  };
   CareerBroadcastMatch.prototype.giveMajorPenalty=function(side,name,kind='boarding'){
     const labels={boarding:'boarding','checking-from-behind':'checking bakifrån',fighting:'slagsmål',kneeing:'knätackling'};
     return matchEngine3AddPenalty(this,side,name,{kind,minutes:5,affectsStrength:true,releasable:false,label:labels[kind]||kind});
@@ -117,14 +96,14 @@ if(typeof CareerBroadcastMatch!=="undefined"&&!CareerBroadcastMatch.prototype.ma
     return matchEngine3AddPenalty(this,side,name,{kind,minutes:10,affectsStrength:false,releasable:false,label:labels[kind]||kind});
   };
   CareerBroadcastMatch.prototype.givePenalty=function(side,name,kind=null){
-    if(kind)return baseGivePenalty.call(this,side,name,kind);
-    const offender=matchEngine3PenaltyOffender(this,side,name);
+    const offender=matchEngine3PenaltyOffender(this,side,name);if(!offender)return false;
+    if(kind)return baseGivePenalty.call(this,side,{playerId:offender.player.id},kind);
     if(offender){
       const carrier=this.actor(this.carrier),relative=carrier?Math.hypot((offender.vx||0)-(carrier.vx||0),(offender.vy||0)-(carrier.vy||0)):0;
       const discipline=this.attribute(offender,'discipline'),reckless=matchEngine3Clamp((13-discipline)*.008+Math.max(0,relative-3)*.012,0,.08);
-      if(this.random()<reckless){const kinds=['boarding','checking-from-behind','kneeing'];return this.giveMajorPenalty(side,name,kinds[Math.floor(this.random()*kinds.length)]);}
+      if(this.random()<reckless){const kinds=['boarding','checking-from-behind','kneeing'];return this.giveMajorPenalty(side,{playerId:offender.player.id},kinds[Math.floor(this.random()*kinds.length)]);}
     }
-    return baseGivePenalty.call(this,side,name,null);
+    return baseGivePenalty.call(this,side,{playerId:offender.player.id},null);
   };
   CareerBroadcastMatch.prototype.matchEngine3PenaltiesInstalled=true;
 }
