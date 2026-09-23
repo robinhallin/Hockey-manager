@@ -1,0 +1,108 @@
+'use strict';
+// Runs against the actual Electron app, or an NSIS-installed executable in CI.
+const {_electron:electron}=require('playwright');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {spawnSync}=require('node:child_process');
+const out=path.join(__dirname,'test-results');fs.mkdirSync(out,{recursive:true});
+const profile=fs.mkdtempSync(path.join(os.tmpdir(),'hm-beta-ui-'));
+const executable=process.env.HM_TEST_EXE || require('electron');
+const args=process.env.HM_TEST_EXE?[]:[__dirname];
+let application,page;const errors=[];let savePath;
+async function launch(){
+ application=await electron.launch({executablePath:executable,args,env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
+ page=await application.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',error=>errors.push(error.message));
+ await page.waitForFunction(()=>typeof state!=='undefined' && typeof window.hockeyDesktop!=='undefined');
+ await page.locator('.career-menu').waitFor();
+ savePath=path.join(await application.evaluate(({app})=>app.getPath('userData')),'saves','career.json');
+}
+async function close(){
+ const closed=application.waitForEvent('close',{timeout:30000});
+ await application.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await closed;application=null;
+}
+(async()=>{
+ try{
+  if(!process.env.HM_TEST_EXE)spawnSync(process.execPath,[path.join(__dirname,'stage.cjs')],{stdio:'inherit'});
+  await launch();
+  // Hosted Windows desktops can be only 1024px wide. Exercise the real
+  // desktop layout using native window bounds instead of that host default.
+  await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1366,900);});
+  await page.waitForFunction(()=>innerWidth===1366 && innerHeight===900);
+  const security=await application.evaluate(({BrowserWindow})=>{const p=BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences();return {sandbox:p.sandbox,contextIsolation:p.contextIsolation,nodeIntegration:p.nodeIntegration};});
+  assert.deepEqual(security,{sandbox:true,contextIsolation:true,nodeIntegration:false});
+  assert.equal(await page.evaluate(()=>typeof require),'undefined');
+  await page.getByRole('button',{name:/Starta ny karriär/}).click();
+  await page.locator('.career-club-card').filter({hasText:'HV71'}).click();
+  await page.getByRole('button',{name:/Möt styrelsen i HV71/}).click();
+  await page.getByRole('button',{name:/Acceptera uppdraget/}).click();
+  await page.waitForFunction(()=>careerScreen===null && state.careerStarted);
+  await page.screenshot({path:path.join(out,'01-klubbkontoret.png'),fullPage:true});
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
+  const selected=await page.evaluate(()=>({name:managerRoster()[0].name,id:String(managerRoster()[0].id)}));
+  const selectedName=selected.name,id=selected.id;
+  await page.locator('.sw-filters input[name="query"]').fill(selectedName);
+  await page.locator('.sw-filters').getByRole('button',{name:'Sök',exact:true}).click();
+  const link=page.getByRole('region',{name:'Spelartrupp',exact:true}).getByRole('button',{name:selectedName,exact:true});
+  await link.click();await page.waitForFunction(id=>String(state.selectedPlayer)===id,id);
+  await page.screenshot({path:path.join(out,'02-spelarprofil.png'),fullPage:true});
+  await page.locator('#content button[onclick*="deskBack"]').first().click();
+  await page.locator('input[name="query"]').waitFor();assert.equal(await page.locator('input[name="query"]').inputValue(),selectedName);
+  // Use the same daily controls as a tester, including the transition layer.
+  for(let day=0;day<10 && await page.evaluate(()=>state.calendar.date<calendarTarget());day++){
+   const before=await page.evaluate(()=>state.calendar.date);
+   await page.locator('#continueGame').click();
+   await page.waitForFunction(before=>state.calendar.date!==before && dayTransition===null,before);
+  }
+  assert.equal(await page.evaluate(()=>state.calendar.date),await page.evaluate(()=>calendarTarget()));
+  await page.locator('#continueGame').click();
+  await page.locator('#content button[onclick*="createMatch"]').click();
+  await page.locator('#match-play').click();await page.waitForFunction(()=>state.live?.running);
+  await page.waitForFunction(()=>studioEngine().time>0);
+  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
+  // Fullscreen must work in the installed application, then restore the
+  // desktop size before checking that rink and controls fit without scrolling.
+  await page.getByRole('button',{name:'Helskärm',exact:true}).click();
+  await page.waitForFunction(()=>Boolean(document.fullscreenElement));
+  await page.getByRole('button',{name:'Helskärm',exact:true}).click();
+  await page.waitForFunction(()=>!document.fullscreenElement);
+  await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1366,768);});
+  await page.waitForFunction(()=>innerWidth===1366 && innerHeight===768);
+  const layout=await page.evaluate(()=>{
+   const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+   return {viewport:{width:innerWidth,height:innerHeight},rink:rect('#career-ice'),controls:rect('.mc-playback')};
+  });
+  for(const [name,rect] of Object.entries({rink:layout.rink,controls:layout.controls})){
+   assert.ok(rect.width>0 && rect.height>0 && rect.x>=0 && rect.y>=0 && rect.right<=layout.viewport.width+1 && rect.bottom<=layout.viewport.height+1,name+' fits the desktop viewport');
+  }
+  fs.writeFileSync(path.join(out,'layout-result.json'),JSON.stringify(layout,null,2));
+  await page.locator('#match-play').click();await page.waitForFunction(()=>state.live.running);
+  // Closing a running match must pause and persist it through the real native close handler.
+  await page.screenshot({path:path.join(out,'03-match.png'),fullPage:true});
+  await close();
+  const saved=JSON.parse(JSON.parse(fs.readFileSync(savePath,'utf8')).payload);
+  assert.equal(saved.live.running,false);assert.ok(saved.live.broadcast);
+  await launch();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
+  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),JSON.stringify(saved.live));
+  await page.locator('.settings-item').click();await page.getByText('Spelguide – din första vecka',{exact:true}).click();
+  await page.screenshot({path:path.join(out,'04-spelguide.png'),fullPage:true});
+  const exported=path.join(out,'exported-career.json');
+  await application.evaluate(({session},destination)=>{session.defaultSession.on('will-download',(_event,item)=>item.setSavePath(destination));},exported);
+  await page.getByRole('button',{name:'Exportera sparfil',exact:true}).click();
+  await page.waitForTimeout(1000);assert.ok(fs.existsSync(exported));
+  const old=JSON.parse(fs.readFileSync(exported,'utf8'));assert.equal(old.career.managerClub,'HV71');
+  await page.locator('input[type=file]').setInputFiles(exported);
+  await page.getByRole('button',{name:'Läs in denna karriär',exact:true}).click();
+  assert.equal(await page.evaluate(()=>state.live.running),false);
+  await page.getByText('Återställ en automatisk säkerhetskopia',{exact:true}).click();
+  await page.getByRole('button',{name:'Granska säkerhetskopia'}).first().click();
+  await page.getByRole('button',{name:'Läs in denna karriär',exact:true}).click();
+  await page.getByText('Rapportera ett problem',{exact:true}).click();
+  const report=await page.evaluate(()=>JSON.parse(betaReportText()));assert.equal(report.version,require('./package.json').version);assert.equal(report.platform,'desktop');
+  assert.equal(await page.evaluate(()=>careerSaveError),false);
+  await close();
+  assert.deepEqual(errors,[],'renderer errors');
+  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
+  fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
+  console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
+ }catch(error){if(page)try{await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}
+ finally{if(application)try{await application.evaluate(({app})=>app.exit(1));}catch{}}
+})().catch(error=>{console.error(error);process.exitCode=1;});

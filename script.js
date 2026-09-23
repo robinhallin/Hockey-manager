@@ -1015,7 +1015,7 @@ let state,careerLoadIssue=null,careerUnreadableSave=null;
 
 try{
 
-  careerUnreadableSave=localStorage.getItem("hockey_manager_alpha02");
+  careerUnreadableSave=careerStorage.getItem("hockey_manager_alpha02");
   const saved=careerRead(careerUnreadableSave);
   if(careerUnreadableSave!==null&&(!saved||saved.version!=="0.2"))throw Error('Sparningens version stöds inte.');
   if(saved&&(!Array.isArray(saved.teams)||!saved.teams.length||saved.teams.some(t=>!t||typeof t.name!=='string')||!Number.isFinite(saved.money)||!Number.isInteger(saved.round)||saved.round<1||saved.clubRosters&&(typeof saved.clubRosters!=='object'||Array.isArray(saved.clubRosters)||Object.values(saved.clubRosters).some(ps=>!Array.isArray(ps)||ps.some(p=>!p||typeof p.name!=='string')))))throw Error('Sparningens grunddata är skadade.');
@@ -1074,7 +1074,7 @@ let careerSaveError=false,careerSaveErrorCode="";
 function renderSaveStatus(){
  const root=document.getElementById("save-status-root");if(!root)return;
  if(careerLoadIssue){root.innerHTML='<aside class="save-status-warning" role="alert"><strong>'+careerLoadIssue+'</strong><span>Du kan läsa in en säkerhetskopia eller välja att starta en ny karriär.</span>'+(careerUnreadableSave!==null?'<button onclick="downloadUnreadableCareer()">Ladda ner ursprunglig sparning</button>':'')+'<button onclick="showSaveFiles()">Öppna sparfiler</button></aside>';return;}
- const detail=careerSaveErrorCode==='SecurityError'?'Webbläsaren blockerar lagring för spelet.':['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(careerSaveErrorCode)?'Webbläsarens sparutrymme räcker inte, även med komprimering.':'Karriären kunde inte sparas i webbläsaren.';
+ const detail=careerSaveErrorCode==='SecurityError'?'Webbläsaren blockerar lagring för spelet.':['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(careerSaveErrorCode)?'Webbläsarens sparutrymme räcker inte, även med komprimering.':(desktopBridge()?'Karriären kunde inte sparas på datorn.':'Karriären kunde inte sparas i webbläsaren.');
  root.innerHTML=careerSaveError?'<aside class="save-status-warning" role="alert"><strong>'+detail+'</strong><span>Matchen kan fortsätta, men ladda inte om eller stäng spelet innan du har laddat ner en sparfil.</span><button onclick="downloadCareer()">Ladda ner sparfil</button><button onclick="save()">Försök spara igen</button></aside>':'';
 }
 function normalizeCareerState(){

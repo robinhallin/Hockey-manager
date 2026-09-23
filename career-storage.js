@@ -4,6 +4,10 @@ const CAREER_PACK_FORMAT='hockey-manager-lzw16-v3';
 const CAREER_RESET_PACK_FORMAT='hockey-manager-lzw16-v2';
 const CAREER_LEGACY_PACK_FORMAT='hockey-manager-lzw16-v1';
 const careerPackedKeys=new Set();
+// One storage interface. The browser keeps its existing keys/format; desktop
+// writes the same career JSON through a narrow, sandboxed file bridge.
+function careerStorageBackend(){return typeof window!=='undefined'&&window.hockeyDesktop?window.hockeyDesktop.storage:localStorage;}
+const careerStorage={getItem:key=>careerStorageBackend().getItem(key),setItem:(key,value)=>careerStorageBackend().setItem(key,value),removeItem:key=>careerStorageBackend().removeItem(key)};
 function careerStorageHash(text){let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return hash>>>0;}
 function careerIntern(text){
  const marker='\ue000',tokens=/"(?:\\.|[^"\\])*"/g,counts=new Map();
@@ -67,24 +71,24 @@ function careerUnpack(value){
 function careerRead(raw){return careerUnpack(JSON.parse(raw));}
 function careerStore(key,text){
  // Once this key needs compression, avoid repeated quota failures on every autosave.
- if(careerPackedKeys.has(key)){localStorage.setItem(key,careerPack(text));return;}
- try{localStorage.setItem(key,text);}
+ if(careerPackedKeys.has(key)){careerStorage.setItem(key,careerPack(text));return;}
+ try{careerStorage.setItem(key,text);}
  catch(error){
   if(!['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(error?.name)&&error?.code!==22&&error?.code!==1014)throw error;
   const packed=careerPack(text);if(packed.length>=text.length)throw error;
-  localStorage.setItem(key,packed);careerPackedKeys.add(key);
+  careerStorage.setItem(key,packed);careerPackedKeys.add(key);
  }
 }
 // Keep the active save authoritative until both preparations have succeeded.
 // A failed backup must never replace the career that will load on refresh.
 function careerReplaceStored(text,previousText){
- const backup=localStorage.getItem(PREVIOUS_CAREER_KEY);
+ const backup=careerStorage.getItem(PREVIOUS_CAREER_KEY);
  if(previousText!==null)careerStore(PREVIOUS_CAREER_KEY,previousText);
  try{careerStore(CAREER_SAVE_KEY,text);}
  catch(error){
   if(previousText!==null)try{
-   if(backup===null)localStorage.removeItem(PREVIOUS_CAREER_KEY);
-   else localStorage.setItem(PREVIOUS_CAREER_KEY,backup);
+   if(backup===null)careerStorage.removeItem(PREVIOUS_CAREER_KEY);
+   else careerStorage.setItem(PREVIOUS_CAREER_KEY,backup);
   }catch{error.careerBackupRestoreFailed=true;}
   throw error;
  }

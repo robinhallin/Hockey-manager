@@ -1,0 +1,54 @@
+{
+  "name": "hockey-manager-desktop",
+  "productName": "Hockey Manager",
+  "version": "0.1.0-beta.1",
+  "description": "Hockey Manager – svensk desktopbeta",
+  "author": "Robin Hallin",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "node stage.cjs && electron .",
+    "stage": "node stage.cjs",
+    "dist:win": "node stage.cjs && node icon.cjs && electron-builder --win nsis --x64 --publish never",
+    "test:ui": "node smoke.cjs"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "playwright": "1.58.2"
+  },
+  "build": {
+    "appId": "se.robinhallin.hockeymanager",
+    "asar": true,
+    "directories": {
+      "output": "../dist/beta"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "storage.cjs",
+      "protocol.cjs",
+      "game/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": true,
+      "icon": "build/icon.png"
+    },
+    "artifactName": "Hockey-Manager-${version}-Windows-${arch}-Setup.${ext}",
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true
+    }
+  }
+}
