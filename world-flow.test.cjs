@@ -23,6 +23,6 @@ for(let day=0;day<7;day++){
  }
  assert.equal(r('state.calendar.date'),r(`calAdd('${date}',1)`));
 }
-assert.equal(r('state.calendar.date'),'2026-09-14');assert.equal(r('state.analysis.matches.filter(m=>m.finished).length'),2);assert.ok(r('state.training.history.length')>=5);assert.equal(r('plannedPlayer.trainingLoad'),'light');
-r('save()');const b=boot(a.storage.value);assert.equal(b.run('state.calendar.date'),'2026-09-14');assert.equal(b.run('state.analysis.matches.length'),2);
+assert.equal(r('state.calendar.date'),'2026-09-30');assert.equal(r('state.analysis.matches.filter(m=>m.finished).length'),2);assert.ok(r('state.training.history.length')>=5);assert.equal(r('plannedPlayer.trainingLoad'),'light');
+r('save()');const b=boot(a.storage.value);assert.equal(b.run('state.calendar.date'),'2026-09-30');assert.equal(b.run('state.analysis.matches.length'),2);
 console.log('PASS: 7-day manager week, all workspace routes daily, real training and 2 full matches, exact debriefs, one-day progression and save/reload.');
