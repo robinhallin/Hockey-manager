@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.1
+# Hockey Manager · Beta 0.1.0-beta.2
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Packa upp betaarkivet. Kör `Hockey-Manager-0.1.0-beta.1-Windows-x64-Setup.exe`.
+1. Packa upp betaarkivet. Kör `Hockey-Manager-0.1.0-beta.2-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -50,3 +50,13 @@ Rapportera konkreta steg, förväntat och faktiskt resultat. Använd **Sparfiler
 28 seniorklubbar i SHL och Hockeyallsvenskan. Nya karriärer använder trupper daterade 23 september 2026. Befintliga sparningar behåller sin spelvärld. Schemat är simulerat; verkliga matchresultat importeras inte. Attribut, ekonomi och utvecklingsprognoser är spelmodeller. Juniorer och Nordamerika är inte en fullständigt verifierad verklig truppdatabas.
 
 Det här är en spelbar testversion, inte en färdig slutversion. Automatiska kontroller av installation, sparning och spelmekanik ersätter inte mänsklig provspelning, test på flera Windows-datorer eller återkoppling om balans och spelglädje.
+
+## Rekrytering i den här uppdateringen
+
+- Översikt visar verkligt antal målvakter, backar och forwards, vilka som är spelklara och hur många som är säkrade nästa säsong.
+- Truppbehov skiljer dagens luckor från kontraktsplanering. Lägre attribut räknar inte bort en spelare. Stabens kvalitetsråd finns under Roller och kvalitet.
+- Sök spelare, välj ett namn och följ Nästa steg för spelaren. Beställ rapport, kontrollera intresse och villkor och granska sedan ett eventuellt bud.
+- Scouting visar pågående uppdrag och nästa observation. Färdiga rapporter kan öppnas därifrån eller från Översikt.
+- Bevakning samlar sparade kandidater. Affärer samlar köp, försäljningar och lån.
+
+Installera den nya versionen i samma mapp som tidigare. Karriärerna ligger kvar i programmets datamapp. Exportera gärna din karriär via inställningarna före uppdateringen.

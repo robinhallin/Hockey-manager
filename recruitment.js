@@ -41,30 +41,43 @@ function recruitCountry(club){return RECRUIT_CLUBS.find(c=>c[0]===club)?.[1]||'S
 function recruitMessage(text){state.recruitment.message=text;save();render();}
 function recruitReport(title,body,extra={}){const r=state.recruitment;managerMessage(`recruit:${r.nextId++}`,title,body,'Rekrytering',{link:'transfers',...extra});}
 function recruitRoleValue(p,profile,estimated=true){const def=RECRUIT_PROFILES[profile];if(!def||!def.positions.includes(p.pos))return 0;return attributeWeighted(estimated?playerAssessment(p).estimated:ensurePlayerAttributes(p),def.weights);}
+// Headcount is a fact. Role quality must never silently remove a contracted player.
+function recruitCoverageFor(eligible,target){
+ const club=managerClub(),unique=players=>[...new Map(players.map(p=>[String(p.id),p])).values()];
+ const players=unique(managerRoster().filter(eligible)),available=players.filter(medicalReady),absent=players.filter(p=>!medicalReady(p));
+ const secured=p=>(p.futureContract?p.futureContract.buyer===club&&p.futureContract.joinYear<=recruitmentYear()+1:p.contractYears>1);
+ const secure=players.filter(p=>(!playerLoan(p)||p.futureContract?.buyer===club)&&secured(p));
+ const arrivals=unique([...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[]].flat().filter(p=>eligible(p)&&p.futureContract?.buyer===club&&p.futureContract.joinYear<=recruitmentYear()+1&&!players.some(q=>samePlayerId(p.id,q.id))));
+ const returning=unique((state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(p=>p&&eligible(p)&&secured(p)));
+ const future=unique([...secure,...arrivals,...returning]);
+ return {players,available,absent,secure,arrivals,returning,future,total:players.length,count:available.length,target,need:Math.max(0,target-available.length),futureNeed:Math.max(0,target-future.length),temporary:available.length<target&&players.length>=target};
+}
+function recruitmentCoverage(){
+ return [
+  {name:'Målvakter',profile:'Målvakt',target:2,eligible:p=>p.pos==='MV'},
+  {name:'Backar',profile:'Defensiv back',target:6,eligible:p=>p.pos==='B'},
+  {name:'Forwards',profile:'Målskytt',target:12,eligible:p=>!['B','MV'].includes(p.pos)}
+ ].map(({eligible,...group})=>({...group,...recruitCoverageFor(eligible,group.target)}));
+}
 function recruitmentNeeds(){
- const club=managerClub(),plan=state.tacticalPlan||{},roster=managerRoster();
- const threshold=leagueOf()==='HA'?11:12;
+ const plan=state.tacticalPlan||{},threshold=leagueOf()==='HA'?11:12;
  return Object.entries(RECRUIT_PROFILES).map(([name,def])=>{
   const target=def.target+((name==='Checkingforward'&&plan.forecheck==='aggressive'||name==='Spelfördelare'&&plan.attackStyle==='control'||name==='Defensiv back'&&state.tactic==='defense')?1:0);
   const eligible=p=>def.positions.includes(p.pos)||(name==='Defensiv center'&&!['B','MV'].includes(p.pos)&&positionFit(p,'C')>=.9);
   const value=p=>attributeWeighted(playerAssessment(p).estimated,def.weights)*(name==='Defensiv center'?positionFit(p,'C'):1);
-  const ps=roster.filter(eligible).map(p=>({p,value:value(p)})).sort((a,b)=>b.value-a.value);
-  const capable=ps.filter(x=>x.value>=threshold),available=capable.filter(x=>medicalReady(x.p));
-  const absent=capable.filter(x=>!medicalReady(x.p)),secure=capable.filter(x=>!playerLoan(x.p)&&((x.p.contractYears>1&&!x.p.futureContract)||(x.p.futureContract?.buyer===club)));
-  const arrivals=[...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[]].flat().filter(p=>p.futureContract?.buyer===club&&!roster.some(q=>samePlayerId(p.id,q.id))&&p.futureContract.joinYear<=recruitmentYear()+1&&eligible(p)&&value(p)>=threshold);
-  const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(p=>p&&p.contractYears>1&&!p.futureContract&&eligible(p)&&value(p)>=threshold);
+  const c=recruitCoverageFor(eligible,target),ps=c.players.map(p=>({p,value:value(p)})).sort((a,b)=>b.value-a.value);
+  const qualified=c.available.filter(p=>value(p)>=threshold),qualityGap=Math.max(0,target-qualified.length);
   const youth=(state.juniors?.roster||[]).filter(p=>medicalReady(p)&&eligible(p)&&value(p)>=threshold);
-  const need=Math.max(0,target-available.length),futureNeed=Math.max(0,target-secure.length-arrivals.length-returning.length);
-  const temporary=need>0&&capable.length>=target&&absent.length>0;
-  const priority=need?(youth.length?'Pröva junior':temporary?'Överväg lån':'Förstärk nu'):futureNeed?'Planera efterträdare':'God täckning';
-  const reasons=[`${available.length} spelklara av ${target} önskade för din matchplan.`];
-  if(absent.length)reasons.push(`${absent.length} saknas: ${absent.map(x=>x.p.name+' ('+(x.p.health?.injury?.remaining||0)+' dagar till återgångsträning)').join(', ')}.`);
-  if(youth.length)reasons.push(`Junioralternativ: ${youth.map(p=>p.name).join(', ')}. Bedömd nivå räcker; jämför positionsvana och ork före uppflyttning.`);
-  if(returning.length)reasons.push(`${returning.length} egna spelare på lån räknas in i nästa säsongs täckning.`);
-  if(arrivals.length)reasons.push(`${arrivals.length} redan kontrakterade förstärkningar till nästa säsong.`);
-  if(temporary)reasons.push('Luckan beror på frånvaro. Jämför ett lån med återstående rehabiliteringstid.');
-  if(futureNeed)reasons.push(`${futureNeed} roller behöver säkras inför nästa säsong.`);
-  return {name,need,futureNeed,secure:secure.length, count:available.length,target,players:ps.slice(0,3),priority,reasons,temporary,juniors:youth.map(p=>p.id),arrivals:arrivals.map(p=>p.id)};
+  const priority=c.need?(youth.length?'Pröva junior':c.temporary?'Tillfällig frånvaro':'Saknar täckning'):'Täckt nu';
+  const reasons=[`${c.total} i truppen · ${c.count} spelklara · riktmärke ${target}.`];
+  if(c.absent.length)reasons.push('Frånvaro: '+c.absent.map(p=>p.name+' ('+medicalStatus(p)+(p.health?.injury?.remaining>0?', '+p.health.injury.remaining+' dagar till återgångsträning':'')+')').join(', ')+'.');
+  if(qualityGap)reasons.push(`Kvalitetsbedömning: ${qualified.length} spelklara når stabens riktmärke ${threshold}/20 för rollen. Övriga räknas fortfarande som tillgängliga. En möjlig uppgradering är ett eget beslut.`);
+  if(c.need&&youth.length)reasons.push('Junioralternativ: '+youth.map(p=>p.name).join(', ')+'.');
+  if(c.returning.length)reasons.push(`${c.returning.length} egna utlånade spelare räknas till nästa säsong.`);
+  if(c.arrivals.length)reasons.push(`${c.arrivals.length} klara nyförvärv räknas till nästa säsong.`);
+  if(c.temporary)reasons.push('Pröva intern ersättare eller ett kort lån innan en permanent värvning.');
+  reasons.push(`Nästa säsong: ${c.future.length} säkrade alternativ.${c.futureNeed?' Se över förlängningar innan du söker ersättare.':''}`);
+  return {name,need:c.need,futureNeed:c.futureNeed,secure:c.future.length,count:c.count,total:c.total,target,qualityCount:qualified.length,qualityGap,players:ps,priority,reasons,temporary:c.temporary,juniors:youth.map(p=>p.id),arrivals:c.arrivals.map(p=>p.id)};
  }).sort((a,b)=>b.need-a.need||b.futureNeed-a.futureNeed);
 }
 function recruitFee(p){if(worldIsFree(p.id))return 0;return Math.round((p.askingPrice||calculateTransferPrice(p))*(p.transferListed?.9:1));}
