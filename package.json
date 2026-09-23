@@ -17,7 +17,10 @@
     "check:background-strength": "node scripts/check-background-strength.cjs",
     "sample:ai-calibration": "node scripts/sample-ai-calibration.cjs",
     "check:ai-calibration": "node scripts/check-ai-calibration.cjs",
-    "check:ai-overtime": "node scripts/check-ai-overtime.cjs"
+    "check:ai-overtime": "node scripts/check-ai-overtime.cjs",
+    "desktop:install": "npm ci --prefix desktop",
+    "desktop:start": "npm start --prefix desktop",
+    "desktop:windows": "npm run dist:win --prefix desktop"
   },
   "devDependencies": {
     "vite": "8.0.13"
