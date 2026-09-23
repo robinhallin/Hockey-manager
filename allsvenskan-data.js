@@ -14711,7 +14711,7 @@ const ALLSVENSKAN_DATABASE = {
             "source": "https://www.ostersundik.com/article/xvwatlg-55c5i1/view",
             "termsEstimated": true,
             "recall": "anytime",
-            "termNote": "Minst en månad; återgång 17 oktober används tills avtalet ändras i karriären."
+            "termNote": "Minst en månad; 17 oktober används som sista lånedag tills avtalet ändras i karriären."
           }
         }
       ]

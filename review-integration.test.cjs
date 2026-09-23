@@ -82,4 +82,4 @@ assert.equal(c("getPlayerClub(Object.values(state.clubRosters).flat().find(p=>p.
 assert.equal(c("state.clubRosters['Luleå Hockey'].filter(p=>p.name==='Casper Juustovaara Karlsson').length"),1);
 assert.equal(c("state.clubRosters['Luleå Hockey'].some(p=>p.name==='Caper Juustovaara Karlsson')"),false);
 c('validateSaveText(saveExportText())');
-console.log('PASS: full prior database consolidates to 24 Luleå players, including the source-name typo and already loaned goalkeeper.');
+console.log('PASS: full prior database consolidates to 22 Luleå players, including the source-name typo and already loaned goalkeeper.');
