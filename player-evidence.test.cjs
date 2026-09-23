@@ -14,6 +14,8 @@ assert.equal(r('haAge("2000-09-15")'),25,'age uses start date, not verification 
 assert.equal(r('haAge("2000-09-15","2026-09-23")'),26);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.weight'),88);
 assert.equal(r('findPlayerAnywhere("ep-29607").research.height'),190);
+assert.ok(r('findPlayerAnywhere("ep-29607").research.model.observations.reflexes[1]>0'),'compact save retains observed sample');
+assert.ok(r('haResearchPanel(findPlayerAnywhere("ep-29607")).includes("Returkontroll")'),'unmeasured trait still explained');
 assert.equal(r('ALLSVENSKAN_DATABASE.clubs["Mora IK"].players.find(p=>p.id==="ep-29607").weight'),194,'raw facts retained for reproducibility');
 assert.ok(r('Object.values(state.clubRosters).flat().every(p=>!p.research||p.research.weight>=45&&p.research.weight<=140)'));
 assert.ok(r('Object.values(state.clubRosters).flat().filter(p=>p.research?.model).every(p=>p.social.basis==="neutral-unobserved"&&p.social.sensitivity===10&&p.social.loyalty===10)'));

@@ -94,3 +94,11 @@ function evidenceStartingRow(row){
   return update?{...s,...update}: {...s};
  })};
 }
+function evidenceSaveSummary(model){
+ // Omitted keys are position/level priors with high uncertainty. Retain each
+ // observed field as [method, sample, uncertainty]; method defines sample units.
+ // Source statistics and model version are saved separately. No career result,
+ // source fact or private development ceiling is discarded to reduce file size.
+ return {version:model.version,checked:PLAYER_EVIDENCE_MODEL.checked,
+  observations:Object.fromEntries(Object.entries(model.evidence).filter(([,e])=>e.kind!=='position-level-prior').map(([key,e])=>[key,[e.kind,e.sample,e.uncertainty]]))};
+}
