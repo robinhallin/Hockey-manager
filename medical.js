@@ -28,13 +28,15 @@ function injurePlayer(p,source='match',days=null){
  medicalReport(`${p.name}: ${setback?'bakslag':'skaderapport'}`,`${p.health.injury.name}. Preliminärt ${Math.max(1,duration-1)}–${duration+2} återhämtningsdagar till återgångsträning, därefter gradvis comeback. Prognosen följs upp dagligen.`,p.id);
  repairMedicalLines();return true;
 }
-function medicalDay(session=null){
+function medicalDay(session=null,sessionEffects=null){
  ensureMedical();const s=state.medical;ensureClub();s.day++;
  for(const p of [...Object.values(state.clubRosters).flat(),...(state.playerWorld?.freeAgents||[]),...(state.juniors?.roster||[]),...aiAcademyPlayers()]){
    if(internationalAway(p))continue;
    const h=p.health;
    if(!isOwnPlayer(p)){h.load*=.8;if(h.injury){if(h.injury.remaining>0)h.injury.remaining--;else{h.injury.readiness=Math.min(100,h.injury.readiness+15);if(h.injury.readiness===100){h.injury=null;h.clearance='rest';}}}continue;}
-   const exposure=session?trainingSessionEffect(p,session):{rest:true,hard:false};
+   // Use the participation decided before the pass. Post-pass fatigue must not
+   // retroactively turn a completed hard session into delegated rest.
+   const exposure=sessionEffects?.get(String(p.id))||(session?trainingSessionEffect(p,session):{rest:true,hard:false});
    const {rest,hard}=exposure;
    h.load=trainingClamp(h.load*(.8+(15-s.staff.skill)*.008)+(rest?0:hard?12:5));
    if(h.injury){const i=h.injury;

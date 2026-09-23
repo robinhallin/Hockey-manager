@@ -53,13 +53,11 @@ function managerDayPreview(){
   const session=calendarSession(c.date),definition=TRAINING_SESSIONS[session.type];
   const t=state.training;
   if(!definition||!t||t.day>=trainingDays()||t.lockedRound===state.round||(opponent()==='Ingen match'&&state.season.phase!=='preseason'))return {kind:'rest',title:'Återhämtningsdag',detail:'Ingen lagträning är schemalagd i den aktuella perioden. Kalendern går en dag framåt.'};
-  const players=managerRoster(),effects=players.map(p=>trainingSessionEffect(p,session));
-  const trained=effects.filter(e=>!e.rest).length,resting=effects.length-trained;
-  const mean=rows=>rows.reduce((n,v)=>n+v,0)/Math.max(1,rows.length);
-  const before=Math.round(mean(players.map(p=>100-p.fatigue))),after=Math.round(mean(effects.map(e=>100-e.fatigue)));
+  const projection=trainingTeamProjection(session),{trained,resting,absent}=projection;
+  const before=Math.round(100-projection.fatigueBefore),after=Math.round(100-projection.fatigueAfter);
   const intensity=['recovery','matchprep'].includes(session.type)?'light':session.intensity;
-  return {kind:'training',date:c.date,session:{...session},title:definition.name,trained,resting,before,after,
-    detail:`${({light:'Lätt',normal:'Normal',hard:'Hård'})[intensity]} belastning · ${trained} tränar, ${resting} återhämtar sig · beräknad ork ${before} → ${after} %.`};
+  return {kind:'training',date:c.date,session:{...session},title:definition.name,trained,resting,absent,before,after,
+    detail:`${({light:'Lätt',normal:'Normal',hard:'Hård'})[intensity]} belastning · ${trained} tränar, ${resting} återhämtar sig${absent?` · ${absent} på landslagsuppdrag`:""} · beräknad ork ${before} → ${after} %.`};
 }
 function managerDayPreviewView(){
   const preview=managerDayPreview();if(!preview)return '';

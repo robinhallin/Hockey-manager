@@ -20,8 +20,8 @@ function managerOffice2MedicalStaffPlan(){
 }
 
 const managerOffice2MedicalDayBase=medicalDay;
-medicalDay=function(session=null){
-  managerOffice2MedicalDayBase(session);
+medicalDay=function(session=null,sessionEffects=null){
+  managerOffice2MedicalDayBase(session,sessionEffects);
   managerOffice2MedicalStaffPlan();
 };
 
