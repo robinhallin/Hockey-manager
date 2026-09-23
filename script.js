@@ -3473,7 +3473,7 @@ function openContractNegotiation(playerId){
  const w=renewalWishes(p),paused=p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date;
  state.contractNegotiation={playerId:p.id,salaryDemand:w.salary,years:Math.max(w.minYears,Math.min(3,w.maxYears)),role:w.role,attempts:p.renewalAttempts||0,message:paused?`Agenten vill avvakta till ${calText(p.renewalPausedUntil)} efter de senaste avslagen.`:`Spelaren söker ${w.minYears}–${w.maxYears} år, ${w.role.toLowerCase()} och omkring ${money(w.salary)}/år. Förtroendet påverkar lönekravet.`};save();render();
 }
-function cancelContractNegotiation(){state.contractNegotiation=null;save();render();}
+function cancelContractNegotiation(){const p=managerRoster().find(p=>samePlayerId(p.id,state.contractNegotiation?.playerId));if(p)delete p.renewalDraft;state.contractNegotiation=null;save();render();}
 function submitContractRenewal(playerId,salary,years,role){
  const n=state.contractNegotiation,p=managerRoster().find(p=>samePlayerId(p.id,playerId));
  if(!n||!p||!samePlayerId(n.playerId,playerId)||playerLoan(p)||loanLocked())return;
@@ -3489,8 +3489,8 @@ function submitContractRenewal(playerId,salary,years,role){
   return fail(reason);
  }
  Object.assign(p,{salary,contractYears:years,promisedRole:role,squadRole:role,renewalAttempts:0,renewalPausedUntil:null,happiness:trainingClamp(p.happiness+5),morale:trainingClamp((p.morale||70)+3)});
- rolePromiseAssign(p,role);
- state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,`${p.name} förlänger`,`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{link:'squad'});
+ rolePromiseAssign(p,role);delete p.renewalDraft;
+ state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,playerHeadline(p,' förlänger'),`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{playerId:p.id,link:'player'});
  state.contractNegotiation=null;save();render();
 }
 
@@ -3676,29 +3676,29 @@ ${
 
               <p class="contract-message">${negotiation.message}</p>
 
-              <div class="contract-form-grid">
+              <div class="contract-form-grid" oninput="renewalDraftEdit('${player.id}')">
                 <label>
                   Årslön
-                  <input id="renewalSalary" type="number" step="10000" value="${negotiation.salaryDemand}">
+                  <input id="renewalSalary" type="number" step="10000" value="${trainingSafe(renewalDraftValues(player,negotiation).salary)}">
                   <small>Krav: ${formatCurrency(negotiation.salaryDemand)}</small>
                 </label>
 
                 <label>
                   Kontraktslängd
                   <select id="renewalYears">
-                    ${[1,2,3,4,5].map(year => `<option value="${year}" ${year===negotiation.years ? "selected" : ""}>${year} år</option>`).join("")}
+                    ${[1,2,3,4,5].map(year => `<option value="${year}" ${year===Number(renewalDraftValues(player,negotiation).years) ? "selected" : ""}>${year} år</option>`).join("")}
                   </select>
                 </label>
 
                 <label>
                   Utlovad roll
                   <select id="renewalRole">
-                    ${SQUAD_ROLES.map(item => `<option value="${item}" ${item===negotiation.role ? "selected" : ""}>${item}</option>`).join("")}
+                    ${SQUAD_ROLES.map(item => `<option value="${item}" ${item===renewalDraftValues(player,negotiation).role ? "selected" : ""}>${item}</option>`).join("")}
                   </select>
                 </label>
               </div>
 
-              ${rolePromiseOfferView(player)}
+              <p><output id="renewalPreview">${trainingSafe(renewalDecisionText(player,renewalDraftValues(player,negotiation)))}</output></p><p>Utkastet sparas automatiskt och skickas först när du lämnar erbjudandet. Avbryt tar bort utkastet.</p>${rolePromiseOfferView(player)}
               <div class="player-actions">
                 <button class="btn" onclick="submitContractRenewal(
                   '${player.id}',
@@ -3714,7 +3714,7 @@ ${
         </section>
 
 
-${loanPlayerPanel(player)}`:tab==='development'?`<div class="fm-profile-details">${trainingPlayerPanel(player)}${medicalPlayerPanel(player)}</div>`:tab==='person'?`<div class="player-person-workspace">${lockerPlayerPanel(player)}${socialJournalView(player)}</div>`:tab==='report'?`${assessmentPanel(player)}${storiesPlayerPanel(player)}`:`
+${rolePromisePlayerView(player)}${loanPlayerPanel(player)}`:tab==='development'?`<div class="fm-profile-details">${trainingPlayerPanel(player)}${medicalPlayerPanel(player)}</div>`:tab==='person'?`<div class="player-person-workspace">${lockerPlayerPanel(player)}${socialJournalView(player)}</div>`:tab==='report'?`${assessmentPanel(player)}${storiesPlayerPanel(player)}`:`
   <div class="fm-profile-main"><section class="fm-panel fm-role-panel"><h2>Position & roll</h2><div class="fm-position-map"><span class="${['VF','F'].includes(player.pos)?'active':''}">VF</span><span class="${['C','F'].includes(player.pos)?'active':''}">C</span><span class="${['HF','F'].includes(player.pos)?'active':''}">HF</span><span class="${player.pos==='B'?'active':''}">VB</span><span class="${player.pos==='B'?'active':''}">HB</span><span class="${player.pos==='MV'?'active':''}">MV</span></div><p>${lineupPlayerPlace(player)}</p>${r.roles.map(x=>`<div class="fm-role-row"><b>${x.name}</b><span>${x.value>=14?'Styrka':x.value>=11?'Användbar':'Utvecklingsbehov'}</span></div>`).join('')}</section>
   ${desktopAttributes(player)}<aside class="fm-panel fm-report-summary"><h2>Tränarens bedömning</h2><p>${trainingSafe(r.staff.name)}</p><strong>${r.roles[0].name}</strong><p>${medicalAvailable(player)?'Tillgänglig för uttagning':'Ej tillgänglig för uttagning'}</p><dl><dt>Startenergi</dt><dd>${Math.round(readinessCeiling(player.fatigue))}%</dd><dt>Slitage</dt><dd>${Math.round(player.fatigue||0)} / 100</dd><dt>Moral</dt><dd>${Math.round(player.morale??70)} / 100</dd><dt>Form</dt><dd>${player.form||0}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='report';render()">Fullständig rapport →</button></aside></div>
   <div class="fm-profile-bottom"><section class="fm-panel"><h2>Kontrakt</h2><dl><dt>Årslön</dt><dd>${formatCurrency(player.salary)}</dd><dt>Återstår</dt><dd>${player.contractYears} år</dd><dt>Utlovad roll</dt><dd>${player.promisedRole}</dd><dt>Marknadsvärde</dt><dd>${formatCurrency(player.value)}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='contract';render()">Hantera kontrakt →</button></section><section class="fm-panel"><h2>Utveckling & välmående</h2><dl><dt>Träningsfokus</dt><dd>${trainingSafe(player.developmentFocus||'Individuell plan')}</dd><dt>Trivsel</dt><dd>${Math.round(player.happiness??70)}%</dd><dt>Roll i truppen</dt><dd>${role}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='development';render()">Träning & hälsa →</button></section><section class="fm-panel"><h2>Säsong ${seasonLabel()}</h2><table class="fm-stats"><thead><tr><th>Matcher</th><th>Mål</th><th>Assist</th><th>Poäng</th><th>Skott</th><th>Utv.</th></tr></thead><tbody><tr>${[player.games,player.goals,player.assists,points,player.shots,player.pim].map(n=>`<td>${n||0}</td>`).join('')}</tr></tbody></table></section></div>`}</article>`;
