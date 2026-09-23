@@ -196,7 +196,7 @@ function rivalLiveDecision(){
   aiObserveMatch(a,{seconds:elapsed,gf:m.opp,ga:m.hv,shots:e?.stats[1].shots||m.shotsOpp||0,againstShots:e?.stats[0].shots||m.shotsHV||0,previous:a,linePoints:[0,1,2,3].map(i=>(a.forwards||[]).slice(i*3,i*3+3).reduce((n,id)=>{const r=m.leagueBox?.players[m.opponent+':'+id];return n+(r?.goals||0)+(r?.assists||0);},0)),energy:(a.forwards||[]).map(id=>(state.clubRosters[m.opponent]||[]).find(p=>samePlayerId(p.id,id))).filter(Boolean).reduce((n,p)=>n+matchEnergy(p),0)/Math.max(1,a.forwards.length),strength:Math.min(2,m.penaltiesHV.length)-Math.min(2,m.penaltiesOpp.length)}));
  if(aiDecisionKey(a)!==aiDecisionKey(decision)){a.adjustment=decision.style;a.coachChanges??=[];a.coachChanges.push({seconds:elapsed,reason:decision.reason,response:decision.response});a.coachChanges=a.coachChanges.slice(-20);addEvent(`${a.coachName}: ${decision.reason} Stabens förslag: ${decision.response}`,'strategy');}
  for(const key of ['style','posture','tempo','forecheck','rotation','shiftLimit','matchup','reason','response','situation','changedAt','hotLine'])a[key]=decision[key];
- if(!a.timeout&&decision.timeout){a.timeout=true;matchRecover(60,'opponent-timeout');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}
+ if(!a.timeout&&decision.timeout){a.timeout=true;matchTimeoutRecovery('opponent-timeout','opponent');addEvent(`${a.coachName} tar timeout och samlar ${m.opponent}.`,'strategy');}
 }
 
 // Background fixtures resolve registered shots, not spatial puck flights.
@@ -357,7 +357,7 @@ function rivalSimulate(game,{regulationOnly=false}={}){
    const b=sides[side],other=sides[1-side],decision=aiCoachDecision(names[side],b.basePlan,aiObserveMatch(b,{seconds:time,gf:b.goals,ga:other.goals,shots:b.shots,againstShots:other.shots,previous:b.l.plan,linePoints:[0,1,2,3].map(i=>b.l.forwards.slice(i*3,i*3+3).reduce((n,p)=>{const r=b.rows.get(String(p.id));return n+(r?.goals||0)+(r?.assists||0);},0)),energy:b.l.forwards.reduce((n,p)=>n+(energy.get(p)??100),0)/Math.max(1,b.l.forwards.length),strength:Math.min(2,other.pens.length)-Math.min(2,b.pens.length)}));
    if(aiDecisionKey(decision)!==aiDecisionKey(b.l.plan))b.decisions.push({seconds:time,reason:decision.reason,response:decision.response});
    b.decisions=b.decisions.slice(-20);
-   if(decision.timeout&&!b.timeout){b.timeout=true;for(const p of [...b.l.forwards,...b.l.defense,...b.l.extras,...b.l.keepers])energy.set(p,readinessRecover(energy.get(p)??100,60,values.get(p)?.stamina||10,readinessCeiling((p.fatigue||0)+(workload.get(p)||0))));b.decisions.push({seconds:time,reason:'Tar timeout för återhämtning och en sista offensiv.'});}
+   if(decision.timeout&&!b.timeout){b.timeout=true;for(const [p,level] of energy)energy.set(p,timeoutEnergy(level,values.get(p)?.stamina||10,readinessCeiling((p.fatigue||0)+(workload.get(p)||0))));b.decisions.push({seconds:time,reason:'Tar timeout. Båda lagen får 30 sekunders återhämtning.'});}
    b.decisions=b.decisions.slice(-20);b.l.plan=decision;
   }
   const ice=[onIce(0),onIce(1)];updateChemistry(ice);

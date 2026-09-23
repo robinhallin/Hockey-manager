@@ -2693,17 +2693,10 @@ function useTimeout(){
 
   m.running=false;m.pauseReason='Timeout.';
 
-  m.momentum=
-    Math.min(
-      75,
-      m.momentum+7
-    );
-
-
-  matchRecover(30,'timeout');
+  matchTimeoutRecovery('timeout','own');
 
   addEvent(
-    `${managerClub()} tar timeout. Spelarna får återhämta sig.`,
+    `${managerClub()} tar timeout. Båda lagen får 30 sekunders återhämtning.`,
     "strategy"
   );
 
