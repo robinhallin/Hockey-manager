@@ -1,7 +1,7 @@
 "use strict";
 // Dated public player facts; game estimates are documented in PLAYER_RESEARCH.md.
 const ALLSVENSKAN_DATABASE = {
-  "version": "se-2026-09-06",
+  "version": "se-2026-09-07-evidence2",
   "season": "2026/27",
   "checked": "2026-09-06",
   "clubs": {
@@ -13411,7 +13411,7 @@ const ALLSVENSKAN_DATABASE = {
   ]
 };
 const SHL_DATABASE = {
-  "version": "se-2026-09-06",
+  "version": "se-2026-09-07-evidence2",
   "season": "2026/27",
   "checked": "2026-09-06",
   "clubs": {

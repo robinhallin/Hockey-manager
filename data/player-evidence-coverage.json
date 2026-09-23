@@ -1,0 +1,3836 @@
+{
+  "asOf": "2026-09-07",
+  "checked": "2026-09-23",
+  "players": 684,
+  "identityMethod": "Existing stable ID and full DOB retained. Tables attached only after unique name + position + historical club/league/season/GP match, plus goals/assists or rounded SV fingerprint where published. No new identities inferred.",
+  "factsCorrected": 46,
+  "officialRowsMatched": 263,
+  "officialPlayers": 156,
+  "clubs": [
+    {
+      "club": "Björklöven",
+      "players": 25,
+      "physicalCorrections": 0,
+      "officialPlayers": 8,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 0,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Brynäs IF",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 7,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 2,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Djurgårdens IF",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 6,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 2,
+      "loanPlayers": 1,
+      "juniorRegistrations": 1
+    },
+    {
+      "club": "Frölunda HC",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 7,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 0,
+      "juniorRegistrations": 2
+    },
+    {
+      "club": "Färjestad BK",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 7,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 2,
+      "loanPlayers": 1,
+      "juniorRegistrations": 3
+    },
+    {
+      "club": "HV71",
+      "players": 25,
+      "physicalCorrections": 0,
+      "officialPlayers": 6,
+      "goaliePlayers": 3,
+      "faceoffPlayers": 1,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Linköping HC",
+      "players": 28,
+      "physicalCorrections": 0,
+      "officialPlayers": 5,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 1,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Luleå HF",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 7,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 2,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Malmö Redhawks",
+      "players": 27,
+      "physicalCorrections": 0,
+      "officialPlayers": 9,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 2,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Rögle BK",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 8,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 4,
+      "loanPlayers": 1,
+      "juniorRegistrations": 1
+    },
+    {
+      "club": "Skellefteå AIK",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 8,
+      "goaliePlayers": 3,
+      "faceoffPlayers": 2,
+      "loanPlayers": 0,
+      "juniorRegistrations": 1
+    },
+    {
+      "club": "Timrå IK",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 5,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Växjö Lakers",
+      "players": 25,
+      "physicalCorrections": 0,
+      "officialPlayers": 8,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 0,
+      "juniorRegistrations": 2
+    },
+    {
+      "club": "Örebro Hockey",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 9,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 3,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "AIK",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 5,
+      "goaliePlayers": 3,
+      "faceoffPlayers": 0,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Almtuna IS",
+      "players": 21,
+      "physicalCorrections": 21,
+      "officialPlayers": 2,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 1,
+      "loanPlayers": 2,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "BIK Karlskoga",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 7,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 3,
+      "loanPlayers": 1,
+      "juniorRegistrations": 1
+    },
+    {
+      "club": "IK Oskarshamn",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 3,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 2,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Kalmar HC",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 4,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 3,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Leksands IF",
+      "players": 21,
+      "physicalCorrections": 0,
+      "officialPlayers": 5,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 0,
+      "juniorRegistrations": 1
+    },
+    {
+      "club": "MoDo Hockey",
+      "players": 22,
+      "physicalCorrections": 0,
+      "officialPlayers": 3,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 1,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Mora IK",
+      "players": 25,
+      "physicalCorrections": 25,
+      "officialPlayers": 3,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 0,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Nybro Vikings",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 4,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 1,
+      "loanPlayers": 2,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Södertälje SK",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 8,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 4,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Vimmerby HC",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 1,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 0,
+      "loanPlayers": 3,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Visby/Roma",
+      "players": 24,
+      "physicalCorrections": 0,
+      "officialPlayers": 2,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 1,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Västerås IK",
+      "players": 23,
+      "physicalCorrections": 0,
+      "officialPlayers": 2,
+      "goaliePlayers": 1,
+      "faceoffPlayers": 0,
+      "loanPlayers": 0,
+      "juniorRegistrations": 0
+    },
+    {
+      "club": "Östersunds IK",
+      "players": 26,
+      "physicalCorrections": 0,
+      "officialPlayers": 6,
+      "goaliePlayers": 2,
+      "faceoffPlayers": 3,
+      "loanPlayers": 1,
+      "juniorRegistrations": 0
+    }
+  ],
+  "matched": [
+    {
+      "id": "ep-388669",
+      "birth": "2001-08-03",
+      "club": "Frölunda HC",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-288166",
+      "birth": "1998-08-18",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-4386",
+      "birth": "1987-07-11",
+      "club": "Frölunda HC",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-265295",
+      "birth": "1999-07-31",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-13297",
+      "birth": "1991-04-04",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-100297",
+      "birth": "1994-07-22",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-151877",
+      "birth": "1996-09-28",
+      "club": "Färjestad BK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-279019",
+      "birth": "1999-12-03",
+      "club": "Linköping HC",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-379904",
+      "birth": "2001-07-03",
+      "club": "Luleå HF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-646204",
+      "birth": "2005-09-28",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-231395",
+      "birth": "1998-11-03",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-36985",
+      "birth": "1993-09-10",
+      "club": "Timrå IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-3688",
+      "birth": "1988-06-25",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-159569",
+      "birth": "1997-11-21",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-264409",
+      "birth": "1998-08-17",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-318432",
+      "birth": "2001-03-01",
+      "club": "Timrå IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-602267",
+      "birth": "2004-10-10",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-114810",
+      "birth": "1996-08-23",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-142236",
+      "birth": "1996-10-14",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-707277",
+      "birth": "2005-05-25",
+      "club": "Färjestad BK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-113535",
+      "birth": "1997-02-13",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-19789",
+      "birth": "1993-01-08",
+      "club": "Luleå HF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-146703",
+      "birth": "1997-01-12",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-329482",
+      "birth": "1999-10-06",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-650466",
+      "birth": "2005-03-05",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-277264",
+      "birth": "2000-02-02",
+      "club": "MoDo Hockey",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-167737",
+      "birth": "1997-11-14",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-167737",
+      "birth": "1997-11-14",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-315158",
+      "birth": "1999-02-25",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-525663",
+      "birth": "2003-02-14",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-155712",
+      "birth": "1994-06-20",
+      "club": "Kontraktslös",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-578759",
+      "birth": "2004-01-01",
+      "club": "Almtuna IS",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-867379",
+      "birth": "2007-05-05",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-238743",
+      "birth": "1997-11-17",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-27259",
+      "birth": "1993-08-27",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-3682",
+      "birth": "1987-11-23",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-13091",
+      "birth": "1991-10-05",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-9009",
+      "birth": "1992-07-25",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-212624",
+      "birth": "1998-08-24",
+      "club": "Luleå HF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-43563",
+      "birth": "1993-04-14",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-9985",
+      "birth": "1990-07-03",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-118663",
+      "birth": "1995-09-26",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-195218",
+      "birth": "1996-05-27",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-8311",
+      "birth": "1990-05-27",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-16813",
+      "birth": "1993-01-16",
+      "club": "Linköping HC",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-6016",
+      "birth": "1991-04-24",
+      "club": "Timrå IK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-344692",
+      "birth": "2001-04-27",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-5016",
+      "birth": "1989-09-16",
+      "club": "Frölunda HC",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-187855",
+      "birth": "1996-12-08",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-714281",
+      "birth": "2006-04-10",
+      "club": "Färjestad BK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-142243",
+      "birth": "1996-01-25",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-16709",
+      "birth": "1988-06-01",
+      "club": "Luleå HF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-266319",
+      "birth": "1999-01-18",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-20063",
+      "birth": "1992-05-01",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-290074",
+      "birth": "1999-08-18",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-85693",
+      "birth": "1996-11-16",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-33114",
+      "birth": "1993-04-26",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-251447",
+      "birth": "1998-01-31",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-287856",
+      "birth": "1999-06-02",
+      "club": "Färjestad BK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-209426",
+      "birth": "1998-05-25",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-166662",
+      "birth": "1998-03-13",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-63003",
+      "birth": "1994-03-04",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-46502",
+      "birth": "1995-10-18",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-6562",
+      "birth": "1990-10-13",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-63012",
+      "birth": "1995-06-28",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-227531",
+      "birth": "1997-07-28",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-702288",
+      "birth": "2005-06-22",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-197821",
+      "birth": "1998-10-13",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-285894",
+      "birth": "1999-09-12",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-195218",
+      "birth": "1996-05-27",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-9985",
+      "birth": "1990-07-03",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-266319",
+      "birth": "1999-01-18",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-85693",
+      "birth": "1996-11-16",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-6562",
+      "birth": "1990-10-13",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-76324",
+      "birth": "1994-06-23",
+      "club": "Djurgårdens IF",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-20063",
+      "birth": "1992-05-01",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-285894",
+      "birth": "1999-09-12",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-33114",
+      "birth": "1993-04-26",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-248525",
+      "birth": "1995-05-28",
+      "club": "Växjö Lakers",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-287856",
+      "birth": "1999-06-02",
+      "club": "Färjestad BK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-166662",
+      "birth": "1998-03-13",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-195218",
+      "birth": "1996-05-27",
+      "club": "Rögle BK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-247945",
+      "birth": "1998-06-10",
+      "club": "Brynäs IF",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-372926",
+      "birth": "1999-07-02",
+      "club": "Luleå HF",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-375954",
+      "birth": "2000-05-31",
+      "club": "Örebro Hockey",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-16434",
+      "birth": "1991-08-19",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-689910",
+      "birth": "2007-01-18",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-796339",
+      "birth": "2006-09-02",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-344661",
+      "birth": "2000-07-23",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-574625",
+      "birth": "2003-10-26",
+      "club": "Östersunds IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-29607",
+      "birth": "1994-03-05",
+      "club": "Mora IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-230466",
+      "birth": "1998-02-18",
+      "club": "Nybro Vikings",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-147736",
+      "birth": "1997-05-02",
+      "club": "MoDo Hockey",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-650466",
+      "birth": "2005-03-05",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-212526",
+      "birth": "1997-03-22",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-557300",
+      "birth": "2002-09-05",
+      "club": "IK Oskarshamn",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-578759",
+      "birth": "2004-01-01",
+      "club": "Almtuna IS",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-155712",
+      "birth": "1994-06-20",
+      "club": "Kontraktslös",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-13991",
+      "birth": "1991-01-01",
+      "club": "Östersunds IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-730701",
+      "birth": "2006-08-06",
+      "club": "IK Oskarshamn",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-277264",
+      "birth": "2000-02-02",
+      "club": "MoDo Hockey",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-867379",
+      "birth": "2007-05-05",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-486845",
+      "birth": "2002-06-01",
+      "club": "Kalmar HC",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-477908",
+      "birth": "2001-07-26",
+      "club": "Mora IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-113535",
+      "birth": "1997-02-13",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-643247",
+      "birth": "2005-07-05",
+      "club": "Västerås IK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-718912",
+      "birth": "2005-07-28",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-602267",
+      "birth": "2004-10-10",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-525663",
+      "birth": "2003-02-14",
+      "club": "Skellefteå AIK",
+      "season": "25-26",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-131304",
+      "birth": "1997-02-03",
+      "club": "Visby/Roma",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-86197",
+      "birth": "1996-06-16",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-86213",
+      "birth": "1995-08-05",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-221341",
+      "birth": "1999-04-14",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-7101",
+      "birth": "1990-09-22",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-27471",
+      "birth": "1993-01-27",
+      "club": "Östersunds IK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-49289",
+      "birth": "1993-03-26",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-228227",
+      "birth": "1998-05-22",
+      "club": "Nybro Vikings",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-2020",
+      "birth": "1987-03-27",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-345149",
+      "birth": "2000-05-14",
+      "club": "MoDo Hockey",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-411933",
+      "birth": "2002-01-29",
+      "club": "Kalmar HC",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-246498",
+      "birth": "1999-05-16",
+      "club": "Almtuna IS",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-313532",
+      "birth": "2000-02-14",
+      "club": "Kalmar HC",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-294248",
+      "birth": "1999-03-29",
+      "club": "Östersunds IK",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-86358",
+      "birth": "1996-09-22",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-118779",
+      "birth": "1996-09-11",
+      "club": "HV71",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-394734",
+      "birth": "2003-03-30",
+      "club": "Kalmar HC",
+      "season": "25-26",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-135388",
+      "birth": "1994-03-28",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-411879",
+      "birth": "2003-04-14",
+      "club": "Frölunda HC",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-16958",
+      "birth": "1991-05-18",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-438",
+      "birth": "1996-04-19",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-487147",
+      "birth": "2002-07-17",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-277055",
+      "birth": "1999-03-08",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-7101",
+      "birth": "1990-09-22",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-26019",
+      "birth": "1994-11-11",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-10515",
+      "birth": "1991-10-03",
+      "club": "Nybro Vikings",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-317680",
+      "birth": "2000-07-13",
+      "club": "Västerås IK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-234246",
+      "birth": "1999-05-22",
+      "club": "Linköping HC",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-267086",
+      "birth": "2000-03-31",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-151832",
+      "birth": "1995-01-02",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-294252",
+      "birth": "2000-02-20",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-88843",
+      "birth": "1995-01-06",
+      "club": "Mora IK",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-424843",
+      "birth": "2002-05-04",
+      "club": "Leksands IF",
+      "season": "25-26",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-99859",
+      "birth": "1996-12-12",
+      "club": "Björklöven",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-647762",
+      "birth": "2005-05-01",
+      "club": "Malmö Redhawks",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-411879",
+      "birth": "2003-04-14",
+      "club": "Frölunda HC",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-317680",
+      "birth": "2000-07-13",
+      "club": "Västerås IK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-135388",
+      "birth": "1994-03-28",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-234246",
+      "birth": "1999-05-22",
+      "club": "Linköping HC",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-313532",
+      "birth": "2000-02-14",
+      "club": "Kalmar HC",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-86197",
+      "birth": "1996-06-16",
+      "club": "Södertälje SK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-472149",
+      "birth": "2002-11-03",
+      "club": "Nybro Vikings",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-349939",
+      "birth": "2001-02-13",
+      "club": "BIK Karlskoga",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-463647",
+      "birth": "2002-04-03",
+      "club": "AIK",
+      "season": "25-26",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-329482",
+      "birth": "1999-10-06",
+      "club": "Växjö Lakers",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-231395",
+      "birth": "1998-11-03",
+      "club": "Rögle BK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-4386",
+      "birth": "1987-07-11",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-388669",
+      "birth": "2001-08-03",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-159569",
+      "birth": "1997-11-21",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-379904",
+      "birth": "2001-07-03",
+      "club": "Luleå HF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-114810",
+      "birth": "1996-08-23",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-315158",
+      "birth": "1999-02-25",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-3688",
+      "birth": "1988-06-25",
+      "club": "AIK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-151877",
+      "birth": "1996-09-28",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-36985",
+      "birth": "1993-09-10",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-167737",
+      "birth": "1997-11-14",
+      "club": "Djurgårdens IF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-100297",
+      "birth": "1994-07-22",
+      "club": "Malmö Redhawks",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-142236",
+      "birth": "1996-10-14",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-646204",
+      "birth": "2005-09-28",
+      "club": "Leksands IF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-277264",
+      "birth": "2000-02-02",
+      "club": "MoDo Hockey",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-265295",
+      "birth": "1999-07-31",
+      "club": "Växjö Lakers",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-19789",
+      "birth": "1993-01-08",
+      "club": "Luleå HF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-147736",
+      "birth": "1997-05-02",
+      "club": "MoDo Hockey",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-650466",
+      "birth": "2005-03-05",
+      "club": "HV71",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-318432",
+      "birth": "2001-03-01",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-643247",
+      "birth": "2005-07-05",
+      "club": "Västerås IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-27259",
+      "birth": "1993-08-27",
+      "club": "Malmö Redhawks",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-714281",
+      "birth": "2006-04-10",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-9009",
+      "birth": "1992-07-25",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-212624",
+      "birth": "1998-08-24",
+      "club": "Luleå HF",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-43563",
+      "birth": "1993-04-14",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-238743",
+      "birth": "1997-11-17",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-187855",
+      "birth": "1996-12-08",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-24429",
+      "birth": "1989-01-10",
+      "club": "Malmö Redhawks",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-6016",
+      "birth": "1991-04-24",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-142243",
+      "birth": "1996-01-25",
+      "club": "Djurgårdens IF",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-16813",
+      "birth": "1993-01-16",
+      "club": "Linköping HC",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-20063",
+      "birth": "1992-05-01",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-6562",
+      "birth": "1990-10-13",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-212666",
+      "birth": "1998-03-09",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-287856",
+      "birth": "1999-06-02",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-305485",
+      "birth": "1998-10-28",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-15878",
+      "birth": "1992-12-09",
+      "club": "Linköping HC",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-27461",
+      "birth": "1993-03-01",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-89968",
+      "birth": "1994-07-29",
+      "club": "Luleå HF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-397004",
+      "birth": "2001-01-11",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-10018",
+      "birth": "1990-08-28",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-266319",
+      "birth": "1999-01-18",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-85693",
+      "birth": "1996-11-16",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-7084",
+      "birth": "1990-11-21",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-166662",
+      "birth": "1998-03-13",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-92085",
+      "birth": "1995-11-28",
+      "club": "Luleå HF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-212666",
+      "birth": "1998-03-09",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-195151",
+      "birth": "1997-11-14",
+      "club": "Rögle BK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-266319",
+      "birth": "1999-01-18",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-20063",
+      "birth": "1992-05-01",
+      "club": "Örebro Hockey",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-6562",
+      "birth": "1990-10-13",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-287856",
+      "birth": "1999-06-02",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-85693",
+      "birth": "1996-11-16",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-46502",
+      "birth": "1995-10-18",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-153203",
+      "birth": "1995-08-02",
+      "club": "Växjö Lakers",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-13038",
+      "birth": "1992-03-03",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-13549",
+      "birth": "1991-12-31",
+      "club": "Rögle BK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-10711",
+      "birth": "1991-10-29",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-27461",
+      "birth": "1993-03-01",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-9009",
+      "birth": "1992-07-25",
+      "club": "Brynäs IF",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-212526",
+      "birth": "1997-03-22",
+      "club": "AIK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-602267",
+      "birth": "2004-10-10",
+      "club": "Malmö Redhawks",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-525663",
+      "birth": "2003-02-14",
+      "club": "Skellefteå AIK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-16434",
+      "birth": "1991-08-19",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-707277",
+      "birth": "2005-05-25",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-13991",
+      "birth": "1991-01-01",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-578759",
+      "birth": "2004-01-01",
+      "club": "Almtuna IS",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-113535",
+      "birth": "1997-02-13",
+      "club": "Leksands IF",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-104409",
+      "birth": "1996-11-17",
+      "club": "Visby/Roma",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-230466",
+      "birth": "1998-02-18",
+      "club": "Nybro Vikings",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-534831",
+      "birth": "2005-10-27",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-718912",
+      "birth": "2005-07-28",
+      "club": "AIK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-574625",
+      "birth": "2003-10-26",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-574625",
+      "birth": "2003-10-26",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-23632",
+      "birth": "1993-11-30",
+      "club": "Vimmerby HC",
+      "season": "24-25",
+      "kind": "goalies"
+    },
+    {
+      "id": "ep-8311",
+      "birth": "1990-05-27",
+      "club": "Djurgårdens IF",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-270160",
+      "birth": "1998-06-20",
+      "club": "Färjestad BK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-86197",
+      "birth": "1996-06-16",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-38389",
+      "birth": "1993-08-03",
+      "club": "IK Oskarshamn",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-27471",
+      "birth": "1993-01-27",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-534824",
+      "birth": "2005-10-18",
+      "club": "Rögle BK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-394723",
+      "birth": "2002-02-14",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-152027",
+      "birth": "1997-04-28",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "fo"
+    },
+    {
+      "id": "ep-99859",
+      "birth": "1996-12-12",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-16958",
+      "birth": "1991-05-18",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-470015",
+      "birth": "2002-05-12",
+      "club": "Linköping HC",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-146116",
+      "birth": "1996-07-22",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-585832",
+      "birth": "2004-03-07",
+      "club": "HV71",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-152027",
+      "birth": "1997-04-28",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-438",
+      "birth": "1996-04-19",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-411879",
+      "birth": "2003-04-14",
+      "club": "Frölunda HC",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-198405",
+      "birth": "1998-01-15",
+      "club": "Djurgårdens IF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-8311",
+      "birth": "1990-05-27",
+      "club": "Djurgårdens IF",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-26019",
+      "birth": "1994-11-11",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "scoring"
+    },
+    {
+      "id": "ep-287721",
+      "birth": "2000-01-23",
+      "club": "Timrå IK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-403021",
+      "birth": "2002-02-27",
+      "club": "Östersunds IK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-146116",
+      "birth": "1996-07-22",
+      "club": "Södertälje SK",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-328002",
+      "birth": "2000-04-01",
+      "club": "Växjö Lakers",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-99859",
+      "birth": "1996-12-12",
+      "club": "Björklöven",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-234246",
+      "birth": "1999-05-22",
+      "club": "Linköping HC",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-151832",
+      "birth": "1995-01-02",
+      "club": "Leksands IF",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-647762",
+      "birth": "2005-05-01",
+      "club": "Malmö Redhawks",
+      "season": "24-25",
+      "kind": "eff"
+    },
+    {
+      "id": "ep-470015",
+      "birth": "2002-05-12",
+      "club": "Linköping HC",
+      "season": "24-25",
+      "kind": "eff"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Damian Clara",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "BIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Christoffer Rifalk",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "RBK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jesper Myrenberg",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Tim Juel",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Daniel Marmenlind",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "goalies",
+      "reason": "historical-stint-not-uniquely-matched"
+    },
+    {
+      "name": "David Tomasek",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Theodor Niederbach",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FRÖ",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Sean Malone",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "ÖHK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Markus Ljungh",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ludvig Rensfeldt",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Dahlén",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Emil Pettersson",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jere Innala",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FRÖ",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joseph Laleggia",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joseph Snively",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Anton Frondell",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Dahlén",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jere Innala",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FRÖ",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Arttu Ruotsalainen",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FRÖ",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Okuliar",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "SKE",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "David Tomasek",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Emil Pettersson",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joseph Laleggia",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Michael Lindqvist",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "LIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ty Rattie",
+      "season": "25-26",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jacob Crespin",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Olle Eriksson Ek",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "IFB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Rasmus Korhonen",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Viktor Andrén",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIS",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Stålberg",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "TRO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Fabian Arwidson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Anthony Nyberg",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lars Volden",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Niclas Westerholm",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Håkansson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Håkansson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Håkansson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Leon Contreras",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Alexander Hellnemo",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Daniel Rosengren",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonas Gunnarsson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Vilgot Holm",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "TRO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Edvin Olofsson",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MoDo",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Trym Gran",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Hugo Laring",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIM",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oscar Fröberg",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "TRO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "William Kias",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Claes Endre",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIM",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Melker Björk",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "TRO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mathias Wigley",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Connor Maceachern",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Matt Fonteyne",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Konstantin Komarek",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Brett Stapley",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Kyle Topping",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MoDo",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Eklind",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mikkel Oby Olsen",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIS",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "George Diaco",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Teemu Olavi Lepaus",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mikkel Oby Olsen",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIS",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Liam Hawel",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Herman Träff",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Connor Maceachern",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Simon Åkerström",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Sebastian Dyk",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Linus Videll",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Kevin Engvall",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "VIM",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gerry Fitzgerald",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MoDo",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "George Diaco",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mikkel Oby Olsen",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIS",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Matthew Struthers",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Maksim Semjonov",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ludwig Blomstrand",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lucas Lagerberg",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Carter Ashton",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Sebastian Dyk",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Herman Träff",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Liam Hawel",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ethan De Jong",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Linus Videll",
+      "season": "25-26",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Tim Juel",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jesper Myrenberg",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Hugo Alnefelt",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "HV71",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Maxime Lagacé",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Henri Kiviaho",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Viktor Andrén",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "VÄX",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gustaf Lindvall",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "SKE",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Anders Lindbäck",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Christoffer Rifalk",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "RBK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Christian Heljanko",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mantas Armalis",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Damian Clara",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Olle Eriksson Ek",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MoDo",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ebbe Lundberg",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MoDo",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Alexander Hellnemo",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "SKE",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Hannes Björninen",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "ÖHK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "David Tomasek",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gustav Rydahl",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FRÖ",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Brady Ferguson",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "RBK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Markus Ljungh",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Robert Leino",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "ÖHK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Nicholas Shore",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Kapanen",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Marek Hrivik",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Christoffer Forsberg",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Theodor Niederbach",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MoDo",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Brian O'neil",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jordan Schroeder",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "BIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "David Tomasek",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Filip Hållander",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Dahlén",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Henrik Borgström",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "HV71",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Charles-Édouard D'astous",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "BIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Brian O'neil",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ty Rattie",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LHC",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Victor Söderström",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "BIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Kapanen",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "David Tomasek",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "FBK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Filip Hållander",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Henrik Borgström",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "HV71",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Kapanen",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Justin Glenn Kloos",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "LIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joona Luoto",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "HV71",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Dahlén",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "TIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jack Kopacka",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "BIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jesper Olofsson",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MoDo",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lassi Thomson",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "MIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joachim Blichfeld",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "RBK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joachim Blichfeld",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "RBK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joachim Blichfeld",
+      "season": "24-25",
+      "league": "SHL",
+      "team": "VÄX",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Samuel Jonsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lars Volden",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Topias Leinonen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jonathan Stålberg",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Edvin Olofsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIS",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jacob Crespin",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Emil Kruse",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Andreas Ljunggren",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Rasmus Korhonen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Blake Pietila",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Alexander Hellnemo",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Claes Endre",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIM",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Sebastian Ericsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Aron Breivold",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Oliver Håkansson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Evan Cowley",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jörgen Hanneborg",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Viktor Andrén",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Daniel Rosengren",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Isak Mantler",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Isak Mantler",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Christian Engstrand",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Carl Lidö",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "goalies",
+      "reason": "historical-stint-not-uniquely-matched"
+    },
+    {
+      "name": "Kristers Steinbergs",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Emil Cederlund",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Melwin Asp Cassåsen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IFB",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lucas Lindblad",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Charlie Rotting",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Leo Granholm",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Noel Massot",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "goalies",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Mathias Wigley",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Konstantin Komarek",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gerry Fitzgerald",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Felix Girard",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IFB",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Linus Videll",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ture Linden",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Eskild Bakke Olsen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Stelio Mattheos",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ludvig Rensfeldt",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Artturi Toivola",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Erik Reed Bradford",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Fredric Weigel",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Kim Rosdahl",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Felix Olsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Arvid Costmar",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Joachim Nermark",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "TAIF",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Nolan Walker",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "fo",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Andrew Vanderbeck",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Eskild Bakke Olsen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Nicolai Meyer",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Henrik Larsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Jacob Hayhurst",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Theodor Pistek",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Sebastian Dyk",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Patrick Thoresen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Maxime Fortier",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IFB",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Linus Klasen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Michael Joyaux",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gerry Fitzgerald",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Simon Åkerström",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Rasmus Bengtsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IKO",
+      "kind": "scoring",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Viggo Björck",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Dick Axelsson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Nicolai Meyer",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "SSK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "George Diaco",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "VIM",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Linus Klasen",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Victor Eklund",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Maxime Fortier",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "IFB",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Matt Fonteyne",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Lucas Pettersson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "ÖST",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Leevi Viitala",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "BIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Veikko Loimaranta",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "Kalm",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Fabian Ilestedt",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Johan Persson",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "MIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Gerry Fitzgerald",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "AIK",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Ludwig Blomstrand",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "NYB",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    },
+    {
+      "name": "Anton Frondell",
+      "season": "24-25",
+      "league": "HockeyAllsvenskan",
+      "team": "DIF",
+      "kind": "eff",
+      "reason": "not-in-start-database"
+    }
+  ],
+  "freeAgents": [
+    {
+      "id": "ep-10051",
+      "birth": "1990-02-09",
+      "name": "Daniel Brodin",
+      "source": "https://www.eliteprospects.com/player/10051/daniel-brodin",
+      "departure": "https://www.bjorkloven.com/article/6j3atjc-2e4ad/view",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    },
+    {
+      "id": "ep-142238",
+      "birth": "1997-05-19",
+      "name": "Oliver Kylington",
+      "source": "https://www.eliteprospects.com/player/142238/oliver-kylington",
+      "departure": "https://www.difhockey.se/article/eoyatcg-1lead/view",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    },
+    {
+      "id": "ep-43555",
+      "birth": "1992-02-19",
+      "name": "Oula Palve",
+      "source": "https://www.eliteprospects.com/player/43555/oula-palve",
+      "departure": "https://www.difhockey.se/article/eoyatcg-1lead/view",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    },
+    {
+      "id": "ep-155712",
+      "birth": "1994-06-20",
+      "name": "Collin Delia",
+      "source": "https://www.eliteprospects.com/player/155712/collin-delia",
+      "departure": "https://www.instagram.com/p/DXMYka7iIzA/",
+      "checked": "2026-09-23",
+      "status": "Existing start assumption retained. Public profile crosschecked; an absent new club does not prove no unannounced agreement exists."
+    }
+  ],
+  "limits": [
+    "Current roster pages do not prove all historical registrations. No post-start transfers backdated.",
+    "Original two-season statistics retained; new official data cover published goalie tables and skater top-25 leader lists only.",
+    "No skater time-on-ice, shift role, PP/PK usage or tracking measurements imported.",
+    "Academy teams remain explicitly fictional. Free-agent pool is four documented starting assumptions, not every available professional."
+  ]
+}

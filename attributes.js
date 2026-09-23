@@ -54,7 +54,15 @@ function attributeWeighted(values,weights){let sum=0,total=0;for(const [key,w] o
 function isOwnPlayer(p){return managerRoster().some(x=>samePlayerId(x.id,p.id));}
 function scoutReportAge(r,date=state.calendar?.date){const observed=r?.lastObserved||r?.snapshotDate;return observed&&date?Math.max(0,calGap(observed,date)):0;}
 function scoutNeedsObservation(p,date=state.calendar?.date){const r=state.scoutReports[String(p.id)];return !isOwnPlayer(p)&&((r?.visits||0)<3||r?.origin==='legacy'||!r?.snapshot||scoutReportAge(r,date)>=60);}
-function scoutRemember(p){return {visits:3,lastObserved:state.calendar.date,snapshotDate:state.calendar.date,snapshot:{...ensurePlayerAttributes(p)},origin:'club'};}
+function scoutPotentialSnapshot(p){
+ if(!p.developmentForecast)return null;
+ // A projection of remaining development room, never the private per-attribute
+ // ceiling. Freeze it with the observation; later private changes cannot leak.
+ const f=p.developmentForecast;
+ const spread=Array.isArray(f)?f[1]-f[0]:f.high-f.low;
+ return {growth:Math.max(0,p.attributeGrowth)*.675,uncertainty:Math.max(.4,spread*.3375),age:p.age};
+}
+function scoutRemember(p){return {visits:3,lastObserved:state.calendar.date,snapshotDate:state.calendar.date,snapshot:{...ensurePlayerAttributes(p)},potentialSnapshot:scoutPotentialSnapshot(p),origin:'club'};}
 function scoutFreshnessView(p){
  if(isOwnPlayer(p))return '';
  const r=state.scoutReports[String(p.id)];if(!r?.visits)return '<p>Ingen egen observation ännu. Bedömningen är osäker.</p>';
@@ -81,8 +89,11 @@ function playerAssessment(p){
   const stars=value=>Math.round(attrClamp(2.5+(value-baseline)*.65,0,5)*2)/2;
   const judgment=(20-ability)*.045+.12;
   const judged=roles[0].value+(attrSeed(`${p.id}:${staff.personId||staff.id}:judgment`)-.5)*2*judgment;
-  const potentialError=((p.age<=23?1.6:.8)+(20-staff.potential)*.1+(1-familiarity)*2)*(report?.focus==='potential'?.8:1);
-  const potentialEstimate=roles[0].value+Math.max(0,25-p.age)*.18+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
+  const forecast=own?scoutPotentialSnapshot(p):report?.potentialSnapshot;
+  const databaseUncertainty=forecast?.uncertainty??(p.age<=23?1.6:.8);
+  const potentialError=databaseUncertainty+((20-staff.potential)*.1+(1-familiarity)*2)*(report?.focus==='potential'?.8:1);
+  const remaining=forecast?Math.max(0,forecast.growth-Math.max(0,p.age-forecast.age)*.18):Math.max(0,25-p.age)*.18;
+  const potentialEstimate=roles[0].value+remaining+(attrSeed(`${p.id}:${staff.personId||staff.id}:potential`)-.5)*2*potentialError;
   return {staff,own,known:own||Boolean(report?.snapshot),visits,familiarity,estimated,uncertainty,roles,current:stars(judged),low:stars(judged-uncertainty-judgment),high:stars(judged+uncertainty+judgment),potentialLow:stars(potentialEstimate-potentialError),potentialHigh:stars(potentialEstimate+potentialError)};
 }
 function starsText(value){const n=Math.max(0,Math.min(5,Math.round(value)));return '★'.repeat(n)+'☆'.repeat(5-n);}
@@ -129,7 +140,7 @@ function scoutObserve(id,date,options={}){
  if(r.snapshot)(r.history??=[]).unshift({date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1});
  if(r.history)r.history=r.history.slice(0,6);
  if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
- r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.origin='observation';delete r.dueRound;
+ r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.potentialSnapshot=scoutPotentialSnapshot(p);r.origin='observation';delete r.dueRound;
  const profile=options.job?scoutingOffice()?.jobs.find(j=>j.id===options.job)?.profile:'ALL';
  managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,scoutingObservationText(p,profile||'ALL')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
 }

@@ -1,0 +1,1827 @@
+{
+  "checked": "2026-09-23",
+  "asOf": "2026-09-07",
+  "scope": "Current roster pages are name/position/birth-year cross-checks, not proof of a historical registration. No automatic transfer or identity changes. Physical data are separately verified and retained in player-fact-corrections.json; mixed-layout raw columns are not promoted to facts.",
+  "clubs": {
+    "Almtuna IS": [
+      {
+        "name": "Hugo Hävelid",
+        "position": "G",
+        "born": 2004
+      },
+      {
+        "name": "Oskar Asplund",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Elias Degnell",
+        "position": "D",
+        "born": 2004
+      },
+      {
+        "name": "Edvin Hammarlund",
+        "position": "D",
+        "born": 1997
+      },
+      {
+        "name": "Léon Lerebäck",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Alexander Proos",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Jakob Ragnarsson",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Nikodemus Wernquist",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Filip Engarås",
+        "position": "C/RW",
+        "born": 1999
+      },
+      {
+        "name": "Charlie Forslund",
+        "position": "LW/RW",
+        "born": 2006
+      },
+      {
+        "name": "Marwin Jarbsjö",
+        "position": "RW",
+        "born": 2006
+      },
+      {
+        "name": "Viktor Johansson",
+        "position": "C/W",
+        "born": 2002
+      },
+      {
+        "name": "Neo Karling",
+        "position": "LW",
+        "born": 2007
+      },
+      {
+        "name": "Anton Ohlsson",
+        "position": "C",
+        "born": 2004
+      },
+      {
+        "name": "Bruno Osmanis",
+        "position": "RW",
+        "born": 2006
+      },
+      {
+        "name": "Oscar Pentler",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Samuel Salonen",
+        "position": "LW",
+        "born": 2000
+      },
+      {
+        "name": "Fredrik Schlyter",
+        "position": "C/W",
+        "born": 2001
+      },
+      {
+        "name": "Lukas Smith",
+        "position": "C/W",
+        "born": 2001
+      },
+      {
+        "name": "Karl Sterner",
+        "position": "W/C",
+        "born": 2006
+      },
+      {
+        "name": "Leo Sundqvist",
+        "position": "RW",
+        "born": 2007
+      },
+      {
+        "name": "Lukas Vesterlund",
+        "position": "C",
+        "born": 2004
+      },
+      {
+        "name": "Tim Forslund",
+        "position": "G",
+        "born": 2004
+      },
+      {
+        "name": "Victor Aronsson",
+        "position": "D",
+        "born": 1992
+      }
+    ],
+    "BIK Karlskoga": [
+      {
+        "name": "Olof Lindbom",
+        "position": "G",
+        "born": 2000
+      },
+      {
+        "name": "Viktor Lang",
+        "position": "D",
+        "born": 1995
+      },
+      {
+        "name": "Alexander Leandersson",
+        "position": "D",
+        "born": 1997
+      },
+      {
+        "name": "Melvin Nilsson",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Rikard Olsén",
+        "position": "D",
+        "born": 1995
+      },
+      {
+        "name": "Eero Teräväinen",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Wilhelm Westlund",
+        "position": "D",
+        "born": 1995
+      },
+      {
+        "name": "Lucas Ölvestad",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Henrik Björklund",
+        "position": "RW",
+        "born": 1990
+      },
+      {
+        "name": "Harrison Blaisdell",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "William Bråtner",
+        "position": "RW",
+        "born": 2007
+      },
+      {
+        "name": "Jesper Emanuelsson",
+        "position": "W",
+        "born": 2000
+      },
+      {
+        "name": "Gustaf Franzén",
+        "position": "C/RW",
+        "born": 1996
+      },
+      {
+        "name": "Carson Golder",
+        "position": "LW/RW",
+        "born": 2002
+      },
+      {
+        "name": "Jonatan Harju",
+        "position": "LW",
+        "born": 1997
+      },
+      {
+        "name": "Jonathan Hermansson",
+        "position": "F",
+        "born": 2000
+      },
+      {
+        "name": "Oscar Holmertz",
+        "position": "C",
+        "born": 2008
+      },
+      {
+        "name": "Kalle Jellvert",
+        "position": "C",
+        "born": 1995
+      },
+      {
+        "name": "Oscar Lawner",
+        "position": "LW/RW",
+        "born": 2001
+      },
+      {
+        "name": "Nick Pastujov",
+        "position": "C/LW",
+        "born": 1998
+      },
+      {
+        "name": "Tobias Sjökvist",
+        "position": "C/W",
+        "born": 1995
+      },
+      {
+        "name": "Douglas Sättermann",
+        "position": "RW",
+        "born": 2007
+      },
+      {
+        "name": "Gustaf Thorell",
+        "position": "C/LW",
+        "born": 1989
+      },
+      {
+        "name": "Travis Treloar",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "Måns Goos",
+        "position": "G",
+        "born": 2007
+      },
+      {
+        "name": "Karl-Alfred Järås",
+        "position": "D",
+        "born": 2007
+      }
+    ],
+    "IK Oskarshamn": [
+      {
+        "name": "Emil Vuorio",
+        "position": "G",
+        "born": 2002
+      },
+      {
+        "name": "Hugo Allvin",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Axel Elofsson",
+        "position": "D",
+        "born": 2008
+      },
+      {
+        "name": "Ludvig Georgsson",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Ville Jonsson",
+        "position": "D",
+        "born": 2004
+      },
+      {
+        "name": "Ludvig Markman",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Pontus Näsén",
+        "position": "D",
+        "born": 1996
+      },
+      {
+        "name": "David Rosander",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Ludvig Östman",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Axel Björnkvist",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "Matt Brown",
+        "position": "LW/RW",
+        "born": 1999
+      },
+      {
+        "name": "Søren Dietz-Larsen",
+        "position": "W",
+        "born": 1999
+      },
+      {
+        "name": "Danny Dzhaniyev",
+        "position": "LW/C",
+        "born": 2002
+      },
+      {
+        "name": "Filiph Engsund",
+        "position": "C",
+        "born": 1993
+      },
+      {
+        "name": "Melker Eriksson",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "Herman Hansson",
+        "position": "LW/RW",
+        "born": 1994
+      },
+      {
+        "name": "Calle Karlsson",
+        "position": "F",
+        "born": 2004
+      },
+      {
+        "name": "Olle Karlsson",
+        "position": "F",
+        "born": 2008
+      },
+      {
+        "name": "Albin Larsson",
+        "position": "LW",
+        "born": 2007
+      },
+      {
+        "name": "Filip Sveningsson",
+        "position": "LW/RW",
+        "born": 1999
+      },
+      {
+        "name": "Joel Svensson",
+        "position": "LW/C",
+        "born": 2005
+      },
+      {
+        "name": "Ville Svensson",
+        "position": "C/W",
+        "born": 2005
+      },
+      {
+        "name": "Manuel Ågren",
+        "position": "LW/RW",
+        "born": 1994
+      },
+      {
+        "name": "Axel Nyman",
+        "position": "G",
+        "born": 2006
+      }
+    ],
+    "Kalmar HC": [
+      {
+        "name": "Tobias Aronsson",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Tommy Bergsland",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "William Eckmyhl",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Christian Felton",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Kim Johansson",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "Hugo Jonasson",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Henrik Nilsson",
+        "position": "D",
+        "born": 1991
+      },
+      {
+        "name": "Philip Törnqvist",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Gustav Dunegård",
+        "position": "C/W",
+        "born": 2008
+      },
+      {
+        "name": "Elliot Ekefjärd",
+        "position": "RW/LW",
+        "born": 2002
+      },
+      {
+        "name": "Elliot Ekmark",
+        "position": "C",
+        "born": 2002
+      },
+      {
+        "name": "Jakob Ihs-Wozniak",
+        "position": "RW/C",
+        "born": 2007
+      },
+      {
+        "name": "Valdemar Johansson",
+        "position": "C/LW",
+        "born": 2003
+      },
+      {
+        "name": "Viktor Klingsell",
+        "position": "LW",
+        "born": 2007
+      },
+      {
+        "name": "Marcus Limpar Lantz",
+        "position": "C",
+        "born": 2003
+      },
+      {
+        "name": "Jesper Lindén",
+        "position": "RW/LW",
+        "born": 1998
+      },
+      {
+        "name": "Allan McShane",
+        "position": "C",
+        "born": 2000
+      },
+      {
+        "name": "Hampus Plato",
+        "position": "RW",
+        "born": 2002
+      },
+      {
+        "name": "Massimo Rizzo",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "Viktor Smeds",
+        "position": "C",
+        "born": 2004
+      },
+      {
+        "name": "Valdemar Vesterlund",
+        "position": "F",
+        "born": 2005
+      },
+      {
+        "name": "Reece Vitelli",
+        "position": "C/RW",
+        "born": 2001
+      },
+      {
+        "name": "Arvid Westlin",
+        "position": "LW/RW",
+        "born": 2005
+      },
+      {
+        "name": "Mattias Wigley",
+        "position": "C/LW",
+        "born": 1994
+      },
+      {
+        "name": "Brett Brochu",
+        "position": "G",
+        "born": 2002
+      },
+      {
+        "name": "Carl Malmqvist",
+        "position": "G",
+        "born": 2002
+      },
+      {
+        "name": "Jonathan Andersson",
+        "position": "D",
+        "born": 1993
+      }
+    ],
+    "Leksands IF": [
+      {
+        "name": "Vilgot Lidén",
+        "position": "D",
+        "born": 2008
+      },
+      {
+        "name": "Alexander Lundqvist",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Riley McCourt",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Fred Nilsson",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Victor Sjöholm",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Nathan Staios",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Dennis Altörn",
+        "position": "LW",
+        "born": 2005
+      },
+      {
+        "name": "Adam Andersson",
+        "position": "C",
+        "born": 2008
+      },
+      {
+        "name": "Tyler Angle",
+        "position": "C/LW",
+        "born": 2000
+      },
+      {
+        "name": "Zaki Crookes",
+        "position": "RW",
+        "born": 2006
+      },
+      {
+        "name": "Arvid Eljas",
+        "position": "C/LW",
+        "born": 2003
+      },
+      {
+        "name": "Martin Karlsson",
+        "position": "LW/RW",
+        "born": 1991
+      },
+      {
+        "name": "Tyler Kelleher",
+        "position": "RW",
+        "born": 1995
+      },
+      {
+        "name": "Pax Kleffner",
+        "position": "C/W",
+        "born": 2008
+      },
+      {
+        "name": "Jonas Lagerberg Hoen",
+        "position": "RW",
+        "born": 2007
+      },
+      {
+        "name": "Oskar Lang",
+        "position": "LW/RW",
+        "born": 1996
+      },
+      {
+        "name": "Oliver Dejbjerg Larsen",
+        "position": "F",
+        "born": 2007
+      },
+      {
+        "name": "August Lissel",
+        "position": "C",
+        "born": 2006
+      },
+      {
+        "name": "Josh Passolt",
+        "position": "F",
+        "born": 1996
+      },
+      {
+        "name": "Åke Stakkestad",
+        "position": "C",
+        "born": 2002
+      },
+      {
+        "name": "Patrik Zackrisson",
+        "position": "C/RW",
+        "born": 1987
+      },
+      {
+        "name": "Robin Christoffersson",
+        "position": "G",
+        "born": 1997
+      },
+      {
+        "name": "Marcus Gidlöf",
+        "position": "G",
+        "born": 2005
+      },
+      {
+        "name": "Viggo Tamm",
+        "position": "G",
+        "born": 2008
+      },
+      {
+        "name": "Carter Berger",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Rocky Langvardt",
+        "position": "D",
+        "born": 2007
+      }
+    ],
+    "MoDo Hockey": [
+      {
+        "name": "Victor Berglund",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Hugo Hallin",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Theodor Knights",
+        "position": "D",
+        "born": 2008
+      },
+      {
+        "name": "Elias Rosén",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Oskar Wahlberg",
+        "position": "D",
+        "born": 2005
+      },
+      {
+        "name": "Bryan Yoon",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "Peder Kyrkjeeide Øversveen",
+        "position": "D",
+        "born": 2005
+      },
+      {
+        "name": "Jacob Bjerselius",
+        "position": "C/LW",
+        "born": 1998
+      },
+      {
+        "name": "Troy Bourke",
+        "position": "C",
+        "born": 1994
+      },
+      {
+        "name": "Arvid Caderoth",
+        "position": "C/RW",
+        "born": 2000
+      },
+      {
+        "name": "Måns Carlsson",
+        "position": "C/W",
+        "born": 1997
+      },
+      {
+        "name": "William Falkenhäll",
+        "position": "LW",
+        "born": 2005
+      },
+      {
+        "name": "Malcom Gästrin",
+        "position": "RW",
+        "born": 2008
+      },
+      {
+        "name": "Elton Hermansson",
+        "position": "RW/LW",
+        "born": 2008
+      },
+      {
+        "name": "Erik Jinesjö Karlsson",
+        "position": "C",
+        "born": 1994
+      },
+      {
+        "name": "Jackson Jutting",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "Marcus Karlberg",
+        "position": "RW",
+        "born": 2000
+      },
+      {
+        "name": "Emil Larsson",
+        "position": "LW/RW",
+        "born": 1993
+      },
+      {
+        "name": "Carl Mattsson",
+        "position": "C/LW",
+        "born": 1999
+      },
+      {
+        "name": "Sebastian Ohlsson",
+        "position": "LW/RW",
+        "born": 1997
+      },
+      {
+        "name": "Oscar Pettersson",
+        "position": "LW",
+        "born": 1999
+      },
+      {
+        "name": "Milan Sundström",
+        "position": "C",
+        "born": 2009
+      },
+      {
+        "name": "Jakob Hellsten",
+        "position": "G",
+        "born": 2000
+      },
+      {
+        "name": "Adam Werner",
+        "position": "G",
+        "born": 1997
+      },
+      {
+        "name": "August Berg",
+        "position": "D",
+        "born": 1999
+      }
+    ],
+    "Mora IK": [
+      {
+        "name": "Marcus Hellgren-Smed",
+        "position": "G",
+        "born": 1994
+      },
+      {
+        "name": "Victor Hedin Raftheim",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Marcus Karlström",
+        "position": "D",
+        "born": 1995
+      },
+      {
+        "name": "Victor Engebråten Kopperstad",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Jakob Norén",
+        "position": "D",
+        "born": 2004
+      },
+      {
+        "name": "Joel Olerot",
+        "position": "D",
+        "born": 2005
+      },
+      {
+        "name": "August Skiöld",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Tim Thomsson",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Albin Udd",
+        "position": "D",
+        "born": 2004
+      },
+      {
+        "name": "Olle Carlsson",
+        "position": "LW/RW",
+        "born": 2007
+      },
+      {
+        "name": "Patrick Rørbu Elvsveen",
+        "position": "F",
+        "born": 2002
+      },
+      {
+        "name": "Damien Giroux",
+        "position": "C/LW",
+        "born": 2000
+      },
+      {
+        "name": "Nils Juntorp",
+        "position": "RW",
+        "born": 2003
+      },
+      {
+        "name": "Hampus Larsson",
+        "position": "C",
+        "born": 2003
+      },
+      {
+        "name": "Loa Milfors",
+        "position": "RW/LW",
+        "born": 2004
+      },
+      {
+        "name": "Ryland Mosley",
+        "position": "LW/RW",
+        "born": 2000
+      },
+      {
+        "name": "Isak Salqvist",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "Florian Schenk",
+        "position": "C",
+        "born": 2007
+      },
+      {
+        "name": "Svante Sjödin",
+        "position": "C",
+        "born": 2005
+      },
+      {
+        "name": "Karl Smedberg",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Tobias Aase Stensland",
+        "position": "RW",
+        "born": 2008
+      },
+      {
+        "name": "Oliver Tärnström",
+        "position": "C",
+        "born": 2002
+      },
+      {
+        "name": "Karl Umegård",
+        "position": "F",
+        "born": 2003
+      },
+      {
+        "name": "Georg Weigelt",
+        "position": "C",
+        "born": 2002
+      },
+      {
+        "name": "Hugo Östberg",
+        "position": "LW/RW",
+        "born": 2007
+      },
+      {
+        "name": "Tobias Johansen Breivold",
+        "position": "G",
+        "born": 2001
+      },
+      {
+        "name": "Tobias Ekberg",
+        "position": "D",
+        "born": 1994
+      }
+    ],
+    "Södertälje SK": [
+      {
+        "name": "Felix Carell",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "William Håkansson",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Roope Laavainen",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "Jonatan Lundgren",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Niklas Nilsson",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Daniel Norbe",
+        "position": "D",
+        "born": 1995
+      },
+      {
+        "name": "Ludvig Söderberg",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Tarun Fizer",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "Hampus Harlestam",
+        "position": "C/RW",
+        "born": 1993
+      },
+      {
+        "name": "Adam Hesselvall",
+        "position": "RW/C",
+        "born": 2006
+      },
+      {
+        "name": "Filip Holst Persson",
+        "position": "LW/C",
+        "born": 2006
+      },
+      {
+        "name": "Joni Ikonen",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Philip Lantz",
+        "position": "LW/RW",
+        "born": 2007
+      },
+      {
+        "name": "Måns Lindbäck",
+        "position": "RW/C",
+        "born": 1996
+      },
+      {
+        "name": "Daniel Muzito-Bagenda",
+        "position": "C/LW",
+        "born": 1996
+      },
+      {
+        "name": "Gabriel Olsson",
+        "position": "RW",
+        "born": 1997
+      },
+      {
+        "name": "Gustav Salmi-Lilja",
+        "position": "LW/RW",
+        "born": 2002
+      },
+      {
+        "name": "Linus Skager",
+        "position": "C/RW",
+        "born": 2000
+      },
+      {
+        "name": "Carter Souch",
+        "position": "W",
+        "born": 2001
+      },
+      {
+        "name": "Nolan Stevens",
+        "position": "C",
+        "born": 1996
+      },
+      {
+        "name": "A.J. Vanderbeck",
+        "position": "RW",
+        "born": 1997
+      },
+      {
+        "name": "Teemu Väyrynen",
+        "position": "W/C",
+        "born": 1997
+      },
+      {
+        "name": "Love Härenstam",
+        "position": "G",
+        "born": 2007
+      },
+      {
+        "name": "Teodor Munther",
+        "position": "G",
+        "born": 2005
+      },
+      {
+        "name": "Niklas Arell",
+        "position": "D",
+        "born": 1990
+      }
+    ],
+    "Vimmerby HC": [
+      {
+        "name": "Tomas Rydén",
+        "position": "G",
+        "born": 1993
+      },
+      {
+        "name": "Isak Sörqvist",
+        "position": "G",
+        "born": 2007
+      },
+      {
+        "name": "William Alftberg",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Nick Bochen",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Alfred Hjälm",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Arvid Hurtig",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Oskar Lindgren",
+        "position": "D",
+        "born": 1997
+      },
+      {
+        "name": "Gustaf Malmkvist",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Linus Millner Westberg",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Ludvig Andersson",
+        "position": "C/RW",
+        "born": 2008
+      },
+      {
+        "name": "Anton Carlsson",
+        "position": "C/LW",
+        "born": 1996
+      },
+      {
+        "name": "Kalle Carlsson",
+        "position": "F",
+        "born": 2005
+      },
+      {
+        "name": "Hannes Hellberg",
+        "position": "LW/RW",
+        "born": 2004
+      },
+      {
+        "name": "Gustaf Kangas",
+        "position": "C",
+        "born": 2005
+      },
+      {
+        "name": "Hampus Karlsson",
+        "position": "C",
+        "born": 2001
+      },
+      {
+        "name": "Max Karlsson",
+        "position": "C/W",
+        "born": 2005
+      },
+      {
+        "name": "Hugo Lejon",
+        "position": "RW",
+        "born": 2005
+      },
+      {
+        "name": "Johan Mörnsjö",
+        "position": "C/W",
+        "born": 1997
+      },
+      {
+        "name": "Jesper Norbäck",
+        "position": "W/C",
+        "born": 1998
+      },
+      {
+        "name": "Hugo Orrsten",
+        "position": "C/LW",
+        "born": 2006
+      },
+      {
+        "name": "Adam Petersson",
+        "position": "RW",
+        "born": 2003
+      },
+      {
+        "name": "Kevin Wennström",
+        "position": "C/LW",
+        "born": 2000
+      }
+    ],
+    "Visby/Roma": [
+      {
+        "name": "Joona Voutilainen",
+        "position": "G",
+        "born": 1996
+      },
+      {
+        "name": "Olle Andersson",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Jacob Bengtsson",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Elias Ewertzh",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Karl Johansson",
+        "position": "D",
+        "born": 1993
+      },
+      {
+        "name": "Eric Norin",
+        "position": "D",
+        "born": 1991
+      },
+      {
+        "name": "Janne Peltonen",
+        "position": "D",
+        "born": 2005
+      },
+      {
+        "name": "Lucas Ramberg",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Andreas Thelander",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Wille Bärehag",
+        "position": "C/LW",
+        "born": 2002
+      },
+      {
+        "name": "Andreas Dahl",
+        "position": "W/C",
+        "born": 2002
+      },
+      {
+        "name": "John Dahlström",
+        "position": "LW/RW",
+        "born": 1997
+      },
+      {
+        "name": "Hampus Engman",
+        "position": "W",
+        "born": 2002
+      },
+      {
+        "name": "Giorgio Estephan",
+        "position": "C",
+        "born": 1997
+      },
+      {
+        "name": "Sebastian Fakt",
+        "position": "C/W",
+        "born": 1995
+      },
+      {
+        "name": "Ryan Gagnier",
+        "position": "C/LW",
+        "born": 2002
+      },
+      {
+        "name": "Lucas Jidenius",
+        "position": "LW/RW",
+        "born": 1999
+      },
+      {
+        "name": "Isak Jonsson",
+        "position": "RW/LW",
+        "born": 2000
+      },
+      {
+        "name": "Elias Lindström",
+        "position": "C/W",
+        "born": 2000
+      },
+      {
+        "name": "Juho Liuksiala",
+        "position": "RW",
+        "born": 1995
+      },
+      {
+        "name": "Karl Påhlsson",
+        "position": "C/LW",
+        "born": 2000
+      },
+      {
+        "name": "Joakim Thelin",
+        "position": "RW",
+        "born": 1992
+      },
+      {
+        "name": "Jonathan Wikström",
+        "position": "LW",
+        "born": 2001
+      },
+      {
+        "name": "Filip Lindblad",
+        "position": "G",
+        "born": 1999
+      }
+    ],
+    "Västerås IK": [
+      {
+        "name": "Daniel Gunnarsson",
+        "position": "D",
+        "born": 1992
+      },
+      {
+        "name": "Jimmie Jansson Lorek",
+        "position": "D",
+        "born": 1994
+      },
+      {
+        "name": "Niclas Lundgren",
+        "position": "D",
+        "born": 1989
+      },
+      {
+        "name": "Oscar Lundin",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Anton Mylläri",
+        "position": "D",
+        "born": 1991
+      },
+      {
+        "name": "Anton Olsson",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Viktor Pennerborn",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Sam Thörnqvist",
+        "position": "D",
+        "born": 2008
+      },
+      {
+        "name": "Melker Bertals",
+        "position": "C",
+        "born": 2005
+      },
+      {
+        "name": "Oscar Birgersson",
+        "position": "C/W",
+        "born": 2000
+      },
+      {
+        "name": "Simen Andre Edvardsen",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Emil Ekholm",
+        "position": "W",
+        "born": 2001
+      },
+      {
+        "name": "Liam Engström",
+        "position": "F",
+        "born": 2004
+      },
+      {
+        "name": "Sebastian Falk",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "Tim Friberg",
+        "position": "LW/RW",
+        "born": 1995
+      },
+      {
+        "name": "Fabian Hellström",
+        "position": "LW",
+        "born": 2004
+      },
+      {
+        "name": "Carl Jakobsson",
+        "position": "LW/RW",
+        "born": 2000
+      },
+      {
+        "name": "Felix Johansson",
+        "position": "C/RW",
+        "born": 2005
+      },
+      {
+        "name": "Theo Keilin",
+        "position": "C/LW",
+        "born": 2003
+      },
+      {
+        "name": "Victor Pantzare",
+        "position": "LW/C",
+        "born": 2006
+      },
+      {
+        "name": "Alvin Wengrud",
+        "position": "C/RW",
+        "born": 2007
+      },
+      {
+        "name": "Lukas Zetterberg",
+        "position": "RW",
+        "born": 1997
+      },
+      {
+        "name": "Oliver Håkanson",
+        "position": "G",
+        "born": 2002
+      },
+      {
+        "name": "Benedikt Oschgan",
+        "position": "G",
+        "born": 2005
+      },
+      {
+        "name": "Adam Arvedson",
+        "position": "D",
+        "born": 2001
+      }
+    ],
+    "Östersunds IK": [
+      {
+        "name": "Kevin Arvidsson",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Erik Flood",
+        "position": "D",
+        "born": 1996
+      },
+      {
+        "name": "Joachim Lunde Hermansen",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Fredric Jansson",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Henrik Malmström",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "Olle Norberg",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Nils Nordh",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Leo Sundqvist",
+        "position": "D",
+        "born": 2005
+      },
+      {
+        "name": "Brett Budgell",
+        "position": "LW/C",
+        "born": 2001
+      },
+      {
+        "name": "Isak Garfvé",
+        "position": "C/LW",
+        "born": 2002
+      },
+      {
+        "name": "Filip Hesselvall",
+        "position": "LW/C",
+        "born": 2004
+      },
+      {
+        "name": "Carl Holmner Härgestam",
+        "position": "LW",
+        "born": 2003
+      },
+      {
+        "name": "Anton Klint",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Alexander Ljungkrantz",
+        "position": "LW/RW",
+        "born": 2002
+      },
+      {
+        "name": "Logan Nijhoff",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "William Proos",
+        "position": "LW",
+        "born": 2003
+      },
+      {
+        "name": "Lukas Sagranden",
+        "position": "RW",
+        "born": 2005
+      },
+      {
+        "name": "Maksims Semjonovs",
+        "position": "C/W",
+        "born": 2000
+      },
+      {
+        "name": "Albert Sjöberg",
+        "position": "W/C",
+        "born": 2003
+      },
+      {
+        "name": "Samuel Solem",
+        "position": "LW",
+        "born": 1999
+      },
+      {
+        "name": "Colin Wetterberg",
+        "position": "C",
+        "born": 2006
+      },
+      {
+        "name": "Kalle Ångström",
+        "position": "RW",
+        "born": 2007
+      },
+      {
+        "name": "Daniel Öhrn",
+        "position": "C/LW",
+        "born": 1993
+      },
+      {
+        "name": "Simon Carlsson",
+        "position": "G",
+        "born": 2005
+      },
+      {
+        "name": "Hampus Hedman",
+        "position": "G",
+        "born": 2001
+      },
+      {
+        "name": "Carl Lidö",
+        "position": "G",
+        "born": 2003
+      }
+    ],
+    "AIK": [
+      {
+        "name": "Victor Brattström",
+        "position": "G",
+        "born": 1997
+      },
+      {
+        "name": "Leon Contreras",
+        "position": "G",
+        "born": 2007
+      },
+      {
+        "name": "Jhonas Enroth",
+        "position": "G",
+        "born": 1988
+      },
+      {
+        "name": "Anders Grönlund",
+        "position": "D",
+        "born": 1989
+      },
+      {
+        "name": "Edvin Isén",
+        "position": "D",
+        "born": 2003
+      },
+      {
+        "name": "Patrik Jernfalk",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Samuel Jonsson",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "William Pethrus",
+        "position": "D",
+        "born": 1997
+      },
+      {
+        "name": "Martin Schreiber",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Gustav Sjöqvist",
+        "position": "D",
+        "born": 2006
+      },
+      {
+        "name": "Tim Theocharidis",
+        "position": "D",
+        "born": 1998
+      },
+      {
+        "name": "Olli Vainio",
+        "position": "D",
+        "born": 1994
+      },
+      {
+        "name": "Christopher Bengtsson",
+        "position": "C/LW",
+        "born": 1993
+      },
+      {
+        "name": "Christoffer Björk",
+        "position": "C",
+        "born": 1999
+      },
+      {
+        "name": "Sid Boije",
+        "position": "C/RW",
+        "born": 2007
+      },
+      {
+        "name": "Max Eriksson",
+        "position": "LW",
+        "born": 2007
+      },
+      {
+        "name": "Oliver Johansson",
+        "position": "LW/C",
+        "born": 2003
+      },
+      {
+        "name": "Borna Kopac",
+        "position": "RW",
+        "born": 2005
+      },
+      {
+        "name": "Viktor Lennartsson",
+        "position": "RW/LW",
+        "born": 1993
+      },
+      {
+        "name": "Daniel Ljungman",
+        "position": "C/RW",
+        "born": 2002
+      },
+      {
+        "name": "Oskar Magnusson",
+        "position": "C/RW",
+        "born": 2002
+      },
+      {
+        "name": "Oscar Nord",
+        "position": "C/RW",
+        "born": 1996
+      },
+      {
+        "name": "Scott Pooley",
+        "position": "RW",
+        "born": 1994
+      },
+      {
+        "name": "Ryder Rolston",
+        "position": "RW",
+        "born": 2001
+      },
+      {
+        "name": "Rasmus Rudslätt",
+        "position": "RW",
+        "born": 2004
+      },
+      {
+        "name": "Tyler Vesel",
+        "position": "C",
+        "born": 1994
+      }
+    ],
+    "Nybro Vikings": [
+      {
+        "name": "Pontus Eltonius",
+        "position": "G",
+        "born": 1998
+      },
+      {
+        "name": "Hugo Ollas",
+        "position": "G",
+        "born": 2002
+      },
+      {
+        "name": "Aron Dahlqvist",
+        "position": "D",
+        "born": 2007
+      },
+      {
+        "name": "Sander Vold Engebråten",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Fredrik Granberg",
+        "position": "D",
+        "born": 2000
+      },
+      {
+        "name": "Kalle Holm",
+        "position": "D",
+        "born": 2002
+      },
+      {
+        "name": "Måns Krämer",
+        "position": "D",
+        "born": 2001
+      },
+      {
+        "name": "Alexander Molldén",
+        "position": "D/F",
+        "born": 1995
+      },
+      {
+        "name": "Jesper Mångs",
+        "position": "D",
+        "born": 1997
+      },
+      {
+        "name": "Zach Wytinck",
+        "position": "D",
+        "born": 1999
+      },
+      {
+        "name": "Kalle Hemström",
+        "position": "C",
+        "born": 2007
+      },
+      {
+        "name": "Theo Jacobsson",
+        "position": "C/W",
+        "born": 2003
+      },
+      {
+        "name": "Oliver Kandergård",
+        "position": "RW",
+        "born": 1998
+      },
+      {
+        "name": "Joel Kant",
+        "position": "C",
+        "born": 2004
+      },
+      {
+        "name": "Filip Lennström",
+        "position": "RW",
+        "born": 1998
+      },
+      {
+        "name": "Tim Lindfors",
+        "position": "RW",
+        "born": 2002
+      },
+      {
+        "name": "Olli Nikupeteri",
+        "position": "LW/RW",
+        "born": 2002
+      },
+      {
+        "name": "Oscar Nordin",
+        "position": "C/LW",
+        "born": 2001
+      },
+      {
+        "name": "Joachim Rohdin",
+        "position": "RW",
+        "born": 1991
+      },
+      {
+        "name": "Elias Stenman",
+        "position": "C",
+        "born": 2002
+      },
+      {
+        "name": "Gabriel Säll",
+        "position": "LW",
+        "born": 2002
+      },
+      {
+        "name": "Ludvig Warg",
+        "position": "C/RW",
+        "born": 2001
+      },
+      {
+        "name": "Melvin Wersäll",
+        "position": "RW",
+        "born": 2005
+      }
+    ]
+  },
+  "sources": {
+    "Almtuna IS": "https://www.eliteprospects.com/team/13/almtuna-is",
+    "BIK Karlskoga": "https://www.eliteprospects.com/team/25/bik-karlskoga",
+    "IK Oskarshamn": "https://www.eliteprospects.com/team/31/ik-oskarshamn",
+    "Kalmar HC": "https://www.eliteprospects.com/team/778/kalmar-hc",
+    "Leksands IF": "https://www.eliteprospects.com/team/28/leksands-if",
+    "MoDo Hockey": "https://www.eliteprospects.com/team/9/modo-hockey",
+    "Mora IK": "https://www.eliteprospects.com/team/29/mora-ik",
+    "Södertälje SK": "https://www.eliteprospects.com/team/10/sodertalje-sk",
+    "Vimmerby HC": "https://www.eliteprospects.com/team/498/vimmerby-hc",
+    "Visby/Roma": "https://www.eliteprospects.com/team/1226/visby-roma",
+    "Västerås IK": "https://www.eliteprospects.com/team/308/vasteras-ik",
+    "Östersunds IK": "https://www.eliteprospects.com/team/1595/ostersunds-ik",
+    "AIK": "https://www.eliteprospects.com/team/1/aik",
+    "Nybro Vikings": "https://www.eliteprospects.com/team/335/nybro-vikings-if"
+  },
+  "officialSHLCrossCheck": {
+    "source": "https://www.shl.se/truppkollen",
+    "checked": "2026-09-23",
+    "scope": "All 14 club sections read. Current page cannot certify every historical start registration; existing dated snapshot retained."
+  },
+  "excludedLaterEvents": [
+    {
+      "name": "Markuss Komuls",
+      "club": "HV71",
+      "effective": "2026-09-08",
+      "source": "https://www.hv71.se/article/a6uatl1-3iaijd/view"
+    },
+    {
+      "name": "Lukas Zetterberg",
+      "club": "Västerås IK",
+      "effective": "2026-09-08",
+      "source": "https://www.vik.se/article/ai8atl1-4a8i1/view"
+    }
+  ],
+  "laterFreeAgentNotice": {
+    "id": "ep-155712",
+    "name": "Collin Delia",
+    "noticeDate": "2026-09-17",
+    "status": "Pittsburgh tryout; does not establish a signed season contract at the 7 September game start",
+    "source": "https://www.nhl.com/news/players-signed-to-ptos-for-2026-2027-nhl-training-camps"
+  }
+}
