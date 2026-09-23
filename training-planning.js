@@ -5,7 +5,12 @@ function trainingClubChange(p,from,to){
  // fatigue and the medical rehabilitation plan belong to the player.
  p.trainingLoad='normal';delete p.trainingReturn;delete p.trainingManualDate;
 }
-function trainingEffectiveLoad(p){if(trainingAutoRest(p))return 'rest';return p.trainingReturn?.club===managerClub()&&p.trainingReturn.date<=state.calendar?.date?'normal':p.trainingLoad||'normal';}
+function trainingBaseLoad(p){
+ const plan=p.trainingReturn;
+ if(plan&&plan.load===p.trainingLoad&&(plan.club!==managerClub()||plan.date<=state.calendar?.date))return 'normal';
+ return p.trainingLoad||'normal';
+}
+function trainingEffectiveLoad(p){return trainingAutoRest(p)?'rest':trainingBaseLoad(p);}
 function trainingSessionEffect(p,session,load=trainingEffectiveLoad(p),support=null){
  const rest=!medicalCanTrain(p)||load==='rest'||session.type==='recovery';
  const light=!rest&&(load==='light'||session.intensity==='light'||session.type==='matchprep');
@@ -35,6 +40,8 @@ function trainingReturnDay(){
   if(plan.load!==p.trainingLoad){delete p.trainingReturn;continue;}
   if(plan.date>state.calendar.date)continue;
   p.trainingLoad='normal';delete p.trainingReturn;
+  // Routine staff rest is reported once in the completed team session.
+  if(plan.delegated)continue;
   managerMessage(`training-return:${p.id}:${plan.start}:${plan.date}`,`${p.name}: belastningsplan avslutad`,
    `Planen ${calText(plan.start)}–${calText(calAdd(plan.date,-1))} är avslutad. ${plan.trained} träningspass och ${plan.rested} återhämtningspass. Ork vid start ${Math.round(100-plan.before)} %, nu ${Math.round(100-p.fatigue)} %. Matcher och rehabilitering kan också ha påverkat orken.\nSpelaren följer lagets pass igen. ${medicalCanTrain(p)?'Bedöm ork och nästa match innan du ökar belastningen.':'Den medicinska rehabiliteringen gäller fortfarande; planen friskförklarar inte spelaren.'}`,'Träningsrapport',{playerId:p.id,link:'training'});
  }

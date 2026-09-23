@@ -130,31 +130,30 @@ function runTrainingSession(){
   if(!t||t.day>=trainingDays()||t.lockedRound===state.round||state.live&&!state.live.finished||state.calendar?.completedMatchDate===state.calendar?.date||(opponent()==='Ingen match'&&state.season.phase!=='preseason')||pendingManagerDecision())return false;
   trainingReturnDay();trainingDelegateRecovery();
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
-  let fatigueChange=0,trained=0,resting=0,improvements=0;
-  const before=managerRoster().reduce((n,p)=>n+p.fatigue,0)/managerRoster().length;
-  for(const p of managerRoster()){
-    if(internationalAway(p))continue;
-    const previous=p.fatigue,effect=trainingSessionEffect(p,session);
+  const projection=trainingTeamProjection(session),effects=new Map(projection.rows.map(r=>[String(r.player.id),r.effect]));
+  const {trained,resting}=projection,before=projection.fatigueBefore,after=projection.fatigueAfter;
+  let improvements=0;
+  for(const {player:p,effect,before:previous} of projection.rows){
     p.fatigue=effect.fatigue;
     const key=effect.rest?null:trainingTarget(p,session.type);
-    if(effect.rest)resting++;
-    else{if(trainingGrowth(p,key,effect.points))improvements++;trained++;}
+    if(!effect.rest&&trainingGrowth(p,key,effect.points))improvements++;
     trainingPlanRecord(p,session,effect,previous,key);
-    fatigueChange+=p.fatigue-previous;
   }
-  const participation=trained/Math.max(1,managerRoster().length),signature=trainingSignature();
-  const tactical=session.type==='tactics'?9:session.type==='matchprep'?7:session.type==='recovery'?0:2;
-  t.familiarity[signature]=trainingClamp((t.familiarity[signature]??20)+tactical*participation,0,90);
-  if(session.type==='powerplay')t.powerplay=trainingClamp(t.powerplay+12*participation,0,90);
-  if(session.type==='penaltykill')t.penaltykill=trainingClamp(t.penaltykill+12*participation,0,90);
-  const after=before+fatigueChange/managerRoster().length;
+  t.familiarity[projection.signature]=projection.after.familiarity;
+  t.powerplay=projection.after.powerplay;t.penaltykill=projection.after.penaltykill;
   const log={date:state.calendar?.date,round:state.round,day:t.day+1,type:session.type,intensity:session.intensity,trained,resting,before,after,improvements};
   coachTrainingDone(log);t.logs.push(log);t.history.unshift(log);t.history=t.history.slice(0,60);t.day++;
   managerMessage(`session:${state.season.year}:${log.date||state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
   rivalStoryTraining(session);
   trainSocialPairs(session);
   juniorTraining(session,`${state.season.year}:${state.calendar?.date||state.round}:${t.day}`);
-  medicalDay(session);
+  medicalDay(session,effects);
+  trainingRecordEvidence(log,projection);
+  const report=t.messages.find(m=>m.key===`session:${state.season.year}:${log.date||state.round}:${t.day}`);
+  if(report){
+   report.body+=`\n${trainingPreparationText(projection.before,projection.after)}. ${projection.rows.filter(r=>r.delegated).length} spelare fick vila av staben. Detaljerna finns på passets datum i kalendern.`;
+   report.trainingDate=log.date;report.trainingClub=managerClub();
+  }
   if(t.day===trainingDays())createOpponentBrief();
   if(state.calendar)calendarStep(true);
   return true;
@@ -274,9 +273,10 @@ function dailyOverview(){
   return `<section class="daily-overview"><div><span class="career-eyebrow">NÄSTA PÅ DITT BORD</span><h2>${opponent()==='Ingen match'?'Dags att utvärdera grundserien':pending?'Ett spelarsamtal väntar':t.day<trainingDays()?`Dag ${t.day+1}: ${TRAINING_SESSIONS[t.plan[t.day].type].name}`:'Laget är framme vid matchdag'}</h2><p>${unread} olästa meddelanden · ${t.day}/${trainingDays()} pass klara · samspel ${Math.round(currentTrainingFamiliarity())} %</p></div><div><button class="btn secondary" onclick="trainingOpen('training')">Planera träningen</button><button class="btn" onclick="trainingOpen('inbox')">Inkorg${unread?` (${unread})`:''} →</button></div></section>`;
 }
 
-function messageActionView(m){return `${m.playerId!==undefined?'<p>Berörd spelare: '+playerReference(m.playerId)+'</p>':''}<button class="btn secondary" onclick="messageOpenContext(${m.id})">Öppna ärendet →</button>`;}
+function messageActionView(m){return `${m.playerId!==undefined?'<p>Berörd spelare: '+playerReference(m.playerId)+'</p>':''}<button class="btn secondary" onclick="messageOpenContext(${m.id})">${m.trainingDate?'Öppna passrapport':'Öppna ärendet'} →</button>`;}
 function messageOpenContext(id){
  const m=state.training.messages.find(m=>m.id===id);if(!m)return;
+ if(m.trainingDate&&m.trainingClub===managerClub()){matchesOpenDay(m.trainingDate);return;}
  if(m.feedbackBriefId){ensureManagerFeedback().selectedBrief=m.feedbackBriefId;deskNavigate('staffReview');return;}
  if(m.matchId||(m.key||'').startsWith('analysis:')){const match=state.analysis.matches.find(x=>x.id===(m.matchId||m.key.slice(9)));if(match){matchesOpenReport(match.id);return;}}
  if(m.dealId&&state.recruitment.deals.some(d=>d.id===m.dealId)){officeOpenDeal('transfer:'+m.dealId);state.recruitment.focusDeal=m.dealId;return;}
