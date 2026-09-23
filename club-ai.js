@@ -5,8 +5,8 @@
 const AI_PROJECTS={title:'Utmanar om titeln',playoff:'Bygger ett slutspelslag',develop:'Utvecklar och säljer talanger',rebuild:'Bygger om truppen',survive:'Säkrar klubbens framtid'};
 const AI_ROLE_DEFS={
  goalie:{label:'Målvakt',kind:'MV',target:2,keys:['reflexes','positioning','reboundControl','movement']},
- defense:{label:'Back',kind:'B',target:7,keys:['positioning','decisions','passing','skating']},
- forward:{label:'Forward',kind:'F',target:13,keys:['shooting','passing','skating','workRate']},
+ defense:{label:'Back',kind:'B',target:6,keys:['positioning','decisions','passing','skating']},
+ forward:{label:'Forward',kind:'F',target:12,keys:['shooting','passing','skating','workRate']},
  center:{label:'Center',kind:'F',target:4,keys:['faceoffs','passing','decisions','positioning']},
  scorer:{label:'Målskytt',kind:'F',target:2,keys:['shooting','composure','positioning']},
  creator:{label:'Spelfördelare',kind:'F',target:2,keys:['passing','vision','puckControl']},
@@ -131,33 +131,25 @@ function aiRoleValue(p,role,attributes=ensurePlayerAttributes(p)){
  const keys=AI_ROLE_DEFS[role].keys;return keys.reduce((sum,k)=>sum+(attributes[k]||10),0)/keys.length;
 }
 function aiSquadNeeds(club){
- const roster=state.clubRosters[club]||[],c=clubAIState(club),threshold=leagueOf(club)==='HA'?10.5:11.5;
- const arrivals=Object.values(state.clubRosters).flat().filter(p=>p.futureContract?.buyer===club&&getPlayerClub(p.id)!==club);
- const returning=(state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(Boolean);
+ const context=recruitCoverageContext(club),c=clubAIState(club),threshold=leagueOf(club)==='HA'?10.5:11.5;
  return Object.entries(AI_ROLE_DEFS).map(([role,def])=>{
   const specialist=['scorer','creator','stopper'].includes(role);
   const minimumAbility=specialist?(c?.roleStandards?.[role]||threshold):0;
   const fits=p=>aiRoleFits(p,role)&&(!specialist||aiRoleValue(p,role)>=minimumAbility);
-  const all=roster.filter(fits),available=all.filter(medicalReady);
-  const secure=all.filter(p=>!playerLoan(p)&&((p.contractYears>1&&!p.futureContract)||p.futureContract?.buyer===club));
-  const future=new Set([...secure,...arrivals.filter(fits),...returning.filter(p=>fits(p)&&p.contractYears>1&&!p.futureContract)].map(p=>String(p.id)));
-  const old=all.filter(p=>p.age>=(p.pos==='MV'?36:33));
   const target=def.target+(role==='creator'&&rivalsClubState(club)?.coach.style==='control'?1:0);
-  const missing=Math.max(0,target-available.length),futureNeed=Math.max(0,target-future.size);
-  const temporary=missing>0&&all.length>=target;
-  // AI rehabilitation uses the same remaining days and daily readiness gain as medicalDay.
-  const returns=all.filter(p=>!medicalReady(p)).map(p=>Math.max(0,p.health?.injury?.remaining||0)+Math.max(1,Math.ceil(Math.max(0,100-(p.health?.injury?.readiness??55))/15))).sort((a,b)=>a-b);
-  const returnDays=temporary?returns[missing-1]??null:null;
-  const coverage=({goalie:1,defense:4,forward:9,center:2})[role]??0;
-  const shortTerm=temporary&&returnDays!==null&&returnDays<=14&&available.length>=coverage;
+  const coverage=recruitCoverageFor(p=>aiRoleFits(p,role),target,club,context);
+  const all=coverage.players,available=coverage.available,old=all.filter(p=>p.age>=(p.pos==='MV'?36:33));
+  const missing=coverage.need,futureNeed=coverage.futureNeed,temporary=coverage.temporary;
+  const qualityGap=specialist?Math.max(0,target-available.filter(fits).length):0;
+  const {returnDays,shortTerm}=coverage;
   const alternatives=(c?.academy.roster||[]).filter(p=>fits(p)&&medicalReady(p)&&aiRoleValue(p,role)>=threshold-1.5);
   const value=all.reduce((n,p)=>n+matchAttributeRating(p),0)/Math.max(1,all.length);
   const urgent=(role==='goalie'&&available.length===0?100:role==='center'&&available.length===0?70:0);
-  const urgency=urgent+missing*(specialist?8:role==='center'?15:12)+futureNeed*3+old.length*1.2+(80-value)*.1;
-  return {role,label:def.label,kind:def.kind,target,count:available.length,total:all.length,value,missing,futureNeed,minimumAbility,
-   temporary,returnDays,shortTerm,old:old.length,arrivals:arrivals.filter(fits).length,alternatives:alternatives.map(p=>p.id),urgency,
+  const urgency=urgent+qualityGap*8+missing*(specialist?8:role==='center'?15:12)+futureNeed*3+old.length*1.2+(80-value)*.1;
+  return {role,label:def.label,kind:def.kind,target,count:available.length,total:all.length,value,missing,futureNeed,minimumAbility,qualityGap,
+   temporary,returnDays,shortTerm,old:old.length,arrivals:coverage.arrivals.length,alternatives:alternatives.map(p=>p.id),urgency,
    reason:shortTerm?`Avvaktar återgång: ${available.length}/${target} spelklara ${def.label.toLowerCase()}, tillräcklig täckning väntas om cirka ${returnDays} dagar.`:missing?`${available.length}/${target} spelklara ${def.label.toLowerCase()}${temporary?' – tillfälligt skadebehov':''}.`:
-    futureNeed?`${futureNeed} platser behöver säkras till nästa säsong.`:old.length?'Planerar generationsväxling.':'God täckning.'};
+    qualityGap?`Antalet är täckt; ${qualityGap} önskade kvalitetsförstärkningar som ${def.label.toLowerCase()}.`:futureNeed?`${futureNeed} platser behöver säkras till nästa säsong.`:old.length?'Planerar generationsväxling.':'God täckning.'};
  }).sort((a,b)=>b.urgency-a.urgency||a.role.localeCompare(b.role));
 }
 function aiPromote(club,p,reason){
@@ -358,7 +350,7 @@ function validateClubAISave(s,ids){
  }
  const offers=new Set();
  for(const o of w.offers){
-  if(!o||!Number.isInteger(o.id)||offers.has(o.id)||!s.clubRosters[o.buyer]||o.buyer===o.seller||!['transfer','future','loan'].includes(o.kind)||!['pending','signed','rejected','lost','expired'].includes(o.status)||!date(o.date)||!date(o.due)||!Number.isFinite(o.fee)||o.fee<0||!Number.isFinite(o.salary)||o.salary<0||!Number.isInteger(o.years)||o.years<0||o.years>5||!AI_ROLE_DEFS[o.needRole])throw Error('En AI-förhandling innehåller ogiltiga villkor.');
+  if(!o||!Number.isInteger(o.id)||offers.has(o.id)||!s.clubRosters[o.buyer]||o.buyer===o.seller||!['transfer','future','loan'].includes(o.kind)||!['pending','signed','rejected','lost','expired','cancelled'].includes(o.status)||!date(o.date)||!date(o.due)||!Number.isFinite(o.fee)||o.fee<0||!Number.isFinite(o.salary)||o.salary<0||!Number.isInteger(o.years)||o.years<0||o.years>5||!AI_ROLE_DEFS[o.needRole])throw Error('En AI-förhandling innehåller ogiltiga villkor.');
   if(o.kind==='loan'&&(![0,.25,.5,.75,1].includes(o.share)||![28,56,0].includes(o.days)||!LOAN_ROLES[o.loanRole]||!['anytime','day28'].includes(o.recall)))throw Error('Ett AI-lån innehåller ogiltiga villkor.');
   offers.add(o.id);
  }

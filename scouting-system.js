@@ -25,7 +25,7 @@ function scoutingStart(draft=scoutDesk.draft,automatic=false){
  const ids=[...new Set((draft.players||[]).map(String))];if(ids.length<1||ids.length>3)return false;
  const ps=ids.map(findPlayerAnywhere);if(ps.some(p=>!p||isOwnPlayer(p)||scoutPending(p.id)))return false;
  const q=scoutingQuote(ids,draft.method,draft.person);if(!q||scoutingBusy(q.s)||scoutActiveCount()>=clubMissionLimit()||state.money-clubForecast().reserved<q.fee)return automatic?false:recruitMessage('Uppdraget ryms inte i tillgänglig scoutkapacitet eller kassa.');
- const job={id:o.nextId++,club:managerClub(),players:ids,person:scoutingPerson(q.s),observer:{...q.s},method:draft.method,filters:{...recruitFilters()},profile:RECRUIT_PROFILES[draft.profile]?draft.profile:'ALL',horizon:SCOUT_LISTS[draft.horizon]?draft.horizon:'now',fee:q.fee,interval:q.interval,knowledge:q.knowledge,regions:q.regions,start:state.calendar.date,next:calAdd(state.calendar.date,q.interval),steps:0,delays:0,status:'active',automatic};
+ const job={id:o.nextId++,club:managerClub(),players:ids,person:scoutingPerson(q.s),observer:{...q.s},method:draft.method,filters:{...recruitFilters()},profile:RECRUIT_PROFILES[draft.profile]?draft.profile:'ALL',horizon:SCOUT_LISTS[draft.horizon]?draft.horizon:'now',fee:q.fee,interval:q.interval,knowledge:q.knowledge,regions:q.regions,start:state.calendar.date,next:calAdd(state.calendar.date,q.interval),steps:0,delays:0,status:'active',automatic,criteria:draft.criteria?{...draft.criteria}:null};
  clubPost('scouting',-q.fee,`${q.m.name} · ${q.s.name}`);o.jobs.unshift(job);o.jobs=o.jobs.filter(j=>j.status==='active').concat(o.jobs.filter(j=>j.status!=='active').slice(0,60));scoutDesk.draft=null;
  if(!automatic){save();render();}return true;
 }

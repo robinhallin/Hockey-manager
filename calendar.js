@@ -48,7 +48,7 @@ function calendarWindowOpen(){
 function calendarDeadlineText(){return calendarWindowOpen()?`Öppet till 15 feb ${state.season.year+1}`:'Stängt för omedelbara värvningar';}
 function calendarNotify(message){state.calendar.notice=message;save();render();}
 function calendarMarketDay(){
- const c=state.calendar,r=state.recruitment;scoutDay();
+ const c=state.calendar,r=state.recruitment;scoutDay();incomingDay();
  for(const d of r.deals.filter(d=>d.status==='pending'&&d.dueDate&&d.dueDate<=c.date))resolveRecruitDeal(d);
  if(c.date>=c.marketDay){
   advanceRecruitment();c.marketDay=calAdd(c.date,7);
@@ -231,7 +231,7 @@ function calendarResolveFuture(d){
  if(d.rival&&aiCanCommit(d.rival.club,p,0,d.rival.salary,{future:true,years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}
  else {d.status='future_signed';d.reason=`Klart för ${d.joinYear}/${String(d.joinYear+1).slice(-2)}. Spelaren ansluter vid säsongsskiftet.`;}
  p.futureContract={buyer,seller:d.seller,joinYear:d.joinYear,salary:terms.salary,years:terms.years,role:terms.role,rolePromiseVersion:d.rolePromiseVersion};
- aiMarkMarketPlayer(p.id,buyer);
+ aiMarkMarketPlayer(p.id,buyer);marketCloseCompeting(p.id,'future');
  recruitReport(`Framtidsbesked: ${p.name}`,d.reason);
 }
 function calendarActivateFuture(){

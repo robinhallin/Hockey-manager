@@ -53,11 +53,23 @@ assert.equal(run('state.recruitment.deals.length'),run('count'));
 run('state.boardPlan.offer.wageLimit=1000000000;state.money=100;submitRecruitOffer(budgetTarget.id,recruitFee(budgetTarget),1000000,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals.length'),run('count'));
 // Own player sales require a decision, protect squad size and cannot mutate a live team.
-run('state.money=1000000000;target.transferListed=true;for(const club of Object.keys(state.recruitment.ai)){const ai=clubAIState(club);if(ai)ai.scouting[target.id]={visits:3,snapshot:{...target.attributes},date:state.calendar.date};}generateIncomingOffer();globalThis.incoming=state.recruitment.incoming.find(o=>samePlayerId(o.playerId,target.id));(state.calendar.date=calendarTarget(),createMatch());answerIncomingOffer(incoming.id,true)');
+run(`state.money=1000000000;target.transferListed=true;globalThis.salesBuyer='Färjestad BK';
+ state.recruitment.ai[salesBuyer].cash=1000000000;state.recruitment.ai[salesBuyer].wageLimit=1000000000;
+ const group=worldGroup(target),minimum=({MV:2,B:6,F:12})[group];
+ for(const q of state.clubRosters[salesBuyer].filter(p=>worldGroup(p)===group).slice(minimum-1)){state.clubRosters[salesBuyer]=state.clubRosters[salesBuyer].filter(p=>p!==q);worldRelease(q,salesBuyer,'Controlled sale need');}
+ for(const q of state.clubRosters[salesBuyer].filter(p=>worldGroup(p)===group)){q.promisedRole='Rotation';q.squadRole='Rotation';for(const k in q.attributes)q.attributes[k]=1;}
+ clubAIState(salesBuyer).scouting[target.id]={visits:3,snapshot:{...target.attributes},date:state.calendar.date};
+ globalThis.salesNeed=aiSquadNeeds(salesBuyer).find(n=>n.role===(group==='MV'?'goalie':group==='B'?'defense':'forward'));
+ globalThis.salesWishes=recruitPlayerWishes(target,salesBuyer);
+ aiSubmitMarket(salesBuyer,target,salesNeed,'transfer',{fee:recruitFee(target),salary:salesWishes.salary*2,years:2,role:'Nyckelspelare'});
+ globalThis.incoming=state.recruitment.incoming.find(o=>samePlayerId(o.playerId,target.id)&&o.status==='pending');
+ (state.calendar.date=calendarTarget(),createMatch());answerIncomingOffer(incoming.id,true)`);
 assert.equal(run('getPlayerClub(target.id)'),'HV71');
 run('state.live=null;globalThis.saleCash=state.money;answerIncomingOffer(incoming.id,true)');
+assert.equal(run('incoming.stage'),'club_agreed');assert.equal(run('state.money'),run('saleCash'));
+run('state.calendar.date=calAdd(state.calendar.date,1);incomingDay()');
 assert.equal(run('incoming.status'),'accepted');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
-run('answerIncomingOffer(incoming.id,true)');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
+run('answerIncomingOffer(incoming.id,true);incomingDay()');assert.equal(run('state.money'),run('saleCash+incoming.fee'));
 // Autonomous transfers conserve player ownership and respect minimum roster sizes.
 run('globalThis.historyBefore=state.recruitment.history.length;for(let i=0;i<30;i++){state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()}');
 assert.ok(run('state.recruitment.history.length>historyBefore'));

@@ -15,23 +15,23 @@ function aiMarketSnapshotForDay(){
 
 function aiMarketReserved(club,excludePlayer=null){
  const same=o=>excludePlayer!=null&&samePlayerId(o.playerId,excludePlayer);
- const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const incoming=(state.recruitment?.incoming||[]).filter(incomingOfferOpen);
  return [...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&o.kind!=='future'&&!same(o))
   .reduce((n,o)=>({fee:n.fee+(o.fee||0),salary:n.salary+o.salary}),{fee:0,salary:0});
 }
 function aiFutureReserved(club,excludePlayer=null){
- const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const incoming=(state.recruitment?.incoming||[]).filter(incomingOfferOpen);
  return [...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&(o.kind==='future'||o.kind!=='loan'&&o.years>1)&&
   !(excludePlayer!=null&&samePlayerId(o.playerId,excludePlayer))).reduce((n,o)=>n+o.salary,0);
 }
 function aiCommittedRoster(club,p,{future=false}={}){
- const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const incoming=(state.recruitment?.incoming||[]).filter(incomingOfferOpen);
  const pending=[...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&
   (future?(o.kind==='future'||o.kind!=='loan'&&o.years>1):o.kind!=='future'));
- const reserved=pending.map(o=>findPlayerAnywhere(o.playerId));
+ const reserved=pending.map(o=>marketPlayer(o.playerId));
  if(!future){
   const loans=(state.loans?.offers||[]).filter(o=>o.borrower===club&&['pending','counter'].includes(o.status))
-   .map(o=>findPlayerAnywhere(o.playerId));
+   .map(o=>marketPlayer(o.playerId));
   return aiRosterWithReturns(club,[p,...reserved,...loans]);
  }
  const secured=(state.clubRosters[club]||[]).filter(q=>!playerLoan(q)&&q.contractYears>1&&!q.futureContract);
@@ -42,24 +42,24 @@ function aiCommittedRoster(club,p,{future=false}={}){
   .filter(q=>q.futureContract?.buyer===club);
  return [...secured,...returning,...arrivals,p,...reserved];
 }
-function aiCanCommit(club,p,fee,salary,{future=false,years=0}={}){
+function aiCanCommit(club,p,fee,salary,{future=false,years=0,loanOffer=null}={}){
  const b=state.recruitment.ai[club];if(!b||!p||!Number.isFinite(fee)||!Number.isFinite(salary))return false;
  if((future||years>1)&&salary>calendarFutureRoom(club)+aiFutureReserved(club)-aiFutureReserved(club,p.id))return false;
  if((future||years>1)&&!aiRosterHasRoom(aiCommittedRoster(club,p,{future:true})))return false;
  if(future)return !clubAIState(club)||aiFinancialForecast(club).cash>=0;
  const reserved=aiMarketReserved(club,p.id);
- if(!aiRosterHasRoom(aiCommittedRoster(club,p))||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club)>b.wageLimit)return false;
+ if(!aiRosterHasRoom(aiCommittedRoster(club,p))||b.cash<fee+reserved.fee||loanWageCost(club)+salary+reserved.salary+loanReserved(club,loanOffer)>b.wageLimit)return false;
  const c=clubAIState(club);if(!c)return true;
  const forecast=aiFinancialForecast(club),remaining=forecast.remaining/52;
  // Keep at least a fortnight of running costs; avoid committing a projected deficit.
  const reserve=Math.min(1200000,forecast.yearlyCosts/26);
  const allReserved=aiMarketReserved(club);
  return b.cash-fee-reserved.fee>=Math.min(reserve,Math.max(0,b.cash*.08))&&
-  forecast.cash+(allReserved.fee-reserved.fee)+(allReserved.salary-reserved.salary)*remaining-fee-salary*remaining>=0;
+  forecast.cash+(allReserved.fee-reserved.fee)+(allReserved.salary-reserved.salary+loanReserved(club)-loanReserved(club,loanOffer))*remaining-fee-salary*remaining>=0;
 }
 function aiScoutEstimate(club,p,role){
  const c=clubAIState(club),r=c?.scouting[p.id],visits=r?.visits||0;
- if(getPlayerClub(p.id)===club||c?.academy.roster.some(q=>samePlayerId(q.id,p.id)))return aiRoleValue(p,role);
+ if((aiMarketSnapshot?.owners.get(String(p.id))??getPlayerClub(p.id))===club||c?.academy.roster.some(q=>samePlayerId(q.id,p.id)))return aiRoleValue(p,role);
  const uncertainty=Math.max(.35,3.4-(c?.director.judgement||12)*.075-visits*.9);
  const attrs=r?.snapshot||scoutingPrior(p),estimated=Object.fromEntries(Object.entries(attrs).map(([k,v])=>
   [k,attrClamp(v+(attrSeed(`${club}:${p.id}:${k}:observation`)-.5)*uncertainty*2,1,20)]));
@@ -74,7 +74,7 @@ function aiRoleDemand(p,role=p.promisedRole||p.squadRole||'Rotation'){
 }
 function aiRoleBudget(club,p,offer={},future=false,group=p?worldGroup(p):'F'){
  const capacity=group==='MV'?6:group==='B'?7200:10800;
- const incoming=(state.recruitment?.incoming||[]).filter(o=>o.expires>=state.recruitment.tick);
+ const incoming=(state.recruitment?.incoming||[]).filter(incomingOfferOpen);
  const offers=[...(state.clubAI?.offers||[]),...incoming].filter(o=>o.buyer===club&&o.status==='pending'&&o.kind!=='loan'&&
   (future?(o.kind==='future'||o.years>1):o.kind!=='future'));
  const roster=[...new Map(aiCommittedRoster(club,p,{future}).filter(q=>q&&worldGroup(q)===group).map(q=>[String(q.id),q])).values()];
@@ -124,17 +124,17 @@ function aiOfferTerms(club,p,need,kind='transfer'){
  return {salary,years:Math.max(w.minYears,years),role:w.role,fee:kind==='future'?0:recruitFee(p)};
 }
 function aiSubmitMarket(club,p,need,kind,terms){
- const w=state.clubAI,c=clubAIState(club),seller=getPlayerClub(p.id);
+ const w=state.clubAI,c=clubAIState(club),seller=marketClub(p.id);
+ if(!aiCanCommit(club,p,terms.fee||0,terms.salary,{future:kind==='future',years:terms.years})||marketCooldown(club,p,kind))return false;
  if(aiRoleOfferIssue(club,p,{...terms,kind}))return false;
  if(w.offers.some(o=>o.status==='pending'&&o.buyer===club&&samePlayerId(o.playerId,p.id)))return false;
- if(kind==='transfer'&&seller===managerClub()){
-  const r=state.recruitment;if(r.incoming.some(o=>o.status==='pending'&&o.buyer===club&&samePlayerId(o.playerId,p.id)))return false;
-  r.incoming.unshift({id:r.nextId++,playerId:p.id,name:p.name,buyer:club,...terms,expires:r.tick+3,status:'pending'});
-  recruitReport(`Bud på ${p.name}`,`${club} erbjuder ${careerMoney(terms.fee)}. Sportchefen söker ${need.label.toLowerCase()}: ${need.reason} Du avgör om budet accepteras.`);
-  aiDecision(club,'market',`Lämnar bud på ${p.name} i ${seller}: ${need.reason}`);return true;
+ if(kind!=='future'&&seller===managerClub()){
+  const created=incomingCreate(club,p,need,kind,terms);
+  if(created){c.lastOffer=state.calendar.date;aiDecision(club,'market',`Lämnar ${kind==='loan'?'lånebud':'köpbud'} på ${p.name}: ${need.reason}`);}
+  return created;
  }
  const offer={id:w.nextOffer++,playerId:p.id,name:p.name,buyer:club,seller,kind,...terms,decisionReason:need.reason,
-  needRole:need.role,date:state.calendar.date,due:calAdd(state.calendar.date,seller===managerClub()?7:2),status:'pending',reason:need.reason};
+  availability:marketAvailability(p),needRole:need.role,date:state.calendar.date,due:calAdd(state.calendar.date,seller===managerClub()?7:2),status:'pending',reason:need.reason};
  w.offers.push(offer);
  aiDecision(club,'market',`${kind==='future'?'Erbjuder nästa avtal till':kind==='loan'?'Förhandlar om lån av':'Lämnar bud på'} ${p.name}: ${need.reason}`);
  if(seller===managerClub())managerMessage(`ai-future:${offer.id}`,`${club} kontaktar ${p.name}`,`Spelarens avtal löper ut. ${club} erbjuder ett avtal från nästa säsong. Besked väntas ${calText(offer.due)}. En egen förlängning kan säkra spelaren innan dess.`,'Sportchefen',{link:'contracts'});
@@ -143,31 +143,35 @@ function aiSubmitMarket(club,p,need,kind,terms){
 function aiScoutClub(club,candidates=null){
  const c=clubAIState(club),b=state.recruitment.ai[club];if(!c||!b||club===managerClub()||loanLocked())return;
  if(c.lastMarket===state.calendar.date)return;
- const needs=aiSquadNeeds(club),need=needs.find(n=>n.missing>0&&!n.shortTerm)||needs.find(n=>!n.missing&&n.futureNeed>0);
+ const needs=aiSquadNeeds(club),need=needs.find(n=>n.missing>0&&!n.shortTerm)||needs.find(n=>n.qualityGap>0&&!n.shortTerm)||needs.find(n=>!n.missing&&n.futureNeed>0);
  if(!need){const waiting=needs.find(n=>n.shortTerm),rc=rivalsClubState(club);if(waiting&&rc)rc.recruitmentNote=waiting.reason;return;}
  const deadline=calGap(state.calendar.date,`${state.season.year+1}-02-15`),emergency=need.role==='goalie'&&need.count===0;
  const interval=emergency?1:deadline>=0&&deadline<=14?3:c.project==='survive'?7:7+Math.floor(c.director.patience/7);
  if(c.lastMarket&&calGap(c.lastMarket,state.calendar.date)<interval)return;c.lastMarket=state.calendar.date;
  // One negotiation per club keeps commitments and emergency priorities readable.
- if(state.clubAI.offers.some(o=>o.buyer===club&&o.status==='pending')||state.recruitment.incoming.some(o=>o.buyer===club&&o.status==='pending'&&o.expires>=state.recruitment.tick))return;
- const future=!need.missing&&need.futureNeed>0;
+ if(state.clubAI.offers.some(o=>o.buyer===club&&o.status==='pending')||state.recruitment.incoming.some(o=>o.buyer===club&&incomingOfferOpen(o)))return;
+ const future=!need.missing&&!need.qualityGap&&need.futureNeed>0;
  if(future&&(state.season.phase==='preseason'||state.calendar.date<`${state.season.year+1}-01-01`))return;
  if(!future&&!calendarWindowOpen())return;
- const market=candidates||getTransferMarketPlayers();
+ const market=candidates||marketCandidates();
  const forecast=aiFinancialForecast(club),reserved=aiMarketReserved(club),futureRoom=calendarFutureRoom(club);
  const maxSalary=b.wageLimit-loanWageCost(club)-reserved.salary-loanReserved(club);
  const shortlist=[];let roleBlocked=null;
  for(const candidate of market){
-  const p=candidate,seller=candidate.team;
+  const p=candidate.player||marketPlayer(candidate.id)||candidate,seller=candidate.team;
   if(!p||seller===club||!aiRoleFits(p,need.role)||p.futureContract||playerLoan(p)||!medicalReady(p))continue;
   if(future&&p.contractYears!==1)continue;
+  if(future&&marketAcademy(seller)?.includes(p))continue; // Academy moves currently use an immediate senior contract.
+  if(marketCooldown(club,p,future?'future':'transfer')&&marketCooldown(club,p,'loan'))continue;
   const known=country=>country==='SWE'||country===c.director.network;
   if(!known(p.nationality||recruitCountry(seller))&&!c.scouting[p.id]&&attrSeed(`${club}:${p.id}:network`)>.2)continue;
   let kind=future?'future':'transfer',terms=aiOfferTerms(club,p,need,kind);
-  if(!future&&need.temporary&&seller!==WORLD_FREE&&seller!==managerClub()&&loanCanLeave(p,seller)){
+  if(!future&&seller!==WORLD_FREE&&(need.temporary||p.loanListed||p.age<=23&&worldGroup(p)==='MV'&&(state.clubRosters[seller]||[]).filter(q=>q.pos==='MV').length>2)&&loanCanLeave(p,seller)){
    const result=loanTerms(p,seller,club,{id:null,days:need.returnDays!==null&&need.returnDays<=28?28:56,share:.5,role:'regular',recall:'day28'});
    if(result.terms){kind='loan';terms={fee:0,salary:Math.round(p.salary*result.terms.share),years:0,role:'Rotation',...result.terms,loanRole:result.terms.role};}
   }
+  if(marketCooldown(club,p,kind))continue;
+  if(kind==='loan'&&!loanRegistrationTerms(p,seller,club,terms.days).until)continue;
   if(kind==='transfer'&&!recruitWillingToSell(p,seller))continue;
   if(future?terms.salary>futureRoom:terms.salary>maxSalary||terms.fee+reserved.fee>b.cash||forecast.cash-terms.fee-terms.salary*forecast.remaining/52<0)continue;
   const observed=Boolean(c.scouting[p.id]?.snapshot),roleIssue=observed?aiRoleOfferIssue(club,p,{...terms,kind}):'';
@@ -177,11 +181,12 @@ function aiScoutClub(club,candidates=null){
   const current=own.reduce((n,q)=>n+aiRoleValue(q,need.role),0)/Math.max(1,own.length);
   if(observed&&!emergency&&estimate<Math.max(leagueOf(club)==='HA'?8:9,current-(need.missing?2:0)))continue;
   const ageFit=(c.project==='develop'||c.project==='rebuild')?(24-p.age)*.1:c.project==='title'&&p.age>=23&&p.age<=31?.5:0;
-  const score=estimate+ageFit-terms.fee/4000000-terms.salary/12000000+(kind==='loan'&&need.temporary?1:0);
+  const score=estimate+ageFit-terms.fee/4000000-terms.salary/12000000+(kind==='loan'&&need.temporary?1:0)+(marketAvailability(p)==='keep'?-2:marketAvailability(p)==='open'?0:.6);
   shortlist.push({p,kind,terms,score});
  }
  shortlist.sort((a,b)=>b.score-a.score||String(a.p.id).localeCompare(String(b.p.id)));
  for(const candidate of shortlist.slice(0,3)){
+  marketInterest(club,candidate.p,need,candidate.kind);
   const report=c.scouting[candidate.p.id]??={visits:0};
   if(report.date!==state.calendar.date){report.visits=Math.min(3,report.visits+1);report.date=state.calendar.date;report.role=need.role;report.snapshot={...ensurePlayerAttributes(candidate.p)};}
  }
@@ -194,12 +199,12 @@ function aiScoutClub(club,candidates=null){
  c.scouting=Object.fromEntries(Object.entries(c.scouting).sort((a,b)=>b[1].date.localeCompare(a[1].date)).slice(0,36));
 }
 function aiValidateOffer(o){
- const p=findPlayerAnywhere(o.playerId);
- if(!p||getPlayerClub(p.id)!==o.seller||p.futureContract||playerLoan(p))return 'Spelarens situation har ändrats.';
+ const p=marketPlayer(o.playerId);
+ if(!p||marketClub(p.id)!==o.seller||p.futureContract||playerLoan(p))return 'Spelarens situation har ändrats.';
  if(o.kind!=='future'&&!medicalReady(p))return 'Spelaren är inte längre spelklar för det aktuella behovet.';
  if(o.kind==='future'?(p.contractYears!==1||o.joinYear&&o.joinYear<=state.season.year):!calendarWindowOpen())return 'Avtalsläget eller transferfönstret hindrar affären.';
  const need=aiSquadNeeds(o.buyer).find(n=>n.role===o.needRole);
- if(!need||(o.kind==='future'?need.futureNeed===0:need.missing===0))return 'Behovet är redan täckt.';
+ if(!need||(o.kind==='future'?need.futureNeed===0:need.missing===0&&!need.qualityGap))return 'Behovet är redan täckt.';
  if(o.kind!=='future'&&need.shortTerm)return 'Kort skadefrånvaro kan täckas av den befintliga truppen.';
  if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitFee(p)))return 'Säljaren accepterar inte villkoren.';
  if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Klubbens trupp- eller budgetutrymme räcker inte längre.';
@@ -222,6 +227,12 @@ function aiMarkMarketPlayer(id,buyer){
 }
 function aiResolveMarket(){
  const w=state.clubAI;if(!w||loanLocked())return;
+ // Older queued AI deals may predate the separate user approval ledger.
+ for(const o of w.offers.filter(o=>o.status==='pending'&&o.seller===managerClub()&&o.kind!=='future')){
+  const p=marketPlayer(o.playerId),need=p&&aiSquadNeeds(o.buyer).find(n=>n.role===o.needRole);
+  o.status='cancelled';o.reason='Flyttad till klubbens beslutskö.';
+  if(p&&need)incomingCreate(o.buyer,p,need,o.kind||'transfer',{fee:o.fee||0,salary:o.salary,years:o.years,role:o.role,share:o.share,days:o.days,loanRole:o.loanRole,recall:o.recall});
+ }
  const due=w.offers.filter(o=>o.status==='pending'&&o.due<=state.calendar.date);
  const players=[...new Set(due.map(o=>String(o.playerId)))].sort();
  for(const id of players){
@@ -230,7 +241,7 @@ function aiResolveMarket(){
   if(state.recruitment.deals.some(d=>samePlayerId(d.playerId,id)&&d.status==='pending'))continue;
   const valid=[];
   for(const o of offers){const reason=aiValidateOffer(o);if(reason){o.status='rejected';o.reason=reason;}else valid.push(o);}
-  const p=findPlayerAnywhere(id);if(!p||!valid.length)continue;
+  const p=marketPlayer(id);if(!p||!valid.length)continue;
   valid.sort((a,b)=>{
    const score=o=>o.kind==='loan'?50+loanFit(p,o.buyer).rank*-2:recruitOfferScore(p,o.buyer,o);
    return score(b)-score(a)||attrSeed(`${id}:${a.buyer}:choice`)-attrSeed(`${id}:${b.buyer}:choice`);
@@ -244,17 +255,19 @@ function aiResolveMarket(){
    if(result.terms&&result.terms.share===o.share)signed=loanCompleteOffer({playerId:p.id,name:p.name,owner:o.seller,borrower:o.buyer,...result.terms});
   }else signed=transferRecruitPlayer(p,o.seller,o.buyer,o.fee,o.salary,o.years,o.role);
   if(!signed){o.status='rejected';o.reason='Affären klarade inte den slutliga kontrollen.';continue;}
-  aiMarkMarketPlayer(p.id,o.buyer);
+  aiMarkMarketPlayer(p.id,o.buyer);marketCloseCompeting(p.id,o.kind);
   const text=`${o.kind==='future'?'Säkrar nästa säsong med':o.kind==='loan'?'Lånar':'Värvar'} ${p.name} från ${o.seller}. ${o.decisionReason}`;
   if(o.kind==='future')feedbackNews('future-sign:'+o.id,o.buyer,'transfer',playerHeadline(p,' skriver förhandsavtal'),text);
   aiDecision(o.buyer,'market',text);rivalEvent(o.buyer,'transfer',[o.buyer+': ',playerMention(p)],text);
  }
+ for(const o of w.offers)if(o.status!=='pending')o.closedDate??=state.calendar.date;
  w.offers=w.offers.filter(o=>o.status==='pending'||calGap(o.date,state.calendar.date)<=90).slice(-160);
 }
 function aiMarketDay(){
  const w=state.clubAI;if(!w||w.lastMarketDay===state.calendar.date||loanLocked())return;
  w.lastMarketDay=state.calendar.date;
- const candidates=getTransferMarketPlayers();
+ const candidates=marketCandidates();
+ incomingDay();
  // Collect all clubs' intentions first. Club object order cannot win an auction.
  aiMarketSnapshot=aiMarketSnapshotForDay();
  try{for(const club of Object.keys(w.clubs).sort())if(club!==managerClub())aiScoutClub(club,candidates);}

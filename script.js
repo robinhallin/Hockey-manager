@@ -3438,7 +3438,7 @@ function toggleTransferStatus(playerId){
   if(player.transferListed){
 
     player.askingPrice =
-      player.value;
+      calculateTransferPrice(player);
 
     state.news.unshift(
       `${player.name} har placerats på transferlistan.`
@@ -4118,30 +4118,10 @@ function findPlayerAnywhere(playerId){
 
 
 function calculateTransferPrice(player){
-
-  if(!player){
-    return 0;
-  }
-
-  const baseValue =
-    player.value || 1000000;
-
-  const contractMultiplier =
-    1 + ((player.contractYears || 1) * 0.08);
-
-  const potentialBonus =
-    Math.max(
-      0,
-      (player.potential || player.overall) -
-      player.overall
-    ) * 0.04;
-
-  return Math.round(
-    baseValue *
-    contractMultiplier *
-    (1 + potentialBonus)
-  );
-
+ if(!player||player.contractYears<=0)return 0;
+ const years=Math.min(3,Math.max(1,player.contractYears||1));
+ const ageFactor=player.age<=23?1.15:player.age>=33?.7:1;
+ return Math.round(Math.max(0,player.salary||250000)*(.25+.35*years)*ageFactor/10000)*10000;
 }
 
 

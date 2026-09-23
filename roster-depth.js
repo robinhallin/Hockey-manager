@@ -24,6 +24,7 @@ function ensureLoans(){
  }
 }
 function playerLoan(p){return p?.loanId?state.loans?.active.find(l=>l.id===p.loanId&&samePlayerId(l.playerId,p.id)):null;}
+function loanReturnDate(l){return l.registration==='temporary'?l.until:calAdd(l.until,1);}
 function loanPlayer(l){return (state.clubRosters[l.borrower]||state.loans?.external||[]).find(p=>samePlayerId(p.id,l.playerId)&&p.club===l.borrower);}
 function loanWageCost(club){
  let total=(state.clubRosters[club]||[]).reduce((n,p)=>n+(p.salary||0)*(playerLoan(p)?.share??1),0);
@@ -41,6 +42,7 @@ function loanFit(p,club){
 }
 function loanCanLeave(p,club){
  if(!p||playerLoan(p)||p.futureContract||p.contractYears<1||!medicalReady(p))return false;
+ if(!(state.clubRosters[club]||[]).some(q=>samePlayerId(q.id,p.id)))return false;
  if(club!==managerClub()&&positionFit(p,'C')>=.98&&(state.clubRosters[club]||[]).filter(q=>q!==p&&medicalReady(q)&&positionFit(q,'C')>=.98).length<4)return false;
  return (state.clubRosters[club]||[]).filter(q=>q!==p&&loanGroup(q)===loanGroup(p)&&medicalReady(q)).length>=({MV:2,B:6,F:12})[loanGroup(p)];
 }
@@ -56,7 +58,7 @@ function loanTerms(p,owner,borrower,offer){
  if(young&&role==='rotation'||ambitious&&p.age>=25&&p.promisedRole==='Nyckelspelare'&&leagueOf(borrower)==='HA'&&role!=='starter')return {reason:'Spelaren avböjer: den sportsliga rollen väger inte upp flytten. Sök en klubb med bättre chans till ansvar.'};
  const limit=borrower===managerClub()?wageBudget():state.recruitment.ai[borrower]?.wageLimit||0;
  const recruitReserve=borrower===managerClub()?state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future').reduce((n,d)=>n+d.salary,0):0;
- const room=limit-(borrower===managerClub()?annualWageCost():loanWageCost(borrower))-loanReserved(borrower,offer)-recruitReserve;
+ const room=limit-(borrower===managerClub()?annualWageCost():loanWageCost(borrower))-loanReserved(borrower,offer)-recruitReserve-(borrower===managerClub()?0:aiMarketReserved(borrower,p.id).salary);
  if(state.clubRosters[borrower].length>=32||borrower!==managerClub()&&clubAIState(borrower)&&!aiRosterHasRoom(aiRosterWithReturns(borrower,[p]))||room<0)return {reason:'Mottagarklubbens trupp eller lönebudget är full.'};
  // The other club has a price, independent of the percentage typed into the form.
  const maxShare=Math.min(role==='starter'?.75:role==='regular'?.5:.25,Math.floor(room/Math.max(1,p.salary)*4)/4);
@@ -79,19 +81,26 @@ function loanSubmit(id,destination,days,share,role='regular',recall='day28'){
 }
 function loanCompleteOffer(o){
  const p=findPlayerAnywhere(o.playerId);if(!p||getPlayerClub(p.id)!==o.owner)return false;
+ if(o.owner===managerClub()&&!state.recruitment.incoming.some(i=>i.id===o.incomingId&&i.approved&&i.stage==='club_agreed'&&incomingOfferOpen(i)&&samePlayerId(i.playerId,p.id)&&i.buyer===o.borrower)&&!(state.loans.offers.includes(o)&&(o.status==='pending'||o.playerApprovedCounter)))return false;
+ const t=o.counter||o,registration=loanRegistrationTerms(p,o.owner,o.borrower,t.days),check=loanTerms(p,o.owner,o.borrower,{...o,...t});
+ if(loanLocked()||playerLoan(p)||p.futureContract||p.lastTransferDate===state.calendar.date||!registration.until||!check.terms||['share','days','role','recall'].some(k=>check.terms[k]!==t[k]))return false;
+ if(o.borrower!==managerClub()&&!aiCanCommit(o.borrower,p,0,Math.round(p.salary*t.share),{loanOffer:o}))return false;
  trainingClubChange(p,o.owner,o.borrower);
  const feedbackPlan=feedbackBeforeArrival(p,o.borrower);
- const t=o.counter||o,until=t.days?calAdd(state.calendar.date,t.days):`${state.season.year+1}-05-15`;
+ const until=registration.until;
  const l={id:state.loans.nextId++,playerId:p.id,name:p.name,owner:o.owner,borrower:o.borrower,start:state.calendar.date,until,share:t.share,role:t.role,recall:t.recall,initial:false,termsEstimated:true,baseline:{games:p.games||0,goals:p.goals||0,assists:p.assists||0},seconds:0,games:0,starts:0,goals:0,assists:0,appearances:[]};
+ Object.assign(l,registration);p.lastTransferDate=state.calendar.date;
  if(o.owner===managerClub())state.scoutReports[String(p.id)]=scoutRemember(p);
  state.clubRosters[o.owner]=state.clubRosters[o.owner].filter(q=>!samePlayerId(q.id,p.id));state.clubRosters[o.borrower].push(p);p.club=o.borrower;p.loanId=l.id;p.transferListed=false;p.askingPrice=null;
  if(p.recruitmentPromise&&!p.recruitmentPromise.resolved){p.recruitmentPromise.resolved=true;p.recruitmentPromise.result='Utvecklingslån överenskommet';}
  state.loans.active.push(l);o.status='agreed';o.agreedDate=state.calendar.date;p.morale=trainingClamp((p.morale||70)+2);syncManagerRoster();repairMedicalLines();ensureSpecialTeams();
+ marketCloseCompeting(p.id,'loan',o.incomingId);o.status='agreed';aiMarkMarketPlayer(p.id,o.borrower);
  feedbackArrival(p,feedbackPlan,'loan');
  feedbackNews('loan:'+l.id,o.borrower,'transfer',playerHeadline(p,' går på lån'),o.owner+' → '+o.borrower+' till '+calText(until)+'.');
  if([o.owner,o.borrower].includes(managerClub()))managerMessage(`loan:${l.id}`,`${p.name} går på lån`,`${o.owner} → ${o.borrower} till ${calText(until)}. Löneandel ${t.share*100} %. Roll: ${LOAN_ROLES[t.role]}. Återkallelse ${t.recall==='anytime'?'mellan matcher':'efter 28 dagar'}. Tränarteamet följer upp faktisk speltid.`,'Sportchef',{link:'transfers'});return true;
 }
 function loanResolveOffer(o,accept=false){
+ if(accept)o.playerApprovedCounter=true;
  const p=findPlayerAnywhere(o.playerId);
  if(!p||getPlayerClub(o.playerId)!==o.owner||!calendarWindowOpen()){o.status='rejected';o.reason='Spelaren är inte längre tillgänglig eller transferfönstret har stängt.';return;}
  const result=loanTerms(p,o.owner,o.borrower,{...o,...(o.counter||{})});
@@ -100,7 +109,7 @@ function loanResolveOffer(o,accept=false){
  else {
   const current=o.counter||o,changed=['share','days','role','recall'].some(k=>current[k]!==result.terms[k]);
   if(changed||o.status==='counter'&&!accept){o.status='counter';o.counter=result.terms;o.expires=calAdd(state.calendar.date,7);o.reason=result.reason;}
-  else{loanCompleteOffer(o);o.reason='Klubbarna och spelaren accepterade samma villkor.';}
+  else{const done=loanCompleteOffer(o);o.status=done?'agreed':'rejected';o.reason=done?'Klubbarna och spelaren accepterade samma villkor.':'Registrering eller finansiering hindrar lånet. Spelaren stannar i sin klubb.';}
  }
  managerMessage(`loan-offer:${o.id}:${o.status}:${state.calendar.date}`,`Lånebesked: ${o.name}`,`${o.status==='counter'?'Motbud – granska de nya villkoren i Lånecentralen. ':o.status==='rejected'?'Avslag. ':''}${o.reason}`,'Sportchef',{link:'transfers'});
 }
@@ -110,13 +119,13 @@ function loanAnswer(id,accept){
  if(o.status!=='counter'||o.expires<state.calendar.date)return;
  loanResolveOffer(o,true);loanNotice(o.status==='agreed'?`${o.name} är spelklar på de överenskomna villkoren.`:o.reason);
 }
-function loanOffersView(){return (state.loans.offers||[]).slice(0,20).map(o=>{const t=o.counter||o;return `<article class="loan-negotiation"><header><h3>${trainingSafe(o.name)}</h3><strong>${({pending:'Inväntar klubb & spelare',counter:'Motbud att ta ställning till',agreed:'Överens',rejected:'Avslag',expired:'Utgånget',cancelled:'Avslutat'})[o.status]}</strong></header><p>${trainingSafe(o.owner)} → ${trainingSafe(o.borrower)}</p>${o.counter?`<p>Ditt förslag: ${o.share*100} % lön · ${o.days?o.days+' dagar':'säsongen ut'} · ${LOAN_ROLES[o.role]}.</p>`:''}<div class="loan-terms"><b>${t.share*100} % lön</b><span>${t.days?t.days+' dagar':'Säsongen ut'}</span><span>${LOAN_ROLES[t.role]}</span><span>Återkallelse ${t.recall==='anytime'?'direkt':'efter 28 dagar'}</span></div><p>${trainingSafe(o.reason||'Svar '+calText(o.due))}</p>${o.status==='counter'?`<p>Gäller till ${calText(o.expires)}.</p><button class="btn" onclick="loanAnswer(${o.id},true)">Acceptera motbudet</button>`:''}${['pending','counter'].includes(o.status)?`<button class="btn secondary" onclick="loanAnswer(${o.id},false)">${o.status==='counter'?'Avböj':'Återkalla förslag'}</button>`:''}</article>`;}).join('');}
+function loanOffersView(){return (state.loans.offers||[]).slice(0,20).map(o=>{const t=o.counter||o;return `<article class="loan-negotiation"><header><h3>${trainingSafe(o.name)}</h3><strong>${({pending:'Inväntar klubb & spelare',counter:'Motbud att ta ställning till',agreed:'Överens',rejected:'Avslag',expired:'Utgånget',cancelled:'Avslutat'})[o.status]}</strong></header><p>${trainingSafe(o.owner)} → ${trainingSafe(o.borrower)}</p>${o.counter?`<p>Ditt förslag: ${o.share*100} % lön · ${o.days?o.days+' dagar':'säsongen ut'} · ${LOAN_ROLES[o.role]}.</p>`:''}<div class="loan-terms"><b>${t.share*100} % lön</b><span>${t.days?t.days+' dagar':'Till övergångsdeadline'}</span><span>${LOAN_ROLES[t.role]}</span><span>Återkallelse ${t.recall==='anytime'?'direkt':'efter 28 dagar'}</span></div><p>${trainingSafe(o.reason||'Svar '+calText(o.due))}</p>${o.status==='counter'?`<p>Gäller till ${calText(o.expires)}.</p><button class="btn" onclick="loanAnswer(${o.id},true)">Acceptera motbudet</button>`:''}${['pending','counter'].includes(o.status)?`<button class="btn secondary" onclick="loanAnswer(${o.id},false)">${o.status==='counter'?'Avböj':'Återkalla förslag'}</button>`:''}</article>`;}).join('');}
 function loanReturn(l,reason){
  const p=loanPlayer(l);if(!p)return false;
  trainingClubChange(p,l.borrower,l.owner);
  if(l.external)state.loans.external=state.loans.external.filter(q=>!samePlayerId(q.id,p.id));
  else state.clubRosters[l.borrower]=state.clubRosters[l.borrower].filter(q=>!samePlayerId(q.id,p.id));
- delete p.loanId;p.club=l.owner;
+ delete p.loanId;p.club=l.owner;p.lastTransferDate=state.calendar.date;
  if(l.northAmerica)naReceiveReturn(p,l,reason);else if(state.clubRosters[l.owner])state.clubRosters[l.owner].push(p);else state.loans.external.push(p);
  state.loans.active=state.loans.active.filter(q=>q.id!==l.id);state.loans.history.unshift({...l,returned:state.calendar.date,reason});state.loans.history=state.loans.history.slice(0,100);
  if([l.owner,l.borrower].includes(managerClub()))managerMessage(`loan-return:${l.id}`,`${p.name} återvänder till ${l.owner}`,`${reason}. Kontrakt, utveckling och skadehistorik följer med spelaren.`,'Sportchef',{link:'transfers'});
@@ -125,10 +134,11 @@ function loanReturn(l,reason){
 function loanRecall(id){
  const l=state.loans?.active.find(l=>l.id===id);if(!l||![l.owner,l.borrower].includes(managerClub()))return;
  if(loanLocked())return loanNotice('Återkalla eller avsluta lån mellan matcher.');
+ if(l.registration==='temporary'&&!calendarWindowOpen())return loanNotice('Återgången måste kunna registreras inom övergångsfönstret.');
  if(l.recall==='day28'&&calGap(l.start,state.calendar.date)<28)return loanNotice('Avtalet tillåter återkallelse först efter 28 dagar.');
  loanReturn(l,l.owner===managerClub()?'Ägarklubben återkallade lånet':'Mottagarklubben avslutade lånet');loanNotice(`${l.name} har återvänt till ${l.owner}.`);
 }
-function loansDay(){if(!state.loans||loanLocked())return;for(const o of state.loans.offers||[]){if(o.status==='pending'&&o.due<=state.calendar.date)loanResolveOffer(o);else if(o.status==='counter'&&(o.expires<state.calendar.date||!calendarWindowOpen())){o.status='expired';o.reason='Motbudets giltighetstid eller transferfönstret har löpt ut.';}}for(const l of [...state.loans.active])if(state.calendar.date>l.until)loanReturn(l,'Lånet löpte ut');}
+function loansDay(){if(!state.loans||loanLocked())return;for(const o of state.loans.offers||[]){if(o.status==='pending'&&o.due<=state.calendar.date)loanResolveOffer(o);else if(o.status==='counter'&&(o.expires<state.calendar.date||!calendarWindowOpen())){o.status='expired';o.reason='Motbudets giltighetstid eller transferfönstret har löpt ut.';}}for(const l of [...state.loans.active])if(l.registration==='temporary'?state.calendar.date>=l.until:state.calendar.date>l.until)loanReturn(l,'Lånet löpte ut');}
 function loansNewYear(){if(!state.loans)return;for(const o of state.loans.offers||[])if(['pending','counter'].includes(o.status))o.status='expired';for(const l of [...state.loans.active])loanReturn(l,'Säsongen är avslutad');}
 function loansAfterFixture(game,rows){
  if(!state.loans)return;
@@ -158,7 +168,7 @@ function loanTermsNote(l){
 }
 function loanPlayerPanel(p){
  const l=playerLoan(p);if(l)return `<section class="depth-panel"><h2>På lån från ${trainingSafe(l.owner)}</h2><p>Till ${calText(l.until)} · ${l.borrower} betalar ${l.share*100} % av lönen. ${loanTermsNote(l)}</p><button class="btn secondary" onclick="deskNavigate('transfers','loans')">Följ lånet</button></section>`;
- if(state.world?.membership[getPlayerClub(p.id)])return `<section class="depth-panel"><h2>Istid genom lån</h2><p>Jämför konkurrensen hos andra klubbar. Ett lån ger möjlighet till matcher samtidigt som kontraktet stannar hos ägarklubben.</p><button class="btn secondary" onclick="loanOpen('${p.id}')">${isOwnPlayer(p)?'Hitta en låneklubb':'Undersök ett lån'}</button></section>`;
+ if(state.world?.membership[getPlayerClub(p.id)])return `<section class="depth-panel"><h2>Marknad och lån</h2>${marketAvailabilityView(p)}<p>Jämför konkurrensen hos andra klubbar. Ett lån ger möjlighet till matcher samtidigt som kontraktet stannar hos ägarklubben.</p><button class="btn secondary" onclick="loanOpen('${p.id}')">${isOwnPlayer(p)?'Hitta en låneklubb':'Undersök ett lån'}</button></section>`;
  return '';
 }
 function loansView(){
@@ -170,7 +180,7 @@ function loansView(){
  return `<section class="depth-loans">${deskHistory.length?'<button class="btn secondary" onclick="deskBack(\'transfers\')">← Tillbaka till föregående vy</button>':''}<header><span class="career-eyebrow">UTVECKLING & TRUPPBREDD</span><h2>Lånecentralen</h2><p>Riktiga klubbmatcher, verklig konkurrens om istiden. Klubb, spelare och tränare ska enas om lön, roll och längd. Besked efter två dagar; ett motbud kräver ditt svar.</p></header>${s.message?`<p role="status" class="recruit-notice">${trainingSafe(s.message)}</p>`:''}
  ${p?`<section class="depth-panel"><h3>${trainingSafe(p.name)} · ${trainingSafe(owner)}</h3>${playerLoan(p)?loanPlayerPanel(p):`<p>${p.pos} · ${p.age} år · kontrakt ${p.contractYears} år. Lön ${careerMoney(p.salary)}/år. Avtalet och spelarutvecklingen följer spelaren hem.</p><form class="depth-loan-form" onsubmit="event.preventDefault();loanSubmit('${p.id}',this.elements.destination.value,this.elements.days.value,this.elements.share.value,this.elements.role.value,this.elements.recall.value)"><label>Mottagarklubb<select name="destination">${destinations.map(c=>`<option value="${trainingSafe(c)}">${trainingSafe(c)} · ${leagueOf(c)} · ${loanFit(p,c).text}</option>`).join('')}</select></label><label>Längd<select name="days"><option value="28">Fyra veckor</option><option value="56">Åtta veckor</option><option value="0">Säsongen ut</option></select></label><label>Mottagarens löneandel<select name="share">${[0,.25,.5,.75,1].map(n=>`<option value="${n}" ${n===.5?'selected':''}>${n*100} % · ${careerMoney(p.salary*n)}/år</option>`).join('')}</select></label><label>Planerad roll<select name="role">${Object.entries(LOAN_ROLES).map(([k,v])=>`<option value="${k}" ${k==='regular'?'selected':''}>${v}</option>`).join('')}</select></label><label>Återkallelse<select name="recall"><option value="day28">Tidigast efter 28 dagar</option><option value="anytime">När som helst mellan matcher</option></select></label><button class="btn" ${!destinations.length||!loanCanLeave(p,owner)||loanLocked()?'disabled':''}>Skicka låneförslag</button></form><p>${loanCanLeave(p,owner)?'Rollen är en avsikt som följs upp mot faktisk istid. Klubben kan föreslå andra villkor eller tacka nej.':'Ägarklubben behöver spelaren, eller spelaren är skadad / har ett kommande avtal.'}</p>`}</section>`:''}
  <h3>Förhandlingar</h3>${loanOffersView()||'<p>Inga låneförslag ännu.</p>'}<div class="depth-metrics"><article><strong>${active.filter(l=>l.owner===managerClub()).length}</strong><span>Utlånade</span></article><article><strong>${active.filter(l=>l.borrower===managerClub()).length}</strong><span>Inlånade</span></article></div>
- ${active.map(l=>`<article class="depth-panel"><h3>${playerReference(l.playerId,l.name)}</h3><p>${trainingSafe(l.owner)} → ${trainingSafe(l.borrower)} · åter ${calText(calAdd(l.until,1))}</p><p>${l.external?'':l.games+' serie-/slutspelsmatcher · '+Math.round(l.seconds/60)+' min · '}${loanProduction(l)}${l.role?' · '+LOAN_ROLES[l.role]:''}${l.roleReview?' · '+l.roleReview:''} · mottagaren betalar ${l.share*100} %</p><p>${loanTermsNote(l)}</p><button class="btn secondary" onclick="deskOpenPlayer('${l.playerId}')">Spelarprofil</button> <button class="btn secondary" onclick="loanRecall(${l.id})" ${loanLocked()?'disabled':''}>${l.owner===managerClub()?'Återkalla':'Avsluta lånet'}</button></article>`).join('')||'<p>Inga aktiva lån för din klubb.</p>'}
+ ${active.map(l=>`<article class="depth-panel"><h3>${playerReference(l.playerId,l.name)}</h3><p>${trainingSafe(l.owner)} → ${trainingSafe(l.borrower)} · åter ${calText(loanReturnDate(l))}</p><p>${l.external?'':l.games+' serie-/slutspelsmatcher · '+Math.round(l.seconds/60)+' min · '}${loanProduction(l)}${l.role?' · '+LOAN_ROLES[l.role]:''}${l.roleReview?' · '+l.roleReview:''} · mottagaren betalar ${l.share*100} %</p><p>${loanTermsNote(l)}</p><button class="btn secondary" onclick="deskOpenPlayer('${l.playerId}')">Spelarprofil</button> <button class="btn secondary" onclick="loanRecall(${l.id})" ${loanLocked()?'disabled':''}>${l.owner===managerClub()?'Återkalla':'Avsluta lånet'}</button></article>`).join('')||'<p>Inga aktiva lån för din klubb.</p>'}
  <details class="depth-panel"><summary>Låna ut ur din trupp</summary><div class="depth-player-list">${candidates.map(p=>`<button onclick="loanOpen('${p.id}')"><strong>${trainingSafe(p.name)}</strong><span>${p.pos} · ${lineupPlayerPlace(p)} · ${loanCanLeave(p,managerClub())?'Tillgänglig för diskussion':'Behövs / ej tillgänglig'}</span></button>`).join('')}</div></details>
  <details class="depth-panel"><summary>Spelare som kan vara tillgängliga att låna in</summary><p>Sportchefens första urval. Fler spelare kan undersökas genom spelarsökningen.</p><div class="depth-player-list">${external.map(({p,club})=>`<button onclick="loanOpen('${p.id}')"><strong>${trainingSafe(p.name)}</strong><span>${p.pos} · ${trainingSafe(club)}</span></button>`).join('')||'<p>Inga aktuella förslag.</p>'}</div></details>
  <details class="depth-panel"><summary>Avslutade lån</summary>${s.history.filter(l=>[l.owner,l.borrower].includes(managerClub())).map(l=>`<p><strong>${playerReference(l.playerId,l.name)}</strong> · ${trainingSafe(l.reason)} · ${l.games} matcher, ${Math.round(l.seconds/60)} minuter</p>`).join('')||'<p>Inga avslutade lån.</p>'}</details></section>`;
