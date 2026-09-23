@@ -46,7 +46,7 @@ function recruitCoverageFor(eligible,target){
  const club=managerClub(),unique=players=>[...new Map(players.map(p=>[String(p.id),p])).values()];
  const players=unique(managerRoster().filter(eligible)),available=players.filter(medicalReady),absent=players.filter(p=>!medicalReady(p));
  const secured=p=>(p.futureContract?p.futureContract.buyer===club&&p.futureContract.joinYear<=recruitmentYear()+1:p.contractYears>1);
- const secure=players.filter(p=>!playerLoan(p)&&secured(p));
+ const secure=players.filter(p=>(!playerLoan(p)||p.futureContract?.buyer===club)&&secured(p));
  const arrivals=unique([...Object.values(state.clubRosters),state.playerWorld?.freeAgents||[]].flat().filter(p=>eligible(p)&&p.futureContract?.buyer===club&&p.futureContract.joinYear<=recruitmentYear()+1&&!players.some(q=>samePlayerId(p.id,q.id))));
  const returning=unique((state.loans?.active||[]).filter(l=>l.owner===club).map(l=>findPlayerAnywhere(l.playerId)).filter(p=>p&&eligible(p)&&secured(p)));
  const future=unique([...secure,...arrivals,...returning]);

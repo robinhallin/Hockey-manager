@@ -26,6 +26,10 @@ r('delete arrival.futureContract;goalies[1].contractYears=2;goalies[2].contractY
 assert.equal(r('mv().total'),2);assert.equal(r('mv().need'),0);assert.equal(r('mv().futureNeed'),0,'outgoing loan returns as future depth');
 r('out.futureContract={buyer:owner,joinYear:state.season.year+1}');
 assert.equal(r('mv().secure'),2,'returning loan plus future arrival cannot double-count one player');
+r('goalies[2].loanId=9902;state.loans.active.push({id:9902,playerId:goalies[2].id,owner:"Brynäs IF",borrower:owner})');
+assert.equal(r('mv().secure'),1,'incoming loans are not secured next season by the owner contract');
+r('goalies[2].futureContract={buyer:owner,joinYear:state.season.year+1}');
+assert.equal(r('mv().secure'),2,'a contracted purchase of the current loanee does secure next season');
 // A clean saved career remains compatible and the concrete workflow uses real actions.
 const b=boot(),q=b.run;q("startCareerWithClub('HV71');globalThis.p=getTransferMarketPlayers().find(p=>medicalReady(p)&&!playerAssessment(p).known);deskNavigate('transfers','search');hubPick(p.id)");
 assert.match(q('hubCandidateStep(p).title'),/Lär känna/);
