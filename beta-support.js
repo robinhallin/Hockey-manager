@@ -1,5 +1,5 @@
 'use strict';
-const HOCKEY_BETA_VERSION='0.1.0-beta.1';
+const HOCKEY_BETA_VERSION='0.1.0-beta.2';
 const betaErrors=[];
 const desktopBridge=()=>typeof window!=='undefined'?window.hockeyDesktop:null;
 function betaDownload(text,name,type='application/json') {

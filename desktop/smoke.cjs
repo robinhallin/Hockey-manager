@@ -46,6 +46,33 @@ async function close(){
   await page.screenshot({path:path.join(out,'02-spelarprofil.png'),fullPage:true});
   await page.locator('#content button[onclick*="deskBack"]').first().click();
   await page.locator('input[name="query"]').waitFor();assert.equal(await page.locator('input[name="query"]').inputValue(),selectedName);
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Rekrytering',exact:true}).click();
+  const recruitmentNav=page.getByRole('navigation',{name:'Rekrytering',exact:true});
+  await recruitmentNav.getByRole('button',{name:'Översikt',exact:true}).click();
+  const goalieCard=page.locator('.sc-coverage [data-position="Målvakt"]');
+  assert.match(await goalieCard.innerText(),/3 i truppen · 3 spelklara/);
+  assert.match(await goalieCard.innerText(),/Ingen antalsbrist/);
+  await page.screenshot({path:path.join(out,'05-rekrytering.png'),fullPage:true});
+  await recruitmentNav.getByRole('button',{name:'Truppbehov',exact:true}).click();
+  await goalieCard.getByText('Visa spelare och avtal',{exact:true}).click();
+  assert.match(await goalieCard.innerText(),/Olof Glifford/);
+  assert.match(await goalieCard.innerText(),/Herman Liv/);
+  assert.match(await goalieCard.innerText(),/Felix Sandström/);
+  await recruitmentNav.getByRole('button',{name:'Sök spelare',exact:true}).click();
+  assert.equal(await page.locator('.rh-advanced').evaluate(el=>el.open),false);
+  const candidateId=await page.evaluate(()=>String(recruitHub.player));
+  await page.getByRole('region',{name:'Nästa steg för spelaren'}).getByRole('button',{name:'Beställ scoutrapport',exact:true}).click();
+  await page.locator('.sc-brief').waitFor();
+  await page.locator('.sc-brief select[onchange*="method"]').selectOption('screen');
+  const scoutingBefore=await page.evaluate(()=>({cash:state.money,fee:scoutingQuote(scoutDesk.draft.players,scoutDesk.draft.method,scoutDesk.draft.person).fee}));
+  await page.locator('.sc-brief').getByRole('button',{name:/Starta uppdrag/}).click();
+  assert.equal(await page.evaluate(()=>state.money),scoutingBefore.cash-scoutingBefore.fee);
+  assert.equal(await page.evaluate(id=>scoutPending(id),candidateId),true);
+  await page.screenshot({path:path.join(out,'06-scouting.png'),fullPage:true});
+  await recruitmentNav.getByRole('button',{name:'Sök spelare',exact:true}).click();
+  await page.screenshot({path:path.join(out,'07-spelarsokning.png'),fullPage:true});
+  const searchLayout=await page.locator('.recruit-hub').evaluate(el=>({width:el.scrollWidth,client:el.clientWidth}));
+  assert.ok(searchLayout.width<=searchLayout.client+1,'recruitment does not overflow horizontally');
   // Use the same daily controls as a tester, including the transition layer.
   for(let day=0;day<10 && await page.evaluate(()=>state.calendar.date<calendarTarget());day++){
    const before=await page.evaluate(()=>state.calendar.date);
@@ -100,7 +127,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>careerSaveError),false);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
-  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
+  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
  }catch(error){if(page)try{await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}
