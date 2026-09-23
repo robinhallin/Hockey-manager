@@ -43,5 +43,6 @@ q('state.calendar.date=scoutingOffice().contacts[String(p.id)].due;scoutingDay()
 q('save()');const loaded=boot(b.storage.value);
 assert.equal(loaded.run('recruitmentNeeds().find(n=>n.name==="Målvakt").need'),0);
 assert.equal(loaded.run('scoutingOffice().jobs[0].status'),'completed');
+q("squadUI.query='Gammalt namnfilter';scoutingOpenContracts('Defensiv back')");assert.equal(q('state.page'),'squad');assert.equal(q('squadUI.tab'),'contracts');assert.equal(q('squadUI.query'),'');assert.equal(q('squadPlayers().every(p=>p.pos==="B")'),true);
 for(const tab of ['overview','needs','search','missions','shortlist','deals']){q(`deskNavigate('transfers','${tab}')`);assert.doesNotMatch(q('recruitmentView()'),/undefined|NaN/);}
 console.log('PASS: real HV71 depth, quality vs headcount, injuries, expiring contracts, arrivals, loan deduplication, concrete scouting/contact flow and save compatibility.');

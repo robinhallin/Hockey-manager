@@ -58,6 +58,11 @@ async function close(){
   assert.match(await goalieCard.innerText(),/Olof Glifford/);
   assert.match(await goalieCard.innerText(),/Herman Liv/);
   assert.match(await goalieCard.innerText(),/Felix Sandström/);
+  await page.getByRole('button',{name:'Se truppens kontrakt',exact:true}).first().click();
+  assert.equal(await page.evaluate(()=>squadUI.tab),'contracts');
+  assert.equal(await page.locator('.sw-filters input[name="query"]').inputValue(),'');
+  assert.equal(await page.evaluate(()=>squadUI.position),'B');
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Rekrytering',exact:true}).click();
   await recruitmentNav.getByRole('button',{name:'Sök spelare',exact:true}).click();
   assert.equal(await page.locator('.rh-advanced').evaluate(el=>el.open),false);
   const candidateId=await page.evaluate(()=>String(recruitHub.player));
