@@ -33,7 +33,7 @@ function aiCreateAcademyPlayer(club,pos,age){
 }
 function aiFinanceCreate(club){
  const wages=loanWageCost(club),ha=leagueOf(club)==='HA',fans=CLUB_DATA[club]?.fans||(ha?3000:6500);
- const ticket=ha?170:220,capacity=Math.round(fans*1.2),attendance=Math.min(capacity,Math.round(fans*.94));
+ const ticket=ha?170:220,capacity=clubArena(club)?.capacity||Math.round(fans*1.2),attendance=Math.min(capacity,Math.round(fans*.94));
  const operations=ha?4000000:9000000,staff=ha?1800000:2500000,academy=ha?650000:1000000;
  const sponsor=aiRoundMoney(Math.max(ha?2500000:5000000,wages*1.04+operations+staff+academy+26*240000-attendance*ticket*26));
  return {year:state.season.year,league:leagueOf(club),ticket,capacity,fans,sponsor,operations,staff,academy,
@@ -43,7 +43,7 @@ function ensureClubAI(){
  if(!state.rivals||!state.recruitment||!state.calendar)return;
  state.clubAI??={version:1,year:state.season.year,nextOffer:1,offers:[],clubs:{}};
  for(const club of Object.keys(state.world.membership)){
-  if(clubAIState(club))continue;
+  if(clubAIState(club)){arenaMigrateOffice(clubAIState(club).finance,club);continue;}
   const offer=leagueCareerOffer(careerIdentity(club),club,state.clubRosters),seed=k=>attrSeed(club+':director:'+k);
   const project=offer.group==='title'?'title':seed('youth')>.6?'develop':offer.group==='playoff'?'playoff':'rebuild';
   const c=state.clubAI.clubs[club]={project,originalProject:project,projectYear:state.season.year,target:offer.place,

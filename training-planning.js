@@ -10,7 +10,11 @@ function trainingBaseLoad(p){
  if(plan&&plan.load===p.trainingLoad&&(plan.club!==managerClub()||plan.date<=state.calendar?.date))return 'normal';
  return p.trainingLoad||'normal';
 }
-function trainingEffectiveLoad(p){return trainingAutoRest(p)?'rest':trainingBaseLoad(p);}
+function trainingAssistantLight(p){
+ const plan=p.trainingReturn,date=state.calendar?.date;
+ return state.training.assistantOwner==='assistant'&&(!plan||plan.date<=date||plan.club!==managerClub())&&p.trainingManualDate!==date&&trainingBaseLoad(p)==='normal'&&p.fatigue>=40&&p.fatigue<55;
+}
+function trainingEffectiveLoad(p){return trainingAutoRest(p)?'rest':trainingAssistantLight(p)?'light':trainingBaseLoad(p);}
 function trainingSessionEffect(p,session,load=trainingEffectiveLoad(p),support=null){
  const rest=!medicalCanTrain(p)||load==='rest'||session.type==='recovery';
  const light=!rest&&(load==='light'||session.intensity==='light'||session.type==='matchprep');

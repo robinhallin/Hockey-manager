@@ -19,7 +19,14 @@ function scoutingBusy(s){return (scoutingOffice()?.jobs||[]).some(j=>j.status===
 function scoutingPrior(p){const base=leagueOf(getPlayerClub(p.id))==='HA'?10.3:11.3;return Object.fromEntries(Object.keys(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES).map(k=>[k,base+(attrSeed(`${p.id}:public-prior:${k}`)-.5)*1.4]));}
 function scoutingQuote(ids,method,person){const s=scoutingStaff().find(s=>scoutingPerson(s)===String(person)),m=SCOUT_METHODS[method],ps=ids.map(findPlayerAnywhere).filter(Boolean);if(!s||!m||!ps.length)return null;const regions=[...new Set(ps.map(scoutingRegion))],knowledge=Math.min(...regions.map(r=>scoutingCoverage(s,r))),travel=regions.some(r=>r!=='SWE')?3:0,interval=m.days+travel+Math.floor((100-knowledge)/35),fee=Math.round(clubMissionFee()/3*m.factor*ps.length*(1+travel*.18));return {s,m,regions,knowledge,interval,fee,days:interval*m.steps};}
 function scoutingDraft(ids){ensureScoutingOffice();const players=[...new Set(ids.map(String))].map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p)&&!scoutPending(p.id)).slice(0,3).map(p=>p.id);if(!players.length)return recruitMessage('Välj en spelare som inte redan bevakas.');scoutDesk.draft={players,method:'detail',person:scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]),profile:recruitFilters().profile,horizon:'now'};deskNavigate('transfers','missions');}
-function scoutingDraftSet(key,value){if(!scoutDesk.draft)return;if(key==='method'&&SCOUT_METHODS[value]||key==='person'&&scoutingStaff().some(s=>scoutingPerson(s)===value)||key==='profile'&&(value==='ALL'||RECRUIT_PROFILES[value])||key==='horizon'&&SCOUT_LISTS[value])scoutDesk.draft[key]=value;render();}
+function scoutingDraftSet(key,value){if(!scoutDesk.draft)return;
+ if(scoutDesk.draft.criteria&&['profile','horizon'].includes(key)){
+  const c={...scoutDesk.draft.criteria,[key]:value};
+  if(!RECRUIT_PROFILES[c.profile]||!SCOUT_LISTS[c.horizon])return;
+  const candidates=scoutingBriefCandidates(c);if(!candidates.length)return recruitMessage('Inga kandidater matchar de nya villkoren. Ändra uppdraget.');
+  scoutDesk.draft.criteria=c;scoutDesk.draft.players=candidates.slice(0,3).map(p=>p.id);
+ }
+ if(key==='method'&&SCOUT_METHODS[value]||key==='person'&&scoutingStaff().some(s=>scoutingPerson(s)===value)||key==='profile'&&(value==='ALL'||RECRUIT_PROFILES[value])||key==='horizon'&&SCOUT_LISTS[value])scoutDesk.draft[key]=value;render();}
 function scoutingStart(draft=scoutDesk.draft,automatic=false){
  const o=ensureScoutingOffice();if(!o||!draft||!managerCanPlay()||loanLocked())return false;
  const ids=[...new Set((draft.players||[]).map(String))];if(ids.length<1||ids.length>3)return false;

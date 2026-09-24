@@ -8,7 +8,7 @@ assert.equal((get('#content').innerHTML.match(/class="cal-day /g)||[]).length,35
 run('globalThis.dateBefore=state.calendar.date;calendarMonthMove(1);calendarPick("2026-09-25");calendarSetSession("2026-09-25","type","penaltykill");createMatch()');
 assert.equal(run('state.calendar.date'),run('dateBefore'));assert.equal(run('state.live'),null);assert.equal(run('state.page'),'calendar');
 run('calendarContinue(14)');assert.equal(run('state.calendar.date'),'2026-09-24');assert.equal(run('state.training.history.length'),1);
-assert.equal(run('state.training.messages.find(m=>m.category==="Träningsrapport").read'),false);
+assert.equal(run('state.training.messages.some(m=>m.key.startsWith("session:"))'),false,'daily sessions remain in history without inbox reports');
 run('save();render();render()');const resumed=boot(app.storage.value);
 assert.equal(resumed.run('state.calendar.date'),'2026-09-24');assert.equal(resumed.run('state.calendar.plans["2026-09-25"].type'),'penaltykill');
 run('calendarContinue();calendarContinue()');assert.equal(run('state.calendar.date'),'2026-09-26');assert.equal(run('state.training.history.length'),3);

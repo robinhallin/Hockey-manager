@@ -3,7 +3,7 @@
 const J20_CALENDAR_GAPS=[3,4,3,4,4,3,4];
 function juniorCalendarDates(year=state.season?.year||2026,league=leagueOf()){
   const clubs=juniorWorldClubs(league),rounds=Math.max(0,(clubs.length-1)*4),dates=[];
-  let date=state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,1):`${year}-09-08`;
+  let date=state.seasonCalendar!=='august'&&state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,1):`${year}-09-08`;
   for(let round=1;round<=rounds;round++){
     if(round>1)date=calAdd(date,J20_CALENDAR_GAPS[(round-2)%J20_CALENDAR_GAPS.length]);
     dates.push({round,date});
@@ -66,7 +66,7 @@ function juniorCalendarManagerReport(pair,round,date,forecast){
   if(juniorWorldRecord(result,leagueOf(),round)&&!forfeit)juniorWorldAIReport(opponent,managerClub(),round,against);
   state.juniors.matches.unshift({year:state.season.year,club:managerClub(),round,date,opponent,own,against,players:rows,j20:true,overtime,forfeit});state.juniors.matches=state.juniors.matches.slice(0,16);
   if(!forfeit)nhlObserveFixture('junior',`j20:${state.season.year}:${round}:${managerClub()}`,date,managerClub(),rows);
-  if(round%4===0||forfeit)juniorReport('J20-avstämning',[forfeit?'Juniorlaget kunde inte ställa upp med en komplett matchtrupp.':`${managerClub()} J20 ${own}–${against} ${opponent} J20.`,...juniorPlayers().slice().sort((a,b)=>(b.academy.missed||0)-(a.academy.missed||0)).slice(0,3).flatMap(p=>['\n',playerMention(p),': '+juniorAdvice(p)])]);
+  if(forfeit)juniorReport('J20-avstämning',[forfeit?'Juniorlaget kunde inte ställa upp med en komplett matchtrupp.':`${managerClub()} J20 ${own}–${against} ${opponent} J20.`,...juniorPlayers().slice().sort((a,b)=>(b.academy.missed||0)-(a.academy.missed||0)).slice(0,3).flatMap(p=>['\n',playerMention(p),': '+juniorAdvice(p)])]);
 }
 function juniorCalendarPlayRound(league,round,date){
   const world=ensureJuniorWorld();if(!world||world.results.some(r=>r.year===state.season.year&&r.league===league&&r.round===round))return;

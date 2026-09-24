@@ -1,7 +1,7 @@
 "use strict";
 // Generated career dates. This is not the published SHL/HA fixture list.
 const CAL_DAY=86400000;
-function calSeasonOpening(year=state.season.year){return state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,3):`${year}-09-10`;}
+function calSeasonOpening(year=state.season.year){return state.seasonCalendar!=='august'&&state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,3):`${year}-09-10`;}
 function calAdd(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*CAL_DAY).toISOString().slice(0,10);}
 function calGap(a,b){return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/CAL_DAY);}
 function calText(date){return new Date(date+'T12:00:00Z').toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});}
@@ -14,12 +14,12 @@ function ensureCalendar(){
  const s=state.season;if(!s)return;
  if(!state.calendar){
   const fixtureDate=calRoundDate(state.round,s.year),remaining=Math.max(0,3-(state.training?.day||0));
-  const date=s.phase==='preseason'?`${s.year}-07-01`:s.phase==='review'?calRoundDate(Math.max(53,state.round),s.year):state.live&&!state.live.finished?fixtureDate:calAdd(fixtureDate,-remaining);
+  const date=s.phase==='preseason'?`${s.year}-08-01`:s.phase==='review'?calRoundDate(Math.max(53,state.round),s.year):state.live&&!state.live.finished?fixtureDate:calAdd(fixtureDate,-remaining);
   state.calendar={initialPreseasonUsed:Boolean(state.rosterStartDate)||s.phase!=='regular'||state.round>1||state.teams.some(t=>t.gp),version:1,year:s.year,date,marketDay:calAdd(date,7),friendlies:[],nextId:1,futureHistory:[],notice:'',lastTraining:null};
  }
  const c=state.calendar;
  if(!c.plans)c.plans={};
- if(c.year!==s.year){c.initialPreseasonUsed=true;c.year=s.year;c.date=`${s.year}-07-01`;c.marketDay=calAdd(c.date,7);c.friendlies=[];c.active=null;c.lastTraining=null;}
+ if(c.year!==s.year){c.initialPreseasonUsed=true;c.year=s.year;c.date=`${s.year}-08-01`;c.marketDay=calAdd(c.date,7);c.friendlies=[];c.active=null;c.lastTraining=null;}
  for(const g of state.schedule)if(!g.date)g.date=calRoundDate(g.round,s.year);
 }
 function calendarTarget(){
@@ -108,7 +108,7 @@ function calendarWeek(){
  calendarContinue();
 }
 function calendarInitialPreseason(){
- if(state.rosterStartDate?.startsWith(state.season.year+'-'))return;
+ if(state.seasonCalendar!=='august'&&state.rosterStartDate?.startsWith(state.season.year+'-'))return;
  if(state.calendar.initialPreseasonUsed||state.season.phase!=='regular'||state.round!==1||state.teams.some(t=>t.gp)||state.live&&!state.live.finished)return;
  state.calendar.initialPreseasonUsed=true;state.season.phase='preseason';state.season.grant=0;state.season.departures=[];state.season.nextWageLimit=wageBudget();
  state.calendar.date=`${state.season.year}-08-01`;state.calendar.marketDay=calAdd(state.calendar.date,7);state.training.calendarKey=null;state.training.day=0;state.live=null;
@@ -122,8 +122,9 @@ function calendarBookFriendly(opponentName,date){
  c.friendlies.push({id:c.nextId++,club:managerClub(),opponent:opponentName,date,played:false});state.training.calendarKey=null;state.training.day=0;
  calendarNotify(`Träningsmatch mot ${opponentName} bokad ${calText(date)}.`);
 }
-function calendarCancelFriendly(id){const c=state.calendar,f=c.friendlies.find(f=>f.id===id);if(!f||f.played||c.active===id||f.club!==managerClub())return;c.friendlies=c.friendlies.filter(f=>f.id!==id);state.training.calendarKey=null;state.training.day=0;save();render();}
-function calendarPlayFriendly(id){
+function calendarCancelFriendly(id){const c=state.calendar,f=c.friendlies.find(f=>f.id===id);if(!f||f.played||c.active===id||f.club!==managerClub())return;c.friendlies=c.friendlies.filter(f=>f.id!==id);preseasonBuildReport();state.training.calendarKey=null;state.training.day=0;save();render();}
+function calendarPlayFriendly(id,delegated=false){
+ if(!delegated&&preseasonPlan()?.owner==='assistant')return preseasonDelegateMatch(id);
  const c=state.calendar,f=c.friendlies.find(f=>f.id===id);if(!f||f.played||f.club!==managerClub()||c.date!==f.date||state.season.phase!=='preseason'||state.live&&!state.live.finished)return;
  if(!medicalMatchReady()){state.page='medical';save();render();return;}
  c.active=id;c.stats=Object.fromEntries([...(state.clubRosters[managerClub()]||[]),...(state.clubRosters[f.opponent]||[])].map(p=>[p.id,Object.fromEntries(['goals','assists','shots','pim','games','saves','goalsAgainst'].map(k=>[k,p[k]||0]))]));
@@ -134,7 +135,7 @@ function calendarFinishFriendly(){
  m.running=false;m.finished=true;clearTimeout(matchTimer);f.played=true;f.own=m.hv;f.against=m.opp;
  for(const [id,stats] of Object.entries(c.stats||{})){const p=findPlayerAnywhere(id);if(p)Object.assign(p,stats);}
  for(const p of managerRoster())grantMatchDevelopment(p,m.iceTime?.[p.id]||0);
- medicalAfterMatch();finishAnalysis();
+ medicalAfterMatch();finishAnalysis();preseasonRecordMatch(f,m);
  c.active=null;delete c.stats;calendarAfterFixture();state.training.calendarKey=null;state.training.day=0;state.training.lockedRound=null;
  managerMessage(`friendly:${state.season.year}:${f.id}`,'Träningsmatchen är färdig',`${f.club} ${f.own}–${f.against} ${f.opponent}. Istid, samspel och belastning följer med; resultat och poäng räknas inte i ligan.`,'Tränarteam',{link:'statistics'});
  state.page='match';save();render();
@@ -149,7 +150,7 @@ function calendarLaunch(){
 // Browsing a month never changes the career clock. Plans are keyed by real career dates.
 const calendarUI={month:null,date:null};
 function calendarFixtures(){
- return [...state.schedule.filter(g=>g.home===managerClub()||g.away===managerClub()).map(g=>({date:g.date,opponent:g.home===managerClub()?g.away:g.home,venue:g.home===managerClub()?'Hemma':'Borta',played:g.played,result:g.home===managerClub()?`${g.homeGoals}–${g.awayGoals}`:`${g.awayGoals}–${g.homeGoals}`,kind:g.seriesId?SEASON_STAGES[g.stage]:'Liga'})),...state.calendar.friendlies.filter(f=>f.club===managerClub()).map(f=>({date:f.date,opponent:f.opponent,played:f.played,result:`${f.own}–${f.against}`,venue:'Hemma',kind:'Träningsmatch',id:f.id}))];
+ return [...state.schedule.filter(g=>g.home===managerClub()||g.away===managerClub()).map(g=>({date:g.date,opponent:g.home===managerClub()?g.away:g.home,venue:g.home===managerClub()?'Hemma':'Borta',played:g.played,result:g.home===managerClub()?`${g.homeGoals}–${g.awayGoals}`:`${g.awayGoals}–${g.homeGoals}`,kind:g.seriesId?SEASON_STAGES[g.stage]:'Liga'})),...state.calendar.friendlies.filter(f=>f.club===managerClub()).map(f=>({date:f.date,opponent:f.opponent,played:f.played,result:`${f.own}–${f.against}`,venue:f.home===false?'Borta':'Hemma',kind:'Träningsmatch',id:f.id}))];
 }
 function calendarActionLabel(){
  if(!state.careerStarted)return 'Fortsätt';
@@ -171,6 +172,7 @@ function calendarMonthMove(delta){
 }
 function calendarSession(date){
  if(state.calendar.plans[date])return state.calendar.plans[date];
+ if(state.training.assistantOwner==='assistant')return assistantTeamSession(date);
  const t=state.training,index=t.day+calGap(state.calendar.date,date);
  if(index>=t.day&&t.plan[index])return t.plan[index];
  const matches=calendarFixtures();return {type:matches.some(f=>f.date===calAdd(date,1))?'matchprep':matches.some(f=>f.date===calAdd(date,-1))?'recovery':'skills',intensity:'light'};

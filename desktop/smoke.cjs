@@ -36,6 +36,16 @@ async function close(){
   await page.getByRole('button',{name:/Möt styrelsen i HV71/}).click();
   await page.getByRole('button',{name:/Acceptera uppdraget/}).click();
   await page.waitForFunction(()=>careerScreen===null && state.careerStarted);
+  await page.getByRole('heading',{name:'Välj riktning för säsongen',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>state.calendar.date),'2026-08-01');
+  assert.equal(await page.evaluate(()=>state.calendar.friendlies.length),5);
+  await page.screenshot({path:path.join(out,'00-sasongsplan.png'),fullPage:true});
+  await page.locator('.season-planning select[name="owner"]').selectOption('manager');
+  await page.locator('.season-planning select[name="approach"]').selectOption('youth');
+  await page.getByRole('button',{name:/Bekräfta säsongsplanen/}).click();
+  assert.equal(await page.evaluate(()=>state.training.assistantOwner),'assistant');
+  assert.equal(await page.evaluate(()=>state.juniors.assistantOwner),'assistant');
+
   await page.screenshot({path:path.join(out,'01-klubbkontoret.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
   const selected=await page.evaluate(()=>({name:managerRoster()[0].name,id:String(managerRoster()[0].id)}));
@@ -125,6 +135,14 @@ async function close(){
   await page.locator('.sc-brief').getByRole('button',{name:/Starta uppdrag/}).click();
   assert.equal(await page.evaluate(()=>state.money),scoutingBefore.cash-scoutingBefore.fee);
   assert.equal(await page.evaluate(id=>scoutPending(id),candidateId),true);
+  await page.locator('.sc-fields select[name="profile"]').selectOption('Målskytt');
+  await page.locator('.sc-fields select[name="league"]').selectOption('SHL');
+  await page.locator('.sc-fields select[name="placement"]').selectOption('Andra kedjan');
+  await page.locator('.sc-fields select[name="targetRole"]').selectOption('key');
+  await page.locator('.sc-fields input[name="maxSalary"]').fill('5000000');
+  await page.getByRole('button',{name:'Ta fram uppdrag',exact:true}).click();
+  assert.equal(await page.evaluate(()=>scoutDesk.draft.criteria.targetRole),'key');
+  assert.equal(await page.evaluate(()=>scoutDesk.draft.criteria.league),'SHL');
   await page.screenshot({path:path.join(out,'06-scouting.png'),fullPage:true});
   await recruitmentNav.getByRole('button',{name:'Sök spelare',exact:true}).click();
   await page.screenshot({path:path.join(out,'07-spelarsokning.png'),fullPage:true});
@@ -138,10 +156,13 @@ async function close(){
   }
   assert.equal(await page.evaluate(()=>state.calendar.date),await page.evaluate(()=>calendarTarget()));
   await page.locator('#continueGame').click();
-  await page.locator('#content button[onclick*="createMatch"]').click();
+  if(!await page.evaluate(()=>Boolean(state.live)))await page.locator('#content button[onclick*="createMatch"]').click();
   await page.locator('#match-play').click();await page.waitForFunction(()=>state.live?.running);
   await page.waitForFunction(()=>studioEngine().time>0);
   await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
+  await page.waitForFunction(()=>Boolean(matchIceCrest(matchVenue().home)?.naturalWidth));
+  assert.equal(await page.locator('.mc-club strong').first().textContent(),await page.evaluate(()=>matchVenue().home));
+  assert.match(await page.locator('.mc-result').innerText(),/Husqvarna Garden/);
   // Fullscreen must work in the installed application, then restore the
   // desktop size before checking that rink and controls fit without scrolling.
   await page.getByRole('button',{name:'Helskärm',exact:true}).click();
@@ -184,7 +205,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>careerSaveError),false);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
-  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['overview embeds stories and press','concrete staff follow-up and consistent font','four simultaneous line rinks with actual drag and click swaps','four simultaneous special-team rinks with cross-unit dragging and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
+  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','four simultaneous line rinks with actual drag and click swaps','four simultaneous special-team rinks with cross-unit dragging and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
  }catch(error){if(page)try{fs.writeFileSync(path.join(out,'drag-debug.json'),JSON.stringify(await page.evaluate(()=>({events:window.hmDragEvents,lines:state.lines,specialTeams:state.specialTeams})),null,2));await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}

@@ -95,7 +95,7 @@ function trainingGrowth(p,key,points,source='Träningsarbete'){
   if(p.academy)p.academy.cursor++;
   if(!developmentAdvance(p,key,points,source))return false;
   const label=(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[key];
-  managerMessage(`growth:${p.id}:${key}:${p.attributes[key]}`,playerHeadline(p,' tar ett steg framåt'),[playerMention(p),` har utvecklat ${label.toLowerCase()} efter registrerat utvecklingsarbete. Öppna spelarprofilen för tränarteamets aktuella bedömning.`],'Utvecklingsrapport',p.academy&&!isOwnPlayer(p)?{link:'juniors',playerId:p.id}:{playerId:p.id,link:'training'});
+  assistantRecordGrowth(p,key);
   return true;
 }
 function grantMatchDevelopment(p,seconds){
@@ -128,7 +128,7 @@ function runTrainingSession(){
   if(!managerEmployed())return false;
   ensureTrainingData();const t=state.training;
   if(!t||t.day>=trainingDays()||t.lockedRound===state.round||state.live&&!state.live.finished||state.calendar?.completedMatchDate===state.calendar?.date||(opponent()==='Ingen match'&&state.season.phase!=='preseason')||pendingManagerDecision())return false;
-  trainingReturnDay();trainingDelegateRecovery();
+  trainingReturnDay();assistantPrepareTraining();trainingDelegateRecovery();
   const session=t.plan[t.day],definition=TRAINING_SESSIONS[session.type];
   const projection=trainingTeamProjection(session),effects=new Map(projection.rows.map(r=>[String(r.player.id),r.effect]));
   const {trained,resting}=projection,before=projection.fatigueBefore,after=projection.fatigueAfter;
@@ -143,17 +143,11 @@ function runTrainingSession(){
   t.powerplay=projection.after.powerplay;t.penaltykill=projection.after.penaltykill;
   const log={date:state.calendar?.date,round:state.round,day:t.day+1,type:session.type,intensity:session.intensity,trained,resting,before,after,improvements};
   coachTrainingDone(log);t.logs.push(log);t.history.unshift(log);t.history=t.history.slice(0,60);t.day++;
-  managerMessage(`session:${state.season.year}:${log.date||state.round}:${t.day}`,`${definition.name} – rapport dag ${t.day}`,`${trained} spelare tränade och ${resting} återhämtade sig. Lagets genomsnittliga ork: ${Math.round(100-before)} % → ${Math.round(100-after)} %.\n${improvements?`${improvements} tydliga attributförbättringar noterades.`:'Utvecklingen byggs gradvis. Ett enskilt pass behöver inte ge ett synligt attributsteg.'}\n${after>=50?'Truppen är sliten. Prioritera återhämtning och se över individuell belastning.':'Tränarteamet rekommenderar att du följer spelarnas ork inför nästa pass.'}`,'Träningsrapport',{link:'training'});
   rivalStoryTraining(session);
   trainSocialPairs(session);
   juniorTraining(session,`${state.season.year}:${state.calendar?.date||state.round}:${t.day}`);
   medicalDay(session,effects);
   trainingRecordEvidence(log,projection);
-  const report=t.messages.find(m=>m.key===`session:${state.season.year}:${log.date||state.round}:${t.day}`);
-  if(report){
-   report.body+=`\n${trainingPreparationText(projection.before,projection.after)}. ${projection.rows.filter(r=>r.delegated).length} spelare fick vila av staben. Detaljerna finns på passets datum i kalendern.`;
-   report.trainingDate=log.date;report.trainingClub=managerClub();
-  }
   if(t.day===trainingDays())createOpponentBrief();
   if(state.calendar)calendarStep(true);
   return true;

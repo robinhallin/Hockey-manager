@@ -28,7 +28,7 @@ medicalDay=function(session=null,sessionEffects=null){
 function managerOffice2ResponsibilitySummary(){
   return {
     training:managerOffice2Delegated('training')
-      ?'Tränarstaben skyddar automatiskt spelare med mycket låg ork enligt den befintliga återhämtningspolicyn.'
+      ?'Assisterande planerar lagpass, individuella fokus och återhämtning. Veckorapport varje söndag.'
       :'Du styr individuell återhämtning.',
     medical:managerOffice2Delegated('medical')
       ?'Medicinska staben håller spelaren i rehab och kan välja begränsad comeback när beredskapen är tillräcklig. Full comeback kräver dig.'

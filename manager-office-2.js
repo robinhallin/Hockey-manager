@@ -15,7 +15,7 @@ function managerOffice2ToggleDelegation(area){
   if(!['training','medical','scouting','contracts'].includes(area))return;
   const office=managerOffice2Ensure(),next=!managerOffice2Delegated(area);
   office.delegation[area]=next;
-  if(area==='training'&&state.training)state.training.recoveryOwner=next?'staff':'manager';
+  if(area==='training'&&state.training)assistantSetOwner('senior',next?'assistant':'manager',false);
   save();render();
 }
 function managerOffice2Items(){

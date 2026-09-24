@@ -7,6 +7,8 @@
 function calendarContinue(){
  if(careerScreen||!state.careerStarted||!managerCanPlay())return;
  ensureCalendar();ensureTrainingData();
+ if(preseasonPlan()?.pending){state.page='season';save();render();return;}
+ if(state.live?.delegatedFriendly&&!state.live.finished){state.page='season';render();preseasonRunChunk();return;}
  if(state.live&&!state.live.finished){state.page='match';save();render();return;}
  const pending=pendingManagerDecision();if(pending){openManagerMessage(pending.id);return;}
  const c=state.calendar,start=c.date,dayBefore=managerDaySnapshot();

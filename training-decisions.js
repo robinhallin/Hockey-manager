@@ -20,7 +20,7 @@ function trainingPreparationText(before,after){
 }
 function trainingRecordEvidence(log,projection){
  log.evidence={version:1,club:managerClub(),year:state.season.year,signature:projection.signature,absent:projection.absent,before:projection.before,after:projection.after,
-  players:projection.rows.map(({player:p,effect,before,loadBefore,delegated})=>({id:p.id,name:p.name,before,afterSession:effect.fatigue,afterDay:p.fatigue,loadBefore,loadAfter:p.health.load,rest:effect.rest,delegated,injured:Boolean(p.health.injury)}))};
+  players:projection.rows.map(({player:p,effect,before,loadBefore,delegated})=>({id:p.id,name:p.name,focus:p.developmentFocus,before,afterSession:effect.fatigue,afterDay:p.fatigue,loadBefore,loadAfter:p.health.load,rest:effect.rest,delegated,injured:Boolean(p.health.injury)}))};
 }
 function trainingDecisionReport(log){
  const e=log?.evidence;

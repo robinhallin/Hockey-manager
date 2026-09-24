@@ -43,7 +43,7 @@ function juniorSet(id,key,value){
   if(value==='')p.academy.mentor=null;
   else{const m=managerRoster().find(q=>samePlayerId(q.id,value));if(!m||m.age<27||m.id===p.id||(m.pos==='MV')!==(p.pos==='MV'))return;
    if(juniorPlayers().filter(q=>q.id!==p.id&&samePlayerId(q.academy.mentor,m.id)).length>=2)return juniorNotice('En mentor kan följa högst två talanger.');p.academy.mentor=m.id;}
- }else if(key==='load'&&['normal','light','rest'].includes(value))p.trainingLoad=value;
+ }else if(key==='load'&&['normal','light','rest'].includes(value)){p.trainingLoad=value;p.juniorManualLoad=true;p.juniorAutoLoad=false;p.juniorManualLoadDate=state.calendar.date;}
  else if(key==='path'&&['junior','guest'].includes(value)&&!isOwnPlayer(p)&&!p.academy.loan)p.academy.path=value;
  else return;
  juniorNotice(`${p.name}: utvecklingsplanen är uppdaterad.`);
@@ -85,14 +85,14 @@ function juniorRelease(id){
  clubPost('other',-compensation,'Avslutat junioravtal · '+p.name);p.contractYears=0;p.academy.seniorContract=false;state.juniors.roster=state.juniors.roster.filter(q=>q.id!==p.id);worldRelease(p,managerClub(),'Lämnar juniorverksamheten');p.academy.mentor=null;
  juniorReport(playerHeadline(p," lämnar juniorverksamheten"),'Spelaren är över junioråldern och har släppts till listan över kontraktslösa spelare.');juniorNotice(`${p.name} har lämnat klubben.`);
 }
-function juniorTarget(p){const all=Object.keys(PLAYER_ROLES[p.academy.role]).filter(k=>Object.hasOwn(p.attributes,k)),keys=all.filter(k=>p.attributes[k]<p.academy.ceiling[k]);return keys.length?keys[p.academy.cursor%keys.length]:all[0];}
+function juniorTarget(p){const focus=TRAINING_FOCUSES[p.developmentFocus];if(focus&&Object.hasOwn(p.attributes,focus)&&p.attributes[focus]<p.academy.ceiling[focus])return focus;const all=Object.keys(PLAYER_ROLES[p.academy.role]).filter(k=>Object.hasOwn(p.attributes,k)),keys=all.filter(k=>p.attributes[k]<p.academy.ceiling[k]);return keys.length?keys[p.academy.cursor%keys.length]:all[0];}
 function juniorGrow(p,points,key=juniorTarget(p),source='Träningsarbete'){
  if(!medicalCanTrain(p)||p.attributes[key]>=p.academy.ceiling[key])return false;
  return trainingGrowth(p,key,points,source);
 }
 function juniorMentor(p){const m=managerRoster().find(q=>samePlayerId(q.id,p.academy.mentor));return m&&m.age>=27&&medicalCanTrain(m)&&m.trainingLoad!=='rest'&&m.fatigue<75&&p.academy.path!=='loan'?m:null;}
 function juniorTraining(session,key){
- ensureJuniors();const s=state.juniors;if(s.trainingKeys.includes(key))return;s.trainingKeys.push(key);s.trainingKeys=s.trainingKeys.slice(-240);
+ ensureJuniors();const s=state.juniors;if(s.trainingKeys.includes(key))return;s.trainingKeys.push(key);s.trainingKeys=s.trainingKeys.slice(-240);const report=assistantReportingEnsure();if(report&&!report.juniorSessions.includes(state.calendar.date))report.juniorSessions.push(state.calendar.date);
  for(const p of juniorPlayers()){
   if(internationalAway(p))continue;
   const a=p.academy;a.observations=Math.min(100,a.observations+1);
