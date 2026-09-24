@@ -17,8 +17,8 @@ function lineupPlace(id){
  if(!hockeyAllowChange())return;
  if(state.live?.running)pauseMatch();
  if(slot.type==='goalie')changeGoalie(p.id);else changeLinePlayer(slot.type,slot.index,p.id);
- document.querySelector('.lineup-slot.selected')?.focus?.({preventScroll:true});
- document.querySelector('.lineup-rink')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+ const placed=document.querySelector('[data-lineup-slot="'+slot.type+'-'+slot.index+'"]')||document.querySelector('.lineup-slot.selected');
+ placed?.focus?.({preventScroll:true});placed?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
 }
 function lineupPlayerPlace(p){
  if(!medicalReady(p))return 'Skadad / återgång';
@@ -57,7 +57,7 @@ const SPECIAL_SLOTS={
 let specialUI={unit:'pp1',slot:0,query:''};
 function ensureSpecialPlans(){state.specialPlans??={};if(!SPECIAL_SCHEMES.pp[state.specialPlans.pp])state.specialPlans.pp='oneThreeOne';if(!SPECIAL_SCHEMES.pk[state.specialPlans.pk])state.specialPlans.pk='box';if(!['safe','selective'].includes(state.specialPlans.counter))state.specialPlans.counter='selective';}
 function specialPlan(kind,value){ensureSpecialPlans();if(kind==='counter'?!['safe','selective'].includes(value):!SPECIAL_SCHEMES[kind]?.[value])return;if(state.live?.running)pauseMatch();const before=tacticalReviewPlan();state.specialPlans[kind]=value;tacticalReviewRecord(before,'Special teams-instruktion');save();render();}
-function specialSelect(key,index=0){if(!['pp1','pp2','pk1','pk2'].includes(key))return;ensureSpecialTeams();if(!Number.isInteger(index)||index<0||index>=state.specialTeams[key].length)return;if(state.live?.running)pauseMatch();specialUI={unit:key,slot:index,query:''};render();document.getElementById('specialCandidates')?.focus?.({preventScroll:true});}
+function specialSelect(key,index=0){if(!['pp1','pp2','pk1','pk2'].includes(key))return;ensureSpecialTeams();if(!Number.isInteger(index)||index<0||index>=state.specialTeams[key].length)return;if(state.live?.running)pauseMatch();specialUI={unit:key,slot:index,query:''};render();document.getElementById('specialCandidates')?.focus?.({preventScroll:true});document.getElementById('specialCandidates')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});}
 function specialPlace(id){const key=specialUI.unit,index=specialUI.slot;if(state.live?.running)pauseMatch();changeSpecialPlayer(key,index,id);document.getElementById('special-slot-'+key+'-'+index)?.focus?.({preventScroll:true});}
 function specialBoardView(){return specialFourBoards();}
 

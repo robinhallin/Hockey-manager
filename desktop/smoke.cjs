@@ -12,6 +12,7 @@ async function launch(){
  application=await electron.launch({executablePath:executable,args,env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
  page=await application.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',error=>errors.push(error.message));
  await page.waitForFunction(()=>typeof state!=='undefined' && typeof window.hockeyDesktop!=='undefined');
+ await page.evaluate(()=>{window.hmDragEvents=[];for(const name of ['dragstart','drop','dragend'])document.addEventListener(name,e=>window.hmDragEvents.push({name,target:e.target.closest('[data-lineup-slot],[data-special-slot]')?.outerHTML.slice(0,180),data:e.dataTransfer?.getData('text/plain')}));});
  await page.locator('.career-menu').waitFor();
  savePath=path.join(await application.evaluate(({app})=>app.getPath('userData')),'saves','career.json');
 }
@@ -65,7 +66,8 @@ async function close(){
   await page.locator('.desk-subnav').getByRole('button',{name:'Taktik & laguttagning',exact:true}).click();
   assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
   const originalLineup=await page.evaluate(()=>state.lines.forwards.slice());
-  await page.locator('[data-lineup-slot="forwards-0"]').dragTo(page.locator('[data-lineup-slot="forwards-9"]'));
+  await page.locator('.multi-rinks').scrollIntoViewIfNeeded();
+  await page.locator('[data-lineup-slot="forwards-0"]').dragTo(page.locator('[data-lineup-slot="forwards-9"]'),{sourcePosition:{x:5,y:5},targetPosition:{x:5,y:5}});
   assert.equal(await page.evaluate(()=>state.lines.forwards[9]),originalLineup[0]);
   assert.equal(await page.evaluate(()=>state.lines.forwards[0]),originalLineup[9]);
   assert.equal(await page.locator('.multi-lineup h1').evaluate(el=>getComputedStyle(el).fontFamily),staffFont);
@@ -81,7 +83,7 @@ async function close(){
   await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'Powerplay & boxplay',exact:true}).click();
   assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
   const specialBefore=await page.evaluate(()=>({a:state.specialTeams.pp1[0],b:state.specialTeams.pp2[0]}));
-  await page.locator('[data-special-slot="pp1-0"]').dragTo(page.locator('[data-special-slot="pp2-0"]'));
+  await page.locator('[data-special-slot="pp1-0"]').dragTo(page.locator('[data-special-slot="pp2-0"]'),{sourcePosition:{x:5,y:5},targetPosition:{x:5,y:5}});
   assert.equal(await page.evaluate(()=>state.specialTeams.pp1[0]),specialBefore.b);
   assert.equal(await page.evaluate(()=>state.specialTeams.pp2[0]),specialBefore.a);
   for(const [pp,pk] of [['oneThreeOne','box'],['umbrella','diamond'],['overload','box']]){
@@ -185,6 +187,6 @@ async function close(){
   fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['overview embeds stories and press','concrete staff follow-up and consistent font','four simultaneous line rinks with actual drag and click swaps','four simultaneous special-team rinks with cross-unit dragging and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
- }catch(error){if(page)try{await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}
+ }catch(error){if(page)try{fs.writeFileSync(path.join(out,'drag-debug.json'),JSON.stringify(await page.evaluate(()=>({events:window.hmDragEvents,lines:state.lines,specialTeams:state.specialTeams})),null,2));await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}
  finally{if(application)try{await application.evaluate(({app})=>app.exit(1));}catch{}}
 })().catch(error=>{console.error(error);process.exitCode=1;});
