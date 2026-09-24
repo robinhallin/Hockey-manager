@@ -34,7 +34,7 @@ test('news identities, match links, contextual performance, save/load and legacy
  const profile=run('playerPerformanceView(aId)');
  assert.match(profile,/Historisk klubb/);
  assert.match(profile,/saved-evidence/);
- assert.match(profile,/Matchbetyg 4 av 5/);
+ assert.match(profile,/Matchbetyg 8,0 av 10,0/);
  assert.match(profile,/14:00/);
  assert.match(run('playerPerformanceView("unknown-id")'),/Inga matchrapporter/);
  run('deskOpenPlayer(aId);profileWorkspace.tab="performance";render();');

@@ -9,7 +9,7 @@ const before=r('JSON.stringify([p.salary,p.contractYears,p.promisedRole,state.mo
 edit(salary,years,'Nyckelspelare');
 assert.equal(r('JSON.stringify([p.salary,p.contractYears,p.promisedRole,state.money,state.recruitment.deals])'),before,'drafts must not spend or promise');
 assert.match(app.get('#renewalPreview').textContent,/Avtalsåtagande/);
-assert.match(app.get('#renewalPreview').textContent,/15 minuter i 2 av 3/);
+assert.match(app.get('#renewalPreview').textContent,/ansvar i kedja\/backpar 1–2 i 2 av 3/);
 assert.ok(r('playerView()').includes('value="'+salary+'"'));
 r('deskOpenPlayer(other.id);openContractNegotiation(other.id);deskBack();openContractNegotiation(p.id);');
 assert.equal(r('Number(renewalDraftValues(p).salary)'),salary,'another player with same name has a separate draft');

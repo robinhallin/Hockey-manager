@@ -13,7 +13,7 @@ assert.match(r('recruitmentHubView()'),/Spelare kan passa flera roller/);
 const firstNeed=r('recruitmentNeeds()[0].name');r(`hubNeed(${JSON.stringify(firstNeed)})`);assert.equal(r('recruitFilters().profile'),firstNeed);assert.equal(r('state.recruitment.tab'),'search');
 r("deskNavigate('juniors');juniorNotice('Äldre besked');juniorSelect(juniorPlayers()[1].id)");assert.equal(r('state.juniors.message'),'');
 r("deskNavigate('staffReview');staffReviewTab('coaching');deskNavigate('statistics');deskBack()");assert.equal(r('staffReviewUI.tab'),'coaching');
-assert.match(r('staffReviewView()'),/<section hidden><button class="btn"/,'planning is not displayed in coaching workspace');
+assert.doesNotMatch(r('staffReviewView()'),/aria-label="Stabens arbetsområde"/);assert.match(r('staffReviewView()'),/Dina nästa beslut/);
 r("deskNavigate('match');matchOrder('tempo','high');matchOrder('shiftLength','short');save()");
 assert.equal(r('state.tacticalPlan.tempo'),'high');assert.equal(r('state.tacticalPlan.shiftLength'),'short');
 const saved=boot(app.storage.value);assert.equal(saved.run('state.tacticalPlan.tempo'),'high');assert.equal(saved.run('state.clubOffice.ticket'),280);assert.equal(saved.run('state.recruitment.missions.length'),missions);

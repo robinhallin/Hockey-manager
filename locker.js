@@ -10,6 +10,7 @@ function ensureLocker(){
    const trait=key=>neutral?10:1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
    p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),basis:neutral?'neutral-unobserved':'fictional',trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
  }
+ for(const p of managerRoster())rolePolicyUpgrade(p);
  if(initial)state.locker.captainId=[...managerRoster()].sort((a,b)=>b.social.leadership-a.social.leadership||b.age-a.age)[0]?.id??null;
  else if(!managerRoster().some(p=>samePlayerId(p.id,state.locker.captainId)))state.locker.captainId=null;
 }
@@ -95,12 +96,12 @@ function socialTalk(id,topic){
    if(growth>0){delta=s.loyalty>=14?4:3;text='Berömmet är konkret: spelaren har utvecklat sina attribut och uppskattar att du har sett arbetet.';s.praisedGrowth=socialGrowth(p);}
    else{delta=-1;text='Spelaren ser ingen ny utveckling som förklarar berömmet och uppfattar det som tomma ord.';}
  }else if(topic==='bench'){
-   if(s.lastMinutes!==null&&s.lastMinutes<12){delta=s.loyalty>=12?3:1;text='Du förklarar konkurrensen och laguttagningen utan att lova mer istid. Spelaren uppskattar beskedet, men vill visa att hen förtjänar en större roll.';}
+   if(squadRoleStatus(p).missed||s.missed>0){delta=s.loyalty>=12?3:1;text='Du förklarar konkurrensen och laguttagningen utan att lova mer istid. Spelaren uppskattar beskedet, men vill visa att hen förtjänar en större roll.';}
    else{delta=-1;text='Spelaren förstår inte varför du tar upp en petning när den senaste matchen inte visar något sådant.';}
  }else if(topic==='listen'){
    delta=p.happiness<65||s.trust<50?3:1;text=p.happiness<65?'Spelaren berättar om missnöjet med sin situation. Att du lyssnar stärker förtroendet, men ersätter inte utlovad speltid.':'Ni stämmer av spelarens situation. Samtalet är lugnt och förtroendet stärks något.';
  }else{
-   const fair=s.lastMinutes!==null&&s.lastMinutes>=12&&p.fatigue<65;
+   const fair=squadRoleEvidence(p)?.met===true&&p.fatigue<65;
    delta=fair&&s.ambition>=12&&s.sensitivity<=12?3:-3;
    text=delta>0?'Spelaren svarar på din tydliga utmaning och vill ta mer ansvar.':'Kraven landar illa. Spelaren behöver trygghet, återhämtning eller en faktisk chans att visa sig.';
  }
@@ -113,12 +114,15 @@ function afterLockerMatch(){
  ensureLocker();const r=state.locker,m=state.live,key=`${state.season?.year||2026}:${state.round}`;
  if(!m?.finished||r.lastMatch===key)return;r.lastMatch=key;r.turn++;
  for(const p of managerRoster()){
-   const s=p.social,seconds=m.iceTime?.[p.id]||0,expected=playerLoan(p)?0:p.pos==='MV'?1800:p.promisedRole==='Nyckelspelare'?900:p.promisedRole==='Ordinarie'?720:0;
+   const s=p.social,seconds=m.iceTime?.[p.id]||0,evidence=squadRoleEvidence(p,m);
    squadRecordRole(p,m);s.lastMinutes=seconds/60;
-   const missed=p.pos==='MV'?squadGoalieMissed(p):expected>0&&!medicalExcused(p,expected)&&seconds<expected&&p.fatigue<65&&p.trainingLoad!=='rest';s.missed=missed?s.missed+1:0;
-   const beforeRole=s.trust;
-   if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(playerHeadline(p," undrar över sin roll"),[playerMention(p)," har fått mindre istid än sin utlovade roll under de senaste tillgängliga matcherna. Ett ärligt samtal kan hjälpa, men laguttagningen behöver också motsvara dina besked."]);}
-   socialRoleFollowup(p,missed,expected>0&&seconds>=expected&&!medicalExcused(p,expected)&&!playerLoan(p),beforeRole-s.trust);
+   if(evidence){
+    const missed=!evidence.met&&(p.pos==='MV'?squadGoalieMissed(p):squadRoleStatus(p).missed);
+    s.missed=missed?s.missed+1:0;
+    const beforeRole=s.trust;
+    if(s.missed>=2){s.trust=trainingClamp(s.trust-(s.ambition>=14?3:1));if(s.missed===2)socialLog(playerHeadline(p," undrar över sin roll"),`${squadRoleExpectation(p)}. Den faktiska användningen har inte motsvarat rollen över flera tillgängliga matcher.`);}
+    socialRoleFollowup(p,missed,evidence.met,beforeRole-s.trust);
+   }
    for(const promise of [...(state.training?.promises||[]).filter(q=>samePlayerId(q.playerId,p.id)),...(p.recruitmentPromise?[p.recruitmentPromise]:[])]){
      if(!promise.resolved||promise.lockerReviewed)continue;promise.lockerReviewed=true;
      const neutral=promise.result&&!['Uppfyllt','Brutet'].includes(promise.result);

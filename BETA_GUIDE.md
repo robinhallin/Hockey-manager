@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.2
+# Hockey Manager · Beta 0.1.0-beta.3
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Packa upp betaarkivet. Kör `Hockey-Manager-0.1.0-beta.2-Windows-x64-Setup.exe`.
+1. Kör `Hockey-Manager-0.1.0-beta.3-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -60,3 +60,12 @@ Det här är en spelbar testversion, inte en färdig slutversion. Automatiska ko
 - Bevakning samlar sparade kandidater. Affärer samlar köp, försäljningar och lån.
 
 Installera den nya versionen i samma mapp som tidigare. Karriärerna ligger kvar i programmets datamapp. Exportera gärna din karriär via inställningarna före uppdateringen.
+
+## Nytt i Beta 0.1.0-beta.3
+
+- Översikten samlar säsongens historier, press och supportrar. Stab & uppföljning visar konkreta beslut, aktuell truppstorlek och pågående arbete utan extra undermenyer.
+- Taktik & laguttagning visar fyra kedjeisar, tre separata backpar och en bänk. Dra mellan platser eller använd Byt och Välj. Reserver och spelare utanför matchtruppen visas var för sig. Matchtruppen låses fortfarande vid nedsläpp.
+- Powerplay & boxplay visar PP1, PP2, BP1 och BP2 på samma sida. Dra mellan enheterna eller välj spelare med knapparna.
+- Nyckelspelare förväntar sig kedja/backpar 1–2, ordinarie högst tredje enheten och breddspelare kan acceptera fjärdekedjan. Bedömningen bygger på verkliga byten, rotation över flera matcher och medicinska undantag. Ett kort byte i förstakedjan räcker inte.
+- Pågående äldre introduktionslöften för utespelare får en ny period med placeringsbaserade krav. Det tidigare underlaget arkiveras. Separata uttryckliga minutlöften och målvaktslöften behåller sina villkor.
+- Matchbetyg visas med en decimal, 0,0–10,0. Truppens Snittbetyg visar bedömda tävlingsmatcher för aktuell klubb och säsong. Betyg utan tillräckligt underlag saknas i snittet; redan borttagna gamla rapporter går inte att återskapa.

@@ -3,7 +3,7 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),r=app.run;
 r("startCareerWithClub('HV71');deskNavigate('lines');ensureLines();");
 let html=r('lineupBoardView()');
-assert.ok(html.includes('fm-workspace')&&html.includes('fm-roster-table')&&html.includes('lineup-rink'));
+assert.equal((html.match(/data-board="line[0-3]"/g)||[]).length,4);assert.match(html,/Reserver i matchtruppen/);assert.match(html,/Utanför matchtruppen/);
 assert.ok(!html.includes('chemistry-table-scroll'),'long analysis is outside the selection workspace');
 r("lineupSelectUnit('line',3);lineupPickSlot('forwards',9);globalThis.before=state.lines.forwards.slice();lineupPlace(state.lines.forwards[0]);");
 assert.equal(r('state.lines.forwards[9]'),r('before[0]'));

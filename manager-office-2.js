@@ -40,7 +40,7 @@ function managerOffice2Items(){
     const rule=rolePromiseRule(q),left=Math.max(0,rule.total-(q.games||0)),needed=Math.max(0,rule.required-(q.qualified||0));
     const atRisk=needed>0&&left<=needed;
     add({id:`promise:${source}:${p.id}`,title:`${p.name}: följ upp istidslöftet`,
-      detail:`${source} · ${q.qualified||0}/${rule.required} matcher med minst ${rule.minutes} minuter. ${left} tillgängliga tävlingsmatcher kvar.`,
+      detail:`${source} · ${q.qualified||0}/${rule.required} matcher med ${rolePromiseTarget(q)}. ${left} tillgängliga tävlingsmatcher kvar.`,
       tag:'Löfte',area:'locker',level:atRisk?'high':'medium',score:atRisk?86:56,action:{promisePlayer:p.id}});
   }
   const unread=(state.training?.messages||[]).filter(m=>!m.read&&!m.dismissed&&!m.decisionType);

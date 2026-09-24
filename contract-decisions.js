@@ -14,14 +14,14 @@ function renewalDecisionText(p,draft=renewalDraftValues(p)){
  const salary=Math.round(Number(draft.salary)),years=Number(draft.years),role=draft.role;
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return 'Ange giltig årslön, 1–5 avtalsår och roll. Utkastet är inte ett erbjudande.';
  const b=managerCommitmentPreview(p,0,salary,years,{renewal:true}),terms=rolePromiseTerms(p,role),issue=managerCommitmentIssue(p,0,salary,years,{renewal:true});
- return `Om spelaren accepterar ersätts nuvarande villkor direkt. Ny lön: ${money(salary)}/år (${b.change>=0?'+':''}${money(b.change)}/år). Avtalsåtagande: ${money(b.total)} över ${years} år; lönen betalas löpande, inte som engångskostnad. Löneutrymme i år: ${money(b.wageAfter)}. Nästa säsong: ${money(b.futureAfter)}. Pågående bud och kända åtaganden ingår; framtida budgetökningar antas inte. ${terms?`Rollöfte: minst ${terms.minutes} minuter i ${terms.required} av ${terms.total} tillgängliga tävlingsmatcher.`:'Rollen ger inget särskilt introduktionslöfte.'} ${p.recruitmentPromise&&!p.recruitmentPromise.resolved?'Det befintliga introduktionslöftet arkiveras som ersatt vid ett accepterat nytt avtal. ':''}${issue||'Förslaget ryms i dagens budgetberäkning. Spelaren kan fortfarande avböja.'}`;
+ return `Om spelaren accepterar ersätts nuvarande villkor direkt. Ny lön: ${money(salary)}/år (${b.change>=0?'+':''}${money(b.change)}/år). Avtalsåtagande: ${money(b.total)} över ${years} år; lönen betalas löpande, inte som engångskostnad. Löneutrymme i år: ${money(b.wageAfter)}. Nästa säsong: ${money(b.futureAfter)}. Pågående bud och kända åtaganden ingår; framtida budgetökningar antas inte. ${terms?`Rollöfte: ${rolePromiseTarget(terms)} i ${terms.required} av ${terms.total} tillgängliga tävlingsmatcher.`:'Rollen ger inget särskilt introduktionslöfte.'} ${p.recruitmentPromise&&!p.recruitmentPromise.resolved?'Det befintliga introduktionslöftet arkiveras som ersatt vid ett accepterat nytt avtal. ':''}${issue||'Förslaget ryms i dagens budgetberäkning. Spelaren kan fortfarande avböja.'}`;
 }
 function rolePromiseProgress(q){
  if(q.resolved)return q.result||'Avslutat';
  const rule=rolePromiseRule(q),left=Math.max(0,rule.total-(q.games||0)),need=Math.max(0,rule.required-(q.qualified||0));
  if(!need)return 'Istidsmålet är nått. Formell uppföljning efter hela perioden.';
  if(need>left)return `Målet kan inte längre nås under perioden. Uppföljningen sker efter ${left} återstående matcher.`;
- return `${need} av ${left} återstående tillgängliga matcher behöver minst ${rule.minutes} minuter.`;
+ return `${need} av ${left} återstående tillgängliga matcher behöver ${rolePromiseTarget(q)}.`;
 }
 function rolePromisePlayerView(p){
  const rows=lockerPromises().filter(x=>x.p&&samePlayerId(x.p.id,p.id)&&!x.q.resolved);
