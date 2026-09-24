@@ -43,7 +43,7 @@ function relationshipAfterMatch(){
  b.seen.push(key);b.seen=b.seen.slice(-160);b.turn++;b.recent.push(m.hv>m.opp);b.recent=b.recent.slice(-5);
  const partial=!!m.analysis?.partial;
  for(const p of managerRoster()){
-  const profile=relationshipProfile(p),required=relationshipRequired(p),eligible=p.pos!=='MV'&&required>0&&!partial&&!medicalExcused(p,required)&&!playerLoan(p)&&p.trainingLoad!=='rest'&&((m.iceTime?.[p.id]||0)>=required||(p.fatigue||0)<65);
+  const profile=relationshipProfile(p),required=relationshipRequired(p),roleEvidence=squadRoleEvidence(p,m),eligible=p.pos!=='MV'&&Boolean(roleEvidence);
   let c=b.cases.find(c=>c.playerId===String(p.id));
   if(!c&&eligible&&p.social.missed>=2&&b.turn-profile.settledAt>=4){
    c={id:'relation-'+b.nextId++,playerId:String(p.id),name:p.name,club:b.club,year:b.year,status:'open',tension:25,required,role:p.promisedRole,started:b.turn,good:0,eligible:0,attempts:0,heard:false,mediated:false,spread:false,evidence:`${p.name} har fått mindre istid än rollen ${p.promisedRole} i minst två tillgängliga matcher.`};b.cases.push(c);
@@ -53,8 +53,8 @@ function relationshipAfterMatch(){
   if(c.role!==p.promisedRole){relationshipClose(c,'neutral','Rollen ändrades. Det gamla missnöjet raderas inte ur spelarens journal.');profile.settledAt=b.turn;continue;}
   if(c.started===b.turn)continue;
   c.attempts++;if(eligible){
-   const met=(m.iceTime?.[p.id]||0)>=c.required;c.eligible++;c.good=met?c.good+1:0;c.tension=trainingClamp(c.tension+(met?-8:p.social.ambition>=14?9:6));
-   c.evidence=`Senast ${Math.floor((m.iceTime?.[p.id]||0)/60)} minuter; rollen kräver ${c.required/60}. ${c.good}/3 raka bedömbara matcher med motsvarande istid.`;
+   const met=roleEvidence.met;c.eligible++;c.good=met?c.good+1:0;c.tension=trainingClamp(c.tension+(met?-8:p.social.ambition>=14?9:6));
+   c.evidence=`Senast ${Math.floor((m.iceTime?.[p.id]||0)/60)} minuter; ${squadRoleExpectation(p)}. ${c.good}/3 raka bedömbara matcher med motsvarande ansvar.`;
    if(c.good>=3){relationshipClose(c,'reconciled','Tre matcher med rätt ansvar har lugnat konflikten.');profile.settledAt=b.turn;socialRemember(p,'Konflikten börjar lägga sig','Tre bedömbara matcher med istid som motsvarar rollen. Ordinarie rolluppföljning återställer förtroende; ingen dubbel belöning delas ut.');continue;}
   }
   if(c.plan&&c.eligible-c.plan.startEligible>=4&&c.good<3){relationshipChange(p,-2,'Planen gav inte tillräcklig förändring','Fyra bedömbara matcher passerade utan tre raka matcher med utlovat ansvar.');c.plan=null;c.status='open';relationshipEvent(p.name+' väntar fortfarande på förändring',c.evidence);}

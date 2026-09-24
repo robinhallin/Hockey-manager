@@ -1,9 +1,31 @@
 function squadRoleGames(p){return (p.roleGames||[]).filter(g=>g.club===managerClub()&&g.year===state.season.year).slice(-6);}
+function squadRoleExpectation(p,role=p.promisedRole){
+ if(p.pos==='MV')return role==='Nyckelspelare'?'Minst 4 starter om 30 minuter på 6 tillgängliga matcher':role==='Ordinarie'?'Minst 2 starter om 30 minuter på 6 tillgängliga matcher':'Reservmålvakt utan startkrav';
+ const placement=role==='Nyckelspelare'?(p.pos==='B'?'backpar 1–2':'kedja 1–2'):role==='Ordinarie'?(p.pos==='B'?'backpar 1–3':'kedja 2–3 eller högre'):(p.pos==='B'?'något av de tre backparen':'kedja 4 eller högre');
+ return `${placement[0].toUpperCase()+placement.slice(1)} · ${role==='Nyckelspelare'||role==='Ordinarie'?'4':role==='Rotation'?'3':'2'} av 6 tillgängliga matcher`;
+}
+function squadRoleEvidence(p,m=state.live,role=p.promisedRole){
+ const seconds=m?.iceTime?.[p.id]||0,minimum=p.pos==='MV'?1800:180;
+ if(!m||m.friendly||m.analysis?.partial||m.leagueBox?.partial||m.analysisAbandoned||playerLoan(p)||medicalExcused(p,minimum)||p.trainingLoad==='rest')return null;
+ if(p.pos==='MV')return {seconds,met:seconds>=1800,role};
+ const usage=m.analysis?.players?.[String(p.id)]?.roleUsage;
+ const total=(usage||[]).reduce((n,s)=>n+s,0),rank=role==='Nyckelspelare'?2:role==='Ordinarie'?3:4;
+ // A substantial special-teams role also counts. A token shift in a top line does not.
+ const substantial=seconds>=(role==='Nyckelspelare'?900:role==='Ordinarie'?720:480);
+ if(!m.analysis?.roleUsageVersion&&seconds>0&&!substantial)return null;
+ const met=substantial||(seconds>=180&&total>=120&&usage.slice(0,rank).reduce((n,s)=>n+s,0)>=total*.5);
+ return {seconds,role,met,usage:usage?[...usage]:null};
+}
+function squadRoleStatus(p){
+ const games=squadRoleGames(p).filter(g=>g.role===p.promisedRole&&typeof g.met==='boolean'),required=p.promisedRole==='Nyckelspelare'||p.promisedRole==='Ordinarie'?4:p.promisedRole==='Rotation'?3:2;
+ const target=Math.ceil(required*Math.min(6,games.length)/6),met=games.filter(g=>g.met).length;
+ return {games:games.length,met,target,missed:games.length>=3&&met<target};
+}
 function squadRecordRole(p,m){
- if(m.friendly||medicalExcused(p,p.pos==='MV'?1800:720))return;
+ const evidence=squadRoleEvidence(p,m);if(!evidence)return;
  const key=m.analysis?.id||`${state.season.year}:${state.round}`;
  if((p.roleGames||[]).some(g=>g.key===key))return;
- p.roleGames=[...(p.roleGames||[]),{key,club:managerClub(),year:state.season.year,date:state.calendar.date,seconds:m.iceTime?.[p.id]||0}].slice(-18);
+ p.roleGames=[...(p.roleGames||[]),{key,club:managerClub(),year:state.season.year,date:state.calendar.date,...evidence}].slice(-18);
 }
 function squadGoalieTarget(p){return p.promisedRole==='Nyckelspelare'?4:p.promisedRole==='Ordinarie'?2:0;}
 function squadGoalieMissed(p){
@@ -34,7 +56,7 @@ function squadDiscussRole(id,role){
 function squadRolePanel(p){
  const games=squadRoleGames(p),minutes=games.length?(games.reduce((n,g)=>n+g.seconds,0)/games.length/60).toFixed(1):null,block=squadRoleBlock(p);
  const roles=SQUAD_ROLES.filter(role=>SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(p.promisedRole));
- return `<details class="lw-archive"><summary>Roll & faktisk istid</summary><p>${games.length} tillgängliga tävlingsmatcher. ${minutes===null?'Underlaget byggs efter matcherna.':`Snitt ${minutes} min. ${p.pos==='MV'?games.filter(g=>g.seconds>=1800).length+' matcher med minst 30 minuter.':''}`}</p>${p.pos==='MV'?'<p>Löpande förväntan: nyckelmålvakt minst 4 av 6 matcher med 30 minuter, ordinarie minst 2 av 6. Rotation och bredd har inget startkrav. Ett uttryckligt kontraktslöfte följs separat.</p>':''}${roles.length?`<form onsubmit="event.preventDefault();squadDiscussRole('${p.id}',this.elements.role.value)"><label>Diskutera mindre ansvar<select name="role">${roles.map(role=>`<option>${role}</option>`).join('')}</select></label><button type="submit" ${block?'disabled':''}>Föreslå ny roll</button></form><p>${block||'Spelaren kan tacka nej. Ålder, ambition, förtroende och faktisk istid påverkar svaret. Lön och avtalstid ändras inte.'}</p>`:''}${(p.roleHistory||[]).slice(0,3).map(h=>`<p>${calText(h.date)} · ${trainingSafe(h.club)}: ${trainingSafe(h.proposed)}, ${h.accepted?'överens':'avböjt'}.</p>`).join('')}</details>`;
+ return `<details class="lw-archive"><summary>Roll & faktisk istid</summary><p><strong>${trainingSafe(p.promisedRole)}</strong>: ${squadRoleExpectation(p)}.</p><p>Rätt placering ska gälla under minst hälften av spelarens byten i lika styrka, med minst tre minuters total istid. Stort ansvar i special teams räknas också. Skador, landslag och planerad vila undantas. En enstaka petning utlöser inget missnöje.</p><p>${games.length} tillgängliga tävlingsmatcher. ${minutes===null?'Underlaget byggs efter matcherna.':`Snitt ${minutes} min. ${p.pos==='MV'?games.filter(g=>g.seconds>=1800).length+' matcher med minst 30 minuter.':''}`}</p>${p.pos==='MV'?'<p>Löpande förväntan: nyckelmålvakt minst 4 av 6 matcher med 30 minuter, ordinarie minst 2 av 6. Rotation och bredd har inget startkrav. Ett uttryckligt kontraktslöfte följs separat.</p>':''}${roles.length?`<form onsubmit="event.preventDefault();squadDiscussRole('${p.id}',this.elements.role.value)"><label>Diskutera mindre ansvar<select name="role">${roles.map(role=>`<option>${role}</option>`).join('')}</select></label><button type="submit" ${block?'disabled':''}>Föreslå ny roll</button></form><p>${block||'Spelaren kan tacka nej. Ålder, ambition, förtroende och faktisk istid påverkar svaret. Lön och avtalstid ändras inte.'}</p>`:''}${(p.roleHistory||[]).slice(0,3).map(h=>`<p>${calText(h.date)} · ${trainingSafe(h.club)}: ${trainingSafe(h.proposed)}, ${h.accepted?'överens':'avböjt'}.</p>`).join('')}</details>`;
 }
 function squadArrivalView(p){
  const peers=managerRoster().filter(q=>!samePlayerId(q.id,p.id)&&worldGroup(q)===worldGroup(p)),ready=peers.filter(medicalReady),slots=p.pos==='MV'?2:p.pos==='B'?6:12;

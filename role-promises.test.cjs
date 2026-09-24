@@ -33,4 +33,4 @@ assert.equal(r('state.training.promises.length'),r('count'));assert.equal(r('msg
 r("answerPlayerConversation(msg.id,'honest')");assert.equal(r('msg.resolved'),true);
 console.log('PASS: accepted renewal applies goalkeeper terms; a stale conversation cannot stack guarantees and still permits an honest answer.');
 
-assert.match(r('staffReviewView()'),/4 matcher med minst 30 minuter/);assert.match(r('staffReviewView()'),/6 bedömda matcher/);
+assert.match(r('staffReviewView()'),/4 matcher med minst 30 minuter/);assert.match(r('staffReviewView()'),/tillgängliga tävlingsmatcher kvar/);

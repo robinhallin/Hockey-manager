@@ -3049,12 +3049,10 @@ function updateSquadAfterMatch(won){
 
   managerRoster().forEach(player => {
     const dressed = dressedIds.some(id => samePlayerId(id,player.id));
-    const promisedRank = SQUAD_ROLES.indexOf(player.promisedRole);
-    const actualRank = SQUAD_ROLES.indexOf(player.squadRole);
 
     if(dressed||(state.live.iceTime?.[player.id]||0)>0) player.games = (player.games || 0) + 1;
 
-    const moodChange = (won ? 1 : -1) + (promisedRank > actualRank ? -2 : 0);
+    const moodChange = won ? 1 : -1; // Role satisfaction uses recorded match deployment in afterLockerMatch.
     player.happiness = Math.max(20,Math.min(100,player.happiness + moodChange));
     player.morale = Math.max(20,Math.min(100,(player.morale || 70) + (won ? 1 : -1)));
 
@@ -3082,7 +3080,7 @@ calendarAfterFixture();
    HEMSIDAN
    ========================================================= */
 
-function homeView(){return managerDeskView()+pressDeskView();}
+function homeView(){return overviewWorkspaceView();}
 
 /* TRUPP */
 function squadView(){return squadWorkspaceView();}
@@ -4241,6 +4239,7 @@ function placeholderView(title){
 function continueGame(){dayTransitionStart();}
 
 function render(){
+  if(state.page==='stories'||state.page==='press'){overviewUI[state.page]=true;state.page='home';}
   ensureSeason();
   ensureAssessmentData();
   ensureLeagues();

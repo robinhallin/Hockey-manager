@@ -4,7 +4,7 @@ const app=boot(),r=app.run;
 r(`startCareerWithClub('HV71');globalThis.p=managerRoster().find(p=>p.pos!=='MV');
 managerRoster().forEach(p=>p.social.leadership=1);p.promisedRole='Nyckelspelare';p.fatigue=0;p.trainingLoad='normal';p.social.ambition=20;
 globalThis.finish=(seconds)=>{state.round++;state.live={finished:true,iceTime:{[p.id]:seconds}};afterLockerMatch();};`);
-r('finish(0);finish(0)');
+r('finish(0);finish(0);finish(0);finish(0)');
 assert.equal(r('p.social.trust'),57);
 assert.equal(r('p.social.journal[0].change'),-3);
 r('finish(900);finish(900)');assert.equal(r('p.social.trust'),57);

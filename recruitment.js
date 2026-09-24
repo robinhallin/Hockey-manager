@@ -284,12 +284,13 @@ function followRecruitmentPromises(m){
  const key=m.analysis?.id||`${state.season.year}:${state.round}`;
  for(const p of managerRoster()){
    const q=p.recruitmentPromise;if(!q||q.resolved||q.lastFixture===key||q.evidence?.some(g=>g.key===key))continue;
-   const rule=rolePromiseRule(q);if(medicalExcused(p,rule.minutes*60))continue;
-   const seconds=m.iceTime?.[p.id]||0,qualified=seconds>=rule.minutes*60;
+   const rule=rolePromiseRule(q),evidence=q.mode==='placement'?squadRoleEvidence(p,m,q.role):null;
+   if(m.analysis?.partial||m.analysisAbandoned||(q.mode==='placement'?!evidence:medicalExcused(p,rule.minutes*60)))continue;
+   const seconds=m.iceTime?.[p.id]||0,qualified=q.mode==='placement'?evidence.met:seconds>=rule.minutes*60;
    q.lastFixture=key;q.games++;if(qualified)q.qualified++;
-   q.evidence=[...(q.evidence||[]),{key,date:state.calendar.date,opponent:m.opponent,seconds,qualified}].slice(-6);
+   q.evidence=[...(q.evidence||[]),{key,date:state.calendar.date,opponent:m.opponent,seconds,qualified,...(evidence?{usage:evidence.usage}: {})}].slice(-6);
    if(q.games>=rule.total){q.resolved=true;const met=q.qualified>=rule.required;q.result=met?'Uppfyllt':'Brutet';p.happiness=trainingClamp(p.happiness+(met?5:-12),20,100);
-     recruitReport(playerHeadline(p,': uppföljning av rollen'),`${q.role}: minst ${rule.minutes} minuter i ${rule.required} av ${rule.total} tillgängliga tävlingsmatcher. Utfallet blev ${q.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`,{playerId:p.id,link:'player'});
+     recruitReport(playerHeadline(p,': uppföljning av rollen'),`${q.role}: ${rolePromiseTarget(q)} i ${rule.required} av ${rule.total} tillgängliga tävlingsmatcher. Utfallet blev ${q.qualified} matcher. ${met?'Spelaren är nöjd med förtroendet.':'Spelaren är besviken över sin speltid.'}`,{playerId:p.id,link:'player'});
    }
  }
 }
