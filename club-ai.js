@@ -36,7 +36,7 @@ function aiFinanceCreate(club){
  const ticket=ha?170:220,capacity=clubArena(club)?.capacity||Math.round(fans*1.2),attendance=Math.min(capacity,Math.round(fans*.94));
  const operations=ha?4000000:9000000,staff=ha?1800000:2500000,academy=ha?650000:1000000;
  const sponsor=aiRoundMoney(Math.max(ha?2500000:5000000,wages*1.04+operations+staff+academy+26*240000-attendance*ticket*26));
- return {year:state.season.year,league:leagueOf(club),ticket,capacity,fans,sponsor,operations,staff,academy,
+ return {year:state.season.year,league:leagueOf(club),ticket,capacity,arenaVersion:1,fans,sponsor,operations,staff,academy,
   debt:0,settled:[],totals:{},ledger:[],archives:[],opening:state.recruitment.ai[club]?.cash??0};
 }
 function ensureClubAI(){

@@ -35,7 +35,10 @@ assert.ok(run('managerRoster().some(x=>x.trainingLoad!=="rest"&&x.fatigue>0)'));
 run('p.trainingLoad="normal";p.developmentFocus="Skott";p.trainingProgress.shooting=99.9;p.attributes.shooting=12;globalThis.before=matchAttributeRating(p,"shot");setTrainingSession(1,"type","skills");runTrainingSession()');
 assert.equal(run('p.attributes.shooting'),13);
 assert.ok(run('matchAttributeRating(p,"shot")>before'));
-assert.ok(run('state.training.messages.some(m=>m.category==="Utvecklingsrapport")'));
+assert.ok(run('state.training.reporting.growth.some(g=>g.id===p.id&&g.key==="shooting"&&g.value===13)'));
+assert.equal(run('state.training.messages.some(m=>m.key.startsWith("growth:"))'),false);
+run('assistantWeeklyReport(calAdd(state.calendar.date,1))');
+assert.ok(run('state.training.messages.some(m=>m.key.startsWith("training-week:")&&m.body.includes(p.name)&&m.body.includes("13/20"))'));
 // Goalies train appropriate attributes and an invalid focus is rejected.
 run('globalThis.g=goalies()[0];setDevelopmentFocus(g.id,"Reflexer");setDevelopmentFocus(g.id,"Skott")');
 assert.equal(run('g.developmentFocus'),'Reflexer');

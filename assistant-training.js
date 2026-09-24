@@ -64,8 +64,11 @@ function assistantMonthlyReport(date){
  const r=assistantReportingEnsure();if(!r||r.monthly===date)return;
  const month=calAdd(date,-1).slice(0,7),sessions=r.juniorSessions.filter(d=>d.startsWith(month));
  const rows=juniorPlayers().map(p=>{const b=r.juniorBaseline[p.id],changes=Object.keys(p.attributes).filter(k=>p.attributes[k]>(b?.attributes[k]??p.attributes[k])).map(k=>`${SKATER_ATTRIBUTES[k]||GOALIE_ATTRIBUTES[k]} +${p.attributes[k]-b.attributes[k]}`);return {p,changes,games:Math.max(0,(p.academy.games||0)-(b?.games||0)),seconds:Math.max(0,(p.academy.seconds||0)-(b?.seconds||0))};}).sort((a,b)=>b.changes.length-a.changes.length||b.seconds-a.seconds);
- const body=`${month} · ${sessions.length} registrerade träningsdagar\n\n${rows.map(({p,changes,games,seconds})=>`${p.name} (${p.pos}, ${p.age} år): ${changes.join(', ')||'inga synliga attributsteg'}. ${games} juniormatcher, ${Math.round(seconds/60)} minuter. Fokus: ${p.developmentFocus}. ${juniorAdvice(p)}`).join('\n')}\n\nRekommendation\n${rows.filter(r=>r.games>=2&&r.changes.length>0).slice(0,3).map(({p})=>`${p.name}: följ upp utvecklingen och överväg A-träning om det finns en passande roll.`).join('\n')||'Fortsätt följa faktisk matchtid och utveckling innan miljön ändras.'}`;
- r.monthly=date;state.juniors.reports.unshift({year:state.season.year,round:state.round,date,title:'Juniorernas månadsrapport · '+month,body});state.juniors.reports=state.juniors.reports.slice(0,50);
+ const recommended=rows.filter(r=>r.games>=2&&r.changes.length>0).slice(0,3);
+ const body=[`${month} · ${sessions.length} registrerade träningsdagar\n\n`,
+  ...rows.flatMap(({p,changes,games,seconds})=>[playerMention(p),` (${p.pos}, ${p.age} år): ${changes.join(', ')||'inga synliga attributsteg'}. ${games} juniormatcher, ${Math.round(seconds/60)} minuter. Fokus: ${p.developmentFocus}. ${juniorAdvice(p)}\n`]),
+  '\nRekommendation\n',...(recommended.length?recommended.flatMap(({p})=>[playerMention(p),': följ upp utvecklingen och överväg A-träning om det finns en passande roll.\n']):['Fortsätt följa faktisk matchtid och utveckling innan miljön ändras.'])];
+ r.monthly=date;state.juniors.reports.unshift({year:state.season.year,round:state.round,date,title:'Juniorernas månadsrapport · '+month,body:referencePlainText(body),bodyParts:body});state.juniors.reports=state.juniors.reports.slice(0,50);
  managerMessage(`junior-month:${r.club}:${month}`,'Juniorernas månadsrapport · '+month,body,'Junioransvarig',{link:'juniors',date});
  r.juniorBaseline={};r.juniorSessions=r.juniorSessions.filter(d=>d>=date);assistantReportingEnsure();
 }

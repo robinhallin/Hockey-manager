@@ -16,7 +16,7 @@ function scoutingPlacementAssessment(p,profile,placement='Ordinarie',targetRole=
  const placeRank=def.group?def.rank:placement==='Nyckelspelare'?({MV:1,B:4,F:6})[group]:placement==='Ordinarie'?({MV:2,B:6,F:9})[group]:def.rank;
  const rank=roleRank&&placeRank?Math.min(roleRank,placeRank):roleRank||placeRank;
  const threshold=rank?peers[Math.min(rank,peers.length)-1]||0:0;
- return {known,...fit,threshold,rank,possible:!rank||fit.high>=threshold,supported:!rank||known&&fit.center>=threshold};
+ return {known,...fit,threshold,rank,possible:!rank||fit.high>=threshold,supported:known&&(!rank||fit.center>=threshold)};
 }
 function scoutingBriefCandidates(c){
  return getTransferMarketPlayers().filter(p=>{
@@ -34,17 +34,19 @@ function scoutingBrief(profile,placement,maxSalary,maxAge,horizon,person,league=
  state.recruitment.tab='missions';save();render();
 }
 function scoutingBriefView(){
+ const c=scoutDesk.draft?.criteria||{profile:'Målskytt',league:'SHL',placement:'Ordinarie',targetRole:'all',confidence:'possible',maxSalary:1000000,maxAge:30,horizon:'now'};
+ const person=scoutDesk.draft?.person||scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]);
  const leagues=[...new Set(getTransferMarketPlayers().map(scoutingLeague))].filter(Boolean).sort();
  return `<section class="sc-card"><h3>Ge scouten ett konkret uppdrag</h3><form class="sc-fields" onsubmit="event.preventDefault();scoutingBrief(this.elements.profile.value,this.elements.placement.value,this.elements.maxSalary.value,this.elements.maxAge.value,this.elements.horizon.value,this.elements.person.value,this.elements.league.value,this.elements.targetRole.value,this.elements.confidence.value)">
- <label>Spelartyp<select name="profile">${recruitOptions(Object.fromEntries(Object.keys(RECRUIT_PROFILES).map(k=>[k,k])),'Målskytt')}</select></label>
- <label>Liga<select name="league">${recruitOptions({ALL:'Alla ligor',...Object.fromEntries(leagues.map(k=>[k,k]))},'SHL')}</select></label>
- <label>Tänkt plats<select name="placement">${recruitOptions(Object.fromEntries(Object.keys(SCOUT_PLACEMENTS).map(k=>[k,k])),'Ordinarie')}</select></label>
- <label>Bedömd trupproll<select name="targetRole">${recruitOptions(SCOUT_TARGET_ROLES,'all')}</select></label>
- <label>Underlag<select name="confidence"><option value="possible">Kartlägg även osäkra möjligheter</option><option value="supported">Kräv observerad nivå för rollen</option></select></label>
- <label>Högsta årslön (kr)<input name="maxSalary" type="number" min="10000" step="10000" value="1000000" required></label>
- <label>Högsta ålder<input name="maxAge" type="number" min="18" max="45" value="30" required></label>
- <label>Tidshorisont<select name="horizon">${recruitOptions(SCOUT_LISTS,'now')}</select></label>
- <label>Ansvarig scout<select name="person">${scoutingStaff().map(s=>`<option value="${scoutingPerson(s)}">${trainingSafe(s.name)}${scoutingBusy(s)?' · upptagen':''}</option>`).join('')}</select></label>
+ <label>Spelartyp<select name="profile">${recruitOptions(Object.fromEntries(Object.keys(RECRUIT_PROFILES).map(k=>[k,k])),c.profile)}</select></label>
+ <label>Liga<select name="league">${recruitOptions({ALL:'Alla ligor',...Object.fromEntries(leagues.map(k=>[k,k]))},c.league)}</select></label>
+ <label>Tänkt plats<select name="placement">${recruitOptions(Object.fromEntries(Object.keys(SCOUT_PLACEMENTS).map(k=>[k,k])),c.placement)}</select></label>
+ <label>Bedömd trupproll<select name="targetRole">${recruitOptions(SCOUT_TARGET_ROLES,c.targetRole)}</select></label>
+ <label>Underlag<select name="confidence"><option value="possible" ${c.confidence==='possible'?'selected':''}>Kartlägg även osäkra möjligheter</option><option value="supported" ${c.confidence==='supported'?'selected':''}>Kräv observerad nivå för rollen</option></select></label>
+ <label>Högsta årslön (kr)<input name="maxSalary" type="number" min="10000" step="10000" value="${c.maxSalary}" required></label>
+ <label>Högsta ålder<input name="maxAge" type="number" min="18" max="45" value="${c.maxAge}" required></label>
+ <label>Tidshorisont<select name="horizon">${recruitOptions(SCOUT_LISTS,c.horizon)}</select></label>
+ <label>Ansvarig scout<select name="person">${scoutingStaff().map(s=>`<option value="${scoutingPerson(s)}" ${scoutingPerson(s)===person?'selected':''}>${trainingSafe(s.name)}${scoutingBusy(s)?' · upptagen':''}</option>`).join('')}</select></label>
  <p>Alla villkor gäller samtidigt. Rollen bedöms mot konkurrensen i din egen trupp. En osäker möjlighet behöver observeras innan du lovar speltid. Granska upp till tre kandidater, kostnad och datum innan uppdraget startar.</p><button class="btn secondary">Ta fram uppdrag</button></form></section>`;
 }
 function scoutingBriefCriteriaText(c){return `${c.league||'Alla ligor'} · ${c.placement} · ${SCOUT_TARGET_ROLES[c.targetRole]||'Alla roller'} · ${c.confidence==='supported'?'observerad nivå krävs':'osäkra möjligheter ingår'}`;}

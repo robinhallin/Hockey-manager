@@ -39,6 +39,7 @@ async function close(){
   await page.getByRole('heading',{name:'Välj riktning för säsongen',exact:true}).waitFor();
   assert.equal(await page.evaluate(()=>state.calendar.date),'2026-08-01');
   assert.equal(await page.evaluate(()=>state.calendar.friendlies.length),5);
+  assert.ok((await page.getByRole('heading',{name:'Välj riktning för säsongen',exact:true}).boundingBox()).y<250,'season direction opens at the top');
   await page.screenshot({path:path.join(out,'00-sasongsplan.png'),fullPage:true});
   await page.locator('.season-planning select[name="owner"]').selectOption('manager');
   await page.locator('.season-planning select[name="approach"]').selectOption('youth');
@@ -143,6 +144,7 @@ async function close(){
   await page.getByRole('button',{name:'Ta fram uppdrag',exact:true}).click();
   assert.equal(await page.evaluate(()=>scoutDesk.draft.criteria.targetRole),'key');
   assert.equal(await page.evaluate(()=>scoutDesk.draft.criteria.league),'SHL');
+  assert.equal(await page.locator('.sc-fields select[name="targetRole"]').inputValue(),'key');
   await page.screenshot({path:path.join(out,'06-scouting.png'),fullPage:true});
   await recruitmentNav.getByRole('button',{name:'Sök spelare',exact:true}).click();
   await page.screenshot({path:path.join(out,'07-spelarsokning.png'),fullPage:true});

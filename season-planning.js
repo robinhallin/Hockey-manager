@@ -22,6 +22,8 @@ function preseasonStart(initial=false){
  if(preparing&&!fixtures.length)for(let i=0;i<dates.length;i++)if(dates[i]>=c.date)c.friendlies.push({id:c.nextId++,club:managerClub(),opponent:peers[(i*3)%peers.length],date:dates[i],home:i%2===0,played:false,scheduled:true});
  state.preseasonCoach={version:1,club:managerClub(),year:s.year,pending:true,hasPreseason:preparing,owner:'manager',approach:'rotation',matches:[],reported:false};
  state.page='season';
+ const content=document.getElementById('content');if(content)content.scrollTop=0;
+ if(typeof window!=='undefined')window.scrollTo?.({top:0,behavior:'instant'});
 }
 function preseasonConfigure(priority,owner,approach,trainingOwner,juniorOwner){
  const p=preseasonPlan();if(!p||state.live&&!state.live.finished||!['manager','assistant'].includes(owner)||!PRESEASON_APPROACHES[approach])return;
