@@ -207,8 +207,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  }
  changeAtStoppage(){
   if(this.otExpanded){this.otExpanded=false;this.otCounts=null;for(const side of [0,1])this.installUnit(side);}
-  const game=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));
-  const home=game?.home===state.live.opponent?1:0;
+  const home=matchVenue().ownHome?0:1;
   // The visiting bench declares first; only then can the home bench respond.
   for(const side of [1-home,home]){
    const t=this.teams[side];
@@ -432,7 +431,7 @@ function studioMount(){
   let frame=studioFrame(e),previous=studioPrevious,blend=m.running?Math.min(1,studioAccumulator/StudioHockey.STEP):1;
   if(studioReplayState){const r=studioReplayState;if(!r.started)r.started=now;const elapsed=(now-r.started)/1000,index=Math.min(r.frames.length-1,Math.floor(elapsed/.2));frame=r.frames[Math.min(index+1,r.frames.length-1)];previous=r.frames[index];blend=index===r.frames.length-1?1:(elapsed%.2)/.2;}
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)blend=1;
-  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));MatchBroadcastRenderer.draw(canvas,frame,previous,blend,{teams});
+  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();MatchBroadcastRenderer.draw(canvas,frame,previous,blend,{teams,arena:venue.arena,homeCrest:matchIceCrest(venue.home)});
   const overview=document.getElementById('broadcast-overview');if(overview){overview.hidden=Boolean(studioReplayState)||!m.running||studioShouldShow(e,m);document.getElementById('broadcast-overview-title').textContent=e.teams[e.owner].name+' söker nästa öppning';}
   document.getElementById('broadcast-phase').textContent=studioReplayState?'REPRIS · '+analysisTime(frame.time):StudioHockey.PHASES[e.phase];
   document.getElementById('broadcast-caption').textContent=frame.caption;
@@ -452,7 +451,7 @@ function studioRefresh(){
  set('.mc-result>span',m.running?'LIVE':'PAUSAT');
  if(m.running&&matchReadOnlyTab())set('.mc-coach-content',matchLivePanel());
  matchEvidencePatch();
- set('.mc-stats',matchStatCard('Skott på mål',s.shots)+matchStatCard('Farliga chanser',s.danger)+matchStatCard('Puckinnehav',s.possession,'%')+matchStatCard('Vunna tekningar',s.faceoffs)+matchStatCard('Powerplay · mål/försök',s.pp)+matchStatCard('Räddningar',s.saves));
+ set('.mc-stats',matchStatCard('Skott på mål',matchVenueValues(s.shots))+matchStatCard('Farliga chanser',matchVenueValues(s.danger))+matchStatCard('Puckinnehav',matchVenueValues(s.possession),'%')+matchStatCard('Vunna tekningar',matchVenueValues(s.faceoffs))+matchStatCard('Powerplay · mål/försök',matchVenueValues(s.pp))+matchStatCard('Räddningar',matchVenueValues(s.saves)));
  set('.mc-situation strong',`${e.skaters(0).length} mot ${e.skaters(1).length}${e.isShortHanded(0)?' · Boxplay':e.hasPowerPlay(0)?' · Powerplay':''}`);
  set('.mc-situation>span',`${matchPenaltyText()}${m.goaliePulled?' · Eget mål tomt':''}${m.aiGoaliePulled?' · Motståndarens mål tomt':''}`);
  const t=e.teams[0],changing=t.requested||t.change||t.changeQueue.length||t.needsSetup;

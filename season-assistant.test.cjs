@@ -1,0 +1,60 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {headlessCareer}=require('./scripts/headless-career.cjs');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=headlessCareer(null,{production:true}),r=app.run;
+r(`beginCareerSelection();chooseCareerClub('HV71');careerReview();acceptCareer()`);
+assert.equal(r('state.calendar.date'),'2026-08-01');
+assert.equal(r('state.season.phase'),'preseason');assert.equal(r('state.page'),'season');
+assert.match(r('seasonView()'),/Välj riktning för säsongen/);
+assert.equal(r('state.calendar.friendlies.length'),5);
+assert.ok(r('state.calendar.friendlies.every(f=>f.date>state.calendar.date&&f.date<calSeasonOpening())'));
+r('calendarContinue()');assert.equal(r('state.calendar.date'),'2026-08-01','setup precedes daily progression');
+r(`preseasonConfigure('balanced','assistant','rotation','assistant','assistant')`);
+assert.equal(r('preseasonPlan().pending'),false);assert.equal(r('state.training.assistantOwner'),'assistant');
+assert.equal(r('state.clubOffice.priorityLockedYear'),2026);
+assert.equal(r('clubArena().capacity'),7000);assert.equal(r('state.clubOffice.capacity'),7000);
+assert.ok(r('Object.keys(state.world.membership).every(n=>clubArena(n)?.capacity>0)'));
+r(`globalThis.manual=managerRoster().find(p=>p.pos==='MV');setDevelopmentFocus(manual.id,'Reflexer');
+ globalThis.j=state.juniors.roster.find(p=>p.pos==='MV');j.fatigue=70;
+ calendarContinue()`);
+assert.equal(r('state.calendar.date'),'2026-08-02');assert.equal(r('manual.developmentFocus'),'Reflexer');
+assert.equal(r('j.trainingLoad'),'rest');
+assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("session:")).length'),0);
+assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("training-week:")).length'),1);
+const week=r('JSON.stringify(state.training.messages.find(m=>m.key.startsWith("training-week:")))');
+r('save();render();assistantWeeklyReport(state.calendar.date)');
+assert.equal(r('JSON.stringify(state.training.messages.find(m=>m.key.startsWith("training-week:")))'),week);
+const saved=boot(app.storage.value,{production:true});assert.equal(saved.run('preseasonPlan().owner'),'assistant');assert.equal(saved.run('state.calendar.friendlies.length'),5);
+// Play all five through the real spatial engine, keeping competitive production untouched.
+r('globalThis.productionBefore=JSON.stringify(Object.values(state.clubRosters).flat().map(p=>[p.id,p.games,p.goals,p.assists]));globalThis.tableBefore=JSON.stringify(state.teams.map(({strength,...standing})=>standing))');
+for(let game=0;game<5;game++){
+ while(r('state.calendar.date<calendarTarget()')){if(r('Boolean(pendingManagerDecision())'))r('answerPlayerConversation(pendingManagerDecision().id,"honest")');r('calendarContinue()');}
+ r('calendarContinue()');
+ assert.equal(r('Boolean(state.live?.delegatedFriendly)'),true);
+ assert.equal(r('matchVenue().ownHome'),game%2===0);
+ assert.equal(r('state.page'),'season','delegated match does not open rink');
+ const start=Date.now();r('globalThis.steps=0;while(preseasonSimulationStep()&&steps++<100000){}');
+ assert.equal(r('state.live.finished'),true);assert.ok(r('steps')<100000);
+ assert.equal(r('preseasonPlan().matches.length'),game+1);
+ console.log(`Friendly ${game+1} finished in ${Date.now()-start}ms`);
+ r('calendarContinue()');
+}
+assert.equal(r('state.round'),1);assert.equal(r('JSON.stringify(state.teams.map(({strength,...standing})=>standing))'),r('tableBefore'));
+assert.equal(r('Object.values(state.clubRosters).flat().every(p=>!p.goals&&!p.assists&&!p.games)'),true);
+assert.equal(r('preseasonPlan().reported'),true);
+assert.match(r('preseasonPlan().report'),/Målvakterna/);assert.match(r('preseasonPlan().report'),/Unga att följa/);
+assert.equal(r('preseasonPlan().matches.every(m=>m.players.length&&m.players.every(p=>p.seconds>0))'),true,'report counts appearances only when time was registered');
+assert.ok(r('preseasonPlan().matches.flatMap(m=>m.players).filter(p=>p.pos==="MV"&&p.seconds>0).reduce((s,p)=>s.add(p.id),new Set()).size')>=2);
+assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("preseason-summary:")).length'),1);
+assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("junior-month:")).length'),1);
+assert.equal(r('state.training.messages.some(m=>m.key.startsWith("growth:"))'),false);
+r('globalThis.report=preseasonPlan().report;save();finishAnalysis();save()');assert.equal(r('preseasonPlan().report'),r('report'));
+const restored=boot(app.storage.value,{production:true});assert.equal(restored.run('preseasonPlan().report'),r('report'));
+assert.equal(restored.run('validateSaveText(saveExportText()).preseasonCoach.matches.length'),5);
+// Launch keeps delegated responsibilities and the report; no second setup or career rewind.
+r('globalThis.premiereLines=JSON.stringify(state.lines)');
+r("state.calendar.date='2026-09-07';state.recruitment.deals=[];for(const p of managerRoster())p.contractYears=Math.max(1,p.contractYears);launchSeason()");
+assert.equal(r('state.season.phase'),'regular');assert.equal(r('state.training.assistantOwner'),'assistant');assert.equal(r('preseasonPlan().report'),r('report'));
+assert.equal(r('calendarTarget()'),'2026-09-10');assert.equal(r('JSON.stringify(state.lines)'),r('premiereLines'));
+console.log('PASS: August onboarding, five genuine delegated friendlies, statistic isolation, rotations, weekly/monthly reports, saving and league launch.');

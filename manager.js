@@ -148,9 +148,10 @@ function managerAcceptJob(){
  c.status='employed';c.expires=i.expires;c.salary=i.salary;c.confidence=60;c.badSeasons=0;c.decision=null;c.renewal=null;c.joined=clubYear();c.startGames=0;c.lastReview=null;c.moveYear=clubYear();
  c.history.unshift({year:clubYear(),kind:'appointment',club:j.club,from:old,expires:c.expires});c.history=c.history.slice(0,60);j.status='filled';c.interview=null;
  state.news=[`Du har tillträtt som huvudtränare för ${managerClub()}.`,...state.news.slice(0,30)];
+ preseasonStart();
  managerNotify(`Välkommen till ${managerClub()}. Världens trupper, attribut, övergångshistorik och dina tidigare säsonger finns kvar.`);
 }
-function managerAcceptRenewal(){if(!['review','preseason'].includes(state.season.phase))return;const c=state.managerCareer;if(c.status==='awaiting'&&c.renewal&&!c.decision)c.status='employed';managerRenew();}
+function managerAcceptRenewal(){if(!['review','preseason'].includes(state.season.phase))return;const c=state.managerCareer;if(c.status==='awaiting'&&c.renewal&&!c.decision)c.status='employed';managerRenew();if(managerEmployed()&&state.season.phase==='preseason'&&!preseasonPlan()){preseasonStart();save();render();}}
 function managerCanPlay(){ensureManager();if(managerEmployed())return true;state.page='manager';save();render();return false;}
 function managerView(){
  ensureManager();const c=state.managerCareer,employed=managerEmployed(),pre=state.season.phase==='preseason';

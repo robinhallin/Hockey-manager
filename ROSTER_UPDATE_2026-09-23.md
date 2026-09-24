@@ -32,12 +32,12 @@ Exempel på tillagda nyförvärv:
 
 ## Datum, identiteter och sparning
 
-Nya karriärer börjar 23 september med ett nytt genererat serieschema,
-seniorpremiär 26 september och J20-start 24 september. Verkliga resultat
-från september importeras inte. Starten kan inte flyttas tillbaka till
-augusti efter att septembervärvningarna har importerats. Följande säsonger
-behåller ordinarie kalender. Äldre sparningar behåller sina egna datum,
-spelarutveckling, övergångar, kontrakt och statistik.
+Efter försäsongsuppdateringen den 24 september börjar nya karriärer den
+1 augusti med fem träningsmatcher och simulerad seniorpremiär 10 september.
+Trupperna bygger fortfarande på underlaget från 23 september; spelstarten
+är en alternativ försäsong med dessa trupper. Verkliga resultat importeras
+inte. Äldre sparningar behåller sina egna datum, spelarutveckling,
+övergångar, kontrakt och statistik. De flyttas inte tillbaka till augusti.
 
 Leo Sundqvist, född 2007, är Brynäsforwarden på lån till Almtuna. Leo
 Sundqvist, född 2005, är Skellefteåbacken på lån till Östersund. De har

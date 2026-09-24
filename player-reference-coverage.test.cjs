@@ -53,7 +53,7 @@ test('junior and dressing-room references retain IDs, plain legacy fields and sa
  assert.match(run('historicalPlayerView("old-junior")'),/Registrerade juniormatcher/);
  assert.match(run('historicalPlayerView("old-junior")'),/Representerad klubb ej registrerad/);
  assert.match(run('historicalPlayerView("old-junior")'),/10 min/);
- run('ensureJuniorCalendar();juniorCalendarPlayRound(leagueOf(),4,juniorCalendarDates()[3].date);');
+ run('assistantReportingEnsure();ensureJuniorCalendar();juniorCalendarPlayRound(leagueOf(),4,juniorCalendarDates()[3].date);assistantMonthlyReport("2026-10-01");');
  assert.equal(run('state.juniors.matches[0].club'),run('managerClub()'));
  assert.ok(run('state.juniors.reports[0].bodyParts.some(p=>p?.playerId!=null)'));
  assert.equal(run('typeof state.juniors.reports[0].body'),'string');

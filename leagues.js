@@ -35,7 +35,7 @@ function ensureLeagues(){
  }
  const extra=createSchedule(state.world.membership).filter(g=>leagueOf(g.home)==='HA');
  // Catch up only the newly introduced background league, never replay the user's matches.
- const current=state.round,late=state.season?.phase!=='regular';
+ const current=state.round,late=state.season?.phase!=='regular'&&!(state.seasonCalendar==='august'&&state.season?.phase==='preseason'&&state.round===1&&!state.teams.some(t=>t.gp));
  for(const g of extra){if(state.schedule.some(x=>x.round===g.round&&x.home===g.home&&x.away===g.away))continue;state.schedule.push(g);if(late||g.round<current)leagueBackground(g);}
  state.world.selected=leagueOf();
  state.world.legacyCup=late;

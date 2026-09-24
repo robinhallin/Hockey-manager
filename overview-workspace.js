@@ -6,7 +6,7 @@ function overviewToggle(section,open){
  document.getElementById('overview-'+section)?.scrollIntoView?.({block:'start',behavior:'smooth'});
 }
 function overviewWorkspaceView(){
- return managerDeskView()+`<div class="overview-community"><section id="overview-stories" class="overview-section">${overviewUI.stories?`<button class="btn secondary" onclick="overviewToggle('stories',false)">Stäng historier</button>${storiesView()}`:storiesDeskView()}</section><section id="overview-press" class="overview-section">${overviewUI.press?`<button class="btn secondary" onclick="overviewToggle('press',false)">Stäng pressrummet</button>${pressView()}`:pressDeskView()}</section></div>`;
+ return (preseasonPlan()?.pending?'<section class="season-planning"><h2>Välj säsongens riktning</h2><button class="btn" onclick="deskNavigate(\'season\')">Till säsongsplanen →</button></section>':'')+managerDeskView()+`<div class="overview-community"><section id="overview-stories" class="overview-section">${overviewUI.stories?`<button class="btn secondary" onclick="overviewToggle('stories',false)">Stäng historier</button>${storiesView()}`:storiesDeskView()}</section><section id="overview-press" class="overview-section">${overviewUI.press?`<button class="btn secondary" onclick="overviewToggle('press',false)">Stäng pressrummet</button>${pressView()}`:pressDeskView()}</section></div>`;
 }
 function staffFollowupView(){
  const f=ensureManagerFeedback(),items=managerOffice2Items().filter(x=>x.requiresDecision||['critical','high','medium'].includes(x.level));

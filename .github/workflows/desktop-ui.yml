@@ -1,0 +1,28 @@
+name: Desktop UI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  desktop-ui:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop
+      - name: Exercise the ordinary game in Electron
+        run: npm run test:ui --prefix desktop
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-ui-results
+          path: desktop/test-results/
+          if-no-files-found: ignore
+          retention-days: 14

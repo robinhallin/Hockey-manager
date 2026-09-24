@@ -23,7 +23,7 @@ const MatchBroadcastRenderer = (() => {
       ctx.beginPath();ctx.arc(g.x,g.y,1.8*scale,side===0?-Math.PI/2:Math.PI/2,side===0?Math.PI/2:Math.PI*1.5);ctx.closePath();ctx.fillStyle='#b7d9e8';ctx.fill();ctx.strokeStyle='#c46c72';ctx.lineWidth=2;ctx.stroke();
       ctx.strokeStyle='#a84a54';ctx.lineWidth=4;ctx.strokeRect(g.x+(side===0?-22:0),g.y-18,22,36);
     }
-    ctx.fillStyle='#a8beca';ctx.font='700 35px system-ui';ctx.textAlign='center';ctx.fillText(options.arena||'MATCHSÄNDNING',W/2,H/2+12);ctx.restore();
+    ctx.fillStyle='#a8beca';ctx.font='700 35px system-ui';ctx.textAlign='center';if(options.homeCrest){const img=options.homeCrest,ratio=img.naturalWidth/img.naturalHeight,w=ratio>=1?132:132*ratio,h=ratio>=1?132/ratio:132;ctx.globalAlpha=.58;ctx.drawImage(img,W/2-w/2,H/2-h/2,w,h);ctx.globalAlpha=1;}else ctx.fillText(options.arena||'MATCHSÄNDNING',W/2,H/2+12);ctx.restore();
     // Bench gates make controlled changes readable instead of teleporting a whole formation.
     for(const [x,label,color] of [[27,teams[0].code,teams[0].primary],[33,teams[1].code,teams[1].primary]]){const p=xy({x,y:0});ctx.fillStyle=color;ctx.fillRect(p.x-29,top-18,58,16);ctx.font='700 13px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,p.x,top-6);}
     const actors=frame.actors.map(a=>mix(a,before?.actors.find(b=>a.id===b.id)));

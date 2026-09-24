@@ -1434,6 +1434,7 @@ shiftSeconds:0,
 
   };
 
+  state.live.venue=matchVenue();
   studioCreate();
 
   addEvent(
@@ -3494,6 +3495,7 @@ function setDevelopmentFocus(playerId,focus){
   const player = managerRoster().find(p => samePlayerId(p.id,playerId));
   if(!player || !validPlayerFocus(player,focus)) return;
   player.developmentFocus = focus;
+  player.trainingFocusManual=true;
   state.news.unshift(`${player.name} tränar nu med fokus på ${focus.toLowerCase()}.`);
   save();
   render();
@@ -4170,6 +4172,8 @@ function startCareerWithClub(clubName){
 
   freshState.page = "home";
 
+  freshState.seasonCalendar='august';
+  freshState.season={version:1,year:2026,phase:'preseason',series:[],archive:[],freeAgents:[]};
   state = freshState;
   careerLoadIssue=null;careerUnreadableSave=null;
   state.careerStarted=true;
@@ -4179,7 +4183,8 @@ function startCareerWithClub(clubName){
 
   syncManagerRoster();
   ensureManagementData();
-
+  render();
+  preseasonStart(true);
   save();
   render();
 
