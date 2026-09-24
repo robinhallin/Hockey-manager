@@ -151,7 +151,7 @@ function managerAcceptJob(){
  preseasonStart();
  managerNotify(`Välkommen till ${managerClub()}. Världens trupper, attribut, övergångshistorik och dina tidigare säsonger finns kvar.`);
 }
-function managerAcceptRenewal(){if(!['review','preseason'].includes(state.season.phase))return;const c=state.managerCareer;if(c.status==='awaiting'&&c.renewal&&!c.decision)c.status='employed';managerRenew();}
+function managerAcceptRenewal(){if(!['review','preseason'].includes(state.season.phase))return;const c=state.managerCareer;if(c.status==='awaiting'&&c.renewal&&!c.decision)c.status='employed';managerRenew();if(managerEmployed()&&state.season.phase==='preseason'&&!preseasonPlan()){preseasonStart();save();render();}}
 function managerCanPlay(){ensureManager();if(managerEmployed())return true;state.page='manager';save();render();return false;}
 function managerView(){
  ensureManager();const c=state.managerCareer,employed=managerEmployed(),pre=state.season.phase==='preseason';

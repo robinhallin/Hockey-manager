@@ -9,9 +9,10 @@ const PRESEASON_APPROACHES={
 function preseasonPlan(){const p=state.preseasonCoach;return p?.club===managerClub()&&p.year===state.season.year?p:null;}
 function preseasonStart(initial=false){
  ensureSeason();ensureCalendar();ensureClub();
+ if(!managerEmployed()){state.preseasonCoach=null;state.page='manager';return;}
  const s=state.season,c=state.calendar;
  if(initial){s.phase='preseason';s.grant=0;s.departures=[];s.nextWageLimit=wageBudget();c.date=`${s.year}-08-01`;}
- const preparing=c.date<=`${s.year}-09-09`&&!state.teams.some(t=>t.gp);
+ const preparing=s.phase==='preseason'&&c.date<=`${s.year}-09-09`;
  if(preparing){state.seasonCalendar='august';c.initialPreseasonUsed=true;c.marketDay=calAdd(c.date,7);c.active=null;}
  state.training.calendarKey=null;state.training.day=0;state.live=null;
  // Only new seasons are dated afresh. Existing careers are never rewound on load.
@@ -88,7 +89,7 @@ function preseasonRunChunk(){
 function preseasonProgressView(){const m=state.live;return `<section class="season-planning"><h1>Assisterande coachar träningsmatchen</h1><p>${trainingSafe(managerClub())} – ${trainingSafe(m.opponent)} · ${PRESEASON_APPROACHES[preseasonPlan()?.approach]?.name||'Försäsong'}</p><p>Period ${m.period} · ${gameTime()} · ${m.hv}–${m.opp}</p><p>Matchens istid, prestationer och belastning registreras till försäsongsrapporten.</p><button class="btn" onclick="preseasonRunChunk()">Fortsätt simuleringen</button></section>`;}
 function preseasonRecordMatch(f,m){
  const p=preseasonPlan();if(!p||p.matches.some(r=>r.id===f.id))return;
- const players=(m.performance?.rows||[]).filter(r=>r.club===managerClub()).map(r=>({id:r.id,name:r.name,pos:r.pos,age:findPlayerAnywhere(r.id)?.age,seconds:r.seconds,goals:r.goals||0,assists:r.assists||0,saves:r.saves||0,against:r.against||0,score:performanceScore(r)}));
+ const players=(m.performance?.rows||[]).filter(r=>r.club===managerClub()&&r.seconds>0).map(r=>({id:r.id,name:r.name,pos:r.pos,age:findPlayerAnywhere(r.id)?.age,seconds:r.seconds,goals:r.goals||0,assists:r.assists||0,saves:r.saves||0,against:r.against||0,score:performanceScore(r)}));
  p.matches.push({id:f.id,date:f.date,opponent:f.opponent,own:f.own,against:f.against,players});
  preseasonBuildReport();
 }

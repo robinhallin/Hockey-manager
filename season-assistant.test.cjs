@@ -44,7 +44,7 @@ assert.equal(r('state.round'),1);assert.equal(r('JSON.stringify(state.teams.map(
 assert.equal(r('Object.values(state.clubRosters).flat().every(p=>!p.goals&&!p.assists&&!p.games)'),true);
 assert.equal(r('preseasonPlan().reported'),true);
 assert.match(r('preseasonPlan().report'),/Målvakterna/);assert.match(r('preseasonPlan().report'),/Unga att följa/);
-assert.equal(r('preseasonPlan().matches.every(m=>m.players.some(p=>p.seconds>0))'),true);
+assert.equal(r('preseasonPlan().matches.every(m=>m.players.length&&m.players.every(p=>p.seconds>0))'),true,'report counts appearances only when time was registered');
 assert.ok(r('preseasonPlan().matches.flatMap(m=>m.players).filter(p=>p.pos==="MV"&&p.seconds>0).reduce((s,p)=>s.add(p.id),new Set()).size')>=2);
 assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("preseason-summary:")).length'),1);
 assert.equal(r('state.training.messages.filter(m=>m.key.startsWith("junior-month:")).length'),1);

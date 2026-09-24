@@ -60,6 +60,8 @@ assert.equal(run('managerClub()'),'HV71');assert.equal(run('state.money'),123456
 assert.equal(run('state.juniors.roster.map(p=>p.id).join()'),run('academyIds'));
 assert.equal(run('state.staff.length'),5);
 assert.ok(!/undefined|NaN/.test(run('managerView()+clubFinanceView()+clubStaffView()')));
+// This contract scenario cancels friendlies explicitly; production preseason is covered separately.
+run('preseasonConfigure("balanced","manager","rotation","manager","manager");for(const f of [...state.calendar.friendlies])calendarCancelFriendly(f.id)');
 // Start the new season and play the new employer's actual fixture through the engine.
 run('for(const p of managerRoster())p.contractYears=Math.max(1,p.contractYears);(state.calendar.date=state.season.year+"-09-07",launchSeason())');assert.equal(run('state.season.phase'),'regular');
 assert.equal(run('state.managerCareer.startGames'),0);

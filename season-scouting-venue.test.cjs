@@ -49,4 +49,16 @@ m(`preseasonConfigure('balanced','manager','rotation','assistant','assistant');
  globalThis.p=managerRoster().find(p=>medicalCanTrain(p));p.fatigue=45;p.trainingLoad='normal';delete p.trainingReturn;delete p.trainingManualDate;
  globalThis.projectedLoad=trainingEffectiveLoad(p);assistantPrepareTraining()`);
 assert.equal(m('projectedLoad'),'light');assert.equal(m('p.trainingLoad'),'light');
+// The previous season's table still has games until launch; it must not block August fixtures.
+const next=boot(null,{production:true}),n=next.run;
+n(`startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');
+ state.season.phase='review';state.season.boardResult=[{met:true}];state.teams.forEach(t=>t.gp=52);beginPreseason()`);
+assert.equal(n('state.season.year'),2027);assert.equal(n('state.calendar.date'),'2027-08-01');
+assert.equal(n('state.calendar.friendlies.filter(f=>f.club===managerClub()).length'),5);
+assert.equal(n('preseasonPlan().pending'),true);assert.equal(n('preseasonPlan().hasPreseason'),true);
+assert.equal(n('state.calendar.friendlies.every(f=>f.date.startsWith("2027-"))'),true);
+n(`state.managerCareer.status='unemployed';preseasonStart()`);
+assert.equal(n('state.page'),'manager');assert.equal(n('preseasonPlan()'),null);
+n(`state.managerCareer.status='awaiting';state.managerCareer.decision=null;state.managerCareer.renewal={expires:2029,salary:700000};managerAcceptRenewal()`);
+assert.equal(n('managerEmployed()'),true);assert.equal(n('preseasonPlan().pending'),true);assert.equal(n('state.page'),'season');
 console.log('PASS: specific scouting criteria, observed-only ranking, expanded places, home/away score and keeper accounting, venue save and arena migration.');
