@@ -962,47 +962,10 @@ function createClubRosters(){
 }
 function createSchedule(membership=leagueInitial()){
   const groups=['SHL','HA'].map(id=>Object.keys(membership).filter(name=>membership[name]===id));
-  return groups.flatMap(teams=>createLeagueSchedule(teams));
+  return groups.filter(teams=>teams.length).flatMap(teams=>createLeagueSchedule(teams));
 }
 function createLeagueSchedule(teams){
-  const games = [];
-
-  let roundNumber = 1;
-
-  for(let cycle = 0; cycle < 4; cycle++){
-
-    const rotating = [...teams];
-
-    for(let r = 0; r < teams.length - 1; r++){
-
-      for(let i = 0; i < teams.length / 2; i++){
-
-        const teamA = rotating[i];
-        const teamB = rotating[rotating.length - 1 - i];
-
-        const reverseHome =
-          (r + cycle) % 2 === 1;
-
-        games.push({
-          round: roundNumber,
-          home: reverseHome ? teamB : teamA,
-          away: reverseHome ? teamA : teamB,
-          played: false,
-          homeGoals: null,
-          awayGoals: null
-        });
-
-      }
-
-      const lastTeam = rotating.pop();
-      rotating.splice(1, 0, lastTeam);
-
-      roundNumber++;
-    }
-
-  }
-
-  return games;
+  return CompetitionFormat.roundRobin(teams);
 }
 function simulateOtherGames(){
  for(const game of state.schedule.filter(g=>g.round===state.round&&!g.played&&!g.seriesId&&g.home!==managerClub()&&g.away!==managerClub()))leagueBackground(game);

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "comparedWith": [
+    "SHL_DATABASE",
+    "ALLSVENSKAN_DATABASE"
+  ],
+  "remainingScopes": [
+    "north-america",
+    "free-agents",
+    "cross-europe-provider-duplicates",
+    "legacy-save-aliases"
+  ],
+  "candidates": [
+    {
+      "id": "liiga:60952606",
+      "name": "Lukas Zetterberg",
+      "birth": "1997-03-27",
+      "candidateIds": [
+        "ep-212396"
+      ],
+      "status": "review-required"
+    },
+    {
+      "id": "nationalleague:345020",
+      "name": "Sami Niku",
+      "birth": "1996-10-10",
+      "candidateIds": [
+        "ep-92502"
+      ],
+      "status": "review-required"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "checked": "2026-09-25",
+  "leagues": [
+    {
+      "id": "CZ_ELH",
+      "name": "Tipsport extraliga",
+      "targetMode": "playable",
+      "playable": false,
+      "clubs": 14,
+      "sourcePlayers": 0,
+      "estimatedPlayers": 0,
+      "downloadedCrests": 0,
+      "identityReviews": 0,
+      "blockers": [
+        "player-data-not-imported",
+        "roster-registration-and-contract-verification",
+        "cross-provider-identity-resolution",
+        "attribute-calibration-and-missing-evidence",
+        "career-and-club-office-integration",
+        "date-based-multi-league-progression",
+        "league-specific-postseason",
+        "transfer-loan-and-eligibility-rules",
+        "season-rollover-and-save-migration",
+        "playable-career-acceptance-test",
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage",
+        "lower-tier-opponent",
+        "crest-downloads"
+      ]
+    },
+    {
+      "id": "CH_NL",
+      "name": "National League",
+      "targetMode": "playable",
+      "playable": false,
+      "clubs": 14,
+      "sourcePlayers": 413,
+      "estimatedPlayers": 352,
+      "downloadedCrests": 14,
+      "identityReviews": 1,
+      "blockers": [
+        "roster-registration-and-contract-verification",
+        "cross-provider-identity-resolution",
+        "attribute-calibration-and-missing-evidence",
+        "career-and-club-office-integration",
+        "date-based-multi-league-progression",
+        "league-specific-postseason",
+        "transfer-loan-and-eligibility-rules",
+        "season-rollover-and-save-migration",
+        "playable-career-acceptance-test",
+        "play-in-overtime-and-paths",
+        "relegation-2026-27",
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage"
+      ]
+    },
+    {
+      "id": "FI_LIIGA",
+      "name": "Liiga",
+      "targetMode": "playable",
+      "playable": false,
+      "clubs": 17,
+      "sourcePlayers": 515,
+      "estimatedPlayers": 399,
+      "downloadedCrests": 17,
+      "identityReviews": 1,
+      "blockers": [
+        "roster-registration-and-contract-verification",
+        "cross-provider-identity-resolution",
+        "attribute-calibration-and-missing-evidence",
+        "career-and-club-office-integration",
+        "date-based-multi-league-progression",
+        "league-specific-postseason",
+        "transfer-loan-and-eligibility-rules",
+        "season-rollover-and-save-migration",
+        "playable-career-acceptance-test",
+        "regular-season-end",
+        "playoffs",
+        "2027-28-restructure",
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage"
+      ]
+    }
+  ],
+  "schedules": [
+    {
+      "id": "CZ_ELH",
+      "games": 364,
+      "rounds": 52,
+      "kind": "generated-preview"
+    },
+    {
+      "id": "CH_NL",
+      "games": 364,
+      "rounds": 52,
+      "kind": "generated-preview"
+    },
+    {
+      "id": "FI_LIIGA",
+      "games": 544,
+      "rounds": 68,
+      "kind": "generated-preview"
+    }
+  ]
+}
