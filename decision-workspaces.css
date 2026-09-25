@@ -74,12 +74,14 @@
 }
 
 @media(min-width:1100px) and (min-height:650px){
- .junior-workspace{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto minmax(0,1fr);grid-template-areas:"heading summary" "tabs tabs" "notice notice" "work work";align-items:stretch}
- .junior-workspace>.dv-heading{grid-area:heading;justify-self:start}
- .junior-workspace>.dv-summary{grid-area:summary;justify-self:end}
- .junior-workspace>.dv-tabs{grid-area:tabs}
- .junior-workspace>.dv-notice{grid-area:notice}
- .junior-workspace>.dv-juniors,.junior-workspace>.dv-junior-workarea,.junior-workspace>.dv-panel{grid-area:work}
+ /* The overview, filters and delegation each occupy their own row. */
+ .desk-page:has(>.junior-workspace){height:auto;display:block}
+ .junior-workspace{display:grid;flex:none;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto;grid-template-areas:none;align-items:start}
+ .junior-workspace>*{grid-column:1/-1}
+ .junior-workspace>.dv-heading{grid-column:1;grid-row:1;justify-self:start}
+ .junior-workspace>.dv-summary{grid-column:2;grid-row:1;justify-self:end}
+ .junior-workspace>.dv-panel,.junior-workspace>.dv-junior-workarea,.junior-workspace .dv-junior-detail{overflow:visible}
+ .junior-workspace>.dv-detail-view{width:100%;min-width:0}
  .junior-workspace .junior-lineup-grid>section:nth-child(2) fieldset{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 

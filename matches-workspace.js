@@ -13,7 +13,7 @@ function matchesFixtureAction(f){
 }
 function matchesCalendarView(){
  const tabs=matchesTabs('calendar',{calendar:'Kalender & dagsprogram',fixtures:'Matchlista'});
- if(matchesUI.calendar==='calendar')return `<div class="matches-workspace">${tabs}${daySummaryView()}${internationalCalendar()}${nhlCalendar()}${legacyCalendarView()}</div>`;
+ if(matchesUI.calendar==='calendar')return `<div class="matches-workspace">${tabs}${daySummaryView()}${legacyCalendarView()}</div>`;
  const fixtures=calendarFixtures().filter(f=>matchesUI.fixtures==='played'?f.played:!f.played&&f.date>=state.calendar.date).sort((a,b)=>matchesUI.fixtures==='played'?b.date.localeCompare(a.date):a.date.localeCompare(b.date));
  return `<section class="matches-workspace">${tabs}<header class="mw-heading"><div><span class="desk-kicker">${trainingSafe(managerClub())} · ${seasonLabel()}</span><h1>Matchlista</h1></div></header>${matchesTabs('fixtures',{upcoming:'Kommande',played:'Resultat'})}<div class="mw-panel mw-scroll"><table><thead><tr><th>Datum</th><th>Motstånd</th><th>Spelplats</th><th>Tävling</th><th>Resultat¹</th><th>Öppna</th></tr></thead><tbody>${fixtures.map(f=>`<tr><td><button type="button" onclick="matchesOpenDay('${f.date}')">${calText(f.date)}</button></td><th>${clubReference(f.opponent)}</th><td>${f.venue}</td><td>${trainingSafe(f.kind)}</td><td>${f.played?(matchesReportFor(f)?matchReportReference(matchesReportFor(f),f.result):trainingSafe(f.result)):'–'}</td><td>${matchesFixtureAction(f)}</td></tr>`).join('')||'<tr><td colspan="6">Inga matcher i det här urvalet.</td></tr>'}</tbody></table></div><p class="mw-note">¹ Ditt lags mål visas först. Datumet öppnar dagsprogrammet. Äldre resultat kan sakna detaljerad matchrapport.</p></section>`;
 }

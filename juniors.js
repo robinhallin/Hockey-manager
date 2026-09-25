@@ -35,7 +35,7 @@ function createJunior(pos,intake){
 function juniorNotice(text){state.juniors.message=text;save();render();}
 function juniorReport(title,body){const s=state.juniors;s.reports.unshift({year:s.year,round:state.round,title:referencePlainText(title),body:referencePlainText(body),...(Array.isArray(title)?{titleParts:title}:{}),...(Array.isArray(body)?{bodyParts:body}:{})});s.reports=s.reports.slice(0,50);managerMessage(`junior:${s.year}:${state.round}:${state.training?.nextMessageId}`,title,body,'Junioransvarig',{link:'juniors'});}
 function juniorLocked(){return Boolean(state.live&&!state.live.finished);}
-function juniorSelect(id){if(!juniorById(id))return;deskNavigate('juniors');developmentUI.juniorTab='players';state.juniors.message='';state.juniors.selected=id;save();render();deskBrowserBefore();}
+function juniorSelect(id){if(!juniorById(id))return;state.juniors.message='';developmentOpenPlayer(id,'juniors');}
 function juniorSet(id,key,value){
  const p=juniorById(id);if(!p)return;if(juniorLocked())return juniorNotice('Ändra utvecklingsplaner mellan matcher.');
  if(key==='role'&&juniorRoles(p).includes(value)){p.academy.role=value;p.developmentFocus='Balanserad';}
@@ -159,7 +159,7 @@ function juniorAssessment(p){
  const bias=(attrSeed(`${p.id}:${staff.personId||staff.id}:junior`)-.5)*2;
  const value=attributeWeighted(p.attributes,weights)+bias*error,future=attributeWeighted(a.ceiling,weights)+bias*potError;
  const stars=n=>Math.round(attrClamp(2.5+(n-baseline)*.6,0,5)*2)/2;
- return {staff,current:starRatingHTML(stars(value-error),stars(value+error),false,staff.name),potential:starRatingHTML(stars(future-potError),stars(future+potError),true,staff.name),confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};
+ return {staff,currentValue:(stars(value-error)+stars(value+error))/2,potentialValue:(stars(future-potError)+stars(future+potError))/2,current:starRatingHTML(stars(value-error),stars(value+error),false,staff.name),potential:starRatingHTML(stars(future-potError),stars(future+potError),true,staff.name),confidence:known<.45?'Låg':known<.7?'Medel':'God',error,potError};
 }
 function juniorAdvice(p){
  if(internationalAway(p))return `På JVM-uppdrag med ${INT_NATIONS[p.internationalDuty.nation]}. Tillbaka ${calText(p.internationalDuty.until)}; klubbträningen är pausad.`;

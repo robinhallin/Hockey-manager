@@ -47,6 +47,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>state.training.assistantOwner),'assistant');
   assert.equal(await page.evaluate(()=>state.juniors.assistantOwner),'assistant');
 
+  await require('./development-ui.cjs')(page,out);
   await page.screenshot({path:path.join(out,'01-klubbkontoret.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
   const selected=await page.evaluate(()=>({name:managerRoster()[0].name,id:String(managerRoster()[0].id)}));

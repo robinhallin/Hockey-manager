@@ -4323,6 +4323,8 @@ careerScreen === "files" ? saveSettingsView()
 : state.page==="opponents"
 ? rivalsView()
 
+: state.page==="world" ? worldWorkspaceView()
+
 : state.page==="nhl"
 ? nhlView()
 
