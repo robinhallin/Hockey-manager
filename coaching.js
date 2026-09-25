@@ -26,15 +26,16 @@ function ensureSpecialTeams(){
 function changeSpecialPlayer(key,index,id){
   if(!hockeyAllowChange())return;
   ensureSpecialTeams();
-  const unit=state.specialTeams[key];
+  let unit=state.specialTeams[key];
   const player=managerRoster().find(p=>samePlayerId(p.id,id)&&p.pos!=="MV"&&medicalAvailable(p));
   if(!unit||!player||!Number.isInteger(index)||index<0||index>=unit.length) return;
   if(state.live?.running)pauseMatch();
-  const before=tacticalReviewPlan();
+  const undo=tacticsBefore(),before=tacticalReviewPlan();
+  unit=state.specialTeams[key];
   const existing=unit.findIndex(x=>samePlayerId(x,id));
   if(existing>=0) [unit[index],unit[existing]]=[unit[existing],unit[index]];
   else unit[index]=player.id;
-  tacticalReviewRecord(before,'Ändrad special teams-enhet');
+  tacticalReviewRecord(before,'Ändrad special teams-enhet');tacticsRemember(undo,'Ändrad '+tacticsUnitLabel(key));
   save();render();
 }
 

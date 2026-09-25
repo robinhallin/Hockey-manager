@@ -81,40 +81,12 @@ async function close(){
   await page.screenshot({path:path.join(out,'08-stab.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
   await page.locator('.desk-subnav').getByRole('button',{name:'Taktik & laguttagning',exact:true}).click();
-  assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
-  const originalLineup=await page.evaluate(()=>state.lines.forwards.slice());
-  await page.locator('.multi-rinks').scrollIntoViewIfNeeded();
-  await page.locator('[data-lineup-slot="forwards-0"]').dragTo(page.locator('[data-lineup-slot="forwards-9"]'),{sourcePosition:{x:5,y:5},targetPosition:{x:5,y:5}});
-  assert.equal(await page.evaluate(()=>state.lines.forwards[9]),originalLineup[0]);
-  assert.equal(await page.evaluate(()=>state.lines.forwards[0]),originalLineup[9]);
+  await require('../scripts/tactics-browser-checks.cjs').checkTactics(page);
   assert.equal(await page.locator('.multi-lineup h1').evaluate(el=>getComputedStyle(el).fontFamily),staffFont);
-  assert.match(await page.locator('.multi-bench').innerText(),/Reserver i matchtruppen/);
-  assert.match(await page.locator('.multi-bench').innerText(),/Utanför matchtruppen/);
-  // The keyboard/click path reaches the same guarded swap as dragging.
-  await page.locator('[data-lineup-slot="forwards-0"] .multi-position').click();
-  const candidate=page.locator('.fm-roster-table tr').filter({has:page.locator('[data-player-id="'+originalLineup[0]+'"]')});
-  await candidate.getByRole('button',{name:/Välj /}).click();
-  assert.equal(await page.evaluate(()=>state.lines.forwards[0]),originalLineup[0]);
-  await page.locator('.multi-lineup h1').scrollIntoViewIfNeeded();
-  await page.screenshot({path:path.join(out,'09-fyra-kedjor.png'),fullPage:true});
-  await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'Powerplay & boxplay',exact:true}).click();
-  assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
-  const specialBefore=await page.evaluate(()=>({a:state.specialTeams.pp1[0],b:state.specialTeams.pp2[0]}));
-  await page.locator('[data-special-slot="pp1-0"]').dragTo(page.locator('[data-special-slot="pp2-0"]'),{sourcePosition:{x:5,y:5},targetPosition:{x:5,y:5}});
-  assert.equal(await page.evaluate(()=>state.specialTeams.pp1[0]),specialBefore.b);
-  assert.equal(await page.evaluate(()=>state.specialTeams.pp2[0]),specialBefore.a);
-  for(const [pp,pk] of [['oneThreeOne','box'],['umbrella','diamond'],['overload','box']]){
-   await page.locator('select[onchange="specialPlan(\'pp\',this.value)"]').selectOption(pp);
-   await page.locator('select[onchange="specialPlan(\'pk\',this.value)"]').selectOption(pk);
-   const overlaps=await page.locator('.multi-board').evaluateAll(boards=>boards.flatMap(board=>{
-    const slots=[...board.querySelectorAll('.multi-player')].map(el=>({id:el.id,r:el.getBoundingClientRect()}));
-    return slots.flatMap((a,i)=>slots.slice(i+1).filter(b=>Math.min(a.r.right,b.r.right)>Math.max(a.r.left,b.r.left)+1&&Math.min(a.r.bottom,b.r.bottom)>Math.max(a.r.top,b.r.top)+1).map(b=>a.id+' / '+b.id));
-   }));assert.deepEqual(overlaps,[],'special-team player cards must not overlap');
-  }
-  await page.locator('.multi-lineup h1').scrollIntoViewIfNeeded();
-  await page.screenshot({path:path.join(out,'10-special-teams.png'),fullPage:true});
-  const lineupLayout=await page.locator('#content').evaluate(el=>({width:el.scrollWidth,client:el.clientWidth}));
-  assert.ok(lineupLayout.width<=lineupLayout.client+1,'four-rink layout fits the desktop width');
+  await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'5 mot 5',exact:true}).click();
+  await page.screenshot({path:path.join(out,'09-kedjetavla.png'),fullPage:true});
+  await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'PP',exact:true}).click();
+  await page.screenshot({path:path.join(out,'10-enhetsbyggare.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Rekrytering',exact:true}).click();
   const recruitmentNav=page.getByRole('navigation',{name:'Rekrytering',exact:true});
   await recruitmentNav.getByRole('button',{name:'Översikt',exact:true}).click();
@@ -213,7 +185,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>careerSaveError),false);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
-  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','four simultaneous line rinks with actual drag and click swaps','four simultaneous special-team rinks with cross-unit dragging and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
+  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','all lines and back pairs, actual drag/keyboard/candidate swaps, undo, locks and assistant','PP/BP unit builder, role candidates, guarded swaps and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','search advanced filters collapsed and no horizontal overflow','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
  }catch(error){if(page)try{fs.writeFileSync(path.join(out,'drag-debug.json'),JSON.stringify(await page.evaluate(()=>({events:window.hmDragEvents,lines:state.lines,specialTeams:state.specialTeams})),null,2));await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}

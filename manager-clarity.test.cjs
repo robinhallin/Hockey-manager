@@ -37,12 +37,12 @@ const ratingTable=r('squadWorkspaceView()');assert.match(ratingTable,/Snittbetyg
 const ratingRow=ratingTable.match(new RegExp('<tr data-squad-player="'+r('p.id')+'"[^>]*>([\\s\\S]*?)</tr>'))?.[1];
 assert.ok(ratingRow,'rated player is present in the table');
 assert.match(ratingRow.replace(/<[^>]+>/g,' ').replace(/\s+/g,' '),/\b2 10,0 5,0\b/,'two assessed games, latest 10.0 and average 5.0');
-// Four simultaneous boards, integrated office sections and stable legacy links.
+// Four simultaneous lines and one active special-team builder; legacy swap actions remain valid.
 r("deskNavigate('stories')");assert.equal(r('state.page'),'home');assert.ok(r('overviewUI.stories'));assert.doesNotMatch(r('deskSubnav()'),/Säsongens historier|Press & supportrar/);
 r("deskNavigate('press')");assert.equal(r('state.page'),'home');assert.ok(r('overviewUI.press'));assert.match(r('homeView()'),/stories-page/);assert.match(r('homeView()'),/press-page/);
 r("deskNavigate('staffReview')");assert.doesNotMatch(r('staffReviewView()'),/Förstärkningar & löften|Träning & taktik/);assert.match(r('staffReviewView()'),/3 spelklara av 3/);
 r("state.live=null;ensureLines();ensureSpecialTeams();globalThis.drop=(id,source)=>({preventDefault(){},dataTransfer:{getData:type=>type==='text/plain'?String(id):source?JSON.stringify(source):''}});");
-assert.equal((r('lineupFourBoards()').match(/data-board="line[0-3]"/g)||[]).length,4);assert.equal((r('specialFourBoards()').match(/data-board="(?:pp|pk)[12]"/g)||[]).length,4);
+assert.equal((r('lineupFourBoards()').match(/data-board="line[0-3]"/g)||[]).length,4);assert.equal((r('specialFourBoards()').match(/data-board="(?:pp|pk)[12]"/g)||[]).length,1);
 r("globalThis.before=state.lines.forwards.slice();lineupDrop(drop(before[0]),'forwards',9)");assert.equal(r('state.lines.forwards[9]'),r('before[0]'));assert.equal(r('state.lines.forwards[0]'),r('before[9]'));
 r("globalThis.reserve=depthSelection().extras[0];globalThis.main=state.lines.forwards[0];lineupBenchSwap(drop(main),reserve)");assert.equal(r('state.lines.forwards[0]'),r('reserve'));assert.ok(r('depthSelection().extras.some(id=>samePlayerId(id,main))'));
 r("globalThis.a=state.specialTeams.pp1[0];globalThis.b=state.specialTeams.pp2[0];specialDrop(drop(a,{key:'pp1',index:0,id:a}),'pp2',0)");assert.equal(r('state.specialTeams.pp2[0]'),r('a'));assert.equal(r('state.specialTeams.pp1[0]'),r('b'));

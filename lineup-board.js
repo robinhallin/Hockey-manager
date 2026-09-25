@@ -7,16 +7,18 @@ function lineupSelectUnit(kind,index){
  document.querySelector('[data-lineup-unit="'+kind+index+'"]')?.focus?.({preventScroll:true});
 }
 function lineupPickSlot(type,index){
- if(!['forwards','defense','goalie'].includes(type))return;
+ if(!tacticsValidSlot(type,index)||TACTICS_UNITS.includes(type))return;
+ if(['lines','tactics'].includes(state.page)){tacticsPick(type,index,true);return;}
  if(state.live?.running)pauseMatch();lineupUI.slot={type,index};lineupUI.query='';render();
  const panel=document.getElementById('lineupCandidates');panel?.focus?.({preventScroll:true});panel?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
 }
 function lineupPlace(id){
  const slot=lineupUI.slot,p=playerById(id);if(!slot||!p||!medicalAvailable(p))return;
- if(slot.type==='goalie'?p.pos!=='MV':p.pos==='MV')return;
+ if(['goalie','backup'].includes(slot.type)?p.pos!=='MV':p.pos==='MV')return;
  if(!hockeyAllowChange())return;
  if(state.live?.running)pauseMatch();
- if(slot.type==='goalie')changeGoalie(p.id);else changeLinePlayer(slot.type,slot.index,p.id);
+ lineupUI.player=p.id;lineupUI.picker=false;
+ if(slot.type==='backup')tacticsBackup(p.id);else if(slot.type==='goalie')changeGoalie(p.id);else changeLinePlayer(slot.type,slot.index,p.id);
  const placed=document.querySelector('[data-lineup-slot="'+slot.type+'-'+slot.index+'"]')||document.querySelector('.lineup-slot.selected');
  placed?.focus?.({preventScroll:true});placed?.scrollIntoView?.({block:'nearest',behavior:'smooth'});
 }
@@ -56,7 +58,7 @@ const SPECIAL_SLOTS={
 };
 let specialUI={unit:'pp1',slot:0,query:''};
 function ensureSpecialPlans(){state.specialPlans??={};if(!SPECIAL_SCHEMES.pp[state.specialPlans.pp])state.specialPlans.pp='oneThreeOne';if(!SPECIAL_SCHEMES.pk[state.specialPlans.pk])state.specialPlans.pk='box';if(!['safe','selective'].includes(state.specialPlans.counter))state.specialPlans.counter='selective';}
-function specialPlan(kind,value){ensureSpecialPlans();if(kind==='counter'?!['safe','selective'].includes(value):!SPECIAL_SCHEMES[kind]?.[value])return;if(state.live?.running)pauseMatch();const before=tacticalReviewPlan();state.specialPlans[kind]=value;tacticalReviewRecord(before,'Special teams-instruktion');save();render();}
+function specialPlan(kind,value){ensureSpecialPlans();if(kind==='counter'?!['safe','selective'].includes(value):!SPECIAL_SCHEMES[kind]?.[value])return;if(state.live?.running)pauseMatch();const undo=tacticsBefore(),before=tacticalReviewPlan();state.specialPlans[kind]=value;tacticalReviewRecord(before,'Special teams-instruktion');tacticsRemember(undo,'Ändrad special teams-instruktion');save();render();}
 function specialSelect(key,index=0){if(!['pp1','pp2','pk1','pk2'].includes(key))return;ensureSpecialTeams();if(!Number.isInteger(index)||index<0||index>=state.specialTeams[key].length)return;if(state.live?.running)pauseMatch();specialUI={unit:key,slot:index,query:''};render();document.getElementById('specialCandidates')?.focus?.({preventScroll:true});document.getElementById('specialCandidates')?.scrollIntoView?.({block:'nearest',behavior:'smooth'});}
 function specialPlace(id){const key=specialUI.unit,index=specialUI.slot;if(state.live?.running)pauseMatch();changeSpecialPlayer(key,index,id);document.getElementById('special-slot-'+key+'-'+index)?.focus?.({preventScroll:true});}
 function specialBoardView(){return specialFourBoards();}

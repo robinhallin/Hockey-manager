@@ -46,7 +46,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.locator('.sw-next').getByRole('button',{name:/^(Avtal|Granska avtal)$/}).click();assert.equal(await page.evaluate(()=>profileWorkspace.tab),'contract');assert.equal(await page.evaluate(()=>state.selectedPlayer),selected.id);
   await page.goBack();await page.waitForSelector('.squad-workspace');
   await page.locator('.sw-next').getByRole('button',{name:/^(Plats i laget|Se plats i laget)$/}).click();assert.equal(await page.evaluate(()=>state.page),'lines');assert.equal(await page.evaluate(()=>lineupWorkspace),'even');assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
-  await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'Powerplay & boxplay',exact:true}).click();assert.equal(await page.locator('.multi-rinks [data-board]').count(),4);
+  await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'PP',exact:true}).click();assert.equal(await page.locator('.tw-rink[data-board]').count(),1);
   await page.goBack();await page.waitForSelector('.squad-workspace');
   await page.getByRole('button',{name:'Stäng spelaröversikten',exact:true}).click();assert.equal(await page.locator('.sw-player-empty').count(),1);
   // Theme is taken from the actual coached club, with a stable layout.
