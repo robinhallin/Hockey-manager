@@ -105,7 +105,7 @@ function historicalPlayerView(id){
 }
 
 function playerProfileHeader(p,club){
- return `<header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button><div class="fm-player-mark">${trainingSafe(p.pos)}</div><div><small>${clubReference(club)}</small><h1>${trainingSafe(p.name)}</h1><p>${p.age} år · ${trainingSafe(p.nationality||'Nationalitet saknas')}</p></div><div class="fm-profile-rating"><small>Förmåga</small>${assessmentBadge(p)}<small>Potential · stabens prognos</small>${assessmentBadge(p,true)}</div></header>`;
+ return `<header class="fm-profile-header"><button class="fm-back" onclick="deskBack('squad')" aria-label="Tillbaka till föregående vy">←</button>${playerAvatar(p)}<div><small>${clubReference(club)}</small><h1>${trainingSafe(p.name)}</h1><p>${p.age} år · ${trainingSafe(p.nationality||'Nationalitet saknas')}</p></div><div class="fm-profile-rating"><small>Förmåga</small>${assessmentBadge(p)}<small>Potential · stabens prognos</small>${assessmentBadge(p,true)}</div></header>`;
 }
 function playerLineupContext(id){
  const p=managerRoster().find(q=>samePlayerId(q.id,id));if(!p)return false;

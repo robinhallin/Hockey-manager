@@ -101,7 +101,7 @@ function squadPlayerAdvice(p,tab){
  if((developmentChange(p)?.net||0)!==0)return {title:'Följ utvecklingen',text:'Attributen har förändrats. Se utvecklingsplan och faktisk istid innan du ändrar rollen.',action:'training',label:'Se utvecklingsplan'};
  return {title:squadPlace(p),text:`Avtalad roll: ${p.promisedRole||p.squadRole||'Ej angiven'}. Jämför rollen med laguttagning och kommande belastning.`,action:'place',label:'Se plats i laget'};
 }
-function squadPortrait(p){return `<div class="sw-portrait" aria-hidden="true"><svg viewBox="0 0 120 140" fill="none"><path d="M28 33c0-24 64-24 64 0v14H28Z" fill="#455663"/><path d="M37 43h46v19c0 25-46 25-46 0Z" fill="#75838c"/><path d="m39 79-26 14-9 47h112l-9-47-26-14-21 17Z" fill="var(--club-primary,#274459)"/><path d="m39 79 21 17 21-17M12 116h25m46 0h25" stroke="var(--sw-accent)" stroke-width="5"/><path d="M32 46h56" stroke="#a2adb5" stroke-width="3"/></svg>${clubCrest(managerClub(),'small')}<span class="sw-portrait-label">${trainingSafe(p.pos)}</span></div>`;}
+function squadPortrait(p){return `<div class="sw-portrait">${playerAvatar(p)}${clubCrest(getPlayerClub(p.id),'small')}<span class="sw-portrait-label">${trainingSafe(p.pos)}</span></div>`;}
 function squadPlayerPanel(rows,tab){
  const p=squadSelected();
  if(!p)return `<aside class="sw-player-empty" id="squad-player-detail"><span>${deskIcon('team')}</span><div><strong>Välj en spelare i tabellen</strong><p>Se bedömning, utveckling och nästa steg här.</p></div><small>Sortera med kolumnrubrikerna · Klicka på ett namn eller använd Tab och Enter</small></aside>`;
