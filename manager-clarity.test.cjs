@@ -32,7 +32,11 @@ r(`state.analysis.matches=[];state.analysis.history={};globalThis.report=(id,sco
  state.analysis.matches=[report('r1',0),report('r2',10),report('friendly',10,{friendly:true}),report('partial',10,{partial:true}),report('old',10,{year:state.season.year-1}),report('elsewhere',10,{club:'AIK'})];archiveMatchSummaries();archiveMatchSummaries();`);
 assert.equal(r('playerRatingSummary(p).average'),5);assert.equal(r('playerRatingSummary(p).games'),2);assert.match(r('performanceRating({score:0})'),/>0,0</);assert.match(r('performanceRating({score:10})'),/>10,0</);assert.equal(r('performanceScore({stars:3.5})'),7);assert.equal(r('performanceScore({stars:null})'),null);
 r('state.analysis.matches=[];save()');const loaded=boot(app.storage.value);assert.equal(loaded.run(`playerRatingSummary(playerById(${JSON.stringify(r('p.id'))})).average`),5);
-r("squadSet('tab','ratings');squadSort('rating')");assert.match(r('squadWorkspaceView()'),/Snittbetyg/);assert.match(r('squadWorkspaceView()'),/2 betyg/);
+r("squadSet('tab','ratings');squadSort('rating')");
+const ratingTable=r('squadWorkspaceView()');assert.match(ratingTable,/Snittbetyg/);assert.match(ratingTable,/Bedömda M/);
+const ratingRow=ratingTable.match(new RegExp('<tr data-squad-player="'+r('p.id')+'"[^>]*>([\\s\\S]*?)</tr>'))?.[1];
+assert.ok(ratingRow,'rated player is present in the table');
+assert.match(ratingRow.replace(/<[^>]+>/g,' ').replace(/\s+/g,' '),/\b2 10,0 5,0\b/,'two assessed games, latest 10.0 and average 5.0');
 // Four simultaneous boards, integrated office sections and stable legacy links.
 r("deskNavigate('stories')");assert.equal(r('state.page'),'home');assert.ok(r('overviewUI.stories'));assert.doesNotMatch(r('deskSubnav()'),/Säsongens historier|Press & supportrar/);
 r("deskNavigate('press')");assert.equal(r('state.page'),'home');assert.ok(r('overviewUI.press'));assert.match(r('homeView()'),/stories-page/);assert.match(r('homeView()'),/press-page/);
