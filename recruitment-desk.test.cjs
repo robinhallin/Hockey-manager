@@ -1,0 +1,27 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(undefined,{production:true}),r=app.run;
+r("startCareerWithClub('HV71');deskNavigate('transfers','overview')");
+assert.equal(r('DESK_RECRUIT_TABS.length'),4);
+assert.equal(r("recruitmentPriorities()[0].label"),'Forwards','real next-season depth precedes optional quality advice');
+assert.equal(r("recruitmentPriorities()[0].futureNeed"),6);
+r("globalThis.cash=state.money;globalThis.before=JSON.stringify(state.recruitment.deals);globalThis.p=recruitmentCandidates('overview')[1];hubPick(p.id)");
+assert.equal(r('recruitHub.drawer'),null);
+assert.equal(r('state.money'),r('cash'));
+assert.equal(r('JSON.stringify(state.recruitment.deals)'),r('before'));
+assert.match(r('recruitmentInspector(p)'),/Egen observation saknas/);
+assert.doesNotMatch(r('recruitmentInspector(p)'),/rating-star/,'no guessed stars for an unobserved candidate');
+r("globalThis.order=JSON.stringify(recruitmentCandidates('overview').map(p=>p.id));globalThis.old={...p.attributes};for(const k in p.attributes)p.attributes[k]=20");
+assert.equal(r('JSON.stringify(recruitmentCandidates("overview").map(p=>p.id))'),r('order'),'private attributes never rank unknown candidates');
+r("p.attributes=old;scoutingCompare(p.id);hubPanel('transfer');recruitOpen(p.id);deskBack()");
+assert.equal(r('recruitHub.player'),r('p.id'));assert.equal(r('recruitHub.drawer'),'player');
+r("deskNavigate('transfers','missions')");assert.equal(r('recruitHub.drawer'),null);
+assert.match(r('deskSubnav()'),/aria-current="page"[^>]*onclick="deskNavigate\('transfers','search'\)"/);
+r("deskNavigate('transfers','search');recruitHub.direction=-1;recruitHub.sort='age';hubStartLoan(managerRoster()[10].id)");
+assert.equal(r('recruitHub.player'),r('managerRoster()[10].id'),'loan entry survives sorting and pagination');
+assert.equal(r('recruitHub.drawer'),'player');assert.equal(r('recruitHub.panel'),'loan');
+r("save()");const loaded=boot(app.storage.value);
+assert.equal(loaded.run('state.recruitment.scouting.compare.length'),1);
+for(const tab of ['overview','needs','search','missions','shortlist','deals','loans','history','world']){r(`deskNavigate('transfers','${tab}')`);assert.doesNotMatch(r('recruitmentView()'),/undefined|NaN/);}
+console.log('PASS: honest priority ranking, unknown assessments, read-only selection, comparison persistence, navigation and sorted loan entry.');

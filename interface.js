@@ -11,8 +11,8 @@ const DESK_AREAS = [
   {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']],details:{clubDetail:'leagues'}},
   {id:'world',label:'Världen',icon:'globe',pages:[['world','Översikt'],['international','Landslag & JVM'],['nhl','NHL & draft']]}
 ];
-const DESK_RECRUIT_TABS = [['overview','Översikt'],['needs','Truppbehov'],['search','Sök spelare'],['missions','Scouting'],['shortlist','Bevakning'],['deals','Affärer']];
-const DESK_RECRUIT_MORE = [['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
+const DESK_RECRUIT_TABS = [['overview','Översikt'],['needs','Truppplanering'],['search','Spelarsök & scouting'],['deals','Bud & avtal']];
+const DESK_RECRUIT_MORE = [['missions','Scouting'],['shortlist','Bevakning'],['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
 
 function deskIcon(name){
   const paths={globe:'M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0ZM3 12h18M12 3c-5 5-5 13 0 18 5-5 5-13 0-18Z',home:'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',team:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8m8-7a4 4 0 0 1 0 8',training:'M12 3v3m0 12v3M3 12h3m12 0h3M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8',calendar:'M4 5h16v16H4Zm3-3v6m10-6v6M4 11h16m-12 4h2m4 0h2',search:'M21 21l-5-5M10.5 3a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15',club:'M3 21h18M5 21V9h14v12M3 9l9-6 9 6M9 13v4m6-4v4',trophy:'M8 3h8v7a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4m-4 2v6m-4 1h8',mail:'M3 5h18v14H3Zm0 1 9 7 9-7',menu:'M4 6h16M4 12h16M4 18h16',arrow:'M5 12h14m-5-5 5 5-5 5',settings:'M4 7h16M4 17h16M8 4v6m8 4v6'};
@@ -94,6 +94,7 @@ function deskNavigate(page,tab,record=true){
  const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab||nextLineup!==undefined&&nextLineup!==lineupWorkspace||nextAvailability!==undefined&&nextAvailability!==recruitFilters().availability);
  if(browserPush)deskBrowserBefore();
  if(browserPush){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
+ if(record&&(page!==previousPage||tab&&tab!==previousTab))recruitHub.drawer=null;
  if(record&&page!==previousPage){developmentUI.drawer=null;if(page==='medical')developmentUI.medicalDetail=false;if(page==='training')developmentUI.detail=false;if(page==='juniors')developmentUI.juniorDetail=false;}
  if(page==='staffReview'&&record&&page!==previousPage)staffReviewUI.tab='planning';
  if(nextLineup!==undefined)lineupWorkspace=nextLineup;
@@ -138,7 +139,7 @@ function deskSubnav(){
   const area=deskArea(),page=area?.details?.[state.page]||state.page;
   if(area?.id==='recruitment'){
     const tab=state.page==='scouting'?'missions':state.recruitment.tab;
-    const active=['loans','history'].includes(tab)?'deals':['world','free'].includes(tab)?'search':tab;
+    const active=['loans','history'].includes(tab)?'deals':['world','free','missions','shortlist'].includes(tab)?'search':tab;
     return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
   }
   const pages=area?.pages||(['inbox','news'].includes(page)?[['inbox','Inkorg'],['news','Nyheter']]:[]);

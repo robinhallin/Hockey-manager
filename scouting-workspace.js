@@ -18,8 +18,8 @@ function scoutingCompareRole(value){
 function scoutingComparePair(id,peerId,profile){
  const p=findPlayerAnywhere(id),peer=managerRoster().find(q=>samePlayerId(q.id,peerId));if(!p||!peer||samePlayerId(id,peerId))return false;
  const o=ensureScoutingOffice(),add=[p.id,peer.id].filter(id=>!scoutDesk.compare.some(q=>samePlayerId(q,id)));
- if(scoutDesk.compare.length+add.length>4){scoutDesk.compareNotice='Jämförelsen rymmer fyra spelare. Ta bort ett alternativ innan du lägger till paret.';render();document.querySelector('.sc-compare')?.closest?.('details')?.setAttribute('open','');return false;}
- scoutDesk.compareNotice='';scoutDesk.compare.push(...add);o.compareProfile=RECRUIT_PROFILES[profile]?profile:'ALL';queueInterfaceSave();render();
+ if(scoutDesk.compare.length+add.length>4){scoutDesk.compareNotice='Jämförelsen rymmer fyra spelare. Ta bort ett alternativ innan du lägger till paret.';if(state.page==='transfers')recruitHub.drawer='compare';render();document.querySelector('.sc-compare')?.closest?.('details')?.setAttribute('open','');return false;}
+ scoutDesk.compareNotice='';scoutDesk.compare.push(...add);o.compareProfile=RECRUIT_PROFILES[profile]?profile:'ALL';queueInterfaceSave();if(state.page==='transfers')recruitHub.drawer='compare';render();
  const panel=document.querySelector('.sc-compare');panel?.closest?.('details')?.setAttribute('open','');panel?.scrollIntoView?.({block:'nearest'});return true;
 }
 function scoutingComparisonRole(p){
@@ -52,7 +52,7 @@ function scoutingReport(p){
 }
 function scoutingOpenReports(id){
  deskNavigate('transfers','shortlist');scoutDesk.list='reports';recruitHub.player=id||null;recruitHub.panel='report';
- recruitHub.page=Math.max(0,Math.floor(hubCandidates('shortlist').findIndex(p=>samePlayerId(p.id,id))/20));render();
+ recruitHub.page=Math.max(0,Math.floor(recruitmentCandidates('shortlist').findIndex(p=>samePlayerId(p.id,id))/20));render();
 }
 function scoutingCoverageView(){
  return `<section class="sc-coverage" aria-label="Truppens täckning">${recruitmentCoverage().map(c=>`<article class="sc-card ${c.need?'sc-shortage':''}" data-position="${c.profile}"><header><h2>${c.name}</h2><span class="sc-pill">${c.need?c.shortTerm?'Lös internt':c.temporary?'Tillfällig frånvaro':'För få spelklara':'Täckt nu'}</span></header><p class="sc-count"><strong>${c.total}</strong> i truppen · <b>${c.count}</b> spelklara</p><p>Riktmärke: ${c.target} spelklara.${c.need?' Saknas: '+c.need+'.':' Ingen antalsbrist.'}</p><p><b>Nästa säsong:</b> ${c.future.length} säkrade${c.futureNeed?' · se över '+c.futureNeed+' platser':''}.</p><details><summary>Visa spelare och avtal</summary>${c.players.map(p=>`<p>${playerReference(p.id,p.name)}<small>${medicalStatus(p)} · ${playerLoan(p)?'Inlånad':p.futureContract&&p.futureContract.buyer!==managerClub()?'Klar för annan klubb':p.contractYears+' avtalsår kvar'}</small></p>`).join('')||'<p>Ingen spelare i gruppen.</p>'}${c.returning.length?'<p>Återvänder från lån: '+c.returning.map(p=>playerReference(p.id,p.name)).join(', ')+'.</p>':''}${c.arrivals.length?'<p>Klara nyförvärv: '+c.arrivals.map(p=>playerReference(p.id,p.name)).join(', ')+'.</p>':''}<p>Juniorer räknas efter uppflyttning. Utlånade spelare kan räknas till nästa säsong. Attributnivån ändrar inte antalet spelare.</p></details></article>`).join('')}</section>`;
