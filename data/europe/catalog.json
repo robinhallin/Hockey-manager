@@ -1,0 +1,1177 @@
+{
+  "version": 1,
+  "checked": "2026-09-25",
+  "season": "2026-27",
+  "leagues": [
+    {
+      "id": "CZ_ELH",
+      "name": "Tipsport extraliga",
+      "country": "CZE",
+      "currency": "CZK",
+      "season": "2026-27",
+      "targetMode": "playable",
+      "status": "preparation",
+      "regular": {
+        "teams": 14,
+        "cycles": 4,
+        "gamesPerClub": 52,
+        "start": "2026-09-15",
+        "end": "2027-03-05",
+        "dateBasis": "published-season-window"
+      },
+      "postseason": {
+        "kind": "seeded-series",
+        "directSeeds": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "preliminarySeeds": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "preliminaryBestOf": 5,
+        "playoffBestOf": 7,
+        "reseed": true,
+        "relegation": {
+          "seed": 14,
+          "opponentLeague": "CZ_MAXA",
+          "bestOf": 7
+        }
+      },
+      "rulesSources": [
+        "https://apklh.cz/article/na-kridlech-noveho-hlavniho-partnera-navraty-hvezd-i-jubileum-tipsport-extraliga-vstupuje-do-nove-sezony"
+      ],
+      "rulesPending": [
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage",
+        "lower-tier-opponent"
+      ]
+    },
+    {
+      "id": "CH_NL",
+      "name": "National League",
+      "country": "SUI",
+      "currency": "CHF",
+      "season": "2026-27",
+      "targetMode": "playable",
+      "status": "preparation",
+      "regular": {
+        "teams": 14,
+        "cycles": 4,
+        "gamesPerClub": 52,
+        "start": "2026-09-15",
+        "end": "2027-03-01",
+        "dateBasis": "published-season-window"
+      },
+      "postseason": {
+        "kind": "aggregate-play-in",
+        "directSeeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "playInSeeds": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "legs": 2,
+        "playoffBestOf": 7
+      },
+      "rulesSources": [
+        "https://www.zsclions.ch/news/artikel/meisterschafts-spielplan-2026-27",
+        "https://www.nationalleague.ch/media/cmegdmgp/modusnl_25-26.pdf"
+      ],
+      "rulesPending": [
+        "play-in-overtime-and-paths",
+        "relegation-2026-27",
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage"
+      ]
+    },
+    {
+      "id": "FI_LIIGA",
+      "name": "Liiga",
+      "country": "FIN",
+      "currency": "EUR",
+      "season": "2026-27",
+      "targetMode": "playable",
+      "status": "preparation",
+      "regular": {
+        "teams": 17,
+        "cycles": 4,
+        "gamesPerClub": 64,
+        "start": "2026-09-01",
+        "end": "2027-03-10",
+        "dateBasis": "provisional-game-window-end-not-verified"
+      },
+      "postseason": null,
+      "rulesSources": [
+        "https://www.liiga.fi/en/news/liigan-ensi-kaudessa-riittaa-jannitettavaa-kova-panos-heti-syksysta-lahtien"
+      ],
+      "rulesPending": [
+        "regular-season-end",
+        "playoffs",
+        "2027-28-restructure",
+        "tie-breakers",
+        "import-eligibility",
+        "transfer-window",
+        "match-overtime-by-stage"
+      ]
+    }
+  ],
+  "clubs": [
+    {
+      "id": "cz:karlovy-vary",
+      "name": "BYD Energie Karlovy Vary",
+      "code": "KVA",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hokejkv.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [
+        "HC Energie Karlovy Vary"
+      ],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238950.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:kladno",
+      "name": "Rytíři Kladno",
+      "code": "KLA",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.rytirikladno.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726239357.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:kometa",
+      "name": "HC Kometa Brno",
+      "code": "KOM",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hc-kometa.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238082.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:liberec",
+      "name": "Bílí Tygři Liberec",
+      "code": "LIB",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcbilitygri.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1754299999.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:litvinov",
+      "name": "HC VERVA Litvínov",
+      "code": "LIT",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcverva.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [
+        "HC Litvínov"
+      ],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726239179.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:mlada-boleslav",
+      "name": "BK Mladá Boleslav",
+      "code": "MBL",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.bkboleslav.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238323.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:motor",
+      "name": "Banes Motor České Budějovice",
+      "code": "CEB",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcmotor.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [
+        "Banes Motor Č. Budějovice",
+        "Motor České Budějovice"
+      ],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238439.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:mountfield",
+      "name": "Mountfield HK",
+      "code": "MHK",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.mountfieldhk.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238563.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:olomouc",
+      "name": "HC Olomouc",
+      "code": "OLO",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hc-olomouc.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726239069.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:pardubice",
+      "name": "HC Dynamo Pardubice",
+      "code": "PCE",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcdynamo.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726156668.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:plzen",
+      "name": "HC Škoda Plzeň",
+      "code": "PLZ",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcskoda.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238699.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:sparta",
+      "name": "HC Sparta Praha",
+      "code": "SPA",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcsparta.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726238209.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:trinec",
+      "name": "HC Oceláři Třinec",
+      "code": "TRI",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hcocelari.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1726173713.jpg",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "cz:vitkovice",
+      "name": "HC VÍTKOVICE RIDERA",
+      "code": "VIT",
+      "league": "CZ_ELH",
+      "country": "CZE",
+      "website": "https://www.hc-vitkovice.cz",
+      "source": "cz-clubs",
+      "providerId": null,
+      "aliases": [
+        "HC Vítkovice Ridera"
+      ],
+      "crest": {
+        "source": "https://apklh.cz/files/club/1754300119.png",
+        "file": null,
+        "sha256": null,
+        "status": "source-located",
+        "permission": "not-assessed"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101060",
+      "name": "SCRJ Lakers",
+      "code": "SCRJ",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://lakers.ch/",
+      "source": "ch-clubs",
+      "providerId": "101060",
+      "aliases": [
+        "SC Rapperswil-Jona Lakers"
+      ],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101060/logo",
+        "file": "assets/crests/europe/ch-101060.png",
+        "sha256": "900aaf5fd1d625abfa54dac71f05b46f36e06cffab710d327ad95b5385bc17f5",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101139",
+      "name": "ZSC Lions",
+      "code": "ZSC",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.zsclions.ch/",
+      "source": "ch-clubs",
+      "providerId": "101139",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101139/logo",
+        "file": "assets/crests/europe/ch-101139.png",
+        "sha256": "1eab262de4608c8c27d67468aa2d7acc288a4a5577f27865d688406ba506d320",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101144",
+      "name": "EV Zug",
+      "code": "EVZ",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.evz.ch/",
+      "source": "ch-clubs",
+      "providerId": "101144",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101144/logo",
+        "file": "assets/crests/europe/ch-101144.png",
+        "sha256": "189f540abc51c16068087827c4c83bd4411b5667a3f4f3d5c9f7918af72387d6",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101149",
+      "name": "EHC Kloten",
+      "code": "EHCK",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.ehc-kloten.ch/",
+      "source": "ch-clubs",
+      "providerId": "101149",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101149/logo",
+        "file": "assets/crests/europe/ch-101149.png",
+        "sha256": "4fd0c3efe5b2ac3dbdd78c6debf5d9b45225b4bcc18ea6d9f1ad357fd0ca333a",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101150",
+      "name": "HC Lugano",
+      "code": "HCL",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.hclugano.ch/",
+      "source": "ch-clubs",
+      "providerId": "101150",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101150/logo",
+        "file": "assets/crests/europe/ch-101150.png",
+        "sha256": "09e8439a102836760abd99fa6e40f071b7cfd2fecd1b490483d45e1854d6f77a",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101151",
+      "name": "HC Davos",
+      "code": "HCD",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.hcd.ch/",
+      "source": "ch-clubs",
+      "providerId": "101151",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101151/logo",
+        "file": "assets/crests/europe/ch-101151.png",
+        "sha256": "5f4a256092d7d73a1d37d618c583f15fd780a5305816689b7498747d5b80ffa1",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:101152",
+      "name": "HC Ambri-Piotta",
+      "code": "HCAP",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://hcap.ch/",
+      "source": "ch-clubs",
+      "providerId": "101152",
+      "aliases": [
+        "HC Ambrì-Piotta"
+      ],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/101152/logo",
+        "file": "assets/crests/europe/ch-101152.png",
+        "sha256": "fded886ace9450d28ad3e3ed293b8ae59795dd0f498476562a5934f8e5c08764",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:102126",
+      "name": "SC Bern",
+      "code": "SCB",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.scb.ch/",
+      "source": "ch-clubs",
+      "providerId": "102126",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/102126/logo",
+        "file": "assets/crests/europe/ch-102126.png",
+        "sha256": "096c42ef310bd6fd18f86c1106cce5a1e0f5b1da5e39ca415db99a8b068d04a8",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:102127",
+      "name": "SCL Tigers",
+      "code": "SCL",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.scltigers.ch/",
+      "source": "ch-clubs",
+      "providerId": "102127",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/102127/logo",
+        "file": "assets/crests/europe/ch-102127.png",
+        "sha256": "3249f1e9cb73aac5abd872edcd52ee89051bf05271da90809e530ddc0321b0bd",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:102128",
+      "name": "EHC Biel-Bienne",
+      "code": "EHCB",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.ehcb.ch/",
+      "source": "ch-clubs",
+      "providerId": "102128",
+      "aliases": [
+        "EHC Biel"
+      ],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/102128/logo",
+        "file": "assets/crests/europe/ch-102128.png",
+        "sha256": "8d2d1f7ba772f4bb6de0d78112093017d1104da9132af179cff013bac5e7bab6",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:103138",
+      "name": "Fribourg-Gottéron",
+      "code": "FRI",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.gotteron.ch/",
+      "source": "ch-clubs",
+      "providerId": "103138",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/103138/logo",
+        "file": "assets/crests/europe/ch-103138.png",
+        "sha256": "a404c62d0caf1d2e28de29fbe87b77bcbf3567dcda4f0fe902d45b129d1cacc5",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:103140",
+      "name": "Genève-Servette HC",
+      "code": "GSHC",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.gshc.ch/",
+      "source": "ch-clubs",
+      "providerId": "103140",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/103140/logo",
+        "file": "assets/crests/europe/ch-103140.png",
+        "sha256": "351c724ca368b0e9e33198128ce186c85a9e02fc97bf958e7b48ae236a335c58",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:103141",
+      "name": "Lausanne HC",
+      "code": "LHC",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://lausannehc.ch/",
+      "source": "ch-clubs",
+      "providerId": "103141",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/103141/logo",
+        "file": "assets/crests/europe/ch-103141.png",
+        "sha256": "132d8287679b5665b6147a7a6e847d29fbf64caa29437aa9eaf1d41b19d6e070",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "ch:103144",
+      "name": "HC Ajoie",
+      "code": "HCA",
+      "league": "CH_NL",
+      "country": "SUI",
+      "website": "https://www.hc-ajoie.ch/",
+      "source": "ch-clubs",
+      "providerId": "103144",
+      "aliases": [],
+      "crest": {
+        "source": "https://www.nationalleague.ch/api/teams/103144/logo",
+        "file": "assets/crests/europe/ch-103144.png",
+        "sha256": "6a161622767f423fe8c453a3fd0e7ebaf9b9204a2c8f95c32c44d8f44345159c",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:1368624751",
+      "name": "K-Espoo",
+      "code": "KES",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "1368624751",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Fbf4ab47ce42640ebad139fd11a6a7861",
+        "file": "assets/crests/europe/fi-1368624751.webp",
+        "sha256": "3045a99551b4b0338555cf0b0208daf2f807ca743c21ba673b42b099f2829c95",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:168761288",
+      "name": "HIFK",
+      "code": "IFK",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "168761288",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F46a26a5506f543b3a32e0035f260302b",
+        "file": "assets/crests/europe/fi-168761288.webp",
+        "sha256": "d74bbcb69b4abed22a70632bf27d171b1663cd29d845e6727755502628493873",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:219244634",
+      "name": "JYP",
+      "code": "JYP",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "219244634",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Ff4d92d41c1c44d34b6ebb117490966f6",
+        "file": "assets/crests/europe/fi-219244634.webp",
+        "sha256": "b6b98bc9b0f16a5580dc1d53f827fddc59e6671e2ba34df34a74572b8ef8312d",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:238306801",
+      "name": "Jokerit",
+      "code": "JOK",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "238306801",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Faaa8acd74adb43f4bfd3de3e9af484b0",
+        "file": "assets/crests/europe/fi-238306801.webp",
+        "sha256": "fd0a559352e12ee2c6c0da85fc861dfb614987699edd9ed5fcb4fe1400313cb2",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:292293444",
+      "name": "Jukurit",
+      "code": "JUK",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "292293444",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F5fa94d44327f46b7b4e30ae58a3be7ca",
+        "file": "assets/crests/europe/fi-292293444.webp",
+        "sha256": "98823023267d37a1e0037f40c3f4a869795e93cc1b8f3f730dbe7a538ecd3c1d",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:362185137",
+      "name": "Tappara",
+      "code": "TAP",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "362185137",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F8bb664ba2392481ebc1091a33ee75513",
+        "file": "assets/crests/europe/fi-362185137.webp",
+        "sha256": "dbf50f622b25e6432bd07c98b24069c4aedd52bf69fa491ee9d85ce704fc88b3",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:461765763",
+      "name": "KooKoo",
+      "code": "KOO",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "461765763",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F7d933387f498496094d7ef1928e9fa7b",
+        "file": "assets/crests/europe/fi-461765763.webp",
+        "sha256": "f19a9f1e005f2059034f91fdf3c7021484ae40f94b09b46e0179a5e83de11ca1",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:495643563",
+      "name": "Kärpät",
+      "code": "KÄR",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "495643563",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F57b5b1a6c04f43368910ee73822513d8",
+        "file": "assets/crests/europe/fi-495643563.webp",
+        "sha256": "3213128f3134cd722e9d648837e48319eb9998d778d23a065dedca16eaa9af5f",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:55786244",
+      "name": "HPK",
+      "code": "HPK",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "55786244",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F6020edd6d9bc45b68a50bd191b826deb",
+        "file": "assets/crests/europe/fi-55786244.webp",
+        "sha256": "6323350d0a6498156b4f3f2d05ac846ee1868a01b4663b17eec0f82fc1161f60",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:624554857",
+      "name": "Lukko",
+      "code": "LUK",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "624554857",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Fc7acfb63cfe7436b9778f1e684cd0c57",
+        "file": "assets/crests/europe/fi-624554857.png",
+        "sha256": "11cb423186795da827c60a3711ee11e8fb1bef4d87a949353fe307d5af5b4fd0",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:626537494",
+      "name": "Sport",
+      "code": "SPO",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "626537494",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F77efd6df129843699ae9a4c2e94efcb2",
+        "file": "assets/crests/europe/fi-626537494.webp",
+        "sha256": "acf7099f56f5fe7412b4da761378b67b19251413992a7abd69cdffee97b824bd",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:651304385",
+      "name": "TPS",
+      "code": "TPS",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "651304385",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Fe07109c96edf4561b8b5021e7fc44526",
+        "file": "assets/crests/europe/fi-651304385.webp",
+        "sha256": "00a46e015dd0aa882c6d801f6a8d025402843f8f0732407c831bdbcc01a3f430",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:679171680",
+      "name": "Ässät",
+      "code": "ÄSS",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "679171680",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2Fe4c7031958a043cdb8ca80c3c353f0c6",
+        "file": "assets/crests/europe/fi-679171680.webp",
+        "sha256": "b0a151317cce362612e87b17ad944dfd21b3b215eaffea8e447181c966b9abaf",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:859884935",
+      "name": "KalPa",
+      "code": "KAL",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "859884935",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F1183427f2aed401184bc2f96bb1a3303",
+        "file": "assets/crests/europe/fi-859884935.webp",
+        "sha256": "a25c111925df6ff5cdbb23c333005b311e217749b3002691b016d13c2a18077f",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:875886777",
+      "name": "Pelicans",
+      "code": "PEL",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "875886777",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F269341129a1449ccb0a64345337c3273",
+        "file": "assets/crests/europe/fi-875886777.webp",
+        "sha256": "0dc078486767065385336021d0bbcadf1c63423be16f55f8f1463eb8c5ee50b0",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:933686567",
+      "name": "SaiPa",
+      "code": "SAI",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "933686567",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F5640db8b21854732baf6afc56fc013b5",
+        "file": "assets/crests/europe/fi-933686567.webp",
+        "sha256": "ce6a362e9ef58b50a872214a21aadaf3e148c95c9647dead1c9cca43c6eab0cd",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    },
+    {
+      "id": "fi:951626834",
+      "name": "Ilves",
+      "code": "ILV",
+      "league": "FI_LIIGA",
+      "country": "FIN",
+      "website": null,
+      "source": "fi-clubs",
+      "providerId": "951626834",
+      "aliases": [],
+      "crest": {
+        "source": "https://cdn.builder.io/api/v1/image/assets%2Ff11503eeae084753968caac3899a5d78%2F079e0e0bde4f43b8b8afa667d3285ebc",
+        "file": "assets/crests/europe/fi-951626834.webp",
+        "sha256": "9b28d25e3b5d533c96b4063d60d241ea549a87bb2847a38fab819aa693de2201",
+        "status": "downloaded",
+        "permission": "not-assessed",
+        "checked": "2026-09-25"
+      },
+      "rosterStatus": "pending-verification",
+      "arena": null,
+      "colors": null,
+      "finances": null
+    }
+  ]
+}

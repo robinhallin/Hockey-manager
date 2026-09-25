@@ -1,0 +1,73 @@
+{
+  "fi-clubs": {
+    "url": "https://liiga.fi/api/v2/teams/stats?seasonFrom=2027&seasonTo=2027&tournament=runkosarja&dataType=standings",
+    "file": "data/europe/raw/fi-clubs.json.gz",
+    "sha256": "bf22c8017fe3a28df0e8730514f6031f4997ea8daee3800dcee697c950df34d5",
+    "checked": "2026-09-25",
+    "season": "2026-27",
+    "kind": "official-public-api"
+  },
+  "fi-players": {
+    "url": "https://liiga.fi/api/v2/players/info?tournament=runkosarja&fromSeason=2027&toSeason=2027",
+    "file": "data/europe/raw/fi-players.json.gz",
+    "sha256": "55adf405b9d46b9c69f578e29a6f9f3490be5a71a8aac674e7cc5d14f4c17faf",
+    "checked": "2026-09-25",
+    "season": "2026-27",
+    "kind": "official-public-api"
+  },
+  "ch-clubs": {
+    "url": "https://www.nationalleague.ch/api/teams?season=2027",
+    "file": "data/europe/raw/ch-clubs.json.gz",
+    "sha256": "e559b8cc50721586767758d234f1ced0a4b4dcff397dd00df4680317d8e61494",
+    "checked": "2026-09-25",
+    "season": "2026-27",
+    "kind": "official-public-api"
+  },
+  "ch-players": {
+    "url": "https://www.nationalleague.ch/api/player?season=2027",
+    "file": "data/europe/raw/ch-players.json.gz",
+    "sha256": "6856e5c1d6b4bf185cf202f3fe131aaa649c28cd68e2dde99c75b42e6a153ff9",
+    "checked": "2026-09-25",
+    "season": "2026-27",
+    "kind": "official-public-api"
+  },
+  "cz-clubs": {
+    "url": "https://www.hokej.cz/tipsport-extraliga",
+    "supportingUrl": "https://apklh.cz/clubs",
+    "checked": "2026-09-25",
+    "season": "2026-27",
+    "kind": "official-page-manual-transcription"
+  },
+  "ch-stats-2025": {
+    "url": "https://www.nationalleague.ch/api/player?season=2025",
+    "file": "data/europe/raw/ch-stats-2025.json.gz",
+    "sha256": "2e8ef28f075910f04578197a7fa36ed671f2782c4e0c595ce307930f81d4c065",
+    "checked": "2026-09-25",
+    "season": "2024-25",
+    "kind": "official-public-api"
+  },
+  "ch-stats-2026": {
+    "url": "https://www.nationalleague.ch/api/player?season=2026",
+    "file": "data/europe/raw/ch-stats-2026.json.gz",
+    "sha256": "97376013e5cf7892b513e2f330a44eb71b69c1bc0b9030db7bd7b39588e18c7b",
+    "checked": "2026-09-25",
+    "season": "2025-26",
+    "kind": "official-public-api"
+  },
+  "fi-stats-2026": {
+    "url": "https://liiga.fi/api/v2/players/stats/summed/2026/2026/runkosarja/true",
+    "file": "data/europe/raw/fi-stats-2026.json.gz",
+    "sha256": "415bfe869f465d67b4037d97bcd38a71f6f4833f3a8585ccc28c1556b7f995dd",
+    "checked": "2026-09-25",
+    "season": "2025-26",
+    "kind": "official-public-api"
+  },
+  "fi-stats-2025": {
+    "url": "https://liiga.fi/api/v2/players/stats/summed/2025/2025/runkosarja/true",
+    "file": "data/europe/raw/fi-stats-2025.json.gz",
+    "sha256": "1b1daee37db71331e8092adf3ae2aa09bbf58acf101d746bd00bf9ea4d9e5b1a",
+    "checked": "2026-09-25",
+    "season": "2024-25",
+    "kind": "official-public-api"
+  }
+}
