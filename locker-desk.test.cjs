@@ -4,6 +4,7 @@ const app=boot(),r=app.run;
 r("startCareerWithClub('HV71');deskNavigate('locker');globalThis.p=managerRoster()[0];globalThis.q=managerRoster()[1]");
 assert.equal(r('lockerAttention().length'),0,'no invented conflicts in a new career');
 assert.equal(r("lockerRole(p)==='Informell ledare'"),false,'neutral real players are not invented leaders');
+assert.match(r('lockerCaptainView()'),/Ej bedömt/,'neutral personality is not presented as observed leadership');
 const clean=r('JSON.stringify(state)');
 for(const tab of ['situation','leadership','relationships','promises','history']){
  r(`lockerSet('tab',${JSON.stringify(tab)});lockerWorkspaceView()`);
