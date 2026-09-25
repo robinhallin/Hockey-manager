@@ -94,6 +94,12 @@ async function close(){
   await page.evaluate(()=>deskNavigate('finance'));
   await page.screenshot({path:path.join(out,'15-klubbekonomi.png'),fullPage:true});
   await page.evaluate(()=>deskNavigate('home'));
+  await require('../scripts/world-browser-checks.cjs').checkWorld(page);
+  await page.evaluate(()=>deskNavigate('world'));
+  await page.screenshot({path:path.join(out,'16-varlden.png'),fullPage:true});
+  await page.evaluate(()=>worldDeskGo('nhl','board'));
+  await page.screenshot({path:path.join(out,'17-draftbevakning.png'),fullPage:true});
+  await page.evaluate(()=>deskNavigate('home'));
   // Use the same daily controls as a tester, including the transition layer.
   for(let day=0;day<10 && await page.evaluate(()=>state.calendar.date<calendarTarget());day++){
    const before=await page.evaluate(()=>state.calendar.date);

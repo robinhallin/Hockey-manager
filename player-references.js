@@ -152,7 +152,7 @@ function playerSearchView(){
 
 function deskWorkspaceContext(){
  return {calendar:{month:calendarUI.month,date:calendarUI.date},inbox:{...inboxUI},worldLeague:state.world?.selected,
-  clubBrowser:state.clubBrowser?{...state.clubBrowser}:null,nhl:{...nhlUI},
+  clubBrowser:state.clubBrowser?{...state.clubBrowser}:null,nhl:{...nhlUI},worldUI:{...worldUI},na:{...naUI},nas:{...nasUI},nar:{...narUI},nation:state.international?.selected,
   analysis:state.analysis?Object.fromEntries(['selected','window','side','compareA','compareB'].map(key=>[key,state.analysis[key]])):null,
   // Comparison is a working selection, not a filter. Keep edits made inside profiles.
   scout:{list:scoutDesk.list,columns:scoutDesk.columns,horizon:scoutDesk.horizon},
@@ -163,6 +163,8 @@ function deskRestoreWorkspace(context){
  if(!context)return;
  state.clubBrowser=context.clubBrowser?{...context.clubBrowser}:null;
  Object.assign(nhlUI,context.nhl||{});
+ Object.assign(worldUI,context.worldUI||{});Object.assign(naUI,context.na||{});Object.assign(nasUI,context.nas||{});Object.assign(narUI,context.nar||{});
+ if(state.international&&INT_NATIONS[context.nation])state.international.selected=context.nation;
  Object.assign(calendarUI,context.calendar||{});calendarUI.calendar=state.calendar;
  Object.assign(inboxUI,context.inbox||{});Object.assign(scoutDesk,context.scout||{});
  if(state.analysis&&context.analysis)Object.assign(state.analysis,context.analysis);
