@@ -4388,11 +4388,13 @@ careerScreen === "files" ? saveSettingsView()
   recruitmentCaptureView();
   clubDeskCapture();
   worldDeskCapture();
+  matchDeskCapture();
   content.innerHTML=deskFrame(pageHTML);
   deskEnhanceButtons(content);
   if(state.page==='transfers'||state.page==='scouting')recruitmentRestoreView();
   if(['finance','board','staff','manager'].includes(state.page))clubDeskRestore();
   if(['world','international','nhl'].includes(state.page))worldDeskRestore();
+  if(state.page==='match')matchDeskRestore();
   if(state.page==='squad')squadRestoreView();
   if(state.page==='locker')lockerRestoreView();
   if(['training','juniors','medical'].includes(state.page))developmentRestoreView();
