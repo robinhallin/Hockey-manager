@@ -20,6 +20,7 @@ function recruitmentOpen(drawer){recruitmentRememberFocus();if(!['player','filte
 function recruitmentNeed(profile){if(!RECRUIT_PROFILES[profile])return;recruitHub.overviewProfile=profile;recruitHub.overviewQuery='';recruitHub.page=0;recruitHub.player=null;recruitHub.sort='profile';recruitHub.direction=1;render();}
 function recruitmentSort(key){if(!['profile','name','age','role','ability','knowledge','salary','fee'].includes(key))return;recruitHub.direction=recruitHub.sort===key?-(recruitHub.direction||1):1;recruitHub.sort=key;recruitHub.page=0;render();}
 function recruitmentQuery(form){if(state.recruitment.tab==='overview')recruitHub.overviewQuery=form.elements.query.value;else recruitFilters().query=form.elements.query.value;recruitHub.page=0;queueInterfaceSave();render();}
+function recruitmentProfile(){return state.page==='transfers'&&state.recruitment.tab==='overview'?recruitHub.overviewProfile:recruitFilters().profile;}
 function recruitmentKnowledge(p,a=playerAssessment(p)){return a.own?'Egen trupp':!a.known?'Ej observerad':scoutReportAge(state.scoutReports[String(p.id)])>=60?'Äldre underlag':a.familiarity>=.65?'God':a.familiarity>=.35?'Delvis':'Begränsad';}
 function recruitmentPriorities(){
  const coverage=recruitmentCoverage().filter(c=>c.need||c.futureNeed).map(c=>({name:c.profile,label:c.name,need:c.need,futureNeed:c.futureNeed,secure:c.future.length,count:c.count,target:c.target,temporary:c.temporary,qualityGap:0})).sort((a,b)=>b.need-a.need||b.futureNeed-a.futureNeed);

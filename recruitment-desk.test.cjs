@@ -12,6 +12,7 @@ assert.equal(r('state.money'),r('cash'));
 assert.equal(r('JSON.stringify(state.recruitment.deals)'),r('before'));
 assert.match(r('recruitmentInspector(p)'),/Egen observation saknas/);
 assert.doesNotMatch(r('recruitmentInspector(p)'),/rating-star/,'no guessed stars for an unobserved candidate');
+r("scoutingDraft([p.id])");assert.equal(r('scoutDesk.draft.profile'),r('recruitHub.overviewProfile'),'the selected need follows the candidate into scouting');r("scoutDesk.draft=null;deskBack()");
 r("globalThis.order=JSON.stringify(recruitmentCandidates('overview').map(p=>p.id));globalThis.old={...p.attributes};for(const k in p.attributes)p.attributes[k]=20");
 assert.equal(r('JSON.stringify(recruitmentCandidates("overview").map(p=>p.id))'),r('order'),'private attributes never rank unknown candidates');
 r("p.attributes=old;scoutingCompare(p.id);hubPanel('transfer');recruitOpen(p.id);deskBack()");
