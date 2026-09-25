@@ -30,6 +30,8 @@ assert.match(r('trainingView()'),/individual-training/);
 r("setIndividualLoad(p.id,'rest');developmentClosePlayer()");
 assert.equal(r('p.trainingLoad'),'rest');assert.equal(r('developmentUI.query'),r('p.name'));assert.equal(r('developmentRows().length'),1);
 r("developmentOpenPlayer(p.id);deskBack()");assert.equal(r('developmentUI.detail'),false);assert.equal(r('developmentUI.query'),r('p.name'));
+r("deskNavigate('medical');developmentOpenPlan(p.id)");assert.equal(r('developmentUI.detail'),true);assert.equal(r('developmentUI.query'),'');assert.equal(r('developmentUI.filter'),'all');
+r('deskBack()');assert.equal(r('state.page'),'medical');assert.equal(r('developmentUI.query'),r('p.name'));assert.equal(r('developmentUI.filter'),'senior');
 r("deskNavigate('juniors')");assert.doesNotMatch(r('juniorsView()'),/dv-detail-view|junior-profile/);
 r("juniorSelect(j.id)");assert.equal(r('developmentUI.juniorDetail'),true);assert.match(r('juniorsView()'),/junior-controls/);
 r("juniorSet(j.id,'load','light');developmentClosePlayer(true)");assert.equal(r('j.trainingLoad'),'light');assert.doesNotMatch(r('juniorsView()'),/junior-profile/);
