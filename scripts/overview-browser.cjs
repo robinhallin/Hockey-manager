@@ -45,7 +45,9 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.locator('.ov-support-nav').getByRole('button',{name,exact:true}).click();assert.equal(await page.locator('.ov-support').count(),1);await page.locator('.ov-support-nav').getByRole('button',{name,exact:true}).click();assert.equal(await page.locator('.ov-support').count(),0);
  }
  await page.locator('.ov-support-nav').getByRole('button',{name:'Säsongens historier',exact:true}).click();assert.equal(await page.locator('#overview-stories').count(),1);await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
- await page.locator('.ov-support-nav').getByRole('button',{name:'Press & supportrar',exact:true}).click();assert.equal(await page.locator('#overview-press').count(),1);await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
+ await page.locator('.ov-support-nav').getByRole('button',{name:'Press & supportrar',exact:true}).click();assert.equal(await page.locator('#overview-press').count(),1);
+ await page.locator('#overview-press').getByRole('button',{name:'Supporterpanelen',exact:true}).click();await page.locator('#overview-press .press-fans').waitFor();
+ assert.equal(await page.evaluate(()=>state.page),'home');await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
  assert.deepEqual(errors,[]);console.log('PASS: keyboard player panel, profile/back, date selection, complete roster, exact medical case, seven offers, all support panels; 390–1920 px without page overflow. '+out);
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

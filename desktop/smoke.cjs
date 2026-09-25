@@ -67,6 +67,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-stories .stories-page').waitFor();
   await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
   await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Press & supportrar',exact:true}).click();
+  await page.locator('#overview-press').getByRole('button',{name:'Supporterpanelen',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-press .press-fans').waitFor();
   await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
   await page.getByRole('button',{name:'Stab & uppföljning',exact:true}).click();
