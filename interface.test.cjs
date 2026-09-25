@@ -9,10 +9,16 @@ run('startCareerWithClub("HV71");deskNavigate("home")');
 assert.match(get('#content').innerHTML,/Tränarkontoret/);
 assert.match(get('#content').innerHTML,/Nästa match/);
 assert.match(get('#content').innerHTML,/Återhämtning/);
-assert.equal((get('.manager-nav').innerHTML.match(/class="nav-item/g)||[]).length,8);
+assert.equal((get('.manager-nav').innerHTML.match(/class="nav-item/g)||[]).length,7);
 assert.equal((get('.manager-nav').innerHTML.match(/aria-current="true"/g)||[]).length,1);
+assert.doesNotMatch(get('.manager-nav').innerHTML,/>Matcher</);
+assert.match(get('#content').innerHTML,/deskNavigate\('calendar'\)[^>]*>Kalender/);
+assert.equal(run("deskArea('calendar').id"),'overview');
+assert.equal(run("deskArea('match').id"),'overview');
+assert.equal(run("deskArea('opponents').id"),'overview');
+assert.equal(run("deskArea('statistics').id"),'team');
 // Every primary and secondary route renders while retaining the actual game data.
-run('globalThis.before=JSON.stringify([state.calendar.date,state.round,state.money,state.teams,managerRoster().map(p=>[p.id,p.goals,p.assists,p.contractYears,p.fatigue])]);globalThis.routes=DESK_AREAS.flatMap(a=>a.pages.map(p=>p[0])).concat(["inbox","news","settings"])');
+run('globalThis.before=JSON.stringify([state.calendar.date,state.round,state.money,state.teams,managerRoster().map(p=>[p.id,p.goals,p.assists,p.contractYears,p.fatigue])]);globalThis.routes=DESK_AREAS.flatMap(a=>a.pages.map(p=>p[0])).concat(["inbox","news","settings","match","opponents","statistics","schedule","round"])');
 for(const page of run('routes')){
   run(`deskNavigate(${JSON.stringify(page)})`);
   assert.ok(get('#content').innerHTML.length>100,page);
@@ -48,4 +54,4 @@ run('save()');const reload=boot(app.storage.value);assert.equal(reload.run('stat
 const clubs=run('Object.keys(state.world.membership)');assert.equal(clubs.length,28);
 for(const club of clubs){run(`startCareerWithClub(${JSON.stringify(club)});deskNavigate('home')`);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);assert.equal(run('deskFixtures().upcoming.every(g=>g.opponent!==managerClub())'),true);assert.ok(get('#content').innerHTML.includes(club));}
 run('state.managerCareer.status="unemployed";deskNavigate("home")');assert.equal(run('state.page'),'manager');assert.doesNotMatch(get('#content').innerHTML,/Tränarkontoret/);
-console.log('PASS: 8 primary areas, all routes and recruitment sections, dashboard for 28 clubs, actionable priorities, preseason/review/paused-match states, navigation isolation, mobile menu and saved match continuity.');
+console.log('PASS: 7 primary areas, all routes and recruitment sections, dashboard for 28 clubs, actionable priorities, preseason/review/paused-match states, navigation isolation, mobile menu and saved match continuity.');

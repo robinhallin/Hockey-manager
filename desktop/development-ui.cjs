@@ -40,7 +40,11 @@ module.exports=async function developmentUIReview(page,out){
  await page.getByRole('button',{name:'Till truppöversikten',exact:false}).click();
  assert.equal(await page.locator('.junior-profile').count(),0);
  await require('../scripts/development-browser-checks.cjs').checkDevelopment(page);
- await main.getByRole('button',{name:'Matcher',exact:true}).click();
+ assert.equal(await main.getByRole('button',{name:'Matcher',exact:true}).count(),0);
+ await main.getByRole('button',{name:'Översikt',exact:true}).click();
+ await page.locator('.desk-subnav').getByRole('button',{name:'Kalender',exact:true}).click();
+ assert.equal(await page.evaluate(()=>state.page),'calendar');
+ assert.equal(await main.locator('[aria-current="true"]').innerText(),'Översikt');
  assert.equal(await page.locator('.nhl-calendar').count(),0);
  assert.equal(await page.getByRole('heading',{name:/landslagsbevakning/}).count(),0);
  await main.getByRole('button',{name:'Världen',exact:true}).click();

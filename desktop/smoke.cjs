@@ -66,7 +66,7 @@ async function close(){
   await page.locator('.sw-table-help summary').click();
   assert.match(await page.locator('.squad-workspace').innerText(),/0,0–10,0/);
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Översikt',exact:true}).click();
-  assert.equal(await page.locator('.desk-subnav button').count(),2);
+  assert.equal(await page.locator('.desk-subnav button').count(),3);
   await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Säsongens historier',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-stories .stories-page').waitFor();
   await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
