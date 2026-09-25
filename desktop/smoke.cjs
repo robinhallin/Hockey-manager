@@ -115,6 +115,7 @@ async function close(){
   await page.waitForFunction(()=>Boolean(matchIceCrest(matchVenue().home)?.naturalWidth));
   assert.equal(await page.locator('.mc-club strong').first().textContent(),await page.evaluate(()=>matchVenue().home));
   assert.match(await page.locator('.mc-result').innerText(),/Husqvarna Garden/);
+  await require('../scripts/match-browser-checks.cjs').checkMatchView(page);
   // Fullscreen must work in the installed application, then restore the
   // desktop size before checking that rink and controls fit without scrolling.
   await page.getByRole('button',{name:'Helskärm',exact:true}).click();
