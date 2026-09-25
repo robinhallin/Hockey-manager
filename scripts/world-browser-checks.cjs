@@ -1,0 +1,68 @@
+'use strict';
+const assert=require('node:assert/strict');
+async function checkWorld(page){
+ await page.evaluate(()=>{worldUI.drawer=null;deskNavigate('world')});
+ const before=await page.evaluate(()=>({date:state.calendar.date,money:state.money,nation:state.international.selected,draft:JSON.stringify(state.nhl.draft)}));
+ await page.locator('.wd-directory').getByRole('button',{name:/^AHL/}).click();
+ assert.equal(await page.evaluate(()=>nhlUI.tab),'leagues');assert.equal(await page.evaluate(()=>nasUI.league),'AHL');
+ await page.getByRole('combobox',{name:'Liga',exact:true}).selectOption('NHL');
+ await page.getByRole('combobox',{name:'Klubb',exact:true}).selectOption('Seattle Kraken');
+ await page.getByRole('navigation',{name:'Nordamerikanskt ligaspel'}).getByRole('button',{name:'Matcher & rapporter',exact:true}).click();
+ assert.match(await page.locator('.wd-embedded').innerText(),/Seattle Kraken/);
+ await page.getByRole('navigation',{name:'NHL och draft'}).getByRole('button',{name:'Scoutprognos',exact:true}).click();
+ const player=await page.evaluate(()=>worldDeskDraftBoard()[0]);
+ await page.getByRole('searchbox',{name:'Sök draftspelare eller klubb',exact:true}).fill(player.name);
+ await page.locator('.wd-search').getByRole('button',{name:'Sök',exact:true}).click();
+ await page.getByRole('combobox',{name:'Position',exact:true}).selectOption(player.pos);
+ assert.ok(await page.locator('.wd-board tbody tr').count()>=1);
+ await page.locator('.wd-board tbody button').first().click();
+ await page.locator('.wd-inspector .player-reference').click();
+ assert.notEqual(await page.evaluate(()=>state.page),'nhl');
+ await page.getByRole('button',{name:'Tillbaka till föregående vy',exact:true}).click();
+ assert.equal(await page.evaluate(()=>nhlUI.tab),'board');assert.equal(await page.getByRole('searchbox',{name:'Sök draftspelare eller klubb',exact:true}).inputValue(),player.name);
+ assert.equal(await page.getByRole('combobox',{name:'Position',exact:true}).inputValue(),player.pos);
+ await page.getByRole('button',{name:'Om draften & spelarunderlaget →',exact:true}).click();
+ await page.locator('#world-dialog[open]').waitFor();await page.keyboard.press('Escape');assert.equal(await page.locator('dialog[open]').count(),0);
+ await page.locator('.desk-subnav').getByRole('button',{name:'Landslag & JVM',exact:true}).click();
+ await page.getByRole('button',{name:'Landslagstrupper',exact:true}).click();
+ await page.getByRole('combobox',{name:'Landslag',exact:true}).selectOption('FIN');
+ await page.getByRole('button',{name:'Turneringen',exact:true}).click();
+ await page.getByRole('combobox',{name:'Visa',exact:true}).selectOption('nation');
+ assert.equal(await page.getByRole('combobox',{name:'Landslag',exact:true}).inputValue(),'FIN');
+ await page.getByRole('button',{name:'Din klubb',exact:true}).click();
+ await page.getByRole('button',{name:'Om turneringen & underlaget →',exact:true}).click();
+ await page.locator('#world-dialog[open]').waitFor();assert.match(await page.locator('#world-dialog').innerText(),/Seniorlandslag/);await page.keyboard.press('Escape');
+ assert.equal(await page.evaluate(()=>state.calendar.date),before.date);assert.equal(await page.evaluate(()=>state.money),before.money);assert.equal(await page.evaluate(()=>JSON.stringify(state.nhl.draft)),before.draft);
+ await page.evaluate(nation=>{state.international.selected=nation;worldUI.international='club';worldUI.games='all';worldUI.position='all';worldUI.draftPage=0;nhlUI.query='';nhlUI.tab='club';deskNavigate('home')},before.nation);
+}
+async function checkWorldDecisions(page){
+ // Isolated browser fixture: actual tournament actions produce the report data.
+ await page.evaluate(()=>{state.calendar.date='2026-12-15';internationalPrepare();state.calendar.date='2026-12-20';internationalPrepare();state.calendar.date='2026-12-26';internationalProcess(state.calendar.date);worldUI.international='tournament';worldUI.games='all';deskNavigate('international')});
+ const game=await page.evaluate(()=>state.international.tournament.games.find(g=>g.played&&!g.administrative));
+ await page.locator('.wd-score').first().click();
+ assert.match(await page.locator('#world-dialog[open]').innerText(),new RegExp('Skott på mål: '+game.shots.join('–')));
+ await page.locator('#world-dialog .player-reference').first().click();await page.getByRole('button',{name:'Tillbaka till föregående vy',exact:true}).click();
+ assert.equal(await page.locator('#world-dialog[open]').count(),1);await page.keyboard.press('Escape');
+ const p=await page.evaluate(()=>{const p=state.juniors.roster.find(p=>p.pos==='B');p.nhlDraft={year:2027,club:'Seattle Kraken',round:2,overall:40,expires:'2031-06-30'};worldUI.draftPerson=p.id;nhlUI.tab='club';deskNavigate('nhl');return {id:p.id,morale:p.morale}});
+ await page.getByRole('button',{name:'Granska utvecklingsväg',exact:true}).click();
+ await page.getByRole('combobox',{name:'Utvecklingsväg',exact:true}).selectOption('junior');
+ assert.equal(await page.evaluate(id=>worldDeskPlayer(id).nhlPlan,p.id),undefined);
+ await page.getByRole('button',{name:'Avbryt',exact:true}).click();assert.equal(await page.evaluate(id=>worldDeskPlayer(id).nhlPlan,p.id),undefined);
+ await page.getByRole('button',{name:'Granska utvecklingsväg',exact:true}).click();
+ await page.getByRole('combobox',{name:'Utvecklingsväg',exact:true}).selectOption('junior');
+ await page.getByRole('button',{name:'Bekräfta beslutet',exact:true}).click();
+ assert.equal(await page.evaluate(id=>worldDeskPlayer(id).nhlPlan.path,p.id),'junior');assert.equal(await page.evaluate(id=>worldDeskPlayer(id).morale,p.id),p.morale);
+ await page.getByRole('button',{name:'Följ utvecklingsdialogen',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Bekräfta beslutet',exact:true}).count(),0);await page.keyboard.press('Escape');
+ await page.evaluate(()=>{startCareerWithClub('HV71');const p=state.juniors.roster.find(p=>p.pos==='B');p.nhlDraft={year:2026,club:'Seattle Kraken',round:2,overall:40,expires:'2030-06-30'};p.age=19;for(const key of Object.keys(p.attributes))p.attributes[key]=13;p.health.injury=null;p.fatigue=0;delete p.internationalDuty;naOffer(p,managerClub());naUI.tab='offers';nhlUI.tab='contracts';deskNavigate('nhl')});
+ const offer=await page.evaluate(()=>state.northAmerica.offers.find(o=>o.origin===managerClub()&&o.status==='pending'));assert.ok(offer,'a genuine eligible offer exists');
+ const cash=await page.evaluate(()=>state.money);
+ await page.getByRole('button',{name:'Acceptera flytten',exact:true}).click();assert.equal(await page.evaluate(()=>state.money),cash);
+ await page.keyboard.press('Escape');assert.equal(await page.evaluate(id=>state.northAmerica.offers.find(o=>o.id===id).status,offer.id),'pending');
+ await page.getByRole('button',{name:'Tacka nej',exact:true}).click();await page.getByRole('button',{name:'Bekräfta beslutet',exact:true}).click();
+ assert.equal(await page.evaluate(id=>state.northAmerica.offers.find(o=>o.id===id).status,offer.id),'rejected');assert.equal(await page.evaluate(()=>state.money),cash);
+ await page.evaluate(()=>{state.calendar.date='2026-10-01';nasDay();nhlUI.tab='leagues';nasUI.league='NHL';nasUI.club='all';nasUI.tab='games';nasUI.game=null;render()});
+ await page.locator('.wd-embedded button[onclick^="nasSet(\'game\'"]').first().click();
+ assert.equal(await page.locator('#world-dialog[open]').count(),1);assert.match(await page.locator('#world-dialog').innerText(),/Skott/);
+ await page.getByRole('button',{name:'Stäng dialog',exact:true}).click();assert.equal(await page.evaluate(()=>nasUI.game),null);assert.equal(await page.evaluate(()=>nasUI.tab),'games');
+}
+module.exports={checkWorld,checkWorldDecisions};
