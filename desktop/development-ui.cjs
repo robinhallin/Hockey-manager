@@ -56,7 +56,7 @@ module.exports=async function developmentUIReview(page,out){
  await page.locator('.desk-subnav').getByRole('button',{name:'NHL & draft',exact:true}).click();
  assert.equal(await page.evaluate(()=>state.page),'nhl');
  await main.getByRole('button',{name:'Världen',exact:true}).click();
- await page.locator('.world-grid article').filter({has:page.getByRole('heading',{name:'AHL',exact:true})}).getByRole('button').click();
+ await page.locator('.wd-directory').getByRole('button',{name:/^AHL/}).click();
  assert.equal(await page.evaluate(()=>nasUI.league),'AHL');
  await main.getByRole('button',{name:'Översikt',exact:true}).click();
 };
