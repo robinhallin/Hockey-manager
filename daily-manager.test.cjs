@@ -19,6 +19,8 @@ run('globalThis.steps=0;while(!state.live.finished&&steps++<100000){if(!state.li
 assert.equal(run('state.live.finished'),true);assert.equal(run('state.calendar.date'),'2026-09-26');assert.equal(run('state.calendar.completedMatchDate'),'2026-09-26');assert.equal(run('state.round'),2);
 assert.ok(run('state.analysis.matches[0].performance.rows.length')>0);
 assert.equal(run('state.analysis.matches[0].performance.date'),'2026-09-26');
+assert.match(run('matchCentreView()'),/id="match-tab-report"/);
+run("matchTab('report')");
 assert.match(run('matchCentreView()'),/Matchens spelarinsatser/);
 run('globalThis.grades=JSON.stringify(state.analysis.matches[0].performance);managerRoster()[0].attributes.shooting=20;render();finishPerformance();finishAnalysis()');
 assert.equal(run('JSON.stringify(state.analysis.matches[0].performance)'),run('grades'));
