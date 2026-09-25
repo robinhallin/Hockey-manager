@@ -179,7 +179,7 @@ function answerPlayerConversation(id,answer){
   m.resolved=true;m.read=true;
   if(answer==='promise'&&((p.recruitmentPromise&&!p.recruitmentPromise.resolved)||t.promises.some(q=>samePlayerId(q.playerId,p.id)&&!q.resolved))){m.resolved=false;m.outcome='Ett istidslöfte följs redan upp. Välj ett ärligt besked eller följ upp avtalet först.';save();render();return;}
   if(answer==='promise'){
-    t.promises.push({playerId:p.id,name:p.name,startRound:state.round,games:0,qualified:0,resolved:false});
+    t.promises.push({playerId:p.id,name:p.name,startRound:state.round,agreed:state.calendar.date,club:managerClub(),evidence:[],games:0,qualified:0,resolved:false});
     p.happiness=trainingClamp((p.happiness||70)+5,20,100);
     m.outcome='Du har lovat minst 15 minuter i två av de tre kommande matcherna. Löftet följs upp efter den tredje matchen.';
   }else{p.happiness=trainingClamp((p.happiness||70)-2,20,100);m.outcome='Du har förklarat att konkurrensen avgör laguttagningen. Spelaren är besviken, men du har inte lovat något du inte kan hålla.';}
@@ -196,7 +196,8 @@ function afterTrainingMatch(){
     const p=managerRoster().find(p=>samePlayerId(p.id,promise.playerId));
     if(!p){promise.resolved=true;promise.result='Spelaren har lämnat klubben';continue;}
     if(medicalExcused(p,900))continue;
-    promise.games++;if((m.iceTime?.[p.id]||0)>=900)promise.qualified++;
+    promise.games++;const seconds=m.iceTime?.[p.id]||0,qualified=seconds>=900;if(qualified)promise.qualified++;
+    promise.evidence=[...(promise.evidence||[]),{key:m.analysis?.id||`${state.season.year}:${state.round}`,date:state.calendar.date,opponent:m.opponent,seconds,qualified}].slice(-3);
     if(promise.games>=3){
       const met=promise.qualified>=2;promise.resolved=true;promise.result=met?'Uppfyllt':'Brutet';
       p.happiness=trainingClamp((p.happiness||70)+(met?8:-12),20,100);

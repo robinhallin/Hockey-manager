@@ -42,7 +42,7 @@ function squadPlayerAction(action){
  else if(action==='place'){ensureLines();squadOpenPlace(p.id);}
  else if(action==='training')developmentOpenPlayer(p.id,'training',true);
  else if(action==='medical'){deskNavigate('medical');developmentUI.medicalTab='cases';developmentSet('medical',p.id);}
- else if(action==='talk'){deskNavigate('locker');Object.assign(lockerUI,{tab:'situation',filter:'all',player:p.id});render();queueInterfaceSave();}
+ else if(action==='talk'){deskNavigate('locker');Object.assign(lockerUI,{tab:'situation',filter:'all',query:'',group:'all',detail:null,scroll:0,player:p.id});render();queueInterfaceSave();}
 }
 function squadAvailability(p){return internationalAway(p)?'Landslagsuppdrag':p.health?.injury?medicalStatus(p):medicalReady(p)?'Matchklar':'Ej matchklar';}
 function squadContract(p){return playerLoan(p)?'Inlånad':p.futureContract?'Framtida avtal klart':contractNeedsDecision(p)?'Sista avtalsåret':p.transferListed?'Transferlistad':'Under kontrakt';}
