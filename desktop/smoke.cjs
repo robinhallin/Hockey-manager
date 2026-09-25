@@ -87,6 +87,8 @@ async function close(){
   await page.screenshot({path:path.join(out,'09-kedjetavla.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'PP',exact:true}).click();
   await page.screenshot({path:path.join(out,'10-enhetsbyggare.png'),fullPage:true});
+  await require('../scripts/locker-browser-checks.cjs').checkLocker(page);
+  await page.screenshot({path:path.join(out,'11-omkladningsrum.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Rekrytering',exact:true}).click();
   const recruitmentNav=page.getByRole('navigation',{name:'Rekrytering',exact:true});
   await recruitmentNav.getByRole('button',{name:'Översikt',exact:true}).click();
