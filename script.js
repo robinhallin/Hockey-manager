@@ -4383,6 +4383,7 @@ careerScreen === "files" ? saveSettingsView()
 
   content.innerHTML=deskFrame(pageHTML);
   deskEnhanceButtons(content);
+  if(state.page==='squad')squadRestoreView();
 
   const clubName = managerClub();
   const club = getClub(clubName);

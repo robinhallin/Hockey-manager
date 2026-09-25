@@ -55,11 +55,15 @@ async function close(){
   await page.locator('.sw-filters input[name="query"]').fill(selectedName);
   await page.locator('.sw-filters').getByRole('button',{name:'Sök',exact:true}).click();
   const link=page.getByRole('region',{name:'Spelartrupp',exact:true}).getByRole('button',{name:selectedName,exact:true});
-  await link.click();await page.waitForFunction(id=>String(state.selectedPlayer)===id,id);
+  await link.click();await page.waitForFunction(id=>String(squadUI.player)===id,id);
+  assert.equal(await page.evaluate(()=>state.page),'squad');
+  await page.screenshot({path:path.join(out,'24-laget-spelarval.png'),fullPage:true});
+  await page.getByRole('button',{name:'Öppna spelarprofil',exact:true}).click();await page.waitForFunction(id=>String(state.selectedPlayer)===id,id);
   await page.screenshot({path:path.join(out,'02-spelarprofil.png'),fullPage:true});
   await page.locator('#content button[onclick*="deskBack"]').first().click();
   await page.locator('input[name="query"]').waitFor();assert.equal(await page.locator('input[name="query"]').inputValue(),selectedName);
   await page.getByRole('button',{name:'Snittbetyg',exact:true}).first().click();
+  await page.locator('.sw-table-help summary').click();
   assert.match(await page.locator('.squad-workspace').innerText(),/0,0–10,0/);
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Översikt',exact:true}).click();
   assert.equal(await page.locator('.desk-subnav button').count(),2);
