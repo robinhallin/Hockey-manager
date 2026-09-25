@@ -95,7 +95,7 @@ function deskNavigate(page,tab,record=true){
  const browserPush=record&&(page!==state.page||tab&&tab!==state.recruitment?.tab||nextLineup!==undefined&&nextLineup!==lineupWorkspace||nextAvailability!==undefined&&nextAvailability!==recruitFilters().availability);
  if(browserPush)deskBrowserBefore();
  if(browserPush){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
- if(record&&page!==previousPage){if(page==='training')developmentUI.detail=false;if(page==='juniors')developmentUI.juniorDetail=false;}
+ if(record&&page!==previousPage){developmentUI.drawer=null;if(page==='medical')developmentUI.medicalDetail=false;if(page==='training')developmentUI.detail=false;if(page==='juniors')developmentUI.juniorDetail=false;}
  if(page==='staffReview'&&record&&page!==previousPage)staffReviewUI.tab='planning';
  if(nextLineup!==undefined)lineupWorkspace=nextLineup;
  if(nextAvailability!==undefined)recruitFilters().availability=nextAvailability;
