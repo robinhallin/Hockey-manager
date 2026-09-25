@@ -201,9 +201,10 @@ function depthSelection(){
 function depthSet(kind,index,id){
  if(state.live?.matchSquad&&!state.live.finished)return;
  const s=depthSelection(),p=playerById(id);if(!p||!medicalReady(p))return;
+ const undo=tacticsBefore();
  if(kind==='backup'&&p.pos==='MV'&&!samePlayerId(id,state.lines.goalie))s.backup=p.id;
  else if(kind==='extra'&&[0,1].includes(index)&&p.pos!=='MV'&&![...state.lines.forwards,...state.lines.defense].some(v=>samePlayerId(v,id))){const other=s.extras.findIndex(v=>samePlayerId(v,id));if(other>=0)[s.extras[index],s.extras[other]]=[s.extras[other],s.extras[index]];else s.extras[index]=p.id;}
- save();render();
+ tacticsRemember(undo,'Ändrade reserver');save();render();
 }
 function depthLock(){
  if(!state.live||state.live.finished||state.live.matchSquad)return;
