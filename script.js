@@ -4384,10 +4384,12 @@ careerScreen === "files" ? saveSettingsView()
 
 : homeView();
 
+  developmentCaptureView();
   content.innerHTML=deskFrame(pageHTML);
   deskEnhanceButtons(content);
   if(state.page==='squad')squadRestoreView();
   if(state.page==='locker')lockerRestoreView();
+  if(['training','juniors','medical'].includes(state.page))developmentRestoreView();
 
   const clubName = managerClub();
   const club = getClub(clubName);

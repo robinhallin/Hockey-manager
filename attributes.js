@@ -190,6 +190,8 @@ function ensureDevelopment(p){
   for(const [key,value] of Object.entries(a))ceiling[key]=Math.max(value,Math.min(20,p.academy?.ceiling?.[key]??value+Math.round(room*(.35+seed(key)*.65))));
   p.developmentModel={version:1,ceiling,pace:.75+seed('pace')*.5,peakOffset:Math.floor(seed('peak')*5)-2,decline:{},history:[],lastBirthday:state.season?.year||2026};
  }
+ // Old saves only guarantee dated coverage from the first observation after migration.
+ if(!p.developmentModel.historyFrom&&state.calendar?.date)p.developmentModel.historyFrom=state.calendar.date;
  return p.developmentModel;
 }
 function developmentPhysical(key){return ['skating','acceleration','stamina','strength','checking','movement','reflexes'].includes(key);}
@@ -216,7 +218,9 @@ function developmentAdvance(p,key,points,source='Träningsarbete'){
  developmentRecord(p,key,1,'Registrerat arbete: '+d.sources[key].join(', '));d.sources[key]=[];return true;
 }
 function developmentRecord(p,key,change,reason){
- const d=ensureDevelopment(p);d.history.unshift({year:state.season?.year||2026,date:state.calendar?.date||null,key,change,reason});d.history=d.history.slice(0,24);
+ const d=ensureDevelopment(p);d.history.unshift({year:state.season?.year||2026,date:state.calendar?.date||null,key,change,reason});const dropped=d.history.slice(24);
+ for(const row of dropped){const from=row.date?calAdd(row.date,1):state.calendar?.date;if(from&&(!d.historyFrom||from>d.historyFrom))d.historyFrom=from;}
+ d.history=d.history.slice(0,24);
 }
 function developmentBirthday(p){
  const d=ensureDevelopment(p),year=state.season.year;if(d.lastBirthday>=year)return;

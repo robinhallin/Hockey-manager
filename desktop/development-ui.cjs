@@ -5,10 +5,10 @@ module.exports=async function developmentUIReview(page,out){
  await main.getByRole('button',{name:'Utveckling',exact:true}).click();
  await page.getByRole('heading',{name:'Spelarutveckling',exact:true}).waitFor();
  assert.equal(await page.locator('.dv-detail-view').count(),0);
- assert.equal(await page.locator('.dv-overview thead button').count(),9);
+ assert.equal(await page.locator('.dv-overview thead button').count(),8);
  const shown=await page.locator('.dv-overview tbody tr[data-development-id]').count();
  assert.ok(shown>await page.evaluate(()=>managerRoster().length),'the overview includes juniors');
- for(const label of ['Spelare','Pos','Ålder','Miljö','Förmåga','Potential','Attribut ±','Fokus','Ork']){
+ for(const label of ['Spelare','Ålder','Lag / miljö','Nivå','Potential','Utveckling','Istid / match','Nästa steg']){
   const button=page.locator('.dv-overview thead').getByRole('button',{name:new RegExp('^'+label.replace(/[+±]/g,'\\$&'))});
   await button.click();const first=await button.locator('..').getAttribute('aria-sort');
   await button.click();assert.notEqual(await button.locator('..').getAttribute('aria-sort'),first,label);
@@ -17,11 +17,12 @@ module.exports=async function developmentUIReview(page,out){
  await page.screenshot({path:path.join(out,'20-utveckling-oversikt.png'),fullPage:true});
  const dimensions=await page.locator('.dv-overview .dv-scroll').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth}));
  assert.ok(dimensions.scroll<=dimensions.width+2,'overview columns fit the desktop viewport');
- await page.locator('.dv-filters select').selectOption('senior');
+ await page.locator('#development-filter').selectOption('senior');
  const name=await page.locator('.dv-player-name').first().innerText();
  await page.locator('.dv-filters input').fill(name);
  await page.locator('.dv-filters').getByRole('button',{name:'Sök',exact:true}).click();
  await page.getByRole('button',{name:name,exact:true}).click();
+ await page.locator('.dd-inspector').getByRole('button',{name:'Ändra utvecklingsplan',exact:true}).click();
  await page.locator('.dv-detail-view .individual-training').waitFor();
  await page.getByLabel('Träningsbelastning').selectOption('light');
  await page.screenshot({path:path.join(out,'21-utveckling-detalj.png'),fullPage:true});
@@ -33,10 +34,12 @@ module.exports=async function developmentUIReview(page,out){
  await page.locator('.dv-overview thead').getByRole('button',{name:/Ålder/}).click();
  await page.screenshot({path:path.join(out,'22-juniorer-oversikt.png'),fullPage:true});
  await page.locator('.dv-player-name').first().click();
+ await page.locator('.dd-inspector').getByRole('button',{name:/^(Ändra utvecklingsplan|Utvecklingsplan)$/}).click();
  await page.locator('.junior-controls').waitFor();
  await page.getByLabel('Individuell träning').selectOption('light');
  await page.getByRole('button',{name:'Till truppöversikten',exact:false}).click();
  assert.equal(await page.locator('.junior-profile').count(),0);
+ await require('../scripts/development-browser-checks.cjs').checkDevelopment(page);
  await main.getByRole('button',{name:'Matcher',exact:true}).click();
  assert.equal(await page.locator('.nhl-calendar').count(),0);
  assert.equal(await page.getByRole('heading',{name:/landslagsbevakning/}).count(),0);

@@ -1,0 +1,37 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {boot}=require('./scripts/career-test-fixture.cjs');
+const app=boot(undefined,{production:true}),r=app.run;
+r("startCareerWithClub('HV71');deskNavigate('training');globalThis.p=managerRoster().find(p=>p.pos==='B');globalThis.j=juniorPlayers().find(p=>p.academy.path==='junior');globalThis.today=state.calendar.date");
+const initial=r('JSON.stringify(state)');
+r("developmentSelect(j.id);developmentSet('period','30');developmentSort('ice');developmentSet('query','no-such-player');developmentReset();developmentWorkspaceView();developmentJuniorsView();developmentMedicalView()");
+assert.equal(r('JSON.stringify(state)'),initial,'selection, periods, sorting and all three summaries are read only');
+assert.equal(r('developmentPeriodChange(p)'),null,'legacy or short coverage must not become zero growth');
+r("ensureDevelopment(p);p.developmentModel.historyFrom=calAdd(today,-90);p.developmentModel.history=[{date:calAdd(today,-5),key:'shooting',change:2},{date:calAdd(today,-3),key:'skating',change:-1},{date:calAdd(today,-40),key:'passing',change:1}]");
+assert.equal(r('developmentPeriodChange(p).net'),1);
+assert.equal(r('developmentPeriodChange(p).up'),2);
+assert.equal(r('developmentPeriodChange(p).down'),1);
+r("developmentUI.period='90'");assert.equal(r('developmentPeriodChange(p).net'),2);
+r("developmentUI.period='30';p.developmentModel.historyFrom=calAdd(today,-2)");assert.equal(r('developmentPeriodChange(p)'),null);
+r("delete p.developmentModel.historyFrom;ensureDevelopment(p)");assert.equal(r('p.developmentModel.historyFrom'),r('today'),'old save coverage begins at migration');
+r("p.developmentModel.historyFrom=calAdd(today,-90);p.developmentModel.history=Array.from({length:24},()=>({date:calAdd(today,-10),key:'passing',change:1}));developmentRecord(p,'shooting',1,'Recorded work')");
+assert.equal(r('p.developmentModel.history.length'),24);
+assert.equal(r('p.developmentModel.historyFrom'),r('calAdd(today,-9)'));
+assert.equal(r('developmentPeriodChange(p)'),null,'pruned period is not reported as complete');
+r("developmentUI.period='baseline';developmentUI.juniorFilter='u18'");assert.ok(r('developmentRows(true).every(r=>r.age<=18)'));
+r("developmentUI.juniorFilter='u20'");assert.ok(r('developmentRows(true).every(r=>r.age>18&&r.age<=20)'));
+r("developmentUI.juniorQuery='nothing';developmentSelect(j.id,'juniors')");assert.equal(r('developmentUI.juniorQuery'),'');assert.equal(r('developmentUI.juniorPlayer'),r('j.id'));
+r("juniorSet(j.id,'path','guest')");assert.equal(r('j.academy.path'),'guest');assert.equal(r('isOwnPlayer(j)'),false,'A-training is not promotion');
+r("state.live={finished:false};juniorSet(j.id,'path','junior')");assert.equal(r('j.academy.path'),'guest');r('state.live=null');
+r("deskNavigate('medical');p.health.injury={name:'Knäskada',remaining:0,initial:5,readiness:70,source:'Träning'};p.health.clearance='rest';j.health.injury={name:'Fotskada',remaining:2,initial:5,readiness:55,source:'Träning'};developmentSet('medicalFilter','rehab');developmentSelect(p.id,'medical')");
+assert.ok(r('developmentMedicalRows().some(row=>row.p.id===j.id)'),'include injured home juniors');
+assert.equal(r('developmentMedicalRows().every(row=>row.p.health.injury)'),true);
+for(const key of ['name','status','load','training','followup']){
+ r(`developmentMedicalSort('${key}')`);const before=r('developmentUI.medicalDirection');r(`developmentMedicalSort('${key}')`);assert.equal(r('developmentUI.medicalDirection'),-before);
+}
+r("developmentMedicalOpen(p.id);setMedicalClearance(p.id,'full')");assert.equal(r('p.health.clearance'),'rest','unsafe full return rejected');
+r("setMedicalClearance(p.id,'limited')");assert.equal(r('p.health.clearance'),'limited');assert.equal(r('medicalLimit(p)'),600);
+r('save()');const reload=boot(app.storage.value,{production:true});
+assert.equal(reload.run(`managerRoster().find(p=>p.id===${JSON.stringify(r('p.id'))}).health.clearance`),'limited');
+assert.equal(reload.run(`juniorById(${JSON.stringify(r('j.id'))}).academy.path`),'guest');
+console.log('PASS: honest period coverage and pruning, read-only summaries, age filters, selected-player context, actual A-training and guarded medical plans persist.');
