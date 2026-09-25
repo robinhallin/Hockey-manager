@@ -1,12 +1,12 @@
 "use strict";
-const recruitHub={attributeOpen:false,player:null,panel:'report',page:0,sort:'profile',market:'all',deal:null,affairs:'open'};
-function hubPick(id){if(!findPlayerAnywhere(id))return;recruitHub.player=id;recruitHub.panel='report';render();}
-function hubPanel(panel){if(!['report','transfer','loan','future'].includes(panel))return;recruitHub.panel=panel;render();}
+const recruitHub={attributeOpen:false,player:null,panel:'report',page:0,sort:'profile',market:'all',deal:null,affairs:'open',drawer:null,direction:1,overviewProfile:null,overviewQuery:''};
+function hubPick(id){if(!findPlayerAnywhere(id))return;recruitHub.player=id;recruitHub.panel='report';recruitHub.drawer=null;render();}
+function hubPanel(panel){if(!['report','transfer','loan','future'].includes(panel))return;recruitmentRememberFocus();recruitHub.panel=panel;recruitHub.drawer='player';render();}
 function hubReportSearch(){scoutUI.query=document.getElementById('hub-report-query')?.value||'';recruitHub.page=0;render();}
 function hubScoutIds(){return hubCandidates(state.recruitment.tab).filter(p=>!isOwnPlayer(p)&&!scoutPending(p.id)&&(state.scoutReports[String(p.id)]?.visits||0)<3).map(p=>p.id);}
 function hubPage(delta){recruitHub.page=Math.max(0,recruitHub.page+delta);render();}
 function hubMarket(value){if(!['all','loan','own'].includes(value))return;recruitHub.market=value;recruitHub.page=0;recruitHub.player=null;render();}
-function hubNeed(profile){deskNavigate('transfers','search');resetRecruitFilters();recruitFilters().profile=profile;recruitHub.sort='profile';recruitHub.market='all';recruitHub.page=0;recruitHub.player=null;save();render();}
+function hubNeed(profile){deskNavigate('transfers','search');resetRecruitFilters();recruitFilters().profile=profile;recruitHub.sort='profile';recruitHub.direction=1;recruitHub.market='all';recruitHub.page=0;recruitHub.player=null;save();render();}
 function hubCandidates(tab){
  const searching=!['missions','shortlist'].includes(tab);
  const scores=new Map(),score=p=>{if(!scores.has(p.id))scores.set(p.id,recruitHub.sort==='profile'?recruitRoleValue(p,recruitFilters().profile):playerAssessment(p).current);return scores.get(p.id);};
@@ -95,17 +95,8 @@ function hubAffairs(tab){
  const selected=rows.find(x=>x.key===recruitHub.deal)||rows[0];
  return `${marketInterestView()}<div class="rh-affairs"><section class="rh-list"><header><h2>Affärer</h2><nav>${[['open','Pågående bud'],['active','Aktiva lån'],['history','Avslutade']].map(([key,label])=>`<button aria-pressed="${mode===key}" onclick="recruitHub.affairs='${key}';state.recruitment.focusDeal=null;state.recruitment.tab='deals';render()">${label}</button>`).join('')}</nav></header><div class="rh-table-scroll"><table><thead><tr><th>Spelare</th><th>Affär</th><th>Status</th></tr></thead><tbody>${rows.map(x=>`<tr class="${selected===x?'selected':''}"><td>${playerReference(x.d.playerId,x.name)}<button class="rh-link" onclick="recruitHub.deal='${x.key}';state.recruitment.focusDeal=null;render()">Visa ärendet</button></td><td>${x.type}</td><td>${x.key.startsWith('incoming:')&&x.status==='pending'?incomingStage(x.d):x.d.counter?'Motbud':HUB_STATUS[x.status]||x.status}</td></tr>`).join('')||'<tr><td colspan="3">Inga affärer i den här kategorin. Köp och lån startas från en vald spelare under Spelare.</td></tr>'}</tbody></table></div>${mode==='history'?`<details class="rh-market-history"><summary>Övergångar i omvärlden</summary>${recruitHistoryView()}</details>`:''}</section><aside class="rh-inspector">${tab==='loans'&&state.loans.selected?hubInspector(findPlayerAnywhere(state.loans.selected)).replace('<aside class="rh-inspector">','<div>').replace(/<\/aside>$/,'</div>'):hubDealDetail(selected)}</aside></div>`;
 }
-function recruitmentHubView(override){
- ensureRecruitment();ensureLoans();ensureScoutingOffice();const tab=override||state.recruitment.tab,r=state.recruitment;
- let body;
- if(tab==='overview')body=scoutingOverview();
- else if(['deals','loans','history'].includes(tab)){const legacy=state.transferNegotiation&&findPlayerAnywhere(state.transferNegotiation.playerId);body=(legacy&&!isOwnPlayer(legacy)?`<p class="rh-notice">Påbörjad kontraktsdiskussion: ${trainingSafe(legacy.name)}. <button class="rh-link" onclick="recruitOpen('${legacy.id}')">Fortsätt diskussionen</button></p>`:'')+hubAffairs(tab);}
- else if(tab==='missions')body='';
- else if(tab==='needs')body=scoutingNeedsView();
- else{const list=hubCandidates(tab);recruitHub.page=Math.min(recruitHub.page,Math.max(0,Math.ceil(list.length/20)-1));const visible=list.slice(recruitHub.page*20,recruitHub.page*20+20);if(!visible.some(p=>samePlayerId(p.id,recruitHub.player))){recruitHub.player=visible[0]?.id||null;recruitHub.panel='report';}body=`<div class="rh-workspace">${hubFilters(tab)}${hubPlayerTable(list,tab)}${hubInspector(findPlayerAnywhere(recruitHub.player))}</div>`;}
- return `<section class="recruit-hub">${hubHeader()}${r.message?`<p class="rh-notice" role="status">${trainingSafe(r.message)}</p>`:''}${state.loans.message&&['loans','deals'].includes(tab)?`<p class="rh-notice" role="status">${trainingSafe(state.loans.message)}</p>`:''}${tab==='missions'?scoutingAssignments():''}${tab==='shortlist'?scoutingWatchHeader():''}${body}${['search','shortlist','missions'].includes(tab)?scoutingComparison():''}</section>`;
-}
+function recruitmentHubView(override){return recruitmentDeskView(override);}
 
 function recruitHubPlayerView(){const p=findPlayerAnywhere(state.selectedMarketPlayer);if(!p)return historicalPlayerView(state.selectedMarketPlayer);if(isOwnPlayer(p)){state.selectedPlayer=p.id;return playerView();}return externalPlayerProfile(p);}
 
-function hubStartLoan(id){const p=findPlayerAnywhere(id);if(!p)return;deskNavigate('transfers','search');state.recruitment.filters={country:'ALL',profile:'ALL',availability:'all',maxAge:60,maxFee:50000000,query:'',attribute:'',minAttribute:10};recruitHub.market=isOwnPlayer(p)?'own':'all';recruitHub.sort='name';recruitHub.player=id;recruitHub.panel='loan';const list=hubCandidates('search');recruitHub.page=Math.max(0,Math.floor(list.findIndex(q=>samePlayerId(q.id,id))/20));state.loans.selected=id;save();render();deskBrowserBefore();}
+function hubStartLoan(id){const p=findPlayerAnywhere(id);if(!p)return;deskNavigate('transfers','search');state.recruitment.filters={country:'ALL',profile:'ALL',availability:'all',maxAge:60,maxFee:50000000,query:'',attribute:'',minAttribute:10};recruitHub.market=isOwnPlayer(p)?'own':'all';recruitHub.sort='name';recruitHub.player=id;recruitHub.panel='loan';recruitHub.drawer='player';const list=recruitmentCandidates('search');recruitHub.page=Math.max(0,Math.floor(list.findIndex(q=>samePlayerId(q.id,id))/20));state.loans.selected=id;save();render();deskBrowserBefore();}
