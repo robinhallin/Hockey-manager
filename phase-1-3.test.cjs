@@ -3,10 +3,10 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 
 // 1. The office briefing is read-only and complements the existing manager pulse.
 const office=boot(),r=office.run;
-r("startCareerWithClub('HV71');officePanelTab('followup')");
+r("startCareerWithClub('HV71');overviewSupport('day')");
 const before=r('JSON.stringify(state)');
 assert.match(r('managerOfficeView()'),/MORGONMÖTE/);
-assert.match(r('managerOfficeView()'),/Påverka idag/);
+assert.match(r('managerOfficeView()'),/Kommande sju dagar/);
 assert.match(r('managerOfficeView()'),/Största risk|Nästa kontrollpunkt/);
 assert.equal(r('JSON.stringify(state)'),before,'manager briefing must not advance or mutate the career');
 r('runTrainingSession();globalThis.latestActivity=managerLifePreviousDay().value');

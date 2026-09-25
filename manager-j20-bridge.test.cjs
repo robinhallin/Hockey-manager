@@ -21,7 +21,7 @@ r(`for(const p of managerRoster())if(managerJ20Group(p)===${JSON.stringify(group
 const need=r(`managerJ20SeniorNeed(juniorById(${JSON.stringify(latestId)}))`);
 assert.ok(need.shortage>0);
 assert.equal(r(`managerJ20Readiness(juniorById(${JSON.stringify(latestId)})).level`),'Aktuell vid truppbehov');
-r("officePanelTab('followup')");
+r("overviewSupport('day')");
 const before=r('JSON.stringify(state)');
 const html=r('managerOfficeView()');
 assert.match(html,/J20 SENAST/);

@@ -14,7 +14,8 @@ test('all Swedish and NHL clubs have local official crests; views stay read-only
  assert.equal(run('JSON.stringify(state)'),before);
  assert.match(run('clubCrest("Okänd <klubb>")'),/Okänd &lt;klubb&gt;/);
  assert.match(run('careerBadge("HV71")'),/<img/);
- assert.match(get('#content').innerHTML,/modern-club-hero/);
+ assert.match(get('#content').innerHTML,/ov-dashboard/);
+ assert.match(get('#content').innerHTML,/assets\/crests\/hv711_hv71.svg/);
  run('state.analysis.matches.unshift({id:"old",finished:true,year:2025,club:managerClub(),opponent:"Luleå Hockey",own:2,against:1});');
  assert.doesNotMatch(run('modernOfficeSummary()'),/Invalid Date/);
  assert.match(run('modernOfficeSummary()'),/#match\/old/);

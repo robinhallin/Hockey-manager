@@ -63,10 +63,11 @@ async function close(){
   assert.match(await page.locator('.squad-workspace').innerText(),/0,0–10,0/);
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Översikt',exact:true}).click();
   assert.equal(await page.locator('.desk-subnav button').count(),2);
-  await page.locator('button[onclick="storiesOpen(null)"]').click();
+  await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Säsongens historier',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-stories .stories-page').waitFor();
   await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
-  await page.getByRole('button',{name:'Lyssna på supportrarna →',exact:true}).click();
+  await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Press & supportrar',exact:true}).click();
+  await page.locator('#overview-press').getByRole('button',{name:'Supporterpanelen',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-press .press-fans').waitFor();
   await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
   await page.getByRole('button',{name:'Stab & uppföljning',exact:true}).click();

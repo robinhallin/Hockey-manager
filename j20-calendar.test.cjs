@@ -7,7 +7,7 @@ assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"
 r('calendarStep(true)');
 assert.equal(r('state.calendar.date'),'2026-09-24');
 assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),0);
-assert.match(r('managerOfficeView()'),/J20 IDAG/);
+r("overviewSupport('day')");assert.match(r('managerOfficeView()'),/J20 IDAG/);
 r('calendarStep(true)');
 assert.equal(r('state.calendar.date'),'2026-09-25');
 assert.equal(r("juniorWorldTable(leagueOf()).find(x=>x.name===managerClub()).gp"),1,'J20 round should play when its own date is completed');
