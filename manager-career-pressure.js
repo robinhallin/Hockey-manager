@@ -13,7 +13,6 @@
   const baseManagerInterview=managerInterview;
   const baseManagerInterviewAnswer=managerInterviewAnswer;
   const baseManagerAcceptJob=managerAcceptJob;
-  const baseManagerView=managerView;
   const baseManagerLifeRisk=typeof managerLifeRisk==='function'?managerLifeRisk:null;
 
   ensureManager=function(){
@@ -140,20 +139,6 @@
     const text=`${e.explanation}\nForm senaste ${form.games} matcher: ${form.wins} segrar, ${form.losses} förluster. Truppstöd: ${support}/100.\nFörtroende: ${c.confidence}/100 (${changeText}) · ${band.label}.${pressureText}`;
     c.reviews.unshift({key,year:clubYear(),club:managerClub(),confidence:c.confidence,title,text});c.reviews=c.reviews.slice(0,24);
     if(previousBand.key!==band.key||warning||Math.abs(delta)>=5)managerMessage(`manager:${key}`,title,text,'Din anställning',{link:'manager'});
-  };
-
-  managerView=function(){
-    ensureManager();const realPhase=state.season.phase,emulateRegularMarket=regularJobMarket();
-    if(emulateRegularMarket)state.season.phase='preseason';
-    let html;try{html=baseManagerView();}finally{state.season.phase=realPhase;}
-    const c=state.managerCareer,band=managerPressureBand(c.confidence);
-    html=html.replace(`<progress max="100" value="${c.confidence}" aria-label="Styrelseförtroende"></progress>`,`<progress max="100" value="${c.confidence}" aria-label="Styrelseförtroende"></progress><p>${band.label} · ${band.detail}</p>`);
-    html=html.replace('Avstämning sker var åttonde grundseriematch. Två säsonger i följd med förtroende under 45 kan avsluta uppdraget. Ett svagt slutår kan också innebära utebliven förlängning. Beslut får effekt vid försäsongen.',`Avstämning sker var fjärde grundseriematch. Resultatmål, de fem senaste matcherna, ekonomi, talangutveckling och truppstöd formar förtroendet. Under 30 kan styrelsen ställa ett femmatchersultimatum; under 15 kan uppdraget avslutas direkt.${c.pressure?.active?`</p><p class="manager-warning">Ultimatum: ${c.pressure.points||0}/${c.pressure.targetPoints} poäng efter ${c.pressure.played||0}/${c.pressure.matches} matcher.`:''}`);
-    html=html.replace('Första avstämningen kommer efter åtta nya grundseriematcher.','Första avstämningen kommer efter fyra nya grundseriematcher.');
-    if(emulateRegularMarket){
-      html=html.replace('Nästa jobbvecka','Uppdatera jobbmarknaden').replace('Intervjua klubben och granska trupp, resurser och förväntningar före beslutet. Ett klubbyte per försäsong.','Intervjua klubben och granska trupp, resurser och förväntningar före beslutet. Världen och den pågående säsongen bevaras vid ett klubbyte.');
-    }
-    return html;
   };
 
   if(baseManagerLifeRisk)managerLifeRisk=function(){

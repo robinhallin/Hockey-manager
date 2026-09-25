@@ -90,6 +90,10 @@ async function close(){
   await require('../scripts/locker-browser-checks.cjs').checkLocker(page);
   await page.screenshot({path:path.join(out,'11-omkladningsrum.png'),fullPage:true});
   await require('./recruitment-ui.cjs')(page,out);
+  await require('../scripts/club-browser-checks.cjs').checkClub(page);
+  await page.evaluate(()=>deskNavigate('finance'));
+  await page.screenshot({path:path.join(out,'15-klubbekonomi.png'),fullPage:true});
+  await page.evaluate(()=>deskNavigate('home'));
   // Use the same daily controls as a tester, including the transition layer.
   for(let day=0;day<10 && await page.evaluate(()=>state.calendar.date<calendarTarget());day++){
    const before=await page.evaluate(()=>state.calendar.date);

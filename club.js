@@ -50,11 +50,11 @@ function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.abili
 function clubMissionFee(){return Math.round(25000*(state.clubOffice?.priority==='scouting'?.8:clubPriorityValue('scoutFee')));}
 function clubTrainingFactor(){return state.clubOffice?.priority==='first'?1.1:clubPriorityValue('training');}
 function clubJuniorFactor(){return state.clubOffice?.priority==='youth'?1.15:clubPriorityValue('junior');}
-function clubGate(playoff=false){
+function clubGate(playoff=false,ticket=state.clubOffice.ticket){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
- const demand=.9+(8-rank)*.012+(playoff?.12:0)-(o.ticket-220)/700;
+ const demand=.9+(8-rank)*.012+(playoff?.12:0)-(ticket-220)/700;
  const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubPriorityValue('attendance')*Math.max(.45,Math.min(1.2,demand))));
- return {attendance,revenue:attendance*o.ticket};
+ return {attendance,revenue:attendance*ticket};
 }
 function clubSettleMatch(){
  ensureClub();const o=state.clubOffice,m=state.live,g=state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()));
@@ -145,7 +145,7 @@ function clubSign(){
  const replacement=d.type==='release'?clubInterim(old.id):{...candidate,salary:d.salary,expires:clubYear()+d.years};
  state.staff[state.staff.indexOf(old)]=replacement;
  if(d.type==='hire')o.taken.push(candidate.personId);
- o.offer=null;
+ o.offer=null;clubUI.staff='team';clubUI.staffPerson=replacement.personId;
  managerMessage(`staff:${o.year}:${o.ledger.length}:${candidate.personId}:${replacement.expires}`,d.type==='release'?`${old.name} lämnar klubben`:`${replacement.name} · avtal klart`,`${CLUB_ROLES[old.id]}. ${d.type==='release'?'En tillförordnad tar över med lägre kompetens.':`${money(replacement.salary)}/år, till sommaren ${replacement.expires}.`}`,'Personal',{link:'staff'});
  clubNotice(d.type==='release'?'Avtalet är avslutat. En tillförordnad håller verksamheten igång.':'Avtalet är klart. Kompetensen används nu i klubbens verksamhet.');
 }

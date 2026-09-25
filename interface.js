@@ -95,7 +95,7 @@ function deskNavigate(page,tab,record=true){
  if(browserPush)deskBrowserBefore();
  if(browserPush){deskHistory.push(deskSnapshot());if(deskHistory.length>30)deskHistory.shift();}
  if(record&&(page!==previousPage||tab&&tab!==previousTab))recruitHub.drawer=null;
- if(record&&page!==previousPage){developmentUI.drawer=null;if(page==='medical')developmentUI.medicalDetail=false;if(page==='training')developmentUI.detail=false;if(page==='juniors')developmentUI.juniorDetail=false;}
+ if(record&&page!==previousPage){clubUI.drawer=null;developmentUI.drawer=null;if(page==='medical')developmentUI.medicalDetail=false;if(page==='training')developmentUI.detail=false;if(page==='juniors')developmentUI.juniorDetail=false;}
  if(page==='staffReview'&&record&&page!==previousPage)staffReviewUI.tab='planning';
  if(nextLineup!==undefined)lineupWorkspace=nextLineup;
  if(nextAvailability!==undefined)recruitFilters().availability=nextAvailability;
