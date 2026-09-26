@@ -1,6 +1,13 @@
 name: Windows beta
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'beta-support.js'
+      - 'scripts/beta-release-manifest.cjs'
+      - 'BETA_GUIDE.md'
+      - '.github/workflows/windows-beta.yml'
 permissions:
   contents: read
 jobs:
@@ -30,11 +37,11 @@ jobs:
           if (!(Test-Path $env:HM_TEST_EXE)) { throw 'Installed executable is missing' }
           npm run test:ui --prefix desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Hash installer and include tester guide
-        shell: pwsh
-        run: |
-          Get-FileHash dist/beta/*Setup.exe -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content dist/beta/SHA256SUMS.txt
-          Copy-Item BETA_GUIDE.md dist/beta/
+      - name: Verify installed evidence and record build provenance
+        id: release_metadata
+        env:
+          BETA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/beta-release-manifest.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -44,10 +51,11 @@ jobs:
           retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
-          name: Hockey-Manager-Windows-Beta-0.1
+          name: Hockey-Manager-Windows-${{ steps.release_metadata.outputs.version }}
           path: |
             dist/beta/*Setup.exe
             dist/beta/SHA256SUMS.txt
             dist/beta/BETA_GUIDE.md
+            dist/beta/BUILD-INFO.json
           if-no-files-found: error
           retention-days: 30

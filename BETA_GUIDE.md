@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.3
+# Hockey Manager · Beta 0.1.0-beta.4
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Kör `Hockey-Manager-0.1.0-beta.3-Windows-x64-Setup.exe`.
+1. Kör `Hockey-Manager-0.1.0-beta.4-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -69,3 +69,16 @@ Installera den nya versionen i samma mapp som tidigare. Karriärerna ligger kvar
 - Nyckelspelare förväntar sig kedja/backpar 1–2, ordinarie högst tredje enheten och breddspelare kan acceptera fjärdekedjan. Bedömningen bygger på verkliga byten, rotation över flera matcher och medicinska undantag. Ett kort byte i förstakedjan räcker inte.
 - Pågående äldre introduktionslöften för utespelare får en ny period med placeringsbaserade krav. Det tidigare underlaget arkiveras. Separata uttryckliga minutlöften och målvaktslöften behåller sina villkor.
 - Matchbetyg visas med en decimal, 0,0–10,0. Truppens Snittbetyg visar bedömda tävlingsmatcher för aktuell klubb och säsong. Betyg utan tillräckligt underlag saknas i snittet; redan borttagna gamla rapporter går inte att återskapa.
+
+
+## Nytt i Beta 0.1.0-beta.4
+
+- Historiska matchrapporter behåller matchens egna händelser och spelarbedömningar.
+- Rekryteringens motbud, accepterade villkor och ekonomiska prognos följer samma affär till registreringen.
+- Akademirapporter summerar hela säsongens junior-, senior- och låneistid och fryses vid säsongsskiftet.
+- Dagsstegets faktiska bearbetningstid registreras. Felrapporten innehåller nu antal mätningar, senaste, genomsnittlig och längsta tid, även för avbrutna försök.
+- 80 matchpar har granskats; kvarstående skillnad mellan visad motor och bakgrundsmotor vid hög press följs upp. Visningslägena gav samma matchförlopp i separat kontroll.
+
+### Europeiska ligor är fortfarande inte spelbara
+
+Tjeckien, Schweiz och Finland ingår som förberedda data, inte som valbara karriärer i den här versionen. Tjeckiska spelarposter saknas i paketet. Registreringar, identitetskonflikter, ligaregler, kalenderintegration och säsongsskiften måste verifieras innan ligorna öppnas. Starta en svensk karriär för denna beta. Etapp 5 är inte slutförd genom denna betaleverans.

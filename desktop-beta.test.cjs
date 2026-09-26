@@ -50,3 +50,15 @@ test('app resources and navigation cannot escape the game directory; version lab
  const version=require('./desktop/package.json').version;
  assert.ok(fs.readFileSync('index.html','utf8').includes('content="'+version+'"'));assert.ok(fs.readFileSync('beta-support.js','utf8').includes("VERSION='"+version+"'"));
 });
+
+
+test('beta diagnostics expose bounded timing summaries without career data',()=>{
+ const r=boot().run;
+ r("performanceProfile.samples.nextDay=[12,18];performanceProfile.samples.nextDayAborted=[7]");
+ const report=JSON.parse(r('betaReportText()'));
+ assert.deepEqual(report.performance.metrics.nextDay,{count:2,last:18,avg:15,max:18});
+ assert.equal(report.performance.metrics.nextDayAborted.count,1);
+ assert.equal(report.performance.sampleWindow,30);assert.equal(report.performance.unit,'ms');
+ assert.equal(report.clubRosters,undefined);assert.equal(report.roster,undefined);
+ assert.match(r('betaSupportView()'),/ännu inte spelbara/);
+});

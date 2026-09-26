@@ -164,6 +164,9 @@ async function close(){
   await page.getByRole('button',{name:'Läs in denna karriär',exact:true}).click();
   await page.getByText('Rapportera ett problem',{exact:true}).click();
   const report=await page.evaluate(()=>JSON.parse(betaReportText()));assert.equal(report.version,require('./package.json').version);assert.equal(report.platform,'desktop');
+  assert.equal(report.performance.unit,'ms');assert.equal(report.performance.sampleWindow,30);
+  assert.ok(['nextDay','nextDayAborted'].every(k=>Number.isFinite(report.performance.metrics[k].avg)&&Number.isInteger(report.performance.metrics[k].count)));
+  assert.ok(!Object.hasOwn(report,'clubRosters'));
   assert.equal(await page.evaluate(()=>careerSaveError),false);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
