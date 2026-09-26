@@ -110,7 +110,7 @@ function rivalReplaceCoach(club,reason){
  const old=c.coach;c.history.unshift({...old,left:state.calendar.date,reason});c.history=c.history.slice(0,12);
  c.coach=rivalCoach(club);c.tenure=0;c.confidence=58;c.familiarity=25;c.changes++;
  const ai=clubAIState(club);if(ai){ai.coachEra={coachId:c.coach.id,started:state.season.year,style:c.coach.style};ai.scouting={};ai.lastMarket=null;aiDecision(club,'coach',`Ny tränare: ${c.coach.name}. Rekryteringen anpassas mot ${RIVAL_STYLES[c.coach.style].toLowerCase()}.`,`coach-era:${c.coach.id}`);}
- rivalEvent(club,'coach',`${club} byter tränare`,`${old.name} lämnar. ${c.coach.name} tar över med ${RIVAL_STYLES[c.coach.style].toLowerCase()}. ${reason}`);
+ rivalEvent(club,'coach',`${club} byter tränare`,`${old.name} lämnar. ${c.coach.name} tar över med ${RIVAL_STYLES[c.coach.style].toLowerCase()}. ${reason} Rekrytering och matchplan kommer nu successivt att anpassas till den nya tränarens spelidé.`);
 }
 function rivalInjury(p,club,rand,source){
  if(p.health?.injury)return;
