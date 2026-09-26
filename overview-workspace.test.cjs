@@ -21,9 +21,8 @@ state.recruitment.incoming.push({id:997,name:'Väntande bud',buyer:'AIK',stage:'
 assert.equal(r("overviewDecisionItems().some(i=>i.action?.deal==='incoming:997')"),false);
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal)[0].action.deal"),'incoming:996');
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal).length"),7);
-assert.match(r('overviewWorkspaceView()'),/Visa alla/);
-r('overviewExpandDecisions()');
-assert.equal((r('overviewWorkspaceView()').match(/officeOpenDeal\(&quot;incoming:/g)||[]).length,8,'all seven actionable offers plus the waiting link');
+assert.match(r('overviewWorkspaceView()'),/Öppna inkorgen/);
+assert.equal((r('overviewWorkspaceView()').match(/officeOpenDeal\(&quot;incoming:/g)||[]).length,3,'overview keeps only the three highest-priority actionable offers visible');
 r("officeOpenDeal('incoming:996')");assert.equal(r('recruitHub.deal'),'incoming:996');assert.equal(r('recruitHub.affairs'),'open');
 r("deskNavigate('home');state.recruitment.incoming=[];globalThis.p=managerRoster().find(p=>p.pos!=='MV');p.fatigue=61;overviewSelectPlayer(p.id)");
 assert.equal(r('overviewWatchPlayers()[0].p.id'),r('p.id'));
