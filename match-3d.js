@@ -40,30 +40,108 @@ const Match3D = (() => {
  function sample(frame,before,t){
   t=clamp(t,0,1);const prior=new Map((before?.actors||[]).map(a=>[a.id,a]));
   // Do not sweep across the rink after a faceoff reset or a skipped highlight.
-  const continuous=before&&Math.abs(frame.time-before.time)<=.5&&frame.phase===before.phase;
-  const pos=(p,q)=>{const blend=continuous&&q&&Math.hypot(p.x-q.x,p.y-q.y)<(p.id!=null?5:18)?t:1;return {...p,x:mix(q?.x??p.x,p.x,blend),y:mix(q?.y??p.y,p.y,blend),...(p.id!=null?{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:mix(before?.carrier===p.id?1:0,frame.carrier===p.id?1:0,blend)}:{})};};
+  const gap=before?(frame.wall??frame.time)-(before.wall??before.time):Infinity;
+  const continuous=before&&frame.time>=before.time&&frame.time-before.time<=.5&&frame.phase===before.phase&&gap>=0&&gap<=.5;
+  const time=continuous?mix(before.time,frame.time,t):frame.time,wall=continuous?mix(before.wall??before.time,frame.wall??frame.time,t):(frame.wall??frame.time);
+  const pos=(p,q)=>{
+   const blend=continuous&&q&&Math.hypot(p.x-q.x,p.y-q.y)<(p.id!=null?5:18)?t:1;
+   const result={...p,x:mix(q?.x??p.x,p.x,blend),y:mix(q?.y??p.y,p.y,blend)};
+   if(p.id!=null){
+    Object.assign(result,{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:mix(before?.carrier===p.id?1:0,frame.carrier===p.id?1:0,blend)});
+    if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
+    // A capture may straddle a release. Never start its follow-through early.
+    if(p.action?.at>wall)result.action=q?.action?.at<=wall?q.action:null;
+   }
+   return result;
+  };
   let flight=frame.flight?{...frame.flight}:null;
   if(flight&&Number.isFinite(flight.elapsed)&&continuous&&before.flight?.kind===flight.kind&&before.flight?.from===flight.from&&before.flight?.start.x===flight.start.x&&before.flight?.start.y===flight.start.y)flight.elapsed=mix(before.flight.elapsed??flight.elapsed,flight.elapsed,t);
-  return {...frame,time:continuous?mix(before.time,frame.time,t):frame.time,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight};
+  else if(flight&&Number.isFinite(flight.elapsed)&&continuous){
+   const started=(frame.wall??frame.time)-flight.elapsed;
+   flight=wall+1e-7<started?(before.flight?{...before.flight}:null):{...flight,elapsed:Math.max(0,wall-started)};
+  }
+  return {...frame,time,wall,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight};
+ }
+ const smooth=n=>{n=clamp(n,0,1);return n*n*(3-2*n);};
+ const between=(a,b,t)=>a.map((v,i)=>mix(v,b[i],t));
+ // A two-bone chain with fixed segment lengths and an explicit bend direction.
+ // The pole keeps knees forward and elbows outside the jersey at every yaw.
+ function joint(root,end,pole,upper,lower){
+  const vector=sub(end,root),length=Math.hypot(...vector),axis=unit(vector),d=clamp(length,.001,upper+lower-.001);
+  const bend=sub(pole,root),projection=dot(bend,axis),normal=unit(bend.map((v,i)=>v-axis[i]*projection));
+  const along=(upper*upper-lower*lower+d*d)/(2*d),height=Math.sqrt(Math.max(0,upper*upper-along*along));
+  return root.map((v,i)=>v+axis[i]*along+normal[i]*height);
  }
  function pose(frame,a){
   const keeper=a.role==='G',speed=Math.hypot(a.vx||0,a.vy||0),f=frame.flight,puckAngle=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
   const skatingAngle=speed>.12?Math.atan2(a.vy,a.vx):(a.side===0?0:Math.PI);
-  const release=f?.from===a.id&&Number.isFinite(f.elapsed)&&f.elapsed<.55&&['shot','pass','intercept'].includes(f.kind)?1-clamp(f.elapsed/.55,0,1):0;
-  const contact=a.contact??(frame.carrier===a.id?1:0),angle=keeper?puckAngle:release?turn(skatingAngle,Math.atan2(f.end.y-f.start.y,f.end.x-f.start.x),release*.7):skatingAngle;
+  const clock=frame.wall??frame.time;
+  let action=a.action;
+  // Older recordings still have enough facts for a modest release animation.
+  if(!action&&f?.from===a.id&&Number.isFinite(f.elapsed)&&['shot','pass','intercept','dump','clear'].includes(f.kind))action={kind:f.kind==='intercept'?'pass':f.kind,at:clock-f.elapsed,origin:f.start,target:f.end,style:'wrist'};
+  const age=action?clock-action.at:Infinity,shooting=action?.kind==='shot',duration=shooting?.72:.52;
+  const release=action&&action.kind!=='receive'&&age>=0&&age<duration?1-smooth(age/duration):0;
+  const receiving=action?.kind==='receive'&&age>=0&&age<.45?1-smooth(age/.45):0;
+  const contact=a.contact??(frame.carrier===a.id?1:0);
+  const motion=a.motion||{},backward=clamp(motion.backward||0,0,1),acceleration=motion.acceleration||0;
+  const moving=smooth((speed-.1)/.8),brake=clamp(-acceleration/2.3,0,1)*moving;
+  const drive=moving*(a.motion?smooth((acceleration-.15)/2):clamp(speed/3.5,0,1))*(1-brake);
+  const curve=clamp((motion.turn||0)/1.6,-1,1)*moving*(1-brake),crossover=Math.abs(curve)*(1-backward*.6);
+  const facing=motion.heading??skatingAngle,angle=keeper?puckAngle:facing+brake*.45;
   const incoming=keeper&&f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
   // A low blocking attempt follows the approaching shot, not its hidden result.
   const drop=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
-  const phase=(a.travelled||0)*Math.PI/1.6,drive=Math.min(1,speed/3.5),stride=Math.sin(phase)*drive;
-  const lean=keeper?.12:.12+drive*.17,lower=keeper?.18+drop*.5:drive*.09;
-  const offset=keeper?0:-.58*contact;
-  const point=(forward,height,side)=>[a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];
-  const feet=[-1,1].map(side=>{const push=Math.max(0,side*stride),recover=Math.max(0,-side*stride);return keeper?point(0,.12,side*(.34+drop*.38)+stride*.06):point(-push*.32+recover*.12,.12+recover*.06,side*(.23+push*.38));});
-  let blade=point(1.1+release*.35,.08+release*(f?.kind==='shot'?.48:.12),.3);
-  // Keep the stick at plausible length when receiving or losing possession.
-  if(contact>.01&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=blade.map((v,i)=>mix(v,[frame.puck.x,.08,frame.puck.y][i],contact));
-  if(keeper)blade=point(.65,.06,0);
-  return {keeper,speed,angle,release,contact,drop,stride,lean,lower,point,feet,blade};
+  const phase=(a.travelled||0)*Math.PI/1.6,stride=Math.sin(phase)*(keeper?Math.min(1,speed/3.5):drive);
+  const hand=a.shoots==='R'?1:-1;
+  const lean=keeper?.12:.10+drive*.16+brake*.08,lower=keeper?.18+drop*.5:moving*.08+brake*.09+receiving*.035;
+  // Ease the body anchor back after release; the puck itself is never offset.
+  const anchor=Math.max(contact,release),offset=keeper?0:-.65*anchor;
+  const point=(forward,height,side)=>{side-=keeper?0:anchor*.18*hand;return [a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
+  if(keeper){const feet=[-1,1].map(side=>point(0,.12,side*(.34+drop*.38)+stride*.06));return {keeper,speed,angle,release,contact,drop,stride,lean,lower,point,feet,blade:point(.65,.06,0)};}
+  const feet=[],footAngles=[],legs=[];
+  for(const side of [-1,1]){
+   const cycle=Math.sin(phase+(side===1?Math.PI:0)),push=Math.max(0,cycle),recover=Math.max(0,-cycle);
+   const outer=side===-Math.sign(curve),crossStep=outer?crossover*recover:0;
+   const forward=(-push*.31+recover*.18)*drive*(1-backward*1.6);
+   const lateral=side*(.24+push*.30*drive+brake*.12)+Math.sign(curve)*crossStep*.47;
+   const foot=point(forward,.12+recover*drive*.075+crossStep*.14,lateral);
+   const hip=point(-.10,.90-lower,side*.18),ankle=[foot[0],foot[1]+.11,foot[2]];
+   const knee=joint(hip,ankle,point(.65,.55-lower,side*.22),.45,.46);
+   feet.push(foot);footAngles.push(angle+side*push*drive*.32+backward*side*.18+brake*.95+curve*.18);
+   legs.push({hip,knee,ankle});
+  }
+  const releaseAngle=release?Math.atan2(action.target.y-action.origin.y,action.target.x-action.origin.x):angle;
+  const waiting=f?.kind==='pass'&&f.to===a.id&&f.side===a.side;
+  const prepare=waiting?clamp((3-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/2,0,1):0;
+  const aim=release?releaseAngle:receiving?Math.atan2(action.target.y-a.y,action.target.x-a.x):(contact||prepare)&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)>.08?puckAngle:angle;
+  const twist=clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving));
+  const swing=release?Math.sin(Math.PI*clamp(age/duration,0,1)):0;
+  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12),roll=-curve*.19,pitch=.12+drive*.19+brake*.12;
+  const torso=point(lean,1.20-lower,curve*.10);
+  const torsoPoint=(forward,height,side)=>{
+   const fwd=forward*Math.cos(pitch)+height*Math.sin(pitch),up=height*Math.cos(pitch)-forward*Math.sin(pitch);
+   const lateral=side*Math.cos(roll)-up*Math.sin(roll),vertical=up*Math.cos(roll)+side*Math.sin(roll);
+   return [torso[0]+fwd*Math.cos(torsoAngle)-lateral*Math.sin(torsoAngle),torso[1]+vertical,torso[2]+fwd*Math.sin(torsoAngle)+lateral*Math.cos(torsoAngle)];
+  };
+  let blade=point(1.02,.08,.26*hand);
+  if(prepare){const direction=unit([frame.puck.x-a.x,0,frame.puck.y-a.y]);blade=between(blade,[a.x+direction[0]*.85,.08,a.y+direction[2]*.85],prepare*.8);}
+  if(release){
+   const power=shooting?(action.style==='slap'?.72:action.style==='one-timer'?.58:.44):.18;
+   const follow=[action.origin.x+Math.cos(releaseAngle)*swing*.5+Math.sin(releaseAngle)*hand*swing*.18,.08+swing*power,action.origin.y+Math.sin(releaseAngle)*swing*.5-Math.cos(releaseAngle)*hand*swing*.18];
+   blade=between(blade,follow,release);
+  }
+  if(contact>.01&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=between(blade,[frame.puck.x,.08,frame.puck.y],contact);
+  // Keep an incoming/outgoing reach inside the skater's actual arm/stick span.
+  const root=point(0,0,0),reach=Math.hypot(blade[0]-root[0],blade[2]-root[2]);
+  if(reach>1.25){blade[0]=root[0]+(blade[0]-root[0])*1.25/reach;blade[2]=root[2]+(blade[2]-root[2])*1.25/reach;}
+  const bladeAngle=turn(angle,releaseAngle,release)+hand*contact*Math.sin(phase*.5)*.24;
+  const heel=[blade[0]-Math.cos(bladeAngle)*.18,blade[1],blade[2]-Math.sin(bladeAngle)*.18];
+  const tip=[blade[0]+Math.cos(bladeAngle)*.23,blade[1],blade[2]+Math.sin(bladeAngle)*.23];
+  const shaftDirection=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
+  const hands=(hand===1?[1.23,.87]:[.87,1.23]).map(length=>heel.map((v,i)=>v+shaftDirection[i]*length));
+  const arms=[-1,1].map((side,i)=>{const shoulder=torsoPoint(0,.20,side*.34),hand=hands[i];return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14,-.05,side*.68),.40,.42),hand};});
+  const state=speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
+  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,style:action?.style};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};
  function kits(teams){
@@ -107,11 +185,11 @@ const Match3D = (() => {
     vertex(center[0]+x*cs-z*sn,center[1]+y,center[2]+x*sn+z*cs,(nx*cs-nz*sn)/length,ny/length,(nx*sn+nz*cs)/length,col);
    }
   }
-  function jersey(center,angle,main,trim){
+  function jersey(center,angle,main,trim,transform){
    const cs=Math.cos(angle),sn=Math.sin(angle),levels=[[-.32,.21,.29],[-.23,.23,.31],[-.15,.24,.32],[.12,.29,.40],[.27,.24,.35],[.32,.16,.25]];
-   const point=(row,t)=>[center[0]+Math.cos(t)*row[1]*cs-Math.sin(t)*row[2]*sn,center[1]+row[0],center[2]+Math.cos(t)*row[1]*sn+Math.sin(t)*row[2]*cs];
+   const point=(row,t)=>transform?transform(Math.cos(t)*row[1],row[0],Math.sin(t)*row[2]):[center[0]+Math.cos(t)*row[1]*cs-Math.sin(t)*row[2]*sn,center[1]+row[0],center[2]+Math.cos(t)*row[1]*sn+Math.sin(t)*row[2]*cs];
    for(let i=0;i<levels.length-1;i++)for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;quad(point(levels[i],a),point(levels[i+1],a),point(levels[i+1],b),point(levels[i],b),i===1?trim:main);}
-   for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;tri([center[0],center[1]+.32,center[2]],point(levels.at(-1),a),point(levels.at(-1),b),main);}
+   for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;tri(transform?transform(0,.32,0):[center[0],center[1]+.32,center[2]],point(levels.at(-1),a),point(levels.at(-1),b),main);}
   }
   return {get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,ellipsoid,jersey};
  }
@@ -149,14 +227,50 @@ const Match3D = (() => {
   for(const x of [25,35]){g.box(x,.45,-1.2,7,.6,1,blue);g.box(x,.9,-1.6,7,.5,.15,dark);}
   return g.data;
  }
+ function skater(g,m,kit){
+  const black=color('#101d2c'),steel=color('#91a9ba'),{jersey,trim}=kit,p=m.point,u=m.torsoPoint;
+  for(let i=0;i<2;i++){
+   const foot=m.feet[i],leg=m.legs[i],yaw=m.footAngles[i];
+   g.box(...foot,.43,.17,.18,black,yaw);
+   // Lifted recovery skate and its runner remain one rigid piece.
+   g.box(foot[0],foot[1]-.075,foot[2],.47,.028,.048,steel,yaw);
+   g.rod(leg.ankle,leg.knee,.12,jersey);g.rod(leg.knee,leg.hip,.155,black);
+   g.rod(between(leg.ankle,leg.knee,.64),between(leg.ankle,leg.knee,.84),.135,trim);
+   g.ellipsoid(leg.knee,[.145,.145,.15],jersey,m.angle);
+   if(m.brake>.45)for(let j=0;j<3;j++){
+    const cs=Math.cos(yaw),sn=Math.sin(yaw),spread=(j+1)*.09*m.brake;
+    const x=foot[0]-sn*spread,z=foot[2]+cs*spread;
+    g.tri([x,.025,z],[x+cs*.05,.05+j*.035,z+sn*.05],[x-sn*.08,.03,z+cs*.08],color('#eaf6f8'));
+   }
+  }
+  g.ellipsoid(p(-.07,.79-m.lower,0),[.26,.23,.29],black,m.angle);
+  g.jersey(m.torso,m.torsoAngle,jersey,trim,u);
+  g.rod(u(0,.25,0),u(.02,.43,0),.10,color('#caa887'));
+  const head=u(.02,.47,0),helmet=u(-.01,.62,0);
+  g.ellipsoid(head,[.15,.19,.17],color('#caa887'),m.torsoAngle);
+  g.ellipsoid(helmet,[.235,.195,.235],jersey,m.torsoAngle);
+  for(const side of [-1,1])g.rod(u(-.10,.43,side*.17),u(.14,.39,side*.17),.023,black);
+  g.box(...u(.22,.55,0),.026,.085,.32,steel,m.torsoAngle);
+  // Chest and cuffs use the same spine/arm transforms as the jersey.
+  g.quad(u(.277,.02,-.08),u(.277,.17,-.08),u(.277,.17,.08),u(.277,.02,.08),trim);
+  for(const arm of m.arms){
+   g.rod(arm.shoulder,arm.elbow,.13,jersey);g.rod(arm.elbow,arm.hand,.10,jersey);
+   g.rod(between(arm.shoulder,arm.elbow,.16),between(arm.shoulder,arm.elbow,.38),.14,trim);
+   g.ellipsoid(arm.hand,[.13,.12,.14],black,m.torsoAngle);
+  }
+  g.rod(m.heel,m.shaftTop,.032,black);
+  g.rod(between(m.heel,m.shaftTop,.84),m.shaftTop,.037,trim);
+  g.rod(m.heel,m.tip,.05,black);
+ }
  function figures(frame,teams){
   const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),steel=color('#91a9ba'),uniforms=kits(teams);
   for(const a of frame.actors){
    const m=pose(frame,a),{keeper:goalkeeper,angle,point:p,lower,lean,drop}=m;
    const {jersey,trim}=uniforms[a.side];
    const box=(f,h,s,w,hh,d,c)=>g.box(...p(f,h,s),w,hh,d,c,angle);
-   g.disk(a.x,.022,a.y,goalkeeper?.8:.62,color('#c0d3db'));g.disk(a.x,.028,a.y,goalkeeper?.59:.42,color('#a5becb'));
+   const shadow=p(0,0,0);g.disk(shadow[0],.022,shadow[2],goalkeeper?.8:.62,color('#c0d3db'));g.disk(shadow[0],.028,shadow[2],goalkeeper?.59:.42,color('#a5becb'));
    if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.08,trim);
+   if(!goalkeeper){skater(g,m,uniforms[a.side]);continue;}
    for(const [i,side] of [-1,1].entries()){
     const foot=m.feet[i],knee=p(.20,.60-lower*.65,side*(.22+drop*.24)),hip=p(-.10,.92-lower,side*.18);
     g.box(...foot,.52,.17,.18,black,angle+(goalkeeper?side*drop*.8:side*Math.max(0,side*m.stride)*.35));

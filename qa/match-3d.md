@@ -24,8 +24,8 @@ Verification:
   real WebGL pixels/error status, both cameras, live engine progress, GPU loss,
   recovery, resource disposal, screenshots 31/32 at 1366×768.
 
-Limitations: simple procedural figures, no skeletal contact/save animations,
-no puck elevation, no crowd animation or close-up/replay camera director.
+Limitations: original procedural figures, no imported skinned character assets,
+no full contact/save animation set, puck elevation, crowd animation or replay director.
 This change does not claim improvements to hockey decisions or AI balance.
 
 ## Beta 7 motion
@@ -101,3 +101,41 @@ camera controls, and puck framing across board positions and desktop aspect
 ratios. Windows smoke uses the real controls, captures settings (36), expanded
 zoom (35) and slow replay (34), checks puck projection and GPU fallback, and
 confirms that hidden frames avoid drawing and geometry rebuilds.
+
+## Articulated skating and stick rig
+
+Skaters share an original kinematic rig: hip/knee/ankle and shoulder/elbow/hand
+chains have fixed bone lengths, the spine leans and turns, and both gloves hold
+one fixed-length shaft. The skate runner follows the boot during recovery.
+The existing native WebGL renderer draws this rig; no Three.js dependency or
+imported glTF model is introduced. Kits, zoom, picking and 2D fallback still use
+the same production presentation.
+
+`recordMotion` stores filtered acceleration, travel heading, body heading,
+turn rate and backward blend from actual movement. Acceleration drives strides;
+steady travel glides; retreating defenders face the puck; turns blend into
+crossovers; deceleration turns the skate edges into a stop. These facts never
+feed movement, attributes, decisions, fatigue or RNG. Distance drives the gait,
+and sampled headings interpolate across the short angular path.
+
+Observed passes, shots, clearances, dumps and pickups record a small action with
+its wall timestamp, origin and target. Shot style comes from the engine's actual
+wrist/slap/one-timer context, and known L/R shooting hand comes from the roster.
+Unknown hand uses the generic rig stance. No wind-up predicts an unmade decision.
+Receiving players reach toward a nearby incoming pass, then cushion actual
+control. The carrier's blade meets the authoritative puck without moving it.
+Follow-through survives a short flight, then the body returns smoothly to its
+normal anchor. In stoppages the simulation's wall time can finish the action;
+pausing freezes it. Old frames and saves without these optional fields still work.
+
+Replay capture retains up to 0.8 seconds of **observed** recovery after a shot,
+stopping before a faceoff reset. Each extended replay replaces the old object
+and frame list, so retained recordings remain immutable. An immediate pause
+does not synthesize future recovery or advance the match for a replay.
+
+Validation covers outcome/RNG parity with presentation recording disabled,
+fixed limb lengths and two-hand grip through real play for L/R stances,
+backward/glide/brake/crossover motion, pass receipt, release after resolution,
+angular interpolation and release timestamps, save/reload and immutable replay
+recovery. Windows smoke checks the actual shot style and rig, native WebGL
+geometry/caching, and records `37-match-3d-motion.webm` from the real replay.

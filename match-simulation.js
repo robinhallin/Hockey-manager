@@ -187,6 +187,25 @@ const StudioHockey = (() => {
       return this.isShortHanded(side)?rows.filter(p=>p.role!=='C'):rows;
     }
     makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,travelled:0,shift:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
+    // Recorded animation facts are output only. They never feed targets, RNG,
+    // attributes or puck decisions, and survive save/replay entry mid-stride.
+    recordMotion(a,oldVx,oldVy,dt){
+      const wrap=n=>Math.atan2(Math.sin(n),Math.cos(n));
+      const speed=Math.hypot(a.vx,a.vy),oldSpeed=Math.hypot(oldVx,oldVy),m=a.motion;
+      const travel=speed>.12?Math.atan2(a.vy,a.vx):(m?.travel??(a.side===0?0:Math.PI));
+      const puckAngle=Math.atan2(this.puck.y-a.y,this.puck.x-a.x);
+      const retreat=a.role!=='G'&&a.status==='playing'&&a.side!==this.owner&&speed<4.2&&distance(a,this.puck)<22&&Math.cos(travel-puckAngle)<(m?.backward>.5?-.15:-.5);
+      const blend=1-Math.exp(-dt/.18),backward=(m?.backward||0)+((retreat?1:0)-(m?.backward||0))*blend;
+      const aim=a.role==='G'?puckAngle:speed>.18?travel+wrap(puckAngle-travel)*backward:(m?.heading??puckAngle);
+      const heading=m?m.heading+wrap(aim-m.heading)*blend:aim;
+      const acceleration=(speed-oldSpeed)/dt,rotation=oldSpeed>.35&&speed>.35?wrap(travel-Math.atan2(oldVy,oldVx))/dt:0;
+      a.motion={heading:wrap(heading),travel,backward,
+        acceleration:(m?.acceleration||0)+(acceleration-(m?.acceleration||0))*blend,
+        turn:(m?.turn||0)+(clamp(rotation,-3,3)-(m?.turn||0))*blend};
+    }
+    recordAction(a,kind,target,style=null){
+      a.presentationAction={kind,at:this.wall,origin:{...this.puck},target:{...target},style};
+    }
     installUnit(side){
       this.actors=this.actors.filter(a=>a.side!==side);
       for(const row of this.unit(side))this.actors.push(this.makeActor(side,row,point(side,20,15)));
@@ -205,6 +224,7 @@ const StudioHockey = (() => {
       const changed=a.side!==this.owner;
       if(changed)this.lastTouches=[];
       if(this.delayedOffside===a.side&&this.skaters(a.side).some(b=>progress(a.side,b.x)>40.1)){this.stop('offside','Fördröjd offside: anfallaren spelar pucken innan laget hunnit ut.',point(a.side,37,9));return;}
+      if(this.phase!=='faceoff')this.recordAction(a,'receive',this.flight?.start||this.puck);
       this.delayedOffside=null;this.icingCandidate=null;this.puckVelocity=null;this.rimPath=null;
       this.owner=a.side;this.carrier=a.id;this.flight=null;this.puck={x:a.x,y:a.y};
       this.decision=this.readDelay(a)+this.random()*.15;
@@ -222,6 +242,7 @@ const StudioHockey = (() => {
           const z=a===center?[.65,0]:offset[a.role];
           const p=a.role==='G'?point(side,4.4,15):{x:clamp(this.restartSpot.x+dx*z[0],2,58),y:clamp(this.restartSpot.y+z[1],2,28)};
           a.x=p.x;a.y=p.y;a.target={...p};a.vx=0;a.vy=0;a.status='playing';
+          delete a.motion;delete a.presentationAction;
         }
       }
     }
@@ -400,10 +421,12 @@ const StudioHockey = (() => {
         let vx=d>.03?dx/d*speed:0,vy=d>.03?dy/d*speed:0;
         for(const b of this.actors){if(a.id===b.id)continue;const gap=distance(a,b);if(gap>.02&&gap<1.1){vx+=(a.x-b.x)/gap*(1.1-gap)*1.6;vy+=(a.y-b.y)/gap*(1.1-gap)*1.6;}}
         const change=Math.hypot(vx-a.vx,vy-a.vy),blend=change?Math.min(1,accel*dt/change):1;
+        const oldVx=a.vx,oldVy=a.vy;
         a.vx+=(vx-a.vx)*blend;a.vy+=(vy-a.vy)*blend;
         const oldX=a.x,oldY=a.y;
         a.x=clamp(a.x+a.vx*dt,1,59);a.y=clamp(a.y+a.vy*dt,.6,29.4);
         a.travelled=(a.travelled||0)+Math.hypot(a.x-oldX,a.y-oldY);
+        this.recordMotion(a,oldVx,oldVy,dt);
       }
       const carrier=this.actor(this.carrier);if(carrier)this.puck={x:carrier.x,y:carrier.y};
       // Contact can happen between puck decisions; a player cannot skate through
@@ -559,6 +582,7 @@ const StudioHockey = (() => {
       if(interceptor){end.x=interceptor.actor.x;end.y=interceptor.actor.y;}
       else if(!success){end.x=clamp(end.x+(this.random()-.5)*6,1,59);end.y=clamp(end.y+(this.random()-.5)*6,1,29);}
       this.flight={kind:interceptor?'intercept':'pass',from:a.id,fromName:a.player.name,to:interceptor?interceptor.actor.id:b.id,start:{...this.puck},end,elapsed:0,duration:Math.max(.24,distance(a,end)/(15+this.attribute(a,'passing')*.22)),chance,success,side:a.side};
+      this.recordAction(a,'pass',end);
       this.carrier=null;this.decision=1.2;
       this.say('pass',a.player.name+' söker '+b.player.name.split(' ').at(-1)+'.',a.side);return true;
     }
@@ -577,6 +601,7 @@ const StudioHockey = (() => {
       const shot={time:this.time,side:a.side,player:a.player.name,playerId:a.id,role:a.role,x:a.x,y:a.y,quality:model.quality,outcome,context,finishRoll,blockChance:model.block,onTargetChance:model.onTarget,liveResolution:true,blockerId:blocker?.id||null,assists:this.lastTouches.filter(t=>t.id!==a.id&&this.time-t.time<10).slice(-2).reverse()};
       const velocity=context.type==='Slagskott'?28+this.attribute(a,'strength')*.2:23+this.attribute(a,'shooting')*.22;
       this.flight={kind:'shot',start:{...this.puck},end,elapsed:0,duration:Math.max(.18,distance(a,end)/velocity),shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
+      this.recordAction(a,'shot',end,context.oneTimer?'one-timer':context.type==='Slagskott'?'slap':'wrist');
       const reason=context.oneTimer?' möter sidledspassningen med ett direktskott!':context.rebound?' hugger på returen!':context.screen>.3?' skjuter genom trafiken framför mål!':context.pressure>.5?' avslutar under hård press!':context.d<8?' avslutar från slottet!':' skjuter'+(context.angle>.65?' ur snäv vinkel!':' från distans!');
       this.say('shot',a.player.name+reason,a.side,true);return true;
     }
@@ -585,7 +610,8 @@ const StudioHockey = (() => {
       const success=this.random()<chance,end=point(a.side,success?59:clamp(progress(a.side,a.x)+8,22,38),a.y<15?4:26);
       if(success)this.stats[a.side].clears++;
       this.icingCandidate=success&&progress(a.side,a.x)<30&&!this.isShortHanded(a.side)?{side:a.side}:null;
-      this.flight={kind:'clear',side:a.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(a,end)/18)};
+      this.flight={kind:'clear',from:a.id,side:a.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(a,end)/18)};
+      this.recordAction(a,'clear',end);
       this.carrier=null;this.lastTouches=[];this.setPhase('clear');
       this.say('clear',a.player.name+(success?' rensar ur zonen. Boxplayenheten får andrum.':' pressas och får inte ut pucken ur zonen.'),a.side,true);
       this.advice=success?(a.side===0?'Bra rensning. Vi kan samla boxen och få ner belastningen.':'De rensar. Hämta pucken och bygg upp powerplayet igen.'):'Pucken är kvar i zonen. Boxplaylaget behöver behålla sin täckning.';
@@ -595,7 +621,8 @@ const StudioHockey = (() => {
       if(progress(a.side,a.x)<30)return false;
       if(this.skaters(a.side).some(b=>b.id!==a.id&&progress(a.side,b.x)>40))this.delayedOffside=a.side;
       const end=this.dumpTarget(a).target;this.stats[a.side].dumps++;
-      this.flight={kind:'dump',side:a.side,start:{...this.puck},end,elapsed:0,duration:distance(a,end)/19};
+      this.flight={kind:'dump',from:a.id,side:a.side,start:{...this.puck},end,elapsed:0,duration:distance(a,end)/19};
+      this.recordAction(a,'dump',end);
       this.carrier=null;this.lastTouches=[];this.setPhase('dump');
       this.say('dump',a.player.name+' lägger pucken bakom backarna. Närmaste forward jagar; övriga säkrar.',a.side,true);return true;
     }
@@ -826,14 +853,22 @@ const StudioHockey = (() => {
       const f=this.flight;
       // Presentation receives observed flight data, never hidden outcome rolls.
       return {time:this.time,wall:this.wall,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
-        actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status})),
+        actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,shoots:a.player.shoots||null,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status,
+          ...(a.motion?{motion:{...a.motion}}:{}),
+          ...(a.presentationAction&&this.wall-a.presentationAction.at<1?{action:{...a.presentationAction,origin:{...a.presentationAction.origin},target:{...a.presentationAction.target}}}:{})})),
         flight:f?{kind:f.kind,start:{...f.start},end:{...f.end},from:f.from??f.shot?.playerId??null,to:f.to??null,side:f.side,elapsed:f.elapsed,duration:f.duration}:null};
     }
     capture(){
       if(this.tick%2!==0)return;
       const frame=this.presentationFrame();
       this.history.push(frame);if(this.history.length>150)this.history.shift();
-      if(this.pendingReplayShot){this.latestReplay={shot:this.pendingReplayShot,frames:this.history.slice(-70)};this.pendingReplayShot=null;}
+      if(this.pendingReplayShot){this.latestReplay={shot:this.pendingReplayShot,frames:this.history.slice(-70)};this.replayTailUntil=this.wall+.8;this.pendingReplayShot=null;}
+      else if(this.latestReplay&&this.replayTailUntil){
+        // Keep the actually observed recovery after a shot, without mutating a
+        // replay already being viewed or inventing future frames while paused.
+        if(this.wall<=this.replayTailUntil+1e-7&&this.phase!=='faceoff')this.latestReplay={shot:this.latestReplay.shot,frames:[...this.latestReplay.frames.slice(-69),frame]};
+        else this.replayTailUntil=null;
+      }
     }
     snapshot(){return this.history.at(-1);}
     loadScenario(scenario){
