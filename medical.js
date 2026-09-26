@@ -12,7 +12,7 @@ function medicalAvailable(p){return medicalReady(p)&&depthEligible(p)&&(!state.l
 function medicalCanTrain(p){return !internationalAway(p)&&!p.health?.injury;}
 function medicalExcused(p,required=900){return internationalAway(p)||Boolean(p.health?.injury||state.live?.medicalInjured?.includes(String(p.id)))&&(state.live?.iceTime?.[p.id]||0)<required;}
 function medicalStatus(p){if(internationalAway(p))return 'På landslagsuppdrag';const i=p.health?.injury;if(!i)return 'Spelklar';return i.remaining>2?'Skadad':i.remaining>0?'Rehabilitering':p.health.clearance==='rest'?'Återgångsträning':p.health.clearance==='limited'?'Begränsad comeback':'Full comeback · förhöjd risk';}
-function medicalRisk(p,hard=false){const h=p.health||{load:0},profile=h.injury?medicalProfile(h.injury):null;return 1+(p.fatigue||0)/45+h.load/60+(hard?1:0)+(h.injury?(h.clearance==='full'?4:2)*(profile?.risk||1):0)+medicalHistoryRisk(p);}
+function medicalRisk(p,hard=false){const h=p.health||{load:0},profile=h.injury?medicalProfile(h.injury):null,project=Math.max(-.25,Math.min(.1,clubProjectEffect('medicalRisk',0)));return Math.max(.5,1+(p.fatigue||0)/45+h.load/60+(hard?1:0)+(h.injury?(h.clearance==='full'?4:2)*(profile?.risk||1):0)+medicalHistoryRisk(p)+project);}
 function medicalRiskLabel(p){const r=medicalRisk(p);return r>=4?'Hög':r>=2.5?'Förhöjd':'Normal';}
 const MEDICAL_PROFILES={muscle:{name:'Muskelbesvär',min:5,max:14,rehab:0.9,limited:720,risk:1.35},joint:{name:'Ledbesvär',min:8,max:20,rehab:0.75,limited:540,risk:1.55},contusion:{name:'Kontusionsskada',min:3,max:9,rehab:1.15,limited:900,risk:1.15}};
 function medicalProfile(i){return MEDICAL_PROFILES[i?.type]||MEDICAL_PROFILES.contusion;}
