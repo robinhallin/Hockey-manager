@@ -449,6 +449,31 @@ const StudioHockey = (() => {
         return {target,value:.14+space*.13+clamp(advance,-1,1)*(p>40?.045:.12)+clamp(gap/3,0,1)*.08-this.pressureAt(a)*.19,reason:gap>2?'Utnyttjar en fri skridskoväg':'Söker en väg runt pressen'};
       }).sort((a,b)=>b.value-a.value)[0];
     }
+    shieldTarget(a){
+      const threats=this.skaters(1-a.side),nearest=[...threats].sort((b,c)=>distance(a,b)-distance(a,c))[0];
+      if(!nearest)return {x:a.x,y:a.y};
+      const away=Math.atan2(a.y-nearest.y,a.x-nearest.x);
+      const candidates=[0,-Math.PI/3,Math.PI/3,-Math.PI/2,Math.PI/2].map(turn=>{
+        const angle=away+turn,target={x:clamp(a.x+Math.cos(angle)*1.35,1.2,58.8),y:clamp(a.y+Math.sin(angle)*1.35,1.1,28.9)};
+        // Puck protection cannot carry the puck across blue ahead of a teammate.
+        if(progress(a.side,a.x)<40&&this.skaters(a.side).some(b=>b.id!==a.id&&progress(a.side,b.x)>40.1)&&progress(a.side,target.x)>39.5)target.x=point(a.side,39.5,0).x;
+        const clearance=Math.min(4,...threats.map(d=>distance(d,target)));
+        const separation=Math.min(2,...this.skaters(a.side).filter(b=>b.id!==a.id).map(b=>distance(b,target)));
+        return {target,value:clearance+separation*.15-distance(a,target)*.08};
+      });
+      return candidates.sort((x,y)=>y.value-x.value)[0].target;
+    }
+    dumpTarget(a){
+      const active=side=>this.skaters(side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status));
+      const arrival=(players,target)=>Math.min(20,...players.map(b=>distance(b,target)/(3.1+this.attribute(b,'skating')*.09)));
+      return [2,28].map(y=>{
+        const target=point(a.side,59,y),ours=arrival(active(a.side),target),theirs=arrival(active(1-a.side),target);
+        // Prefer the near boards when races are otherwise similar; switch only
+        // when actual support and defensive coverage justify the longer route.
+        const near=(a.y<15)===(y<15),value=theirs-ours+(near?.35:0);
+        return {target,value,far:!near};
+      }).sort((x,y)=>y.value-x.value)[0];
+    }
     supportTarget(a,carrier,anchor){
       const key=this.owner+':'+this.phase+':'+carrier.id;
       if(a.supportPlan?.key===key&&a.supportPlan.until>this.time)return a.supportPlan.target;
@@ -475,13 +500,15 @@ const StudioHockey = (() => {
         const receiver=this.shotModel(b),space=1-this.pressureAt(b);
         let value=chance*(.32+receiver.quality*3+space*.08+clamp(forward/20,-.5,1)*.10)-(1-chance)*.22;
         if(this.lastTouches.at(-1)?.id===b.id)value-=.06;
-        if(p>40&&progress(a.side,b.x)<40)value-=.2;
-        rows.push({kind:'pass',value,to:b.id,reason:receiver.quality>model.quality*1.5?'Passar till ett bättre avslutsläge':chance>.8?'Spelar ur pressen via en säker passningsväg':'Söker en öppning genom täckningen'});
+        const reset=p>40&&progress(a.side,b.x)<40,escape=pressure>.4&&chance>.72&&space>.6;
+        if(reset)value-=escape?.07:.24;
+        if(p>=32&&p<40&&forward<-6&&pressure<.4)value-=.10;
+        rows.push({kind:'pass',value,to:b.id,reason:reset?(escape?'Återspelar bakom blå för att ta sig ur pressen':'Väger ett återspel mot risken att tappa anfallszonen'):receiver.quality>model.quality*1.5?'Passar till ett bättre avslutsläge':chance>.8?(pressure>.35?'Spelar ur pressen via en säker passningsväg':'Behåller pucken via en fri passningsväg'):'Söker en öppning genom täckningen'});
       }
       const instant=context.oneTimer||context.rebound||(p>47&&context.angle<.6&&context.pressure<.45);
       if(p>41&&!context.behind&&(!pp||instant||this.attackPasses>=2&&this.setupTime>1.2))rows.push({kind:'shoot',value:.12+model.quality*4+shotTacticalBias({mentality:t.tactics.mentality})+(instant?.06:0),reason:context.oneTimer?'Avslutar innan målvakten hinner över':context.screen>.3?'Utnyttjar skymningen':'Väljer avslut framför en sämre fortsättning'});
-      if(p>=30&&p<40)rows.push({kind:'dump',value:.08+pressure*.28+(t.tactics.mentality==='direct'?.07:0),reason:'Lägger pucken bakom pressen för att vinna nästa duell'});
-      if(pressure>.35&&held<1.6)rows.push({kind:'shield',value:.1+pressure*.18+this.attribute(a,'puckControl')*.002-held*.04,reason:'Skyddar pucken medan understödet blir spelbart'});
+      if(p>=30&&p<40){const lane=this.dumpTarget(a);rows.push({kind:'dump',value:.08+pressure*.28+(t.tactics.mentality==='direct'?.07:0),target:lane.target,reason:lane.far?'Dumpar mot bortre hörnet där understödet har bättre chans':'Lägger pucken längs närmaste sarg för nästa duell'});}
+      if(pressure>.35&&held<1.6)rows.push({kind:'shield',value:.1+pressure*.18+this.attribute(a,'puckControl')*.002-held*.04,target:this.shieldTarget(a),reason:'Flyttar pucken bort från pressen medan understödet blir spelbart'});
       if(pk&&p<32)rows.push({kind:'clear',value:.52+pressure*.15,reason:'Prioriterar att få ut pucken i numerärt underläge'});
       return rows.sort((a,b)=>b.value-a.value);
     }
@@ -567,7 +594,7 @@ const StudioHockey = (() => {
       // A dump lets early forwards tag up while the puck keeps travelling.
       if(progress(a.side,a.x)<30)return false;
       if(this.skaters(a.side).some(b=>b.id!==a.id&&progress(a.side,b.x)>40))this.delayedOffside=a.side;
-      const end=point(a.side,59,a.y<15?2:28);this.stats[a.side].dumps++;
+      const end=this.dumpTarget(a).target;this.stats[a.side].dumps++;
       this.flight={kind:'dump',side:a.side,start:{...this.puck},end,elapsed:0,duration:distance(a,end)/19};
       this.carrier=null;this.lastTouches=[];this.setPhase('dump');
       this.say('dump',a.player.name+' lägger pucken bakom backarna. Närmaste forward jagar; övriga säkrar.',a.side,true);return true;
@@ -724,7 +751,7 @@ const StudioHockey = (() => {
       if(choice.kind==='pass'){const receiver=this.actor(choice.to);if(receiver)this.pass(a,receiver);return;}
       if(choice.kind==='dump'){this.dump(a);return;}
       if(choice.kind==='clear'){this.clear(a);return;}
-      a.carryPlan={until:this.time+this.decision+.15,target:choice.kind==='shield'?{x:a.x,y:a.y}:choice.target,reason:choice.reason};
+      a.carryPlan={until:this.time+this.decision+.15,target:choice.target||{x:a.x,y:a.y},reason:choice.reason};
     }
 
     isShortHanded(side){return this.penalty?.side===side;}
