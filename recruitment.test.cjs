@@ -117,4 +117,7 @@ run("globalThis.agentPlayer=managerRoster()[0];delete agentPlayer.agent;globalTh
 assert.equal(run('agentA.id'),run('agentB.id'));assert.ok(run('AGENT_TYPES[agentA.type]'));assert.ok(run('agentTerms.salary')>0);
 run("agentPlayer.agent={id:'test-agent',name:'Test Agent',type:'negotiator'};globalThis.hard=recruitPlayerWishes(agentPlayer);agentPlayer.agent={id:'test-agent-2',name:'Test Agent 2',type:'relationship'};globalThis.soft=recruitPlayerWishes(agentPlayer)");
 assert.ok(run('hard.salary')>run('soft.salary'),'hard negotiator should push salary more than relationship agent');
+run("globalThis.previewP=managerRoster()[0];globalThis.preview=managerCommitmentPreview(previewP,1000000,2000000,3)");
+assert.equal(run("preview.total"),7000000);assert.equal(run("preview.cashAfter"),run("managerRecruitmentBudget(previewP.id).availableCash-1000000"));
+run("globalThis.fakeDeal={id:999,playerId:previewP.id,status:'pending',counter:{fee:0,salary:2200000,years:2,role:'Ordinarie'},original:{fee:0,salary:1800000,years:2,role:'Rotation'}}");assert.equal(run("recruitCounterDifferences(fakeDeal).some(x=>x.key==='salary')"),true);
 console.log('PASS: international market, unique ownership, scouting missions, time/reload, player terms, rivals, budgets, explicit sales, AI transfers, offseason and 14-club views.');
