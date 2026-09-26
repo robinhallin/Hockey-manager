@@ -15,9 +15,12 @@ function assistantFocus(p){
  return options[0]?.[0]||'Balanserad';
 }
 function assistantTeamSession(date){
- const fixtures=calendarFixtures(),soon=fixtures.filter(f=>!f.played&&f.date>=date&&calGap(date,f.date)<=3).length;
- const tired=managerRoster().filter(p=>p.fatigue>=45).length>managerRoster().length/3;
- return fixtures.some(f=>f.date===calAdd(date,1))?{type:'matchprep',intensity:'light'}:tired||fixtures.some(f=>f.played&&f.date===calAdd(date,-1))?{type:'recovery',intensity:'light'}:{type:['skills','physical','tactics','powerplay','penaltykill'][new Date(date+'T12:00:00Z').getUTCDay()%5],intensity:soon>=2?'light':'normal'};
+ const fixtures=calendarFixtures(),soon=fixtures.filter(f=>!f.played&&f.date>=date&&calGap(date,f.date)<=3).length,tired=managerRoster().filter(p=>p.fatigue>=45).length>managerRoster().length/3;
+ const assistant=state.staff.find(s=>s.id==='assistant'),philosophy=staffPhilosophy(assistant);
+ if(fixtures.some(f=>f.date===calAdd(date,1)))return {type:'matchprep',intensity:'light'};
+ if(tired||fixtures.some(f=>f.played&&f.date===calAdd(date,-1)))return {type:'recovery',intensity:'light'};
+ const fallback=['skills','physical','tactics','powerplay','penaltykill'][new Date(date+'T12:00:00Z').getUTCDay()%5],type=TRAINING_SESSIONS[philosophy.training]?philosophy.training:fallback;
+ return {type,intensity:philosophy.risk>.2&&soon<2?'hard':soon>=2?'light':'normal'};
 }
 function assistantPrepareTraining(){
  assistantReportingEnsure();
@@ -38,7 +41,8 @@ function assistantPrepareTraining(){
 }
 function assistantTrainingView(group='senior'){
  const data=group==='junior'?state.juniors:state.training;
- return `<label>${group==='junior'?'Juniorernas träning':'A-lagets träning'}<select aria-label="${group==='junior'?'Ansvar för juniorträning':'Ansvar för A-lagsträning'}" onchange="assistantSetOwner('${group}',this.value)"><option value="manager" ${data?.assistantOwner!=='assistant'?'selected':''}>Jag planerar</option><option value="assistant" ${data?.assistantOwner==='assistant'?'selected':''}>${group==='junior'?'Juniorstaben':'Assisterande'} planerar</option></select></label><p>${group==='junior'?'Individuella fokus och belastning anpassas efter position, utvecklingsroll och ork. Månadsrapport den 1:a. Uttagning, uppflyttning och lån bestämmer du.':'Assisterande anpassar lagpassen efter matchschemat och väljer relevanta individuella fokus. Trötta spelare får lätt träning eller vila. Veckorapport varje söndag.'} Dina egna datumplaner och individuella val gäller före stabens förslag.</p>`;
+ const responsible=state.staff.find(s=>s.id===(group==='junior'?'junior':'assistant')),philosophy=staffPhilosophy(responsible);
+ return `<label>${group==='junior'?'Juniorernas träning':'A-lagets träning'}<select aria-label="${group==='junior'?'Ansvar för juniorträning':'Ansvar för A-lagsträning'}" onchange="assistantSetOwner('${group}',this.value)"><option value="manager" ${data?.assistantOwner!=='assistant'?'selected':''}>Jag planerar</option><option value="assistant" ${data?.assistantOwner==='assistant'?'selected':''}>${group==='junior'?'Juniorstaben':'Assisterande'} planerar</option></select></label><p>${group==='junior'?'Individuella fokus och belastning anpassas efter position, utvecklingsroll och ork. Månadsrapport den 1:a. Uttagning, uppflyttning och lån bestämmer du.':'Assisterande anpassar lagpassen efter matchschemat och väljer relevanta individuella fokus. Trötta spelare får lätt träning eller vila. Veckorapport varje söndag.'} Dina egna datumplaner och individuella val gäller före stabens förslag.</p><p><strong>${trainingSafe(responsible?.name||'Staben')} · ${trainingSafe(philosophy.name)}:</strong> ${trainingSafe(philosophy.text)}</p>`;
 }
 function assistantReportingEnsure(){
  if(!state.training||!state.juniors||!state.calendar)return null;

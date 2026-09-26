@@ -144,16 +144,16 @@ function recruitPlayerWishes(p,club=managerClub()){
  const roster=state.clubRosters[club]||[],group=roster.filter(q=>p.pos==='MV'?q.pos==='MV':p.pos==='B'?q.pos==='B':!['MV','B'].includes(q.pos));
  const snapshot=aiMarketSnapshot?.clubs.get(club);
  const ability=aiMarketSnapshot?.ratings.get(String(p.id))??matchAttributeRating(p),avg=snapshot?.groupMean[worldGroup(p)]??group.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,group.length);
- const identity=playerPreferenceProfile(p,club),ambitious=identity.ambition>=14;
+ const identity=playerPreferenceProfile(p,club),agent=agentPreference(p,club),ambitious=identity.ambition>=14;
  const level=ability-avg,role=level>2?'Nyckelspelare':level>-3?'Ordinarie':'Rotation';
  const clubStrength=snapshot?.strength??roster.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,roster.length);
  const relegationStep=state.world?.membership?.[aiMarketSnapshot?.owners.get(String(p.id))??getPlayerClub(p.id)]==='SHL'&&leagueOf(club)==='HA';
  const stretch=ambitious&&(ability>clubStrength+5||relegationStep);
  const trustDiscount=identity.current&&identity.trust>=75&&identity.loyalty>=13?.96:1;
- const salary=Math.round(p.salary*(stretch?1.35:1.12)*identity.salaryWeight*trustDiscount/10000)*10000;
- const minYears=p.age<24?2:identity.securityWeight>=1.1?2:1,maxYears=p.age>=32?(identity.securityWeight>=1.1?3:2):5;
+ const salary=Math.round(p.salary*(stretch?1.35:1.12)*identity.salaryWeight*agent.salary*trustDiscount/10000)*10000;
+ const minYears=p.age<24||identity.securityWeight*agent.years>=1.12?2:1,maxYears=p.age>=32?(identity.securityWeight*agent.years>=1.1?3:2):5;
  const priority=identity.ambition>=14?'Sportsliga ambitioner och roll':identity.sensitivity>=14?'Trygghet, avtalslängd och tydlig roll':identity.loyalty>=14?'Kontinuitet och förtroende':'Speltid och villkor';
- return {role,salary,minYears,maxYears,priority,stretch,identity};
+ return {role,salary,minYears,maxYears,priority,stretch,identity,agent};
 }
 function recruitCanSell(p,club){
  if(p.futureContract||playerLoan(p)||naActive(p))return false;if(club===WORLD_FREE)return true;
@@ -190,8 +190,8 @@ function recruitRival(p,seller){
 }
 function recruitOfferScore(p,club,offer){
  const w=recruitPlayerWishes(p,club),rank=SQUAD_ROLES.indexOf(offer.role);
- const pref=w.identity||playerPreferenceProfile(p,club),salaryScore=offer.salary/w.salary*40*pref.salaryWeight,roleScore=(rank-SQUAD_ROLES.indexOf(w.role))*12*pref.roleWeight,termScore=(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25)*pref.securityWeight;
- return salaryScore+roleScore+(w.stretch?-15:5)+termScore+pref.continuity;
+ const pref=w.identity||playerPreferenceProfile(p,club),agent=w.agent||agentPreference(p,club),salaryScore=offer.salary/w.salary*40*pref.salaryWeight*agent.salary,roleScore=(rank-SQUAD_ROLES.indexOf(w.role))*12*pref.roleWeight*agent.role,termScore=(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25)*pref.securityWeight*agent.years;
+ return salaryScore+roleScore+(w.stretch?-15:5)+termScore+pref.continuity+agent.continuity;
 }
 function submitRecruitOffer(id,fee,salary,years,role){
  if(!managerCanPlay())return;
@@ -338,6 +338,6 @@ function legacyRecruitmentPlayerView(){
  if(playerLoan(p))return `<section class="recruitment-page"><button class="btn secondary" onclick="deskNavigate('transfers','loans')">← Lånecentralen</button><h1>${trainingSafe(p.name)}</h1>${assessmentPanel(p)}${loanPlayerPanel(p)}${medicalPlayerPanel(p)}</section>`;
  const club=getPlayerClub(p.id),w=recruitPlayerWishes(p),r=state.recruitment,legacy=state.transferNegotiation&&samePlayerId(state.transferNegotiation.playerId,p.id)?state.transferNegotiation:null;
  return `<section class="recruitment-page"><button class="btn secondary" onclick="deskBack('transfers')">← Tillbaka</button><header class="daily-heading"><div><span class="career-eyebrow">${trainingSafe(club)} · ${RECRUIT_COUNTRIES[worldIsFree(p.id)?p.nationality:recruitCountry(club)]||p.nationality||'Sverige'}${p.fictional?' · FIKTIV SPELARE':''}</span><h1>${trainingSafe(p.name)}</h1><p>${p.pos} · ${p.age} år · ${p.contractYears} år kvar på avtalet</p></div><button class="btn secondary" onclick="toggleRecruitShortlist('${p.id}')">${r.shortlist.some(id=>samePlayerId(id,p.id))?'Ta bort från önskelistan':'Lägg till i önskelistan'}</button></header>${assessmentPanel(p)}${loanPlayerPanel(p)}${medicalPlayerPanel(p)}${calendarFuturePanel(p)}
- <section class="recruit-negotiation"><div><span class="career-eyebrow">SPELARENS REPRESENTANT</span><h2>Vad krävs för en övergång?</h2><p>${worldIsFree(p.id)?'Spelaren är kontraktslös. Förhandla direkt om lön, roll och avtal.':recruitWillingToSell(p,club)?'Klubben är öppen för en diskussion.':'Klubben vill behålla spelaren med tanke på truppens kvalitet eller storlek.'}</p><dl><dt>Klubbens prisnivå</dt><dd>${careerMoney(recruitFee(p))}</dd><dt>Önskad årslön</dt><dd>${careerMoney(w.salary)}</dd><dt>Önskad roll</dt><dd>${w.role}</dd><dt>Avtalslängd</dt><dd>${w.minYears}–${w.maxYears} år</dd><dt>Prioriterar</dt><dd>${w.priority}</dd></dl><p>${w.stretch?'Spelaren ser din klubbs sportsliga nivå som ett steg nedåt och vill kompenseras i lön.':'Klubbens nivå är intressant, men roll och lön behöver stämma.'}</p><p>Ordinarie och nyckelspelare följs upp under de tre första matcherna. Målvakter behöver 30 minuter, övriga 12 respektive 15 minuter i minst två matcher.</p></div>
+ <section class="recruit-negotiation"><div><span class="career-eyebrow">SPELARENS REPRESENTANT</span><h2>${trainingSafe(w.agent.agent.name)} · ${trainingSafe(w.agent.definition.name)}</h2><p>${trainingSafe(w.agent.definition.text)}</p><h3>Vad krävs för en övergång?</h3><p>${worldIsFree(p.id)?'Spelaren är kontraktslös. Förhandla direkt om lön, roll och avtal.':recruitWillingToSell(p,club)?'Klubben är öppen för en diskussion.':'Klubben vill behålla spelaren med tanke på truppens kvalitet eller storlek.'}</p><dl><dt>Klubbens prisnivå</dt><dd>${careerMoney(recruitFee(p))}</dd><dt>Önskad årslön</dt><dd>${careerMoney(w.salary)}</dd><dt>Önskad roll</dt><dd>${w.role}</dd><dt>Avtalslängd</dt><dd>${w.minYears}–${w.maxYears} år</dd><dt>Prioriterar</dt><dd>${w.priority}</dd></dl><p>${w.stretch?'Spelaren ser din klubbs sportsliga nivå som ett steg nedåt och vill kompenseras i lön.':'Klubbens nivå är intressant, men roll och lön behöver stämma.'}</p><p>Ordinarie och nyckelspelare följs upp under de tre första matcherna. Målvakter behöver 30 minuter, övriga 12 respektive 15 minuter i minst två matcher.</p></div>
  <form onsubmit="event.preventDefault();submitRecruitOffer('${p.id}',this.elements.fee.value,this.elements.salary.value,this.elements.years.value,this.elements.role.value)"><h2>Ditt erbjudande · anslut direkt</h2><p>${calendarDeadlineText()}</p>${r.message?`<p role="status">${trainingSafe(r.message)}</p>`:''}<label>Övergångssumma<input name="fee" type="number" min="${worldIsFree(p.id)?0:1}" ${worldIsFree(p.id)?'readonly':''} step="1" required value="${legacy?.transferFee||recruitFee(p)}"></label><label>Årslön<input name="salary" type="number" min="1" step="1" required value="${legacy?.salaryDemand||w.salary}"></label><label>År<select name="years">${recruitOptions({1:'1 år',2:'2 år',3:'3 år',4:'4 år',5:'5 år'},Math.min(3,w.maxYears))}</select></label><label>Roll i laget<select name="role">${recruitOptions(Object.fromEntries(SQUAD_ROLES.map(k=>[k,k])),w.role)}</select></label><button class="btn" type="submit" ${r.deals.some(d=>samePlayerId(d.playerId,p.id)&&d.status==='pending')?'disabled':''}>Skicka erbjudande</button><p>Budet reserverar transfer- och löneutrymme. Besked kommer om två kalenderdagar.</p></form></section></section>`;
 }

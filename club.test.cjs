@@ -104,4 +104,6 @@ assert.equal(run('state.money'),run('renewalCash'));
 run("startCareerWithClub('HV71');state.clubOffice.priority='academy';state.clubOffice.priorityLockedYear=clubYear();state.clubOffice.projects={academy:{id:'academy',started:clubYear(),seasons:0,maturity:25}};globalThis.early=clubProjectFactor('junior');state.clubOffice.projects.academy.maturity=100;globalThis.mature=clubProjectFactor('junior')");
 assert.ok(run('mature')>run('early'),'multi-season club projects should mature instead of granting full effect immediately');
 assert.equal(run('clubProjectFactor("training")')>1,true);
+run("globalThis.staffMember=state.staff.find(s=>s.id==='assistant');delete staffMember.philosophy;globalThis.ph1=staffPhilosophy(staffMember);globalThis.ph2=staffPhilosophy(staffMember)");
+assert.equal(run('ph1.name'),run('ph2.name'));assert.ok(run('Object.values(STAFF_PHILOSOPHIES).some(p=>p.name===ph1.name)'));
 console.log('PASS: club finance, home/away and playoffs, ledgers, migration, personnel contracts and renewal, real training/rehab effects, priorities, rollover and 14 club views.');

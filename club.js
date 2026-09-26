@@ -1,6 +1,19 @@
 "use strict";
 // Fictional operating model. One annual budget is settled over 52 regular fixtures.
 const CLUB_ROLES={assistant:'Assisterande tränare',scout:'Chefsscout',goalie:'Målvaktstränare',junior:'Junioransvarig',physio:'Fysioterapeut'};
+const STAFF_PHILOSOPHIES={
+ continuity:{name:'Kontinuitet',text:'Föredrar stabila formationer och etablerade spelare.',training:'tactics',youth:-.2,risk:-.15},
+ development:{name:'Utveckling',text:'Ger yngre spelare ansvar och prioriterar individuell förbättring.',training:'skills',youth:.55,risk:.05},
+ aggressive:{name:'Initiativ',text:'Vill spela aggressivt och träna med högre intensitet.',training:'physical',youth:.05,risk:.35},
+ structure:{name:'Struktur',text:'Prioriterar defensiva detaljer, återhämtning och tydliga roller.',training:'tactics',youth:0,risk:-.3},
+ analysis:{name:'Analytisk',text:'Vill samla mer underlag innan större förändringar.',training:'matchprep',youth:.1,risk:-.1}
+};
+function staffPhilosophy(s){
+ if(!s)return STAFF_PHILOSOPHIES.structure;if(s.philosophy&&STAFF_PHILOSOPHIES[s.philosophy])return STAFF_PHILOSOPHIES[s.philosophy];
+ const keys=Object.keys(STAFF_PHILOSOPHIES);s.philosophy=keys[Math.floor(attrSeed(`${s.personId||s.name}:philosophy`)*keys.length)];return STAFF_PHILOSOPHIES[s.philosophy];
+}
+function staffPhilosophyText(s){const p=staffPhilosophy(s);return `${p.name}: ${p.text}`;}
+
 const CLUB_PRIORITIES={balanced:{name:'Håll marginalerna',cost:0,text:'Ingen extra satsning. Behåll utrymme för värvningar och oväntade utgifter.'},youth:{name:'Talangfabriken',cost:1200000,text:'15 % mer utveckling i klubbens juniorträning. Lån påverkas inte.'},scouting:{name:'Bredare nätverk',cost:900000,text:'Ett extra samtidigt scoutuppdrag och 20 % lägre uppdragsavgift.'},first:{name:'Vässa A-laget',cost:1500000,text:'10 % mer träningsutveckling i A-laget. Vila ger ingen utveckling.'}};
 Object.assign(CLUB_PRIORITIES,{
  recovery:{name:'Håll laget friskt',cost:1300000,text:'Två steg högre fysioterapeutkompetens och 10 % bättre återhämtning i matchpauser.',physio:2,recovery:1.1},
@@ -49,7 +62,7 @@ function clubMakeMarket(){
  const o=state.clubOffice,first=['Elin','Oskar','Maria','Daniel','Emma','Viktor','Sofia','Anton','Karin','Fredrik'],last=['Sjöberg','Lund','Ekström','Björk','Nyberg','Strand','Wallin','Bergman','Holmström','Dahl'];
  o.market=Object.keys(CLUB_ROLES).flatMap((role,r)=>Array.from({length:3},(_,i)=>{
   const seed=k=>attrSeed(`staff:${o.year}:${role}:${i}:${k}`),skill=10+i*3;
-  return {personId:`staff-${o.year}-${role}-${i}`,id:role,name:`${first[(r*2+i)%10]} ${last[(r+i+o.year)%10]}`,ability:Math.min(20,skill+Math.floor(seed('a')*3)),potential:Math.min(20,10+Math.floor(seed('p')*10)),coaching:Math.min(20,skill+Math.floor(seed('c')*3)),specialty:role==='goalie'?'Målvakt':['Tvåvägsforward','Spelfördelare','Målskytt','Defensiv back'][Math.floor(seed('s')*4)],salary:240000+i*220000+(role==='assistant'?120000:0),minYears:i===2?2:1};
+  return {personId:`staff-${o.year}-${role}-${i}`,id:role,name:`${first[(r*2+i)%10]} ${last[(r+i+o.year)%10]}`,philosophy:Object.keys(STAFF_PHILOSOPHIES)[Math.floor(seed('philosophy')*Object.keys(STAFF_PHILOSOPHIES).length)],ability:Math.min(20,skill+Math.floor(seed('a')*3)),potential:Math.min(20,10+Math.floor(seed('p')*10)),coaching:Math.min(20,skill+Math.floor(seed('c')*3)),specialty:role==='goalie'?'Målvakt':['Tvåvägsforward','Spelfördelare','Målskytt','Defensiv back'][Math.floor(seed('s')*4)],salary:240000+i*220000+(role==='assistant'?120000:0),minYears:i===2?2:1};
  }));
 }
 function clubPost(category,amount,label){

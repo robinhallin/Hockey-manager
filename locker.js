@@ -55,6 +55,21 @@ function playerClubHistory(p,club=managerClub()){
  const s=playerIdentity(p),rows=(s.journal||[]).filter(x=>x.club===club);
  return {trust:s.trust??60,positive:rows.filter(x=>(x.change||0)>0).length,negative:rows.filter(x=>(x.change||0)<0).length,broken:rows.filter(x=>/brutet|infriades inte|motsvarar inte rollen/i.test((x.title||'')+' '+(x.body||''))).length};
 }
+const AGENT_TYPES={
+ relationship:{name:'Relationsbyggare',salary:.94,role:.95,years:1.12,trust:1.25,text:'Värderar kontinuitet, förtroende och en hållbar relation.'},
+ negotiator:{name:'Hård förhandlare',salary:1.12,role:1,years:1,text:'Driver ersättning och marknadsvärde hårdare.'},
+ career:{name:'Karriärstrateg',salary:1,role:1.18,years:.96,trust:.9,text:'Prioriterar sportslig roll och nästa steg i karriären.'},
+ development:{name:'Utvecklingsagent',salary:.97,role:1.1,years:1.08,trust:1.05,text:'Prioriterar tydlig utvecklingsväg och stabil speltid.'}
+};
+function playerAgent(p){
+ if(!p)return null;if(p.agent&&AGENT_TYPES[p.agent.type])return p.agent;
+ const types=Object.keys(AGENT_TYPES),type=types[Math.floor(attrSeed(`${p.id}:agent:type`)*types.length)],first=['Alex','Robin','Kim','Sam','Patrik','Maria','Johan','Elin'],last=['Lind','Berg','Holm','Sjö','Ek','Dahl','Strand','Nyberg'];
+ p.agent={id:`agent-${p.id}`,type,name:first[Math.floor(attrSeed(`${p.id}:agent:first`)*first.length)]+' '+last[Math.floor(attrSeed(`${p.id}:agent:last`)*last.length)]};return p.agent;
+}
+function agentPreference(p,club=managerClub()){
+ const a=playerAgent(p),d=AGENT_TYPES[a.type],identity=playerIdentity(p),current=getPlayerClub(p.id)===club;
+ return {agent:a,definition:d,salary:d.salary,role:d.role,years:d.years,continuity:current?((identity.trust??60)-60)/5*d.trust:0};
+}
 function playerPreferenceProfile(p,club=managerClub()){
  const s=playerIdentity(p),history=playerClubHistory(p,club),current=getPlayerClub(p.id)===club;
  const ambition=(s.ambition-10)/10,loyalty=(s.loyalty-10)/10,security=(s.sensitivity-10)/10;

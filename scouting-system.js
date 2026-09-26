@@ -12,6 +12,7 @@ function ensureScoutingOffice(){
 }
 function scoutingOffice(){return state.recruitment?.scouting;}
 function scoutingStaff(){return (state.staff||[]).filter(s=>['scout','assistant','goalie'].includes(s.id));}
+function scoutingPhilosophyFactor(s,method){const p=staffPhilosophy(s);return p.name==='Analytisk'&&method==='detail'?1.12:p.name==='Utveckling'&&method==='potential'?1.12:p.name==='Initiativ'&&method==='screen'?1.08:1;}
 function scoutingPerson(s){return String(s.personId||s.id);}
 function scoutingRegion(p){return recruitCountry(getPlayerClub(p.id));}
 function scoutingCoverage(s,region){return Math.min(95,(region==='SWE'?65:20)+(scoutingOffice()?.coverage[scoutingPerson(s)+':'+region]||0)+(state.clubOffice?.priority==='international'?15:0));}
@@ -27,7 +28,7 @@ function scoutingQuestion(job,p){
  const c=scoutingObservationContext(p,job),profile=job.profile!=='ALL'?job.profile:'aktuell roll';
  return {context:c,text:`Kan spelaren bära ${profile.toLowerCase()}? Underlaget omfattar ${c.games} registrerade matcher och cirka ${c.minutes} min/match${c.role?' · senast '+c.role:''}.`};
 }
-function scoutingQuote(ids,method,person){const s=scoutingStaff().find(s=>scoutingPerson(s)===String(person)),m=SCOUT_METHODS[method],ps=ids.map(findPlayerAnywhere).filter(Boolean);if(!s||!m||!ps.length)return null;const regions=[...new Set(ps.map(scoutingRegion))],knowledge=Math.min(...regions.map(r=>scoutingCoverage(s,r))),travel=regions.some(r=>r!=='SWE')?3:0,interval=m.days+travel+Math.floor((100-knowledge)/35),fee=Math.round(clubMissionFee()/3*m.factor*ps.length*(1+travel*.18));return {s,m,regions,knowledge,interval,fee,days:interval*m.steps};}
+function scoutingQuote(ids,method,person){const s=scoutingStaff().find(s=>scoutingPerson(s)===String(person)),m=SCOUT_METHODS[method],ps=ids.map(findPlayerAnywhere).filter(Boolean);if(!s||!m||!ps.length)return null;const regions=[...new Set(ps.map(scoutingRegion))],knowledge=Math.min(...regions.map(r=>scoutingCoverage(s,r))),travel=regions.some(r=>r!=='SWE')?3:0,interval=m.days+travel+Math.floor((100-knowledge)/35),fee=Math.round(clubMissionFee()/3*m.factor*ps.length*(1+travel*.18));return {s,m,regions,knowledge,interval,fee,days:interval*m.steps,philosophy:staffPhilosophy(s)};}
 function scoutingDraft(ids){ensureScoutingOffice();const players=[...new Set(ids.map(String))].map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p)&&!scoutPending(p.id)).slice(0,3).map(p=>p.id);if(!players.length)return recruitMessage('Välj en spelare som inte redan bevakas.');scoutDesk.draft={players,method:'detail',person:scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]),profile:recruitmentProfile(),horizon:'now'};deskNavigate('transfers','missions');}
 function scoutingDraftSet(key,value){if(!scoutDesk.draft)return;
  if(scoutDesk.draft.criteria&&['profile','horizon'].includes(key)){
@@ -63,7 +64,7 @@ function scoutingDay(){
   if(ps.some(p=>!medicalReady(p)||internationalAway(p,date))){j.delays++;j.next=calAdd(date,7);j.note='Observationen flyttas: skada eller landslagsuppdrag begränsar underlaget.';if(j.delays>=3)scoutingClose(j,'limited','Otillräcklig tillgång till spelarna. Tidigare observationer finns kvar.');continue;}
   const m=SCOUT_METHODS[j.method];let observed=0;
   for(const p of ps){const r=state.scoutReports[String(p.id)];if(r?.lastObserved&&calGap(r.lastObserved,date)<7)continue;
-   const question=scoutingQuestion(j,p),observationQuality=m.quality*(.8+j.knowledge/500)*question.context.quality;if(scoutObserve(p.id,date,{observer:j.observer,quality:observationQuality,focus:j.method,force:true,job:j.id})){j.evidence??={};j.evidence[String(p.id)]={date,question:question.text,...question.context};observed++;}
+   const question=scoutingQuestion(j,p),scout=scoutingStaff().find(s=>scoutingPerson(s)===j.person)||j.observer,observationQuality=m.quality*(.8+j.knowledge/500)*question.context.quality*scoutingPhilosophyFactor(scout,j.method);if(scoutObserve(p.id,date,{observer:j.observer,quality:observationQuality,focus:j.method,force:true,job:j.id})){j.evidence??={};j.evidence[String(p.id)]={date,question:question.text,...question.context};observed++;}
   }
   if(!observed){j.next=calAdd(date,7);continue;}j.steps++;j.note='Daterat observationsunderlag levererat. '+Object.values(j.evidence||{}).map(e=>e.question).join(' ');j.next=calAdd(date,j.interval);
   for(const region of j.regions){const key=j.person+':'+region;o.coverage[key]=Math.min(30,(o.coverage[key]||0)+2);}

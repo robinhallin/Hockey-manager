@@ -113,4 +113,8 @@ for(const club of run('Object.keys(CLUB_DATA)')){
  }
  assert.ok(!/\bOVR\b|undefined|NaN/.test(run('recruitmentPlayerView()')));
 }
+run("globalThis.agentPlayer=managerRoster()[0];delete agentPlayer.agent;globalThis.agentA=playerAgent(agentPlayer);globalThis.agentB=playerAgent(agentPlayer);globalThis.agentTerms=agentPreference(agentPlayer)");
+assert.equal(run('agentA.id'),run('agentB.id'));assert.ok(run('AGENT_TYPES[agentA.type]'));assert.ok(run('agentTerms.salary')>0);
+run("agentPlayer.agent={id:'test-agent',name:'Test Agent',type:'negotiator'};globalThis.hard=recruitPlayerWishes(agentPlayer);agentPlayer.agent={id:'test-agent-2',name:'Test Agent 2',type:'relationship'};globalThis.soft=recruitPlayerWishes(agentPlayer)");
+assert.ok(run('hard.salary')>run('soft.salary'),'hard negotiator should push salary more than relationship agent');
 console.log('PASS: international market, unique ownership, scouting missions, time/reload, player terms, rivals, budgets, explicit sales, AI transfers, offseason and 14-club views.');
