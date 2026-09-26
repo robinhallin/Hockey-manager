@@ -13,6 +13,17 @@ function studioPlayers(side,goalies=true){
 }
 function studioEffort(side,id){const e=studioEngine(),a=(e.accountingActors||e.actors).find(a=>a.side===(side==='own'?0:1)&&samePlayerId(a.player.id,id));return a&&a.role!=='G'?.8+Math.min(.5,Math.hypot(a.vx,a.vy)/10):1;}
 function studioKeeper(side){const a=(studioEngine()?.accountingActors||studioEngine()?.actors||[]).find(a=>a.side===side&&a.role==='G');return a?studioPlayer(side,a.player.id):null;}
+// The same task that affects this actor's attributes is recorded for their ice time.
+function studioActorTask(e,a){
+ const group=['LD','RD'].includes(a.role)?'defense':'forwards',unit=group==='defense'?e.teams[a.side].pair:e.teams[a.side].line;
+ const slot=group==='defense'?unit*2+(a.role==='RD'?1:0):unit*3+({LW:0,C:1,RW:2}[a.role]??0);
+ return playerTask(group,slot);
+}
+function studioTaskAssignments(e){
+ const actors=e.accountingActors||e.actors,skaters=side=>actors.filter(a=>a.side===side&&a.role!=='G');
+ if(e.hasPowerPlay(0)||e.isShortHanded(0)||[0,1].some(side=>skaters(side).length!==5||!actors.some(a=>a.side===side&&a.role==='G')))return {};
+ return Object.fromEntries(skaters(0).map(a=>[String(a.player.id),studioActorTask(e,a)]));
+}
 // Resolve the complete formation that is actually on the ice. During a partial
 // change neither the outgoing nor the intended incoming line owns that exposure.
 function studioFormationIndex(e,side,kind='forward'){
@@ -121,7 +132,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(p&&['decisions','composure','vision','positioning','passing'].includes(key))extra+=(a.side===0?matchFeedbackBonus([p]):0)*.15;
   let taskFactor=1;
    if(a.side===0&&a.role!=='G'&&!this.hasPowerPlay(a.side)&&!this.isShortHanded(a.side)){
-    const group=['LD','RD'].includes(a.role)?'defense':'forwards',unit=(group==='defense'?this.teams[a.side].pair:this.teams[a.side].line),slot=group==='defense'?unit*2+(a.role==='RD'?1:0):unit*3+({LW:0,C:1,RW:2}[a.role]??0),task=playerTask(group,slot);
+    const task=studioActorTask(this,a);
     taskFactor=playerTaskFactor(task,key);
    }
    const collective=Math.max(.88,Math.min(1.12,fitFactor*taskFactor));
@@ -353,12 +364,12 @@ function studioStep(){
  const m=state.live,e=studioEngine();if(!e||!m.running||m.finished)return;
  if(!e.started){depthLock();studioSyncPlans(e);for(const side of [0,1])e.installUnit(side);e.faceoffPositions();e.started=true;}
  if(e.tick%10===0)e.teamBonus=attrClamp(trainingMatchBonus()+lockerMatchBonus()+rivalPreparationBonus(),-6,6);
- const before=e.time,actors=e.actors.slice(),situation=analysisSituation();e.step();const seconds=Math.max(0,e.time-before);
+ const before=e.time,actors=e.actors.slice(),situation=analysisSituation(),tasks=studioTaskAssignments(e);e.step();const seconds=Math.max(0,e.time-before);
  const local=e.time-(e.periodStart||0);m.minute=Math.floor((local+1e-6)/60);m.second=Math.floor((local+1e-6)%60);
  if(seconds>0){
   e.pairSeconds??=[{},{}];
   for(const side of [0,1]){const skaters=actors.filter(a=>a.side===side&&a.role!=='G');for(let i=0;i<skaters.length;i++){const a=skaters[i],p=studioPlayer(side,a.player.id);if(p){p.positionExperience??={};p.positionExperience[a.role]=(p.positionExperience[a.role]||0)+seconds;}for(let j=i+1;j<skaters.length;j++){const key=dynamicsKey(a.player.id,skaters[j].player.id);e.pairSeconds[side][key]=(e.pairSeconds[side][key]||0)+seconds;}}}
-  e.accountingActors=actors;m.accountingSituation=situation;studioMirror(e);trackIceTime(seconds);delete m.accountingSituation;delete e.accountingActors;
+  e.accountingActors=actors;m.accountingSituation=situation;studioMirror(e);trackIceTime(seconds,tasks);delete m.accountingSituation;delete e.accountingActors;
   e.possession=e.possession||{own:0,opponent:0};e.possession[e.owner===0?'own':'opponent']+=seconds;
  }
  // Drain events once. Reloading cannot award a goal or penalty a second time.
