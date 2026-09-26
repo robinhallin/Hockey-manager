@@ -22,6 +22,40 @@ module.exports=async function check3D(page,out){
  const started=await page.evaluate(()=>studioEngine().time);
  await page.waitForFunction(t=>studioEngine().time>t+3,started);
  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
+ // Reach an actual shot in this career, using the real match loop and decisions.
+ const shot=await page.evaluate(()=>{
+  startMatch();let found=false;
+  for(let i=0;i<3500&&!state.live.finished;i++){
+   if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}
+   studioStep();const f=studioEngine().flight;
+   if(f?.kind==='shot'&&f.elapsed>0&&f.elapsed/f.duration>=.5){found=true;break;}
+  }
+  pauseMatch();render();return found;
+ });
+ assert.ok(shot,'production match reaches a travelling shot');
+ await page.getByLabel('3D-kamera').selectOption('follow');
+ await page.waitForFunction(()=>studioCamera3D==='follow'&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ const motion=await page.evaluate(()=>{
+  const f=studioFrame(studioEngine()),shooter=f.actors.find(a=>a.id===f.flight.from),keeper=f.actors.find(a=>a.role==='G'&&a.side!==f.flight.side);
+  return {shooter:!!shooter,travelled:f.actors.some(a=>a.travelled>0),release:shooter?Match3D.pose(f,shooter).release:null,keeperAngle:keeper?Match3D.pose(f,keeper).angle:null};
+ });
+ assert.ok(motion.shooter&&motion.travelled&&Number.isFinite(motion.keeperAngle));
+ await page.screenshot({path:path.join(out,'33-match-3d-shot-follow.png'),fullPage:true});
+ // Complete this very shot to obtain the actual replay buffer.
+ await page.evaluate(()=>{
+  const oldReplay=studioEngine().latestReplay;startMatch();
+  for(let i=0;i<100&&studioEngine().latestReplay===oldReplay;i++)studioStep();
+  pauseMatch();render();
+ });
+ assert.ok(await page.evaluate(()=>Boolean(studioEngine().latestReplay)));
+ const replayBefore=await page.evaluate(()=>JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().time,state.live.analysis]));
+ await page.getByRole('button',{name:'↺ Senaste avslutet',exact:true}).click();
+ await page.waitForFunction(()=>Boolean(studioReplayState)&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.screenshot({path:path.join(out,'34-match-3d-replay.png'),fullPage:true});
+ assert.equal(await page.evaluate(()=>JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().time,state.live.analysis])),replayBefore,'3D replay does not re-simulate or alter reports');
+ await page.getByRole('button',{name:'Tillbaka till matchen',exact:true}).click();
+ await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.
  await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());
  await page.waitForFunction(()=>!document.getElementById('match-3d-error').hidden&&document.getElementById('career-ice').style.visibility==='visible');
