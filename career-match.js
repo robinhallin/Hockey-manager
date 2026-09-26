@@ -419,7 +419,7 @@ function studioPulse(){
  if(now-studioLastSave>5000||!m.running){save();studioLastSave=now;}
  if(m.running&&!m.finished)matchTimer=setTimeout(studioPulse,50);
 }
-function studioFrame(e){return {time:e.time,phase:e.phase,eventType:e.eventType,caption:e.caption,puck:{...e.puck},carrier:e.carrier,owner:e.owner,actors:e.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,x:a.x,y:a.y,vx:a.vx,vy:a.vy,duty:a.duty,status:a.status})),flight:e.flight?{kind:e.flight.kind,start:{...e.flight.start},end:{...e.flight.end}}:null};}
+function studioFrame(e){return e.presentationFrame();}
 function studioShotReasons(shot){
  const c=shot.context;if(!c)return [];
  const reasons=[];

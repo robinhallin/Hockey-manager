@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.6
+# Hockey Manager · Beta 0.1.0-beta.7
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Kör `Hockey-Manager-0.1.0-beta.6-Windows-x64-Setup.exe`.
+1. Kör `Hockey-Manager-0.1.0-beta.7-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -100,3 +100,17 @@ Detta är en grafisk prototyp med enkla procedurmodeller, inte färdig
 spelaranimation. Pucken följer motorns plana koordinater; puckhöjd,
 kontaktanimationer, individuell målvaktsanimation och förbättrad hockey-AI
 återstår. Kameraval gäller den aktuella spelsessionen. Ligautbyggnaden är pausad.
+
+## Nytt i Beta 0.1.0-beta.7
+
+3D-spelarnas skär följer faktisk förflyttning. Ben, knän och armar rör sig
+separat; passare och skyttar följer upp pucksläppet med klubban. Puckförarens
+kroppsposition låter klubbladet möta pucken utan att puckbanan ändras.
+Målvakter tittar mot pucken, förflyttar sig med korta skär och går ner i en
+låg blockeringsposition vid ett annalkande skott. Det är en räddningsrörelse,
+inte ett besked om skottet räddas.
+
+Välj **Kamera → Följ pucken** för en närmare vy. TV och Överblick finns kvar.
+Även repriser använder de inspelade rörelsedata som den aktuella matchen gav.
+Äldre sparade repriser fungerar, men saknar de nya rörelsedetaljerna.
+Puckhöjd och avancerade kroppskontakter återstår; spelarmodellerna är fortsatt enkla.

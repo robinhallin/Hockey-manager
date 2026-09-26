@@ -8,19 +8,45 @@ const Match3D = (() => {
  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
  const unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n);};
  function multiply(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o;}
- function camera(aspect,mode){
-  const eye=mode==='overhead'?[30,65,33]:[30,43,58],target=[30,0,15];
+ const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+ const turn=(a,b,t)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
+ function camera(aspect,mode,puck={x:30,y:15}){
+  const target=mode==='follow'?[clamp(puck.x,14,46),0,clamp(puck.y,10,20)]:[30,0,15];
+  const eye=mode==='follow'?[target[0],23,target[2]+31]:mode==='overhead'?[30,65,33]:[30,43,58];
   const z=unit(sub(eye,target)),x=unit(cross([0,1,0],z)),y=cross(z,x);
   const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   // Fit the whole rink even when the coach panels reduce the viewport width.
-  const fov=2*Math.atan(Math.max(Math.tan(.61/2),36/(Math.hypot(...sub(eye,target))*aspect))),f=1/Math.tan(fov/2),near=.1,far=180;
+  const fov=2*Math.atan(Math.max(Math.tan(.61/2),(mode==='follow'?21:36)/(Math.hypot(...sub(eye,target))*aspect))),f=1/Math.tan(fov/2),near=.1,far=180;
   return multiply([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0],view);
  }
  function project(p,m){const q=[...p,1],v=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)v[r]+=m[k*4+r]*q[k];return {x:(v[0]/v[3]+1)/2,y:(1-v[1]/v[3])/2};}
  function sample(frame,before,t){
-  t=Math.max(0,Math.min(1,t));const prior=new Map((before?.actors||[]).map(a=>[a.id,a]));
-  const pos=(p,q)=>({...p,x:mix(q?.x??p.x,p.x,t),y:mix(q?.y??p.y,p.y,t)});
-  return {...frame,time:mix(before?.time??frame.time,frame.time,t),actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck)};
+  t=clamp(t,0,1);const prior=new Map((before?.actors||[]).map(a=>[a.id,a]));
+  // Do not sweep across the rink after a faceoff reset or a skipped highlight.
+  const continuous=before&&Math.abs(frame.time-before.time)<=.5&&frame.phase===before.phase;
+  const pos=(p,q)=>{const blend=continuous&&q&&Math.hypot(p.x-q.x,p.y-q.y)<(p.id!=null?5:18)?t:1;return {...p,x:mix(q?.x??p.x,p.x,blend),y:mix(q?.y??p.y,p.y,blend),...(p.id!=null?{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:mix(before?.carrier===p.id?1:0,frame.carrier===p.id?1:0,blend)}:{})};};
+  let flight=frame.flight?{...frame.flight}:null;
+  if(flight&&continuous&&before.flight?.kind===flight.kind&&before.flight?.from===flight.from&&before.flight?.start.x===flight.start.x&&before.flight?.start.y===flight.start.y)flight.elapsed=mix(before.flight.elapsed??flight.elapsed,flight.elapsed,t);
+  return {...frame,time:continuous?mix(before.time,frame.time,t):frame.time,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight};
+ }
+ function pose(frame,a){
+  const keeper=a.role==='G',speed=Math.hypot(a.vx||0,a.vy||0),f=frame.flight,puckAngle=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
+  const skatingAngle=speed>.12?Math.atan2(a.vy,a.vx):(a.side===0?0:Math.PI);
+  const release=f?.from===a.id&&Number.isFinite(f.elapsed)&&f.elapsed<.55&&['shot','pass','intercept'].includes(f.kind)?1-clamp(f.elapsed/.55,0,1):0;
+  const contact=a.contact??(frame.carrier===a.id?1:0),angle=keeper?puckAngle:release?turn(skatingAngle,Math.atan2(f.end.y-f.start.y,f.end.x-f.start.x),release*.7):skatingAngle;
+  const incoming=keeper&&f?.kind==='shot'&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
+  // A low blocking attempt follows the approaching shot, not its hidden result.
+  const drop=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
+  const phase=(a.travelled||0)*Math.PI/1.6,drive=Math.min(1,speed/3.5),stride=Math.sin(phase)*drive;
+  const lean=keeper?.12:.12+drive*.17,lower=keeper?.18+drop*.5:drive*.09;
+  const offset=keeper?0:-.58*contact;
+  const point=(forward,height,side)=>[a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];
+  const feet=[-1,1].map(side=>{const push=Math.max(0,side*stride),recover=Math.max(0,-side*stride);return keeper?point(0,.12,side*(.34+drop*.38)+stride*.06):point(-push*.32+recover*.12,.12+recover*.06,side*(.23+push*.38));});
+  let blade=point(1.1+release*.35,.08+release*(f?.kind==='shot'?.48:.12),.3);
+  // Keep the stick at plausible length when receiving or losing possession.
+  if(contact>.01&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=blade.map((v,i)=>mix(v,[frame.puck.x,.08,frame.puck.y][i],contact));
+  if(keeper)blade=point(.65,.06,0);
+  return {keeper,speed,angle,release,contact,drop,stride,lean,lower,point,feet,blade};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};
  function geometry(){
@@ -69,27 +95,32 @@ const Match3D = (() => {
  function figures(frame,teams){
   const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),steel=color('#91a9ba');
   for(const a of frame.actors){
-   const goalkeeper=a.role==='G',speed=Math.hypot(a.vx||0,a.vy||0),angle=goalkeeper?(a.side===0?0:Math.PI):speed>.15?Math.atan2(a.vy,a.vx):(a.side===0?0:Math.PI);
-   const team=teams[a.side]||{},jersey=color(team.primary),trim=color(team.color),stride=goalkeeper?0:Math.sin(frame.time*9+Number(String(a.id).replace(/\D/g,'').slice(-2)||0))*.24*Math.min(1,speed/3);
-   const p=(forward,height,side)=>[a.x+Math.cos(angle)*forward-Math.sin(angle)*side,height,a.y+Math.sin(angle)*forward+Math.cos(angle)*side];
+   const m=pose(frame,a),{keeper:goalkeeper,angle,point:p,lower,lean,drop}=m;
+   const team=teams[a.side]||{},jersey=color(team.primary),trim=color(team.color);
    const box=(f,h,s,w,hh,d,c)=>g.box(...p(f,h,s),w,hh,d,c,angle);
    g.disk(a.x,.03,a.y,goalkeeper?.65:.48,color('#afc4cd'));
-   if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.10,trim);
-   for(const side of [-1,1]){
-    const step=side*stride;box(step,.17,side*.23,.5,.17,.17,black);box(step,.065,side*.23,.54,.045,.045,steel);
-    g.rod(p(step,.28,side*.23),p(-.12,.66,side*.21),.13,goalkeeper?white:jersey);
-    g.rod(p(-.12,.66,side*.21),p(0,.96,side*.18),.16,black);
-    if(goalkeeper)box(.14,.47,side*.26,.2,.72,.32,white);
+   if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.08,trim);
+   for(const [i,side] of [-1,1].entries()){
+    const foot=m.feet[i],knee=p(.20,.60-lower*.65,side*(.22+drop*.24)),hip=p(-.10,.92-lower,side*.18);
+    g.box(...foot,.52,.17,.18,black,angle+(goalkeeper?side*drop*.8:side*Math.max(0,side*m.stride)*.35));
+    g.box(foot[0],.045,foot[2],.55,.035,.05,steel,angle);
+    g.rod([foot[0],.25,foot[2]],knee,.13,goalkeeper?white:jersey);g.rod(knee,hip,.16,black);
+    if(goalkeeper)g.rod([foot[0]+Math.cos(angle)*.12,.23,foot[2]+Math.sin(angle)*.12],knee,.22,white);
    }
-   box(0,1.18,0,.5,.64,.65,jersey);box(0,.93,0,.52,.12,.67,trim);
-   box(.12,1.65,0,.34,.3,.34,color('#d0a58c'));box(.10,1.82,0,.43,.23,.44,goalkeeper?white:jersey);
-   box(.34,1.71,0,.025,.08,.34,steel);
-   for(const side of [-1,1]){g.rod(p(.03,1.42,side*.36),p(.32,1.08,side*.46),.13,jersey);g.rod(p(.32,1.08,side*.46),p(.67,.88,side*.27),.10,jersey);box(.68,.88,side*.27,.24,.2,goalkeeper?.3:.2,goalkeeper?white:black);}
-   // Blade meets the actual puck for the carrier; possession is never invented.
-   const blade=a.id===frame.carrier?[frame.puck.x,.08,frame.puck.y]:p(1.25,.08,.48);
-   g.rod(p(.68,.95,.27),blade,.035,black);g.rod(blade,[blade[0]+Math.cos(angle)*.42,.08,blade[2]+Math.sin(angle)*.42],.055,black);
+   box(lean,1.18-lower,0,.5,.62,.66,jersey);box(lean,.95-lower,0,.52,.11,.68,trim);
+   box(lean+.12,1.65-lower,0,.33,.29,.34,color('#d0a58c'));box(lean+.10,1.82-lower,0,.44,.23,.45,goalkeeper?white:jersey);
+   box(lean+.34,1.71-lower,0,.025,.10,.34,steel);
+   // Hands travel with the shaft; both elbows and knees articulate independently.
+   const grip=p(.62,.96-lower*.6,.22),upper=goalkeeper?p(.52,.92-lower,-.51):p(.38,1.13-lower,.08);
+   for(const [i,side] of [-1,1].entries()){
+    const hand=i?grip:upper,elbow=p(.29,1.09-lower,side*.45);
+    g.rod(p(lean,1.41-lower,side*.36),elbow,.13,jersey);g.rod(elbow,hand,.10,jersey);
+    g.box(...hand,.22,goalkeeper?.26:.19,goalkeeper?.32:.20,goalkeeper?white:black,angle);
+   }
+   g.rod(grip,m.blade,.035,black);g.rod(m.blade,[m.blade[0]+Math.cos(angle)*.40,m.blade[1],m.blade[2]+Math.sin(angle)*.40],.055,black);
   }
-  g.disk(frame.puck.x,.065,frame.puck.y,.20,black);g.box(frame.puck.x,.09,frame.puck.y,.25,.12,.25,black);
+  if(frame.flight){const start=frame.flight.start,dx=frame.puck.x-start.x,dz=frame.puck.y-start.y,d=Math.hypot(dx,dz),length=Math.min(d,2.3);if(d>.05)g.rod([frame.puck.x-dx/d*length,.045,frame.puck.y-dz/d*length],[frame.puck.x,.045,frame.puck.y],.025,color('#6c8797'));}
+  g.disk(frame.puck.x,.04,frame.puck.y,.27,white);g.disk(frame.puck.x,.065,frame.puck.y,.20,black);g.box(frame.puck.x,.09,frame.puck.y,.25,.12,.25,black);
   return new Float32Array(g.data);
  }
  let current=null;
@@ -111,7 +142,7 @@ const Match3D = (() => {
   const rect=canvas.getBoundingClientRect(),dpr=Math.min(1.5,globalThis.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
   gl.viewport(0,0,w,h);gl.clearColor(.035,.065,.105,1);gl.enable(gl.DEPTH_TEST);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.program);
-  const mat=camera(w/h,options.camera),f=sample(frame,before,t);gl.uniformMatrix4fv(c.matrix,false,mat);
+  const f=sample(frame,before,t),mat=camera(w/h,options.camera,f.puck);gl.uniformMatrix4fv(c.matrix,false,mat);
   const bind=buffer=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,36,i*12);});};
   bind(c.staticBuffer);gl.drawArrays(gl.TRIANGLES,0,c.count);bind(c.dynamicBuffer);const dynamic=figures(f,options.teams||[]);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,dynamic.length/9);
   c.hits=f.actors.map(a=>({id:a.id,name:a.name,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
@@ -120,9 +151,9 @@ const Match3D = (() => {
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,camera,project,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,camera,project,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,error:current.gl.getError()}:null};
 })();
 let studioVisualMode='2d',studioCamera3D='tv';
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
-function studioSetCamera(mode){if(['tv','overhead'].includes(mode))studioCamera3D=mode;}
-function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D · test</option></select></label>${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option></select></label>`:''}</div>`;}
+function studioSetCamera(mode){if(['tv','overhead','follow'].includes(mode))studioCamera3D=mode;}
+function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D · test</option></select></label>${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option></select></label>`:''}</div>`;}

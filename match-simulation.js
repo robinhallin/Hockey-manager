@@ -186,7 +186,7 @@ const StudioHockey = (() => {
       const rows=[{role:'LW',player:wings[0]},{role:'C',player:c},{role:'RW',player:wings[1]},...t.defense.slice((pair%pairCount)*2,(pair%pairCount)*2+2).map((player,i)=>({role:i?'RD':'LD',player}))];
       return this.isShortHanded(side)?rows.filter(p=>p.role!=='C'):rows;
     }
-    makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,shift:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
+    makeActor(side,row,where){return {id:side+':'+row.player.id,side,role:row.role,player:row.player,...where,vx:0,vy:0,travelled:0,shift:0,target:{...where},duty:ROLE_NAMES[row.role],status:'playing'};}
     installUnit(side){
       this.actors=this.actors.filter(a=>a.side!==side);
       for(const row of this.unit(side))this.actors.push(this.makeActor(side,row,point(side,20,15)));
@@ -401,7 +401,9 @@ const StudioHockey = (() => {
         for(const b of this.actors){if(a.id===b.id)continue;const gap=distance(a,b);if(gap>.02&&gap<1.1){vx+=(a.x-b.x)/gap*(1.1-gap)*1.6;vy+=(a.y-b.y)/gap*(1.1-gap)*1.6;}}
         const change=Math.hypot(vx-a.vx,vy-a.vy),blend=change?Math.min(1,accel*dt/change):1;
         a.vx+=(vx-a.vx)*blend;a.vy+=(vy-a.vy)*blend;
+        const oldX=a.x,oldY=a.y;
         a.x=clamp(a.x+a.vx*dt,1,59);a.y=clamp(a.y+a.vy*dt,.6,29.4);
+        a.travelled=(a.travelled||0)+Math.hypot(a.x-oldX,a.y-oldY);
       }
       const carrier=this.actor(this.carrier);if(carrier)this.puck={x:carrier.x,y:carrier.y};
       // Contact can happen between puck decisions; a player cannot skate through
@@ -793,9 +795,16 @@ const StudioHockey = (() => {
       this.focus=this.phase==='attack'||this.phase==='counter'||this.phase==='stoppage'||this.phase==='faceoff'||Boolean(this.penalty)||this.wall<this.focusUntil;
       this.capture();
     }
+    presentationFrame(){
+      const f=this.flight;
+      // Presentation receives observed flight data, never hidden outcome rolls.
+      return {time:this.time,wall:this.wall,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
+        actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status})),
+        flight:f?{kind:f.kind,start:{...f.start},end:{...f.end},from:f.from??f.shot?.playerId??null,to:f.to??null,side:f.side,elapsed:f.elapsed,duration:f.duration}:null};
+    }
     capture(){
       if(this.tick%2!==0)return;
-      const frame={time:this.time,wall:this.wall,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,x:a.x,y:a.y,vx:a.vx,vy:a.vy,duty:a.duty,status:a.status})),flight:this.flight?{kind:this.flight.kind,start:{...this.flight.start},end:{...this.flight.end}}:null};
+      const frame=this.presentationFrame();
       this.history.push(frame);if(this.history.length>150)this.history.shift();
       if(this.pendingReplayShot){this.latestReplay={shot:this.pendingReplayShot,frames:this.history.slice(-70)};this.pendingReplayShot=null;}
     }
