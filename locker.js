@@ -5,11 +5,7 @@ function ensureLocker(){
  if(!state.careerStarted)return;
  const initial=!state.locker;
  if(initial)state.locker={version:1,turn:0,captainId:null,captainChanged:-10,pairs:{},log:[],lastMatch:null,talkHistory:[]};
- for(const roster of Object.values(state.clubRosters))for(const p of roster)if(!p.social){
-   const neutral=p.fictional===false&&Boolean(p.research?.model);
-   const trait=key=>neutral?10:1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
-   p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),basis:neutral?'neutral-unobserved':'fictional',trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
- }
+ for(const roster of Object.values(state.clubRosters))for(const p of roster)playerIdentity(p);
  for(const p of managerRoster())rolePolicyUpgrade(p);
  if(initial)state.locker.captainId=[...managerRoster()].sort((a,b)=>b.social.leadership-a.social.leadership||b.age-a.age)[0]?.id??null;
  else if(!managerRoster().some(p=>samePlayerId(p.id,state.locker.captainId)))state.locker.captainId=null;
