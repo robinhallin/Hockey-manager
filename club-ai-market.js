@@ -263,6 +263,18 @@ function aiResolveMarket(){
  for(const o of w.offers)if(o.status!=='pending')o.closedDate??=state.calendar.date;
  w.offers=w.offers.filter(o=>o.status==='pending'||calGap(o.date,state.calendar.date)<=90).slice(-160);
 }
+function marketCompetitionSignals(){
+ const rows=new Map();
+ for(const [club,c] of Object.entries(state.clubAI?.clubs||{}))for(const i of Object.values(c.interests||{})){
+  if(i.status!=='scouting'||calGap(i.last,state.calendar.date)>21)continue;const key=String(i.playerId),row=rows.get(key)||{playerId:i.playerId,name:i.name,clubs:[]};row.clubs.push(club);rows.set(key,row);
+ }
+ for(const row of rows.values())if(row.clubs.length>=2){
+  const p=marketPlayer(row.playerId);if(!p)continue;p.marketCompetition??={};const signature=row.clubs.slice().sort().join('|');if(p.marketCompetition.signature===signature)continue;
+  p.marketCompetition={signature,date:state.calendar.date,clubs:row.clubs.slice()};
+  if(isOwnPlayer(p))managerMessage(`market-race:${p.id}:${signature}`,`Flera klubbar följer ${p.name}`,`${row.clubs.join(', ')} bevakar nu spelaren. Konkurrensen bygger på deras faktiska truppbehov och scouting; inget bud är ännu lämnat.`,'Sportchefen',{link:'transfers',playerId:p.id});
+  else if(state.recruitment?.shortlist?.some(id=>samePlayerId(id,p.id)))managerMessage(`market-race-shortlist:${p.id}:${signature}`,`Konkurrens om ${p.name}`,`${row.clubs.join(', ')} följer också spelaren. Du kan agera nu eller fortsätta samla scoutingunderlag.`,'Chefsscout',{link:'transfers',playerId:p.id});
+ }
+}
 function aiMarketDay(){
  const w=state.clubAI;if(!w||w.lastMarketDay===state.calendar.date||loanLocked())return;
  w.lastMarketDay=state.calendar.date;
@@ -272,6 +284,7 @@ function aiMarketDay(){
  aiMarketSnapshot=aiMarketSnapshotForDay();
  try{for(const club of Object.keys(w.clubs).sort())if(club!==managerClub())aiScoutClub(club,candidates);}
  finally{aiMarketSnapshot=null;}
+ marketCompetitionSignals();
  aiResolveMarket();
 }
 function aiArrangeYouthLoan(owner){
