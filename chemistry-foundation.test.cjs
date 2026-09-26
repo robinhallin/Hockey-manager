@@ -59,6 +59,8 @@ assert.notEqual(r("tacticalFitFactor(fitB,'passing','forwards')"),1,'fit changes
 r("globalThis.taskPlayer=managerRoster().find(p=>p.pos!=='B'&&p.pos!=='MV');globalThis.taskBase=lineChemistry(state.lines.forwards.slice(0,3));setPlayerTask('forwards',1,'creator');globalThis.task=playerTask('forwards',1)");
 assert.equal(r('task'),'creator');assert.equal(r('lineChemistry(state.lines.forwards.slice(0,3)).value'),r('taskBase.value'));
 assert.ok(r("playerTaskFactor('creator','passing')")>1);assert.equal(r("playerTaskFactor('creator','shooting')"),1);
+// Integration cap prevents tactical fit and explicit task modifiers from multiplying without bound.
+r("globalThis.integrationCollective=Math.max(.88,Math.min(1.12,1.06*1.05))");assert.ok(r('integrationCollective')<=1.12&&r('integrationCollective')>=.88);
 console.log('PASS: training participation/cap/idempotence, shared AI day, old saves, reload, active-line attribute causality, unaffected shooting/RNG, local goal attribution and fixture idempotence.');
 // Exercise the public calendar -> actual session path, not just the training helper.
 {

@@ -139,7 +139,7 @@ function dynamicsCommit(club,groups,results={}){
  for(const [key,seconds] of Object.entries(groups||{})){
   if(!Number.isFinite(seconds)||seconds<=0)continue;
   const row=d.pairs[key]??={seconds:0,form:0};
-  row.seconds+=seconds*(club===managerClub()?clubPriorityValue('chemistry'):1);
+  row.seconds+=seconds*(club===managerClub()?clubProjectFactor('chemistry'):1);
   row.form=Math.max(-10,Math.min(12,row.form*.96+Math.max(-2,Math.min(2,results[key]||0))*.6));
  }
  dynamicsPrune(club);

@@ -119,7 +119,8 @@ class CareerBroadcastMatch extends StudioHockey.Match {
     const group=['LD','RD'].includes(a.role)?'defense':'forwards',unit=studioUnitIndex(this,a.side,group==='defense'?'defense':'forward'),slot=group==='defense'?unit*2+(a.role==='RD'?1:0):unit*3+({LW:0,C:1,RW:2}[a.role]??0),task=playerTask(group,slot);
     taskFactor=playerTaskFactor(task,key);
    }
-   return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*fitFactor*taskFactor;
+   const collective=Math.max(.88,Math.min(1.12,fitFactor*taskFactor));
+   return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*collective;
  }
  attackTargets(side){
   super.attackTargets(side);const t=this.teams[side];

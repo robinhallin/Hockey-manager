@@ -15,7 +15,7 @@ function scoutingStaff(){return (state.staff||[]).filter(s=>['scout','assistant'
 function scoutingPhilosophyFactor(s,method){const p=staffPhilosophy(s);return p.name==='Analytisk'&&method==='detail'?1.12:p.name==='Utveckling'&&method==='potential'?1.12:p.name==='Initiativ'&&method==='screen'?1.08:1;}
 function scoutingPerson(s){return String(s.personId||s.id);}
 function scoutingRegion(p){return recruitCountry(getPlayerClub(p.id));}
-function scoutingCoverage(s,region){return Math.min(95,(region==='SWE'?65:20)+(scoutingOffice()?.coverage[scoutingPerson(s)+':'+region]||0)+(state.clubOffice?.priority==='international'?15:0));}
+function scoutingCoverage(s,region){return Math.min(95,(region==='SWE'?65:20)+(scoutingOffice()?.coverage[scoutingPerson(s)+':'+region]||0)+(state.clubOffice?.priority==='international'?15:0)+clubProjectEffect('coverage',0));}
 function scoutingBusy(s){return (scoutingOffice()?.jobs||[]).some(j=>j.status==='active'&&j.person===scoutingPerson(s));}
 function scoutingPrior(p){const base=leagueOf(getPlayerClub(p.id))==='HA'?10.3:11.3;return Object.fromEntries(Object.keys(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES).map(k=>[k,base+(attrSeed(`${p.id}:public-prior:${k}`)-.5)*1.4]));}
 function scoutingObservationContext(p,job,date=state.calendar?.date){
@@ -64,7 +64,7 @@ function scoutingDay(){
   if(ps.some(p=>!medicalReady(p)||internationalAway(p,date))){j.delays++;j.next=calAdd(date,7);j.note='Observationen flyttas: skada eller landslagsuppdrag begränsar underlaget.';if(j.delays>=3)scoutingClose(j,'limited','Otillräcklig tillgång till spelarna. Tidigare observationer finns kvar.');continue;}
   const m=SCOUT_METHODS[j.method];let observed=0;
   for(const p of ps){const r=state.scoutReports[String(p.id)];if(r?.lastObserved&&calGap(r.lastObserved,date)<7)continue;
-   const question=scoutingQuestion(j,p),scout=scoutingStaff().find(s=>scoutingPerson(s)===j.person)||j.observer,observationQuality=m.quality*(.8+j.knowledge/500)*question.context.quality*scoutingPhilosophyFactor(scout,j.method);if(scoutObserve(p.id,date,{observer:j.observer,quality:observationQuality,focus:j.method,force:true,job:j.id})){j.evidence??={};j.evidence[String(p.id)]={date,question:question.text,...question.context};observed++;}
+   const question=scoutingQuestion(j,p),scout=scoutingStaff().find(s=>scoutingPerson(s)===j.person)||j.observer,observationQuality=m.quality*(.8+j.knowledge/500)*question.context.quality*scoutingPhilosophyFactor(scout,j.method)*(1+clubProjectEffect('scoutQuality',0));if(scoutObserve(p.id,date,{observer:j.observer,quality:observationQuality,focus:j.method,force:true,job:j.id})){j.evidence??={};j.evidence[String(p.id)]={date,question:question.text,...question.context};observed++;}
   }
   if(!observed){j.next=calAdd(date,7);continue;}j.steps++;j.note='Daterat observationsunderlag levererat. '+Object.values(j.evidence||{}).map(e=>e.question).join(' ');j.next=calAdd(date,j.interval);
   for(const region of j.regions){const key=j.person+':'+region;o.coverage[key]=Math.min(30,(o.coverage[key]||0)+2);}
