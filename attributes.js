@@ -236,6 +236,7 @@ function developmentBirthday(p){
 }
 function developmentPanel(p){
  const d=ensureDevelopment(p),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
- const history=d.history.slice(0,5);
- return `<div class="training-coach-note"><strong>Spelarens utveckling</strong><p>Utveckling sker i olika takt och kan plana ut. Ork, tränarstöd, matchvana och ålder påverkar. Personalens potentialstjärnor är en osäker bedömning.</p>${history.length?history.map(h=>`<p>${h.date?calText(h.date):seasonLabel(h.year)} · ${labels[h.key]} ${h.change>0?'+':''}${h.change} · ${h.reason}</p>`).join(''):'<p>Inga nya attributförändringar registrerade ännu.</p>'}${developmentReviewView(p)}</div>`;
+ const history=d.history.slice(0,5),paths=(d.pathHistory||[]).slice(0,4);
+ const pathView=paths.length?`<details><summary>Senaste utvecklingsmiljöer</summary>${paths.map(x=>`<p>${x.date?calText(x.date):seasonLabel(x.year)} · ${trainingSafe(x.source)} · ${Math.round(x.seconds/60)} min · utmaning ${x.challenge}% · rollpassning ${x.roleFit}%</p>`).join('')}</details>`:'';
+ return `<div class="training-coach-note"><strong>Spelarens utveckling</strong><p>Utveckling sker i olika takt och kan plana ut. Ork, tränarstöd, matchvana, rollpassning, motståndsnivå och ålder påverkar. Personalens potentialstjärnor är en osäker bedömning.</p>${history.length?history.map(h=>`<p>${h.date?calText(h.date):seasonLabel(h.year)} · ${labels[h.key]} ${h.change>0?'+':''}${h.change} · ${h.reason}</p>`).join(''):'<p>Inga nya attributförändringar registrerade ännu.</p>'}${pathView}${developmentReviewView(p)}</div>`;
 }
