@@ -41,6 +41,38 @@ module.exports=async function check3D(page,out){
  });
  assert.ok(motion.shooter&&motion.travelled&&Number.isFinite(motion.keeperAngle));
  await page.screenshot({path:path.join(out,'33-match-3d-shot-follow.png'),fullPage:true});
+ // Expand the rink through the ordinary control; preserve the exact paused game.
+ const compact=await page.locator('#career-ice-3d').boundingBox();
+ const focusBefore=await page.evaluate(()=>JSON.stringify(state.live));
+ await page.getByRole('button',{name:'Stor rink',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('.md-rink-focus')&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ const focused=await page.locator('#career-ice-3d').boundingBox();
+ assert.ok(focused.width>compact.width*1.4&&focused.height>compact.height*1.3,'expanded rink gains width and height');
+ assert.equal(await page.locator('.mc-coach').isVisible(),false);
+ for(const selector of ['#match-play','.mc-situation','.match-3d-expand']){
+  const b=await page.locator(selector).boundingBox();assert.ok(b&&b.x>=0&&b.y>=0&&b.y+b.height<=768,'essential control stays visible: '+selector);
+ }
+ assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),focusBefore,'large view preserves live state');
+ const graphics=await page.evaluate(()=>{
+  const canvas=document.getElementById('career-ice-3d'),f=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D};
+  Match3D.draw(canvas,f,null,1,options);const before=Match3D.diagnostics();Match3D.draw(canvas,f,null,1,options);const after=Match3D.diagnostics();
+  return {before,after};
+ });
+ assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
+ require('node:fs').writeFileSync(path.join(out,'3d-graphics-result.json'),JSON.stringify({compact,focused,graphics},null,2));
+ await page.screenshot({path:path.join(out,'35-match-3d-large-rink.png'),fullPage:true});
+ await page.getByRole('button',{name:'Visa coachbänken',exact:true}).click();
+ await page.locator('.mc-coach').waitFor({state:'visible'});
+ await page.getByRole('button',{name:'Stor rink',exact:true}).click();
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ // Picking a real player restores the coach panel so the requested task is visible.
+ const selected=await page.evaluate(()=>{
+  const c=document.getElementById('career-ice-3d'),r=c.getBoundingClientRect(),f=studioFrame(studioEngine()),mat=Match3D.camera(r.width/r.height,studioCamera3D,f.puck);
+  return f.actors.filter(a=>a.role==='G').map(a=>{const p=Match3D.project([a.x,1,a.y],mat);return {name:a.name,x:r.x+p.x*r.width,y:r.y+p.y*r.height,inside:p.x>.05&&p.x<.95&&p.y>.1&&p.y<.9};}).find(a=>a.inside);
+ });
+ assert.ok(selected,'a visible goalkeeper can be inspected');await page.mouse.click(selected.x,selected.y);
+ await page.waitForFunction(name=>!studioExpanded3D&&matchDesk.notice.includes(name),selected.name);
+ assert.ok(await page.locator('.mc-coach').isVisible());assert.equal(await page.evaluate(()=>state.live.running),false);
  // Complete this very shot to obtain the actual replay buffer.
  await page.evaluate(()=>{
   const oldReplay=studioEngine().latestReplay;startMatch();

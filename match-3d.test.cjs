@@ -64,3 +64,25 @@ test('older replay frames without motion/flight metadata stay finite and do not 
  assert.equal(sampled.flight.elapsed,undefined);assert.equal(p.drop,0);assert.equal(p.release,0);
  assert.ok(p.feet.flat().concat(p.blade).every(Number.isFinite));
 });
+
+test('rounded models have finite geometry and a bounded mesh budget for a real on-ice unit',()=>{
+ const {Match}=require('./match-simulation'),rosters=require('./match-lab-rosters'),m=new Match(rosters,{scenario:'attack'});
+ for(let i=0;i<20;i++)m.step();const frame=m.presentationFrame(),snapshot=JSON.stringify(frame);
+ const mesh=renderer.figures(frame,[{primary:'#18294a',color:'#dfc34c'},{primary:'#16472b',color:'#eeeeee'}]);
+ assert.ok(mesh.length/9>12000&&mesh.length/9<50000,'bounded dynamic vertex count: '+mesh.length/9);
+ assert.ok(mesh.every(Number.isFinite));assert.equal(JSON.stringify(frame),snapshot);
+ for(let i=0;i<mesh.length;i+=9)assert.ok(mesh[i+1]>=-.001&&mesh[i+1]<2.5,'vertices remain near player height');
+});
+test('similar club colors receive distinguishable kit colors, including two light kits',()=>{
+ for(const pair of [['#132940','#14314b'],['#eeeeee','#f1f0ef']]){
+  const kits=renderer.kits(pair.map(primary=>({primary,color:'#d7b853'})));
+  const contrast=Math.hypot(...kits[0].jersey.map((v,i)=>v-kits[1].jersey[i]));assert.ok(contrast>.8);
+ }
+});
+test('large-rink mode keeps match state untouched and is limited to active 3D presentation',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.page='match';studioSetVisual('3d');");
+ const stateBefore=app.run('JSON.stringify(state.live)');app.run('studioToggleRink();');
+ assert.ok(app.run("matchDeskView().includes('md-rink-focus')"));assert.ok(app.run("studio3DControls().includes('Visa coachbänken')"));
+ assert.equal(app.run('JSON.stringify(state.live)'),stateBefore);
+ app.run("studioSetVisual('2d');");assert.equal(app.run("matchDeskView().includes('md-rink-focus')"),false);
+});

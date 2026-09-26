@@ -9,3 +9,12 @@
 @media(min-width:1051px){
  body .game-shell .md-workspace .broadcast-view{grid-template-rows:30px 35px minmax(0,1fr) 46px}
 }
+.match-3d-controls .match-3d-expand{margin-left:auto;background:#233d50;color:#ebd69f;border:1px solid #6b705e;border-radius:4px;font-size:10px;min-height:25px;padding:2px 10px;cursor:pointer}
+@media(min-width:1051px){
+ body .game-shell .md-workspace.md-rink-focus .mc-layout{grid-template-columns:minmax(0,1fr);margin-top:8px}
+ body .game-shell .md-workspace.md-rink-focus :is(.mc-coach,.mc-stats,.mc-on-ice,.mc-scorers){display:none}
+ body .game-shell .md-workspace.md-rink-focus .mc-ice-column{gap:0}
+ body .game-shell .md-workspace.md-rink-focus .mc-header{padding-block:6px}
+ body .game-shell .md-workspace.md-rink-focus .broadcast-view{grid-template-rows:30px 35px minmax(0,1fr) 40px}
+}
+@media(max-width:1050px){.match-3d-controls .match-3d-expand{display:none}}
