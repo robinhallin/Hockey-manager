@@ -114,7 +114,7 @@ function juniorAppearance(p,seconds,level,opponent){
  const skill=attributeWeighted(p.attributes,PLAYER_ROLES[a.role]),challenge=Math.max(.25,1-Math.abs(skill-level)/12);
  const goals=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/4000?1:0,assists=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/3000?1:0;
  a.history.unshift({year:state.season.year,round:state.round,opponent,seconds,goals,assists,path:a.path});a.history=a.history.slice(0,16);
- if(seconds>0){a.games++;a.seconds+=seconds;a.goals+=goals;a.assists+=assists;juniorGrow(p,5*Math.min(1.5,seconds/1200)*challenge,juniorTarget(p),'Matchvana (junior/lån)');a.missed=0;}else a.missed++;
+ if(seconds>0){a.games++;a.seconds+=seconds;a.goals+=goals;a.assists+=assists;const offer=a.loan?JUNIOR_LOANS[a.loan.destination]:null,coach=offer?.coach||(state.staff.find(q=>q.id==='junior')?.coaching||12),environment=a.loan?'loan':a.path==='guest'?'guest':'junior',context=developmentMatchContext(p,seconds,{level,roleFit:challenge,environment,coach});juniorGrow(p,4.2*context.factor,juniorTarget(p),`Matchvana (${environment} · roll och nivå)`);developmentPathRecord(p,context,seconds,opponent);a.missed=0;}else a.missed++;
  p.fatigue=trainingClamp(p.fatigue+seconds/180-10);return {id:p.id,name:p.name,pos:p.pos,seconds,goals,assists};
 }
 function juniorFixture(key){
