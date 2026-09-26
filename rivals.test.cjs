@@ -75,4 +75,6 @@ assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.
 full.run('globalThis.done=JSON.stringify(state.rivals);finishAnalysis();finishMatch(false)');assert.equal(full.run('JSON.stringify(state.rivals)'),full.run('done'));
 run("globalThis.riv=rivalryState('HV71','Färjestad BK');globalThis.beforeRiv=riv.score;rivalryAdd('HV71','Färjestad BK',8,'Slutspelsdrama');globalThis.afterRiv=rivalryState('Färjestad BK','HV71')");
 assert.equal(run('afterRiv.score'),run('beforeRiv+8'));assert.ok(run("['Vanligt motstånd','Växande','Intensiv','Het rivalitet'].includes(rivalryLevel(afterRiv.score))"));
+run("globalThis.visibleClub=Object.keys(state.rivals.clubs).find(c=>c!==managerClub());globalThis.publicIdentity=rivalPublicIdentity(visibleClub)");
+assert.ok(run("publicIdentity.strategy&&publicIdentity.style"));assert.ok(run("Number.isFinite(publicIdentity.avgAge)&&publicIdentity.avgAge>0"));
 console.log('PASS: 28 clubs, injury-aware independent lineups, goalie rotation, coherent box scores, attribute-driven results, daily growth, coaching changes, live adaptations, stories, legacy saves and full live fixture.');
