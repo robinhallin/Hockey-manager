@@ -63,10 +63,14 @@ module.exports=async function check3D(page,out){
   const canvas=document.getElementById('career-ice-3d'),f=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D};
   Match3D.draw(canvas,f,null,1,options);const before=Match3D.diagnostics();Match3D.draw(canvas,f,null,1,options);const after=Match3D.diagnostics();
   Match3D.draw(canvas,{...f,time:f.time+5},null,1,{...options,suspended:true});const suspended=Match3D.diagnostics();
-  return {before,after,suspended};
+  // The match clock can stop at a whistle while observed follow-through advances.
+  Match3D.draw(canvas,{...f,wall:f.wall+.1},null,1,options);const recovery=Match3D.diagnostics();
+  Match3D.draw(canvas,f,null,1,options);
+  return {before,after,suspended,recovery};
  });
  assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
  assert.equal(graphics.suspended.frames,graphics.after.frames,'hidden fast-forward does not draw');assert.equal(graphics.suspended.geometryBuilds,graphics.after.geometryBuilds);
+ assert.equal(graphics.recovery.geometryBuilds,graphics.after.geometryBuilds+1,'stopped match clock does not freeze recorded follow-through');
  require('node:fs').writeFileSync(path.join(out,'3d-graphics-result.json'),JSON.stringify({compact,focused,graphics},null,2));
  await page.getByRole('button',{name:'Zooma in',exact:true}).click();await page.getByRole('button',{name:'Zooma in',exact:true}).click();
  assert.equal(await page.locator('#match-3d-zoom').innerText(),'120%');
