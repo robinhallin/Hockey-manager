@@ -70,4 +70,7 @@ for(const club of run('Object.keys(CLUB_DATA)')){
  assert.ok(!/undefined|NaN/.test(run('medicalView()')),club);
  assert.ok(!/undefined|NaN/.test(run('linesView()')),club);
 }
+run("startCareerWithClub('HV71');globalThis.profilePatient=managerRoster()[0];profilePatient.health.injury=null;injurePlayer(profilePatient,'träning');globalThis.profile=medicalProfile(profilePatient.health.injury);globalThis.riskBefore=medicalRisk(profilePatient);profilePatient.health.injuryHistory=[{type:'joint'},{type:'muscle'}]");
+assert.ok(run('medicalRisk(profilePatient)')>r('riskBefore'),'injury history should increase future workload risk');
+assert.ok(run('profile.min')<run('profile.max'),'injury profiles have distinct recovery windows');
 console.log('PASS: medical migration, deterministic time, rehab, training exclusion, lineups/goalies/special teams, exact comeback cap, live injury pause, promises, setbacks, preseason, depleted squads and 14-club views.');
