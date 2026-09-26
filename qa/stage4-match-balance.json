@@ -1,0 +1,1529 @@
+{
+  "completed": true,
+  "calibrationPassed": true,
+  "fixtures": 80,
+  "warnings": [],
+  "method": "Fixed roster and plan within each pair; regulation only. Bootstrap intervals resample fixture differences (2,000 draws); they describe sampling uncertainty, not external league validation or proof of equivalence. Groups are kept separate by manager club, venue, tactic and side. Different engines use independent RNG paths. Sparse special-team exposure is reported, not hidden. Shot/goal warning limits remain 10/2 per team per game.",
+  "groups": {
+    "HV71 / home / balanced / manager": {
+      "fixtures": 16,
+      "club": "HV71",
+      "metrics": {
+        "shots": {
+          "live": 20.25,
+          "background": 24.25,
+          "liveMinusBackground": -4,
+          "bootstrap95": [
+            -8.125,
+            0.75
+          ]
+        },
+        "goals": {
+          "live": 2.75,
+          "background": 3.125,
+          "liveMinusBackground": -0.375,
+          "bootstrap95": [
+            -1.625,
+            0.9375
+          ]
+        },
+        "xg": {
+          "live": 2.4407261154106985,
+          "background": 2.5742029646097584,
+          "liveMinusBackground": -0.13347684919906005,
+          "bootstrap95": [
+            -0.5368667185844295,
+            0.2951651152610289
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 50418.19999999721,
+            "shots": 259,
+            "attempts": 499,
+            "xg": 31.143443124821598,
+            "goals": 34,
+            "shotsPer60": 18.49332185599747,
+            "xgPerAttempt": 0.06241170966898116
+          },
+          "background": {
+            "seconds": 50780,
+            "shots": 327,
+            "attempts": 554,
+            "xg": 33.879486857129116,
+            "goals": 37,
+            "shotsPer60": 23.18235525797558,
+            "xgPerAttempt": 0.06115430840637025
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 2911.600000001311,
+            "shots": 58,
+            "attempts": 79,
+            "xg": 7.093142215062523,
+            "goals": 9,
+            "shotsPer60": 71.71314741032627,
+            "xgPerAttempt": 0.08978661031724712
+          },
+          "background": {
+            "seconds": 3040,
+            "shots": 61,
+            "attempts": 87,
+            "xg": 7.287371197034176,
+            "goals": 13,
+            "shotsPer60": 72.23684210526316,
+            "xgPerAttempt": 0.0837628873222319
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 4270.200000001476,
+            "shots": 7,
+            "attempts": 17,
+            "xg": 0.8150325066870482,
+            "goals": 1,
+            "shotsPer60": 5.90136293381839,
+            "xgPerAttempt": 0.04794308862864989
+          },
+          "background": {
+            "seconds": 3780,
+            "shots": 0,
+            "attempts": 1,
+            "xg": 0.020389379592832317,
+            "goals": 0,
+            "shotsPer60": 0,
+            "xgPerAttempt": 0.020389379592832317
+          }
+        }
+      }
+    },
+    "HV71 / home / balanced / opponent": {
+      "fixtures": 16,
+      "club": "Björklöven",
+      "metrics": {
+        "shots": {
+          "live": 43.875,
+          "background": 37.125,
+          "liveMinusBackground": 6.75,
+          "bootstrap95": [
+            3,
+            10.25
+          ]
+        },
+        "goals": {
+          "live": 3.875,
+          "background": 2.75,
+          "liveMinusBackground": 1.125,
+          "bootstrap95": [
+            -0.375,
+            2.5
+          ]
+        },
+        "xg": {
+          "live": 3.5658620944224735,
+          "background": 2.9591259118918876,
+          "liveMinusBackground": 0.6067361825305858,
+          "bootstrap95": [
+            0.3007125752360702,
+            0.8804772725825752
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 50418.19999999721,
+            "shots": 628,
+            "attempts": 1127,
+            "xg": 50.34951696779602,
+            "goals": 57,
+            "shotsPer60": 44.840950291762205,
+            "xgPerAttempt": 0.044675702722090524
+          },
+          "background": {
+            "seconds": 50780,
+            "shots": 530,
+            "attempts": 929,
+            "xg": 40.9556773637042,
+            "goals": 41,
+            "shotsPer60": 37.57384797164238,
+            "xgPerAttempt": 0.04408576680700129
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 4270.200000001476,
+            "shots": 55,
+            "attempts": 80,
+            "xg": 5.871974392884426,
+            "goals": 5,
+            "shotsPer60": 46.36785162285878,
+            "xgPerAttempt": 0.07339967991105532
+          },
+          "background": {
+            "seconds": 3780,
+            "shots": 56,
+            "attempts": 86,
+            "xg": 5.971381772565747,
+            "goals": 3,
+            "shotsPer60": 53.333333333333336,
+            "xgPerAttempt": 0.06943467177402032
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 2911.600000001311,
+            "shots": 19,
+            "attempts": 33,
+            "xg": 0.8323021500791358,
+            "goals": 0,
+            "shotsPer60": 23.492237944762056,
+            "xgPerAttempt": 0.025221277275125326
+          },
+          "background": {
+            "seconds": 3040,
+            "shots": 8,
+            "attempts": 17,
+            "xg": 0.41895545400026657,
+            "goals": 0,
+            "shotsPer60": 9.473684210526315,
+            "xgPerAttempt": 0.024644438470603915
+          }
+        }
+      }
+    },
+    "HV71 / home / pressure / manager": {
+      "fixtures": 16,
+      "club": "HV71",
+      "metrics": {
+        "shots": {
+          "live": 36.625,
+          "background": 42.25,
+          "liveMinusBackground": -5.625,
+          "bootstrap95": [
+            -11.125,
+            -0.0625
+          ]
+        },
+        "goals": {
+          "live": 2.5625,
+          "background": 3.6875,
+          "liveMinusBackground": -1.125,
+          "bootstrap95": [
+            -2.5625,
+            0.25
+          ]
+        },
+        "xg": {
+          "live": 2.9975055316571066,
+          "background": 3.077995335299015,
+          "liveMinusBackground": -0.08048980364190833,
+          "bootstrap95": [
+            -0.4628204860365566,
+            0.3280316390081218
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 48647.90000000112,
+            "shots": 493,
+            "attempts": 943,
+            "xg": 38.664541323128084,
+            "goals": 38,
+            "shotsPer60": 36.48256142608333,
+            "xgPerAttempt": 0.04100163448900115
+          },
+          "background": {
+            "seconds": 51200,
+            "shots": 600,
+            "attempts": 1043,
+            "xg": 41.37970498366113,
+            "goals": 47,
+            "shotsPer60": 42.1875,
+            "xgPerAttempt": 0.03967373440427721
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 4072.899999998929,
+            "shots": 62,
+            "attempts": 95,
+            "xg": 7.710273790924193,
+            "goals": 3,
+            "shotsPer60": 54.80124726854543,
+            "xgPerAttempt": 0.08116077674657045
+          },
+          "background": {
+            "seconds": 2840,
+            "shots": 56,
+            "attempts": 83,
+            "xg": 6.98403876258915,
+            "goals": 12,
+            "shotsPer60": 70.98591549295774,
+            "xgPerAttempt": 0.0841450453323994
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 4879.199999999945,
+            "shots": 31,
+            "attempts": 71,
+            "xg": 1.5852733924614282,
+            "goals": 0,
+            "shotsPer60": 22.8726020659127,
+            "xgPerAttempt": 0.022327794260020115
+          },
+          "background": {
+            "seconds": 3560,
+            "shots": 20,
+            "attempts": 33,
+            "xg": 0.8841816185339486,
+            "goals": 0,
+            "shotsPer60": 20.224719101123597,
+            "xgPerAttempt": 0.026793382379816624
+          }
+        }
+      }
+    },
+    "HV71 / home / pressure / opponent": {
+      "fixtures": 16,
+      "club": "Björklöven",
+      "metrics": {
+        "shots": {
+          "live": 45.5625,
+          "background": 36.5,
+          "liveMinusBackground": 9.0625,
+          "bootstrap95": [
+            5.3125,
+            12.8125
+          ]
+        },
+        "goals": {
+          "live": 3.875,
+          "background": 2.625,
+          "liveMinusBackground": 1.25,
+          "bootstrap95": [
+            -0.125,
+            2.75
+          ]
+        },
+        "xg": {
+          "live": 3.909045085140461,
+          "background": 2.9248995682383128,
+          "liveMinusBackground": 0.9841455169021478,
+          "bootstrap95": [
+            0.6902040588179962,
+            1.3255014422698947
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 48647.90000000112,
+            "shots": 621,
+            "attempts": 1113,
+            "xg": 52.67889291626159,
+            "goals": 52,
+            "shotsPer60": 45.95470719188184,
+            "xgPerAttempt": 0.04733054170373907
+          },
+          "background": {
+            "seconds": 51200,
+            "shots": 530,
+            "attempts": 896,
+            "xg": 41.64581277859119,
+            "goals": 42,
+            "shotsPer60": 37.265625,
+            "xgPerAttempt": 0.04647970176182053
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 4879.199999999945,
+            "shots": 80,
+            "attempts": 116,
+            "xg": 8.087419717273042,
+            "goals": 9,
+            "shotsPer60": 59.02606984751665,
+            "xgPerAttempt": 0.06971913549373311
+          },
+          "background": {
+            "seconds": 3560,
+            "shots": 45,
+            "attempts": 66,
+            "xg": 4.737812827713855,
+            "goals": 0,
+            "shotsPer60": 45.50561797752809,
+            "xgPerAttempt": 0.07178504284414931
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 4072.899999998929,
+            "shots": 28,
+            "attempts": 62,
+            "xg": 1.7784087287127543,
+            "goals": 1,
+            "shotsPer60": 24.748950379343096,
+            "xgPerAttempt": 0.02868401175343152
+          },
+          "background": {
+            "seconds": 2840,
+            "shots": 9,
+            "attempts": 15,
+            "xg": 0.41476748550796494,
+            "goals": 0,
+            "shotsPer60": 11.408450704225352,
+            "xgPerAttempt": 0.027651165700530996
+          }
+        }
+      }
+    },
+    "HV71 / away / balanced / manager": {
+      "fixtures": 8,
+      "club": "HV71",
+      "metrics": {
+        "shots": {
+          "live": 22.375,
+          "background": 21.875,
+          "liveMinusBackground": 0.5,
+          "bootstrap95": [
+            -3,
+            3.75
+          ]
+        },
+        "goals": {
+          "live": 3,
+          "background": 2.125,
+          "liveMinusBackground": 0.875,
+          "bootstrap95": [
+            -0.625,
+            2.25
+          ]
+        },
+        "xg": {
+          "live": 2.846429152104246,
+          "background": 2.7598526210830645,
+          "liveMinusBackground": 0.08657653102118151,
+          "bootstrap95": [
+            -0.4429051100067656,
+            0.7032955391564196
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24491.70000000168,
+            "shots": 131,
+            "attempts": 261,
+            "xg": 16.0228399171212,
+            "goals": 18,
+            "shotsPer60": 19.255502884649395,
+            "xgPerAttempt": 0.06139019125333793
+          },
+          "background": {
+            "seconds": 24120,
+            "shots": 131,
+            "attempts": 262,
+            "xg": 16.079300824540187,
+            "goals": 14,
+            "shotsPer60": 19.55223880597015,
+            "xgPerAttempt": 0.06137137719290148
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 2751.2999999992408,
+            "shots": 46,
+            "attempts": 70,
+            "xg": 6.5437985300811,
+            "goals": 6,
+            "shotsPer60": 60.18972849200222,
+            "xgPerAttempt": 0.09348283614401572
+          },
+          "background": {
+            "seconds": 2740,
+            "shots": 44,
+            "attempts": 69,
+            "xg": 5.980369275051715,
+            "goals": 3,
+            "shotsPer60": 57.81021897810219,
+            "xgPerAttempt": 0.08667201847901036
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1556.9999999990796,
+            "shots": 2,
+            "attempts": 3,
+            "xg": 0.20479476963167006,
+            "goals": 0,
+            "shotsPer60": 4.624277456650132,
+            "xgPerAttempt": 0.06826492321055669
+          },
+          "background": {
+            "seconds": 1940,
+            "shots": 0,
+            "attempts": 1,
+            "xg": 0.01915086907261676,
+            "goals": 0,
+            "shotsPer60": 0,
+            "xgPerAttempt": 0.01915086907261676
+          }
+        }
+      }
+    },
+    "HV71 / away / balanced / opponent": {
+      "fixtures": 8,
+      "club": "Björklöven",
+      "metrics": {
+        "shots": {
+          "live": 41,
+          "background": 38.375,
+          "liveMinusBackground": 2.625,
+          "bootstrap95": [
+            -4.25,
+            8.375
+          ]
+        },
+        "goals": {
+          "live": 3.625,
+          "background": 4.25,
+          "liveMinusBackground": -0.625,
+          "bootstrap95": [
+            -2.875,
+            1.5
+          ]
+        },
+        "xg": {
+          "live": 3.466190396993237,
+          "background": 3.1088635967864686,
+          "liveMinusBackground": 0.3573268002067686,
+          "bootstrap95": [
+            -0.14815990053880768,
+            0.7918713917323813
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24491.70000000168,
+            "shots": 284,
+            "attempts": 541,
+            "xg": 24.034109478379804,
+            "goals": 23,
+            "shotsPer60": 41.744754345346784,
+            "xgPerAttempt": 0.044425340995156756
+          },
+          "background": {
+            "seconds": 24120,
+            "shots": 269,
+            "attempts": 468,
+            "xg": 21.21282912253443,
+            "goals": 31,
+            "shotsPer60": 40.149253731343286,
+            "xgPerAttempt": 0.045326557954133394
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1556.9999999990796,
+            "shots": 29,
+            "attempts": 37,
+            "xg": 2.763891308496833,
+            "goals": 5,
+            "shotsPer60": 67.05202312142693,
+            "xgPerAttempt": 0.074699765094509
+          },
+          "background": {
+            "seconds": 1940,
+            "shots": 30,
+            "attempts": 44,
+            "xg": 3.3024255982382598,
+            "goals": 2,
+            "shotsPer60": 55.670103092783506,
+            "xgPerAttempt": 0.07505512723268772
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 2751.2999999992408,
+            "shots": 15,
+            "attempts": 32,
+            "xg": 0.9315223890692619,
+            "goals": 1,
+            "shotsPer60": 19.62708537782681,
+            "xgPerAttempt": 0.029110074658414434
+          },
+          "background": {
+            "seconds": 2740,
+            "shots": 8,
+            "attempts": 13,
+            "xg": 0.35565405351905854,
+            "goals": 1,
+            "shotsPer60": 10.510948905109489,
+            "xgPerAttempt": 0.027358004116850656
+          }
+        }
+      }
+    },
+    "HV71 / away / pressure / manager": {
+      "fixtures": 8,
+      "club": "HV71",
+      "metrics": {
+        "shots": {
+          "live": 39.375,
+          "background": 35.25,
+          "liveMinusBackground": 4.125,
+          "bootstrap95": [
+            -0.25,
+            8
+          ]
+        },
+        "goals": {
+          "live": 2.875,
+          "background": 3.125,
+          "liveMinusBackground": -0.25,
+          "bootstrap95": [
+            -1.75,
+            1.25
+          ]
+        },
+        "xg": {
+          "live": 2.914656524285221,
+          "background": 2.791790961728492,
+          "liveMinusBackground": 0.12286556255672881,
+          "bootstrap95": [
+            -0.3103503838020456,
+            0.4565925016781201
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24507.200000000543,
+            "shots": 273,
+            "attempts": 475,
+            "xg": 19.53942773854951,
+            "goals": 20,
+            "shotsPer60": 40.102500489651135,
+            "xgPerAttempt": 0.04113563734431476
+          },
+          "background": {
+            "seconds": 24140,
+            "shots": 226,
+            "attempts": 443,
+            "xg": 17.09352217765507,
+            "goals": 20,
+            "shotsPer60": 33.70339685169843,
+            "xgPerAttempt": 0.038585828843465175
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1837.5000000011557,
+            "shots": 32,
+            "attempts": 47,
+            "xg": 3.4504164156434816,
+            "goals": 3,
+            "shotsPer60": 62.69387755098098,
+            "xgPerAttempt": 0.07341311522645705
+          },
+          "background": {
+            "seconds": 2520,
+            "shots": 41,
+            "attempts": 58,
+            "xg": 4.653544660599428,
+            "goals": 5,
+            "shotsPer60": 58.57142857142857,
+            "xgPerAttempt": 0.08023352863102462
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 2455.2999999983044,
+            "shots": 10,
+            "attempts": 18,
+            "xg": 0.32740804008877566,
+            "goals": 0,
+            "shotsPer60": 14.662159410265492,
+            "xgPerAttempt": 0.018189335560487536
+          },
+          "background": {
+            "seconds": 2140,
+            "shots": 15,
+            "attempts": 20,
+            "xg": 0.5872608555734374,
+            "goals": 0,
+            "shotsPer60": 25.233644859813083,
+            "xgPerAttempt": 0.029363042778671872
+          }
+        }
+      }
+    },
+    "HV71 / away / pressure / opponent": {
+      "fixtures": 8,
+      "club": "Björklöven",
+      "metrics": {
+        "shots": {
+          "live": 43.5,
+          "background": 35.75,
+          "liveMinusBackground": 7.75,
+          "bootstrap95": [
+            3.125,
+            12.625
+          ]
+        },
+        "goals": {
+          "live": 4.125,
+          "background": 3.5,
+          "liveMinusBackground": 0.625,
+          "bootstrap95": [
+            -0.75,
+            1.875
+          ]
+        },
+        "xg": {
+          "live": 3.74936330149242,
+          "background": 3.1124832365659953,
+          "liveMinusBackground": 0.636880064926425,
+          "bootstrap95": [
+            0.3435875209525215,
+            0.9245336424331799
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24507.200000000543,
+            "shots": 298,
+            "attempts": 533,
+            "xg": 25.147763110541177,
+            "goals": 29,
+            "shotsPer60": 43.77489064438109,
+            "xgPerAttempt": 0.04718154429745061
+          },
+          "background": {
+            "seconds": 24140,
+            "shots": 236,
+            "attempts": 434,
+            "xg": 20.542241013425542,
+            "goals": 25,
+            "shotsPer60": 35.1946975973488,
+            "xgPerAttempt": 0.047332352565496644
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 2455.2999999983044,
+            "shots": 34,
+            "attempts": 52,
+            "xg": 3.930383565201701,
+            "goals": 4,
+            "shotsPer60": 49.85134199490267,
+            "xgPerAttempt": 0.07558429933080194
+          },
+          "background": {
+            "seconds": 2140,
+            "shots": 37,
+            "attempts": 51,
+            "xg": 3.8004855793149472,
+            "goals": 1,
+            "shotsPer60": 62.242990654205606,
+            "xgPerAttempt": 0.0745193250846068
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1837.5000000011557,
+            "shots": 16,
+            "attempts": 33,
+            "xg": 0.9167597361964842,
+            "goals": 0,
+            "shotsPer60": 31.34693877549049,
+            "xgPerAttempt": 0.02778059806656013
+          },
+          "background": {
+            "seconds": 2520,
+            "shots": 13,
+            "attempts": 21,
+            "xg": 0.5571392997874735,
+            "goals": 2,
+            "shotsPer60": 18.571428571428573,
+            "xgPerAttempt": 0.026530442847022544
+          }
+        }
+      }
+    },
+    "Färjestad BK / home / balanced / manager": {
+      "fixtures": 8,
+      "club": "Färjestad BK",
+      "metrics": {
+        "shots": {
+          "live": 24.625,
+          "background": 21.875,
+          "liveMinusBackground": 2.75,
+          "bootstrap95": [
+            -3.25,
+            10.25
+          ]
+        },
+        "goals": {
+          "live": 2.75,
+          "background": 2.125,
+          "liveMinusBackground": 0.625,
+          "bootstrap95": [
+            -1.125,
+            2.125
+          ]
+        },
+        "xg": {
+          "live": 3.140598145277324,
+          "background": 2.4277855303326685,
+          "liveMinusBackground": 0.7128126149446552,
+          "bootstrap95": [
+            0.1669395218226183,
+            1.4226202848316931
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24443.399999999863,
+            "shots": 173,
+            "attempts": 326,
+            "xg": 21.69332050985343,
+            "goals": 18,
+            "shotsPer60": 25.47927047792056,
+            "xgPerAttempt": 0.06654392794433567
+          },
+          "background": {
+            "seconds": 24760,
+            "shots": 152,
+            "attempts": 269,
+            "xg": 17.263715865802503,
+            "goals": 14,
+            "shotsPer60": 22.10016155088853,
+            "xgPerAttempt": 0.0641773824007528
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 2436.7999999989347,
+            "shots": 23,
+            "attempts": 49,
+            "xg": 3.3500557451393327,
+            "goals": 3,
+            "shotsPer60": 33.97898883783495,
+            "xgPerAttempt": 0.06836848459468026
+          },
+          "background": {
+            "seconds": 1880,
+            "shots": 21,
+            "attempts": 30,
+            "xg": 2.079116329589936,
+            "goals": 3,
+            "shotsPer60": 40.212765957446805,
+            "xgPerAttempt": 0.06930387765299788
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1919.8000000012012,
+            "shots": 1,
+            "attempts": 2,
+            "xg": 0.0814089072258259,
+            "goals": 1,
+            "shotsPer60": 1.8751953328459983,
+            "xgPerAttempt": 0.04070445361291295
+          },
+          "background": {
+            "seconds": 2160,
+            "shots": 2,
+            "attempts": 4,
+            "xg": 0.0794520472689069,
+            "goals": 0,
+            "shotsPer60": 3.3333333333333335,
+            "xgPerAttempt": 0.019863011817226724
+          }
+        }
+      }
+    },
+    "Färjestad BK / home / balanced / opponent": {
+      "fixtures": 8,
+      "club": "Timrå IK",
+      "metrics": {
+        "shots": {
+          "live": 38,
+          "background": 37.5,
+          "liveMinusBackground": 0.5,
+          "bootstrap95": [
+            -8.5,
+            9.25
+          ]
+        },
+        "goals": {
+          "live": 4.25,
+          "background": 3.125,
+          "liveMinusBackground": 1.125,
+          "bootstrap95": [
+            -1,
+            3.375
+          ]
+        },
+        "xg": {
+          "live": 3.476541985419136,
+          "background": 3.0832738034350515,
+          "liveMinusBackground": 0.39326818198408564,
+          "bootstrap95": [
+            -0.43889930787196585,
+            1.2091462831015782
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24443.399999999863,
+            "shots": 275,
+            "attempts": 507,
+            "xg": 25.81813611351237,
+            "goals": 34,
+            "shotsPer60": 40.50173052848644,
+            "xgPerAttempt": 0.05092334539154313
+          },
+          "background": {
+            "seconds": 24760,
+            "shots": 276,
+            "attempts": 483,
+            "xg": 22.63397227607977,
+            "goals": 23,
+            "shotsPer60": 40.12924071082391,
+            "xgPerAttempt": 0.046861226244471574
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1919.8000000012012,
+            "shots": 12,
+            "attempts": 17,
+            "xg": 1.2151446333591878,
+            "goals": 0,
+            "shotsPer60": 22.50234399415198,
+            "xgPerAttempt": 0.07147909607995222
+          },
+          "background": {
+            "seconds": 2160,
+            "shots": 17,
+            "attempts": 23,
+            "xg": 1.6192808224202224,
+            "goals": 2,
+            "shotsPer60": 28.333333333333332,
+            "xgPerAttempt": 0.07040351401827054
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 2436.7999999989347,
+            "shots": 17,
+            "attempts": 31,
+            "xg": 0.7790551364815389,
+            "goals": 0,
+            "shotsPer60": 25.11490479318235,
+            "xgPerAttempt": 0.02513081085424319
+          },
+          "background": {
+            "seconds": 1880,
+            "shots": 7,
+            "attempts": 12,
+            "xg": 0.4129373289804159,
+            "goals": 0,
+            "shotsPer60": 13.404255319148936,
+            "xgPerAttempt": 0.034411444081701326
+          }
+        }
+      }
+    },
+    "Färjestad BK / home / pressure / manager": {
+      "fixtures": 8,
+      "club": "Färjestad BK",
+      "metrics": {
+        "shots": {
+          "live": 38.625,
+          "background": 35.75,
+          "liveMinusBackground": 2.875,
+          "bootstrap95": [
+            -4.375,
+            10.375
+          ]
+        },
+        "goals": {
+          "live": 2.875,
+          "background": 3,
+          "liveMinusBackground": -0.125,
+          "bootstrap95": [
+            -2,
+            1.75
+          ]
+        },
+        "xg": {
+          "live": 3.134746448928457,
+          "background": 2.6400941812931364,
+          "liveMinusBackground": 0.4946522676353202,
+          "bootstrap95": [
+            0.07048280935394757,
+            0.9353979279268115
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 25301.0000000008,
+            "shots": 287,
+            "attempts": 512,
+            "xg": 23.152954873959857,
+            "goals": 21,
+            "shotsPer60": 40.83633057981769,
+            "xgPerAttempt": 0.045220614988202845
+          },
+          "background": {
+            "seconds": 24080,
+            "shots": 260,
+            "attempts": 446,
+            "xg": 18.167895590469026,
+            "goals": 21,
+            "shotsPer60": 38.87043189368771,
+            "xgPerAttempt": 0.04073519190688123
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1624.4000000005494,
+            "shots": 12,
+            "attempts": 23,
+            "xg": 1.5582493421133035,
+            "goals": 2,
+            "shotsPer60": 26.594434868250055,
+            "xgPerAttempt": 0.06774997139623058
+          },
+          "background": {
+            "seconds": 2260,
+            "shots": 19,
+            "attempts": 37,
+            "xg": 2.5039960342795795,
+            "goals": 2,
+            "shotsPer60": 30.265486725663717,
+            "xgPerAttempt": 0.06767556849404269
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1874.5999999986457,
+            "shots": 10,
+            "attempts": 17,
+            "xg": 0.3667673753544888,
+            "goals": 0,
+            "shotsPer60": 19.20409687401366,
+            "xgPerAttempt": 0.021574551491440518
+          },
+          "background": {
+            "seconds": 2460,
+            "shots": 7,
+            "attempts": 15,
+            "xg": 0.4488618255964806,
+            "goals": 1,
+            "shotsPer60": 10.24390243902439,
+            "xgPerAttempt": 0.02992412170643204
+          }
+        }
+      }
+    },
+    "Färjestad BK / home / pressure / opponent": {
+      "fixtures": 8,
+      "club": "Timrå IK",
+      "metrics": {
+        "shots": {
+          "live": 38,
+          "background": 33.75,
+          "liveMinusBackground": 4.25,
+          "bootstrap95": [
+            -3,
+            11.625
+          ]
+        },
+        "goals": {
+          "live": 4.25,
+          "background": 3.5,
+          "liveMinusBackground": 0.75,
+          "bootstrap95": [
+            -0.5,
+            2.125
+          ]
+        },
+        "xg": {
+          "live": 3.4622169692489595,
+          "background": 2.945711299751889,
+          "liveMinusBackground": 0.5165056694970707,
+          "bootstrap95": [
+            0.10590743840845862,
+            0.9074516473534266
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 25301.0000000008,
+            "shots": 277,
+            "attempts": 496,
+            "xg": 25.347365592480678,
+            "goals": 31,
+            "shotsPer60": 39.4134619185,
+            "xgPerAttempt": 0.05110355966225943
+          },
+          "background": {
+            "seconds": 24080,
+            "shots": 240,
+            "attempts": 448,
+            "xg": 21.511652603455698,
+            "goals": 24,
+            "shotsPer60": 35.880398671096344,
+            "xgPerAttempt": 0.048017081704142185
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1874.5999999986457,
+            "shots": 15,
+            "attempts": 22,
+            "xg": 1.6723118468539313,
+            "goals": 3,
+            "shotsPer60": 28.80614531102049,
+            "xgPerAttempt": 0.07601417485699688
+          },
+          "background": {
+            "seconds": 2460,
+            "shots": 18,
+            "attempts": 23,
+            "xg": 1.5313439718058584,
+            "goals": 3,
+            "shotsPer60": 26.341463414634145,
+            "xgPerAttempt": 0.06658017268721124
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1624.4000000005494,
+            "shots": 12,
+            "attempts": 25,
+            "xg": 0.6780583146570704,
+            "goals": 0,
+            "shotsPer60": 26.594434868250055,
+            "xgPerAttempt": 0.027122332586282816
+          },
+          "background": {
+            "seconds": 2260,
+            "shots": 12,
+            "attempts": 17,
+            "xg": 0.5226938227535554,
+            "goals": 1,
+            "shotsPer60": 19.115044247787612,
+            "xgPerAttempt": 0.030746695456091492
+          }
+        }
+      }
+    },
+    "IK Oskarshamn / away / balanced / manager": {
+      "fixtures": 8,
+      "club": "IK Oskarshamn",
+      "metrics": {
+        "shots": {
+          "live": 22.625,
+          "background": 21.375,
+          "liveMinusBackground": 1.25,
+          "bootstrap95": [
+            -5,
+            8
+          ]
+        },
+        "goals": {
+          "live": 3,
+          "background": 2.75,
+          "liveMinusBackground": 0.25,
+          "bootstrap95": [
+            -2.125,
+            2.125
+          ]
+        },
+        "xg": {
+          "live": 2.8227465182017246,
+          "background": 2.6997536277742284,
+          "liveMinusBackground": 0.12299289042749612,
+          "bootstrap95": [
+            -0.38098082933311156,
+            0.5260623589576918
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 25284.600000001577,
+            "shots": 150,
+            "attempts": 305,
+            "xg": 18.662072990958897,
+            "goals": 20,
+            "shotsPer60": 21.35687335373968,
+            "xgPerAttempt": 0.06118712456052097
+          },
+          "background": {
+            "seconds": 25560,
+            "shots": 139,
+            "attempts": 285,
+            "xg": 17.9399078695754,
+            "goals": 15,
+            "shotsPer60": 19.577464788732396,
+            "xgPerAttempt": 0.06294704515640491
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1890.399999999588,
+            "shots": 30,
+            "attempts": 42,
+            "xg": 3.8886173353395437,
+            "goals": 4,
+            "shotsPer60": 57.13076597546738,
+            "xgPerAttempt": 0.0925861270318939
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 30,
+            "attempts": 41,
+            "xg": 3.5942776497711555,
+            "goals": 7,
+            "shotsPer60": 66.66666666666667,
+            "xgPerAttempt": 0.0876653085310038
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1624.9999999988363,
+            "shots": 1,
+            "attempts": 2,
+            "xg": 0.03128181931535365,
+            "goals": 0,
+            "shotsPer60": 2.215384615386202,
+            "xgPerAttempt": 0.015640909657676824
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 2,
+            "attempts": 2,
+            "xg": 0.06384350284727075,
+            "goals": 0,
+            "shotsPer60": 4.444444444444445,
+            "xgPerAttempt": 0.031921751423635375
+          }
+        }
+      }
+    },
+    "IK Oskarshamn / away / balanced / opponent": {
+      "fixtures": 8,
+      "club": "Vimmerby HC",
+      "metrics": {
+        "shots": {
+          "live": 47.125,
+          "background": 37.875,
+          "liveMinusBackground": 9.25,
+          "bootstrap95": [
+            2.375,
+            16.625
+          ]
+        },
+        "goals": {
+          "live": 3.875,
+          "background": 4.25,
+          "liveMinusBackground": -0.375,
+          "bootstrap95": [
+            -2.375,
+            1.125
+          ]
+        },
+        "xg": {
+          "live": 3.8739586576906833,
+          "background": 3.3020083526014,
+          "liveMinusBackground": 0.5719503050892834,
+          "bootstrap95": [
+            0.06105832407103795,
+            1.1019030284228335
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 25284.600000001577,
+            "shots": 333,
+            "attempts": 629,
+            "xg": 27.216885998533055,
+            "goals": 26,
+            "shotsPer60": 47.41225884530209,
+            "xgPerAttempt": 0.04327008902787449
+          },
+          "background": {
+            "seconds": 25560,
+            "shots": 271,
+            "attempts": 512,
+            "xg": 23.317022148635207,
+            "goals": 30,
+            "shotsPer60": 38.16901408450704,
+            "xgPerAttempt": 0.04554105888405314
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1624.9999999988363,
+            "shots": 24,
+            "attempts": 40,
+            "xg": 2.9586846396329602,
+            "goals": 4,
+            "shotsPer60": 53.16923076926884,
+            "xgPerAttempt": 0.073967115990824
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 26,
+            "attempts": 39,
+            "xg": 2.829217699389943,
+            "goals": 4,
+            "shotsPer60": 57.77777777777778,
+            "xgPerAttempt": 0.0725440435741011
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1890.399999999588,
+            "shots": 20,
+            "attempts": 34,
+            "xg": 0.8160986233594463,
+            "goals": 1,
+            "shotsPer60": 38.087177316978256,
+            "xgPerAttempt": 0.024002900687042538
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 6,
+            "attempts": 11,
+            "xg": 0.2698269727860517,
+            "goals": 0,
+            "shotsPer60": 13.333333333333334,
+            "xgPerAttempt": 0.024529724798731976
+          }
+        }
+      }
+    },
+    "IK Oskarshamn / away / pressure / manager": {
+      "fixtures": 8,
+      "club": "IK Oskarshamn",
+      "metrics": {
+        "shots": {
+          "live": 28.25,
+          "background": 29,
+          "liveMinusBackground": -0.75,
+          "bootstrap95": [
+            -5,
+            3.375
+          ]
+        },
+        "goals": {
+          "live": 2.875,
+          "background": 2.625,
+          "liveMinusBackground": 0.25,
+          "bootstrap95": [
+            -0.625,
+            1.25
+          ]
+        },
+        "xg": {
+          "live": 2.356732846450948,
+          "background": 2.4749472643990624,
+          "liveMinusBackground": -0.1182144179481143,
+          "bootstrap95": [
+            -0.4375384212206753,
+            0.168616692820349
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24460.20000000045,
+            "shots": 203,
+            "attempts": 406,
+            "xg": 16.64695509972283,
+            "goals": 19,
+            "shotsPer60": 29.87710648318438,
+            "xgPerAttempt": 0.04100235246237151
+          },
+          "background": {
+            "seconds": 24400,
+            "shots": 191,
+            "attempts": 405,
+            "xg": 15.930296154446715,
+            "goals": 17,
+            "shotsPer60": 28.18032786885246,
+            "xgPerAttempt": 0.03933406457888078
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 1880.599999998451,
+            "shots": 16,
+            "attempts": 21,
+            "xg": 1.870823400796846,
+            "goals": 4,
+            "shotsPer60": 30.62852281189378,
+            "xgPerAttempt": 0.08908682860937363
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 25,
+            "attempts": 36,
+            "xg": 3.1747838124196313,
+            "goals": 4,
+            "shotsPer60": 55.55555555555556,
+            "xgPerAttempt": 0.08818843923387865
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 2459.2000000011008,
+            "shots": 7,
+            "attempts": 18,
+            "xg": 0.3360842710879051,
+            "goals": 0,
+            "shotsPer60": 10.247234873124887,
+            "xgPerAttempt": 0.018671348393772505
+          },
+          "background": {
+            "seconds": 2780,
+            "shots": 16,
+            "attempts": 26,
+            "xg": 0.6944981483261535,
+            "goals": 0,
+            "shotsPer60": 20.719424460431654,
+            "xgPerAttempt": 0.026711467243313598
+          }
+        }
+      }
+    },
+    "IK Oskarshamn / away / pressure / opponent": {
+      "fixtures": 8,
+      "club": "Vimmerby HC",
+      "metrics": {
+        "shots": {
+          "live": 42.25,
+          "background": 40.5,
+          "liveMinusBackground": 1.75,
+          "bootstrap95": [
+            -5.875,
+            9.5
+          ]
+        },
+        "goals": {
+          "live": 4.25,
+          "background": 4.25,
+          "liveMinusBackground": 0,
+          "bootstrap95": [
+            -1.875,
+            2
+          ]
+        },
+        "xg": {
+          "live": 4.001176764865379,
+          "background": 3.6020727582915164,
+          "liveMinusBackground": 0.3991040065738633,
+          "bootstrap95": [
+            -0.22000400117002727,
+            1.0531395947196727
+          ]
+        }
+      },
+      "strength": {
+        "even": {
+          "live": {
+            "seconds": 24460.20000000045,
+            "shots": 288,
+            "attempts": 596,
+            "xg": 27.17655502969943,
+            "goals": 30,
+            "shotsPer60": 42.387224961365035,
+            "xgPerAttempt": 0.04559824669412656
+          },
+          "background": {
+            "seconds": 24400,
+            "shots": 267,
+            "attempts": 487,
+            "xg": 23.064965222774145,
+            "goals": 28,
+            "shotsPer60": 39.39344262295082,
+            "xgPerAttempt": 0.04736132489276005
+          }
+        },
+        "pp": {
+          "live": {
+            "seconds": 2459.2000000011008,
+            "shots": 37,
+            "attempts": 53,
+            "xg": 4.147058130463133,
+            "goals": 4,
+            "shotsPer60": 54.16395575794583,
+            "xgPerAttempt": 0.07824637982005911
+          },
+          "background": {
+            "seconds": 2780,
+            "shots": 51,
+            "attempts": 70,
+            "xg": 5.395156238331704,
+            "goals": 6,
+            "shotsPer60": 66.0431654676259,
+            "xgPerAttempt": 0.07707366054759576
+          }
+        },
+        "pk": {
+          "live": {
+            "seconds": 1880.599999998451,
+            "shots": 13,
+            "attempts": 31,
+            "xg": 0.6858009587604761,
+            "goals": 0,
+            "shotsPer60": 24.885674784663696,
+            "xgPerAttempt": 0.022122611572918584
+          },
+          "background": {
+            "seconds": 1620,
+            "shots": 6,
+            "attempts": 12,
+            "xg": 0.35646060522629114,
+            "goals": 0,
+            "shotsPer60": 13.333333333333334,
+            "xgPerAttempt": 0.029705050435524263
+          }
+        }
+      }
+    }
+  }
+}

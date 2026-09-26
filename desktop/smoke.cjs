@@ -103,8 +103,11 @@ async function close(){
   // Use the same daily controls as a tester, including the transition layer.
   for(let day=0;day<10 && await page.evaluate(()=>state.calendar.date<calendarTarget());day++){
    const before=await page.evaluate(()=>state.calendar.date);
+   const measured=await page.evaluate(()=>performanceSummary('nextDay').count);
    await page.locator('#continueGame').click();
    await page.waitForFunction(before=>state.calendar.date!==before && dayTransition===null,before);
+   assert.equal(await page.evaluate(()=>performanceSummary('nextDay').count),Math.min(30,measured+1),'one successful timing sample per actual day');
+   assert.ok(await page.evaluate(()=>Number.isFinite(performanceSummary('nextDay').last)&&performanceSummary('nextDay').last>=0));
   }
   assert.equal(await page.evaluate(()=>state.calendar.date),await page.evaluate(()=>calendarTarget()));
   await page.locator('#continueGame').click();

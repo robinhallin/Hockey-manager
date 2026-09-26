@@ -40,18 +40,24 @@ function dayTransitionStart(){
  return true;
 }
 function dayTransitionRun(tx){
- if(dayTransition!==tx)return;
+ if(!tx||dayTransition!==tx||tx.phase!=='working')return;
  if(state!==tx.state||state.calendar?.date!==tx.date||managerClub()!==tx.club||careerScreen){dayTransitionDispose();return;}
+ const perfStart=performanceNow();let completed=false;
  try{
   calendarContinue();
   if(state.calendar.date===tx.date){dayTransitionDispose();return;}
   tx.rows=dayTransitionSummary(tx.before);tx.phase='ready';
   state.calendar.lastDaySummary={date:tx.date,currentDate:state.calendar.date,club:tx.club,rows:tx.rows.slice(0,12),total:tx.rows.length};
   save();
+  completed=true;
   if(!pendingManagerDecision()){dayTransitionDispose();render();document.getElementById('continueGame')?.focus?.();return;}
  }catch(error){
   // A callback is never retried: a failure may occur after some work is saved.
-  tx.phase='error';console.error('Day transition failed',error);
+  completed=false;tx.phase='error';console.error('Day transition failed',error);
+ }finally{
+  // The queued paint/wait is excluded; failed or blocked steps never enter
+  // the successful-day series, even if a callback partially advanced the date.
+  performanceMeasure(completed?'nextDay':'nextDayAborted',perfStart);
  }
  dayTransitionRender();
 }
