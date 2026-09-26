@@ -15,6 +15,18 @@ Object.assign(CLUB_PRIORITIES,{
  international:{name:'Internationell scouting',cost:1800000,text:'Två extra scoutuppdrag samtidigt och 30 % lägre uppdragsavgift.',missions:2,scoutFee:.7}
 });
 
+function clubProjectState(){
+ ensureClub();const o=state.clubOffice;o.projects??={};
+ const id=o.priority,p=CLUB_PRIORITIES[id],row=o.projects[id]??={id,started:o.year,seasons:0,maturity:0};
+ if(o.priorityLockedYear===clubYear())row.maturity=Math.min(100,Math.max(row.maturity||0,25+(clubYear()-row.started)*25));
+ return row;
+}
+function clubProjectFactor(key,fallback=1){
+ const base=clubPriorityValue(key,fallback),project=state.clubOffice?.projects?.[state.clubOffice.priority];
+ if(base===fallback||!project)return base;
+ const maturity=.7+.3*Math.min(1,(project.maturity||25)/100);
+ return fallback+(base-fallback)*maturity;
+}
 function clubYear(){return state.season?.year||2026;}
 function ensureClub(){
  if(!state.careerStarted)return;
@@ -48,8 +60,8 @@ function clubPost(category,amount,label){
 function clubStaffCost(){return (state.staff||[]).reduce((n,s)=>n+(s.salary||0),0);}
 function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0));}
 function clubMissionFee(){return Math.round(25000*(state.clubOffice?.priority==='scouting'?.8:clubPriorityValue('scoutFee')));}
-function clubTrainingFactor(){return state.clubOffice?.priority==='first'?1.1:clubPriorityValue('training');}
-function clubJuniorFactor(){return state.clubOffice?.priority==='youth'?1.15:clubPriorityValue('junior');}
+function clubTrainingFactor(){if(state.clubOffice?.priority==='first'){const project=state.clubOffice?.projects?.first,maturity=.7+.3*Math.min(1,(project?.maturity||25)/100);return 1+.1*maturity;}return clubProjectFactor('training');}
+function clubJuniorFactor(){return clubProjectFactor('junior',state.clubOffice?.priority==='youth'?1.15:1);}
 function clubGate(playoff=false,ticket=state.clubOffice.ticket){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
  const demand=.9+(8-rank)*.012+(playoff?.12:0)-(ticket-220)/700;
@@ -91,7 +103,7 @@ function clubSetPolicy(key,value){
   if(state.clubOffice.priorityLockedYear===clubYear())return clubNotice('Satsningen är låst för hela säsongen. Nya förslag kommer inför nästa säsong.');
   if(!clubPriorityChoices().includes(value))return clubNotice('Det förslaget erbjuds inte den här säsongen.');
   if(CLUB_PRIORITIES[value].cost>CLUB_PRIORITIES[state.clubOffice.priority].cost&&state.money-clubForecast().reserved<=0)return clubNotice('Kassan saknar utrymme för en större satsning.');
-  state.clubOffice.priority=value;state.clubOffice.priorityLockedYear=clubYear();
+  state.clubOffice.priority=value;state.clubOffice.priorityLockedYear=clubYear();state.clubOffice.projects??={};const project=state.clubOffice.projects[value]??={id:value,started:clubYear(),seasons:0,maturity:0};project.maturity=Math.max(project.maturity,25);
  }
  else if(key==='ticket'&&[160,220,280,340].includes(Number(value)))state.clubOffice.ticket=Number(value);
  else return;
@@ -152,7 +164,7 @@ function clubSign(){
 function clubNewYear(){
  ensureClub();const o=state.clubOffice;if(o.year===clubYear())return;
  o.archives.unshift({year:o.year,opening:o.opening,closing:state.money,totals:{...o.totals}});o.archives=o.archives.slice(0,10);
- o.priority='balanced';o.priorityLockedYear=null;o.year=clubYear();o.opening=state.money;o.totals={};o.settled=[];o.taken=[];o.offer=null;
+ const previousPriority=o.priority,previousProject=o.projects?.[previousPriority];if(previousProject){previousProject.seasons=(previousProject.seasons||0)+1;previousProject.maturity=Math.min(100,(previousProject.maturity||25)+25);}o.priority='balanced';o.priorityLockedYear=null;o.year=clubYear();o.opening=state.money;o.totals={};o.settled=[];o.taken=[];o.offer=null;
  const expired=[];state.staff=state.staff.map(s=>{if(s.salary&&s.expires<=o.year){expired.push(s.name);return clubInterim(s.id);}return s;});
  const goals=state.season.boardResult||[],met=goals.filter(g=>g.met).length/Math.max(1,goals.length);
  o.sponsor=Math.round(o.sponsor*(.96+.08*met));clubMakeMarket();

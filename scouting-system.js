@@ -17,6 +17,16 @@ function scoutingRegion(p){return recruitCountry(getPlayerClub(p.id));}
 function scoutingCoverage(s,region){return Math.min(95,(region==='SWE'?65:20)+(scoutingOffice()?.coverage[scoutingPerson(s)+':'+region]||0)+(state.clubOffice?.priority==='international'?15:0));}
 function scoutingBusy(s){return (scoutingOffice()?.jobs||[]).some(j=>j.status==='active'&&j.person===scoutingPerson(s));}
 function scoutingPrior(p){const base=leagueOf(getPlayerClub(p.id))==='HA'?10.3:11.3;return Object.fromEntries(Object.keys(p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES).map(k=>[k,base+(attrSeed(`${p.id}:public-prior:${k}`)-.5)*1.4]));}
+function scoutingObservationContext(p,job,date=state.calendar?.date){
+ const club=getPlayerClub(p.id),games=(p.roleGames||[]).filter(g=>g.club===club&&(!date||!g.date||calGap(g.date,date)<=35)),recent=games.slice(-5);
+ const minutes=recent.length?recent.reduce((n,g)=>n+(g.seconds||0),0)/60/recent.length:0,role=recent.length?recent.map(g=>g.placement).filter(Boolean).at(-1):null;
+ const sample=Math.min(1,recent.length/3),usage=Math.min(1,minutes/15),fit=job?.profile&&RECRUIT_PROFILES[job.profile]?recruitRoleValue(p,job.profile,false)/20:.7;
+ return {games:recent.length,minutes:Math.round(minutes*10)/10,role,sample,usage,fit,quality:Math.max(.45,Math.min(1.15,.55+sample*.25+usage*.15+fit*.2))};
+}
+function scoutingQuestion(job,p){
+ const c=scoutingObservationContext(p,job),profile=job.profile!=='ALL'?job.profile:'aktuell roll';
+ return {context:c,text:`Kan spelaren bära ${profile.toLowerCase()}? Underlaget omfattar ${c.games} registrerade matcher och cirka ${c.minutes} min/match${c.role?' · senast '+c.role:''}.`};
+}
 function scoutingQuote(ids,method,person){const s=scoutingStaff().find(s=>scoutingPerson(s)===String(person)),m=SCOUT_METHODS[method],ps=ids.map(findPlayerAnywhere).filter(Boolean);if(!s||!m||!ps.length)return null;const regions=[...new Set(ps.map(scoutingRegion))],knowledge=Math.min(...regions.map(r=>scoutingCoverage(s,r))),travel=regions.some(r=>r!=='SWE')?3:0,interval=m.days+travel+Math.floor((100-knowledge)/35),fee=Math.round(clubMissionFee()/3*m.factor*ps.length*(1+travel*.18));return {s,m,regions,knowledge,interval,fee,days:interval*m.steps};}
 function scoutingDraft(ids){ensureScoutingOffice();const players=[...new Set(ids.map(String))].map(findPlayerAnywhere).filter(p=>p&&!isOwnPlayer(p)&&!scoutPending(p.id)).slice(0,3).map(p=>p.id);if(!players.length)return recruitMessage('Välj en spelare som inte redan bevakas.');scoutDesk.draft={players,method:'detail',person:scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]),profile:recruitmentProfile(),horizon:'now'};deskNavigate('transfers','missions');}
 function scoutingDraftSet(key,value){if(!scoutDesk.draft)return;
@@ -53,9 +63,9 @@ function scoutingDay(){
   if(ps.some(p=>!medicalReady(p)||internationalAway(p,date))){j.delays++;j.next=calAdd(date,7);j.note='Observationen flyttas: skada eller landslagsuppdrag begränsar underlaget.';if(j.delays>=3)scoutingClose(j,'limited','Otillräcklig tillgång till spelarna. Tidigare observationer finns kvar.');continue;}
   const m=SCOUT_METHODS[j.method];let observed=0;
   for(const p of ps){const r=state.scoutReports[String(p.id)];if(r?.lastObserved&&calGap(r.lastObserved,date)<7)continue;
-   if(scoutObserve(p.id,date,{observer:j.observer,quality:m.quality*(.8+j.knowledge/500),focus:j.method,force:true,job:j.id}))observed++;
+   const question=scoutingQuestion(j,p),observationQuality=m.quality*(.8+j.knowledge/500)*question.context.quality;if(scoutObserve(p.id,date,{observer:j.observer,quality:observationQuality,focus:j.method,force:true,job:j.id})){j.evidence??={};j.evidence[String(p.id)]={date,question:question.text,...question.context};observed++;}
   }
-  if(!observed){j.next=calAdd(date,7);continue;}j.steps++;j.note='Daterat observationsunderlag levererat.';j.next=calAdd(date,j.interval);
+  if(!observed){j.next=calAdd(date,7);continue;}j.steps++;j.note='Daterat observationsunderlag levererat. '+Object.values(j.evidence||{}).map(e=>e.question).join(' ');j.next=calAdd(date,j.interval);
   for(const region of j.regions){const key=j.person+':'+region;o.coverage[key]=Math.min(30,(o.coverage[key]||0)+2);}
   if(j.steps>=m.steps){j.status='completed';j.ended=date;for(const p of ps)if(!o.lists[String(p.id)])scoutingListQuiet(p,j.horizon);}
  }
