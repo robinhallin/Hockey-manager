@@ -57,3 +57,10 @@ test('live and replay snapshots expose identical motion facts without hidden sho
  m.tick=2;m.capture();assert.deepEqual(m.snapshot(),frame);assert.ok(m.actors.some(a=>a.travelled>0));
  const saved=JSON.stringify(m),copy=Object.assign(Object.create(Match.prototype),JSON.parse(saved));assert.deepEqual(copy.presentationFrame(),frame);
 });
+
+test('older replay frames without motion/flight metadata stay finite and do not invent actions',()=>{
+ const f={time:10,phase:'attack',puck:{x:53,y:15},actors:[{id:'g',role:'G',side:1,x:54,y:15}],flight:{kind:'shot',start:{x:40,y:15},end:{x:56.5,y:15}}};
+ const sampled=renderer.sample({...f,time:10.2},f,.5),p=renderer.pose(sampled,sampled.actors[0]);
+ assert.equal(sampled.flight.elapsed,undefined);assert.equal(p.drop,0);assert.equal(p.release,0);
+ assert.ok(p.feet.flat().concat(p.blade).every(Number.isFinite));
+});

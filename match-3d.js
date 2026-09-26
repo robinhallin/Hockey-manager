@@ -26,7 +26,7 @@ const Match3D = (() => {
   const continuous=before&&Math.abs(frame.time-before.time)<=.5&&frame.phase===before.phase;
   const pos=(p,q)=>{const blend=continuous&&q&&Math.hypot(p.x-q.x,p.y-q.y)<(p.id!=null?5:18)?t:1;return {...p,x:mix(q?.x??p.x,p.x,blend),y:mix(q?.y??p.y,p.y,blend),...(p.id!=null?{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:mix(before?.carrier===p.id?1:0,frame.carrier===p.id?1:0,blend)}:{})};};
   let flight=frame.flight?{...frame.flight}:null;
-  if(flight&&continuous&&before.flight?.kind===flight.kind&&before.flight?.from===flight.from&&before.flight?.start.x===flight.start.x&&before.flight?.start.y===flight.start.y)flight.elapsed=mix(before.flight.elapsed??flight.elapsed,flight.elapsed,t);
+  if(flight&&Number.isFinite(flight.elapsed)&&continuous&&before.flight?.kind===flight.kind&&before.flight?.from===flight.from&&before.flight?.start.x===flight.start.x&&before.flight?.start.y===flight.start.y)flight.elapsed=mix(before.flight.elapsed??flight.elapsed,flight.elapsed,t);
   return {...frame,time:continuous?mix(before.time,frame.time,t):frame.time,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight};
  }
  function pose(frame,a){
@@ -34,7 +34,7 @@ const Match3D = (() => {
   const skatingAngle=speed>.12?Math.atan2(a.vy,a.vx):(a.side===0?0:Math.PI);
   const release=f?.from===a.id&&Number.isFinite(f.elapsed)&&f.elapsed<.55&&['shot','pass','intercept'].includes(f.kind)?1-clamp(f.elapsed/.55,0,1):0;
   const contact=a.contact??(frame.carrier===a.id?1:0),angle=keeper?puckAngle:release?turn(skatingAngle,Math.atan2(f.end.y-f.start.y,f.end.x-f.start.x),release*.7):skatingAngle;
-  const incoming=keeper&&f?.kind==='shot'&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
+  const incoming=keeper&&f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
   // A low blocking attempt follows the approaching shot, not its hidden result.
   const drop=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
   const phase=(a.travelled||0)*Math.PI/1.6,drive=Math.min(1,speed/3.5),stride=Math.sin(phase)*drive;
