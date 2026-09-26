@@ -51,4 +51,7 @@ r("developmentClosePlayer(false);deskNavigate('home')");
 assert.doesNotThrow(()=>r('overviewWorkspaceView()'));
 r("globalThis.devAction=developmentDeskInspector(developmentRows(false).find(x=>x.environment==='A-lag')?.p||managerRoster()[0],false)");
 assert.match(r('devAction'),/developmentOpenPlayer\(&quot;|developmentOpenPlayer\('/);
+// The development inspector action keeps the real player id exactly once.
+r("globalThis.devP=managerRoster()[0];globalThis.devHtml=developmentInspector(devP,false,false)");
+assert.ok(r("devHtml.includes('developmentOpenPlayer('+JSON.stringify(devP.id))"));
 console.log('PASS: compact read-only overview, seven calendar days, away venues and live scores, sorted offers and waiting stages, all decisions accessible, player selection/back, exact development/calendar destinations and reload.');
