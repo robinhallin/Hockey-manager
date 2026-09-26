@@ -14,7 +14,7 @@ function schedulePlayoffDay(){
  const s=state.season;
  for(const series of s.series.filter(x=>!x.winner&&(x.stage==='playout'||x.stage===(state.world?.cups?.[x.league]?.stage||s.stage)))){
   if(state.schedule.some(g=>g.seriesId===series.id&&!g.played))continue;
-  const index=series.games.length,homeHigh=series.aggregate?index===0:(series.bestOf===3?[false,true,true]:[true,true,false,false,true,false,true])[index];
+  const index=series.games.length,homeHigh=series.aggregate?index===1:series.league==='CH_NL'?index%2===0:(series.bestOf===3?[false,true,true]:[true,true,false,false,true,false,true])[index];
   state.schedule.push({round:state.round,home:homeHigh?series.high:series.low,away:homeHigh?series.low:series.high,played:false,homeGoals:null,awayGoals:null,seriesId:series.id,stage:series.stage});
  }
 }

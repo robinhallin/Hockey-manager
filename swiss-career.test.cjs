@@ -25,15 +25,15 @@ test('two-legged play-in accepts draws, aggregate victory and second chance befo
  assert.equal(r('state.season.series.length'),2);
  assert.ok(r('state.season.series.every(s=>s.aggregate&&s.bestOf===2)'));
  r('globalThis.g=state.schedule.find(g=>g.seriesId);globalThis.s=aggregateSeries(g)');
- assert.equal(r('g.home===s.high'),true);
+ assert.equal(r('g.home===s.low'),true);
  assert.equal(r('aggregateNeedsOvertime(g,0,0)'),false);
  assert.equal(r('recordSeriesGame(g,4,1)'),true);
  assert.equal(r('recordSeriesGame(g,4,1)'),false);
  r('state.round++;schedulePlayoffDay();g=state.schedule.find(g=>g.seriesId===s.id&&!g.played)');
- assert.equal(r('g.home===s.low'),true);
+ assert.equal(r('g.home===s.high'),true);
  assert.equal(r('aggregateNeedsOvertime(g,3,0)'),true);
  assert.equal(r('recordSeriesGame(g,3,0)'),false);
- assert.equal(r('recordSeriesGame(g,2,0)'),true);assert.equal(r('s.winner===s.high'),true);
+ assert.equal(r('recordSeriesGame(g,2,0)'),true);assert.equal(r('s.winner===s.low'),true);
  // The second game can be won by the eliminated team. Goals, not game wins, decide.
  r("globalThis.other=state.season.series[1];for(let i=0;i<2;i++){const x={seriesId:other.id,home:i?other.low:other.high,away:i?other.high:other.low};recordSeriesGame(x,i?0:1,0)}swissAdvanceCups()");
  assert.equal(r('state.world.cups.CH_NL.stage'),'playinFinal');
@@ -41,6 +41,8 @@ test('two-legged play-in accepts draws, aggregate victory and second chance befo
  r("globalThis.last=state.season.series.at(-1);for(let i=0;i<2;i++)recordSeriesGame({seriesId:last.id,home:i?last.low:last.high,away:i?last.high:last.low},i?0:1,0);swissAdvanceCups()");
  assert.equal(r('state.season.series.filter(s=>s.stage==="quarter").length'),4);
  assert.ok(r('state.season.series.filter(s=>s.stage==="quarter").every(s=>s.bestOf===7&&!s.aggregate)'));
+ r('globalThis.q=state.season.series.find(s=>s.stage==="quarter");globalThis.qg=state.schedule.find(g=>g.seriesId===q.id)');assert.equal(r('qg.home===q.high'),true);
+ r('recordSeriesGame(qg,4,0);state.round++;schedulePlayoffDay()');assert.equal(r('state.schedule.find(g=>g.seriesId===q.id&&!g.played).home===q.low'),true);
 });
 test('Swiss background match commits real rows and statistics only once',()=>{
  const {run:r}=start();r('globalThis.g=state.schedule[0];leagueBackground(g)');
