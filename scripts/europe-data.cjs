@@ -182,6 +182,22 @@ function readiness(catalog, players, candidates = []) {
       clubs: clubs.length, sourcePlayers: people.length,
       estimatedPlayers: people.filter(p => p.estimate).length,
       downloadedCrests: clubs.filter(c => c.crest.file).length,
+      excludedRemoved: people.filter(p => p.association.removed === true).length,
+      missingNationality: people.filter(p => !p.nationality).length,
+      unverifiedRegistrations: people.filter(p => !p.association.confirmedRegistration).length,
+      clubCoverage: clubs.map(club => {
+        const source = people.filter(p => p.association.clubId === club.id);
+        const active = source.filter(p => p.association.removed !== true);
+        return {clubId: club.id, name: club.name, sourcePlayers: source.length,
+          activeCandidates: active.length, excludedRemoved: source.length - active.length,
+          goalies: active.filter(p => p.position === 'G').length,
+          defense: active.filter(p => p.position === 'D').length,
+          forwards: active.filter(p => p.position === 'F').length,
+          unknownPosition: active.filter(p => !p.position).length,
+          verifiedRegistrations: active.filter(p => p.association.confirmedRegistration).length,
+          missingContracts: active.filter(p => !p.contract).length,
+          missingEstimates: active.filter(p => !p.estimate).length};
+      }),
       identityReviews: candidates.filter(c => ids.has(c.id)).length,
       blockers: [...(!people.length ? ['player-data-not-imported'] : []),
         'roster-registration-and-contract-verification', 'cross-provider-identity-resolution',

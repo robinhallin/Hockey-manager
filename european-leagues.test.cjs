@@ -170,3 +170,21 @@ test('preparation does not expose an incomplete league or alter an established c
   const report = data.readiness(catalog, pack.players);
   assert.ok(report.every(l => l.targetMode === 'playable' && !l.playable && l.blockers.length));
 });
+
+
+test('club-level readiness excludes removed players and keeps missing evidence visible', () => {
+  const report=data.readiness(catalog,pack.players);
+  const fi=report.find(l=>l.id==='FI_LIIGA'),ch=report.find(l=>l.id==='CH_NL');
+  assert.equal(fi.excludedRemoved,22);
+  assert.equal(fi.clubCoverage.reduce((n,c)=>n+c.activeCandidates,0),493);
+  assert.equal(ch.missingNationality,411);
+  for(const league of report){
+    assert.equal(league.clubCoverage.length,league.clubs);
+    assert.equal(league.clubCoverage.reduce((n,c)=>n+c.sourcePlayers,0),league.sourcePlayers);
+    for(const club of league.clubCoverage){
+      assert.equal(club.goalies+club.defense+club.forwards+club.unknownPosition,club.activeCandidates);
+      assert.equal(club.verifiedRegistrations,0,'a participation list is not registration proof');
+      assert.equal(club.missingContracts,club.activeCandidates);
+    }
+  }
+});
