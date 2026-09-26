@@ -59,7 +59,7 @@ function rinkDelay(){
  return show?base*(m?.rink?.phase==='goal'?1.5:1):100/speed;
 }
 
-function rinkMode(value){if(!state.live||!Object.hasOwn(MATCH_VIEW_MODES,value))return;ensureRink();state.live.rink.mode=value;if(studioActive())studioRestartClock();clearTimeout(matchTimer);save();render();scheduleTick();}
+function rinkMode(value){if(!state.live||!Object.hasOwn(MATCH_VIEW_MODES,value))return;ensureRink();state.live.rink.mode=value;if(studioActive()){(state.matchPlayback??={}).mode=value;studioRestartClock();}clearTimeout(matchTimer);save();render();scheduleTick();}
 function rinkSelect(key){ensureRink();state.live.rink.selected=key;pauseMatch();}
 function rinkSay(text,phase,hot=false){const r=state.live.rink;r.caption=text;r.phase=phase;r.hot=hot;addEvent(text,phase==='goal'?'goal':['shot','save','post','rebound','block'].includes(phase)?'shot':phase==='penalty'?'penalty':'chance');}
 function rinkBeginFrame(){const r=state.live.rink;r.previous=r.actors.map(a=>({key:a.key,x:a.x,y:a.y}));r.puckFrom={...r.puck};r.puckVia=null;r.frame++;r.at=Date.now();r.hold=0;r.teamBonus=attrClamp(trainingMatchBonus()+lockerMatchBonus()+rivalPreparationBonus(),-6,6);}
