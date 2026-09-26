@@ -21,6 +21,14 @@ run('save()');const restored=boot(storage.value);assert.equal(restored.run('stat
 run('for(let i=0;i<14;i++)calendarStep(true);advanceScoutReports()');
 assert.equal(run('mission.status'),'completed');
 assert.equal(run('mission.players.every(id=>state.scoutReports[String(id)].visits===3)'),true);
+// The same persistent identity drives locker reactions and market preferences.
+run("globalThis.identityTarget=state.clubRosters[RECRUIT_CLUBS[0][0]][4];playerIdentity(identityTarget);identityTarget.social.ambition=18;identityTarget.social.loyalty=16;identityTarget.social.sensitivity=15;identityTarget.social.trust=82;globalThis.identityWishes=recruitPlayerWishes(identityTarget);globalThis.identityProfile=playerPreferenceProfile(identityTarget)");
+assert.equal(run('identityWishes.identity.ambition'),18);
+assert.equal(run('identityWishes.identity.loyalty'),16);
+assert.match(run('identityWishes.priority'),/Sportsliga ambitioner/);
+assert.equal(run("attrSeed(identityTarget.id+':ambition')>.58===identityWishes.identity.ambition>=14"),run("identityWishes.identity.ambition>=14"),'market wishes must read the saved identity, not a second ambition roll');
+run("globalThis.ownIdentity=managerRoster()[0];playerIdentity(ownIdentity);ownIdentity.social.loyalty=18;ownIdentity.social.trust=85;socialRemember(ownIdentity,'Istidslöftet brutet','Den utlovade speltiden infriades inte.',-8);globalThis.ownPref=playerPreferenceProfile(ownIdentity)");
+assert.ok(run('ownPref.continuity')<12,'broken commitments temper the continuity benefit even for a loyal player');
 // Contract process waits for time, enforces terms and transfers a single player atomically.
 run('globalThis.target=state.clubRosters[RECRUIT_CLUBS[0][0]][5];target.transferListed=true;globalThis.source=getPlayerClub(target.id);globalThis.fee=recruitFee(target);globalThis.salary=recruitPlayerWishes(target).salary*2;globalThis.beforeCash=state.money;globalThis.beforeSellerCash=state.recruitment.ai[source].cash;submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals[0].status'),'pending');assert.equal(run('getPlayerClub(target.id)'),run('source'));
