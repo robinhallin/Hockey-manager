@@ -280,7 +280,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role,incomingId=n
  for(const club of [seller,buyer]){const t=team(club);if(t)t.strength=Math.round(state.clubRosters[club].reduce((n,q)=>n+matchAttributeRating(q),0)/state.clubRosters[club].length);}
  return true;
 }
-function generateIncomingOffer(){aiMarketDay();}
+function generateIncomingOffer(){const perfStart=typeof performanceNow==='function'?performanceNow():Date.now();const result=aiMarketDay();if(typeof performanceMeasure==='function')performanceMeasure('aiMarket',perfStart);return result;}
 function aiRecruitTransfer(){
  if(!calendarWindowOpen()||state.live&&!state.live.finished)return;
  ensureRivals();aiMarketDay();
