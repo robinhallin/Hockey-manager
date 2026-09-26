@@ -56,7 +56,7 @@ assert.equal(run('state.medical.day'),run('medDay+7'));assert.equal(run('promise
 run('medicalDay();medicalDay();medicalDay()');assert.equal(run('promised.health.injury'),null);
 // Full comeback can suffer a setback and lose clearance.
 run('state.season.phase="regular";state.calendar.date=calendarTarget();state.live=null;injurePlayer(promised,"träning",1);medicalDay();medicalDay();medicalDay();setMedicalClearance(promised.id,"full");(state.calendar.date=calendarTarget(),createMatch());changeLinePlayer("forwards",0,promised.id);state.live.currentLine=0;medicalRoll=()=>0;trackIceTime(6)');
-assert.equal(run('promised.health.injury.name'),'Bakslag i återgången');assert.equal(run('promised.health.clearance'),'rest');
+assert.equal(run('promised.health.injury.name'),'Bakslag · Kontusionsskada');assert.equal(run('promised.health.clearance'),'rest');
 // All unavailable goalies cannot crash the engine; a loss and junior route remain available.
 run('medicalRoll=()=>.999;goalies().forEach(p=>{p.health.injury=null;injurePlayer(p,"träning",8)});(!state.live&&(state.calendar.date=calendarTarget()),startMatch())');assert.equal(run('state.page'),'medical');
 run('medicalConcede()');assert.equal(run('state.live.finished'),true);assert.ok(run('state.live.opp>state.live.hv'));
