@@ -41,4 +41,6 @@ r(`globalThis.own=managerRoster()[0];globalThis.remembered=scoutRemember(own);gl
  own.attributes[key]=own.attributes[key]===20?1:20;`);
 assert.equal(r('playerAssessment(own).estimated[key]'),r('own.attributes[key]'));
 assert.notEqual(r('remembered.snapshot[key]'),r('own.attributes[key]'),'departure snapshot is independent');
+r("globalThis.shiftP=recruitCandidates().find(p=>!isOwnPlayer(p));globalThis.prev={estimated:{...playerAssessment(shiftP).estimated},uncertainty:4,role:'Old role'};globalThis.shift=scoutAssessmentShift(shiftP,prev)");
+assert.ok(r("shift&&typeof shift.text==='string'&&shift.text.length>0"));
 console.log('PASS: calendar delivery, frozen knowledge, ageing, paid refresh, migration and save/reload.');
