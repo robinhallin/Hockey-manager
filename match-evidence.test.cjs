@@ -31,7 +31,7 @@ assert.equal(r('JSON.stringify(state.tacticalPlan)'),r('tactic'),'opening a reco
 assert.equal(a.get('#match-tab-tactics').focused,true);
 r("save()");const b=boot(a.storage.value);
 assert.equal(b.run('JSON.stringify(matchEvidenceReport().advice)'),r('JSON.stringify(matchEvidenceReport().advice)'));
-r("globalThis.flowSample={shots:[],events:[],partial:false,flow:[{time:0,sides:[{turnovers:0,entries:0,battles:0,battleWins:0},{turnovers:0,entries:0,battles:0,battleWins:0}]},{time:300,sides:[{turnovers:5,entries:2,battles:8,battleWins:2},{turnovers:1,entries:7,battles:8,battleWins:5}]}]};globalThis.flowAdvice=matchCoachEvidence(flowSample,300).advice");
+r("globalThis.flowSample={shots:[],events:[],partial:false,flow:[{time:0,sides:[{turnovers:0,entries:0,battles:0,battleWins:0},{turnovers:0,entries:0,battles:0,battleWins:0}]},{time:300,sides:[{turnovers:5,entries:2,battles:8,battleWins:2},{turnovers:1,entries:7,battles:8,battleWins:5}]}]};globalThis.flowAdvice=matchFlowAdvice(matchFlowEvidence(flowSample,0,300))");
 assert.ok(r("flowAdvice.some(x=>x.key==='breakout')"),'repeated puck losses should be surfaced');
 assert.ok(r("flowAdvice.some(x=>x.key==='entries')"),'entry imbalance should be surfaced');
 assert.ok(r("flowAdvice.some(x=>x.key==='battles')"),'lost puck battles should be surfaced');
