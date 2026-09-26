@@ -43,6 +43,10 @@ const liveBefore=q('JSON.stringify(state.live)');const html=q('overviewWorkspace
 assert.match(html,/4 – 2/);assert.match(html,/Matchen är pausad/);assert.match(html,/Till matchen/);
 assert.equal(q("overviewDecisionItems().some(i=>i.area==='match')"),false);
 assert.equal(q('JSON.stringify(state.live)'),liveBefore);
+// Senior development detail must resolve from the senior roster rather than the combined senior+junior overview.
+r("globalThis.seniorDev=managerRoster().find(p=>p.pos!=='MV');developmentOpenPlayer(seniorDev.id,'training',true)");
+assert.equal(r('developmentUI.detail'),true);assert.equal(r('developmentUI.player'),r('seniorDev.id'));assert.match(r('developmentWorkspaceView()'),/individual-training/);
+r("developmentClosePlayer(false);deskNavigate('home')");
 // Overview must remain renderable with media enabled and development actions must quote real string IDs.
 assert.doesNotThrow(()=>r('overviewWorkspaceView()'));
 r("globalThis.devAction=developmentDeskInspector(developmentRows(false).find(x=>x.environment==='A-lag')?.p||managerRoster()[0],false)");
