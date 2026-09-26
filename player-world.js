@@ -1,5 +1,31 @@
 "use strict";
 // Career simulation rules, not predictions about the real people in the database.
+function ensureCareerHistory(){
+ state.careerHistory??={version:1,nextId:1,events:[],records:{},clubRecords:{}};
+ return state.careerHistory;
+}
+function careerHistoryEvent(type,{player=null,club=null,title='',detail='',value=null,opponent=null}={}){
+ const h=ensureCareerHistory(),key=[state.season?.year,type,player?.id||'',club||'',title].join(':');
+ if(h.events.some(e=>e.key===key))return null;
+ const row={id:h.nextId++,key,type,year:state.season?.year||2026,date:state.calendar?.date||null,playerId:player?.id??null,player:player?.name||null,club:club||player&&getPlayerClub(player.id)||null,opponent,title,detail,value};
+ h.events.unshift(row);h.events=h.events.slice(0,1200);
+ if(player){player.careerEvents??=[];player.careerEvents.unshift(row.id);player.careerEvents=player.careerEvents.slice(0,80);}
+ return row;
+}
+function careerPlayerMilestones(p,club=getPlayerClub(p.id)){
+ if(!p)return;const games=p.games||0,points=(p.goals||0)+(p.assists||0);
+ if(games>=1)careerHistoryEvent('debut',{player:p,club,title:'Seniordebut',detail:`Första registrerade seniormatchen för ${club}.`});
+ for(const n of [100,300,500])if(games>=n)careerHistoryEvent('games',{player:p,club,title:`${n} seniormatcher`,detail:`Nådde ${n} registrerade seniormatcher.`,value:n});
+ for(const n of [50,100,250,500])if(points>=n)careerHistoryEvent('points',{player:p,club,title:`${n} karriärpoäng`,detail:`Nådde ${n} registrerade mål + assist.`,value:n});
+}
+function careerRecord(key,label,value,holder,meta={}){
+ const h=ensureCareerHistory(),old=h.records[key];if(!Number.isFinite(value)||old&&old.value>=value)return false;
+ h.records[key]={key,label,value,holder,year:state.season?.year||2026,...meta};return true;
+}
+function careerHistoryPlayer(p){
+ const h=ensureCareerHistory(),ids=new Set(p?.careerEvents||[]);
+ return h.events.filter(e=>ids.has(e.id)||p&&samePlayerId(e.playerId,p.id)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||b.year-a.year);
+}
 const WORLD_FREE='Kontraktslös';
 // Public profiles and departure notices checked 2026-09-06; no registered 2026/27 club found.
 // A database snapshot, not a guarantee that an unannounced real-world agreement does not exist.
