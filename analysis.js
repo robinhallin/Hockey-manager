@@ -3,7 +3,7 @@ function ensureAnalysis(){
  if(!state.careerStarted)return;
  if(!state.analysis)state.analysis={version:1,nextId:1,matches:[],selected:'latest',window:'10',side:'all',compareA:null,compareB:null};
  const m=state.live;if(m&&!m.analysis&&!m.finished){
-  m.analysis={id:`${state.season?.year||2026}-${state.round}-${state.analysis.nextId++}`,roleUsageVersion:1,shots:[],events:[],units:{},players:{},partial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),saved:false,strengthSeconds:{even:0,pp:0,pk:0,ot:0},strengthPartial:Boolean(m.minute||m.second||m.period>1)};
+  m.analysis={id:`${state.season?.year||2026}-${state.round}-${state.analysis.nextId++}`,roleUsageVersion:1,shots:[],events:[],flow:[],units:{},players:{},partial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),saved:false,strengthSeconds:{even:0,pp:0,pk:0,ot:0},strengthPartial:Boolean(m.minute||m.second||m.period>1)};
   for(const p of managerRoster())m.analysis.players[String(p.id)]={id:p.id,name:p.name,pos:p.pos,seconds:0,shots:0,goals:0,assists:0,pim:0,startAttributes:{...p.attributes}};
  }
  ensureLeagueLive();
@@ -23,8 +23,16 @@ function analysisUnitRecord(unit){
  return a.units[key];
 }
 function analysisPlayer(p){const a=state.live.analysis;return a.players[String(p.id)]||(a.players[String(p.id)]={id:p.id,name:p.name,pos:p.pos,seconds:0,shots:0,goals:0,assists:0,pim:0,startAttributes:{...p.attributes}});}
+function analysisFlowSnapshot(){
+ const m=state.live,a=m?.analysis,r=m?.rink;if(!a||!r?.stats)return;
+ a.flow??=[];const time=analysisClock(),last=a.flow.at(-1);if(last&&time-last.time<30)return;
+ const copy=s=>Object.fromEntries(['attempts','passes','passAttempts','entries','zone','turnovers','battles','battleWins','dumps','clears'].map(k=>[k,Number(s?.[k]||0)]));
+ a.flow.push({time,sides:[copy(r.stats[0]),copy(r.stats[1])]});
+ if(a.flow.length>140)a.flow.splice(0,a.flow.length-140);
+}
 function analysisIce(players,seconds){
  ensureAnalysis();if(!state.live?.analysis||state.live.finished||seconds<=0)return;
+ analysisFlowSnapshot();
  const a=state.live.analysis;if(!a.strengthSeconds){a.strengthSeconds={even:0,pp:0,pk:0,ot:0};a.strengthPartial=true;}a.strengthSeconds[analysisSituation()]+=seconds;
  matchLineExposure(seconds);
  for(const unit of analysisUnits())analysisUnitRecord(unit).seconds+=Math.max(0,Math.min(seconds,...unit.players.map(p=>medicalLimit(p)-(state.live.iceTime?.[p.id]||0))));
@@ -68,7 +76,7 @@ function analysisEvent(type,side,text,id=null,details={}){
 function analysisAssist(p){ensureAnalysis();leagueTrackEvent("assist","own",p.id);if(state.live?.analysis)analysisPlayer(p).assists++;}
 function analysisSnapshot(){
  const m=state.live,a=m?.analysis;if(!a)return null;
- return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:matchVenue().ownHome,stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,matchBrief:m.matchBrief?JSON.parse(JSON.stringify(m.matchBrief)):null,tacticalReviews:tacticalReviewSnapshot(),timeoutReports:m.timeoutReports,hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,overtime:Boolean(m.overtime||m.analysisShootout||m.period>3),shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),lineMatchups:a.lineMatchups,strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
+ return {id:a.id,year:state.season?.year||2026,round:state.round,date:state.calendar?.date,friendly:Boolean(m.friendly),club:managerClub(),opponent:m.opponent,home:matchVenue().ownHome,stage:m.friendly?'Träningsmatch':state.season?.phase==='playoffs'?SEASON_STAGES[state.schedule.find(g=>g.round===state.round&&(g.home===managerClub()||g.away===managerClub()))?.stage||state.season.stage]:'Grundserie',own:m.hv,against:m.opp,finished:m.finished,performance:m.performance||null,matchBrief:m.matchBrief?JSON.parse(JSON.stringify(m.matchBrief)):null,tacticalReviews:tacticalReviewSnapshot(),timeoutReports:m.timeoutReports,hockey:m.rink?.hockey?{counts:m.rink.hockey.counts,stops:m.rink.hockey.stops}:null,partial:a.partial,overtime:Boolean(m.overtime||m.analysisShootout||m.period>3),shootout:Boolean(m.analysisShootout),abandoned:Boolean(m.analysisAbandoned),lineMatchups:a.lineMatchups,strengthSeconds:a.strengthSeconds,strengthPartial:a.strengthPartial,shots:a.shots,events:a.events,flow:a.flow||[],units:Object.values(a.units),players:Object.values(a.players).map(p=>{const current=playerById(p.id);return {...p,endAttributes:{...(current?.attributes||p.startAttributes)}};})};
 }
 function finishAnalysis(){
  ensureAnalysis();leagueCommitLive();finishPerformance();const a=state.live?.analysis;if(!a||a.saved||!state.live.finished)return;
