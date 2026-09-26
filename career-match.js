@@ -75,6 +75,11 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    let preferred=seq[t.rotationIndex%seq.length];
    const matchup=t.matchup,opposing=studioFormationIndex(this,1-side);
    t.matchupReason='Följer kedjerotationen.';
+   if(side===0&&!this.isShortHanded(side)&&!this.hasPowerPlay(side)&&!this.threeOnThree){
+    const plan=state.tacticalPlan||{},defensive=this.phase==='faceoff'&&StudioHockey.progress(side,this.restartSpot?.x??30)<22,offensive=this.phase==='faceoff'&&StudioHockey.progress(side,this.restartSpot?.x??30)>38,icingOpponent=this.icingHold===1-side;
+    const situational=icingOpponent?plan.tiredOpponentLine:defensive?plan.defensiveFaceoffLine:offensive?plan.offensiveFaceoffLine:null;
+    if(['0','1','2','3'].includes(situational)&&lineEnergy(Number(situational))>=60){preferred=Number(situational);t.matchupReason=icingOpponent?`Utnyttjar deras icing med kedja ${preferred+1}.`:defensive?`Defensiv tekning: kedja ${preferred+1}.`:`Offensiv tekning: kedja ${preferred+1}.`;}
+   }
    if(matchup&&!this.isShortHanded(side)&&!this.hasPowerPlay(side)&&!this.threeOnThree){
     const ids=(t.plan?.forwards||[]).slice(matchup.line*3,matchup.line*3+3),players=ids.map(id=>t.players.find(p=>samePlayerId(p.id,id)));
     const ready=ids.length===3&&players.every(p=>p&&p.available!==false)&&lineEnergy(matchup.line)>=65;
@@ -122,6 +127,16 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    const collective=Math.max(.88,Math.min(1.12,fitFactor*taskFactor));
    return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*collective;
  }
+ goalieTarget(side,puck=this.puck){
+  const target=super.goalieTarget(side,puck);if(side!==0)return target;
+  const instruction=GOALIE_INSTRUCTIONS[goalieInstruction()]||GOALIE_INSTRUCTIONS.balanced,sign=side===0?1:-1;
+  target.x=Math.max(1,Math.min(59,target.x+instruction.depth*sign));return target;
+ }
+ reboundModel(goalie,context={}){
+  const model=super.reboundModel(goalie,context);if(goalie?.side!==0)return model;
+  const instruction=GOALIE_INSTRUCTIONS[goalieInstruction()]||GOALIE_INSTRUCTIONS.balanced;
+  model.freeze=Math.max(.2,Math.min(.94,model.freeze+instruction.rebound));model.safe=Math.max(.15,Math.min(.9,model.safe+instruction.rebound*.35));return model;
+ }
  attackTargets(side){
   super.attackTargets(side);const t=this.teams[side];
   if(this.hasPowerPlay(side)&&t.tactics.pp==='overload'&&this.phase==='attack'){
@@ -153,9 +168,8 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  hasPowerPlay(side){return this.isShortHanded(1-side);}
  canGivePenalty(side){return this.skaters(side).length>0;}
  strength(side){
-  const own=this.penaltyCount(side),other=this.penaltyCount(1-side);
-  const normal=this.threeOnThree?3+Math.max(0,other-own):5-own;
-  return this.threeOnThree?Math.max(normal,this.otCounts?.[side]||0):normal;
+  const base=StudioHockey.strengthState(this.penaltyList(),this.threeOnThree)[side];
+  return this.threeOnThree?Math.max(base,this.otCounts?.[side]||0):base;
  }
  syncPenalty(){this.penalty=this.penaltyList().find(p=>p.affectsStrength!==false)||null;}
  opportunityState(){return {power:[0,1].map(side=>this.hasPowerPlay(side)),active:[0,1].map(side=>StudioHockey.activePenalties(this.penaltyList(),side))};}
