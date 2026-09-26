@@ -75,6 +75,11 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    let preferred=seq[t.rotationIndex%seq.length];
    const matchup=t.matchup,opposing=studioFormationIndex(this,1-side);
    t.matchupReason='Följer kedjerotationen.';
+   if(side===0&&!this.isShortHanded(side)&&!this.hasPowerPlay(side)&&!this.threeOnThree){
+    const plan=state.tacticalPlan||{},defensive=this.phase==='faceoff'&&StudioHockey.progress(side,this.restartSpot?.x??30)<22,offensive=this.phase==='faceoff'&&StudioHockey.progress(side,this.restartSpot?.x??30)>38,icingOpponent=this.icingHold===1-side;
+    const situational=icingOpponent?plan.tiredOpponentLine:defensive?plan.defensiveFaceoffLine:offensive?plan.offensiveFaceoffLine:null;
+    if(['0','1','2','3'].includes(situational)&&lineEnergy(Number(situational))>=60){preferred=Number(situational);t.matchupReason=icingOpponent?`Utnyttjar deras icing med kedja ${preferred+1}.`:defensive?`Defensiv tekning: kedja ${preferred+1}.`:`Offensiv tekning: kedja ${preferred+1}.`;}
+   }
    if(matchup&&!this.isShortHanded(side)&&!this.hasPowerPlay(side)&&!this.threeOnThree){
     const ids=(t.plan?.forwards||[]).slice(matchup.line*3,matchup.line*3+3),players=ids.map(id=>t.players.find(p=>samePlayerId(p.id,id)));
     const ready=ids.length===3&&players.every(p=>p&&p.available!==false)&&lineEnergy(matchup.line)>=65;
