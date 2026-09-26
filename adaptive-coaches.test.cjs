@@ -14,6 +14,10 @@ r("rivalsClubState(club).coach.style='pressure';globalThis.bold=aiCoachDecision(
 r('globalThis.observed={};for(let i=0;i<20;i++)aiObserveMatch(observed,{seconds:i*120,shots:i,againstShots:i*2});globalThis.before=JSON.stringify(observed);aiObserveMatch(observed,{seconds:2280,shots:19,againstShots:38})');assert.equal(r('JSON.stringify(observed)'),r('before'));assert.equal(r('observed.coachObservations.length'),7);
 r("clubAIState(club).memory.HV71={meetings:[{year:2020,gf:0,ga:5,opponentStyle:'pressure'},{year:2020,gf:0,ga:5,opponentStyle:'pressure'}]}");assert.equal(r("aiMatchPlan(club,'HV71',{style:'control',tempo:'normal'}).matchup"),false);
 r('save()');const b=boot(a.storage.value);assert.equal(b.run("JSON.stringify(aiCoachTraits('Färjestad BK'))"),r('JSON.stringify(aiCoachTraits(club))'));
+r("globalThis.flowCtx={...ctx,recentShots:4,recentAgainst:4,recentTurnovers:6,forcedTurnovers:1,recentEntries:4,againstEntries:4,recentBattles:4,recentBattleWins:2};globalThis.flowDecision=aiCoachDecision(club,base,flowCtx)");
+assert.equal(r('flowDecision.situation'),'turnovers');
+r("globalThis.entryDecision=aiCoachDecision(club,base,{...flowCtx,recentTurnovers:1,forcedTurnovers:1,recentEntries:2,againstEntries:7})");assert.equal(r('entryDecision.situation'),'entries');
+r("globalThis.battleDecision=aiCoachDecision(club,base,{...flowCtx,recentTurnovers:1,forcedTurnovers:1,recentEntries:4,againstEntries:4,recentBattles:8,recentBattleWins:2})");assert.equal(r('battleDecision.situation'),'battles');
 console.log('PASS: recent pressure, patient response, manpower priority, fatigue, productive lines, coach risk, bounded/replay-safe observations, stale memory and saved identity.');
 assert.throws(()=>r('validateAICoachSave({live:{aiTeam:{coachObservations:[{seconds:-1,shots:1,againstShots:2}]}}})'));
 r('validateAICoachSave({live:{aiTeam:{}}})');
