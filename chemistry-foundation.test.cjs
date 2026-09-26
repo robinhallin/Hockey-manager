@@ -49,6 +49,12 @@ assert.ok(r('result.reports.every(x=>Object.values(x.pairSeconds).some(s=>s>0))'
 assert.ok(r('result.reports.every(x=>Object.values(x.pairResults).every(Number.isInteger))'));
 r("Object.assign(g,{played:true,homeGoals:result.homeGoals,awayGoals:result.awayGoals});rivalAfterFixture(g,result.rows,result.reports);globalThis.committed=JSON.stringify(state.teamDynamics);rivalAfterFixture(g,result.rows,result.reports)");
 assert.equal(r('JSON.stringify(state.teamDynamics)'),r('committed'));
+// Tactical fit is separate from chemistry and only affects hockey-relevant execution.
+r("state.live=null;globalThis.fitA=lineTacticalFit(ids,'forwards');globalThis.chemA=lineChemistry(ids);globalThis.originalAttrs=ids.map(id=>({...playerById(id).attributes}));ids.forEach(id=>Object.assign(playerById(id).attributes,{passing:10,vision:10,decisions:10,puckControl:10,skating:10,shooting:18,composure:18,positioning:12,workRate:9,checking:8,strength:9}));globalThis.fitB=lineTacticalFit(ids,'forwards');globalThis.chemB=lineChemistry(ids)");
+assert.equal(r('chemB.value'),r('chemA.value'),'changing role balance cannot rewrite relationship chemistry');
+assert.ok(r('fitB.value')<r('fitA.value')||r("fitB.warnings.some(x=>x.includes('avslutsorienterade'))"),'one-dimensional scorers should expose a role-balance warning');
+assert.equal(r("tacticalFitFactor(fitB,'shooting','forwards')"),1,'fit does not directly boost shooting');
+assert.notEqual(r("tacticalFitFactor(fitB,'passing','forwards')"),1,'fit changes collective execution attributes');
 console.log('PASS: training participation/cap/idempotence, shared AI day, old saves, reload, active-line attribute causality, unaffected shooting/RNG, local goal attribution and fixture idempotence.');
 // Exercise the public calendar -> actual session path, not just the training helper.
 {
