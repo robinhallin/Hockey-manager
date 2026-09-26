@@ -26,7 +26,7 @@ run("globalThis.identityTarget=state.clubRosters[RECRUIT_CLUBS[0][0]][4];playerI
 assert.equal(run('identityWishes.identity.ambition'),18);
 assert.equal(run('identityWishes.identity.loyalty'),16);
 assert.match(run('identityWishes.priority'),/Sportsliga ambitioner/);
-assert.equal(run("attrSeed(identityTarget.id+':ambition')>.58===identityWishes.identity.ambition>=14"),run("identityWishes.identity.ambition>=14"),'market wishes must read the saved identity, not a second ambition roll');
+assert.equal(run('identityWishes.identity.ambition'),run('identityTarget.social.ambition'),'market wishes must read the saved identity, not a second ambition roll');
 run("globalThis.ownIdentity=managerRoster()[0];playerIdentity(ownIdentity);ownIdentity.social.loyalty=18;ownIdentity.social.trust=85;socialRemember(ownIdentity,'Istidslöftet brutet','Den utlovade speltiden infriades inte.',-8);globalThis.ownPref=playerPreferenceProfile(ownIdentity)");
 assert.ok(run('ownPref.continuity')<12,'broken commitments temper the continuity benefit even for a loyal player');
 // Contract process waits for time, enforces terms and transfers a single player atomically.
