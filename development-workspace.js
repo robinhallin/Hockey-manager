@@ -44,8 +44,8 @@ function developmentOpenPlayer(id,page='training',resetOverview=false){
  developmentRememberView();
  const p=developmentRoster(page==='juniors').find(p=>samePlayerId(p.id,id));if(!p)return;
  deskHistorySync();const previous=deskSnapshot();deskBrowserBefore(previous);deskHistory.push(previous);if(deskHistory.length>30)deskHistory.shift();
- deskNavigate('development',undefined,false);
- if(page==='juniors'){developmentUI.tab='juniors';developmentUI.juniorTab='players';developmentUI.juniorDetail=true;developmentUI.juniorPlayer=p.id;state.juniors.selected=p.id;}
+ deskNavigate(page==='juniors'?'juniors':'development',undefined,false);
+ if(page==='juniors'){developmentUI.juniorTab='players';developmentUI.juniorDetail=true;developmentUI.juniorPlayer=p.id;state.juniors.selected=p.id;}
  else{developmentUI.tab='players';developmentUI.detail=true;developmentUI.player=p.id;if(resetOverview){developmentUI.query='';developmentUI.filter='all';developmentUI.position='all';developmentUI.scroll=0;}}
  render();deskBrowserAfter();queueInterfaceSave();
 }
