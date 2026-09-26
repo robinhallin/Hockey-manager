@@ -87,7 +87,7 @@ function managerOffice2View(){
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
 function officeTodayView(){
   const waiting=officeWaiting();
-  return `<div class="office-today">${daySummaryView()}${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
+  return `<div class="office-today">${mediaPromptView()}${daySummaryView()}${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
 }
 function officeFollowupView(){
   return `${managerMatchLearningView()}${managerWeekFollowupView()}${managerWeekFocusView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
