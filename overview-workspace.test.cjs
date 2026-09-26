@@ -54,4 +54,6 @@ assert.match(r('devAction'),/developmentOpenPlayer\(&quot;|developmentOpenPlayer
 // The development inspector action keeps the real player id exactly once.
 r("globalThis.devP=managerRoster()[0];globalThis.devHtml=developmentInspector(devP,false,false)");
 assert.ok(r("devHtml.includes('developmentOpenPlayer('+JSON.stringify(devP.id))"));
+r("globalThis.ovItems=overviewDecisionItems();globalThis.ovHtml=overviewDecisionsView(ovItems)");
+assert.ok(r("ovItems.length<=3||ovHtml.includes('Öppna inkorgen')"));assert.ok(r("(ovHtml.match(/class=\\\"ov-decision\\\"/g)||[]).length<=3"));
 console.log('PASS: compact read-only overview, seven calendar days, away venues and live scores, sorted offers and waiting stages, all decisions accessible, player selection/back, exact development/calendar destinations and reload.');
