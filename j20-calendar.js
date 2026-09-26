@@ -99,7 +99,7 @@ juniorFixture=function(key){
   ensureJuniors();const s=state.juniors;if(s.lastFixture===key)return;s.lastFixture=key;
   for(const p of managerRoster().filter(p=>p.academy)){
     const a=p.academy,seconds=state.live?.iceTime?.[p.id]||0;a.observations=Math.min(100,(a.observations||0)+2);
-    a.history.unshift({year:s.year,round:state.round,date:state.calendar?.date,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);
+    a.history.unshift({year:s.year,round:state.round,date:state.calendar?.date,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);juniorSeasonRecord(p,'senior',a.history[0],key+':'+state.calendar.date);
     if(seconds>=300)a.missed=0;else if(!medicalExcused(p,300))a.missed++;
   }
 };

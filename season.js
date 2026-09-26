@@ -131,6 +131,7 @@ function watchRemainingPlayoffs(){
 }
 function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
+ juniorAnnualReview(s.year);
  nasOffseason();nhlOffseason();
  loansNewYear();s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){

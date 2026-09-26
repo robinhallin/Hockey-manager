@@ -59,4 +59,5 @@ module.exports=async function developmentUIReview(page,out){
  await page.locator('.wd-directory').getByRole('button',{name:/^AHL/}).click();
  assert.equal(await page.evaluate(()=>nasUI.league),'AHL');
  await main.getByRole('button',{name:'Översikt',exact:true}).click();
+ await require('../scripts/academy-browser-checks.cjs').checkAcademySeason(page,out);
 };

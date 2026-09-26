@@ -145,6 +145,7 @@ function loansAfterFixture(game,rows){
  const key=`${state.season.year}:${game.stage||state.season.phase}:${game.round}:${game.home}:${game.away}:${game.date||''}`;
  for(const l of state.loans.active){if(![game.home,game.away].includes(l.borrower)||l.appearances.includes(key))continue;l.appearances.push(key);
   const row=rows.find(r=>r.club===l.borrower&&samePlayerId(r.playerId??r.id,l.playerId));loanReviewRole(l,row);if(!row||!row.seconds)continue;
+  if(l.owner===managerClub())juniorSeasonRecord(findPlayerAnywhere(l.playerId),'loan',row,key);
   l.games++;l.seconds+=row.seconds;l.starts+=row.seconds>=1800?1:0;l.goals+=row.goals||0;l.assists+=row.assists||0;l.saves=(l.saves||0)+(row.saves||0);l.against=(l.against||0)+(row.against||0);
  }
 }

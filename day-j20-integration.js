@@ -53,10 +53,11 @@ function juniorFixture(key){
  }
  if(playable){const goals=rows.reduce((n,p)=>n+p.goals,0);let assistsLeft=goals*2;
   for(const row of rows){const p=s.roster.find(p=>p.id===row.id),credited=Math.min(row.assists,Math.max(0,2*(goals-row.goals)),assistsLeft);assistsLeft-=credited;p.academy.assists+=credited-row.assists;row.assists=credited;p.academy.history[0].assists=credited;}
+  if(state.season.phase!=='regular')for(const row of rows)juniorSeasonRecord(juniorById(row.id),'junior',row,key);
   s.matches.unshift({year:s.year,round:state.round,opponent,own:goals,against:Math.floor(juniorRoll()*6),players:rows});s.matches=s.matches.slice(0,16);}
  for(const p of managerRoster().filter(p=>p.academy)){
   const a=p.academy,seconds=state.live?.iceTime?.[p.id]||0;a.observations=Math.min(100,a.observations+2);
-  a.history.unshift({year:s.year,round:state.round,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);
+  a.history.unshift({year:s.year,round:state.round,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);juniorSeasonRecord(p,'senior',a.history[0],key+':'+state.calendar.date);
   if(seconds>=300)a.missed=0;else if(!medicalExcused(p,300))a.missed++;
  }
  if(state.round%4===0||!playable)juniorReport('Talangernas avstämning',`${playable?'Juniorlaget har spelat sin utvecklingsmatch.':'Juniorlaget saknar spelare: minst en målvakt, två backar och tre forwards behövs.'}\n${juniorPlayers().slice().sort((a,b)=>b.academy.missed-a.academy.missed).slice(0,3).map(p=>`${p.name}: ${juniorAdvice(p)}`).join('\n')}`);
