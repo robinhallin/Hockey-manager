@@ -134,6 +134,7 @@ function juniorWorldAssignPoints(club,rows,opponent,round,targetGoals){
 function juniorWorldLeagueRows(club,round,opponent,rows){
   for(const row of rows){
     const p=juniorWorldRoster(club).find(p=>String(p.id)===String(row.id));if(!p?.academy||!row.seconds)continue;
+    juniorSeasonRecord(p,'junior',row,`${state.season.year}:${club}:${round}`);
     const a=p.academy;
     if(!a.leagueStats||a.leagueStats.year!==state.season.year)a.leagueStats={year:state.season.year,games:0,seconds:0,goals:0,assists:0};
     const l=a.leagueStats;l.games++;l.seconds+=row.seconds;l.goals+=row.goals||0;l.assists+=row.assists||0;

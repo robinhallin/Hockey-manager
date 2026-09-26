@@ -16,6 +16,7 @@ function boot(saved){
   calendar:{date:'2026-09-10'},world:{membership:{HV71:'SHL',Farjestad:'SHL',AIK:'HA',Modo:'HA'}},
   juniors:{roster:players,matches:[],lastFixture:null}};
  const c={state,playable:true,managerClub:()=> 'HV71',leagueOf:club=>state.world.membership[club||'HV71'],
+  juniorPlayers:()=>state.juniors.roster,samePlayerId:(a,b)=>String(a)===String(b),
   ensureJuniors(){},ensureClubAI(){},clubAIState:()=>({academy:{roster:[]}}),
   medicalReady:()=>true,medicalLimit:()=>Infinity,PLAYER_ROLES:{test:{shooting:1}},juniorRoles:()=>['test'],
   attributeWeighted:a=>a.shooting,ensurePlayerAttributes:p=>p.attributes,attrSeed:()=>.5,
@@ -34,6 +35,8 @@ function boot(saved){
   s.matches=s.matches.slice(0,16);
  };
  vm.createContext(c);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'academy-season.js'),'utf8'),c,{filename:'academy-season.js'});
+ for(const p of state.juniors.roster)c.juniorSeasonStart(p,state.season.year,false);
  vm.runInContext(fs.readFileSync(path.join(__dirname,'junior-world.js'),'utf8'),c,{filename:'junior-world.js'});
  return c;
 }
@@ -50,6 +53,7 @@ test('a full report buffer never turns the 17th or later played game into a forf
   assert.equal(c.state.juniors.matches[0].j20,true);
  }
  assert.equal(c.juniorWorldTable('SHL').find(r=>r.name==='HV71').gp,52);
+ assert.equal(c.state.juniors.roster[0].academy.seasons[0].totals.junior.seconds,52*900);
 });
 test('report, table and individual goals agree beyond the archive limit',()=>{
  const c=boot();for(let round=1;round<=20;round++)play(c,round);

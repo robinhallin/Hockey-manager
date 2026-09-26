@@ -15,6 +15,7 @@ function ensureJuniors(){
   state.juniors.intakes.push({year:state.juniors.year,names:state.juniors.roster.map(p=>p.name),initial:true});
  }
  for(const p of managerRoster().filter(p=>p.academy)){p.academy.path='senior';p.academy.seniorContract=true;}
+ for(const p of juniorSeasonPlayers())juniorSeasonStart(p,state.juniors.year,true);
 }
 function juniorRoll(){const s=state.juniors;s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
 function createJunior(pos,intake){
@@ -30,7 +31,7 @@ function createJunior(pos,intake){
  }
  p.attributeGrowth=talent;p.trainingBaseline={...p.attributes};
  p.academy={path:'junior',role,mentor:null,ceiling,cursor:0,observations:0,baseline:{...p.attributes},history:[],games:0,seconds:0,goals:0,assists:0,missed:0,intake:s.year,loan:null};
- return p;
+ juniorSeasonStart(p,s.year,false);return p;
 }
 function juniorNotice(text){state.juniors.message=text;save();render();}
 function juniorReport(title,body){const s=state.juniors;s.reports.unshift({year:s.year,round:state.round,title:referencePlainText(title),body:referencePlainText(body),...(Array.isArray(title)?{titleParts:title}:{}),...(Array.isArray(body)?{bodyParts:body}:{})});s.reports=s.reports.slice(0,50);managerMessage(`junior:${s.year}:${state.round}:${state.training?.nextMessageId}`,title,body,'Junioransvarig',{link:'juniors'});}
@@ -110,11 +111,12 @@ function juniorTraining(session,key){
 }
 function juniorAppearance(p,seconds,level,opponent){
  if(internationalAway(p))return {id:p.id,name:p.name,pos:p.pos,seconds:0,goals:0,assists:0};
- const a=p.academy;seconds=Math.max(0,Math.min(seconds,medicalLimit(p)));if(!medicalReady(p))seconds=0;
+ const a=p.academy;juniorSeasonStart(p,state.season.year,true);seconds=Math.max(0,Math.min(seconds,medicalLimit(p)));if(!medicalReady(p))seconds=0;
  const skill=attributeWeighted(p.attributes,PLAYER_ROLES[a.role]),challenge=Math.max(.25,1-Math.abs(skill-level)/12);
  const goals=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/4000?1:0,assists=p.pos==='MV'?0:seconds>0&&juniorRoll()<seconds/3000?1:0;
  a.history.unshift({year:state.season.year,round:state.round,opponent,seconds,goals,assists,path:a.path});a.history=a.history.slice(0,16);
  if(seconds>0){a.games++;a.seconds+=seconds;a.goals+=goals;a.assists+=assists;const offer=a.loan?JUNIOR_LOANS[a.loan.destination]:null,coach=offer?.coach||(state.staff.find(q=>q.id==='junior')?.coaching||12),environment=a.loan?'loan':a.path==='guest'?'guest':'junior',context=developmentMatchContext(p,seconds,{level,roleFit:challenge,environment,coach});juniorGrow(p,4.2*context.factor,juniorTarget(p),`Matchvana (${environment} · roll och nivå)`);developmentPathRecord(p,context,seconds,opponent);a.missed=0;}else a.missed++;
+ if(a.loan)juniorSeasonRecord(p,'loan',{seconds,goals,assists},`${state.season.year}:${state.calendar.date}:${state.round}:${opponent}`);
  p.fatigue=trainingClamp(p.fatigue+seconds/180-10);return {id:p.id,name:p.name,pos:p.pos,seconds,goals,assists};
 }
 function juniorFixture(key){
@@ -134,25 +136,19 @@ function juniorFixture(key){
  }
  if(playable){const goals=rows.reduce((n,p)=>n+p.goals,0);let assistsLeft=goals*2;
   for(const row of rows){const p=s.roster.find(p=>p.id===row.id),credited=Math.min(row.assists,Math.max(0,2*(goals-row.goals)),assistsLeft);assistsLeft-=credited;p.academy.assists+=credited-row.assists;row.assists=credited;p.academy.history[0].assists=credited;}
+  if(state.season.phase!=='regular')for(const row of rows)juniorSeasonRecord(juniorById(row.id),'junior',row,key);
   s.matches.unshift({year:s.year,club:managerClub(),round:state.round,opponent,own:goals,against:Math.floor(juniorRoll()*6),players:rows});s.matches=s.matches.slice(0,16);}
  for(const p of managerRoster().filter(p=>p.academy)){
   const a=p.academy,seconds=state.live?.iceTime?.[p.id]||0;a.observations=Math.min(100,a.observations+2);
-  a.history.unshift({year:s.year,round:state.round,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);
+  a.history.unshift({year:s.year,round:state.round,opponent:state.live?.opponent||'A-match',seconds,goals:state.live?.analysis?.players?.[p.id]?.goals||0,assists:state.live?.analysis?.players?.[p.id]?.assists||0,path:'senior'});a.history=a.history.slice(0,16);juniorSeasonRecord(p,'senior',a.history[0],key+':'+state.calendar.date);
   if(seconds>=300)a.missed=0;else if(!medicalExcused(p,300))a.missed++;
  }
  if(state.round%4===0||!playable)juniorReport('Talangernas avstämning',[playable?'Juniorlaget har spelat sin utvecklingsmatch.':'Juniorlaget saknar spelare: minst en målvakt, två backar och tre forwards behövs.',...juniorPlayers().slice().sort((a,b)=>b.academy.missed-a.academy.missed).slice(0,3).flatMap(p=>['\n',playerMention(p),': '+juniorAdvice(p)])]);
 }
-function juniorAnnualReview(year=state.season.year){
- ensureJuniors();const rows=juniorPlayers().map(p=>{const a=p.academy,base=a?.baseline||p.attributes||{},fields=p.pos==='MV'?Object.keys(GOALIE_ATTRIBUTES):Object.keys(SKATER_ATTRIBUTES),growth=fields.reduce((n,k)=>n+Math.max(0,(p.attributes?.[k]||0)-(base[k]||p.attributes?.[k]||0)),0),minutes=(a?.history||[]).reduce((n,h)=>n+(h.seconds||0),0),advice=juniorAdvice(p);return {id:p.id,name:p.name,age:p.age,pos:p.pos,growth,minutes,path:a?.path||'junior',advice};}).sort((a,b)=>b.growth-a.growth||b.minutes-a.minutes);
- const breakthroughs=rows.filter(r=>r.growth>=2||r.minutes>=1800).slice(0,3),stalled=rows.filter(r=>r.growth===0&&r.minutes<900).slice(0,3),decisions=rows.filter(r=>r.age>=19||/A-lag|lån|låna|flytta/i.test(r.advice)).slice(0,5);
- const review={year,breakthroughs,stalled,decisions,total:rows.length};state.juniors.annualReviews??=[];state.juniors.annualReviews.unshift(review);state.juniors.annualReviews=state.juniors.annualReviews.slice(0,10);
- juniorReport(`Akademirapport ${seasonLabel(year)}`,[`${rows.length} talanger har följts under året.`,...breakthroughs.flatMap(r=>['\n',playerMention(findPlayerAnywhere(r.id)||r),`: genombrott · +${r.growth} relevanta attributsteg · ${Math.round(r.minutes/60)} min registrerad matchtid.`]),...stalled.flatMap(r=>['\n',playerMention(findPlayerAnywhere(r.id)||r),': utvecklingen har stått still; '+r.advice]),...decisions.flatMap(r=>['\n',playerMention(findPlayerAnywhere(r.id)||r),': nästa steg · '+r.advice])]);
- return review;
-}
 function juniorNewYear(){
  ensureJuniors();const s=state.juniors,year=state.season.year;if(s.year===year)return;const previous=s.year;juniorAnnualReview(previous);s.year=year;
  for(const p of s.roster){developmentBirthday(p);p.fatigue=0;if(p.academy.seniorContract){p.contractYears=Math.max(0,p.contractYears-1);if(!p.contractYears)p.academy.seniorContract=false;}if(p.academy.loan){p.academy.loan=null;p.academy.path='junior';}}
- for(const p of juniorPlayers()){p.academy.baseline={...p.attributes};p.academy.games=0;p.academy.seconds=0;p.academy.goals=0;p.academy.assists=0;p.academy.missed=0;}
+ for(const p of juniorPlayers()){p.academy.baseline={...p.attributes};p.academy.games=0;p.academy.seconds=0;p.academy.goals=0;p.academy.assists=0;p.academy.missed=0;juniorSeasonStart(p,year,false);}
  const positions=['MV','B','B','C','VF','HF'],incoming=positions.slice(0,Math.max(0,30-s.roster.length)).map(pos=>createJunior(pos,true));s.roster.push(...incoming);
  s.intakes.unshift({year,names:incoming.map(p=>p.name),players:incoming.map(p=>({id:p.id,name:p.name}))});s.intakes=s.intakes.slice(0,10);
  juniorReport(`Juniorintag ${seasonLabel(year)}`,`${incoming.length} nya, fiktiva talanger ansluter. ${s.roster.filter(p=>p.age>20).length} spelare har passerat junioråldern och behöver ett beslut om A-lag, lån eller avslut. Truppen har plats för 30 spelare; frigör platser inför nästa intag.`);
