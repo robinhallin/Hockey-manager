@@ -55,4 +55,6 @@ assert.match(r('devAction'),/developmentOpenPlayer\(&quot;|developmentOpenPlayer
 r("globalThis.devP=managerRoster()[0];globalThis.devHtml=developmentInspector(devP,false,false);developmentOpenPlayer(devP.id,'training',true)");
 assert.equal(r("developmentUI.player"),r("devP.id"));assert.equal(r("developmentUI.detail"),true);assert.match(r("developmentWorkspaceView()"),/individual-training/);
 r("developmentClosePlayer(false);deskNavigate('home')");
+r("globalThis.ovItems=overviewDecisionItems();globalThis.ovHtml=overviewDecisionsView(ovItems)");
+assert.ok(r("ovItems.length<=3||ovHtml.includes('Öppna inkorgen')"));assert.ok(r("(ovHtml.match(/class=\\\"ov-decision\\\"/g)||[]).length<=3"));
 console.log('PASS: compact read-only overview, seven calendar days, away venues and live scores, sorted offers and waiting stages, all decisions accessible, player selection/back, exact development/calendar destinations and reload.');
