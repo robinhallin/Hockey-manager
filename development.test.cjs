@@ -26,6 +26,8 @@ assert.equal(r('roleDev.developmentRolePlan'),'firstPass');assert.ok(r("['passin
 r("roleDev.developmentFocus='Skott'");assert.equal(r("trainingTarget(roleDev,'skills')"),'shooting','explicit focus overrides the role plan');
 r("globalThis.veteran=make();veteran.age=34;veteran.pos='B';Object.assign(veteran.attributes,{skating:9,passing:15,vision:15,decisions:16,positioning:16,checking:15,puckControl:11});globalThis.roleRec=veteranRoleRecommendation(veteran)");
 assert.ok(r('roleRec&&DEVELOPMENT_ROLE_PLANS[roleRec.to]'));assert.ok(r("roleRec.value>=12"));
+r("globalThis.young=make();young.age=21;young.pos='C';young.developmentRolePlan='puckWinner';young.developmentReview={baseline:{...young.attributes}};Object.assign(young.attributes,{passing:16,vision:16,decisions:16,puckControl:15});globalThis.youngRec=youngRoleRecommendation(young)");
+assert.ok(r("youngRec&&DEVELOPMENT_ROLE_PLANS[youngRec.to]&&youngRec.growth>=2"));
 console.log('PASS: migration preserves attributes; immutable ceilings; plateau; save/reload; promotion; deterministic birthdays; differentiated ageing; 20-year bounds; same AI/own growth kernel.');
 const career=boot();career.run(`startCareerWithClub('HV71');globalThis.ages=Object.fromEntries([...Object.values(state.clubRosters).flat(),...state.juniors.roster,...state.playerWorld.freeAgents].map(p=>[p.id,p.age]));state.season.phase='review';state.season.boardResult=[];beginPreseason();`);
 assert.equal(career.run(`Object.values(state.clubRosters).flat().concat(state.juniors.roster,state.playerWorld.freeAgents).filter(p=>ages[p.id]!==undefined).every(p=>p.age===ages[p.id]+1)`),true);
