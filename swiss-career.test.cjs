@@ -6,6 +6,7 @@ test('Swiss onboarding is opt-in, complete enough to field each club and survive
  require('node:child_process').execFileSync(process.execPath,['scripts/build-swiss-data.cjs','--check']);
  const a=start(),r=a.run;
  assert.ok(!/undefined|NaN/.test(r('leagueStatisticsView()')));
+ r('state.selectedMarketPlayer=getTransferMarketPlayers()[0].id');assert.ok(!/undefined|NaN/.test(r('recruitmentPlayerView()')));
  assert.equal(r('state.teams.length'),14);assert.equal(r('state.schedule.length'),364);
  assert.equal(r('state.calendar.date'),'2026-08-01');assert.equal(r('state.calendar.friendlies.length'),5);
  assert.ok(r("SWISS_DATABASE.clubs.every(c=>{const ps=state.clubRosters[c.name];return ps.filter(p=>p.pos==='MV').length>=2&&ps.filter(p=>p.pos==='B').length>=6&&ps.filter(p=>p.pos==='F').length>=12;})"));
