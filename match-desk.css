@@ -131,6 +131,9 @@ body .game-shell .md-workspace{
  & .performance-report th:first-child{width:28%}
  & .performance-report :is(th,td):nth-child(2){width:20%;white-space:nowrap}
  & .performance-report thead th{font-size:9px}
+ & .mw-verdict{grid-template-columns:minmax(0,1fr);padding:12px}
+ & .mw-verdict h2{font-size:17px}
+ & .performance-tasks :is(th,td):nth-child(2){white-space:normal}
  & .md-status{display:flex;align-items:center;gap:8px;font-size:10px;line-height:1.4;color:#b3c5d0;padding:8px 2px 0;min-height:26px;flex-shrink:0}
  & .md-status>span:last-child{margin-left:auto;white-space:nowrap;color:#ddc28a}
  & .md-status-dot{width:6px;height:6px;border-radius:50%;background:#ddc28a;flex-shrink:0}

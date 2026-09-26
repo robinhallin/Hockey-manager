@@ -3,7 +3,7 @@ function ensureAnalysis(){
  if(!state.careerStarted)return;
  if(!state.analysis)state.analysis={version:1,nextId:1,matches:[],selected:'latest',window:'10',side:'all',compareA:null,compareB:null};
  const m=state.live;if(m&&!m.analysis&&!m.finished){
-  m.analysis={id:`${state.season?.year||2026}-${state.round}-${state.analysis.nextId++}`,roleUsageVersion:1,shots:[],events:[],flow:[],units:{},players:{},partial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),saved:false,strengthSeconds:{even:0,pp:0,pk:0,ot:0},strengthPartial:Boolean(m.minute||m.second||m.period>1)};
+  m.analysis={id:`${state.season?.year||2026}-${state.round}-${state.analysis.nextId++}`,roleUsageVersion:1,taskUsageVersion:1,taskUsagePartial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),shots:[],events:[],flow:[],units:{},players:{},partial:Boolean(m.minute||m.second||m.period>1||m.shotsHV||m.shotsOpp),saved:false,strengthSeconds:{even:0,pp:0,pk:0,ot:0},strengthPartial:Boolean(m.minute||m.second||m.period>1)};
   for(const p of managerRoster())m.analysis.players[String(p.id)]={id:p.id,name:p.name,pos:p.pos,seconds:0,shots:0,goals:0,assists:0,pim:0,startAttributes:{...p.attributes}};
  }
  ensureLeagueLive();
@@ -30,15 +30,37 @@ function analysisFlowSnapshot(){
  a.flow.push({time,sides:[copy(r.stats[0]),copy(r.stats[1])]});
  if(a.flow.length>140)a.flow.splice(0,a.flow.length-140);
 }
-function analysisIce(players,seconds){
+function analysisTaskAssignments(players){
+ if(studioActive())return studioTaskAssignments(studioEngine());
+ const m=state.live;
+ if(analysisSituation()!=='even'||m.goaliePulled||m.aiGoaliePulled||StudioHockey.penaltyCount(m.penaltiesHV)||StudioHockey.penaltyCount(m.penaltiesOpp)||players.filter(p=>p.pos!=='MV').length!==5)return {};
+ return Object.fromEntries(players.filter(p=>p.pos!=='MV').flatMap(p=>{
+  const di=state.lines.defense.findIndex(id=>samePlayerId(id,p.id)),fi=state.lines.forwards.findIndex(id=>samePlayerId(id,p.id));
+  return di>=0?[[String(p.id),playerTask('defense',di)]]:fi>=0?[[String(p.id),playerTask('forwards',fi)]]:[];
+ }));
+}
+function analysisTaskIce(row,key,seconds){
+ const def=PLAYER_TASKS[key];if(!def||seconds<=0)return;
+ row.taskUsage??={};
+ if(!row.taskUsage[key]){
+  const values=def.keys.map(k=>row.startAttributes?.[k]);
+  row.taskUsage[key]={name:def.name,seconds:0,fit:values.every(Number.isFinite)?values.reduce((n,v)=>n+v,0)/values.length:null};
+ }
+ row.taskUsage[key].seconds+=seconds;
+}
+function analysisIce(players,seconds,taskAssignments=null){
  ensureAnalysis();if(!state.live?.analysis||state.live.finished||seconds<=0)return;
  analysisFlowSnapshot();
  const a=state.live.analysis;if(!a.strengthSeconds){a.strengthSeconds={even:0,pp:0,pk:0,ot:0};a.strengthPartial=true;}a.strengthSeconds[analysisSituation()]+=seconds;
+ // An unfinished older save starts collecting now, never reconstructing earlier tasks.
+ if(!a.taskUsageVersion){a.taskUsageVersion=1;a.taskUsagePartial=true;}
+ const tasks=taskAssignments??analysisTaskAssignments(players);
  matchLineExposure(seconds);
  for(const unit of analysisUnits())analysisUnitRecord(unit).seconds+=Math.max(0,Math.min(seconds,...unit.players.map(p=>medicalLimit(p)-(state.live.iceTime?.[p.id]||0))));
  for(const p of players){
   const row=analysisPlayer(p),elapsed=Math.max(0,Math.min(seconds,medicalLimit(p)-(state.live.iceTime?.[p.id]||0)));
   row.seconds+=elapsed;
+  if(tasks[String(p.id)])analysisTaskIce(row,tasks[String(p.id)],elapsed);
   // Record the placement at each actual shift, never the lineup at the final whistle.
   if(analysisSituation()==='even'&&p.pos!=='MV'){
    const fi=state.lines.forwards.findIndex(id=>samePlayerId(id,p.id)),di=state.lines.defense.findIndex(id=>samePlayerId(id,p.id));
@@ -83,6 +105,10 @@ function finishAnalysis(){
  const snapshot=analysisSnapshot();dynamicsRecordMatch(snapshot);a.saved=true;state.analysis.matches.unshift(JSON.parse(JSON.stringify(snapshot)));trimAnalysisArchive();state.analysis.selected='latest'; storiesAfterMatch(snapshot);coachMatchDone(snapshot);feedbackAfterMatch(snapshot);
  managerMessage(`analysis:${a.id}`,'Matchanalysen är klar',`${snapshot.club} ${snapshot.own}–${snapshot.against} ${snapshot.opponent}. Skott, formationer och spelarnas minuter finns under Statistik & analys.`,'Matchanalytiker',{link:'statistics'});
 }
+function analysisLiveReport(){
+ const id=state.live?.analysis?.id;
+ return (id&&state.analysis?.matches?.find(m=>m.id===id))||analysisSnapshot();
+}
 
 // These are match performances, independent of scouting, ability and potential.
 function performanceGrade(row,partial=false){
@@ -114,6 +140,10 @@ function finishPerformance(){
  const partial=Boolean(m.leagueBox?.partial||m.analysis?.partial||m.analysisAbandoned);
  const rows=Object.values(m.leagueBox?.players||{}).filter(p=>p.seconds>0).map(p=>{const side=p.club===managerClub()?0:1,metrics=m.broadcast?studioEngine().teams[side].players.find(q=>samePlayerId(q.id,p.id))?.matchMetrics||{}:{};const row={...p,...metrics};return {...row,...performanceGrade(row,partial)};});
  m.performance={version:1,date:state.calendar?.date,club:managerClub(),opponent:m.opponent,partial,rows};
+ if(m.analysis?.taskUsageVersion===1){
+  m.performance.taskUsagePartial=Boolean(partial||m.analysis.taskUsagePartial);
+  m.performance.taskRows=performanceTaskSnapshot(m.performance,m.analysis);
+ }
  for(const r of rows){const p=findPlayerAnywhere(r.id);if(p)p.lastPerformance={date:m.performance.date,club:r.club,opponent:r.club===managerClub()?m.opponent:managerClub(),score:r.score??null,stars:r.stars,reason:r.reason};}
 }
 function performanceStars(value){
@@ -127,15 +157,22 @@ function playerRatingSummary(p){
  const rated=rows.flatMap(m=>{const r=m.ratings?.find(r=>samePlayerId(r.id,p.id));return Number.isFinite(r?.score)?[{score:r.score,date:m.date,id:m.id}]:[];});
  return {average:rated.length?rated.reduce((sum,r)=>sum+r.score,0)/rated.length:null,games:rated.length,latest:rated.at(-1)||null};
 }
-function performanceTaskRows(report){
- const own=report?.rows?.filter(r=>r.club===report.club&&r.pos!=='MV')||[];
- return own.map(r=>{const p=findPlayerAnywhere(r.id);if(!p)return null;let slot=-1,type='forwards';const fi=state.lines?.forwards?.findIndex(id=>samePlayerId(id,r.id))??-1,di=state.lines?.defense?.findIndex(id=>samePlayerId(id,r.id))??-1;if(di>=0){slot=di;type='defense';}else if(fi>=0)slot=fi;if(slot<0)return null;
-  const task=playerTask(type,slot),def=PLAYER_TASKS[task],fit=playerTaskFit(p,task),metrics=r.facets||{},base=performanceScore(r),score=Math.max(0,Math.min(5,2.5+(base==null?0:(base-5)*.28)+(fit-10)*.09)),stars=Math.round(score*2)/2;
-  return {id:r.id,name:r.name,task:def?.name||task,stars,fit,reason:`${def?.name||'Uppgift'} · matchbetyg ${base==null?'saknas':performanceNumber(base)} · rollpassning ${fit.toFixed(1)}/20. Uppgiftsbetyget är en sammanvägd indikator, inte ett nytt spelar-attribut.`};
- }).filter(Boolean).sort((a,b)=>b.stars-a.stars);
+function performanceTaskSnapshot(report,analysis){
+ return report.rows.filter(r=>r.club===report.club&&r.pos!=='MV').flatMap(r=>
+  Object.entries(analysis.players?.[String(r.id)]?.taskUsage||{}).filter(([,t])=>Number.isFinite(t.seconds)&&t.seconds>0).map(([key,t])=>{
+   const base=performanceScore(r),rated=!report.taskUsagePartial&&base!==null&&Number.isFinite(t.fit)&&t.seconds>=180;
+   const stars=rated?Math.round(Math.max(0,Math.min(5,2.5+(base-5)*.28+(t.fit-10)*.09))*2)/2:null;
+   const reason=report.taskUsagePartial?'Uppgiftsunderlaget är delvis registrerat.':t.seconds<180?'Under tre minuter med uppgiften vid fem mot fem.':base===null?'Matchbetyg saknas.':!Number.isFinite(t.fit)?'Rollpassning vid matchstart saknas.':`Matchbetyg ${performanceNumber(base)} · rollpassning vid matchstart ${t.fit.toFixed(1)}/20.`;
+   return {id:r.id,name:r.name,key,task:t.name,seconds:t.seconds,stars,fit:t.fit,reason};
+  })
+ ).sort((a,b)=>(b.stars??-1)-(a.stars??-1)||b.seconds-a.seconds||String(a.name).localeCompare(String(b.name),'sv'));
 }
+function performanceTaskRows(report){return (report?.taskRows||[]).map(r=>({...r}));}
 function performanceTaskView(report){
- const rows=performanceTaskRows(report);if(!rows.length)return '';return `<section class="performance-tasks"><h2>Utförande av spelaruppgifter</h2><p>Bedömer hur matchinsatsen passar den 5-mot-5-uppgift du gav spelaren. Matchbetyg och spelarens egenskaper vägs samman; uppgiften ändrar inte grundattributen.</p><div class="mc-table-scroll"><table><thead><tr><th>Spelare</th><th>Uppgift</th><th>Utförande</th><th>Underlag</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${playerReference(r.id,r.name)}</th><td>${trainingSafe(r.task)}</td><td>${performanceStars(r.stars)}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')}</tbody></table></div></section>`;
+ const rows=performanceTaskRows(report),heading='<h2>Spelaruppgifter i matchen</h2>';
+ if(!Array.isArray(report?.taskRows))return `<section class="performance-tasks">${heading}<p>Den äldre rapporten saknar registrerade spelaruppgifter. Matchens sparade prestationsbetyg visas ovan.</p></section>`;
+ if(!rows.length)return `<section class="performance-tasks">${heading}<p>Ingen registrerad tid med en spelaruppgift vid fem mot fem.</p></section>`;
+ return `<section class="performance-tasks">${heading}<p>Faktisk istid med varje uppgift vid fem mot fem. Bedömningen på skalan 0,0–10,0 väger samman hela matchens prestationsbetyg och rollpassning vid matchstart. Minst tre minuter med uppgiften krävs.${report.taskUsagePartial?' Uppgifterna registrerades bara under en del av matchen; inga uppgiftsbetyg sätts.':''}</p><div class="mc-table-scroll"><table><thead><tr><th>Spelare</th><th>Uppgift / istid</th><th>Bedömning</th><th>Underlag</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${playerReference(r.id,r.name)}</th><td>${trainingSafe(r.task)}<small>${analysisTime(r.seconds)}</small></td><td>${performanceStars(r.stars)}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function performanceView(report){
  if(!report)return '<p class="mc-note">Den äldre matchen saknar underlag för prestationsbetyg.</p>';
@@ -163,7 +200,7 @@ function trimAnalysisArchive(){
  let size=JSON.stringify(a.matches).length;
  while(size>1200000&&a.matches.length>1){size-=JSON.stringify(a.matches.pop()).length+1;}
 }
-function analysisSelection(){const s=state.analysis;if(s.selected==='live')return analysisSnapshot();return s.matches.find(m=>m.id===s.selected)||s.matches[0]||analysisSnapshot();}
+function analysisSelection(){const s=state.analysis;if(s.selected==='live')return analysisLiveReport();return s.matches.find(m=>m.id===s.selected)||s.matches[0]||analysisLiveReport();}
 function analysisSamples(){const s=state.analysis,matches=s.matches.filter(m=>m.club===managerClub()&&!m.friendly);return s.window==='season'?matches.filter(m=>m.year===(state.season?.year||2026)):s.window==='all'?matches:matches.slice(0,Number(s.window)||10);}
 function analysisRate(n,seconds){return seconds>0?(n*3600/seconds).toFixed(1):'—';}
 function analysisTime(seconds){return `${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;}
@@ -294,11 +331,13 @@ function analysisMatchVerdict(m){
  if(even?.danger) candidates.push({weight:Math.abs(even.danger[0]-even.danger[1])*2,label:'Farliga lägen vid lika styrka',text:`${even.danger[0]}–${even.danger[1]} farliga avslut vid lika styrka.`});
  if(even?.shots)candidates.push({weight:Math.abs(even.shots[0]-even.shots[1]),label:'Skottbild vid lika styrka',text:`${even.shots[0]}–${even.shots[1]} skott på mål vid lika styrka.`});
  if(pp?.goals?.[0]||pk?.goals?.[1])candidates.push({weight:3+(pp?.goals?.[0]||0)+(pk?.goals?.[1]||0),label:'Special teams',text:`Powerplay ${pp?.goals?.[0]||0} mål · insläppta i boxplay ${pk?.goals?.[1]||0}.`});
- const factor=candidates.sort((a,b)=>b.weight-a.weight)[0]||{label:'Jämn matchbild',text:'Inget enskilt registrerat område sticker ut tydligt.'},best=[...(m.units||[])].filter(u=>u.kind==='forward'&&u.seconds>=300).sort((a,b)=>((b.dangerFor||0)-(b.dangerAgainst||0))-((a.dangerFor||0)-(a.dangerAgainst||0)))[0],reviews=tacticalReviewSnapshot().filter(x=>x.coachDecision);
+ const factor=candidates.filter(c=>c.weight>0).sort((a,b)=>b.weight-a.weight)[0]||{label:'Jämn matchbild',text:'Inget enskilt registrerat område sticker ut tydligt.'},best=[...(m.units||[])].filter(u=>u.kind==='forward'&&u.seconds>=300).sort((a,b)=>((b.dangerFor||0)-(b.dangerAgainst||0))-((a.dangerFor||0)-(a.dangerAgainst||0)))[0],reviews=(m.tacticalReviews||[]).filter(x=>x.coachDecision);
  return {factor,best,decision:reviews.at(-1)||null};
 }
 function analysisMatchVerdictView(m){
- const v=analysisMatchVerdict(m);if(!v)return '';return `<section class="mw-verdict"><h2>Tre svar efter matchen</h2><article><strong>Varför såg matchen ut så här?</strong><p>${trainingSafe(v.factor.label)} · ${trainingSafe(v.factor.text)} Detta är den tydligaste registrerade skillnaden, inte bevisad orsak.</p></article><article><strong>Vilken formation stack ut?</strong><p>${v.best?`${trainingSafe(v.best.label)} · ${trainingSafe((v.best.names||[]).join(' / '))} · ${v.best.dangerFor||0}–${v.best.dangerAgainst||0} farliga lägen på ${analysisTime(Math.round(v.best.seconds))}.`:'Ingen forwardskedja nådde fem minuters registrerat underlag.'}</p></article><article><strong>Vad hände efter ditt senaste tränarbeslut?</strong>${v.decision?matchCoachFollowupView(v.decision,true):'<p>Inget tränarbeslut med före-/efterunderlag registrerades.</p>'}</article></section>`;
+ const v=analysisMatchVerdict(m);if(!v)return '';
+ const d=v.decision,followup=d?`<p>${trainingSafe(d.coachDecision.label)} · ${analysisTime(d.time)}${d.coachDecision.choice==='keep'?' · Behöll planen':''}</p><p>${trainingSafe(matchCoachOutcome(d,true).text)}</p><p class="mw-note">Förloppet visar inte en bevisad effekt av beslutet.${d.coachDecision.additionalChanges?' Flera ändringar gjordes vid samma paus.':''}</p>`:'<p>Inget tränarbeslut med före-/efterunderlag registrerades.</p>';
+ return `<section class="mw-panel mw-verdict"><h2>Tre svar efter matchen</h2><article><strong>Varför såg matchen ut så här?</strong><p>${trainingSafe(v.factor.label)} · ${trainingSafe(v.factor.text)} Detta är registrerat underlag, inte bevisad orsak.</p></article><article><strong>Vilken formation stack ut?</strong><p>${v.best?`${trainingSafe(v.best.label)} · ${trainingSafe((v.best.names||[]).join(' / '))} · ${v.best.dangerFor||0}–${v.best.dangerAgainst||0} farliga lägen på ${analysisTime(Math.round(v.best.seconds))}.`:'Ingen forwardskedja nådde fem minuters registrerat underlag.'}</p></article><article><strong>Vad hände efter ditt senaste tränarbeslut?</strong>${followup}</article></section>`;
 }
 function analysisKeyFactorsView(m){
  if(!m?.finished)return '';

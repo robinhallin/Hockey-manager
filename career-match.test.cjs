@@ -19,6 +19,7 @@ assert.equal(b.run('studioEngine() instanceof CareerBroadcastMatch'),true);
 b.run('startMatch();');
 a.run('for(let i=0;i<400;i++)studioStep();');b.run('for(let i=0;i<400;i++)studioStep();');
 assert.equal(a.run('JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().puck,studioEngine().actors.map(a=>[a.id,a.x,a.y]),state.live.analysis.shots])'),b.run('JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().puck,studioEngine().actors.map(a=>[a.id,a.x,a.y]),state.live.analysis.shots])'));
+assert.equal(a.run('JSON.stringify(Object.values(state.live.analysis.players).map(p=>p.taskUsage))'),b.run('JSON.stringify(Object.values(state.live.analysis.players).map(p=>p.taskUsage))'),'task exposure resumes identically from a saved puck flight');
 check(b);console.log('PASS: actual Rögle roster, selected lineup, saved puck flight resumes deterministically without duplicate stats.');
 // Selected PP/PK units, penalized player excluded, real return through the penalty gate.
 b.run(`globalThis.e=studioEngine();e.endPenalty(true);e.givePenalty(1,e.skaters(1)[0].player.name);`);
@@ -49,6 +50,9 @@ assert.equal(full.run('state.live.analysis.events.filter(e=>e.type==="goal"&&e.s
 assert.equal(full.run('state.live.analysis.events.filter(e=>e.type==="goal"&&e.side==="opponent").length'),full.run('studioEngine().score[1]'));
 assert.equal(full.run('Object.values(state.live.leagueBox.players).filter(p=>p.club===managerClub()).reduce((s,p)=>s+p.goals,0)'),full.run('studioEngine().score[0]'));
 assert.ok(full.run('Object.values(state.live.iceTime).reduce((s,n)=>s+n,0)>15000'));
+assert.ok(full.run('state.live.performance.taskRows.length>=15&&state.live.performance.taskRows.some(r=>r.stars!==null)'),'full game produces task assessments from real shifts');
+assert.ok(full.run('Object.values(state.live.analysis.players).every(p=>Object.values(p.taskUsage||{}).reduce((n,t)=>n+t.seconds,0)<=p.seconds+.001)'),'task time never exceeds real player ice time');
+assert.equal(full.run('JSON.stringify(state.analysis.matches[0].performance.taskRows)'),full.run('JSON.stringify(state.live.performance.taskRows)'));
 full.run('globalThis.recorded=JSON.stringify([state.teams,state.leagueStatistics,state.analysis.matches.length]);finishMatch(false);save();render();');
 assert.equal(full.run('JSON.stringify([state.teams,state.leagueStatistics,state.analysis.matches.length])'),full.run('recorded'));
 console.log('PASS: full three-period game, standings, both teams player statistics, performance grades and idempotent finish.',full.run('JSON.stringify({score:[state.live.hv,state.live.opp],shots:matchStats().shots,periods:[...periods],steps,saveBytes:JSON.stringify(state).length})'));

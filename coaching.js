@@ -52,14 +52,14 @@ function specialUnitOnIce(){
   return state.specialTeams[key].map(playerById).filter(Boolean).slice(0,count);
 }
 
-function trackIceTime(seconds){
+function trackIceTime(seconds,taskAssignments=null){
   const m=state.live;if(!m||m.finished||!Number.isFinite(seconds)||seconds<=0)return;
   if(!m.iceTime)m.iceTime={};
   const skaters=[...currentLinePlayers(),...currentDefensePlayers()];
   const goalie=m.goaliePulled?null:randomGoalie();
   const players=[...new Map([...skaters,...(goalie?[goalie]:[])].map(p=>[String(p.id),p])).values()];
   const shared=Math.min(seconds,...players.map(p=>medicalLimit(p)-(m.iceTime[p.id]||0)));
-  analysisIce(players,seconds);
+  analysisIce(players,seconds,taskAssignments);
   leagueTrackIce(players,seconds);
   updateFatigue(seconds,players,rinkOpponentPlayers());
   trackSocialIce(skaters,Math.max(0,shared));

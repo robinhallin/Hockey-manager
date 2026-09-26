@@ -76,6 +76,9 @@ async function checkMatchDecisions(page,out){
  assert.equal(await page.evaluate(()=>JSON.stringify([state.live.broadcast,state.live.rink,state.live.analysis.shots]))===snapshot,true,'saved engine and accounting restored unchanged');
  await page.evaluate(()=>{careerScreen=null;deskNavigate('match');matchTab('feedback')});
  await matchScreenshot(page,path.join(out,'match-played.png'));
+ await checkMatchReports(page,out);
+}
+async function checkMatchReports(page,out){
  // Finish the actual simulation and keep final figures and coaching in one workspace.
  await page.evaluate(()=>{let steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch()}studioStep()}render()});
  assert.equal(await page.evaluate(()=>state.live.finished),true);
@@ -83,6 +86,18 @@ async function checkMatchDecisions(page,out){
   await page.locator('#match-tab-'+tab).click();
   assert.equal(await page.locator('#content').evaluate(el=>el.scrollHeight<=el.clientHeight+1),true,'finished fits '+tab);
  }
- await page.locator('#match-tab-report').click();await matchScreenshot(page,path.join(out,'match-finished.png'));
+ await page.locator('#match-tab-report').click();
+ assert.equal(await page.getByRole('heading',{name:'Tre svar efter matchen',exact:true}).count(),1);
+ assert.equal(await page.getByRole('heading',{name:'Spelaruppgifter i matchen',exact:true}).count(),1);
+ assert.ok(await page.locator('.performance-tasks tbody tr').count()>0);
+ assert.equal(await page.locator('.mc-coach-content').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'report stays within the coach panel');
+ const frozen=await page.evaluate(()=>JSON.stringify(analysisLiveReport().performance));
+ await matchScreenshot(page,path.join(out,'match-finished.png'));
+ await page.getByRole('button',{name:'Matchrapport →',exact:true}).click();
+ assert.equal(await page.getByRole('heading',{name:'Tre svar efter matchen',exact:true}).count(),1);
+ assert.equal(await page.evaluate(()=>analysisSelection().id===state.live.analysis.id),true);
+ assert.equal(await page.evaluate(()=>JSON.stringify(analysisSelection().performance)),frozen);
+ assert.equal(await page.evaluate(()=>{const ids=[...document.querySelectorAll('.mc-decision-followup[id]')].map(el=>el.id);return new Set(ids).size===ids.length}),true);
+ await matchScreenshot(page,path.join(out,'match-archived.png'));
 }
-module.exports={checkMatchView,checkMatchDecisions,matchScreenshot};
+module.exports={checkMatchView,checkMatchDecisions,checkMatchReports,matchScreenshot};
