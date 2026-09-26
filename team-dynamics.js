@@ -27,6 +27,15 @@ function positionFit(p,role){
  return .95;
 }
 function lineupRole(type,index){return type==='goalie'?'G':type==='defense'?(index%2?'RD':'LD'):['LW','C','RW'][index%3];}
+const GOALIE_INSTRUCTIONS={
+ balanced:{name:'Balanserad',depth:0,rebound:0,puck:0,text:'Normal positionering och risknivå.'},
+ challenge:{name:'Aggressiv vinkel',depth:.55,rebound:-.02,puck:0,text:'Kom längre ut och minska skottvinkeln; känsligare för sidledsspel.'},
+ deep:{name:'Djupare positionering',depth:-.45,rebound:.02,puck:0,text:'Spela djupare och ge mer tid för sidledsförflyttningar.'},
+ freeze:{name:'Frys returer',depth:0,rebound:.1,puck:-.04,text:'Prioritera kontroll och avblåsning framför snabb omställning.'},
+ active:{name:'Aktiv med puck',depth:0,rebound:-.02,puck:.12,text:'Spela pucken oftare bakom mål; högre risk under press.'}
+};
+function goalieInstruction(){state.tacticalPlan.goalieInstruction??='balanced';return GOALIE_INSTRUCTIONS[state.tacticalPlan.goalieInstruction]?state.tacticalPlan.goalieInstruction:'balanced';}
+function setGoalieInstruction(value){if(!GOALIE_INSTRUCTIONS[value]||state.live&&!state.live.finished&&hockeyChangeBlocked())return;state.tacticalPlan.goalieInstruction=value;save();render();}
 const PLAYER_TASKS={
  creator:{name:'Spelfördelare',groups:['forwards'],keys:['passing','vision','decisions'],boost:{passing:.045,vision:.05,decisions:.025},text:'Sök puck och skapa nästa passningsalternativ.'},
  carrier:{name:'Pucktransportör',groups:['forwards','defense'],keys:['puckControl','skating','decisions'],boost:{puckControl:.05,skating:.035,decisions:.02},text:'Transportera puck genom press och zoner.'},
