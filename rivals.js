@@ -35,6 +35,17 @@ function ensureRivals(){
  ensureClubAI();
 }
 function rivalsClubState(club){return state.rivals?.clubs[club];}
+function rivalryKey(a,b){return [a,b].sort((x,y)=>x.localeCompare(y,'sv')).join('|');}
+function rivalryState(a,b){
+ ensureRivals();const key=rivalryKey(a,b),r=state.rivals.rivalries??=( {});
+ return r[key]??=(r[key]={clubs:[a,b],score:0,meetings:0,playoffSeries:0,overtime:0,transfers:0,last:null,chapters:[]});
+}
+function rivalryLevel(score){return score>=70?'Het rivalitet':score>=40?'Intensiv':score>=20?'Växande':'Vanligt motstånd';}
+function rivalryAdd(a,b,points,reason,date=state.calendar?.date){
+ if(!a||!b||a===b)return;const r=rivalryState(a,b);r.score=Math.min(100,r.score+points);r.last=date;r.chapters.unshift({year:state.season.year,date,points,reason});r.chapters=r.chapters.slice(0,20);
+}
+function rivalryTransfer(p,from,to){if(!from||!to||from===WORLD_FREE||to===WORLD_FREE||from===to)return;const r=rivalryState(from,to);r.transfers++;rivalryAdd(from,to,4,`${p.name} bytte klubb från ${from} till ${to}.`);}
+
 function rivalRandomSkater(club,kind){
  const active=state.live?.opponent===club&&!state.live.finished?rivalLivePlayers():rivalLineup(club).forwards.concat(rivalLineup(club).defense);
  const skaters=active.filter(p=>p.pos!=='MV'),pool=skaters.filter(p=>kind==='forward'?p.pos!=='B':kind==='defense'?p.pos==='B':true);
@@ -431,6 +442,9 @@ function rivalAfterFixture(game,rows,reports,partial=false){
  if(game.home===managerClub()||game.away===managerClub()){
   const opponent=game.home===managerClub()?game.away:game.home,key=managerClub()+'|'+opponent;
   const meetings=state.rivals.duels[key]||(state.rivals.duels[key]=[]),home=game.home===managerClub();
+ const rivalry=rivalryState(game.home,game.away);rivalry.meetings++;rivalryAdd(game.home,game.away,game.seriesId?5:1,game.seriesId?`Slutspelsmöte: ${game.home}–${game.away}`:`Grundseriemöte: ${game.home}–${game.away}`,game.date||state.calendar.date);
+ if(game.overtime){rivalry.overtime++;rivalryAdd(game.home,game.away,2,'Matchen gick till förlängning.',game.date||state.calendar.date);}
+ if(game.seriesId){const series=state.season?.series?.find(s=>s.id===game.seriesId);if(series?.winner&&series.games.length&&series.games.at(-1).home===game.home&&series.games.at(-1).away===game.away){rivalry.playoffSeries++;rivalryAdd(game.home,game.away,8,`${series.winner} avgjorde slutspelsserien.`,game.date||state.calendar.date);}}
   meetings.push({date:game.date,year:state.season.year,gf:home?game.homeGoals:game.awayGoals,ga:home?game.awayGoals:game.homeGoals,coachId:reports.find(r=>r.club===opponent)?.coachId||null});
   state.rivals.duels[key]=meetings.slice(-12);
  }
@@ -488,7 +502,7 @@ function rivalsView(){
  ensureRivals();const clubs=Object.keys(state.rivals.clubs).filter(c=>c!==managerClub());
  const club=clubs.includes(rivalsSelected)?rivalsSelected:clubs.includes(opponent())?opponent():clubs[0],c=rivalsClubState(club),l=rivalLineup(club,managerClub()),recent=c.recent.slice(-5);
  const unavailable=(state.clubRosters[club]||[]).filter(p=>!medicalReady(p)),events=state.rivals.events.filter(e=>leagueOf(e.club)===leagueOf(club)).slice(0,8);
- const meetings=state.rivals.duels[managerClub()+'|'+club]||[],pp=recent.reduce((n,g)=>n+(g.pp||0),0),ppGoals=recent.reduce((n,g)=>n+(g.ppGoals||0),0);
+ const meetings=state.rivals.duels[managerClub()+'|'+club]||[],rivalry=rivalryState(managerClub(),club),pp=recent.reduce((n,g)=>n+(g.pp||0),0),ppGoals=recent.reduce((n,g)=>n+(g.ppGoals||0),0);
  const leaders=new Map();for(const g of recent)if(g.star){const p=leaders.get(String(g.star.id))||{...g.star,points:0};p.points+=g.star.points;leaders.set(String(p.id),p);}
  const hot=[...leaders.values()].sort((a,b)=>b.points-a.points)[0];
  const pressure=c.confidence<30?'Nära ett tränarbyte':c.confidence<45?'Under press':c.confidence>=75?'Starkt stöd':'Arbetsro';
@@ -497,7 +511,7 @@ function rivalsView(){
  <div class="rival-columns"><section class="rival-panel"><h2>Vad vi behöver förbereda</h2>${c.recruitmentNote?`<p><strong>Sportchefens arbete:</strong> ${trainingSafe(c.recruitmentNote)}</p>`:''}<p>${trainingSafe(rivalBriefText(club)).replace(/\n/g,'</p><p>')}</p><button class="btn secondary" onclick="deskNavigate('training')">Planera träningen</button> <button class="btn secondary" onclick="deskNavigate('tactics')">Se vår matchplan</button></section>
  <section class="rival-panel"><h2>Senaste ${recent.length||'registrerade'} matcherna</h2>${rivalFormHTML(recent)}${rivalInitiativeReport(recent)}${rivalShotReport(recent)}<div class="rival-numbers"><div><span>Mål</span><strong>${recent.reduce((n,g)=>n+g.gf,0)}–${recent.reduce((n,g)=>n+g.ga,0)}</strong></div><div><span>Skott / match</span><strong>${recent.length?Math.round(recent.reduce((n,g)=>n+g.shots,0)/recent.length):'–'}</strong></div><div><span>Powerplay</span><strong>${pp?Math.round(ppGoals/pp*100)+' %':'–'}</strong><small>${ppGoals} mål / ${pp} lägen</small></div></div>${recent.some(g=>g.partial)?'<p>En del matchdata är ofullständig från en äldre sparning.</p>':''}${hot?`<p><strong>${trainingSafe(hot.name)}</strong> har varit lagets främsta poängspelare i minst en av dessa matcher.</p>`:''}<button class="rival-text-button" onclick="leagueStatsClub('${trainingSafe(club)}')">Hela lagets spelarstatistik →</button></section></div>
  <div class="rival-columns"><section class="rival-panel"><h2>Målvaktsläget</h2>${l.keeper?`<h3>${trainingSafe(l.keeper.name)}</h3><p>Trolig start · ${Math.round(100-(l.keeper.fatigue||0))} % ork</p><p>${c.recent.slice(-3).filter(g=>samePlayerId(g.keeper,l.keeper.id)).length} starter i de senaste tre registrerade matcherna. Tränaren väger förmåga, räddningsform och belastning.${rivalRoleSelection(l.keeper)>0?' Uppföljningen av rollöftet ger också ett begränsat stöd för en start.':''}</p>`:'<p>Klubben saknar en spelklar målvakt.</p>'}<h3>Skadeavbräck</h3>${unavailable.length?unavailable.map(p=>`<p><strong>${trainingSafe(p.name)}</strong> · ${medicalStatus(p)}${p.health?.injury?.remaining?' · '+p.health.injury.remaining+' dagar till återgångsträning':''}</p>`).join(''):'<p>Alla spelare är medicinskt tillgängliga.</p>'}</section>
- <section class="rival-panel"><h2>Våra möten</h2>${meetings.length?[...meetings].reverse().slice(0,5).map(g=>`<div class="rival-meeting"><span>${g.date?calText(g.date):seasonLabel(g.year)}</span><strong>${managerClub()} ${g.gf}–${g.ga} ${trainingSafe(club)}</strong></div>`).join(''):'<p>Nästa möte blir ert första registrerade kapitel. Historiken följer med mellan säsongerna.</p>'}${c.history.length?`<details><summary>Tidigare tränare</summary>${c.history.map(h=>`<p><strong>${trainingSafe(h.name)}</strong> · ${calText(h.left)}<br>${trainingSafe(h.reason)}</p>`).join('')}</details>`:''}</section></div>
+ <section class="rival-panel"><h2>Våra möten</h2><p><strong>${rivalryLevel(rivalry.score)}</strong> · rivalitet ${rivalry.score}/100 · ${rivalry.meetings} registrerade möten · ${rivalry.playoffSeries} slutspelsserier · ${rivalry.transfers} spelarbyten mellan klubbarna.</p>${meetings.length?[...meetings].reverse().slice(0,5).map(g=>`<div class="rival-meeting"><span>${g.date?calText(g.date):seasonLabel(g.year)}</span><strong>${managerClub()} ${g.gf}–${g.ga} ${trainingSafe(club)}</strong></div>`).join(''):'<p>Nästa möte blir ert första registrerade kapitel. Historiken följer med mellan säsongerna.</p>'}${c.history.length?`<details><summary>Tidigare tränare</summary>${c.history.map(h=>`<p><strong>${trainingSafe(h.name)}</strong> · ${calText(h.left)}<br>${trainingSafe(h.reason)}</p>`).join('')}</details>`:''}</section></div>
  <details class="rival-panel"><summary>Förväntade kedjor och backpar</summary><p>Prognos utifrån spelklarhet, attribut, form och tränarens prioriteringar.</p>${l.lines.map((line,i)=>`<div class="rival-meeting"><span>Kedja ${i+1}</span><strong>${line.map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständig kedja'}</strong></div>`).join('')}${[0,1,2].map(i=>`<div class="rival-meeting"><span>Backpar ${i+1}</span><strong>${l.defense.slice(i*2,i*2+2).map(p=>trainingSafe(p.name)).join(' · ')||'Ofullständigt backpar'}</strong></div>`).join('')}</details>
  <details class="rival-panel"><summary>Tränarens anpassningar och klubbens långsiktiga plan</summary>${aiCoachReport(club)}${aiClubView(club)}</details>
  <details class="rival-panel"><summary>Nyheter i ${leagueName(club)}</summary><div class="rival-news">${events.map(e=>`<article><span class="desk-kicker">${calText(e.date)} · ${trainingSafe(e.club)}</span><h3>${playerReferenceText(e.titleParts||e.title)}</h3><p>${playerReferenceText(e.textParts||e.text)}</p></article>`).join('')||'<p>Här följer du tränarbyten, skadeavbräck och spelare som utvecklas under säsongen.</p>'}</div></details></section>`;
