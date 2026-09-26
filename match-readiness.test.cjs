@@ -7,6 +7,7 @@ assert.ok(r("readinessAttribute(12,'passing',70)")<r("readinessAttribute(12,'pas
 assert.equal(r("readinessAttribute(12,'skating',100,1,50,0)"),r("readinessAttribute(12,'skating',100,1,50,100)"));
 assert.ok(r("readinessAttribute(12,'decisions',100,1,50,0)")<r("readinessAttribute(12,'decisions',100,1,50,100)"));
 r("globalThis.ids=e.actors.filter(a=>a.side===0&&['LW','C','RW'].includes(a.role)).map(a=>a.player.id);globalThis.chem=lineChemistry(ids).value");
+r("tacticalFitFactor=()=>1;playerTaskFactor=()=>1");
 close(r("e.attribute(actor,'passing')"),r("matchCalibrationAttribute(readinessAttribute(actor.player.attributes.passing,'passing',matchEnergy(p),readinessFit(p,'LW'),chem,p.morale))"));
 // Same measured effort and tactics give the real live update the shared workload.
 r("p.fatigue=0;p.attributes.stamina=10;state.live.energy={players:{[p.id]:{level:100,shift:0,seconds:0}},breaks:[]};state.tacticalPlan.tempo='high';state.tacticalPlan.forecheck='aggressive';state.tacticalPlan.physicality='hard';studioEffort=()=>1;globalThis.load=readinessLoad('high','aggressive','hard');updateFatigue(20,[p],[])");

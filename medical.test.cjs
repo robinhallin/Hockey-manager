@@ -24,16 +24,16 @@ assert.equal(run('JSON.stringify(p.attributes)'),run('attributesBefore'));
 assert.equal(run('JSON.stringify(p.trainingProgress)'),run('progressBefore'));
 run('save()');const reload=boot(storage.value);assert.equal(reload.run(`findPlayerAnywhere(${JSON.stringify(run('p.id'))}).health.injury.remaining`),2);
 run('medicalDay();medicalDay()');assert.equal(run('medicalStatus(p)'),'Återgångsträning');assert.equal(run('medicalReady(p)'),false);
-// Early full return is rejected. Limited return is capped at exactly ten minutes.
+// Early full return is rejected. Limited return is capped at the injury profile limit.
 run('setMedicalClearance(p.id,"full")');assert.equal(run('p.health.clearance'),'rest');
-run('setMedicalClearance(p.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeLinePlayer("forwards",0,p.id);state.live.currentLine=0;state.live.iceTime={[p.id]:590};trackIceTime(15)');
-assert.equal(run('state.live.iceTime[p.id]'),600);
+run('setMedicalClearance(p.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeLinePlayer("forwards",0,p.id);state.live.currentLine=0;state.live.iceTime={[p.id]:medicalLimit(p)-10};trackIceTime(15)');
+assert.equal(run('state.live.iceTime[p.id]'),run('medicalLimit(p)'));
 assert.equal(run('medicalAvailable(p)'),false);
 assert.equal(run('currentLinePlayers().some(q=>q.id===p.id)'),false);
 run('setMedicalClearance(p.id,"full")');assert.equal(run('p.health.clearance'),'limited');
-// Goalkeeper comeback has its own exact 30-minute cap and replacement.
-run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();ensureLines();globalThis.returnGoalie=playerById(state.lines.goalie);injurePlayer(returnGoalie,"träning",1);medicalDay();setMedicalClearance(returnGoalie.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeGoalie(returnGoalie.id);state.live.iceTime={[returnGoalie.id]:1795};trackIceTime(15)');
-assert.equal(run('state.live.iceTime[returnGoalie.id]'),1800);
+// Goalkeeper comeback has its own exact profile cap and replacement.
+run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();ensureLines();globalThis.returnGoalie=playerById(state.lines.goalie);injurePlayer(returnGoalie,"träning",1);medicalDay();setMedicalClearance(returnGoalie.id,"limited");(state.calendar.date=calendarTarget(),createMatch());changeGoalie(returnGoalie.id);state.live.iceTime={[returnGoalie.id]:medicalLimit(returnGoalie)-5};trackIceTime(15)');
+assert.equal(run('state.live.iceTime[returnGoalie.id]'),run('medicalLimit(returnGoalie)'));
 assert.notEqual(run('randomGoalie().id'),run('returnGoalie.id'));
 // A genuine engine tick can cause an injury, pauses the clock and substitutes eligible players.
 run('startCareerWithClub("HV71");state.calendar.date=calendarTarget();(!state.live&&(state.calendar.date=calendarTarget()),startMatch());medicalRoll=()=>0;liveStep()');
@@ -71,6 +71,6 @@ for(const club of run('Object.keys(CLUB_DATA)')){
  assert.ok(!/undefined|NaN/.test(run('linesView()')),club);
 }
 run("startCareerWithClub('HV71');globalThis.profilePatient=managerRoster()[0];profilePatient.health.injury=null;injurePlayer(profilePatient,'träning');globalThis.profile=medicalProfile(profilePatient.health.injury);globalThis.riskBefore=medicalRisk(profilePatient);profilePatient.health.injuryHistory=[{type:'joint'},{type:'muscle'}]");
-assert.ok(run('medicalRisk(profilePatient)')>r('riskBefore'),'injury history should increase future workload risk');
+assert.ok(run('medicalRisk(profilePatient)')>run('riskBefore'),'injury history should increase future workload risk');
 assert.ok(run('profile.min')<run('profile.max'),'injury profiles have distinct recovery windows');
 console.log('PASS: medical migration, deterministic time, rehab, training exclusion, lineups/goalies/special teams, exact comeback cap, live injury pause, promises, setbacks, preseason, depleted squads and 14-club views.');

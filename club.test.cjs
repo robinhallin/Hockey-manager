@@ -44,8 +44,8 @@ assert.equal(run('state.staff.find(s=>s.id==="scout").salary'),0);
 // Priority effect fixtures; public seasonal selection/locking is tested in coach-overhaul.test.cjs.
 run('state.clubOffice.priority="scouting"');assert.equal(run('clubMissionFee()'),20000);assert.equal(run('clubMissionLimit()'),3);
 run('state.staff.find(s=>s.id==="scout").ability=18');assert.equal(run('clubMissionLimit()'),4);
-run('state.clubOffice.priority="first"');assert.equal(run('clubTrainingFactor()'),1.1);
-run('state.clubOffice.priority="youth"');assert.equal(run('clubJuniorFactor()'),1.15);
+run('state.clubOffice.priority="first";state.clubOffice.projects??={};state.clubOffice.projects.first={maturity:100}');assert.equal(run('clubTrainingFactor()'),1.1);
+run('state.clubOffice.priority="youth";state.clubOffice.projects.youth={maturity:100}');assert.equal(run('clubJuniorFactor()'),1.15);
 run('clubSetPolicy("ticket",160);var cheapAttendance=clubGate().attendance;clubSetPolicy("ticket",340)');assert.ok(run('clubGate().attendance')<run('cheapAttendance'));
 run('clubSetPolicy("ticket",-1)');assert.equal(run('state.clubOffice.ticket'),340);
 // Real entries: away fixtures have no gate, wages and income counted exactly once.
@@ -106,4 +106,6 @@ assert.ok(run('mature')>run('early'),'multi-season club projects should mature i
 assert.equal(run('clubProjectFactor("training")')>1,true);
 run("globalThis.staffMember=state.staff.find(s=>s.id==='assistant');delete staffMember.philosophy;globalThis.ph1=staffPhilosophy(staffMember);globalThis.ph2=staffPhilosophy(staffMember)");
 assert.equal(run('ph1.name'),run('ph2.name'));assert.ok(run('Object.values(STAFF_PHILOSOPHIES).some(p=>p.name===ph1.name)'));
+run("state.clubOffice.priority='academy';state.clubOffice.priorityLockedYear=clubYear();state.clubOffice.projects={academy:{id:'academy',started:clubYear()-1,seasons:1,maturity:50}};globalThis.beforeMilestone=clubJuniorFactor();globalThis.choiceOk=clubProjectChoose('academy','regional');globalThis.afterMilestone=clubJuniorFactor()");
+assert.equal(run('choiceOk'),true);assert.ok(run('afterMilestone')>run('beforeMilestone'));assert.equal(run("state.clubOffice.projects.academy.milestone"),'regional');assert.equal(run("clubProjectChoose('academy','integration')"),false,'a project milestone is a strategic branch, not a stack of all bonuses');
 console.log('PASS: club finance, home/away and playoffs, ledgers, migration, personnel contracts and renewal, real training/rehab effects, priorities, rollover and 14 club views.');

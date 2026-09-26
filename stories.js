@@ -55,8 +55,9 @@ function storiesCreate(type,ids,title,text,extra={}){
 function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>['forward','pp'].includes(u.kind)).map(u=>({kind:u.kind,ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
 function storiesNextRival(opponentName){return state.schedule.filter(g=>!g.played&&((g.home===managerClub()&&g.away===opponentName)||(g.away===managerClub()&&g.home===opponentName))).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.round-b.round)[0];}
 function storiesSystemSignal(){
- const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<2)return false;
+ const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<3||pendingManagerDecision())return false;
  const contract=managerRoster().filter(p=>p.contractYears===1&&!p.futureContract&&p.age<=32&&playerSocialIdentity(p).ambition>=14).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
+
  if(contract&&storiesCreate('contract',[contract.id],`${contract.name} vill veta vart klubben är på väg`,`Avtalet går mot sitt sista år och spelarens ambition är hög. Agenten ${playerAgent(contract).name} väntar sig att roll, sportslig riktning och villkor hänger ihop.`))return true;
  const breakthrough=managerRoster().filter(p=>p.age<=22).map(p=>({p,d:developmentRoleProgress(p)})).filter(x=>x.d&&x.d.changes>=2).sort((a,b)=>b.d.changes-a.d.changes)[0];
  if(breakthrough&&storiesCreate('breakthrough',[breakthrough.p.id],`${breakthrough.p.name} knackar på dörren`,`${breakthrough.d.plan.name}: ${breakthrough.d.changes} registrerade attributsteg sedan planen startade. Staben vill diskutera nästa seniorroll.`))return true;

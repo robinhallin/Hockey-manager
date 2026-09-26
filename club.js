@@ -28,6 +28,28 @@ Object.assign(CLUB_PRIORITIES,{
  international:{name:'Internationell scouting',cost:1800000,text:'Två extra scoutuppdrag samtidigt och 30 % lägre uppdragsavgift.',missions:2,scoutFee:.7}
 });
 
+const CLUB_PROJECT_MILESTONES={
+ youth:[{id:'coaches',name:'Utvecklingstränare',text:'Prioritera individuell juniorutveckling.',effect:{junior:.03}},{id:'pathway',name:'Tydligare väg till A-laget',text:'Prioritera övergången mellan junior- och seniorhockey.',effect:{junior:.015,training:.015}}],
+ academy:[{id:'regional',name:'Regional akademi',text:'Bredda talangbasen och juniorutvecklingen.',effect:{junior:.04}},{id:'integration',name:'A-lagsintegration',text:'Knyt akademin närmare seniorträningen.',effect:{training:.025,junior:.02}}],
+ scouting:[{id:'depth',name:'Djupare rapporter',text:'Prioritera kvalitet i observationerna.',effect:{scoutQuality:.06}},{id:'capacity',name:'Större nätverk',text:'Prioritera fler samtidiga uppdrag.',effect:{missions:1}}],
+ international:[{id:'regions',name:'Nya marknader',text:'Öka områdeskännedomen utanför Sverige.',effect:{coverage:10}},{id:'specialists',name:'Specialiserade scouter',text:'Öka kvaliteten i fördjupade uppdrag.',effect:{scoutQuality:.08}}],
+ first:[{id:'skills',name:'Individuell spets',text:'Prioritera teknisk utveckling i A-laget.',effect:{training:.025}},{id:'cohesion',name:'Kontinuitet',text:'Prioritera gemensam träning och samspel.',effect:{chemistry:.08}}],
+ development:[{id:'individual',name:'Individuella planer',text:'Förstärk rollbaserad individuell utveckling.',effect:{training:.035}},{id:'staff',name:'Specialiststöd',text:'Ge tränarstaben mer utvecklingskapacitet.',effect:{training:.02}}],
+ recovery:[{id:'rehab',name:'Rehabcenter',text:'Prioritera rehabilitering efter skada.',effect:{recovery:.04}},{id:'prevention',name:'Belastningskontroll',text:'Prioritera skadeförebyggande arbete.',effect:{medicalRisk:-.08}}],
+ goalies:[{id:'technique',name:'Teknikprogram',text:'Prioritera målvaktsträningen.',effect:{goalieTraining:.04}},{id:'pathway',name:'Målvaktsväg',text:'Knyt junior- och seniorutveckling närmare.',effect:{goalieTraining:.025,junior:.01}}],
+ chemistry:[{id:'continuity',name:'Kontinuitetsprogram',text:'Prioritera stabila formationer.',effect:{chemistry:.1}},{id:'leadership',name:'Ledarskapsgrupp',text:'Prioritera gruppens stabilitet.',effect:{chemistry:.05}}],
+ discipline:[{id:'details',name:'Detaljprogram',text:'Prioritera disciplin och beslutsfattande.',effect:{discipline:1}}],
+ local:[{id:'community',name:'Lokalt engagemang',text:'Stärk relationen till publiken.',effect:{attendance:.025}}],
+ commercial:[{id:'partners',name:'Partnerprogram',text:'Bygg långsiktigare sponsorintäkter.',effect:{sponsor:.02}}],
+ efficiency:[{id:'operations',name:'Effektivare drift',text:'Sänk klubbens löpande kostnader.',effect:{operations:-.02}}]
+};
+function clubProjectMilestones(id=state.clubOffice?.priority){return CLUB_PROJECT_MILESTONES[id]||[];}
+function clubProjectChoice(id=state.clubOffice?.priority){const p=state.clubOffice?.projects?.[id];return p?.milestone&&clubProjectMilestones(id).find(m=>m.id===p.milestone)||null;}
+function clubProjectChoose(id,choice){
+ ensureClub();const p=state.clubOffice.projects?.[id],m=clubProjectMilestones(id).find(x=>x.id===choice);if(!p||!m||p.milestone||p.maturity<50)return false;
+ p.milestone=m.id;p.milestoneYear=clubYear();careerHistoryEvent('club-project',{club:managerClub(),title:`${CLUB_PRIORITIES[id].name}: ${m.name}`,detail:m.text});save();render();return true;
+}
+function clubProjectEffect(key,fallback=0){const m=clubProjectChoice();return Number(m?.effect?.[key]??fallback);}
 function clubProjectState(){
  ensureClub();const o=state.clubOffice;o.projects??={};
  const id=o.priority,p=CLUB_PRIORITIES[id],row=o.projects[id]??={id,started:o.year,seasons:0,maturity:0};
@@ -36,9 +58,9 @@ function clubProjectState(){
 }
 function clubProjectFactor(key,fallback=1){
  const base=clubPriorityValue(key,fallback),project=state.clubOffice?.projects?.[state.clubOffice.priority];
- if(base===fallback||!project)return base;
- const maturity=.7+.3*Math.min(1,(project.maturity||25)/100);
- return fallback+(base-fallback)*maturity;
+ if(base===fallback&&!clubProjectEffect(key,0)||!project)return base;
+ const maturity=.7+.3*Math.min(1,(project.maturity||25)/100),core=fallback+(base-fallback)*maturity,extra=clubProjectEffect(key,0);
+ return key==='operations'?Math.max(.75,core+extra):core+extra;
 }
 function clubYear(){return state.season?.year||2026;}
 function ensureClub(){
@@ -71,14 +93,14 @@ function clubPost(category,amount,label){
  o.ledger.unshift({year:clubYear(),round:state.round,category,label,amount,balance:state.money});o.ledger=o.ledger.slice(0,240);
 }
 function clubStaffCost(){return (state.staff||[]).reduce((n,s)=>n+(s.salary||0),0);}
-function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0));}
+function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0))+clubProjectEffect('missions',0);}
 function clubMissionFee(){return Math.round(25000*(state.clubOffice?.priority==='scouting'?.8:clubPriorityValue('scoutFee')));}
-function clubTrainingFactor(){if(state.clubOffice?.priority==='first'){const project=state.clubOffice?.projects?.first,maturity=.7+.3*Math.min(1,(project?.maturity||25)/100);return 1+.1*maturity;}return clubProjectFactor('training');}
+function clubTrainingFactor(){if(state.clubOffice?.priority==='first'){const project=state.clubOffice?.projects?.first,maturity=.7+.3*Math.min(1,(project?.maturity||25)/100);return 1+.1*maturity+clubProjectEffect('training',0);}return clubProjectFactor('training');}
 function clubJuniorFactor(){return clubProjectFactor('junior',state.clubOffice?.priority==='youth'?1.15:1);}
 function clubGate(playoff=false,ticket=state.clubOffice.ticket){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
  const demand=.9+(8-rank)*.012+(playoff?.12:0)-(ticket-220)/700;
- const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubPriorityValue('attendance')*Math.max(.45,Math.min(1.2,demand))));
+ const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubProjectFactor('attendance')*Math.max(.45,Math.min(1.2,demand))));
  return {attendance,revenue:attendance*ticket};
 }
 function clubSettleMatch(){
@@ -89,11 +111,11 @@ function clubSettleMatch(){
  if(home)clubPost('tickets',gate.revenue,`${gate.attendance.toLocaleString('sv-SE')} åskådare × ${o.ticket} kr · ${g.away}`);
  clubPost('matchday',home?-150000:-90000,home?'Arena & matcharrangemang':'Bortaresa & logi');
  if(!g.seriesId){
-  clubPost('sponsor',o.sponsor*clubPriorityValue('sponsor')/52,'Sponsor & centrala avtal · 1/52');
+  clubPost('sponsor',o.sponsor*clubProjectFactor('sponsor')/52,'Sponsor & centrala avtal · 1/52');
   clubPost('players',-annualWageCost()/52,'Spelarlöner · 1/52 av nuvarande årslön');
   clubPost('staff',-clubStaffCost()/52,'Personallöner · 1/52');
   if(managerSalary())clubPost('manager',-managerSalary()/52,'Huvudtränarens lön · 1/52');
-  clubPost('operations',-o.operations*clubPriorityValue('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
+  clubPost('operations',-o.operations*clubProjectFactor('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
   const p=CLUB_PRIORITIES[o.priority];if(p.cost)clubPost('priority',-p.cost/52,p.name+' · 1/52');
  }
  managerMessage(`finance:${key}`,'Ekonomirapport efter matchen',`${home?`Publikintäkt ${money(gate.revenue)}.`:'Bortamatch: ingen biljettintäkt.'} Kassa: ${money(state.money)}. ${state.money<0?'Kassan är negativ. Försäljningar och lägre kostnader behövs.':'Se återstående säsongsprognos och kostnader under Ekonomi.'}`,'Klubbekonomi',{link:'finance'});
@@ -102,8 +124,8 @@ function clubForecast(){
  const o=state.clubOffice,remaining=state.schedule.filter(g=>!g.played&&!g.seriesId&&(g.home===managerClub()||g.away===managerClub())),home=remaining.filter(g=>g.home===managerClub()).length;
  // During preseason the old schedule remains; project the next 52-fixture season.
  const preseason=state.season.phase==='preseason',games=preseason?52:remaining.length,homes=preseason?26:home;
- const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations*clubPriorityValue('operations')+CLUB_PRIORITIES[o.priority].cost;
- const income=homes*clubGate().revenue+games*o.sponsor*clubPriorityValue('sponsor')/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
+ const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations*clubProjectFactor('operations')+CLUB_PRIORITIES[o.priority].cost;
+ const income=homes*clubGate().revenue+games*o.sponsor*clubProjectFactor('sponsor')/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
  const reserved=(state.recruitment?.deals||[]).filter(d=>d.status==='pending').reduce((n,d)=>n+d.fee,0);
  return {games,homes,income,cost,reserved,cash:Math.round(state.money+income-cost-reserved)};
 }

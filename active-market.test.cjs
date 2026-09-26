@@ -139,6 +139,7 @@ for(const loan of [false,true]){
  r('state.calendar.date="2027-02-15"');assert.ok(r('loanRegistrationTerms(p,owner,buyer,28).reason'));
 }
 // Real scouting interest can become visible before an offer and multi-club interest creates a transfer race.
+const {run}=setup();
 run("globalThis.storyPlayer=managerRoster().find(p=>p.pos!=='MV');globalThis.need={role:'forward',reason:'Testbehov'};globalThis.storyClub=Object.keys(state.clubAI.clubs).find(c=>c!==managerClub());marketInterest(storyClub,storyPlayer,need,'transfer');clubAIState(storyClub).scouting[storyPlayer.id]={visits:2,date:state.calendar.date,snapshot:{...storyPlayer.attributes}};marketInterest(storyClub,storyPlayer,need,'transfer');globalThis.secondClub=Object.keys(state.clubAI.clubs).find(c=>c!==managerClub()&&c!==storyClub);marketInterest(secondClub,storyPlayer,need,'transfer');marketCompetitionSignals()");
 assert.ok(run('clubAIState(storyClub).interests[String(storyPlayer.id)].noticeStage'));assert.ok(run('storyPlayer.marketCompetition.clubs.length')>=2);
 console.log('PASS: shared needs, complete AI search, unsolicited loan/purchase, counters, player refusal, finances, competing offers, academy player, saved cases, loan performance/return, scouting briefs and registration boundary.');
