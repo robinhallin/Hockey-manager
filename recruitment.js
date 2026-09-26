@@ -270,6 +270,9 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role,incomingId=n
  delete p.aiListed;delete p.aiRoleReview;aiMarkMarketPlayer(p.id,buyer);
  if(buyer===managerClub())rolePromiseAssign(p,role);else delete p.recruitmentPromise;
  r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
+ careerHistoryEvent('transfer',{player:p,club:buyer,title:`Klar för ${buyer}`,detail:`${seller} → ${buyer} · ${careerMoney(fee)}.`,value:fee});
+ rivalryTransfer(p,seller,buyer);
+ careerRecord('largest-transfer','Största övergång',fee,p.name,{playerId:p.id,from:seller,to:buyer});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();repairMedicalLines();ensureSpecialTeams();depthSelection();}
  feedbackArrival(p,feedbackPlan,'transfer');
  feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',playerHeadline(p,' klar för '+buyer),seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
