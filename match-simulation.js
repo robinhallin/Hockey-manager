@@ -14,6 +14,11 @@ const StudioHockey = (() => {
   // Shared penalty model. No career, presentation, storage or random access.
   const penaltyCount=rows=>Math.min(2,(rows||[]).filter(p=>p?.affectsStrength!==false).length);
   const activePenalties=(rows,side)=>rows.filter(p=>p.side===side&&p.affectsStrength!==false).slice(0,2);
+  const strengthState=(rows,threeOnThree=false)=>{
+    const counts=[0,1].map(side=>penaltyCount((rows||[]).filter(p=>p.side===side))),base=threeOnThree?3:5;
+    if(threeOnThree){const diff=counts[1]-counts[0];return diff>0?[Math.min(5,base+diff),base]:diff<0?[base,Math.min(5,base-diff)]:[base,base];}
+    return [Math.max(3,base-counts[0]),Math.max(3,base-counts[1])];
+  };
   function penaltyOffender(match,side,reference){
     if(![0,1].includes(side)||match.finished)return null;
     const rows=match.skaters(side),id=reference&&typeof reference==='object'?reference.playerId:reference;
@@ -817,6 +822,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance,penaltyCount,activePenalties,penaltyOffender,penaltyRecord,penaltyDetails};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance,penaltyCount,activePenalties,strengthState,penaltyOffender,penaltyRecord,penaltyDetails};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;
