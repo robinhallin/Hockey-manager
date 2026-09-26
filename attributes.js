@@ -116,7 +116,7 @@ function assessmentPanel(p){
   <p>${!r.known?'Ingen spelarspecifik bedömning finns ännu. Nedan visas enbart en generell positionsprofil. ':''}${r.staff.name} ser främst en <b>${r.roles[0].name.toLowerCase()}</b>. Styrkor: ${fields[ordered[0]].toLowerCase()} och ${fields[ordered[1]].toLowerCase()}. Svagare sida: ${fields[ordered.at(-1)].toLowerCase()}.</p>
   <p class="muted">Guld visar förmåga, blått visar potential. Fyllda stjärnor är den säkrare delen av bedömningen; ljusa stjärnor visar möjlig nivå. Båda jämförs med din trupp. Attribut visas på skalan 1–20.</p>
   <div class="attribute-grid">${Object.keys(fields).map(key=>`<div class="attribute-item"><span>${fields[key]}</span><strong>${attributeInterval(p,key,r)}</strong><div class="attribute-track"><i style="width:${r.estimated[key]*5}%"></i></div></div>`).join('')}</div>
-  ${scoutFreshnessView(p)}${haResearchPanel(p)}
+  ${scoutFreshnessView(p)}${state.scoutReports[String(p.id)]?.latestShift?`<div class="scout-shift"><strong>Ändrad uppfattning</strong><p>${trainingSafe(state.scoutReports[String(p.id)].latestShift.text)}</p></div>`:''}${haResearchPanel(p)}
   <div class="role-reports">${r.roles.map(role=>`<span><b>${role.name}</b> · ${role.value>=14?'Tydliga styrkor':role.value>=11?'Användbar profil':'Behöver utvecklas'}</span>`).join('')}</div>
   ${!r.own?`<div class="player-actions"><button class="btn" onclick="requestScoutReport('${p.id}')" ${pending||!scoutNeedsObservation(p)?'disabled':''}>${pending?`Nästa rapport ${calText(pending)}`:!scoutNeedsObservation(p)?'Aktuell rapport':`Scouta · ${money(Math.round(clubMissionFee()/3))}`}</button><span>${r.visits} av 3 observationer · rapport efter sju dagar</span></div>`:'<p class="muted">Daglig träning ger exakta attribut. Stjärnorna är fortfarande bedömarens värdering relativt truppen; potentialen är osäker.</p>'}</section>`;
 }
@@ -133,16 +133,23 @@ function requestScoutReport(id,stay=false){
  clubPost('scouting',-fee,'Observation · '+p.name);r.dueDate=calAdd(state.calendar.date,7);r.started=state.calendar.date;delete r.dueRound;
  if(!stay)state.page='scouting';save();render();
 }
+function scoutAssessmentShift(p,previous){
+ if(!previous?.estimated)return null;const now=playerAssessment(p),keys=p.pos==='MV'?Object.keys(GOALIE_ATTRIBUTES):Object.keys(SKATER_ATTRIBUTES),deltas=keys.map(k=>({key:k,delta:(now.estimated[k]||0)-(previous.estimated[k]||0)})).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)),top=deltas[0],oldRole=previous.role,newRole=now.roles?.[0]?.name,roleChanged=oldRole&&newRole&&oldRole!==newRole;
+ if(!roleChanged&&(!top||Math.abs(top.delta)<1.5)&&Math.abs((previous.uncertainty||0)-now.uncertainty)<.8)return null;
+ const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES,parts=[];if(roleChanged)parts.push(`rollbedömningen har ändrats från ${oldRole} till ${newRole}`);if(top&&Math.abs(top.delta)>=1.5)parts.push(`${fields[top.key]} bedöms nu ${top.delta>0?'högre':'lägre'} än tidigare`);if((previous.uncertainty||0)>now.uncertainty+.5)parts.push('osäkerheten i attributbedömningen har minskat');
+ return {roleChanged,top,oldRole,newRole,text:parts.join('. ')+'.'};
+}
 function scoutObserve(id,date,options={}){
  const p=findPlayerAnywhere(id),r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
  if(!p||isOwnPlayer(p)||(!options.force&&!scoutNeedsObservation(p,date))||r.lastObserved&&calGap(r.lastObserved,date)<7)return false;
  const refresh=r.visits>=3;
- if(r.snapshot)(r.history??=[]).unshift({date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1});
+ const previous=r.snapshot?{date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1,role:playerAssessment(p).roles?.[0]?.name}:null;
+ if(previous)(r.history??=[]).unshift(previous);
  if(r.history)r.history=r.history.slice(0,6);
  if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
  r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.potentialSnapshot=scoutPotentialSnapshot(p);r.origin='observation';delete r.dueRound;
- const profile=options.job?scoutingOffice()?.jobs.find(j=>j.id===options.job)?.profile:'ALL';
- managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,scoutingObservationText(p,profile||'ALL')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
+ const profile=options.job?scoutingOffice()?.jobs.find(j=>j.id===options.job)?.profile:'ALL',shift=previous?scoutAssessmentShift(p,previous):null;r.latestShift=shift?{date,...shift}:null;
+ managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,scoutingObservationText(p,profile||'ALL')+(shift?' Scouten har ändrat uppfattning: '+shift.text:'')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
 }
 function scoutDay(){
  if(!state.calendar||!state.recruitment)return;scoutingDay();const date=state.calendar.date;
