@@ -18,3 +18,12 @@
  body .game-shell .md-workspace.md-rink-focus .broadcast-view{grid-template-rows:30px 35px minmax(0,1fr) 40px}
 }
 @media(max-width:1050px){.match-3d-controls .match-3d-expand{display:none}}
+
+.match-3d-controls{gap:10px}
+.match-3d-controls button{min-height:25px;padding:2px 7px;background:#192f46;color:#dbe9f2;border:1px solid #45627b;border-radius:3px;font-size:10px;cursor:pointer}
+.match-3d-zoom{display:flex;align-items:center;gap:2px}
+.match-3d-zoom #match-3d-zoom{min-width:43px;color:#c2d2dd}
+.match-3d-controls #match-3d-puck-toggle[aria-pressed=true]{border-color:#a59460;color:#eddb9d}
+#match-3d-puck{position:absolute;transform:translate(-50%,-50%);width:14px;height:14px;border:1px solid #e2b640;border-radius:50%;box-shadow:0 0 0 1px #17202fb3;pointer-events:none}
+#match-3d-puck[hidden]{display:none}
+@media(max-width:700px){.match-3d-controls{flex-wrap:wrap;gap:6px}.match-3d-controls label{gap:4px}}

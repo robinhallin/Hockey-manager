@@ -86,3 +86,30 @@ test('large-rink mode keeps match state untouched and is limited to active 3D pr
  assert.equal(app.run('JSON.stringify(state.live)'),stateBefore);
  app.run("studioSetVisual('2d');");assert.equal(app.run("matchDeskView().includes('md-rink-focus')"),false);
 });
+test('tracking eases in simulation time, freezes at pause and resets at discontinuities',()=>{
+ const first={time:10,phase:'attack',puck:{x:30,y:15}},prior=renderer.trackPuck(first,null);
+ const next={time:10.1,phase:'attack',puck:{x:34,y:16}},snapshot=JSON.stringify([next,prior]),tracked=renderer.trackPuck(next,prior);
+ assert.ok(tracked.x>30&&tracked.x<34);assert.equal(JSON.stringify([next,prior]),snapshot);
+ assert.equal(renderer.trackPuck(next,tracked).x,tracked.x,'paused focus does not drift');
+ assert.equal(renderer.trackPuck({...next,time:20},tracked).x,34,'skip resets camera');
+ assert.equal(renderer.trackPuck({...next,time:9},tracked).x,34,'replay rewind resets camera');
+ assert.equal(renderer.trackPuck({...next,phase:'faceoff'},tracked).x,34,'faceoff resets camera');
+});
+test('zoom and tracking keep the actual puck visible through fast changes and at every board',()=>{
+ for(const mode of ['tv','overhead','follow'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
+  let prior=null,time=0;
+  for(const x of [0,15,60,45,30,3.5,56.5])for(const y of [0,15,30,7,23]){
+   const frame={time:time+=.1,phase:'attack',puck:{x,y}},view=renderer.cameraFrame(ratio,mode,frame,prior,zoom);prior=view.tracked;
+   const p=renderer.project([x,.1,y],view.matrix);assert.ok(p.x>0&&p.x<1&&p.y>0&&p.y<1,JSON.stringify({mode,zoom,ratio,x,y,p}));
+  }
+ }
+});
+test('zoom and puck visibility controls preserve live and replay state',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
+ app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();studioSetVisual('3d');studioReplayState={frames:[studioFrame(studioEngine())],elapsed:0,lastNow:null};");
+ const before=app.run('JSON.stringify([state.live,studioReplayState])');
+ app.run('studioSetZoom(9);studioTogglePuck();');assert.equal(app.run('studioZoom3D'),1.5);assert.equal(app.run('studioPuckMarker3D'),false);
+ app.run('studioSetZoom(NaN);');assert.equal(app.run('studioZoom3D'),1.5);
+ app.run('studioSetZoom(-5);');assert.equal(app.run('studioZoom3D'),.8);
+ app.run('studioSetZoom(1);studioTogglePuck();');assert.equal(app.run('JSON.stringify([state.live,studioReplayState])'),before);
+});

@@ -176,7 +176,7 @@ function matchCentreView(){
 function matchPreferences(){return state.matchPreferences??={stats:false,goal:false,penalty:false,period:true};}
 function setMatchPreference(key,value){if(!['stats','goal','penalty','period'].includes(key))return;matchPreferences()[key]=Boolean(value);save();render();}
 function matchPreferencesView(){
- const p=matchPreferences();return `<section class="mc-pause-settings"><h3>Automatiska pauser</h3><div>${[['stats','När jag öppnar statistik, istid, händelser eller avslut'],['goal','Efter mål'],['penalty','Vid utvisning'],['period','Mellan perioder']].map(([key,label])=>`<label><input type="checkbox" ${p[key]?'checked':''} onchange="setMatchPreference('${key}',this.checked)"> ${label}</label>`).join('')}</div><p>Skador som kräver ett beslut, tränarändringar och att lämna matchvyn pausar alltid.</p></section>`;
+ const p=matchPreferences();return `${matchPlaybackSettings()}<section class="mc-pause-settings"><h3>Automatiska pauser</h3><div>${[['stats','När jag öppnar statistik, istid, händelser eller avslut'],['goal','Efter mål'],['penalty','Vid utvisning'],['period','Mellan perioder']].map(([key,label])=>`<label><input type="checkbox" ${p[key]?'checked':''} onchange="setMatchPreference('${key}',this.checked)"> ${label}</label>`).join('')}</div><p>Skador som kräver ett beslut, tränarändringar och att lämna matchvyn pausar alltid.</p></section>`;
 }
 function matchReadOnlyTab(){return ['stats','players','events','analysis'].includes(matchDesk.tab)||(matchDesk.tab==='changes'&&matchDesk.changesMode==='matchup');}
 function matchLivePanel(){return matchDeskContent();}

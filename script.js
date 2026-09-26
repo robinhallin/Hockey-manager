@@ -1507,7 +1507,7 @@ function scheduleTick(){
 
 function setSpeed(value){
  if(!state.live||![1,2,3,4].includes(Number(value)))return;
- state.live.speed=Number(value);if(studioActive())studioRestartClock();clearTimeout(matchTimer);save();render();scheduleTick();
+ state.live.speed=Number(value);if(studioActive()){(state.matchPlayback??={}).fastSpeed=state.live.speed;studioRestartClock(true);}clearTimeout(matchTimer);save();render();scheduleTick();
 }
 
 
