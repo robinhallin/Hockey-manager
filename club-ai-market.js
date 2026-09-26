@@ -180,8 +180,9 @@ function aiScoutClub(club,candidates=null){
   if(observed&&estimate<need.minimumAbility)continue;
   const current=own.reduce((n,q)=>n+aiRoleValue(q,need.role),0)/Math.max(1,own.length);
   if(observed&&!emergency&&estimate<Math.max(leagueOf(club)==='HA'?8:9,current-(need.missing?2:0)))continue;
-  const ageFit=(c.project==='develop'||c.project==='rebuild')?(24-p.age)*.1:c.project==='title'&&p.age>=23&&p.age<=31?.5:0;
-  const score=estimate+ageFit-terms.fee/4000000-terms.salary/12000000+(kind==='loan'&&need.temporary?1:0)+(marketAvailability(p)==='keep'?-2:marketAvailability(p)==='open'?0:.6);
+  const strategy=aiStrategyFor(club),strategyDef=AI_STRATEGIES[strategy?.type]||AI_STRATEGIES.identity,coach=rivalsClubState(club)?.coach;
+  const ageFit=(c.project==='develop'||c.project==='rebuild')?(24-p.age)*.1:c.project==='title'&&p.age>=23&&p.age<=31?.5:0,strategyAge=(27-p.age)*strategyDef.ageBias,roleFit=strategyDef.roles.includes(need.role)?.45:0,coachFit=coach?.style==='pressure'?(ensurePlayerAttributes(p).skating||10)/40:coach?.style==='control'?(ensurePlayerAttributes(p).passing||10)/40:0;
+  const score=estimate+ageFit+strategyAge+roleFit+coachFit-terms.fee/4000000-terms.salary/12000000+(kind==='loan'&&need.temporary?1:0)+(marketAvailability(p)==='keep'?-2:marketAvailability(p)==='open'?0:.6);
   shortlist.push({p,kind,terms,score});
  }
  shortlist.sort((a,b)=>b.score-a.score||String(a.p.id).localeCompare(String(b.p.id)));
