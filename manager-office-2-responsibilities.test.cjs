@@ -31,4 +31,7 @@ assert.equal(r("managerRoster()[2].health.clearance"),'full');
 const summary=r("managerOffice2ResponsibilitySummary()");
 assert.match(summary.training,/Du styr individuell återhämtning|Tränarstaben/);
 assert.match(summary.medical,/begränsad comeback/);
+r("managerOffice2Ensure();state.office2.delegation.juniors=true;state.office2.delegation.lineup=true;globalThis.lineupBefore=JSON.stringify(state.lines);globalThis.lineupSuggestion=managerOffice2LineupSuggestion()");
+assert.ok(r('lineupSuggestion&&lineupSuggestion.forwards.length<=12'));assert.equal(r('JSON.stringify(state.lines)'),r('lineupBefore'),'lineup delegation only suggests and never mutates');
+assert.match(r('managerOffice2ResponsibilitySummary().juniors'),/Junioransvarig/);
 console.log('PASS: Office 2 delegation drives real training recovery and conservative medical staff routines without auto full comeback.');

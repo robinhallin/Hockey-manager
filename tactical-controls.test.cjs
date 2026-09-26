@@ -36,6 +36,7 @@ const integration=fs.readFileSync('match-control-integration.js','utf8'),css=fs.
 assert.match(integration,/officeOpenDay/);assert.match(integration,/Öppna dagens pass/);
 assert.match(css,/mc-live \.mc-messages>\.mc-choice small\{display:none\}/);
 assert.ok(html.indexOf('match-control-integration.js')>html.indexOf('match-engine-3.js'));
-run("state.tacticalPlan.goalieInstruction='challenge';globalThis.gi=goalieInstruction();state.tacticalPlan.defensiveFaceoffLine='2';state.tacticalPlan.offensiveFaceoffLine='0';state.tacticalPlan.tiredOpponentLine='1'");
+const {run}=require('./scripts/career-test-fixture.cjs').boot();
+run("startCareerWithClub('HV71');state.tacticalPlan.goalieInstruction='challenge';globalThis.gi=goalieInstruction();state.tacticalPlan.defensiveFaceoffLine='2';state.tacticalPlan.offensiveFaceoffLine='0';state.tacticalPlan.tiredOpponentLine='1'");
 assert.equal(run('gi'),'challenge');assert.equal(run('state.tacticalPlan.defensiveFaceoffLine'),'2');assert.ok(run("GOALIE_INSTRUCTIONS[gi].depth")>0);
 console.log('PASS: scan findings are wired into the current match engine and desktop UI');

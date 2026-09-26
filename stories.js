@@ -54,6 +54,25 @@ function storiesCreate(type,ids,title,text,extra={}){
 }
 function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>['forward','pp'].includes(u.kind)).map(u=>({kind:u.kind,ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
 function storiesNextRival(opponentName){return state.schedule.filter(g=>!g.played&&((g.home===managerClub()&&g.away===opponentName)||(g.away===managerClub()&&g.home===opponentName))).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.round-b.round)[0];}
+function mediaSituation(){
+ const recent=(state.rivals?.duels?.[managerClub()+'|'+opponent()]||[]).slice(-3),losses=recent.filter(g=>g.gf<g.ga).length,market=managerRoster().find(p=>(p.marketCompetition?.clubs||[]).length>=2);
+ if(losses>=3)return {key:`form:${state.round}`,title:'Tre raka förluster – vad säger du utåt?',body:'Media frågar om laget behöver förändras efter resultatraden.',choices:[['protect','Försvara laget'],['demand','Kräv mer'],['responsibility','Ta ansvar själv']]};
+ if(market)return {key:`market:${market.id}:${state.round}`,player:market,title:`Rykten kring ${market.name}`,body:`${market.marketCompetition.clubs.join(', ')} följer spelaren. Media vill veta klubbens hållning.`,choices:[['notForSale','Han är inte till salu'],['open','Vi lyssnar på seriösa bud'],['private','Vi kommenterar inte förhandlingar']]};
+ return null;
+}
+function mediaAnswer(key,choice){
+ state.media??={answered:[]};if(state.media.answered.includes(key))return;const situation=mediaSituation();if(!situation||situation.key!==key)return;
+ state.media.answered.push(key);const p=situation.player;
+ if(choice==='protect'){for(const q of managerRoster())q.social.trust=trainingClamp(q.social.trust+1);captainInfluence('media',{delta:1});}
+ else if(choice==='demand'){for(const q of managerRoster())q.morale=trainingClamp((q.morale||65)+(q.social.ambition>=14?1:-1));}
+ else if(choice==='responsibility'){for(const q of managerRoster())q.social.trust=trainingClamp(q.social.trust+1);}
+ else if(p&&choice==='notForSale'){setMarketAvailability(p.id,'keep');socialTrust(p,1,'Klubben försvarade spelarens plats offentligt.');}
+ else if(p&&choice==='open')setMarketAvailability(p.id,'open');
+ managerMessage(`media-answer:${key}`,'Ditt besked till media',situation.choices.find(x=>x[0]===choice)?.[1]||'Besked lämnat','Media',{playerId:p?.id,link:p?'transfers':'locker'});save();render();
+}
+function mediaPromptView(){
+ const s=mediaSituation();if(!s||state.media?.answered?.includes(s.key))return '';return `<section class="manager-decision"><span class="career-eyebrow">MEDIA</span><h3>${trainingSafe(s.title)}</h3><p>${trainingSafe(s.body)}</p>${s.choices.map(([k,l])=>`<button class="btn secondary" onclick="mediaAnswer('${s.key}','${k}')">${trainingSafe(l)}</button>`).join('')}</section>`;
+}
 function storiesSystemSignal(){
  const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<3||pendingManagerDecision())return false;
  const contract=managerRoster().filter(p=>p.contractYears===1&&!p.futureContract&&p.age<=32&&playerSocialIdentity(p).ambition>=14).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];

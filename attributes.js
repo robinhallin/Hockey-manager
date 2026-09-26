@@ -233,6 +233,7 @@ function developmentBirthday(p){
   const steps=Math.min(p.attributes[key]-1,Math.floor(d.decline[key]));
   if(steps>0){p.attributes[key]-=steps;d.decline[key]-=steps;developmentRecord(p,key,-steps,'Åldrande');}
  }
+ if(typeof veteranRoleReview==='function'&&isOwnPlayer(p))veteranRoleReview(p);
 }
 function developmentPanel(p){
  const d=ensureDevelopment(p),labels=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;

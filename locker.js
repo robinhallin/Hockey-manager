@@ -100,6 +100,14 @@ function trainSocialPairs(session){
  const seen=new Set();
  for(const ids of units){const players=ids.map(playerById).filter(p=>p&&medicalCanTrain(p)&&p.trainingLoad!=='rest');socialPairs(players,(a,b)=>{const key=socialPairKey(a,b);if(seen.has(key))return;seen.add(key);const pair=socialPair(a,b,true);pair.bond=Math.min(90,pair.bond+(session.type==='tactics'?.8:.4));});}
 }
+function captainInfluence(event,{player=null,delta=0}={}){
+ ensureLocker();const captain=managerRoster().find(p=>samePlayerId(p.id,state.locker.captainId));if(!captain||captain.social.leadership<12)return 0;
+ const trust=(captain.social.trust-60)/40,bond=player&&player!==captain?(socialPair(captain.id,player.id)?.bond||0)/100:0,weight=Math.max(-1,Math.min(1,trust*.65+bond*.35));
+ const effect=Math.round(delta*weight);if(!effect)return 0;
+ for(const p of managerRoster())if(p!==captain&&(!player||p===player||socialPair(captain.id,p.id)?.bond>=35))p.social.trust=trainingClamp(p.social.trust+effect);
+ socialLog('Kaptenen påverkar gruppen',[playerMention(captain),effect>0?' hjälper gruppen att acceptera beslutet.':' delar gruppens tveksamhet och förstärker oron.']);
+ return effect;
+}
 function socialLog(title,body){const r=state.locker;r.log.unshift({turn:r.turn,year:state.season?.year||2026,title:referencePlainText(title),body:referencePlainText(body),...(Array.isArray(title)?{titleParts:title}:{}),...(Array.isArray(body)?{bodyParts:body}:{})});r.log=r.log.slice(0,60);managerMessage(`locker:${r.turn}:${r.log.length}:${JSON.stringify(title)}`,title,body,'Omklädningsrum',{link:'locker'});}
 function lockerNotice(text){state.locker.message=text;save();render();}
 function appointCaptain(id,reason='leadership'){

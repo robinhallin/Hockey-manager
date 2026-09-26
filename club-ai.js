@@ -39,6 +39,23 @@ function aiFinanceCreate(club){
  return {year:state.season.year,league:leagueOf(club),ticket,capacity,arenaVersion:1,fans,sponsor,operations,staff,academy,
   debt:0,settled:[],totals:{},ledger:[],archives:[],opening:state.recruitment.ai[club]?.cash??0};
 }
+const AI_STRATEGIES={
+ youth:{name:'Egen utveckling',years:3,ageBias:.22,academy:1.3,roles:['creator','scorer'],text:'Bygger genom akademi, unga spelare och tålamod.'},
+ contender:{name:'Vinna nu',years:2,ageBias:-.08,academy:.85,roles:['scorer','stopper','goalie'],text:'Prioriterar färdig kvalitet och kortare tidshorisont.'},
+ value:{name:'Värdebyggare',years:3,ageBias:.12,academy:1.1,roles:['creator','defense'],text:'Söker utvecklingsbara spelare med återförsäljningsvärde.'},
+ identity:{name:'Spelidé först',years:3,ageBias:.04,academy:1,roles:['creator','center','defense'],text:'Rekryterar för tränarens spelidé och rollbalans.'}
+};
+function aiStrategyFor(club){
+ const c=clubAIState(club);if(!c)return null;if(c.strategy&&AI_STRATEGIES[c.strategy.type])return c.strategy;
+ const seed=attrSeed(`${club}:strategy:${state.season.year}`),type=c.project==='develop'?'youth':c.project==='title'?'contender':seed>.66?'identity':seed>.33?'value':'youth';
+ return c.strategy={type,started:state.season.year,review:state.season.year+AI_STRATEGIES[type].years};
+}
+function aiStrategyReview(club){
+ const c=clubAIState(club),s=aiStrategyFor(club);if(!c||state.season.year<s.review)return;
+ const rank=seasonRank(club),target=c.target||8,seed=attrSeed(`${club}:strategy-review:${state.season.year}`);
+ let type=s.type;if(rank&&rank>target+3)type=seed>.5?'youth':'value';else if(rank&&rank<=Math.max(4,target-2))type='contender';else if(seed>.72)type='identity';
+ c.strategy={type,started:state.season.year,review:state.season.year+AI_STRATEGIES[type].years};aiDecision(club,'strategy',`Ny flerårsplan: ${AI_STRATEGIES[type].name}. ${AI_STRATEGIES[type].text}`,`strategy:${state.season.year}`);
+}
 function ensureClubAI(){
  if(!state.rivals||!state.recruitment||!state.calendar)return;
  state.clubAI??={version:1,year:state.season.year,nextOffer:1,offers:[],clubs:{}};
@@ -51,6 +68,7 @@ function ensureClubAI(){
     risk:6+Math.floor(seed('risk')*13),network:['SWE','FIN','SUI','GER'][Math.floor(seed('network')*4)]},
    finance:aiFinanceCreate(club),academy:{year:state.season.year,roster:[],lastDay:state.calendar.date,lastMatch:state.calendar.date,intakes:[]},
    memory:{},decisions:[],scouting:{},lastReview:null,lastMarket:null,contractDecisions:{},roleStandards:{}};
+  aiStrategyFor(club);
   for(const role of ['scorer','creator','stopper']){
    const ps=state.clubRosters[club].filter(p=>aiRoleFits(p,role));
    c.roleStandards[role]=attrClamp(ps.reduce((n,p)=>n+aiRoleValue(p,role),0)/Math.max(1,ps.length)+.65,leagueOf(club)==='HA'?10.5:11.5,17);
@@ -298,7 +316,7 @@ function aiWorldNewYear(){
  state.clubAI.year=state.season.year;
  for(const o of state.clubAI.offers)if(o.status==='pending'){o.status='expired';o.reason='Säsongen är avslutad.';}
  for(const club of Object.keys(state.clubAI.clubs))if(club!==managerClub())aiNewFinancialYear(club);
- for(const club of Object.keys(state.clubAI.clubs))if(club!==managerClub())aiAcademyNewYear(club);
+ for(const club of Object.keys(state.clubAI.clubs))if(club!==managerClub()){aiAcademyNewYear(club);aiStrategyReview(club);}
 }
 function aiStoreManagedAcademy(club){
  const c=clubAIState(club);if(!c||!state.juniors)return;

@@ -1,8 +1,9 @@
 "use strict";
 
 function managerOffice2Ensure(){
-  state.office2??={delegation:{training:false,medical:false,scouting:false,contracts:false},lastSeen:{}};
-  state.office2.delegation??={training:false,medical:false,scouting:false,contracts:false};
+  state.office2??={delegation:{training:false,medical:false,scouting:false,contracts:false,juniors:false,lineup:false},lastSeen:{}};
+  state.office2.delegation??={training:false,medical:false,scouting:false,contracts:false,juniors:false,lineup:false};
+  for(const k of ['training','medical','scouting','contracts','juniors','lineup'])if(state.office2.delegation[k]===undefined)state.office2.delegation[k]=false;
   state.office2.lastSeen??={};
   return state.office2;
 }
@@ -75,8 +76,8 @@ function managerOffice2Row(item,index){
   return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p>${guidance?`<p><strong>Val & avvägning:</strong> ${trainingSafe(guidance)}</p>`:''}</div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben hanterar rutinen</small>':''}</div></article>`;
 }
 function managerOffice2DelegationView(){
-  const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt'};
-  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning och medicinskt kan utföra försiktiga rutinåtgärder. Scouting och kontrakt bevakas av staben. Beslut som kräver ditt svar och högprioriterade avvikelser visas alltid.</small></div>`;
+  const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt',juniors:'Juniorer',lineup:'Laguttagning'};
+  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning, medicinskt och juniorer kan utföra försiktiga rutinåtgärder. Scouting, kontrakt och laguttagning kan bevakas eller ge förslag. Beslut som kräver ditt svar och högprioriterade avvikelser visas alltid.</small></div>`;
 }
 function managerOffice2View(){
   const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length,primary=items.slice(0,Math.max(5,items.filter(i=>i.requiresDecision).length)),remaining=items.slice(primary.length);
@@ -86,7 +87,7 @@ function managerOffice2View(){
 function officePanelTab(panel){if(!['today','followup','club'].includes(panel))return;officeUI.panel=panel;render();queueInterfaceSave();}
 function officeTodayView(){
   const waiting=officeWaiting();
-  return `<div class="office-today">${daySummaryView()}${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
+  return `<div class="office-today">${mediaPromptView()}${daySummaryView()}${managerWeekView()}${managerDayPreviewView()}<section class="office-waiting"><h3>Väntar på</h3><strong>${trainingSafe(waiting.value)}</strong><p>${trainingSafe(waiting.detail)}</p>${waiting.action?deskLink(waiting.button,waiting.action):''}</section>${managerJ20BriefView()}${managerJ20ReviewView()}</div>`;
 }
 function officeFollowupView(){
   return `${managerMatchLearningView()}${managerWeekFollowupView()}${managerWeekFocusView()}${deskLink('Stab & uppföljning',{page:'staffReview'})}`;
