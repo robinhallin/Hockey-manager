@@ -55,6 +55,8 @@ for(const club of run('Object.keys(CLUB_DATA)')){
  run('state.juniors.selected=state.juniors.roster.find(p=>p.pos==="MV").id');
  assert.ok(!/undefined|NaN/.test(run('juniorsView()')),club+' goalie');
 }
+run("globalThis.reviewCount=(state.juniors.annualReviews||[]).length;globalThis.academyReview=juniorAnnualReview(state.season.year)");
+assert.ok(run("academyReview&&Array.isArray(academyReview.breakthroughs)&&Array.isArray(academyReview.decisions)"));assert.equal(run("(state.juniors.annualReviews||[]).length"),run("reviewCount+1"));
 console.log('PASS: junior creation/persistence, plans, uncertain reports, mentors, ownership/budgets, loans, actual participation, injuries, annual intake/aging/cap and 14 club views.');
 run('startCareerWithClub("HV71");globalThis.p=state.juniors.roster.find(p=>p.pos==="C");state.boardPlan.offer.wageLimit=annualWageCost()+p.salary;juniorPromote(p.id);juniorReturn(p.id);juniorPromote(p.id)');
 assert.equal(run('isOwnPlayer(p)'),true);
