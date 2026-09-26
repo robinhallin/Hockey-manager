@@ -98,10 +98,22 @@ function trainingGrowth(p,key,points,source='Träningsarbete'){
   assistantRecordGrowth(p,key);
   return true;
 }
+function developmentMatchContext(p,seconds,{level=null,roleFit=1,environment='senior',coach=13}={}){
+ const ability=matchAttributeRating(p),target=level??(leagueOf(managerClub())==='SHL'?14:12),challenge=Math.max(.45,Math.min(1.2,1-Math.abs(ability-target)/18));
+ const meaningful=Math.max(.35,Math.min(1.25,seconds/900)),fit=Math.max(.55,Math.min(1.15,roleFit));
+ const age=p.age<=20?1.25:p.age<=23?1.12:p.age<=28?.8:.45,staff=Math.max(.75,Math.min(1.2,coach/13));
+ return {factor:challenge*meaningful*fit*age*staff,challenge,meaningful,fit,age,staff,environment};
+}
+function developmentPathRecord(p,context,seconds,source){
+ const d=ensureDevelopment(p);d.pathHistory??=[];
+ d.pathHistory.unshift({date:state.calendar?.date||null,year:state.season?.year||2026,environment:context.environment,seconds,challenge:Math.round(context.challenge*100),roleFit:Math.round(context.fit*100),factor:Math.round(context.factor*100),source});
+ d.pathHistory=d.pathHistory.slice(0,20);
+}
 function grantMatchDevelopment(p,seconds){
-  if(!state.training||seconds<300)return;
-  const key=trainingTarget(p),age=p.age<=23?1.3:p.age<=28?.8:.4;
-  trainingGrowth(p,key,2.5*age*Math.min(1.5,seconds/1200),'Matchvana (senior)');
+ if(!state.training||seconds<300)return;
+ const key=trainingTarget(p),index=p.pos==='B'?state.lines.defense.findIndex(id=>samePlayerId(id,p.id)):state.lines.forwards.findIndex(id=>samePlayerId(id,p.id)),role=p.pos==='MV'?'G':lineupRole(p.pos==='B'?'defense':'forwards',Math.max(0,index)),roleFit=positionFit(p,role);
+ const coach=state.staff.find(s=>s.id===(p.pos==='MV'?'goalie':'assistant'))?.coaching||13,context=developmentMatchContext(p,seconds,{level:leagueOf(managerClub())==='SHL'?14:12,roleFit,environment:'senior',coach});
+ trainingGrowth(p,key,3.1*context.factor,'Matchvana (senior · roll och nivå)');developmentPathRecord(p,context,seconds,'A-lagsmatch');
 }
 function setTrainingSession(index,key,value){
   ensureTrainingData();const t=state.training;

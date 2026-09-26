@@ -148,7 +148,7 @@ function juniorWorldAIReport(club,opponent,round,goals){
     a.history.unshift({year:state.season.year,round,date:state.calendar.date,opponent:opponent+' J20',path:'junior',seconds,goals:0,assists:0});a.history=a.history.slice(0,16);
     const row={id:p.id,name:p.name,seconds,goals:0,assists:0};rows.push(row);
     // Same development entry point and real exposure; no old weekly match is also awarded.
-    if(medicalCanTrain(p))developmentAdvance(p,juniorTarget(p),2*Math.min(2,seconds/900),'Matchvana (J20)');p.fatigue=trainingClamp(p.fatigue+seconds/180);
+    if(medicalCanTrain(p)){const context=developmentMatchContext(p,seconds,{level:juniorWorldStrength(opponent),roleFit:1,environment:'junior',coach:12});developmentAdvance(p,juniorTarget(p),2.8*context.factor,'Matchvana (J20 · nivå och roll)');developmentPathRecord(p,context,seconds,opponent+' J20');}p.fatigue=trainingClamp(p.fatigue+seconds/180);
   }
   juniorWorldAssignPoints(club,rows,opponent,round,goals);juniorWorldLeagueRows(club,round,opponent,rows);
 }

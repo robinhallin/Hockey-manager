@@ -13,6 +13,11 @@ r(`for(let i=0;i<20;i++){state.season.year++;developmentBirthday(v);for(const ke
 // Verify the two actual training entry points share the same cap and accumulator.
 r(`globalThis.a=make();globalThis.b=make();a.developmentModel=JSON.parse(JSON.stringify(ensureDevelopment(a)));b.developmentModel=JSON.parse(JSON.stringify(a.developmentModel));a.attributes.shooting=b.attributes.shooting=a.developmentModel.ceiling.shooting-1;b.aiTrainingKey='shooting';trainingGrowth(a,'shooting',50);rivalGrow(b,50,'Färjestad BK');`);assert.equal(r('a.trainingProgress.shooting'),r('b.trainingProgress.shooting'));
 assert.equal(r('a.attributes.shooting'),r('b.attributes.shooting'));
+// Match development now depends on environment, role fit and meaningful exposure.
+r(`globalThis.pathPlayer=make();pathPlayer.age=19;ensureDevelopment(pathPlayer);globalThis.good=developmentMatchContext(pathPlayer,1200,{level:matchAttributeRating(pathPlayer),roleFit:1,environment:'junior',coach:15});globalThis.bad=developmentMatchContext(pathPlayer,300,{level:20,roleFit:.6,environment:'senior',coach:10});developmentPathRecord(pathPlayer,good,1200,'Kontrollerad miljö')`);
+assert.ok(r('good.factor')>r('bad.factor'),'appropriate role, level and minutes should create a better development environment');
+assert.equal(r('pathPlayer.developmentModel.pathHistory[0].environment'),'junior');
+assert.equal(r('pathPlayer.developmentModel.pathHistory.length'),1);
 console.log('PASS: migration preserves attributes; immutable ceilings; plateau; save/reload; promotion; deterministic birthdays; differentiated ageing; 20-year bounds; same AI/own growth kernel.');
 const career=boot();career.run(`startCareerWithClub('HV71');globalThis.ages=Object.fromEntries([...Object.values(state.clubRosters).flat(),...state.juniors.roster,...state.playerWorld.freeAgents].map(p=>[p.id,p.age]));state.season.phase='review';state.season.boardResult=[];beginPreseason();`);
 assert.equal(career.run(`Object.values(state.clubRosters).flat().concat(state.juniors.roster,state.playerWorld.freeAgents).filter(p=>ages[p.id]!==undefined).every(p=>p.age===ages[p.id]+1)`),true);
