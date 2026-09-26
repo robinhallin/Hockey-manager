@@ -127,10 +127,20 @@ function playerRatingSummary(p){
  const rated=rows.flatMap(m=>{const r=m.ratings?.find(r=>samePlayerId(r.id,p.id));return Number.isFinite(r?.score)?[{score:r.score,date:m.date,id:m.id}]:[];});
  return {average:rated.length?rated.reduce((sum,r)=>sum+r.score,0)/rated.length:null,games:rated.length,latest:rated.at(-1)||null};
 }
+function performanceTaskRows(report){
+ const own=report?.rows?.filter(r=>r.club===report.club&&r.pos!=='MV')||[];
+ return own.map(r=>{const p=findPlayerAnywhere(r.id);if(!p)return null;let slot=-1,type='forwards';const fi=state.lines?.forwards?.findIndex(id=>samePlayerId(id,r.id))??-1,di=state.lines?.defense?.findIndex(id=>samePlayerId(id,r.id))??-1;if(di>=0){slot=di;type='defense';}else if(fi>=0)slot=fi;if(slot<0)return null;
+  const task=playerTask(type,slot),def=PLAYER_TASKS[task],fit=playerTaskFit(p,task),metrics=r.facets||{},base=performanceScore(r),score=Math.max(0,Math.min(5,2.5+(base==null?0:(base-5)*.28)+(fit-10)*.09)),stars=Math.round(score*2)/2;
+  return {id:r.id,name:r.name,task:def?.name||task,stars,fit,reason:`${def?.name||'Uppgift'} · matchbetyg ${base==null?'saknas':performanceNumber(base)} · rollpassning ${fit.toFixed(1)}/20. Uppgiftsbetyget är en sammanvägd indikator, inte ett nytt spelar-attribut.`};
+ }).filter(Boolean).sort((a,b)=>b.stars-a.stars);
+}
+function performanceTaskView(report){
+ const rows=performanceTaskRows(report);if(!rows.length)return '';return `<section class="performance-tasks"><h2>Utförande av spelaruppgifter</h2><p>Bedömer hur matchinsatsen passar den 5-mot-5-uppgift du gav spelaren. Matchbetyg och spelarens egenskaper vägs samman; uppgiften ändrar inte grundattributen.</p><div class="mc-table-scroll"><table><thead><tr><th>Spelare</th><th>Uppgift</th><th>Utförande</th><th>Underlag</th></tr></thead><tbody>${rows.map(r=>`<tr><th>${playerReference(r.id,r.name)}</th><td>${trainingSafe(r.task)}</td><td>${performanceStars(r.stars)}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
 function performanceView(report){
  if(!report)return '<p class="mc-note">Den äldre matchen saknar underlag för prestationsbetyg.</p>';
  const rows=report.rows.filter(r=>r.club===report.club).sort((a,b)=>a.club.localeCompare(b.club)||(performanceScore(b)??-1)-(performanceScore(a)??-1)||b.seconds-a.seconds);
- return `<section class="performance-report"><h2>Matchens spelarinsatser</h2><p>Betyg för just denna match, på skalan 0,0–10,0. Poäng, avslutskvalitet, passningsspel, puckdueller, blockeringar, disciplin och spel i lika styrka vägs ihop. Målvaktens räddningar bedöms även mot skottens kvalitet när sådant underlag finns. Kort istid och små målvaktsunderlag lämnas utan betyg. Förmåga och potential är separata bedömningar.</p><div class="mc-table-scroll"><table><caption>Prestationsbetyg · ${report.date?calText(report.date):'Matchrapport'}</caption><thead><tr><th>Spelare</th><th>Matchbetyg</th><th>Bakom betyget</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${playerReference(r.id,r.name)} <small>${r.pos}</small></th><td>${performanceRating(r)}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')||'<tr><td colspan="3">Ingen registrerad istid. Oanvända reserver får inga betyg.</td></tr>'}</tbody></table></div></section>`;
+ return `<section class="performance-report"><h2>Matchens spelarinsatser</h2><p>Betyg för just denna match, på skalan 0,0–10,0. Poäng, avslutskvalitet, passningsspel, puckdueller, blockeringar, disciplin och spel i lika styrka vägs ihop. Målvaktens räddningar bedöms även mot skottens kvalitet när sådant underlag finns. Kort istid och små målvaktsunderlag lämnas utan betyg. Förmåga och potential är separata bedömningar.</p><div class="mc-table-scroll"><table><caption>Prestationsbetyg · ${report.date?calText(report.date):'Matchrapport'}</caption><thead><tr><th>Spelare</th><th>Matchbetyg</th><th>Bakom betyget</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${playerReference(r.id,r.name)} <small>${r.pos}</small></th><td>${performanceRating(r)}</td><td>${trainingSafe(r.reason)}</td></tr>`).join('')||'<tr><td colspan="3">Ingen registrerad istid. Oanvända reserver får inga betyg.</td></tr>'}</tbody></table></div>${performanceTaskView(report)}</section>`;
 }
 function archiveMatchSummaries(){
  const a=state.analysis;if(!a)return;
