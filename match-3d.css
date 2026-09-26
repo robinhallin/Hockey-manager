@@ -6,3 +6,6 @@
 #match-3d-carrier{position:absolute;transform:translate(-50%,-100%);background:#081525e8;color:#fff;padding:4px 7px;border:1px solid #697f94;border-radius:4px;font-size:11px;pointer-events:none;white-space:nowrap}
 #match-3d-error{position:absolute;top:8px;left:8px;right:8px;padding:8px;background:#261d10ee;color:#ffdfa5;font-size:12px;pointer-events:none}
 #match-3d-carrier[hidden],#match-3d-error[hidden]{display:none}
+@media(min-width:1051px){
+ body .game-shell .md-workspace .broadcast-view{grid-template-rows:30px 35px minmax(0,1fr) 46px}
+}

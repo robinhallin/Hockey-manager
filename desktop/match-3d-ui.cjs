@@ -1,6 +1,8 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async function check3D(page,out){
+ const bounds=await page.locator('#career-ice').boundingBox();
+ assert.ok(bounds.height>200&&bounds.width>500,'view controls leave room for the rink');
  const before=await page.evaluate(()=>JSON.stringify(state.live));
  await page.getByLabel('Matchvy',{exact:true}).selectOption('3d');
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
