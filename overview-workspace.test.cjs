@@ -43,7 +43,7 @@ const liveBefore=q('JSON.stringify(state.live)');const html=q('overviewWorkspace
 assert.match(html,/4 – 2/);assert.match(html,/Matchen är pausad/);assert.match(html,/Till matchen/);
 assert.equal(q("overviewDecisionItems().some(i=>i.area==='match')"),false);
 assert.equal(q('JSON.stringify(state.live)'),liveBefore);
-// Senior development detail must resolve from the senior roster rather than the combined senior+junior overview.
+// Development detail must resolve the selected player from the combined overview and route academy players separately.
 r("globalThis.seniorDev=managerRoster().find(p=>p.pos!=='MV');developmentOpenPlayer(seniorDev.id,'training',true)");
 assert.equal(r('developmentUI.detail'),true);assert.equal(r('developmentUI.player'),r('seniorDev.id'));assert.match(r('developmentWorkspaceView()'),/individual-training/);
 r("developmentClosePlayer(false);deskNavigate('home')");
