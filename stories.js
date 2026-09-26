@@ -55,8 +55,8 @@ function storiesCreate(type,ids,title,text,extra={}){
 function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>['forward','pp'].includes(u.kind)).map(u=>({kind:u.kind,ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
 function storiesNextRival(opponentName){return state.schedule.filter(g=>!g.played&&((g.home===managerClub()&&g.away===opponentName)||(g.away===managerClub()&&g.home===opponentName))).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.round-b.round)[0];}
 function mediaSituation(){
- const recent=(state.rivals?.duels?.[managerClub()+'|'+opponent()]||[]).slice(-3),losses=recent.filter(g=>g.gf<g.ga).length,market=managerRoster().find(p=>(p.marketCompetition?.clubs||[]).length>=2);
- if(losses>=3)return {key:`form:${state.round}`,title:'Tre raka förluster – vad säger du utåt?',body:'Media frågar om laget behöver förändras efter resultatraden.',choices:[['protect','Försvara laget'],['demand','Kräv mer'],['responsibility','Ta ansvar själv']]};
+ const recent=(state.history||[]).filter(g=>g&&Number.isFinite(g.gf)&&Number.isFinite(g.ga)).slice(-3),losses=recent.length===3&&recent.every(g=>g.gf<g.ga),market=managerRoster().find(p=>(p.marketCompetition?.clubs||[]).length>=2);
+ if(losses)return {key:`form:${state.round}`,title:'Tre raka förluster – vad säger du utåt?',body:'Media frågar om laget behöver förändras efter resultatraden.',choices:[['protect','Försvara laget'],['demand','Kräv mer'],['responsibility','Ta ansvar själv']]};
  if(market)return {key:`market:${market.id}:${state.round}`,player:market,title:`Rykten kring ${market.name}`,body:`${market.marketCompetition.clubs.join(', ')} följer spelaren. Media vill veta klubbens hållning.`,choices:[['notForSale','Han är inte till salu'],['open','Vi lyssnar på seriösa bud'],['private','Vi kommenterar inte förhandlingar']]};
  return null;
 }
