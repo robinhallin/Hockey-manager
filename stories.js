@@ -1,6 +1,6 @@
 "use strict";
 // Small, persistent story arcs driven by actual competitive matches. No match RNG.
-const STORY_TYPES={talent:'Talangens chans',veteran:'Veteranens roll',line:'Kedjan hittar något',rival:'Revanschmötet',coach:'Duellen på tränarbänken'};
+const STORY_TYPES={talent:'Talangens chans',veteran:'Veteranens roll',line:'Kedjan hittar något',rival:'Revanschmötet',coach:'Duellen på tränarbänken',contract:'Framtiden avgörs',breakthrough:'Genombrottet',market:'Marknaden rör sig'};
 const storiesUI={selected:null,archive:false,notice:''};
 function storiesPlayer(id){return managerRoster().find(p=>samePlayerId(p.id,id));}
 function storiesReady(){return managerEmployed()&&['regular','playoffs'].includes(state.season?.phase);}
@@ -54,8 +54,19 @@ function storiesCreate(type,ids,title,text,extra={}){
 }
 function storiesSample(m){return {id:m.id,date:m.date,club:m.club,opponent:m.opponent,own:m.own,against:m.against,partial:!!(m.partial||m.abandoned),players:(m.players||[]).map(p=>({id:String(p.id),seconds:p.seconds||0,goals:p.goals||0,assists:p.assists||0})),units:(m.units||[]).filter(u=>['forward','pp'].includes(u.kind)).map(u=>({kind:u.kind,ids:u.ids.map(String),seconds:u.seconds||0,goalsFor:u.goalsFor||0,goalsAgainst:u.goalsAgainst||0}))};}
 function storiesNextRival(opponentName){return state.schedule.filter(g=>!g.played&&((g.home===managerClub()&&g.away===opponentName)||(g.away===managerClub()&&g.home===opponentName))).sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.round-b.round)[0];}
+function storiesSystemSignal(){
+ const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<2)return false;
+ const contract=managerRoster().filter(p=>p.contractYears===1&&!p.futureContract&&p.age<=32&&playerIdentity(p).ambition>=14).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
+ if(contract&&storiesCreate('contract',[contract.id],`${contract.name} vill veta vart klubben är på väg`,`Avtalet går mot sitt sista år och spelarens ambition är hög. Agenten ${playerAgent(contract).name} väntar sig att roll, sportslig riktning och villkor hänger ihop.`))return true;
+ const breakthrough=managerRoster().filter(p=>p.age<=22).map(p=>({p,d:developmentRoleProgress(p)})).filter(x=>x.d&&x.d.changes>=2).sort((a,b)=>b.d.changes-a.d.changes)[0];
+ if(breakthrough&&storiesCreate('breakthrough',[breakthrough.p.id],`${breakthrough.p.name} knackar på dörren`,`${breakthrough.d.plan.name}: ${breakthrough.d.changes} registrerade attributsteg sedan planen startade. Staben vill diskutera nästa seniorroll.`))return true;
+ const market=managerRoster().map(p=>({p,clubs:p.marketCompetition?.clubs||[]})).filter(x=>x.clubs.length>=2).sort((a,b)=>b.clubs.length-a.clubs.length)[0];
+ if(market&&storiesCreate('market',[market.p.id],`Intresset växer kring ${market.p.name}`,`${market.clubs.join(', ')} följer spelaren. Marknaden har skapat ett verkligt vägval kring roll, kontrakt och truppplanering.`))return true;
+ return false;
+}
 function storiesDetect(sample){
  const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<2)return;
+ if(storiesSystemSignal())return;
  if(rivalStoryDetect())return;
  const ps=managerRoster();
  // A real injury opens a door; candidates are actual young members of the senior squad.
@@ -73,6 +84,9 @@ function storiesDetect(sample){
  }
 }
 function storiesBaseChoices(s){
+ if(s.type==='contract')return [{id:'commit',label:'Visa en tydlig framtidsplan',detail:'Signalera att spelaren ingår i planen. Inget automatiskt kontrakt skapas.'},{id:'wait',label:'Avvakta',detail:'Lova inget innan truppplanen är klar.'}];
+ if(s.type==='breakthrough')return [{id:'promote',label:'Öka ansvaret',detail:'Följ upp med meningsfull senior istid.'},{id:'patient',label:'Fortsätt utvecklingsvägen',detail:'Behåll nuvarande roll och utvärdera senare.'}];
+ if(s.type==='market')return [{id:'keep',label:'Han ska helst stanna',detail:'Sätt marknadsstatus till helst behålla.'},{id:'listen',label:'Lyssna på marknaden',detail:'Behåll möjligheten att ta emot faktiska bud.'}];
  if(s.type==='coach')return rivalStoryChoices();
  if(['rival','coach'].includes(s.type))return [{id:'revenge',label:'Vi ska ta revansch',detail:'Ett uttalat resultatmål. Seger stärker lagmoralen med 3; en ny förlust sänker den med 3.',pressure:true},{id:'calm',label:'Fokus på vårt eget spel',detail:'Låt resultatet tala. Seger ger 1 i lagmoral; ett bakslag ger ingen extra förlust.',pressure:false}];
  const matches=s.stage===1?4:3;
@@ -100,6 +114,9 @@ function storiesChoose(id,choiceId){
  if(s.ids.some(id=>!storiesPlayer(id))){storiesClose(s,'Truppen förändrades','En berörd spelare har lämnat A-truppen. Berättelsen avslutas utan ett brutet löfte.');save();render();return;}
  if(choiceId==='open'){storiesClose(s,['rival','coach'].includes(s.type)?'Låt matcherna tala':'Uttagningen förblir öppen',['rival','coach'].includes(s.type)?'Du valde att låta nästa möte tala för sig självt, utan ett särskilt resultatlöfte.':'Du valde att inte ge ett särskilt löfte. Konkurrensen om platserna fortsätter.');save();render();return;}
  const choice=storiesChoices(s).find(c=>c.id===choiceId);if(!choice)return;
+ if(s.type==='market'){setMarketAvailability(storiesPlayer(s.ids[0]).id,choiceId==='keep'?'keep':'open');storiesChapter(s,'Klubbens besked',choice.label+'. '+choice.detail);storiesClose(s,'Marknadsbeslutet är taget','Intresset lever vidare bara så länge AI-klubbarnas faktiska behov och scouting gör det. Berättelsen skapade inget bud.');save();render();return;}
+ if(s.type==='contract'){const p=storiesPlayer(s.ids[0]);if(choiceId==='commit')socialTrust(p,2,'Klubben beskrev en framtidsplan.');storiesChapter(s,'Framtiden diskuterades',choice.label+'. '+choice.detail);storiesClose(s,choiceId==='commit'?'En riktning är satt':'Inga löften ännu','Kontraktet förändras bara genom den vanliga förhandlingen. Spelarens förtroende och agentens krav finns kvar där.');save();render();return;}
+ if(s.type==='breakthrough'){const p=storiesPlayer(s.ids[0]);if(choiceId==='promote')p.marketPreference='keep';storiesChapter(s,'Nästa steg',choice.label+'. '+choice.detail);storiesClose(s,choiceId==='promote'?'Staben vill se nästa nivå':'Utvecklingsvägen fortsätter','Nästa utfall avgörs av verklig träning, roll och istid – inte av berättelsen.');save();render();return;}
  s.choices.push({stage:s.stage,id:choiceId,label:choice.label});s.status='following';s.elapsed=0;
  s.expectation={...choice,...(s.personalVersion===2?{reactions:Object.fromEntries(s.ids.map(id=>{const p=storiesPlayer(id);return [id,{met:storiesReaction(p,true,s),missed:storiesReaction(p,false,s)}];}))}:{}),eligible:0,qualified:0,points:0,goalsFor:0,goalsAgainst:0,...(s.type==='coach'?{sessions:0,signature:trainingSignature()}: {})};
  storiesChapter(s,'Ditt besked',`${choice.label}. ${choice.detail}${['rival','coach'].includes(s.type)?'':' Du sköter laguttagningen; spelarna följer om handlingen motsvarar beskedet.'}`);
