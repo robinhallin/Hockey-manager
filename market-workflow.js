@@ -34,10 +34,13 @@ function marketCooldown(club,p,kind){
   (o.status==='pending'||o.closedDate&&calGap(o.closedDate,state.calendar.date)<21&&o.availability===marketAvailability(p)));
 }
 function marketInterest(club,p,need,kind){
- const c=clubAIState(club);c.interests??={};const key=String(p.id),old=c.interests[key];
- c.interests[key]={playerId:p.id,name:p.name,seller:marketClub(p.id),kind,needRole:need.role,reason:need.reason,
-  first:old?.first||state.calendar.date,last:state.calendar.date,status:'scouting',visits:c.scouting[p.id]?.visits||0};
+ const c=clubAIState(club);c.interests??={};const key=String(p.id),old=c.interests[key],visits=c.scouting[p.id]?.visits||0;
+ c.interests[key]={playerId:p.id,name:p.name,seller:marketClub(p.id),kind,needRole:need.role,reason:need.reason,first:old?.first||state.calendar.date,last:state.calendar.date,status:'scouting',visits,noticeStage:old?.noticeStage||null};
  c.interests=Object.fromEntries(Object.entries(c.interests).sort((a,b)=>b[1].last.localeCompare(a[1].last)).slice(0,36));
+ if(marketClub(p.id)===managerClub()){
+  const stage=visits>=2?'serious':'watching';
+  if(old?.noticeStage!==stage){c.interests[key].noticeStage=stage;managerMessage(`market-interest:${club}:${p.id}:${stage}`,stage==='serious'?`${club} intensifierar intresset för ${p.name}`:`${club} följer ${p.name}`,stage==='serious'?`${club} har följt spelaren vid flera tillfällen för rollen ${need.role}. Ett formellt bud är inte garanterat. ${need.reason}`:`${club} har lagt ${p.name} under bevakning för rollen ${need.role}. ${need.reason}`,'Sportchefen',{link:'transfers',playerId:p.id});}
+ }
 }
 function incomingStage(o){return ({offer:'Ditt beslut',counter_wait:'Inväntar andra klubbens svar',club_agreed:'Inväntar spelarens beslut'})[o.stage||'offer']||'Ditt beslut';}
 function incomingNotice(o,title){
