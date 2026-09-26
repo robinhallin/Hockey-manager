@@ -13,6 +13,14 @@ const TRAINING_FOCUSES = {Balanserad:null,Skott:'shooting',Passningar:'passing',
 const DEVELOPMENT_ROLE_PLANS={
  creator:{name:'Bli spelfördelare',keys:['passing','vision','decisions'],target:'Skapa spel och fatta bättre puckbeslut.'},carrier:{name:'Bli pucktransportör',keys:['puckControl','skating','decisions'],target:'Klara press och transportera puck genom zoner.'},finisher:{name:'Bli avslutare',keys:['shooting','composure','positioning'],target:'Hitta och utnyttja bättre avslutslägen.'},retriever:{name:'Bli puckvinnare',keys:['workRate','checking','strength'],target:'Återvinna puck och hålla anfall vid liv.'},twoWay:{name:'Bli tvåvägsspelare',keys:['positioning','decisions','workRate'],target:'Ta större ansvar i båda riktningar.'},firstPass:{name:'Bli uppspelsback',keys:['passing','vision','decisions'],target:'Starta uppspel med bättre förstapass.'},anchor:{name:'Bli defensivt ankare',keys:['positioning','checking','decisions'],target:'Skydda mitten och säkra bakom pucken.'},activeD:{name:'Bli offensivt aktiv back',keys:['skating','puckControl','passing'],target:'Bidra högre upp i banan utan att tappa puckkontroll.'}
 };
+// Recommend an age-appropriate role from the player's current attributes.
+// This is advisory: the manager's selected training plan remains unchanged.
+function veteranRoleRecommendation(p){
+ if(!p||p.age<32||p.pos==='MV')return null;
+ const group=p.pos==='B'?'defense':'forwards',a=ensurePlayerAttributes(p);
+ const candidates=Object.entries(DEVELOPMENT_ROLE_PLANS).filter(([key])=>PLAYER_TASKS[key]?.groups.includes(group)).map(([to,plan])=>({to,value:plan.keys.reduce((sum,key)=>sum+(a[key]||0),0)/plan.keys.length}));
+ return candidates.sort((a,b)=>b.value-a.value)[0]||null;
+}
 function developmentRolePlan(p){return DEVELOPMENT_ROLE_PLANS[p.developmentRolePlan]||null;}
 function setDevelopmentRolePlan(id,key){const p=findPlayerAnywhere(id);if(!p||(!isOwnPlayer(p)&&!p.academy)||key&&(!DEVELOPMENT_ROLE_PLANS[key]||p.pos==='MV'))return;p.developmentRolePlan=key||null;p.developmentReview={club:managerClub(),date:state.calendar.date,rolePlan:p.developmentRolePlan,baseline:{...p.attributes}};save();render();}
 function developmentRoleProgress(p){const plan=developmentRolePlan(p);if(!plan)return null;const a=ensurePlayerAttributes(p),values=plan.keys.filter(k=>Object.hasOwn(a,k)).map(k=>a[k]),baseline=p.developmentReview?.baseline||p.trainingBaseline||a;return {plan,average:values.length?values.reduce((n,v)=>n+v,0)/values.length:0,changes:plan.keys.reduce((n,k)=>n+Math.max(0,(a[k]||0)-(baseline[k]||a[k]||0)),0)};}

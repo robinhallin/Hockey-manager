@@ -56,7 +56,7 @@ function managerWeekOpponent(next=deskFixtures().upcoming[0]){
  if(!next)return null;
  const club=state.rivals?.clubs?.[next.opponent],games=(club?.recent||[]).filter(g=>g.year===state.season.year&&g.date<=state.calendar.date&&!g.partial).slice(-5);
  const observed=games.filter(g=>g.coachId===club?.coach?.id&&RIVAL_STYLES[g.style]).at(-1),style=observed?.style||club?.coach?.style;
- const reports=(state.analysis?.history||[]).filter(m=>m.opponent===next.opponent&&!m.partial).slice(-3),flows=reports.map(m=>m.flow).filter(f=>f?.length>=2);
+ const reports=(state.analysis?.matches||[]).filter(m=>m.opponent===next.opponent&&m.club===managerClub()&&!m.partial&&!m.abandoned).slice(0,3),flows=reports.map(m=>m.flow).filter(f=>f?.length>=2);
  const delta=(f,side,key)=>Math.max(0,Number(f.at(-1).sides?.[side]?.[key]||0)-Number(f[0].sides?.[side]?.[key]||0));
  const totals=flows.reduce((o,f)=>{for(const k of ['entries','turnovers','battles','battleWins']){o.own[k]+=delta(f,0,k);o.opp[k]+=delta(f,1,k);}return o;},{own:{entries:0,turnovers:0,battles:0,battleWins:0},opp:{entries:0,turnovers:0,battles:0,battleWins:0}});
  const strengths=[],weaknesses=[];

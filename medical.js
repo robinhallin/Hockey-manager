@@ -7,7 +7,7 @@ function ensureMedical(){
 }
 function medicalRoll(){const s=state.medical;s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
 function medicalReady(p){return Boolean(p&&!internationalAway(p)&&(!p.health?.injury||(p.health.injury.remaining===0&&p.health.clearance!=='rest')));}
-function medicalLimit(p){if(!p.health?.injury||p.health.clearance!=='limited')return Infinity;const base=medicalProfile(p.health.injury).limited;return p.pos==='MV'?Math.max(1200,base*2):base;}
+function medicalLimit(p){if(!p.health?.injury||p.health.clearance!=='limited')return Infinity;if(!MEDICAL_PROFILES[p.health.injury.type])return p.pos==='MV'?1800:600;const base=medicalProfile(p.health.injury).limited;return p.pos==='MV'?Math.max(1200,base*2):base;}
 function medicalAvailable(p){return medicalReady(p)&&depthEligible(p)&&(!state.live||state.live.finished||(state.live.iceTime?.[p.id]||0)<medicalLimit(p));}
 function medicalCanTrain(p){return !internationalAway(p)&&!p.health?.injury;}
 function medicalExcused(p,required=900){return internationalAway(p)||Boolean(p.health?.injury||state.live?.medicalInjured?.includes(String(p.id)))&&(state.live?.iceTime?.[p.id]||0)<required;}

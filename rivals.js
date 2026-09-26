@@ -36,9 +36,12 @@ function ensureRivals(){
 }
 function rivalsClubState(club){return state.rivals?.clubs[club];}
 function rivalryKey(a,b){return [a,b].sort((x,y)=>x.localeCompare(y,'sv')).join('|');}
-function rivalryState(a,b){
- ensureRivals();const key=rivalryKey(a,b),r=state.rivals.rivalries??=( {});
- return r[key]??=(r[key]={clubs:[a,b],score:0,meetings:0,playoffSeries:0,overtime:0,transfers:0,last:null,chapters:[]});
+function rivalryState(a,b,create=true){
+ if(create)ensureRivals();const key=rivalryKey(a,b),existing=state.rivals?.rivalries?.[key];
+ if(existing)return existing;
+ const row={clubs:[a,b],score:0,meetings:0,playoffSeries:0,overtime:0,transfers:0,last:null,chapters:[]};
+ if(create){state.rivals.rivalries??={};state.rivals.rivalries[key]=row;}
+ return row;
 }
 function rivalryLevel(score){return score>=70?'Het rivalitet':score>=40?'Intensiv':score>=20?'Växande':'Vanligt motstånd';}
 function rivalryAdd(a,b,points,reason,date=state.calendar?.date){
@@ -503,7 +506,7 @@ function rivalsView(){
  ensureRivals();const clubs=Object.keys(state.rivals.clubs).filter(c=>c!==managerClub());
  const club=clubs.includes(rivalsSelected)?rivalsSelected:clubs.includes(opponent())?opponent():clubs[0],c=rivalsClubState(club),l=rivalLineup(club,managerClub()),recent=c.recent.slice(-5);
  const unavailable=(state.clubRosters[club]||[]).filter(p=>!medicalReady(p)),events=state.rivals.events.filter(e=>leagueOf(e.club)===leagueOf(club)).slice(0,8);
- const meetings=state.rivals.duels[managerClub()+'|'+club]||[],rivalry=rivalryState(managerClub(),club),pp=recent.reduce((n,g)=>n+(g.pp||0),0),ppGoals=recent.reduce((n,g)=>n+(g.ppGoals||0),0);
+ const meetings=state.rivals.duels[managerClub()+'|'+club]||[],rivalry=rivalryState(managerClub(),club,false),pp=recent.reduce((n,g)=>n+(g.pp||0),0),ppGoals=recent.reduce((n,g)=>n+(g.ppGoals||0),0);
  const leaders=new Map();for(const g of recent)if(g.star){const p=leaders.get(String(g.star.id))||{...g.star,points:0};p.points+=g.star.points;leaders.set(String(p.id),p);}
  const hot=[...leaders.values()].sort((a,b)=>b.points-a.points)[0];
  const pressure=c.confidence<30?'Nära ett tränarbyte':c.confidence<45?'Under press':c.confidence>=75?'Starkt stöd':'Arbetsro';

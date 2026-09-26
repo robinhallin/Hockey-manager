@@ -50,3 +50,7 @@ r("globalThis.a=state.specialTeams.pp1[0];specialDrop(drop(a,{key:'pp1',index:0,
 r("globalThis.before=JSON.stringify(state.specialTeams);specialDrop(drop(state.lines.goalie),'pp1',0);specialDrop(drop(a,{key:'pp1',index:0,id:'stale'}),'pp2',0);specialDrop(drop(a),'bad',0)");assert.equal(r('JSON.stringify(state.specialTeams)'),r('before'));
 assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
 console.log('PASS: shift-based role expectations, rotation/exemptions, genuine under-use/recovery, role-promise migration, durable numeric ratings, integrated overview and guarded four-rink swaps.');
+
+// Historical summaries are keyed objects; flow evidence lives in detailed reports.
+r("startCareerWithClub('HV71');state.analysis.history={old:{opponent:'Test'}};state.analysis.matches=[{club:managerClub(),opponent:'Test',flow:[{sides:[{},{}]},{sides:[{entries:10},{entries:1}]}]}]");
+assert.ok(r("managerWeekOpponent({opponent:'Test'}).weaknesses.length")>0);

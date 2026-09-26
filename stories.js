@@ -75,7 +75,8 @@ function mediaPromptView(){
 }
 function storiesSystemSignal(){
  const b=state.stories;if(!storiesReady()||b.active.length>=3||b.matchCount-b.lastStart<3||pendingManagerDecision())return false;
- const contract=managerRoster().filter(p=>p.contractYears===1&&!p.futureContract&&p.age<=32&&playerIdentity(p).ambition>=14).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
+ const contract=managerRoster().filter(p=>p.contractYears===1&&!p.futureContract&&p.age<=32&&playerSocialIdentity(p).ambition>=14).sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists))[0];
+
  if(contract&&storiesCreate('contract',[contract.id],`${contract.name} vill veta vart klubben är på väg`,`Avtalet går mot sitt sista år och spelarens ambition är hög. Agenten ${playerAgent(contract).name} väntar sig att roll, sportslig riktning och villkor hänger ihop.`))return true;
  const breakthrough=managerRoster().filter(p=>p.age<=22).map(p=>({p,d:developmentRoleProgress(p)})).filter(x=>x.d&&x.d.changes>=2).sort((a,b)=>b.d.changes-a.d.changes)[0];
  if(breakthrough&&storiesCreate('breakthrough',[breakthrough.p.id],`${breakthrough.p.name} knackar på dörren`,`${breakthrough.d.plan.name}: ${breakthrough.d.changes} registrerade attributsteg sedan planen startade. Staben vill diskutera nästa seniorroll.`))return true;

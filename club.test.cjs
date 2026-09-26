@@ -44,8 +44,8 @@ assert.equal(run('state.staff.find(s=>s.id==="scout").salary'),0);
 // Priority effect fixtures; public seasonal selection/locking is tested in coach-overhaul.test.cjs.
 run('state.clubOffice.priority="scouting"');assert.equal(run('clubMissionFee()'),20000);assert.equal(run('clubMissionLimit()'),3);
 run('state.staff.find(s=>s.id==="scout").ability=18');assert.equal(run('clubMissionLimit()'),4);
-run('state.clubOffice.priority="first"');assert.equal(run('clubTrainingFactor()'),1.1);
-run('state.clubOffice.priority="youth"');assert.equal(run('clubJuniorFactor()'),1.15);
+run('state.clubOffice.priority="first";state.clubOffice.projects??={};state.clubOffice.projects.first={maturity:100}');assert.equal(run('clubTrainingFactor()'),1.1);
+run('state.clubOffice.priority="youth";state.clubOffice.projects.youth={maturity:100}');assert.equal(run('clubJuniorFactor()'),1.15);
 run('clubSetPolicy("ticket",160);var cheapAttendance=clubGate().attendance;clubSetPolicy("ticket",340)');assert.ok(run('clubGate().attendance')<run('cheapAttendance'));
 run('clubSetPolicy("ticket",-1)');assert.equal(run('state.clubOffice.ticket'),340);
 // Real entries: away fixtures have no gate, wages and income counted exactly once.

@@ -1,6 +1,8 @@
-# Player portraits — HV71, Brynäs, Frölunda and Djurgården complete, wider production pending
+# Player portraits — HV71, Brynäs, Frölunda Djurgården and Linköping complete, wider production pending
 
-All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players, all 25 Djurgården players and 23 of 24 Färjestad players have individual cartoon portraits: 126 of 715 active real senior players. The other 589 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players, all 25 Djurgården players, all 29 Linköping players and 23 of 24 Färjestad players have individual cartoon portraits: 155 of 715 active real senior players. The other 560 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+
+The Linköping batch adds 29 individually referenced illustrations. `linkoping-production.json` records exact IDs, source pages and final prompts. Twenty-six references come from the August 2026 Linköping headshot series; Tuomaala, Niku and Wilde Larsen use identified Elite Prospects photos and retain their helmets or goalie mask. Each delivered illustration was visually reviewed and optimized to a transparent 384×384 PNG.
 
 The Djurgården batch adds 25 individually referenced illustrations. `djurgarden-production.json` records exact IDs, source pages and final prompts. Twenty-four references come from the August 2026 Djurgården headshot series; Oliver Wahlstrom uses his NHLPA headshot. Each delivered illustration was visually reviewed and optimized to a transparent 384×384 PNG.
 

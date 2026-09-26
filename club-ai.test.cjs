@@ -140,6 +140,7 @@ function identities(app){return app.run('JSON.stringify([...Object.values(state.
  r('globalThis.progress=JSON.stringify(clubAIState(testClub).academy);aiAcademyDay(testClub)');
  assert.equal(r('JSON.stringify(clubAIState(testClub).academy)'),r('progress'));
 }
+const {run}=game();
 run("globalThis.strategyClub=Object.keys(state.clubAI.clubs).find(c=>c!==managerClub());globalThis.strategy=aiStrategyFor(strategyClub);globalThis.strategyAgain=aiStrategyFor(strategyClub)");
 assert.equal(run('strategy.type'),run('strategyAgain.type'));assert.ok(run('AI_STRATEGIES[strategy.type]'));assert.ok(run('strategy.review>strategy.started'));
 console.log('PASS: club AI migration, read-only views, unique academies, slot-safe special teams, future squad needs, tactical memory, economic pressure, competitive contracts, role reactions and dated academy development.');
