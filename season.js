@@ -75,16 +75,37 @@ function finishPlayoffMatch(){
  managerMessage(`series:${g.seriesId}:${series.games.length}`,`${series.high} ${series.winsHigh}–${series.winsLow} ${series.low}`,`${series.winner?`${series.winner} vinner serien.`:`Nästa match blir match ${series.games.length+1}.`} Återhämtning, kedjor och matchplan kan justeras inför nästa möte.`,'Slutspelsrapport',{link:'season'});
  finishPlayoffDay();state.page="match";save();render();
 }
+function seasonLeagueRows(league='SHL',stage='regular'){
+ ensureLeagueStatistics();const source=state.leagueStatistics,rows=Object.values(source?.rows||{}).filter(r=>r.stage===stage&&leagueOf(r.club)===league);
+ const by=new Map();for(const r of rows){const key=String(r.id),o=by.get(key)||{id:r.id,name:r.name,pos:r.pos,clubs:new Set(),games:0,goals:0,assists:0,shots:0,pim:0,seconds:0,saves:0,against:0,shutouts:0};o.clubs.add(r.club);for(const k of LEAGUE_STAT_FIELDS)o[k]+=Number(r[k]||0);by.set(key,o);}
+ return [...by.values()].map(r=>({...r,clubs:[...r.clubs],points:r.goals+r.assists,savePct:r.saves+r.against?r.saves/(r.saves+r.against):0}));
+}
+function seasonAwardPlayer(row,title,detail){
+ const p=findPlayerAnywhere(row.id);if(p){p.honours??=[];if(!p.honours.some(h=>h.year===state.season.year&&h.title===title))p.honours.unshift({year:state.season.year,title,detail});careerHistoryEvent('award',{player:p,club:row.clubs?.[0],title,detail});}
+ return {id:row.id,name:row.name,club:row.clubs?.join(' / ')||'',title,detail};
+}
+function seasonAwards(){
+ const rows=seasonLeagueRows('SHL','regular'),skaters=rows.filter(r=>r.pos!=='MV'&&r.games>=10),goalies=rows.filter(r=>r.pos==='MV'&&r.games>=8);
+ const points=[...skaters].sort((a,b)=>b.points-a.points||b.goals-a.goals)[0],goals=[...skaters].sort((a,b)=>b.goals-a.goals||b.points-a.points)[0],goalie=[...goalies].sort((a,b)=>b.savePct-a.savePct||b.shutouts-a.shutouts)[0],rookie=[...skaters].filter(r=>(findPlayerAnywhere(r.id)?.age||99)<=21).sort((a,b)=>b.points-a.points)[0],def=[...skaters].filter(r=>r.pos==='B').sort((a,b)=>b.points-a.points||b.games-a.games)[0];
+ const awards=[];if(points)awards.push(seasonAwardPlayer(points,'Årets spelare',`${points.points} poäng på ${points.games} matcher.`));if(goalie)awards.push(seasonAwardPlayer(goalie,'Årets målvakt',`${(goalie.savePct*100).toFixed(1)} % räddningar · ${goalie.shutouts} nollor.`));if(def)awards.push(seasonAwardPlayer(def,'Årets back',`${def.points} poäng på ${def.games} matcher.`));if(rookie)awards.push(seasonAwardPlayer(rookie,'Årets rookie',`${rookie.points} poäng vid ${findPlayerAnywhere(rookie.id)?.age||'ung'} års ålder.`));if(points)awards.push(seasonAwardPlayer(points,'Poängkung',`${points.points} poäng.`));if(goals)awards.push(seasonAwardPlayer(goals,'Skytteligavinnare',`${goals.goals} mål.`));
+ for(const r of skaters){careerRecord('shl-career-games','Flest registrerade SHL-matcher',r.games,r.name,{playerId:r.id,club:r.clubs[0]});careerRecord('shl-season-points','Flest SHL-poäng under en säsong',r.points,r.name,{playerId:r.id,club:r.clubs[0]});careerRecord('shl-season-goals','Flest SHL-mål under en säsong',r.goals,r.name,{playerId:r.id,club:r.clubs[0]});}
+ return awards;
+}
+function seasonReviewPackage(record){
+ const expired=managerRoster().filter(p=>p.contractYears<=0),world=state.playerWorld?.summaries?.find(s=>s.year===state.season.year),project=clubProjectState();
+ return {awards:record.awards||[],expired:expired.map(p=>({id:p.id,name:p.name,pos:p.pos})),world,movement:record.movement,project:{name:CLUB_PRIORITIES[project.id]?.name||project.id,maturity:project.maturity||0,milestone:clubProjectChoice(project.id)?.name||null}};
+}
 function closeSeason(){
  const s=state.season;if(s.phase==='review')return;s.phase='review';
  const promises=state.training?.promises||[];for(const p of promises.filter(p=>!p.resolved)){p.resolved=true;p.result='Säsongen avslutad – för få matcher för slutbedömning';}
  const playerStats=managerRoster().map(p=>({id:p.id,name:p.name,pos:p.pos,goals:p.goals||0,assists:p.assists||0,games:p.games||0,development:Object.keys(p.attributes||{}).reduce((n,k)=>n+Math.max(0,p.attributes[k]-(p.trainingBaseline?.[k]??p.attributes[k])),0)}));
+ const awards=seasonAwards();
  for(const p of managerRoster())careerPlayerMilestones(p,managerClub());
  const leaders=[...playerStats].sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists)),goalLeaders=[...playerStats].sort((a,b)=>b.goals-a.goals);
  if(leaders[0])careerRecord('manager-season-points','Flest poäng under en säsong',leaders[0].goals+leaders[0].assists,leaders[0].name,{club:managerClub(),playerId:leaders[0].id});
  if(goalLeaders[0])careerRecord('manager-season-goals','Flest mål under en säsong',goalLeaders[0].goals,goalLeaders[0].name,{club:managerClub(),playerId:goalLeaders[0].id});
  if(s.champion)careerHistoryEvent('champion',{club:s.champion,title:`${s.champion} blir mästare`,detail:`Vann mästerskapet ${seasonLabel()}.`});
- const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null,records:JSON.parse(JSON.stringify(ensureCareerHistory().records))};
+ const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null,awards,records:JSON.parse(JSON.stringify(ensureCareerHistory().records))};
  if(!s.archive.some(a=>a.year===s.year))s.archive.unshift(record);
  managerMessage(`review:${s.year}`,`${s.champion} är mästare ${seasonLabel()}`,`Säsongen är avslutad. Din placering i grundserien: ${record.position}. Styrelsens mål: ${record.goals.filter(g=>g.met).length} av ${record.goals.length} uppnådda. Öppna Säsong för utvärdering och nästa försäsong.`,'Säsongsutvärdering',{link:'season'});
  managerSeasonReview();
