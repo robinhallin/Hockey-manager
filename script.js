@@ -1033,11 +1033,11 @@ if(
   state.schedule = createSchedule();
 }
 
-const performanceProfile={samples:{},limits:{render:120,save:80,nextDay:250,aiMarket:180}};
+const performanceProfile={samples:{},limits:{render:120,save:80,nextDay:250,nextDayAborted:250,aiMarket:180}};
 function performanceNow(){return typeof performance!=='undefined'&&performance.now?performance.now():Date.now();}
 function performanceMeasure(name,start){const ms=Math.max(0,performanceNow()-start),rows=performanceProfile.samples[name]??=[];rows.push(ms);if(rows.length>30)rows.shift();performanceProfile.samples[name]=rows;return ms;}
 function performanceSummary(name){const rows=performanceProfile.samples[name]||[];if(!rows.length)return {count:0,last:0,avg:0,max:0};return {count:rows.length,last:rows.at(-1),avg:rows.reduce((n,x)=>n+x,0)/rows.length,max:Math.max(...rows)};}
-function performanceDebugView(){return `<section class="performance-debug"><h2>Prestanda</h2>${['render','save','nextDay','aiMarket'].map(k=>{const s=performanceSummary(k),l=performanceProfile.limits[k];return `<div><strong>${k}</strong><span>senast ${s.last.toFixed(1)} ms · snitt ${s.avg.toFixed(1)} ms · max ${s.max.toFixed(1)} ms</span><b>${s.last>l?'Över riktvärde':'OK'}</b></div>`;}).join('')}</section>`;}
+function performanceDebugView(){return `<section class="performance-debug"><h2>Prestanda</h2>${['render','save','nextDay','nextDayAborted','aiMarket'].map(k=>{const s=performanceSummary(k),l=performanceProfile.limits[k];return `<div><strong>${k}</strong><span>senast ${s.last.toFixed(1)} ms · snitt ${s.avg.toFixed(1)} ms · max ${s.max.toFixed(1)} ms</span><b>${s.last>l?'Över riktvärde':'OK'}</b></div>`;}).join('')}</section>`;}
 let careerSaveError=false,careerSaveErrorCode="";
 function renderSaveStatus(){
  const root=document.getElementById("save-status-root");if(!root)return;
@@ -4213,7 +4213,7 @@ function placeholderView(title){
 
 }
 
-function continueGame(){const perfStart=performanceNow(),before=state.calendar?.date;dayTransitionStart();Promise.resolve().then(()=>{if(state.calendar?.date!==before)performanceMeasure('nextDay',perfStart);});}
+function continueGame(){dayTransitionStart();}
 
 function render(){
   const perfStart=performanceNow();

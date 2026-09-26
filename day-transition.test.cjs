@@ -6,13 +6,17 @@ r("startCareerWithClub('HV71');save();globalThis.queued=[];setTimeout=fn=>{queue
 const reference=boot(app.storage.value),q=reference.run;
 q("resumeCareer()");
 const before=r('state.calendar.date');
+r('globalThis.clock=100;performanceNow=()=>clock;globalThis.timedContinue=calendarContinue;calendarContinue=()=>{clock+=37;timedContinue()}');
 r('continueGame();continueGame()');
 assert.equal(r('queued.length'),1,'double click schedules exactly one step');
 assert.equal(r('state.calendar.date'),before,'loading paints before simulation');
 assert.equal(app.get('.game-shell').inert,true);
 assert.equal(r('dayTransitionClose()'),false,'cannot dismiss while processing');
 assert.match(app.get('#day-transition-root').innerHTML,/Dagen bearbetas/);
-r('queued.shift()()');q('calendarContinue()');
+assert.equal(r("performanceSummary('nextDay').count"),0,'no sample before queued work');
+r('clock=10000;queued.shift()()');q('calendarContinue()');
+assert.equal(r("performanceSummary('nextDay').count"),1);
+assert.equal(r("performanceSummary('nextDay').last"),37,'measures actual work, excludes queued waiting');
 assert.equal(r('state.calendar.date'),r(`calAdd('${before}',1)`));
 assert.equal(r('dayTransition'),null);assert.ok(r('state.calendar.lastDaySummary'));
 const projection='JSON.stringify([state.calendar.date,state.training.history,state.money,state.round,managerRoster().map(p=>[p.id,p.fatigue,p.attributes]),state.rivals.events])';
@@ -51,9 +55,19 @@ r('dayTransitionStart();globalThis.tx=dayTransition;state.calendar.date=calAdd(s
 assert.equal(r('state.calendar.date'),r('changed'));
 assert.equal(r('dayTransition'),null);
 
+// A queued step that becomes blocked records an aborted attempt, not a day.
+r('globalThis.blockedContinue=calendarContinue;calendarContinue=()=>{};dayTransitionStart();dayTransitionRun(dayTransition);calendarContinue=blockedContinue;dayTransitionRun(null)');
+assert.equal(r("performanceSummary('nextDay').count"),1);
+assert.equal(r("performanceSummary('nextDayAborted').count"),1);
+assert.equal(r('dayTransition'),null);
+
 // Failure is visible and never automatically replayed, including partial work.
 r("globalThis.originalContinue=calendarContinue;calendarContinue=()=>{state.calendar.date=calAdd(state.calendar.date,1);throw Error('controlled failure')};dayTransitionStart();globalThis.tx=dayTransition;dayTransitionRun(tx)");
 assert.equal(r('dayTransition.phase'),'error');
+assert.equal(r("performanceSummary('nextDay').count"),1,'failure cannot count as a successful day');
+assert.equal(r("performanceSummary('nextDayAborted').count"),2);
+r('dayTransitionRun(tx)');
+assert.equal(r("performanceSummary('nextDayAborted').count"),2,'failed callback is never replayed');
 const failedDate=r('state.calendar.date');
 r('continueGame();dayTransitionClose();calendarContinue=originalContinue');
 assert.equal(r('state.calendar.date'),failedDate);
@@ -68,6 +82,9 @@ assert.equal(m('state.page'),'match');
 const decision=boot(),d=decision.run;
 d("startCareerWithClub('HV71');globalThis.calendarCore=calendarContinue;calendarContinue=()=>{calendarCore();managerMessage('during-day','Beslut efter dagen','Svara först','Spelare',{decisionType:'role'});save()};dayTransitionStart();dayTransitionRun(dayTransition)");
 assert.equal(d('dayTransition.phase'),'ready');
+assert.equal(d("performanceSummary('nextDay').count"),1);
+d('dayTransitionRun(dayTransition)');
+assert.equal(d("performanceSummary('nextDay').count"),1,'completed callback is never replayed');
 assert.ok(d("dayTransition.rows.some(row=>row.required&&row.title==='Beslut efter dagen')"));
 const stopped=d('state.calendar.date');
 d('dayTransitionClose();continueGame()');
