@@ -1,0 +1,252 @@
+[
+  {
+    "id": "ep-11070",
+    "name": "Philip Holm",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Philip Holm. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZV015",
+    "asset": "assets/portraits/ep-11070.png",
+    "generatedFile": "exec-70686a43-31d2-4360-b0c1-555d69ae7fcb.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-128256",
+    "name": "Nikolas Brouillard",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Nikolas Brouillard. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZP017",
+    "asset": "assets/portraits/ep-128256.png",
+    "generatedFile": "exec-8e12f6d7-57b1-4315-9f19-e5f87905ef52.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-13297",
+    "name": "Magnus Hellberg",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Magnus Hellberg. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZU015",
+    "asset": "assets/portraits/ep-13297.png",
+    "generatedFile": "exec-e61bf485-c6e0-4a73-a1a9-cc7c62955c18.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-142243",
+    "name": "Lukas Vejdemo",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Lukas Vejdemo. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZY020",
+    "asset": "assets/portraits/ep-142243.png",
+    "generatedFile": "exec-51868008-7cb2-4754-804e-1134360287e8.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-167737",
+    "name": "Daniel Marmenlind",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Daniel Marmenlind. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZZ019",
+    "asset": "assets/portraits/ep-167737.png",
+    "generatedFile": "exec-c81cf0ae-b43f-43f4-a16d-2c63c1971b87.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-193445",
+    "name": "Joe Snively",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Joe Snively. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZF020",
+    "asset": "assets/portraits/ep-193445.png",
+    "generatedFile": "exec-4226dad1-00b5-4a27-9623-bde1d1d1f655.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-198405",
+    "name": "Colby Sissons",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Colby Sissons. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZZ020",
+    "asset": "assets/portraits/ep-198405.png",
+    "generatedFile": "exec-f5043869-f893-495b-abc6-12f746102c9f.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-208284",
+    "name": "Hugo Blixt",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Hugo Blixt. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZO017",
+    "asset": "assets/portraits/ep-208284.png",
+    "generatedFile": "exec-25217372-7cc9-4aa3-ba7b-34c9788c20ee.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-212334",
+    "name": "Lucas Carlsson",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Lucas Carlsson. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZB022",
+    "asset": "assets/portraits/ep-212334.png",
+    "generatedFile": "exec-d8fd6d85-9f94-4fa5-b158-76ece0c1dc09.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-212379",
+    "name": "Gustav Lindström",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Gustav Lindström. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZU016",
+    "asset": "assets/portraits/ep-212379.png",
+    "generatedFile": "exec-23747dab-b5fc-4597-8a6f-99baeb1513d2.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-241370",
+    "name": "Oliver Wahlstrom",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Oliver Wahlstrom. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://www.nhlpa.com/player/74/oliver-wahlstrom/",
+    "asset": "assets/portraits/ep-241370.png",
+    "generatedFile": "exec-a38bb1c7-194e-4d47-97d8-e7a0f696fb84.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-274219",
+    "name": "Mathias Emilio Pettersen",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Mathias Emilio Pettersen. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZK014",
+    "asset": "assets/portraits/ep-274219.png",
+    "generatedFile": "exec-8b020636-9de9-4cd6-ae3f-23c4ed37d363.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-28988",
+    "name": "Jesper Pettersson",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Jesper Pettersson. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZC016",
+    "asset": "assets/portraits/ep-28988.png",
+    "generatedFile": "exec-491bf608-e708-4a3a-b6e1-3c66cf5f1fd7.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-342488",
+    "name": "Albin Grewe",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Albin Grewe. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZW015",
+    "asset": "assets/portraits/ep-342488.png",
+    "generatedFile": "exec-7e94fb36-6f72-4177-930c-705ac31ae050.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-343876",
+    "name": "Nils Åman",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Nils Åman. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZX012",
+    "asset": "assets/portraits/ep-343876.png",
+    "generatedFile": "exec-b3ac7ce2-cd02-46c3-ac6f-ece86fe37634.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-36626",
+    "name": "Sebastian Hartmann",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Sebastian Hartmann. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZR011",
+    "asset": "assets/portraits/ep-36626.png",
+    "generatedFile": "exec-309f1eee-1b66-4534-8c6f-4c6ba8320daf.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-388741",
+    "name": "Håvard Østrem Salsten",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Håvard Østrem Salsten. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZE009",
+    "asset": "assets/portraits/ep-388741.png",
+    "generatedFile": "exec-aed45e42-b426-418f-a24a-b913c0563c53.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-393444",
+    "name": "Noel Gunler",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Noel Gunler. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZU017",
+    "asset": "assets/portraits/ep-393444.png",
+    "generatedFile": "exec-a5b9018f-213f-4430-b0eb-35eea50772da.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-509848",
+    "name": "David Blomgren",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of David Blomgren. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZU014",
+    "asset": "assets/portraits/ep-509848.png",
+    "generatedFile": "exec-329608b5-1883-408c-9afb-9001ee781885.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-689902",
+    "name": "Liam Pettersson",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Liam Pettersson. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZS019",
+    "asset": "assets/portraits/ep-689902.png",
+    "generatedFile": "exec-3ce80c5b-8fa5-4f3d-b96b-a1e590ba7470.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-689913",
+    "name": "Theo Stockselius",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Theo Stockselius. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZD015",
+    "asset": "assets/portraits/ep-689913.png",
+    "generatedFile": "exec-9a023874-50b7-49d3-ace9-e302971b8c8d.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-7052",
+    "name": "Henrik Eriksson",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Henrik Eriksson. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZS021",
+    "asset": "assets/portraits/ep-7052.png",
+    "generatedFile": "exec-faf16b4b-366e-4ce2-a84c-0018d249c1a4.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-76324",
+    "name": "Charles Hudon",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Charles Hudon. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZD019",
+    "asset": "assets/portraits/ep-76324.png",
+    "generatedFile": "exec-1af2f35e-e82c-4be2-90dd-a6312e1369dd.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-7655",
+    "name": "Jacob Josefson",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Jacob Josefson. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZJ009",
+    "asset": "assets/portraits/ep-7655.png",
+    "generatedFile": "exec-6ceed817-43f1-4fc4-9d6d-636f6c2820f2.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  },
+  {
+    "id": "ep-8311",
+    "name": "Marcus Krüger",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar of Marcus Krüger. Image 1 is his identity reference; preserve his face proportions, eye color, hairstyle and facial hair. Image 2 is ONLY the approved cartoon sculpted style and framing reference, NEVER copy that person's face. Strongly drawn cel-shaded angular facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, full hair with 5% top space, plain charcoal undershirt, shoulders at bottom. True transparent alpha background. No text, logos, frame, hockey equipment or photo backdrop. Keep his distinctive appearance and age rather than generic handsome face. Match image 2's framing and more cartoon look.",
+    "source": "https://bildbyran.se/ishockey/260821DIF/260821ZD017",
+    "asset": "assets/portraits/ep-8311.png",
+    "generatedFile": "exec-01baeccc-1be6-4769-8dff-4ff4ea243ab3.png",
+    "method": "built-in imagegen",
+    "created": "2026-09-26"
+  }
+]

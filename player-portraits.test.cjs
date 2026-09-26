@@ -87,3 +87,17 @@ test('the complete starting Brynäs roster has distinct exact-ID assets',()=>{
   assert.ok(row.source.startsWith('https://'));
  }
 });
+test('the complete starting Djurgården roster has distinct exact-ID assets',()=>{
+ const app=require('./scripts/career-test-fixture.cjs').boot(undefined,{production:true});
+ app.run("startCareerWithClub('Djurgårdens IF')");
+ const rows=app.run("managerRoster().map(p=>({id:p.id,src:playerPortraitRecord(p)?.src}))");
+ assert.equal(rows.length,25);
+ assert.ok(rows.every(p=>p.src),JSON.stringify(rows.filter(p=>!p.src)));
+ assert.equal(new Set(rows.map(p=>p.src)).size,25);
+ const manifest=JSON.parse(fs.readFileSync('assets/portraits/djurgarden-production.json','utf8'));
+ assert.deepEqual(manifest.map(p=>p.id).sort(),Array.from(rows,p=>p.id).sort());
+ for(const row of manifest){
+  assert.equal(run(`playerPortraitRecord({id:${JSON.stringify(row.id)}}).src`),row.asset);
+  assert.ok(row.source.startsWith('https://'));
+ }
+});
