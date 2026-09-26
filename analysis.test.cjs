@@ -65,6 +65,8 @@ assert.equal(run('state.analysis.matches.length'),1);
 assert.equal(run('state.analysis.matches[0].shots.length'),run('state.live.shotsHV+state.live.shotsOpp'));
 assert.ok(run('Object.values(state.live.analysis.players).every(p=>p.seconds===(state.live.iceTime[p.id]||0))'));
 assert.ok(!/undefined|NaN/.test(run('statisticsView()')));
+run("globalThis.finishedMatch=state.analysis.matches.find(m=>m.finished)||state.analysis.matches[0];globalThis.verdict=finishedMatch?.finished?analysisMatchVerdict(finishedMatch):null");
+if(run('finishedMatch?.finished'))assert.ok(run('verdict&&verdict.factor&&verdict.factor.text'));
 console.log('PASS: shot outcomes and rebounds, goals/assists, real unit minutes, PP, archive/reload, partial migration, 14 clubs and complete match.');
 
 // Penalties and shootouts retain their own semantics, without invented shot totals.

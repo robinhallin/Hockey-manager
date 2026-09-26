@@ -41,6 +41,19 @@ function matchCoachEvidence(analysis,clock,players=[],plan={}){
  }
  return {clock,start,flow,advice:advice.slice(0,2),note:analysis?.partial?'Matchen har delvis registrerade data. Inga taktiska slutsatser dras från skottsiffrorna.':clock<180?'Vi samlar underlag. Vänta med stora taktiska slutsatser från de första minuterna.':!advice.length?'Inget tydligt återkommande problem i det senaste underlaget. Följ matchbilden innan du ändrar.':'Observationer, inte säkra orsaksförklaringar. Skottanalysen gäller enbart lika styrka; powerplay och boxplay blandas inte in.'};
 }
+function matchPictureNow(){
+ const m=state.live;if(!m?.analysis)return null;const clock=analysisClock(),flow=matchFlowEvidence(m.analysis,Math.max(0,clock-600),clock),shots=m.analysis.shots||[],windowStart=Math.max(0,clock-600),recent=shots.filter(s=>s.time>=windowStart),danger=[recent.filter(s=>s.side==='own'&&s.dangerous).length,recent.filter(s=>s.side==='opponent'&&s.dangerous).length];
+ if(!flow)return {clock,headline:'Underlag byggs upp',signals:['De första registrerade minuterna samlas in.'],problems:[]};
+ const pct=(n,d)=>d?Math.round(n/d*100):0,signals=[],problems=[];let score=0;
+ if(flow.own.entries>=flow.against.entries+3){signals.push(`+${flow.own.entries-flow.against.entries} zoninträden senaste ${analysisTime(flow.seconds)}`);score+=2;}else if(flow.against.entries>=flow.own.entries+3){problems.push(`Motståndaren +${flow.against.entries-flow.own.entries} zoninträden`);score-=2;}
+ if(flow.own.battles>=5){const p=pct(flow.own.battleWins,flow.own.battles);(p>=58?signals: p<=40?problems:null)?.push(`Puckdueller ${p} % vunna`);score+=p>=58?1:p<=40?-1:0;}
+ if(flow.own.turnovers>=flow.against.turnovers+3){problems.push(`${flow.own.turnovers} pucktapp mot ${flow.against.turnovers}`);score--;}else if(flow.against.turnovers>=flow.own.turnovers+3){signals.push(`Pressen har gett ${flow.against.turnovers} motståndartapp`);score++;}
+ if(danger[0]>=danger[1]+2){signals.push(`Farliga lägen ${danger[0]}–${danger[1]}`);score+=2;}else if(danger[1]>=danger[0]+2){problems.push(`Farliga lägen ${danger[0]}–${danger[1]}`);score-=2;}
+ return {clock,flow,danger,headline:score>=3?`${managerClub()} har övertaget just nu`:score<=-3?`${m.opponent} har övertaget just nu`:'Matchbilden är jämn',signals:signals.slice(0,3),problems:problems.slice(0,3)};
+}
+function matchPictureView(){
+ const p=matchPictureNow();if(!p)return '';return `<section class="mc-match-picture"><header><span class="career-eyebrow">SENASTE 10 MINUTERNA</span><h3>${trainingSafe(p.headline)}</h3></header><div class="mc-match-picture-grid"><div><strong>Det som fungerar</strong>${p.signals.map(x=>`<p>+ ${trainingSafe(x)}</p>`).join('')||'<p>Inget tydligt övertag i underlaget.</p>'}</div><div><strong>Att bevaka</strong>${p.problems.map(x=>`<p>${trainingSafe(x)}</p>`).join('')||'<p>Inget återkommande problem just nu.</p>'}</div></div><small>Observationer från registrerat spel, inte säkra orsaksförklaringar.</small></section>`;
+}
 function matchEvidenceReport(){
  const m=state.live;
  const ps=m&&!m.finished?(studioActive()?studioPlayers(0,false):[...currentLinePlayers(),...currentDefensePlayers()]):[];
@@ -53,7 +66,7 @@ function matchEvidenceBody(){
  const current=matchCoachCurrent();
  if(current)return matchBriefLive()+matchCoachFollowupView(current.row,current.closed,!state.live.finished);
  const report=matchEvidenceReport();
- return `${matchBriefLive()}<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.slice(1).map(a=>`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(a.title)}</summary>${matchCoachAdviceView(a)}</details>`).join('')}<p class="mc-note">${trainingSafe(report.note)}</p>`;
+ return `${matchBriefLive()}${matchPictureView()}<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.slice(1).map(a=>`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(a.title)}</summary>${matchCoachAdviceView(a)}</details>`).join('')}<p class="mc-note">${trainingSafe(report.note)}</p>`;
 }
 function matchEvidenceView(){
  if(state.live?.finished){const last=[...tacticalReviewSnapshot()].reverse().find(r=>r.coachDecision);return last?`<section class="mc-evidence"><h3>Ditt senaste matchbeslut</h3>${matchCoachFollowupView(last,true)}</section>`:'';}
