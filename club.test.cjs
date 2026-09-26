@@ -106,4 +106,6 @@ assert.ok(run('mature')>run('early'),'multi-season club projects should mature i
 assert.equal(run('clubProjectFactor("training")')>1,true);
 run("globalThis.staffMember=state.staff.find(s=>s.id==='assistant');delete staffMember.philosophy;globalThis.ph1=staffPhilosophy(staffMember);globalThis.ph2=staffPhilosophy(staffMember)");
 assert.equal(run('ph1.name'),run('ph2.name'));assert.ok(run('Object.values(STAFF_PHILOSOPHIES).some(p=>p.name===ph1.name)'));
+run("state.clubOffice.priority='academy';state.clubOffice.priorityLockedYear=clubYear();state.clubOffice.projects={academy:{id:'academy',started:clubYear()-1,seasons:1,maturity:50}};globalThis.beforeMilestone=clubJuniorFactor();globalThis.choiceOk=clubProjectChoose('academy','regional');globalThis.afterMilestone=clubJuniorFactor()");
+assert.equal(run('choiceOk'),true);assert.ok(run('afterMilestone')>run('beforeMilestone'));assert.equal(run("state.clubOffice.projects.academy.milestone"),'regional');assert.equal(run("clubProjectChoose('academy','integration')"),false,'a project milestone is a strategic branch, not a stack of all bonuses');
 console.log('PASS: club finance, home/away and playoffs, ledgers, migration, personnel contracts and renewal, real training/rehab effects, priorities, rollover and 14 club views.');
