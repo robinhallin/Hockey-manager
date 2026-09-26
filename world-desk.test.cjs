@@ -19,4 +19,6 @@ assert.equal(r('p.nhlPlan'),undefined);assert.match(r('worldDeskDialog()'),/Bekr
 r("worldDeskOpen('plan',p.id);worldUI.plan='junior';worldDeskConfirm()");assert.equal(r('p.nhlPlan.path'),'junior');assert.equal(r('p.nhlPlan.status'),'active');assert.equal(r('p.morale'),r('morale'),'promise itself gives no reward');
 r("worldDeskOpen('plan',p.id)");assert.doesNotMatch(r('worldDeskDialog()'),/Bekräfta beslutet/);r("worldDeskClose();save()");const b=boot(a.storage.value,{production:true});assert.equal(b.run('state.juniors.roster.find(p=>p.pos==="B").nhlPlan.path'),'junior');
 r("state.page='international';worldUI.international='club';internationalView();worldUI.international='nation';internationalView();worldUI.international='history';internationalView()");
+r("ensureRivals();globalThis.newsRows=worldHockeyNews()");
+assert.ok(r("Array.isArray(newsRows)&&newsRows.length<=20"));assert.doesNotThrow(()=>r("worldHockeyNewsView()"));
 console.log('PASS: read-only world views, truthful calendar, restored filters, actual JVM reports and one-time saved development promises.');
