@@ -31,4 +31,9 @@ assert.equal(r('JSON.stringify(state.tacticalPlan)'),r('tactic'),'opening a reco
 assert.equal(a.get('#match-tab-tactics').focused,true);
 r("save()");const b=boot(a.storage.value);
 assert.equal(b.run('JSON.stringify(matchEvidenceReport().advice)'),r('JSON.stringify(matchEvidenceReport().advice)'));
-console.log('PASS: evidence thresholds, strength separation, time-window expiry, partial/future data, current tactics, priority limits, read-only patch, pause/focus and saved advice continuity.');
+r("globalThis.flowSample={shots:[],events:[],partial:false,flow:[{time:0,sides:[{turnovers:0,entries:0,battles:0,battleWins:0},{turnovers:0,entries:0,battles:0,battleWins:0}]},{time:300,sides:[{turnovers:5,entries:2,battles:8,battleWins:2},{turnovers:1,entries:7,battles:8,battleWins:5}]}]};globalThis.flowAdvice=matchCoachEvidence(flowSample,300).advice");
+assert.ok(r("flowAdvice.some(x=>x.key==='breakout')"),'repeated puck losses should be surfaced');
+assert.ok(r("flowAdvice.some(x=>x.key==='entries')"),'entry imbalance should be surfaced');
+assert.ok(r("flowAdvice.some(x=>x.key==='battles')"),'lost puck battles should be surfaced');
+assert.equal(r("matchCoachEvidence({...flowSample,flow:[flowSample.flow[1]]},300).advice.length"),0,'one flow snapshot is not enough evidence');
+console.log('PASS: evidence thresholds, strength separation, time-window expiry, partial/future data, current tactics, priority limits, read-only patch, pause/focus and saved advice continuity plus hockey-flow diagnosis.');
