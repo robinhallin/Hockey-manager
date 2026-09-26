@@ -1,6 +1,8 @@
-# Player portraits — HV71 complete, wider production pending
+# Player portraits — HV71 and Brynäs complete, wider production pending
 
-All 28 players in the game's starting HV71 senior roster have individual cartoon portraits. The other 687 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+All 28 players in the game's starting HV71 senior roster and all 24 Brynäs players have individual cartoon portraits. The other 663 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+
+The Brynäs batch adds 24 individually referenced illustrations. `brynas-production.json` records exact IDs, source pages and final prompts. Twenty-one references are individual headshots from the August 2026 Brynäs photo series; Bäckström, Järnkrok and Anderson-Dolan use NHLPA headshots. Each output was visually reviewed and optimized to a transparent 384×384 PNG. Only generated illustrations ship in the game, not the reference photographs.
 
 The September 26 batch adds 26 individually referenced avatars to Ang and Liv. `hv71-production.json` records each player's exact ID, source page, output asset, generation method and final prompt. Noel Skarby retains a plain helmet because the identified reference shows him wearing one; hidden hair was not invented. Komuls uses an older ECHL headshot, Hardman and Regenda use NHL headshots, and the other new portraits use the August 2026 HV71 photo series. All outputs were visually reviewed for identity, framing and cartoon treatment. These are stylized interpretations, not exact reproductions.
 
