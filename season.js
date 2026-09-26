@@ -79,7 +79,12 @@ function closeSeason(){
  const s=state.season;if(s.phase==='review')return;s.phase='review';
  const promises=state.training?.promises||[];for(const p of promises.filter(p=>!p.resolved)){p.resolved=true;p.result='Säsongen avslutad – för få matcher för slutbedömning';}
  const playerStats=managerRoster().map(p=>({id:p.id,name:p.name,pos:p.pos,goals:p.goals||0,assists:p.assists||0,games:p.games||0,development:Object.keys(p.attributes||{}).reduce((n,k)=>n+Math.max(0,p.attributes[k]-(p.trainingBaseline?.[k]??p.attributes[k])),0)}));
- const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null};
+ for(const p of managerRoster())careerPlayerMilestones(p,managerClub());
+ const leaders=[...playerStats].sort((a,b)=>(b.goals+b.assists)-(a.goals+a.assists)),goalLeaders=[...playerStats].sort((a,b)=>b.goals-a.goals);
+ if(leaders[0])careerRecord('manager-season-points','Flest poäng under en säsong',leaders[0].goals+leaders[0].assists,leaders[0].name,{club:managerClub(),playerId:leaders[0].id});
+ if(goalLeaders[0])careerRecord('manager-season-goals','Flest mål under en säsong',goalLeaders[0].goals,goalLeaders[0].name,{club:managerClub(),playerId:goalLeaders[0].id});
+ if(s.champion)careerHistoryEvent('champion',{club:s.champion,title:`${s.champion} blir mästare`,detail:`Vann mästerskapet ${seasonLabel()}.`});
+ const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null,records:JSON.parse(JSON.stringify(ensureCareerHistory().records))};
  if(!s.archive.some(a=>a.year===s.year))s.archive.unshift(record);
  managerMessage(`review:${s.year}`,`${s.champion} är mästare ${seasonLabel()}`,`Säsongen är avslutad. Din placering i grundserien: ${record.position}. Styrelsens mål: ${record.goals.filter(g=>g.met).length} av ${record.goals.length} uppnådda. Öppna Säsong för utvärdering och nästa försäsong.`,'Säsongsutvärdering',{link:'season'});
  managerSeasonReview();
