@@ -29,10 +29,10 @@ body .game-shell .md-workspace{
  & .mc-playback,& .mc-playback:has(.mc-highlight-speed){position:static;display:grid;grid-template-columns:150px minmax(0,1fr);align-items:end;gap:7px 10px;max-width:none;width:100%;padding:0;border:0;background:transparent;box-shadow:none}
  & .mc-playback>.btn,& .mc-playback:has(.mc-highlight-speed)>.btn{grid-column:auto}
  & .mc-playback label{display:grid;gap:2px;min-width:0;max-width:none;font-size:10px;line-height:1.2;color:var(--mc-muted)}
- & .mc-playback label:last-child{max-width:none}
+ & .mc-playback>label{grid-column:2}
  & .mc-playback select{height:32px;min-height:32px;font-size:11px}
  & .mc-playback .mc-play{background:#ddc28a;color:#17232c;border-color:#ddc28a;font-weight:650;height:34px;padding:6px 10px;white-space:normal;font-size:12px;min-width:0}
- & .mc-playback:not(:has(.mc-highlight-speed)) label:last-child{grid-column:2}
+ & .mc-playback-hint{grid-column:1/-1;margin:0;font-size:10px;line-height:1.3;color:#b6c8d2}
  & .mc-playback:not(:has(.mc-highlight-speed)) .mc-play{grid-row:1/3;align-self:center;height:44px}
  & .mc-scorers{border:0!important;border-bottom:1px solid var(--mc-line)!important;border-radius:0;background:#182d39;color:#9db4c3;padding:5px 14px!important;margin:0;min-height:25px;max-height:25px;white-space:nowrap;overflow:auto;scrollbar-width:thin;flex-shrink:0;font-size:10px}
  & .mc-scorers b,& .mc-scorers time{font-size:10px}
@@ -177,9 +177,9 @@ body .game-shell .md-workspace{
  body .game-shell .md-workspace .mc-on-ice{order:0}
  body .game-shell .md-workspace .mc-coach-content{max-height:640px;flex:none}
  body .game-shell .md-workspace .mc-coach{width:100%}
- body .game-shell .md-workspace .mc-playback{grid-template-columns:repeat(4,minmax(0,1fr))}
+ body .game-shell .md-workspace .mc-playback{grid-template-columns:150px minmax(0,1fr)}
  body .game-shell .md-workspace .mc-playback:not(:has(.mc-highlight-speed)) label:last-child{grid-column:auto}
- body .game-shell .md-workspace .mc-playback:not(:has(.mc-highlight-speed)) .mc-play{grid-row:auto;height:34px;align-self:end}
+ body .game-shell .md-workspace .mc-playback:not(:has(.mc-highlight-speed)) .mc-play{grid-row:1/3;height:40px;align-self:center}
  body .game-shell .md-workspace .mc-playback:has(.mc-highlight-speed){grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 @media(max-width:600px){
@@ -204,3 +204,12 @@ body .game-shell .md-workspace{
  body .game-shell .md-workspace .broadcast-caption{grid-template-columns:1fr;gap:4px;max-height:none}
  body .game-shell .md-workspace .md-status{flex-wrap:wrap}
 }
+
+body .game-shell .md-workspace .mc-playback-settings{padding-bottom:14px;margin-bottom:16px;border-bottom:1px solid var(--mc-line)}
+body .game-shell .md-workspace .mc-playback-settings p{font-size:11px;line-height:1.55;color:#b2c5d1;margin:8px 0}
+body .game-shell .md-workspace .mc-playback-settings label{display:grid;gap:5px;font-size:11px;margin:12px 0}
+body .game-shell .md-workspace .broadcast-overview{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border:0;border-radius:0;background:#142c3a;text-align:center;pointer-events:auto}
+body .game-shell .md-workspace .broadcast-overview[hidden]{display:none}
+body .game-shell .md-workspace .broadcast-overview h3{font-size:17px;margin:10px 0 4px}
+body .game-shell .md-workspace .broadcast-overview p{display:block;margin:4px 0;font-size:11px}
+body .game-shell .md-workspace .broadcast-overview>strong{display:block;font-size:22px;margin-top:10px}

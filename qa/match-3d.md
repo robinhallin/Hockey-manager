@@ -71,3 +71,32 @@ Validation adds finite geometry and a <50,000 dynamic-vertex budget for a normal
 on-ice unit, alternate kit contrast, read-only focus controls and actual Windows
 UI checks for layout, caching, GPU errors, player picking and returning to coach.
 Screenshot 35 and `3d-graphics-result.json` document the expanded surface.
+
+
+## Clear playback controls and camera tracking
+
+The match header now separates **Vad visas?** from **Tempo på isen**. Visible
+play uses the same 0.5×–8× rate in full matches, both highlight modes and replays;
+1× means real-time motion. A short explanation is always visible. The former
+90×–360× selector has moved to the coach settings as named fast-forward levels.
+Only the simulation-only mode exposes it in the header. Preferences survive
+save/reload and new fixtures; valid legacy highlight rates remain readable.
+The old full-match 4× default becomes the normal 1× presentation default.
+
+An opaque fast-forward panel explains why the match clock advances quickly.
+The hidden 3D frame is retained instead of rebuilt during this interval. Normal
+rendering resumes when a highlight starts or the user pauses. Simulation-only
+mode also hides the rink while paused. Replay time accumulates independently of
+match time, so changing pace neither exits nor restarts the replay.
+
+3D adds zoom (80–150%, with a reset) and an optional projected puck marker.
+Camera following eases in simulation time, freezes when paused, and resets for
+faceoffs, replay rewinds or skipped time. A framing check keeps a fast puck on
+screen at close zoom. Camera changes do not invalidate player geometry.
+
+Validation: fixed-clock rate/transition checks, cross-mode match-ledger parity,
+legacy/default/save/next-fixture preferences, non-mutating replay pace and
+camera controls, and puck framing across board positions and desktop aspect
+ratios. Windows smoke uses the real controls, captures settings (36), expanded
+zoom (35) and slow replay (34), checks puck projection and GPU fallback, and
+confirms that hidden frames avoid drawing and geometry rebuilds.

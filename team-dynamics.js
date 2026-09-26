@@ -201,7 +201,9 @@ function lineupBoardView(){
  const group=(type,n,size)=>{const ids=state.lines[type].slice(n*size,n*size+size);return `<article class="lineup-group"><header><h2>${type==='forwards'?'Kedja':'Backpar'} ${n+1}</h2>${chemistryView(ids)}</header><div class="lineup-name-row ${type}">${ids.map((_,i)=>lineupBoardCard(type,n*size+i)).join('')}</div></article>`;};
  return `${lineupWorkspaceNav()}<section class="lineup-all"><header><h1>Alla kedjor och backpar</h1><p>Dra namn mellan platserna. Med tangentbord: välj en plats med Enter, sedan en annan för att byta. Välj en reserv nedan för att sätta in den på markerad plats.</p></header>${hockeyChangeBlocked()?'<p class="lineup-warning">Icing: byten är låsta till nedsläpp.</p>':''}${chemistryAnalysisView()}<div class="lineup-all-grid"><div>${[0,1,2,3].map(n=>group('forwards',n,3)).join('')}</div><div>${[0,1,2].map(n=>group('defense',n,2)).join('')}<article class="lineup-group"><header><h2>Målvakt</h2></header>${lineupBoardCard('goalie',0)}</article></div></div><section id="lineupCandidates" tabindex="-1" class="lineup-reserves"><header><h2>${slot?'Välj spelare till markerad plats':'Truppen och reserverna'}</h2><button class="btn secondary" onclick="lineupUI.slot=null;render()">Avmarkera</button></header><label>Sök spelare<input type="search" value="${trainingSafe(lineupUI.query)}" onchange="lineupUI.query=this.value;render()"></label><div>${candidates.map(p=>`<button class="lineup-reserve" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${haEscape(p.id)}')" onclick="lineupPlace('${haEscape(p.id)}')" ${!slot?'aria-disabled="true"':''}><strong>${trainingSafe(p.name)}</strong><small>${p.pos} · ${lineupPlayerPlace(p)}</small>${slot?positionBadge(p,lineupRole(slot.type,slot.index)):assessmentBadge(p)}<small>Potential ${assessmentBadge(p,true)}</small></button>`).join('')}</div></section><p>Kemin följer spelarparen och utvecklas med gemensam träning, istid och resultat. Samma nationalitet ger ett litet tillskott. Stjärnorna på varje plats visar förmågan efter positionsavdrag.</p></section>`;
 }
-const MATCH_VIEW_MODES={full:'Hela matchen',extended:'Utökade höjdpunkter',highlights:'Viktiga höjdpunkter',commentary:'Endast resultat & kommentarer'};
+const MATCH_VIEW_MODES={full:'Hela matchen',extended:'Fler höjdpunkter',highlights:'Viktiga höjdpunkter',commentary:'Simulera utan rinkbild'};
+const MATCH_ICE_SPEEDS=[[.5,'Halvfart · 0,5×'],[1,'Normal · 1×'],[1.5,'Lite snabbare · 1,5×'],[2,'Dubbel fart · 2×'],[4,'Snabbt · 4×'],[8,'Mycket snabbt · 8×']];
+const MATCH_FAST_SPEEDS=[[1,'Snabb'],[2,'Snabbare'],[3,'Mycket snabb'],[4,'Maximal']];
 let studioHighlightWindow=null;
 function studioHighlightTrigger(e,m=state.live){
  const mode=m?.rink?.mode;if(mode==='full')return true;if(mode==='commentary')return false;
@@ -210,7 +212,12 @@ function studioHighlightTrigger(e,m=state.live){
  return e.flight?.kind==='shot'||e.flight?.kind==='rebound'||e.wall<(e.highlightUntil||0)||Boolean(carrier&&StudioHockey.progress(carrier.side,carrier.x)>44&&e.shotQuality(carrier)>.075);
 }
 function studioHighlightMode(m=state.live){return ['extended','highlights'].includes(m?.rink?.mode);}
-function studioHighlightRate(m=state.live){return [.5,1,1.5,2].includes(m?.highlightSpeed)?m.highlightSpeed:1;}
+function studioOnIceRate(m=state.live){
+ const valid=value=>MATCH_ICE_SPEEDS.some(([v])=>v===value);
+ return [m?.onIceSpeed,m?.highlightSpeed,state.matchPlayback?.onIceSpeed,1].find(valid);
+}
+function studioFastChoice(m=state.live){return [m?.speed,state.matchPlayback?.fastSpeed,1].find(v=>[1,2,3,4].includes(v));}
+function studioHighlightRate(m=state.live){return studioOnIceRate(m);}
 function studioTrackHighlight(e,m=state.live){
  if(!studioHighlightMode(m)){studioHighlightWindow=null;return;}
  if(studioHighlightTrigger(e,m))studioHighlightWindow={engine:e,until:e.wall+6};
@@ -219,17 +226,29 @@ function studioShouldShow(e,m=state.live){
  return Boolean(studioHighlightTrigger(e,m)||studioHighlightMode(m)&&studioHighlightWindow?.engine===e&&e.wall<studioHighlightWindow.until);
 }
 function studioPlaybackRate(e,m=state.live){
- if(!studioShouldShow(e,m))return ({1:90,2:150,3:240,4:360}[m.speed]||90);
- return studioHighlightMode(m)?studioHighlightRate(m):({1:4,2:8,3:16,4:32}[m.speed]||4);
+ if(!studioShouldShow(e,m))return ({1:90,2:150,3:240,4:360}[studioFastChoice(m)]);
+ return studioOnIceRate(m);
 }
-function setHighlightSpeed(value){
- const m=state.live,rate=Number(value);if(!m||![.5,1,1.5,2].includes(rate))return;
- m.highlightSpeed=rate;if(studioActive())studioRestartClock();clearTimeout(matchTimer);save();render();scheduleTick();
+function setOnIceSpeed(value){
+ const m=state.live,rate=Number(value);if(!m||!MATCH_ICE_SPEEDS.some(([v])=>v===rate))return;
+ m.onIceSpeed=rate;(state.matchPlayback??={}).onIceSpeed=rate;
+ if(studioActive())studioRestartClock(true);
+ clearTimeout(matchTimer);save();render();scheduleTick();
+}
+function setHighlightSpeed(value){setOnIceSpeed(value);}
+function matchFastControl(label='Snabbspolning mellan höjdpunkter',id='match-fast-speed'){
+ return `<label for="${id}">${label}<select id="${id}" onchange="setSpeed(this.value)">${MATCH_FAST_SPEEDS.map(([v,name])=>`<option value="${v}" ${studioFastChoice()===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
 }
 function matchPlaybackControls(m=state.live){
- const highlights=studioActive()&&studioHighlightMode(m),commentary=m.rink.mode==='commentary';
- const choices=highlights||commentary?[[1,'90×'],[2,'150×'],[3,'240×'],[4,'360×']]:[[1,'4×'],[2,'8×'],[3,'16×'],[4,'32×']];
- return `${highlights?`<label class="mc-highlight-speed">Höjdpunktstempo<select onchange="setHighlightSpeed(this.value)" aria-label="Höjdpunktstempo">${[[.5,'0,5× · Långsamt'],[1,'1× · Normal'],[1.5,'1,5×'],[2,'2×']].map(([v,label])=>`<option value="${v}" ${studioHighlightRate(m)===v?'selected':''}>${label}</option>`).join('')}</select></label>`:''}<label>${highlights?'Mellan höjdpunkter':commentary?'Simuleringstempo':'Hastighet'}<select onchange="setSpeed(this.value)" aria-label="${highlights?'Tempo mellan höjdpunkter':'Uppspelningshastighet'}">${choices.map(([v,label])=>`<option value="${v}" ${m.speed===v?'selected':''}>${label}</option>`).join('')}</select></label>`;
+ const replay=studioActive()&&Boolean(studioReplayState),commentary=m.rink.mode==='commentary'&&!replay;
+ if(!studioActive())return matchFastControl('Matchtempo','match-legacy-speed');
+ const hint=replay?'1× = verklig spelfart. Reprisen ändrar inte matchen.':commentary?'Matchen beräknas utan rinkbild. Pausa när du vill coacha.':studioHighlightMode(m)?'1× = verklig spelfart. Mellan höjdpunkter snabbspolar spelet.':'1× = verklig spelfart. Hela matchen visas utan snabbspolning.';
+ const control=commentary?matchFastControl('Simuleringstempo'):`<label>${replay?'Repristempo':'Tempo på isen'}<select aria-label="${replay?'Repristempo':'Tempo på isen'}" aria-describedby="match-playback-hint" onchange="setOnIceSpeed(this.value)">${MATCH_ICE_SPEEDS.map(([v,name])=>`<option value="${v}" ${studioOnIceRate(m)===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
+ return control+`<p id="match-playback-hint" class="mc-playback-hint">${hint}</p>`;
+}
+function matchPlaybackSettings(){
+ if(!studioActive())return '';
+ return `<section class="mc-playback-settings"><h3>Matchvisning och tempo</h3><p><b>Vad visas?</b> väljer hur mycket av matchen du ser. <b>Tempo på isen</b> styr spelarnas och puckens visningsfart. Normal, 1×, är verklig spelfart.</p>${matchFastControl('Snabbspolning mellan höjdpunkter','match-fast-setting')}<p>Påverkar bara väntan på nästa höjdpunkt och läget utan rinkbild. Hela matchen och repriser använder tempot på isen. Snabbspolningen begränsas av datorns kapacitet.</p><p>Dina val sparas och används i nästa match. Tempot ändrar inte lagets taktik eller hur matchen avgörs.</p></section>`;
 }
 function matchFullscreen(){if(typeof document==='undefined')return;const root=document.documentElement;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
 
