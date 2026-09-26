@@ -21,6 +21,16 @@ function veteranRoleRecommendation(p){
  const candidates=Object.entries(DEVELOPMENT_ROLE_PLANS).filter(([key])=>PLAYER_TASKS[key]?.groups.includes(group)).map(([to,plan])=>({to,value:plan.keys.reduce((sum,key)=>sum+(a[key]||0),0)/plan.keys.length}));
  return candidates.sort((a,b)=>b.value-a.value)[0]||null;
 }
+function youngRoleRecommendation(p){
+ if(!p||p.pos==='MV'||p.age>24)return null;const group=p.pos==='B'?'defense':'forwards',keys=Object.keys(DEVELOPMENT_ROLE_PLANS).filter(k=>PLAYER_TASKS[k]?.groups.includes(group)),ranked=keys.map(k=>({key:k,value:playerRoleSuitability(p,k)})).sort((a,b)=>b.value-a.value),current=p.developmentRolePlan,currentValue=current?playerRoleSuitability(p,current):0;
+ if(!ranked[0]||ranked[0].key===current||ranked[0].value<12.5||current&&ranked[0].value<currentValue+1)return null;
+ const plan=DEVELOPMENT_ROLE_PLANS[ranked[0].key],growth=plan.keys.reduce((n,k)=>n+Math.max(0,(p.attributes?.[k]||0)-(p.developmentReview?.baseline?.[k]||p.trainingBaseline?.[k]||p.attributes?.[k]||0)),0);
+ if(growth<2)return null;return {from:current,to:ranked[0].key,name:plan.name,value:ranked[0].value,growth,reason:`Spelarens egenskaper för ${plan.name.toLowerCase()} har utvecklats tydligt sedan senaste uppföljningen.`};
+}
+function youngRoleReview(p){
+ const r=youngRoleRecommendation(p);if(!r||p.lastYoungRoleRecommendation===r.to)return;p.lastYoungRoleRecommendation=r.to;
+ managerMessage(`young-role:${state.season.year}:${p.id}:${r.to}`,`${p.name}: rollen kan utvecklas`,`${r.reason} Staben rekommenderar att du överväger ${r.name}. Det är ett råd; nuvarande utvecklingsplan ändras inte automatiskt.`,'Spelarutveckling',{playerId:p.id,link:'training'});
+}
 function developmentRolePlan(p){return DEVELOPMENT_ROLE_PLANS[p.developmentRolePlan]||null;}
 function setDevelopmentRolePlan(id,key){const p=findPlayerAnywhere(id);if(!p||(!isOwnPlayer(p)&&!p.academy)||key&&(!DEVELOPMENT_ROLE_PLANS[key]||p.pos==='MV'))return;p.developmentRolePlan=key||null;p.developmentReview={club:managerClub(),date:state.calendar.date,rolePlan:p.developmentRolePlan,baseline:{...p.attributes}};save();render();}
 function developmentRoleProgress(p){const plan=developmentRolePlan(p);if(!plan)return null;const a=ensurePlayerAttributes(p),values=plan.keys.filter(k=>Object.hasOwn(a,k)).map(k=>a[k]),baseline=p.developmentReview?.baseline||p.trainingBaseline||a;return {plan,average:values.length?values.reduce((n,v)=>n+v,0)/values.length:0,changes:plan.keys.reduce((n,k)=>n+Math.max(0,(a[k]||0)-(baseline[k]||a[k]||0)),0)};}
