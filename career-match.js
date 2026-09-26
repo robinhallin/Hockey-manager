@@ -93,7 +93,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  attribute(a,key){
   if(!a)return 10;const p=studioPlayer(a.side,a.player.id),energy=p?matchEnergy(p):a.player.energy;
   const fit=p?readinessFit(p,a.role||'X',Boolean(this.penalty)):1;
-  let chemistry=50,extra=0;
+  let chemistry=50,extra=0,fitFactor=1;
   if(CHEMISTRY_ATTRIBUTES.has(key)){
    let cache=studioChemistryCache.get(this);
    if(!cache||cache.tick!==this.tick){
@@ -101,12 +101,12 @@ class CareerBroadcastMatch extends StudioHockey.Match {
     if(!cache||cache.signature!==signature){
      const values=[0,1].map(side=>{
       const rows=this.actors.filter(x=>x.side===side&&x.role!=='G'),club=side===0?managerClub():state.live.opponent;
-      return ['forward','defense'].map(group=>lineChemistry(rows.filter(x=>(['LD','RD'].includes(x.role)?'defense':'forward')===group).map(x=>x.player.id),club).value);
+      return ['forward','defense'].map(group=>{const ids=rows.filter(x=>(['LD','RD'].includes(x.role)?'defense':'forward')===group).map(x=>x.player.id);return {chemistry:lineChemistry(ids,club).value,fit:lineTacticalFit(ids,group==='forward'?'forwards':'defense',club)};});
      });cache={signature,values};
     }
     cache.tick=this.tick;studioChemistryCache.set(this,cache);
    }
-   chemistry=a.role==='G'?50:cache.values[a.side][['LD','RD'].includes(a.role)?1:0];
+   if(a.role!=='G'){const group=['LD','RD'].includes(a.role)?1:0,row=cache.values[a.side][group];chemistry=row.chemistry;fitFactor=tacticalFitFactor(row.fit,key,group?'defense':'forwards');}
   }
   const physicality=a.side===0?state.tacticalPlan.physicality:state.live.aiTeam?.physicality;
   if(key==='discipline')extra+=physicality==='hard'?-4:physicality==='safe'?3:0;
@@ -114,7 +114,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(key==='checking')extra+=physicality==='hard'?1:physicality==='safe'?-.6:0;
   if(a.side===0&&['passing','vision','positioning','faceoffs'].includes(key))extra+=(this.teamBonus||0)/4;
   if(p&&['decisions','composure','vision','positioning','passing'].includes(key))extra+=(a.side===0?matchFeedbackBonus([p]):0)*.15;
-  return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra);
+  return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*fitFactor;
  }
  attackTargets(side){
   super.attackTargets(side);const t=this.teams[side];

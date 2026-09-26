@@ -50,6 +50,44 @@ function lineChemistry(ids,club=managerClub()){
 function chemistryView(ids,club=managerClub()){
  const c=lineChemistry(ids,club);return `<span class="chemistry" title="Gemensam istid, träning och resultat tillsammans. ${c.minutes} gemensamma minuter i snitt.">Kemi <b>${c.value} %</b><meter min="0" max="100" value="${c.value}" aria-label="Kemi ${c.value} procent"></meter></span>`;
 }
+function playerTacticalProfile(p){
+ const a=ensurePlayerAttributes(p),avg=(...ks)=>ks.reduce((n,k)=>n+(a[k]||10),0)/ks.length;
+ return {creator:avg('passing','vision','decisions'),carrier:avg('puckControl','skating','decisions'),finisher:avg('shooting','composure','positioning'),retriever:avg('workRate','checking','strength'),defender:avg('positioning','checking','decisions'),support:avg('passing','positioning','workRate')};
+}
+function lineTacticalFit(ids,type='forwards',club=managerClub()){
+ const roster=state.clubRosters[club]||[],ps=ids.map(id=>roster.find(p=>samePlayerId(p.id,id))).filter(Boolean),profiles=ps.map(playerTacticalProfile);
+ if(!profiles.length)return {value:50,label:'Saknar underlag',strengths:[],warnings:['Formationen är inte komplett.'],profiles:[]};
+ const top=k=>Math.max(...profiles.map(x=>x[k])),avg=k=>profiles.reduce((n,x)=>n+x[k],0)/profiles.length;
+ let score=50,strengths=[],warnings=[];
+ if(type==='forwards'){
+  const needs={creator:top('creator'),carrier:top('carrier'),finisher:top('finisher'),retriever:top('retriever')};
+  score=(needs.creator+needs.carrier+needs.finisher+needs.retriever)/4*5;
+  if(needs.creator>=14)strengths.push('spelfördelning');else warnings.push('saknar tydlig spelfördelare');
+  if(needs.carrier>=14)strengths.push('pucktransport');else warnings.push('svag pucktransport under press');
+  if(needs.finisher>=14)strengths.push('avslutshot');else warnings.push('saknar naturlig avslutare');
+  if(needs.retriever>=13.5)strengths.push('puckåtervinning');else warnings.push('begränsad puckåtervinning');
+  const duplicate=profiles.filter(x=>x.finisher>=14&&x.creator<13&&x.retriever<13).length;
+  if(duplicate>=2){score-=7;warnings.push('flera avslutsorienterade spelare konkurrerar om samma uppgift');}
+  if(avg('support')<12.5){score-=5;warnings.push('svagt understöd utan puck');}
+ }else{
+  score=(top('creator')+top('carrier')+avg('defender')+avg('support'))/4*5;
+  if(top('creator')>=13.5)strengths.push('förstapass');else warnings.push('svagt förstapass');
+  if(top('carrier')>=13.5)strengths.push('pucktransport');else warnings.push('begränsad väg ur press');
+  if(avg('defender')>=13)strengths.push('defensiv balans');else warnings.push('sårbart försvarsspel');
+  if(profiles.every(x=>x.creator>=14&&x.defender<12.5)){score-=7;warnings.push('båda backarna prioriterar spel med puck framför defensiv säkerhet');}
+ }
+ score=Math.max(20,Math.min(95,Math.round(score)));
+ return {value:score,label:score>=78?'Kompletterar varandra':score>=64?'Fungerande balans':score>=50?'Blandad passform':'Tydliga rollhål',strengths,warnings,profiles};
+}
+function tacticalFitFactor(fit,key,type='forwards'){
+ const v=(fit?.value??50)-50;
+ const keys=type==='forwards'?['passing','vision','decisions','positioning','puckControl']:['passing','decisions','positioning'];
+ return keys.includes(key)?1+Math.max(-.06,Math.min(.06,v/500)):1;
+}
+function tacticalFitView(ids,type='forwards',club=managerClub()){
+ const f=lineTacticalFit(ids,type,club),detail=[f.strengths.length?'Styrkor: '+f.strengths.join(', '):'',f.warnings.length?'Att bevaka: '+f.warnings.join(', '):''].filter(Boolean).join('. ');
+ return `<span class="chemistry tactical-fit" title="${trainingSafe(detail)}">Passform <b>${f.value} %</b><meter min="0" max="100" value="${f.value}" aria-label="Taktisk passform ${f.value} procent"></meter><small>${trainingSafe(f.label)}</small></span>`;
+}
 function dynamicsTrain(club,units,session,date=state.calendar?.date){
  if(!date||!['tactics','matchprep','powerplay','penaltykill','skills'].includes(session))return;
  const d=dynamicsClub(club);if(d.lastTrainingDate===date)return;d.lastTrainingDate=date;
@@ -88,9 +126,9 @@ function dynamicsRecordMatch(snapshot){
 function chemistryAnalysisView(){
  const units=[...[0,1,2,3].map(i=>({name:'Kedja '+(i+1),ids:state.lines.forwards.slice(i*3,i*3+3)})),...[0,1,2].map(i=>({name:'Backpar '+(i+1),ids:state.lines.defense.slice(i*2,i*2+2)}))];
  const signed=n=>(n>0?'+':'')+n.toFixed(1);
- return `<details class="chemistry-analysis" ${state.page==='match'?'':'open'}><summary>Analysera formationernas samspel</summary><p>Samma kemi används här, i omklädningsrummet och i matchen. Jämför kontinuitet mot behovet av nya kombinationer.</p><div class="chemistry-table-scroll" tabindex="0" role="region" aria-label="Jämför formationernas kemi"><table><caption>Kemins underlag · före nästa match</caption><thead><tr><th>Formation</th><th>Spelare</th><th>Kemi</th><th>Gemensam istid¹</th><th>Istidsbidrag</th><th>Träningsbidrag</th><th>Resultatbidrag</th><th>Bakgrund²</th><th>Samspelseffekt³</th></tr></thead><tbody>${units.map(u=>{
-  const c=lineChemistry(u.ids);return `<tr><th scope="row">${u.name}</th><td>${u.ids.map(id=>trainingSafe(playerById(id)?.name||'Vakant')).join(' · ')}</td><td><strong>${c.value}/100</strong></td><td>${c.minutes} min</td><td>${signed(c.parts.experience)}</td><td>${signed(c.parts.training)}</td><td>${signed(c.parts.results)}</td><td>${signed(c.parts.base+c.parts.nationality)}</td><td>${signed((chemistryFactor(c.value,'passing')-1)*100)} %</td></tr>`;
- }).join('')}</tbody></table></div><p>¹ Genomsnitt per spelarpar. ² Grundvärde 45 och högst +5 för gemensam nationalitet. ³ Påverkar passningar, spelsinne, positionering och beslut; inte alla attribut eller vinstchansen direkt. Värdet avrundas och begränsas till 20–95.</p><p>Träning bygger högst åtta kemipoäng för spelare som faktiskt deltar tillsammans. Resultatbidraget följer mål framåt och bakåt medan paret är på isen. Äldre sparningar behåller sina tidigare värden; träningsbidrag följs från denna uppdatering. En ensam spelare har neutral samspelseffekt.</p></details>`;
+ return `<details class="chemistry-analysis" ${state.page==='match'?'':'open'}><summary>Analysera formationernas samspel</summary><p>Samma kemi används här, i omklädningsrummet och i matchen. Jämför kontinuitet mot behovet av nya kombinationer.</p><div class="chemistry-table-scroll" tabindex="0" role="region" aria-label="Jämför formationernas kemi"><table><caption>Kemins underlag · före nästa match</caption><thead><tr><th>Formation</th><th>Spelare</th><th>Kemi</th><th>Taktisk passform</th><th>Gemensam istid¹</th><th>Istidsbidrag</th><th>Träningsbidrag</th><th>Resultatbidrag</th><th>Bakgrund²</th><th>Samspelseffekt³</th></tr></thead><tbody>${units.map(u=>{
+  const c=lineChemistry(u.ids),type=u.name.startsWith('Kedja')?'forwards':'defense',f=lineTacticalFit(u.ids,type);return `<tr><th scope="row">${u.name}</th><td>${u.ids.map(id=>trainingSafe(playerById(id)?.name||'Vakant')).join(' · ')}</td><td><strong>${c.value}/100</strong></td><td><strong>${f.value}/100</strong><small>${trainingSafe(f.label)}${f.warnings[0]?' · '+trainingSafe(f.warnings[0]):''}</small></td><td>${c.minutes} min</td><td>${signed(c.parts.experience)}</td><td>${signed(c.parts.training)}</td><td>${signed(c.parts.results)}</td><td>${signed(c.parts.base+c.parts.nationality)}</td><td>${signed((chemistryFactor(c.value,'passing')-1)*100)} %</td></tr>`;
+ }).join('')}</tbody></table></div><p>Taktisk passform mäter hur formationens egenskaper kompletterar varandra och är separat från kemi. ¹ Genomsnitt per spelarpar. ² Grundvärde 45 och högst +5 för gemensam nationalitet. ³ Påverkar passningar, spelsinne, positionering och beslut; inte alla attribut eller vinstchansen direkt. Värdet avrundas och begränsas till 20–95.</p><p>Träning bygger högst åtta kemipoäng för spelare som faktiskt deltar tillsammans. Resultatbidraget följer mål framåt och bakåt medan paret är på isen. Äldre sparningar behåller sina tidigare värden; träningsbidrag följs från denna uppdatering. En ensam spelare har neutral samspelseffekt.</p></details>`;
 }
 function lineupBoardPick(type,index){
  const from=lineupUI.slot;
