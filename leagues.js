@@ -3,17 +3,18 @@
 const ALLSVENSKAN_CLUBS=[
  ['AIK','AIK','Stockholm',75,4,4400,'#e7ce67'],['Almtuna IS','AIS','Uppsala',66,12,1600,'#cf8094'],['BIK Karlskoga','BIK','Karlskoga',73,6,2700,'#8dbbea'],['IK Oskarshamn','IKO','Oskarshamn',71,6,2900,'#8bc4e6'],['Kalmar HC','KHC','Kalmar',72,6,2500,'#e99888'],['Leksands IF','LIF','Leksand',76,4,5900,'#abcbe9'],['MoDo Hockey','MODO','Örnsköldsvik',75,4,5200,'#df9290'],['Mora IK','MIK','Mora',71,6,3000,'#ce937d'],['Nybro Vikings','NIF','Nybro',68,10,2300,'#d99985'],['Södertälje SK','SSK','Södertälje',74,4,3900,'#daca89'],['Vimmerby HC','VHC','Vimmerby',65,12,1500,'#ded085'],['Visby/Roma','VR','Visby',65,12,1400,'#b7c9b0'],['Västerås IK','VIK','Västerås',69,10,3100,'#e1d18a'],['Östersunds IK','ÖIK','Östersund',66,12,1700,'#93c79e']
 ];
-const LEAGUE_NAMES={SHL:'SHL',HA:'Hockeyallsvenskan'};
+const LEAGUE_NAMES={SHL:'SHL',HA:'Hockeyallsvenskan',CH_NL:'National League'};
 function registerLeagueClubs(){
+ swissRegisterClubs();
  for(const [name,code,city,strength,place,fans,color] of ALLSVENSKAN_CLUBS){
   CLUB_DATA[name]={name,strength,style:'balanced',reputation:strength,budget:6000000,wageBudget:18000000,fans,boardExpectation:place<=4?'Utmana om avancemang':place<=6?'Slutspel':'Bygg en stabil klubb'};
   CAREER_CLUBS[name]={code,city,color,group:place<=4?'title':place<=6?'playoff':'build',title:place<=4?'Vägen tillbaka till toppen.':'Bygg för nästa steg.',pitch:place<=4?'Vi vill utmana om avancemang. Bygg ett lag som klarar både pressen och ekonomin.':'Ge talangerna en väg framåt. Vi vill se en hållbar klubb och ett lag som växer tillsammans.',cash:place<=4?9000000:place<=6?6000000:4000000,place,youth:2,economy:place>6};
  }
 }
 function leagueInitial(){return Object.fromEntries([...TEAM_DATA.map(t=>[t[0],'SHL']),...ALLSVENSKAN_CLUBS.map(t=>[t[0],'HA'])]);}
-function leagueOf(name=managerClub()){return state?.world?.membership?.[name]||(ALLSVENSKAN_CLUBS.some(c=>c[0]===name)?'HA':'SHL');}
+function leagueOf(name=managerClub()){return state?.world?.membership?.[name]||(swissClub(name)?'CH_NL':ALLSVENSKAN_CLUBS.some(c=>c[0]===name)?'HA':'SHL');}
 function leagueName(name=managerClub()){return LEAGUE_NAMES[leagueOf(name)];}
-function leagueTeamRows(){return [...TEAM_DATA,...ALLSVENSKAN_CLUBS.map(c=>[c[0],c[3],'balanced'])];}
+function leagueTeamRows(membership=null){if(membership&&Object.values(membership).includes("CH_NL"))return SWISS_DATABASE.clubs.map(c=>[c.name,77,"balanced"]);return [...TEAM_DATA,...ALLSVENSKAN_CLUBS.map(c=>[c[0],c[3],'balanced'])];}
 function leagueTable(id=leagueOf()){return state.teams.filter(t=>leagueOf(t.name)===id).slice().sort((a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga));}
 function leagueRoster(name,strength){return haRealRoster(name);}
 function leagueFictionalRoster(name,strength){
@@ -51,6 +52,7 @@ function leagueBackground(g){
 }
 
 function leagueStartPlayoffs(){
+ if(swissCareer())return swissStartPlayoffs();
  const w=state.world;if(!w||w.legacyCup)return false;
  w.tables={SHL:JSON.parse(JSON.stringify(leagueTable('SHL'))),HA:JSON.parse(JSON.stringify(leagueTable('HA')))};
  w.cups={SHL:{stage:'playin',champion:null},HA:{stage:'playin',champion:null}};w.movement=null;
@@ -59,6 +61,7 @@ function leagueStartPlayoffs(){
  state.season.stage='playin';schedulePlayoffDay();return true;
 }
 function leagueAdvanceCups(){
+ if(swissCareer()&&state.world.cups)return swissAdvanceCups();
  const w=state.world;if(!w?.cups)return false;
  for(const id of ['SHL','HA']){
   const cup=w.cups[id];if(cup.champion)continue;
@@ -106,7 +109,8 @@ function leagueCareerOffer(offer,name,rosters){
  return offer;
 }
 function leagueReset(){if(!state.world)return;state.world.tables=null;state.world.cups=null;state.world.movement=null;state.world.legacyCup=false;state.world.selected=leagueOf();}
-function leagueSelect(id){if(!Object.hasOwn(LEAGUE_NAMES,id))return;state.world.selected=id;leagueStatsUI.league=id;leagueStatsUI.club='all';deskNavigate('leagues');save();render();}
+function activeLeagueNames(){return Object.fromEntries(Object.entries(LEAGUE_NAMES).filter(([id])=>Object.values(state.world?.membership||leagueInitial()).includes(id)));}
+function leagueSelect(id){if(!Object.hasOwn(activeLeagueNames(),id))return;state.world.selected=id;leagueStatsUI.league=id;leagueStatsUI.club='all';deskNavigate('leagues');save();render();}
 function leaguesView(){return leagueWorkspaceView();}
 function legacyLeaguesView(){
  const w=state.world,id=w.selected||leagueOf(),rows=w.tables?.[id]||leagueTable(id),series=state.season.series.filter(s=>(s.league||leagueOf(s.high))===id);

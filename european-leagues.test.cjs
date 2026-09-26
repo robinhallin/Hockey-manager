@@ -156,12 +156,12 @@ test('all retained source and crest bytes match provenance; generated data is re
   execFileSync(process.execPath, ['scripts/build-europe-data.cjs', '--check']);
 });
 
-test('preparation does not expose an incomplete league or alter an established career on reload', () => {
+test('Swiss opt-in and Europe preparation do not alter an established Swedish career on reload', () => {
   const {boot} = require('./scripts/career-test-fixture.cjs');
   const game = boot(undefined, {production: true});
   game.run('startCareerWithClub("HV71");save()');
   assert.equal(game.run('state.teams.length'), 28);
-  assert.deepEqual(Array.from(game.run('Object.keys(LEAGUE_NAMES)')), ['SHL', 'HA']);
+  assert.deepEqual(Array.from(game.run('Object.keys(activeLeagueNames())')), ['SHL', 'HA']);
   assert.equal(game.run('state.schedule.length'), 728);
   assert.equal(game.run('createSchedule(Object.fromEntries(TEAM_DATA.map(t=>[t[0],"SHL"]))).length'), 364);
   const before = game.run('JSON.stringify({world:state.world,rosters:state.clubRosters,schedule:state.schedule})');

@@ -12,7 +12,7 @@ const initial=storage.value;
 run('beginCareerSelection()');
 assert.equal(storage.value,initial);
 assert.equal(run('careerScreen'),'select');
-assert.equal((run('careerClubSelectView()').match(/class="career-club-card/g)||[]).length,28);
+assert.equal((run('careerClubSelectView()').match(/class="career-club-card/g)||[]).length,42);
 for(const club of run('Object.keys(CLUB_DATA)')){
   run(`chooseCareerClub(${JSON.stringify(club)});careerReview()`);
   const html=run('careerReviewView()');

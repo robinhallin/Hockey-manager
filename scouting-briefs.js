@@ -34,7 +34,7 @@ function scoutingBrief(profile,placement,maxSalary,maxAge,horizon,person,league=
  state.recruitment.tab='missions';save();render();
 }
 function scoutingBriefView(){
- const c=scoutDesk.draft?.criteria||{profile:'Målskytt',league:'SHL',placement:'Ordinarie',targetRole:'all',confidence:'possible',maxSalary:1000000,maxAge:30,horizon:'now'};
+ const c=scoutDesk.draft?.criteria||{profile:'Målskytt',league:leagueOf(),placement:'Ordinarie',targetRole:'all',confidence:'possible',maxSalary:1000000,maxAge:30,horizon:'now'};
  const person=scoutDesk.draft?.person||scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]);
  const leagues=[...new Set(getTransferMarketPlayers().map(scoutingLeague))].filter(Boolean).sort();
  return `<section class="sc-card"><h3>Ge scouten ett konkret uppdrag</h3><form class="sc-fields" onsubmit="event.preventDefault();scoutingBrief(this.elements.profile.value,this.elements.placement.value,this.elements.maxSalary.value,this.elements.maxAge.value,this.elements.horizon.value,this.elements.person.value,this.elements.league.value,this.elements.targetRole.value,this.elements.confidence.value)">

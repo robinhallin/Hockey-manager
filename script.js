@@ -961,7 +961,7 @@ function createClubRosters(){
 
 }
 function createSchedule(membership=leagueInitial()){
-  const groups=['SHL','HA'].map(id=>Object.keys(membership).filter(name=>membership[name]===id));
+  const groups=[...new Set(Object.values(membership))].map(id=>Object.keys(membership).filter(name=>membership[name]===id));
   return groups.filter(teams=>teams.length).flatMap(teams=>createLeagueSchedule(teams));
 }
 function createLeagueSchedule(teams){
@@ -4120,6 +4120,7 @@ function startCareerWithClub(clubName){
   }
 
   const freshState = careerDraft || newState();
+  swissPrepareCareer(freshState,clubName);
   const offer = careerOffer(clubName,freshState.clubRosters);
 
   freshState.managerClub = clubName;

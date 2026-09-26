@@ -37,7 +37,7 @@ function ensureRecruitment(){
     state.recruitment.ai[club]={cash:leagueOf(club)==='HA'?6000000:12000000,wageLimit:Math.round(wage*1.3),year:recruitmentYear()};
   }
 }
-function recruitCountry(club){return RECRUIT_CLUBS.find(c=>c[0]===club)?.[1]||'SWE';}
+function recruitCountry(club){if(swissClub(club))return 'SUI';return RECRUIT_CLUBS.find(c=>c[0]===club)?.[1]||'SWE';}
 function recruitMessage(text){state.recruitment.message=text;save();render();}
 function recruitReport(title,body,extra={}){const r=state.recruitment;managerMessage(`recruit:${r.nextId++}`,title,body,'Rekrytering',{link:'transfers',...extra});}
 function recruitRoleValue(p,profile,estimated=true){const def=RECRUIT_PROFILES[profile];if(!def||!def.positions.includes(p.pos))return 0;return attributeWeighted(estimated?playerAssessment(p).estimated:ensurePlayerAttributes(p),def.weights);}
