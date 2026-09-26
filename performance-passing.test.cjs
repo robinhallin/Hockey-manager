@@ -7,4 +7,6 @@ assert.ok(r('Number.isFinite(grade.stars)&&Number.isFinite(grade.score)'));
 assert.match(r('grade.reason'),/0\/1 passningar \(0 %\)/);
 assert.equal(r('JSON.stringify(grade)'),r('JSON.stringify(performanceGrade({...row,passes:0}))'),'a sparse event ledger with no completed pass means zero completions');
 assert.doesNotMatch(r('performanceStars(grade.stars)'),/NaN|undefined/);
+run("globalThis.perfStart=performanceNow();performanceMeasure('render',perfStart);globalThis.perfSummary=performanceSummary('render')");
+assert.ok(run("perfSummary.count>=1&&perfSummary.last>=0&&Number.isFinite(perfSummary.avg)"));
 console.log('PASS: players with attempted but no completed passes receive finite ratings and a zero-percent passing record.');
