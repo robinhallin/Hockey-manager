@@ -73,4 +73,6 @@ assert.equal(s('arc.status'),'closed');assert.equal(s('rivalPreparationBonus()')
 const full=game('AIK');full.run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());globalThis.guard=0;while(!state.live.finished&&guard++<100000){state.live.running=true;liveStep();}');
 assert.equal(full.run('state.live.finished'),true);assert.equal(full.run('state.rivals.duels[managerClub()+"|"+state.live.opponent].length'),1);assert.ok(full.run('rivalsClubState(state.live.opponent).recent.length')>0);
 full.run('globalThis.done=JSON.stringify(state.rivals);finishAnalysis();finishMatch(false)');assert.equal(full.run('JSON.stringify(state.rivals)'),full.run('done'));
+run("globalThis.riv=rivalryState('HV71','Färjestad BK');globalThis.beforeRiv=riv.score;rivalryAdd('HV71','Färjestad BK',8,'Slutspelsdrama');globalThis.afterRiv=rivalryState('Färjestad BK','HV71')");
+assert.equal(run('afterRiv.score'),run('beforeRiv+8'));assert.ok(run("['Vanligt motstånd','Växande','Intensiv','Het rivalitet'].includes(rivalryLevel(afterRiv.score))"));
 console.log('PASS: 28 clubs, injury-aware independent lineups, goalie rotation, coherent box scores, attribute-driven results, daily growth, coaching changes, live adaptations, stories, legacy saves and full live fixture.');
