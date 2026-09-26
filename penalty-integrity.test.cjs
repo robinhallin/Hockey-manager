@@ -65,4 +65,7 @@ assert.equal(o('state.live.eventStream.events.length'),o('count'),'legacy loadin
 // New schema corruption is rejected instead of silently resetting a career.
 s('save()');const bad=JSON.parse(q.storage.value);bad.live.broadcast.penalties[0].minutes=2;
 assert.throws(()=>s('validateSaveText('+JSON.stringify(JSON.stringify(bad))+')'),/Matchens spelarbeslut/);
+assert.deepEqual(run("JSON.stringify(StudioHockey.strengthState([{side:0,affectsStrength:true},{side:0,affectsStrength:true}],false))"),JSON.stringify([3,5]));
+assert.deepEqual(run("JSON.stringify(StudioHockey.strengthState([{side:0,affectsStrength:true},{side:1,affectsStrength:true}],false))"),JSON.stringify([4,4]));
+assert.deepEqual(run("JSON.stringify(StudioHockey.strengthState([{side:0,affectsStrength:true},{side:0,affectsStrength:true},{side:0,affectsStrength:true}],false))"),JSON.stringify([3,5]));
 console.log('PASS: ID-safe penalties, exact 2/5/10-minute ledgers, correct personal/queued penalties and PP opportunities, idempotence, clickable events, paused profile navigation, reload and legacy compatibility.');
