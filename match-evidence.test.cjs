@@ -36,4 +36,6 @@ assert.ok(r("flowAdvice.some(x=>x.key==='breakout')"),'repeated puck losses shou
 assert.ok(r("flowAdvice.some(x=>x.key==='entries')"),'entry imbalance should be surfaced');
 assert.ok(r("flowAdvice.some(x=>x.key==='battles')"),'lost puck battles should be surfaced');
 assert.equal(r("matchCoachEvidence({...flowSample,flow:[flowSample.flow[1]]},300).advice.length"),0,'one flow snapshot is not enough evidence');
+r("globalThis.picture=matchPictureNow()");
+assert.ok(r('picture&&picture.headline'));assert.ok(r('picture.signals.length<=3&&picture.problems.length<=3'));
 console.log('PASS: evidence thresholds, strength separation, time-window expiry, partial/future data, current tactics, priority limits, read-only patch, pause/focus and saved advice continuity plus hockey-flow diagnosis.');
