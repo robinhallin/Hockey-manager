@@ -144,13 +144,16 @@ function recruitPlayerWishes(p,club=managerClub()){
  const roster=state.clubRosters[club]||[],group=roster.filter(q=>p.pos==='MV'?q.pos==='MV':p.pos==='B'?q.pos==='B':!['MV','B'].includes(q.pos));
  const snapshot=aiMarketSnapshot?.clubs.get(club);
  const ability=aiMarketSnapshot?.ratings.get(String(p.id))??matchAttributeRating(p),avg=snapshot?.groupMean[worldGroup(p)]??group.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,group.length);
- const ambition=attrSeed(`${p.id}:ambition`)>.58;
+ const identity=playerPreferenceProfile(p,club),ambitious=identity.ambition>=14;
  const level=ability-avg,role=level>2?'Nyckelspelare':level>-3?'Ordinarie':'Rotation';
  const clubStrength=snapshot?.strength??roster.reduce((n,q)=>n+matchAttributeRating(q),0)/Math.max(1,roster.length);
  const relegationStep=state.world?.membership?.[aiMarketSnapshot?.owners.get(String(p.id))??getPlayerClub(p.id)]==='SHL'&&leagueOf(club)==='HA';
- const stretch=ambition&&(ability>clubStrength+5||relegationStep);
- const salary=Math.round(p.salary*(stretch?1.35:1.12)/10000)*10000;
- return {role,salary,minYears:p.age<24?2:1,maxYears:p.age>=32?2:5,priority:ambition?'Sportsliga ambitioner':'Speltid och trygghet',stretch};
+ const stretch=ambitious&&(ability>clubStrength+5||relegationStep);
+ const trustDiscount=identity.current&&identity.trust>=75&&identity.loyalty>=13?.96:1;
+ const salary=Math.round(p.salary*(stretch?1.35:1.12)*identity.salaryWeight*trustDiscount/10000)*10000;
+ const minYears=p.age<24?2:identity.securityWeight>=1.1?2:1,maxYears=p.age>=32?(identity.securityWeight>=1.1?3:2):5;
+ const priority=identity.ambition>=14?'Sportsliga ambitioner och roll':identity.sensitivity>=14?'Trygghet, avtalslängd och tydlig roll':identity.loyalty>=14?'Kontinuitet och förtroende':'Speltid och villkor';
+ return {role,salary,minYears,maxYears,priority,stretch,identity};
 }
 function recruitCanSell(p,club){
  if(p.futureContract||playerLoan(p)||naActive(p))return false;if(club===WORLD_FREE)return true;
@@ -187,7 +190,8 @@ function recruitRival(p,seller){
 }
 function recruitOfferScore(p,club,offer){
  const w=recruitPlayerWishes(p,club),rank=SQUAD_ROLES.indexOf(offer.role);
- return offer.salary/w.salary*40+(rank-SQUAD_ROLES.indexOf(w.role))*12+(w.stretch?-15:5)+(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25);
+ const pref=w.identity||playerPreferenceProfile(p,club),salaryScore=offer.salary/w.salary*40*pref.salaryWeight,roleScore=(rank-SQUAD_ROLES.indexOf(w.role))*12*pref.roleWeight,termScore=(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25)*pref.securityWeight;
+ return salaryScore+roleScore+(w.stretch?-15:5)+termScore+pref.continuity;
 }
 function submitRecruitOffer(id,fee,salary,years,role){
  if(!managerCanPlay())return;
