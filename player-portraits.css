@@ -1,0 +1,10 @@
+.player-avatar{position:relative;display:inline-flex;flex-shrink:0;width:80px;height:88px;overflow:hidden;align-items:center;justify-content:center;background:linear-gradient(145deg,#304451,#131f29);border-radius:8px;vertical-align:middle}
+.player-avatar-fallback{color:#97a8b5;font-size:22px;font-weight:700;letter-spacing:.03em}
+.player-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;z-index:1}
+.player-avatar img[hidden]{display:none}
+.player-avatar--compact{width:30px;height:34px;border-radius:4px;margin-right:8px}
+.player-avatar--compact .player-avatar-fallback{font-size:11px}
+.sw-portrait>.player-avatar{position:absolute;inset:0;width:100%;height:100%;border-radius:0}
+.sw-portrait>.club-crest,.sw-portrait>.sw-portrait-label{z-index:2}
+.fm-profile-header>.player-avatar{width:84px;height:92px}
+@media(max-width:600px){.fm-profile-header>.player-avatar{width:54px;height:64px}}
