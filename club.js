@@ -60,7 +60,7 @@ function clubPost(category,amount,label){
 function clubStaffCost(){return (state.staff||[]).reduce((n,s)=>n+(s.salary||0),0);}
 function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0));}
 function clubMissionFee(){return Math.round(25000*(state.clubOffice?.priority==='scouting'?.8:clubPriorityValue('scoutFee')));}
-function clubTrainingFactor(){return clubProjectFactor(state.clubOffice?.priority==='first'?'training':'training',state.clubOffice?.priority==='first'?1.1:1);}
+function clubTrainingFactor(){if(state.clubOffice?.priority==='first'){const project=state.clubOffice?.projects?.first,maturity=.7+.3*Math.min(1,(project?.maturity||25)/100);return 1+.1*maturity;}return clubProjectFactor('training');}
 function clubJuniorFactor(){return clubProjectFactor('junior',state.clubOffice?.priority==='youth'?1.15:1);}
 function clubGate(playoff=false,ticket=state.clubOffice.ticket){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
