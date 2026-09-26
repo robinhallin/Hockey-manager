@@ -38,9 +38,14 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>studioCamera3D==='follow'&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
  const motion=await page.evaluate(()=>{
   const f=studioFrame(studioEngine()),shooter=f.actors.find(a=>a.id===f.flight.from),keeper=f.actors.find(a=>a.role==='G'&&a.side!==f.flight.side);
-  return {shooter:!!shooter,travelled:f.actors.some(a=>a.travelled>0),release:shooter?Match3D.pose(f,shooter).release:null,keeperAngle:keeper?Match3D.pose(f,keeper).angle:null};
+  const pose=shooter?Match3D.pose(f,shooter):null;
+  return {shooter:!!shooter,travelled:f.actors.some(a=>a.travelled>0),release:pose?.release,keeperAngle:keeper?Match3D.pose(f,keeper).angle:null,
+   action:shooter?.action?.kind,style:shooter?.action?.style,states:f.actors.filter(a=>a.role!=='G').map(a=>Match3D.pose(f,a).state),
+   shaft:pose?Math.hypot(...pose.shaftTop.map((n,i)=>n-pose.heel[i])):null};
  });
  assert.ok(motion.shooter&&motion.travelled&&Number.isFinite(motion.keeperAngle));
+ assert.equal(motion.action,'shot');assert.ok(['wrist','slap','one-timer'].includes(motion.style));assert.ok(Math.abs(motion.shaft-1.38)<1e-6);
+ require('node:fs').writeFileSync(path.join(out,'3d-motion-result.json'),JSON.stringify(motion,null,2));
  await page.screenshot({path:path.join(out,'33-match-3d-shot-follow.png'),fullPage:true});
  // Expand the rink through the ordinary control; preserve the exact paused game.
  const compact=await page.locator('#career-ice-3d').boundingBox();
@@ -58,10 +63,14 @@ module.exports=async function check3D(page,out){
   const canvas=document.getElementById('career-ice-3d'),f=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D};
   Match3D.draw(canvas,f,null,1,options);const before=Match3D.diagnostics();Match3D.draw(canvas,f,null,1,options);const after=Match3D.diagnostics();
   Match3D.draw(canvas,{...f,time:f.time+5},null,1,{...options,suspended:true});const suspended=Match3D.diagnostics();
-  return {before,after,suspended};
+  // The match clock can stop at a whistle while observed follow-through advances.
+  Match3D.draw(canvas,{...f,wall:f.wall+.1},null,1,options);const recovery=Match3D.diagnostics();
+  Match3D.draw(canvas,f,null,1,options);
+  return {before,after,suspended,recovery};
  });
  assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
  assert.equal(graphics.suspended.frames,graphics.after.frames,'hidden fast-forward does not draw');assert.equal(graphics.suspended.geometryBuilds,graphics.after.geometryBuilds);
+ assert.equal(graphics.recovery.geometryBuilds,graphics.after.geometryBuilds+1,'stopped match clock does not freeze recorded follow-through');
  require('node:fs').writeFileSync(path.join(out,'3d-graphics-result.json'),JSON.stringify({compact,focused,graphics},null,2));
  await page.getByRole('button',{name:'Zooma in',exact:true}).click();await page.getByRole('button',{name:'Zooma in',exact:true}).click();
  assert.equal(await page.locator('#match-3d-zoom').innerText(),'120%');
@@ -89,8 +98,10 @@ module.exports=async function check3D(page,out){
  assert.ok(await page.locator('.mc-coach').isVisible());assert.equal(await page.evaluate(()=>state.live.running),false);
  // Complete this very shot to obtain the actual replay buffer.
  await page.evaluate(()=>{
-  const oldReplay=studioEngine().latestReplay;startMatch();
-  for(let i=0;i<100&&studioEngine().latestReplay===oldReplay;i++)studioStep();
+  const oldShot=studioEngine().latestReplay?.shot;startMatch();
+  for(let i=0;i<100&&studioEngine().latestReplay?.shot===oldShot;i++)studioStep();
+  // Record actual recovery time too; a paused engine supplies no future frames.
+  for(let i=0;i<6&&!state.live.finished;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}
   pauseMatch();render();
  });
  assert.ok(await page.evaluate(()=>Boolean(studioEngine().latestReplay)));
@@ -102,6 +113,17 @@ module.exports=async function check3D(page,out){
  assert.ok(await page.evaluate(()=>Boolean(studioReplayState)),'pace change stays in replay');
  assert.ok(await page.evaluate(()=>studioReplayState.elapsed)>=replayElapsed,'replay does not rewind when changing pace');
  await page.screenshot({path:path.join(out,'34-match-3d-replay.png'),fullPage:true});
+ // The clip comes from the real WebGL canvas and real recorded match frames.
+ // It makes the stride/receive/release timing reviewable alongside still images.
+ const clip=await page.evaluate(async()=>{
+  const canvas=document.getElementById('career-ice-3d'),r=studioReplayState;
+  r.elapsed=Math.max(0,(r.frames.length-1)*.2-2.1);r.lastNow=null;
+  const stream=canvas.captureStream(24),chunks=[],type='video/webm;codecs=vp8';
+  const recorder=new MediaRecorder(stream,{...(MediaRecorder.isTypeSupported(type)?{mimeType:type}:{}),videoBitsPerSecond:1800000});
+  const completed=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onstop=async()=>resolve(Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer())));});
+  recorder.start();await new Promise(resolve=>setTimeout(resolve,4800));recorder.stop();const bytes=await completed;stream.getTracks().forEach(t=>t.stop());return bytes;
+ });
+ assert.ok(clip.length>1000,'recorded 3D motion clip is nonempty');require('node:fs').writeFileSync(path.join(out,'37-match-3d-motion.webm'),Buffer.from(clip));
  assert.equal(await page.evaluate(()=>JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().time,state.live.analysis])),replayBefore,'3D replay does not re-simulate or alter reports');
  await page.getByRole('button',{name:'Tillbaka till matchen',exact:true}).click();
  await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');

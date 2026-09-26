@@ -285,7 +285,7 @@ function studioCreate(){
   const source=side===0?managerRoster():state.clubRosters[club]||[];
   const plan=side===0?{...state.lines,...state.specialTeams}:{...m.aiTeam};
   const allowed=side===1?new Set([...(plan.forwards||[]),...(plan.defense||[]),...(plan.extras||[]),...(plan.goalies||[])].map(String)):null;
-  const players=source.filter(p=>medicalReady(p)&&(!allowed||allowed.has(String(p.id)))).map(p=>({id:p.id,name:p.name,pos:p.pos,attributes:{...ensurePlayerAttributes(p)},fatigue:p.fatigue||0}));
+  const players=source.filter(p=>medicalReady(p)&&(!allowed||allowed.has(String(p.id)))).map(p=>({id:p.id,name:p.name,pos:p.pos,shoots:p.shoots||p.research?.shoots||null,attributes:{...ensurePlayerAttributes(p)},fatigue:p.fatigue||0}));
   return {name:club,plan,players};
  });
  m.broadcast=new CareerBroadcastMatch(rosters,{seed:Math.floor(attrSeed(`${managerClub()}:${m.opponent}:${state.season.year}:${state.round}:${state.calendar.date}:broadcast`)*4294967296)});

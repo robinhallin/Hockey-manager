@@ -113,3 +113,94 @@ test('zoom and puck visibility controls preserve live and replay state',()=>{
  app.run('studioSetZoom(-5);');assert.equal(app.run('studioZoom3D'),.8);
  app.run('studioSetZoom(1);studioTogglePuck();');assert.equal(app.run('JSON.stringify([state.live,studioReplayState])'),before);
 });
+
+const separation=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
+test('recorded skating and stick actions cannot change decisions, physics or the random stream',()=>{
+ const {Match}=require('./match-simulation'),rosters=require('./match-lab-rosters');
+ const facts=m=>({rng:m.rng,score:m.score,events:m.events,stats:m.stats,puck:m.puck,carrier:m.carrier,shots:m.shots,
+  actors:m.actors.map(a=>({id:a.id,x:a.x,y:a.y,vx:a.vx,vy:a.vy,energy:a.player.energy,travelled:a.travelled}))});
+ for(const scenario of ['attack','rush','pp','pk','period']){
+  const shown=new Match(rosters,{seed:227,scenario,duration:25}),plain=new Match(rosters,{seed:227,scenario,duration:25});
+  plain.recordMotion=()=>{};plain.recordAction=()=>{};
+  while(!shown.finished){shown.step();plain.step();assert.deepEqual(facts(shown),facts(plain));}
+ }
+});
+test('retreating defenders face the play; acceleration, glide and stops use distinct stances',()=>{
+ const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{scenario:'rush'}),a=m.skaters(1)[0];
+ Object.assign(a,{x:49,y:15,vx:3,vy:0,travelled:1,status:'playing'});m.owner=0;m.puck={x:43,y:15};
+ for(let i=0;i<20;i++)m.recordMotion(a,3,0,.1);
+ const f=m.presentationFrame(),actor=f.actors.find(x=>x.id===a.id),back=renderer.pose(f,actor);
+ assert.equal(back.state,'backward');assert.ok(Math.cos(back.angle)*a.vx<0,'chest faces against retreat velocity');
+ const base={...actor,motion:{...actor.motion,heading:0,backward:0,turn:0}};
+ const drive=renderer.pose(f,{...base,motion:{...base.motion,acceleration:2.5}}),glide=renderer.pose(f,{...base,motion:{...base.motion,acceleration:0}}),stop=renderer.pose(f,{...base,motion:{...base.motion,acceleration:-3}});
+ assert.equal(drive.state,'skating');assert.equal(glide.state,'gliding');assert.equal(stop.state,'braking');
+ assert.ok(drive.drive>glide.drive*2);assert.ok(stop.footAngles.every(angle=>Math.abs(angle)>1),'both blades turn across movement to brake');
+ const still=renderer.pose(f,{...base,vx:0,vy:0});assert.equal(still.stride,0);assert.ok(still.feet.every(p=>p[1]===.12));
+ const next=renderer.pose({...f,time:f.time+20,wall:f.wall+20},base);assert.deepEqual(next.feet,renderer.pose(f,base).feet,'glide never uses wall-clock pedalling');
+});
+test('joint lengths and two-handed stick grip hold through real skating, passes and both shot hands',()=>{
+ const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{seed:227,scenario:'rush',duration:40});
+ const states=new Set();let poses=0;
+ while(!m.finished){
+  m.step();if(m.tick%3)continue;const frame=m.presentationFrame();
+  for(const a of frame.actors.filter(a=>a.role!=='G'))for(const shoots of ['L','R']){
+   const p=renderer.pose(frame,{...a,shoots});states.add(p.state);poses++;
+   for(const leg of p.legs){assert.ok(Math.abs(separation(leg.hip,leg.knee)-.45)<1e-6);assert.ok(Math.abs(separation(leg.knee,leg.ankle)-.46)<1e-6);}
+   for(const arm of p.arms){
+    assert.ok(Math.abs(separation(arm.shoulder,arm.elbow)-.4)<1e-6);assert.ok(Math.abs(separation(arm.elbow,arm.hand)-.42)<1e-6);
+    assert.ok(Math.abs(separation(p.heel,arm.hand)+separation(arm.hand,p.shaftTop)-1.38)<1e-6,'gloves stay on the straight shaft');
+   }
+   assert.ok(Math.abs(separation(p.heel,p.shaftTop)-1.38)<1e-6);assert.ok(p.feet.every(foot=>foot[1]>=.12));
+   if(a.id===frame.carrier)assert.ok(separation(p.blade,[frame.puck.x,.08,frame.puck.y])<1e-6,'carried puck stays on the blade');
+  }
+ }
+ assert.ok(poses>1000);for(const state of ['skating','gliding','backward','braking','crossover'])assert.ok(states.has(state),state+' occurs in a real sequence');
+});
+test('pass receivers prepare only for the incoming puck and actual control records the catch',()=>{
+ const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{scenario:'attack'});
+ const a=m.skaters(0)[0],b=m.skaters(0)[1];Object.assign(a,{x:44,y:15,vx:0,vy:0});Object.assign(b,{x:47,y:15,vx:0,vy:0});
+ m.puck={x:a.x,y:a.y};m.carrier=a.id;m.passChance=()=>1;assert.ok(m.pass(a,b));
+ m.wall+=.1;m.resolveFlight(.1);const f=m.presentationFrame(),receiver=f.actors.find(x=>x.id===b.id);
+ assert.ok(renderer.pose(f,receiver).prepare>0);assert.equal(renderer.pose(f,{...receiver,id:'unrelated'}).prepare,0);
+ m.wall+=.2;m.resolveFlight(.2);const received=m.presentationFrame(),actor=received.actors.find(x=>x.id===b.id);
+ assert.equal(received.carrier,b.id);assert.equal(actor.action.kind,'receive');assert.ok(renderer.pose(received,actor).receiving>0);
+ assert.equal(received.actors.find(x=>x.id===a.id).action.kind,'pass','passer completes release after flight ends');
+});
+test('release continues after a short shot resolves and uses recorded wrist/slap/one-timer style',()=>{
+ const a={id:'s',side:0,role:'C',x:44,y:15,vx:0,vy:0,action:{kind:'shot',at:9.9,origin:{x:44,y:15},target:{x:56.5,y:15},style:'wrist'}};
+ const frame={time:10,wall:10.1,phase:'stoppage',carrier:null,puck:{x:56.5,y:15},flight:null};
+ const wrist=renderer.pose(frame,a),slap=renderer.pose(frame,{...a,action:{...a.action,style:'slap'}}),direct=renderer.pose(frame,{...a,action:{...a.action,style:'one-timer'}});
+ assert.ok(wrist.release>0);assert.ok(slap.blade[1]>direct.blade[1]&&direct.blade[1]>wrist.blade[1]);
+ assert.deepEqual(renderer.pose(frame,a).blade,wrist.blade,'pausing freezes follow-through');
+ assert.equal(renderer.pose({...frame,wall:11},a).release,0,'stoppage wall time completes action even with the match clock frozen');
+});
+test('interpolation wraps facing through pi and waits for the recorded release timestamp',()=>{
+ const a={id:'s',side:0,role:'C',x:30,y:15,vx:-3,vy:0,travelled:1,motion:{heading:3.10,travel:3.10,backward:0,turn:.1,acceleration:0}};
+ const before={time:10,wall:10,phase:'attack',carrier:'s',puck:{x:30,y:15},actors:[a],flight:null};
+ const frame={...before,time:10.2,wall:10.2,carrier:null,puck:{x:31,y:15},actors:[{...a,motion:{...a.motion,heading:-3.10,travel:-3.10},action:{kind:'pass',at:10.1,origin:{x:30,y:15},target:{x:40,y:15}}}],flight:{kind:'pass',from:'s',to:'r',side:0,start:{x:30,y:15},end:{x:40,y:15},elapsed:.1,duration:.6}};
+ const early=renderer.sample(frame,before,.2),middle=renderer.sample(frame,before,.5);
+ assert.equal(early.flight,null);assert.equal(renderer.pose(early,early.actors[0]).release,0);
+ assert.ok(Math.abs(middle.actors[0].motion.heading)>3,'rotation takes the short route');
+ assert.ok(renderer.pose(middle,middle.actors[0]).release>.9);
+});
+test('replay keeps observed recovery frames immutable and motion survives save/reload',()=>{
+ const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{scenario:'attack',duration:60});
+ while(!m.latestReplay)m.step();const first=m.latestReplay,original=JSON.stringify(first),ended=first.frames.at(-1).wall;
+ for(let i=0;i<4;i++)m.step();
+ assert.equal(JSON.stringify(first),original);assert.equal(m.latestReplay.shot,first.shot);assert.ok(m.latestReplay.frames.at(-1).wall>ended);
+ assert.ok(m.latestReplay.frames.length<=70);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
+ const restored=Object.assign(Object.create(Match.prototype),JSON.parse(JSON.stringify(m))),savedFrame=restored.presentationFrame(),frame=m.presentationFrame();
+ assert.deepEqual(savedFrame,frame);
+ for(let i=0;i<frame.actors.length;i++)assert.equal(JSON.stringify(renderer.pose(frame,frame.actors[i])),JSON.stringify(renderer.pose(savedFrame,savedFrame.actors[i])));
+ const snapshot=m.presentationFrame(),actor=snapshot.actors.find(a=>a.motion);actor.motion.heading=999;
+ assert.notEqual(m.actor(actor.id).motion.heading,999,'live snapshots are detached from actors');
+ m.faceoffPositions();assert.ok(m.actors.every(a=>!a.motion&&!a.presentationAction),'faceoff reset clears old poses');
+});
+test('loading a career during shot recovery preserves the exact paused match and replay',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
+ app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';for(let i=0;i<5000&&!studioEngine().latestReplay;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}pauseMatch();save();");
+ assert.ok(app.run('Boolean(studioEngine().latestReplay)&&studioEngine().replayTailUntil>studioEngine().wall'));
+ const digest=text=>require('node:crypto').createHash('sha256').update(text).digest('hex');
+ const before=digest(app.run('JSON.stringify(state.live)')),reloaded=boot(app.storage.value);
+ assert.equal(digest(reloaded.run('JSON.stringify(state.live)')),before,'hydration must not append a duplicate recovery frame');
+});
