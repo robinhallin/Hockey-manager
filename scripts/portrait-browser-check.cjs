@@ -16,6 +16,11 @@ const server=http.createServer((req,res)=>{
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.evaluate(()=>{startCareerWithClub('HV71');deskOpenPlayer('ep-796339');});
+  const loaded=await page.evaluate(async()=>{
+   const rows=managerRoster().map(p=>({id:p.id,src:playerPortraitRecord(p)?.src}));
+   return Promise.all(rows.map(async p=>{const img=new Image();img.src=p.src;await img.decode();return {id:p.id,width:img.naturalWidth};}));
+  });
+  assert.equal(loaded.length,28);assert.ok(loaded.every(p=>p.width===384));
   const avatar=page.locator('.fm-profile-header .player-avatar img');
   await avatar.waitFor();
   await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);

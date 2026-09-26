@@ -1,6 +1,8 @@
-# Player portraits — incomplete production batch
+# Player portraits — HV71 complete, wider production pending
 
-Two real-player avatars are ready: Jonathan Ang (`ep-251447.png`) and Herman Liv (`ep-796339.png`). Remaining real players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+All 28 players in the game's starting HV71 senior roster have individual cartoon portraits. The other 687 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+
+The September 26 batch adds 26 individually referenced avatars to Ang and Liv. `hv71-production.json` records each player's exact ID, source page, output asset, generation method and final prompt. Noel Skarby retains a plain helmet because the identified reference shows him wearing one; hidden hair was not invented. Komuls uses an older ECHL headshot, Hardman and Regenda use NHL headshots, and the other new portraits use the August 2026 HV71 photo series. All outputs were visually reviewed for identity, framing and cartoon treatment. These are stylized interpretations, not exact reproductions.
 
 `player-portraits.js` is the exact-ID registry. Add only reviewed person-specific assets; never match by name, team, ethnicity or nationality. No save migration is needed. Transfers retain the face and show the current club crest separately. Assets are local and included by desktop staging.
 

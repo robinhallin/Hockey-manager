@@ -30,3 +30,17 @@ test('rendering does not alter a player or consume randomness',()=>{
  assert.equal(run('playerAvatar(p)'),run('playerAvatar(p)'));
  assert.equal(run('JSON.stringify(p)'),run('before'));
 });
+test('the complete starting HV71 roster has distinct exact-ID assets',()=>{
+ const app=require('./scripts/career-test-fixture.cjs').boot(undefined,{production:true});
+ app.run("startCareerWithClub('HV71')");
+ const rows=app.run("managerRoster().map(p=>({id:p.id,src:playerPortraitRecord(p)?.src}))");
+ assert.equal(rows.length,28);
+ assert.ok(rows.every(p=>p.src),JSON.stringify(rows.filter(p=>!p.src)));
+ assert.equal(new Set(rows.map(p=>p.src)).size,28);
+ const manifest=JSON.parse(fs.readFileSync('assets/portraits/hv71-production.json','utf8'));
+ assert.equal(manifest.length,26);
+ for(const row of manifest){
+  assert.equal(run(`playerPortraitRecord({id:${JSON.stringify(row.id)}}).src`),row.asset);
+  assert.ok(row.source.startsWith('https://'));
+ }
+});
