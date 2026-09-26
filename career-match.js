@@ -114,7 +114,12 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   if(key==='checking')extra+=physicality==='hard'?1:physicality==='safe'?-.6:0;
   if(a.side===0&&['passing','vision','positioning','faceoffs'].includes(key))extra+=(this.teamBonus||0)/4;
   if(p&&['decisions','composure','vision','positioning','passing'].includes(key))extra+=(a.side===0?matchFeedbackBonus([p]):0)*.15;
-  return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*fitFactor;
+  let taskFactor=1;
+   if(a.side===0&&a.role!=='G'&&!this.hasPowerPlay(a.side)&&!this.isShortHanded(a.side)){
+    const group=['LD','RD'].includes(a.role)?'defense':'forwards',unit=studioUnitIndex(this,a.side,group==='defense'?'defense':'forward'),slot=group==='defense'?unit*2+(a.role==='RD'?1:0):unit*3+({LW:0,C:1,RW:2}[a.role]??0),task=playerTask(group,slot);
+    taskFactor=playerTaskFactor(task,key);
+   }
+   return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*fitFactor*taskFactor;
  }
  attackTargets(side){
   super.attackTargets(side);const t=this.teams[side];
