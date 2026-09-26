@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.5
+# Hockey Manager · Beta 0.1.0-beta.6
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Kör `Hockey-Manager-0.1.0-beta.5-Windows-x64-Setup.exe`.
+1. Kör `Hockey-Manager-0.1.0-beta.6-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -86,3 +86,17 @@ Schweiz går att välja som en separat National League-karriär med 14 klubbar o
 Betans schweiziska värld omfattar endast högstaligan. Swiss League och nedflyttning ingår inte. Importlicenser simuleras inte eftersom registreringsunderlag saknas. Nationalitet som saknas visas som okänd. Kontrakt, löner, klubbresurser och transferfönstret är spelantaganden; alla belopp visas i SEK. Schemat är genererat inom säsongsfönstret 15 september–1 mars, inte det officiella matchschemat. Vid lika poäng används spelets målskillnad. Spelarlistan är inte ett verifierat registreringsregister. Spelarnas källor och osäkerhet visas i profilerna.
 
 Tjeckien och Finland är fortfarande förberedda data. Etapp 5:s samtliga europeiska ligor är därmed ännu inte färdiga.
+
+## Nytt i Beta 0.1.0-beta.6
+
+Välj **Matchvy → 3D · test** ovanför rinken för den första 3D-versionen.
+TV och Överblick visar samma match med olika perspektiv. Klubbfärger,
+skridskor, klubbor, målvaktsbenskydd och målburar visas i 3D. Puckförarens
+namn visas över spelaren; klick på en spelare pausar och visar uppgiften.
+Matchklocka, spelval, statistik och repriser kommer från befintlig matchmotor.
+Välj 2D när som helst. Om grafiken inte stöds visas 2D med ett meddelande.
+
+Detta är en grafisk prototyp med enkla procedurmodeller, inte färdig
+spelaranimation. Pucken följer motorns plana koordinater; puckhöjd,
+kontaktanimationer, individuell målvaktsanimation och förbättrad hockey-AI
+återstår. Kameraval gäller den aktuella spelsessionen. Ligautbyggnaden är pausad.
