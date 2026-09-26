@@ -33,14 +33,14 @@ function matchCoachEvidence(analysis,clock,players=[],plan={}){
   if(row.key==='quality'&&plan.shotChoice==='patient')Object.assign(row,{suggestion:'Ni söker redan bättre lägen. Granska kedjornas passningar, spelsinne och samspel innan du ändrar avslutsvalet igen.',tab:'lineup',action:'Granska formationerna'});
   if(row.key==='discipline'&&plan.physicality==='safe')Object.assign(row,{suggestion:'Laget spelar redan disciplinerat. Granska vilka spelare som tar utvisningarna och deras disciplin innan du ändrar den fysiska nivån igen.',tab:'events',action:'Granska utvisningarna'});
  }
- return {clock,start,flow,advice:advice.slice(0,3),note:analysis?.partial?'Matchen har delvis registrerade data. Inga taktiska slutsatser dras från skottsiffrorna.':clock<180?'Vi samlar underlag. Vänta med stora taktiska slutsatser från de första minuterna.':!advice.length?'Inget tydligt återkommande problem i det senaste underlaget. Följ matchbilden innan du ändrar.':'Observationer, inte säkra orsaksförklaringar. Skottanalysen gäller enbart lika styrka; powerplay och boxplay blandas inte in.'};
+ return {clock,start,flow,advice:advice.slice(0,2),note:analysis?.partial?'Matchen har delvis registrerade data. Inga taktiska slutsatser dras från skottsiffrorna.':clock<180?'Vi samlar underlag. Vänta med stora taktiska slutsatser från de första minuterna.':!advice.length?'Inget tydligt återkommande problem i det senaste underlaget. Följ matchbilden innan du ändrar.':'Observationer, inte säkra orsaksförklaringar. Skottanalysen gäller enbart lika styrka; powerplay och boxplay blandas inte in.'};
 }
 function matchEvidenceReport(){
  const m=state.live;
  const ps=m&&!m.finished?(studioActive()?studioPlayers(0,false):[...currentLinePlayers(),...currentDefensePlayers()]):[];
  const report=matchCoachEvidence(m?.analysis,m?analysisClock():0,[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({id:p.id,name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
  const situation=m&&!m.finished&&matchCoachSituation(report.clock,{own:m.hv,against:m.opp},{...state.tacticalPlan,tactic:state.tactic});
- if(situation)report.advice=[situation,...report.advice].slice(0,3);
+ if(situation)report.advice=[situation,...report.advice].slice(0,2);
  return report;
 }
 function matchEvidenceBody(){
