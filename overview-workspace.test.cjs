@@ -22,7 +22,7 @@ assert.equal(r("overviewDecisionItems().some(i=>i.action?.deal==='incoming:997')
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal)[0].action.deal"),'incoming:996');
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal).length"),7);
 assert.match(r('overviewWorkspaceView()'),/Öppna inkorgen/);
-assert.equal((r('overviewWorkspaceView()').match(/officeOpenDeal\(&quot;incoming:/g)||[]).length,3,'overview keeps only the three highest-priority actionable offers visible');
+assert.equal((r('overviewWorkspaceView()').match(/<article class=\"ov-decision\"/g)||[]).length,3,'overview keeps only three priority decision rows visible');
 r("officeOpenDeal('incoming:996')");assert.equal(r('recruitHub.deal'),'incoming:996');assert.equal(r('recruitHub.affairs'),'open');
 r("deskNavigate('home');state.recruitment.incoming=[];globalThis.p=managerRoster().find(p=>p.pos!=='MV');p.fatigue=61;overviewSelectPlayer(p.id)");
 assert.equal(r('overviewWatchPlayers()[0].p.id'),r('p.id'));
