@@ -55,6 +55,10 @@ assert.equal(r('chemB.value'),r('chemA.value'),'changing role balance cannot rew
 assert.ok(r('fitB.value')<r('fitA.value')||r("fitB.warnings.some(x=>x.includes('avslutsorienterade'))"),'one-dimensional scorers should expose a role-balance warning');
 assert.equal(r("tacticalFitFactor(fitB,'shooting','forwards')"),1,'fit does not directly boost shooting');
 assert.notEqual(r("tacticalFitFactor(fitB,'passing','forwards')"),1,'fit changes collective execution attributes');
+// Explicit player tasks are saved separately from chemistry and only affect relevant execution.
+r("globalThis.taskPlayer=managerRoster().find(p=>p.pos!=='B'&&p.pos!=='MV');globalThis.taskBase=lineChemistry(state.lines.forwards.slice(0,3));setPlayerTask('forwards',1,'creator');globalThis.task=playerTask('forwards',1)");
+assert.equal(r('task'),'creator');assert.equal(r('lineChemistry(state.lines.forwards.slice(0,3)).value'),r('taskBase.value'));
+assert.ok(r("playerTaskFactor('creator','passing')")>1);assert.equal(r("playerTaskFactor('creator','shooting')"),1);
 console.log('PASS: training participation/cap/idempotence, shared AI day, old saves, reload, active-line attribute causality, unaffected shooting/RNG, local goal attribution and fixture idempotence.');
 // Exercise the public calendar -> actual session path, not just the training helper.
 {

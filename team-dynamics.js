@@ -27,6 +27,35 @@ function positionFit(p,role){
  return .95;
 }
 function lineupRole(type,index){return type==='goalie'?'G':type==='defense'?(index%2?'RD':'LD'):['LW','C','RW'][index%3];}
+const PLAYER_TASKS={
+ creator:{name:'Spelfördelare',groups:['forwards'],keys:['passing','vision','decisions'],boost:{passing:.045,vision:.05,decisions:.025},text:'Sök puck och skapa nästa passningsalternativ.'},
+ carrier:{name:'Pucktransportör',groups:['forwards','defense'],keys:['puckControl','skating','decisions'],boost:{puckControl:.05,skating:.035,decisions:.02},text:'Transportera puck genom press och zoner.'},
+ finisher:{name:'Avslutare',groups:['forwards'],keys:['shooting','composure','positioning'],boost:{shooting:.05,composure:.035,positioning:.02},text:'Sök avslutslägen och yta nära mål.'},
+ retriever:{name:'Puckvinnare',groups:['forwards'],keys:['workRate','checking','strength'],boost:{workRate:.045,checking:.04,strength:.025},text:'Pressa, återvinn puck och skapa andrachanser.'},
+ twoWay:{name:'Tvåvägsansvar',groups:['forwards'],keys:['positioning','decisions','workRate'],boost:{positioning:.04,decisions:.03,workRate:.03},text:'Prioritera balans och understöd i båda riktningar.'},
+ firstPass:{name:'Förstapass',groups:['defense'],keys:['passing','vision','decisions'],boost:{passing:.05,vision:.035,decisions:.03},text:'Starta uppspel snabbt med första passningen.'},
+ anchor:{name:'Defensivt ankare',groups:['defense'],keys:['positioning','checking','decisions'],boost:{positioning:.05,checking:.04,decisions:.025},text:'Skydda mitten och säkra bakom pucken.'},
+ activeD:{name:'Aktiv offensiv back',groups:['defense'],keys:['skating','puckControl','passing'],boost:{skating:.04,puckControl:.035,passing:.035},text:'Följ med anfallet och skapa ett extra passningsalternativ.'}
+};
+function playerTaskGroup(type){return type==='defense'?'defense':'forwards';}
+function ensurePlayerTasks(){state.playerTasks??={forwards:{},defense:{}};return state.playerTasks;}
+function playerTask(type,index){
+ const group=playerTaskGroup(type),saved=ensurePlayerTasks()[group]?.[index];if(saved&&PLAYER_TASKS[saved]?.groups.includes(group))return saved;
+ return group==='defense'?(index%2?'firstPass':'anchor'):(index%3===0?'retriever':index%3===1?'creator':'finisher');
+}
+function setPlayerTask(type,index,task){
+ const group=playerTaskGroup(type);if(state.live&&!state.live.finished&&hockeyChangeBlocked())return;
+ if(!PLAYER_TASKS[task]?.groups.includes(group))return;ensurePlayerTasks()[group][index]=task;save();render();
+}
+function playerTaskForId(id,type,index,side=0){
+ if(side!==0)return null;const current=type==='defense'?state.lines.defense[index]:state.lines.forwards[index];return samePlayerId(current,id)?playerTask(type,index):null;
+}
+function playerTaskFactor(task,key){const b=PLAYER_TASKS[task]?.boost?.[key]||0;return 1+b;}
+function playerTaskFit(p,task){const d=PLAYER_TASKS[task];if(!p||!d)return 0;const a=ensurePlayerAttributes(p);return d.keys.reduce((n,k)=>n+(a[k]||10),0)/d.keys.length;}
+function playerTaskView(type,index){
+ const group=playerTaskGroup(type),task=playerTask(type,index),def=PLAYER_TASKS[task];
+ return `<label class="tw-player-task">Uppgift<select aria-label="Spelaruppgift" onchange="setPlayerTask('${group}',${index},this.value)">${Object.entries(PLAYER_TASKS).filter(([,d])=>d.groups.includes(group)).map(([k,d])=>`<option value="${k}" ${k===task?'selected':''}>${d.name}</option>`).join('')}</select><small>${trainingSafe(def.text)}</small></label>`;
+}
 function positionBadge(p,role){
  const fit=positionFit(p,role),a=playerAssessment(p);
  return `${starRatingHTML(Math.round(Math.max(0,a.low*fit)*10)/10,Math.round(Math.max(0,a.high*fit)*10)/10,false,a.staff.name)}<small class="position-fit ${fit<.8?'unfamiliar':''}">${Math.round(fit*100)} % positionsvana${fit<.8?' · ovan position':''}</small>`;

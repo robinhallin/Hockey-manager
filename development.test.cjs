@@ -18,6 +18,12 @@ r(`globalThis.pathPlayer=make();pathPlayer.age=19;ensureDevelopment(pathPlayer);
 assert.ok(r('good.factor')>r('bad.factor'),'appropriate role, level and minutes should create a better development environment');
 assert.equal(r('pathPlayer.developmentModel.pathHistory[0].environment'),'junior');
 assert.equal(r('pathPlayer.developmentModel.pathHistory.length'),1);
+r("globalThis.rolePlayer=make();rolePlayer.pos='C';rolePlayer.developmentFocus='Balanserad';rolePlayer.trainingProgress={passing:40,vision:20,decisions:30};setDevelopmentRolePlan(rolePlayer.id,'creator');globalThis.rolePlan=developmentRoleProgress(rolePlayer)");
+assert.equal(r('rolePlayer.developmentRolePlan'),'creator');assert.match(r('rolePlan.plan.name'),/spelfördelare/);assert.ok(['passing','vision','decisions'].includes(r("trainingTarget(rolePlayer,'skills')")));
+// Role development plans guide balanced training without replacing explicit individual focus.
+r(`globalThis.roleDev=make();roleDev.club=managerClub();roleDev.pos='B';roleDev.developmentFocus='Balanserad';roleDev.trainingProgress={passing:40,vision:70,decisions:80};setDevelopmentRolePlan(roleDev.id,'firstPass');globalThis.roleProgress=developmentRoleProgress(roleDev);globalThis.roleTarget=trainingTarget(roleDev,'skills')`);
+assert.equal(r('roleDev.developmentRolePlan'),'firstPass');assert.ok(r("['passing','vision','decisions'].includes(roleTarget)"));assert.equal(r('roleProgress.plan.name'),'Bli uppspelsback');
+r("roleDev.developmentFocus='Skott'");assert.equal(r("trainingTarget(roleDev,'skills')"),'shooting','explicit focus overrides the role plan');
 console.log('PASS: migration preserves attributes; immutable ceilings; plateau; save/reload; promotion; deterministic birthdays; differentiated ageing; 20-year bounds; same AI/own growth kernel.');
 const career=boot();career.run(`startCareerWithClub('HV71');globalThis.ages=Object.fromEntries([...Object.values(state.clubRosters).flat(),...state.juniors.roster,...state.playerWorld.freeAgents].map(p=>[p.id,p.age]));state.season.phase='review';state.season.boardResult=[];beginPreseason();`);
 assert.equal(career.run(`Object.values(state.clubRosters).flat().concat(state.juniors.roster,state.playerWorld.freeAgents).filter(p=>ages[p.id]!==undefined).every(p=>p.age===ages[p.id]+1)`),true);
