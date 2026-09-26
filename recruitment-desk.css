@@ -137,6 +137,15 @@ body .game-shell .desk-page[data-area=recruitment] .recruitment-desk{
  & .rd-workarea .sc-count strong{color:var(--sw-accent)}
  & .rd-workarea .rh-affairs{grid-template-columns:minmax(0,1fr) 350px}
  & .rd-workarea .rh-inspector{max-height:none}
+ & .commitment-forecast{padding:10px 12px;margin:12px 0;border:1px solid var(--rd-line);border-radius:4px;background:#192d39}
+ & .commitment-forecast dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 10px;font-size:11px}
+ & .commitment-forecast dt{color:#becbd3;overflow-wrap:anywhere}
+ & .commitment-forecast dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+ & .recruit-counter-diff{border-left:2px solid var(--sw-accent);padding-left:10px;margin:12px 0}
+ & .rh-counter-editor{margin:10px 0;border-top:1px solid var(--rd-line);border-bottom:1px solid var(--rd-line)}
+ & .rh-counter-editor form{display:grid;gap:10px;padding:0 0 12px}
+ & .rh-counter-editor label{display:grid;gap:5px;font-size:11px;min-width:0}
+ & .rh-counter-editor :is(input,select){width:100%;min-width:0}
  & .rd-workarea .rh-table-scroll{max-height:calc(100dvh - 350px)}
  & .rd-workarea summary,& .rd-dialog summary{padding:8px 0;cursor:pointer;color:#c8d8e3;font-size:11px}
  & .rd-workarea .btn,& .rd-dialog .btn{background:#304858;color:#ebca87;border:1px solid #7f785e;font-size:11px}

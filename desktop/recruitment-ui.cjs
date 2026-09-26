@@ -46,4 +46,5 @@ module.exports=async function recruitmentUIReview(page,out){
   const searchLayout=await page.locator('.recruit-hub').evaluate(el=>({width:el.scrollWidth,client:el.clientWidth}));
   assert.ok(searchLayout.width<=searchLayout.client+1,'recruitment does not overflow horizontally');
   await require('../scripts/recruitment-browser-checks.cjs').checkRecruitment(page);
+  await require('../scripts/recruitment-browser-checks.cjs').checkRecruitmentNegotiation(page,out);
 };

@@ -178,6 +178,10 @@ function marketInterestView(){
 function validateMarketSave(s){
  const r=s.recruitment;if(!r)return;
  const ids=new Set(),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d));
+ for(const d of r.deals||[])if(d.agreement){
+  const a=d.agreement,t=a.terms;
+  if(a.version!==1||!date(a.date)||!samePlayerId(a.playerId,d.playerId)||a.buyer!==d.buyer||a.seller!==d.seller||!s.clubRosters[a.buyer]||!t||!Number.isInteger(t.fee)||t.fee<0||!Number.isInteger(t.salary)||t.salary<=0||!Number.isInteger(t.years)||t.years<1||t.years>5||!SQUAD_ROLES.includes(t.role)||Object.entries(recruitDealTerms(d)).some(([key,value])=>t[key]!==value))throw Error('Ett accepterat köpbud innehåller ändrade eller ogiltiga avtalsvillkor.');
+ }
  for(const o of r.incoming||[]){
   if(!o.stage)continue; // Legacy records acquire stages only when the market advances.
   if(!Number.isInteger(o.id)||ids.has(o.id)||!['offer','counter_wait','club_agreed','closed'].includes(o.stage)||!['pending','accepted','rejected','expired','lost','cancelled'].includes(o.status)||!date(o.expiresDate)||!Number.isFinite(o.fee)||o.fee<0||!Number.isFinite(o.salary)||o.salary<0||!s.clubRosters[o.buyer]||o.stage==='club_agreed'&&!o.approved||['counter_wait','club_agreed'].includes(o.stage)&&!date(o.dueDate))throw Error('Ett inkommande bud innehåller ogiltiga villkor eller saknar godkännande.');
