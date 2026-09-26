@@ -79,6 +79,7 @@ async function checkRecruitmentNegotiation(page,out){
  await revised.locator('select[name=years]').selectOption('2');
  const expected=await page.evaluate(({id,salary})=>{const d=state.recruitment.deals.find(d=>d.id===id);return managerCommitmentPreview(findPlayerAnywhere(d.playerId),d.fee,salary,2)},{id,salary});
  for(const key of ['cashAfter','wageAfter','futureAfter','total'])assert.equal(Number(await revised.locator(`[data-finance=${key}]`).getAttribute('data-value')),expected[key],key);
+ assert.equal(await revised.locator('[data-finance=total]').innerText(),await page.evaluate(n=>money(n),salary*2),'visible forecast preserves exact amounts');
  assert.equal(await page.evaluate(()=>state.money),cash);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true,'counter form fits the desktop width');
  await revised.getByRole('button',{name:'Skicka reviderat förslag',exact:true}).scrollIntoViewIfNeeded();
@@ -96,6 +97,11 @@ async function checkRecruitmentNegotiation(page,out){
  await page.evaluate(()=>{calendarStep(true);save();render()});
  const registered=await page.evaluate(id=>{const d=state.recruitment.deals.find(d=>d.id===id),p=findPlayerAnywhere(d.playerId);return {status:d.status,salary:p.salary,years:p.contractYears,role:p.promisedRole,club:getPlayerClub(p.id),copies:managerRoster().filter(q=>samePlayerId(q.id,p.id)).length}},id);
  assert.deepEqual(registered,{status:'signed',salary,years:2,role:contact.role,club:'HV71',copies:1});
+ await page.locator('.rh-affairs').getByRole('button',{name:'Avslutade',exact:true}).click();
+ await page.locator('.rh-affairs tbody tr').filter({hasText:'Daniel Brodin'}).getByRole('button',{name:'Visa ärendet',exact:true}).click();
+ assert.match(await inspector.innerText(),/Köp · Klar/);
+ assert.match(await inspector.innerText(),/Övergången är registrerad/);
+ assert.ok((await inspector.innerText()).includes(await page.evaluate(n=>money(n),salary)));
  assert.equal(await inspector.getByRole('button',{name:'Acceptera motbud',exact:true}).count(),0);
  await page.screenshot({path:require('node:path').join(out,'recruitment-registered.png'),fullPage:true});
  await page.evaluate(saved=>{state=JSON.parse(saved.state);Object.assign(recruitHub,saved.hub);Object.assign(scoutDesk,JSON.parse(saved.scout));save();render()},saved);

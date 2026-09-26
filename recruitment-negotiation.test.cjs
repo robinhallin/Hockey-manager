@@ -132,6 +132,7 @@ test('live forecast uses actual draft values, other reservations and the same de
  r(`globalThis.output={innerHTML:''};globalThis.form={dataset:{recruitPlayer:p.id,forecastTitle:'Ditt reviderade förslag'},
   elements:{fee:{value:'2000000'},salary:{value:'695800'},years:{value:'1'}},querySelector:()=>output};recruitFinancePreview(form)`);
  const edited=finances(r('output.innerHTML'));
+ assert.ok(r('output.innerHTML').includes(r('money(2695800)')),'rendered totals retain the same precision as submitted terms');
  assert.equal(edited.total,2695800);assert.equal(edited.cashAfter,r('state.money-2000000'));assert.equal(edited.wageAfter,r('wageBudget()-annualWageCost()-500000-695800'));
  assert.equal(edited.futureAfter,r('calendarFutureRoom(managerClub(),p.id)'),'one-year draft reserves no next-year salary');
  assert.equal(r('JSON.stringify(state)'),before,'editing a forecast never changes game state, offers or money');
