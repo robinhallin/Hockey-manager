@@ -76,6 +76,8 @@ for(const club of run('Object.keys(CLUB_DATA)')){
  run(`startCareerWithClub(${JSON.stringify(club)})`);
  for(const view of ['trainingView','inboxView','dailyOverview'])assert.ok(!/undefined|NaN/.test(run(`${view}()`)),`${club}: ${view}`);
 }
+run("globalThis.pDecision={decisionType:'minutes',resolved:false,category:'Spelarsamtal'};globalThis.pRec={category:'Chefsscout'};globalThis.pInfo={category:'Klubbnyheter'}");
+assert.equal(run("managerMessagePriority(pDecision)"),'decision');assert.equal(run("managerMessagePriority(pRec)"),'recommendation');assert.equal(run("managerMessagePriority(pInfo)"),'information');
 console.log('PASS: training persistence, once-only sessions, real growth, fatigue, goalkeeper focus, tactics, promises, legacy migration and 14 club views.');
 
 // The complete loop advances three training days, scouting and the actual fixture once.
