@@ -1,11 +1,12 @@
 "use strict";
 // Generated career dates. This is not the published SHL/HA fixture list.
 const CAL_DAY=86400000;
-function calSeasonOpening(year=state.season.year){return state.seasonCalendar!=='august'&&state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,3):`${year}-09-10`;}
+function calSeasonOpening(year=state.season.year){if(swissCareer())return `${year}-09-15`;return state.seasonCalendar!=='august'&&state.rosterStartDate?.startsWith(year+'-')?calAdd(state.rosterStartDate,3):`${year}-09-10`;}
 function calAdd(date,n){return new Date(Date.parse(date+'T12:00:00Z')+n*CAL_DAY).toISOString().slice(0,10);}
 function calGap(a,b){return Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/CAL_DAY);}
 function calText(date){return new Date(date+'T12:00:00Z').toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});}
 function calRoundDate(round,year=state.season.year){
+ if(swissCareer())return swissRoundDate(round,year);
  let day=calSeasonOpening(year);for(let i=1;i<Math.min(round,53);i++)day=calAdd(day,[2,3,2,5,4,3,5][(i-1)%7]);
  return round<=52?day:calAdd(day,3+(round-53)*2);
 }
@@ -25,7 +26,7 @@ function ensureCalendar(){
 function calendarTarget(){
  const c=state.calendar;if(!c)return null;
  if(c.active)return c.friendlies.find(f=>f.id===c.active)?.date;
- if(state.season.phase==='preseason')return c.friendlies.filter(f=>!f.played&&f.club===managerClub()).sort((a,b)=>a.date.localeCompare(b.date))[0]?.date||`${state.season.year}-09-10`;
+ if(state.season.phase==='preseason')return c.friendlies.filter(f=>!f.played&&f.club===managerClub()).sort((a,b)=>a.date.localeCompare(b.date))[0]?.date||calSeasonOpening();
  return currentSeasonFixture()?.date||calRoundDate(state.round);
 }
 function calendarTrainingPlan(t){

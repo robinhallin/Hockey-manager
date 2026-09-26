@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict'),path=require('node:path');
+module.exports=async(page,out)=>{
+ await page.evaluate(()=>{careerScreen='menu';render();});
+ await page.getByRole('button',{name:/Starta ny karriär/}).click();
+ await page.getByRole('button',{name:'National League',exact:true}).click();
+ assert.equal(await page.locator('.career-club-card').count(),14);
+ await page.locator('.career-club-card').filter({hasText:'EHC Kloten'}).click();
+ await page.screenshot({path:path.join(out,'29-schweiz-klubbval.png'),fullPage:true});
+ await page.getByRole('button',{name:/Möt styrelsen i EHC Kloten/}).click();
+ await page.getByRole('button',{name:/Acceptera uppdraget/}).click();
+ await page.getByRole('heading',{name:'Välj riktning för säsongen',exact:true}).waitFor();
+ assert.equal(await page.evaluate(()=>state.world.mode),'CH_NL');
+ assert.equal(await page.evaluate(()=>state.schedule.length),364);
+ assert.equal(await page.evaluate(()=>state.calendar.friendlies.length),5);
+ await page.getByRole('button',{name:/Bekräfta säsongsplanen/}).click();
+ await page.evaluate(()=>deskNavigate('leagues'));
+ await page.getByRole('heading',{name:'Ligavärlden',exact:true}).waitFor();
+ assert.match(await page.locator('.league-workspace').innerText(),/National League/);
+ assert.equal(await page.locator('.league-workspace header select option').count(),1);
+ await page.screenshot({path:path.join(out,'30-schweiz-ligavarld.png'),fullPage:true});
+ const before=await page.evaluate(()=>{save();return JSON.stringify({world:state.world,schedule:state.schedule,roster:managerRoster()});});
+ await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
+ assert.equal(await page.evaluate(()=>JSON.stringify({world:state.world,schedule:state.schedule,roster:managerRoster()})),before);
+ assert.equal(await page.evaluate(()=>careerSaveError),false);
+};

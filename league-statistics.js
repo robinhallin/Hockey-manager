@@ -65,7 +65,7 @@ function leagueCommitRows(game,rows,partial=false,live=false){
  ensureLeagueStatistics();const s=state.leagueStatistics;
  if(!s||!game||game.statsRecorded||!game.played)return;
  const league=leagueOf(game.home),stage=game.seriesId?'playoffs':'regular';
- if(!['SHL','HA'].includes(league))return;
+ if(!Object.hasOwn(LEAGUE_NAMES,league))return;
  for(const row of rows){
   if(!row.seconds&&!row.goals&&!row.shots&&!row.pim&&!row.saves&&!row.against)continue;
   row.games=1;
@@ -83,7 +83,7 @@ function leagueCommitRows(game,rows,partial=false,live=false){
    if(row.pos==='MV'){p.saves=(p.saves||0)+row.saves;p.goalsAgainst=(p.goalsAgainst||0)+row.against;}
   }
  }
- game.statsRecorded=true;game.statsPartial=partial;s.recorded[stage][league]++;
+ game.statsRecorded=true;game.statsPartial=partial;s.recorded[stage][league]=(s.recorded[stage][league]||0)+1;
  const reports=game.rivalReports||(live?[{club:managerClub(),style:state.tacticalPlan.attackStyle||'control',coachName:state.managerCareer?.name,pp:state.live.ppHV,ppGoals:state.live.ppGoalsHV},{club:state.live.opponent,workload:{...state.live.rink?.oppFatigue},coachId:state.live.aiTeam?.coachId,coachName:state.live.aiTeam?.coachName,style:state.live.aiTeam?.style||'control',decisions:state.live.aiTeam?.coachChanges||[],pp:state.live.ppOpp,ppGoals:state.live.ppGoalsOpp}]:[]);
  nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.home,rows,partial);
  nhlObserveFixture('senior',`senior:${state.season.year}:${stage}:${game.round}:${game.home}:${game.away}`,game.date||state.calendar.date,game.away,rows,partial);
@@ -136,7 +136,7 @@ function leagueStatSource(){return leagueStatsUI.year==='current'?state.leagueSt
 function leagueStatClubs(){return leagueStatsUI.year==='current'?Object.keys(state.world.membership).filter(c=>leagueOf(c)===leagueStatLeague()):[...new Set(Object.values(leagueStatSource().rows).filter(r=>r.league===leagueStatLeague()).map(r=>r.club))].sort((a,b)=>a.localeCompare(b,'sv'));}
 function leagueStatLeague(){return leagueStatsUI.league||leagueOf();}
 function setLeagueStats(key,value){
- const allowed={league:['SHL','HA'],stage:['regular','playoffs'],view:['points','goals','assists','shots','pim','perGame','goalies'],sort:['points','goals','assists','shots','pim','games','perGame','savePct','gaa','saves','against','shutouts','seconds']};
+ const allowed={league:Object.keys(activeLeagueNames()),stage:['regular','playoffs'],view:['points','goals','assists','shots','pim','perGame','goalies'],sort:['points','goals','assists','shots','pim','games','perGame','savePct','gaa','saves','against','shutouts','seconds']};
  if(allowed[key]&&!allowed[key].includes(value))return;
  if(key==='year'){if(value!=='current'&&!state.leagueStatistics.archives.some(a=>String(a.year)===String(value)))return;leagueStatsUI.year=value;leagueStatsUI.club='all';}
  else if(key==='minimum'){leagueStatsUI.minimum=Math.max(0,Math.min(52,Number(value)||0));}
@@ -156,7 +156,7 @@ function leagueStatPlayers(){
 }
 function leagueStatsOpenPlayer(id){deskOpenPlayer(id);}
 function leagueStatsClub(club){deskNavigate('leagueStats');state.world.selected=leagueOf(club);leagueStatsUI.league=leagueOf(club);leagueStatsUI.year='current';leagueStatsUI.club=club;leagueStatsUI.query='';leagueStatsUI.minimum=0;render();queueInterfaceSave();}
-function leagueStatsFilters(stages=true){const u=leagueStatsUI;return `<div class="league-filters"><label>Liga<select onchange="setLeagueStats('league',this.value)"><option value="SHL" ${leagueStatLeague()==='SHL'?'selected':''}>SHL</option><option value="HA" ${leagueStatLeague()==='HA'?'selected':''}>Hockeyallsvenskan</option></select></label>${stages?`<label>Säsong<select onchange="setLeagueStats('year',this.value)"><option value="current" ${u.year==='current'?'selected':''}>${seasonLabel()}</option>${state.leagueStatistics.archives.map(a=>`<option value="${a.year}" ${String(u.year)===String(a.year)?'selected':''}>${seasonLabel(a.year)}</option>`).join('')}</select></label><label>Tävling<select onchange="setLeagueStats('stage',this.value)"><option value="regular" ${u.stage==='regular'?'selected':''}>Grundserie</option><option value="playoffs" ${u.stage==='playoffs'?'selected':''}>Slutspel & kval</option></select></label><label>Lag<select onchange="setLeagueStats('club',this.value)"><option value="all">Samtliga lag</option>${leagueStatClubs().map(c=>`<option value="${trainingSafe(c)}" ${c===u.club?'selected':''}>${trainingSafe(c)}</option>`).join('')}</select></label><label>Spelare<input type="search" placeholder="Sök spelare" value="${trainingSafe(u.query)}" onchange="setLeagueStats('query',this.value)"></label><label>Minst matcher<select onchange="setLeagueStats('minimum',this.value)">${[0,1,3,5,10,20].map(n=>`<option ${u.minimum===n?'selected':''} value="${n}">${n===0?'Alla spelare':n+' matcher'}</option>`).join('')}</select></label>`:''}</div>`;}
+function leagueStatsFilters(stages=true){const u=leagueStatsUI;return `<div class="league-filters"><label>Liga<select onchange="setLeagueStats('league',this.value)">${Object.entries(activeLeagueNames()).map(([id,label])=>`<option value="${id}" ${leagueStatLeague()===id?'selected':''}>${label}</option>`).join('')}</select></label>${stages?`<label>Säsong<select onchange="setLeagueStats('year',this.value)"><option value="current" ${u.year==='current'?'selected':''}>${seasonLabel()}</option>${state.leagueStatistics.archives.map(a=>`<option value="${a.year}" ${String(u.year)===String(a.year)?'selected':''}>${seasonLabel(a.year)}</option>`).join('')}</select></label><label>Tävling<select onchange="setLeagueStats('stage',this.value)"><option value="regular" ${u.stage==='regular'?'selected':''}>Grundserie</option><option value="playoffs" ${u.stage==='playoffs'?'selected':''}>Slutspel & kval</option></select></label><label>Lag<select onchange="setLeagueStats('club',this.value)"><option value="all">Samtliga lag</option>${leagueStatClubs().map(c=>`<option value="${trainingSafe(c)}" ${c===u.club?'selected':''}>${trainingSafe(c)}</option>`).join('')}</select></label><label>Spelare<input type="search" placeholder="Sök spelare" value="${trainingSafe(u.query)}" onchange="setLeagueStats('query',this.value)"></label><label>Minst matcher<select onchange="setLeagueStats('minimum',this.value)">${[0,1,3,5,10,20].map(n=>`<option ${u.minimum===n?'selected':''} value="${n}">${n===0?'Alla spelare':n+' matcher'}</option>`).join('')}</select></label>`:''}</div>`;}
 function leagueStatisticsView(){
  ensureLeagueStatistics();const u=leagueStatsUI,s=leagueStatSource(),players=leagueStatPlayers(),goalies=u.view==='goalies',count=s.recorded[u.stage][leagueStatLeague()],missing=s.missing[leagueStatLeague()];
  const columns=goalies?[['games','M'],['seconds','Istid'],['saves','Räddn.'],['against','IM'],['savePct','Räddn. %'],['gaa','GAA'],['shutouts','Nollor']]:[['games','M'],['goals','Mål'],['assists','Assist'],['points','Poäng'],['perGame','P/M'],['shots','Skott'],['pim','Utv. min']];

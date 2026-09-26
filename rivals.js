@@ -423,13 +423,14 @@ function rivalSimulate(game,{regulationOnly=false}={}){
   return goal;
  };
  for(let i=0;i<180;i++){if(i>0&&i%60===0)recover(180);tick();}
- if(!regulationOnly&&sides[0].goals===sides[1].goals){
+ const needsOvertime=()=>typeof aggregateNeedsOvertime==='function'?aggregateNeedsOvertime(game,sides[0].goals,sides[1].goals):sides[0].goals===sides[1].goals;
+ if(!regulationOnly&&needsOvertime()){
   overtime=true;
-  for(let i=0;i<(game.seriesId?900:15)&&sides[0].goals===sides[1].goals;i++){if(game.seriesId&&i%60===0)recover(180);tick();}
-  if(sides[0].goals===sides[1].goals){
+  for(let i=0;i<(game.seriesId?900:15)&&needsOvertime();i++){if(game.seriesId&&i%60===0)recover(180);tick();}
+  if(needsOvertime()){
    if(game.seriesId){
     // Continue actual sudden-death play; never fabricate a skater's deciding goal.
-    while(sides[0].goals===sides[1].goals){if(time%1200===0)recover(180);tick();}
+    while(needsOvertime()){if(time%1200===0)recover(180);tick();}
    }else{
     const attributes=(p,keys)=>Object.fromEntries(keys.map(k=>[k,attribute(p,k)]));
     const result=StudioHockey.resolveShootout(sides.map(b=>({shooters:[...b.l.forwards,...b.l.defense,...b.l.extras].map(p=>({id:p.id,name:p.name,attributes:attributes(p,['shooting','puckControl','composure'])})),keeper:b.l.keeper?attributes(b.l.keeper,['reflexes','positioning','movement','composure']):null})),rand);

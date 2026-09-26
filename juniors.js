@@ -20,9 +20,9 @@ function ensureJuniors(){
 function juniorRoll(){const s=state.juniors;s.rng=(Math.imul(s.rng,1664525)+1013904223)>>>0;return s.rng/4294967296;}
 function createJunior(pos,intake){
  const s=state.juniors,n=s.nextId++,id=`junior-${managerClub()}-${s.year}-${n}`;
- const first=['Albin','Vilgot','Noel','Isak','Hugo','Elias','Viktor','Axel','Olle','Melvin','Leo','Arvid','Gustav','Sixten','Anton','Emil'];
- const last=['Berglund','Sjöberg','Lindholm','Nyström','Ek','Hallberg','Fors','Sund','Lindgren','Björk','Hedlund','Sand','Dahl','Nord','Engström','Strand'];
- const p={id,name:`${first[Math.floor(juniorRoll()*first.length)]} ${last[(n+Math.floor(juniorRoll()*last.length))%last.length]}`,pos,age:intake?16:16+Math.floor(juniorRoll()*4),fictional:true,nationality:'SWE',overall:62,potential:80,shooting:62,passing:62,defense:62,physical:62,salary:350000,contractYears:3,value:700000,fatigue:0,morale:65,happiness:70,goals:0,assists:0,shots:0,pim:0,games:0,squadRole:'Breddspelare',promisedRole:'Breddspelare',developmentFocus:'Balanserad',trainingLoad:'normal',trainingProgress:{},health:{load:0,injury:null,clearance:'rest'}};
+ const first=swissCareer()?['Luca','Noah','Nico','Jan','Yann','Sandro','Dario','Julien']:['Albin','Vilgot','Noel','Isak','Hugo','Elias','Viktor','Axel','Olle','Melvin','Leo','Arvid','Gustav','Sixten','Anton','Emil'];
+ const last=swissCareer()?['Keller','Meier','Frei','Huber','Müller','Gerber','Dubois','Meyer']:['Berglund','Sjöberg','Lindholm','Nyström','Ek','Hallberg','Fors','Sund','Lindgren','Björk','Hedlund','Sand','Dahl','Nord','Engström','Strand'];
+ const p={id,name:`${first[Math.floor(juniorRoll()*first.length)]} ${last[(n+Math.floor(juniorRoll()*last.length))%last.length]}`,pos,age:intake?16:16+Math.floor(juniorRoll()*4),fictional:true,nationality:swissCareer()?'SUI':'SWE',overall:62,potential:80,shooting:62,passing:62,defense:62,physical:62,salary:350000,contractYears:3,value:700000,fatigue:0,morale:65,happiness:70,goals:0,assists:0,shots:0,pim:0,games:0,squadRole:'Breddspelare',promisedRole:'Breddspelare',developmentFocus:'Balanserad',trainingLoad:'normal',trainingProgress:{},health:{load:0,injury:null,clearance:'rest'}};
  ensurePlayerAttributes(p);const roles=juniorRoles(p),role=roles[Math.floor(juniorRoll()*roles.length)],weights=PLAYER_ROLES[role],ceiling={};
  const talent=2+juniorRoll()*6;
  for(const key of Object.keys(p.attributes)){

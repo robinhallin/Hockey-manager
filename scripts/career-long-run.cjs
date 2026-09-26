@@ -8,8 +8,9 @@ const seasons=Number(process.env.CAREER_SEASONS||6);
 assert.ok(Number.isInteger(seasons)&&seasons>=1&&seasons<=20);
 const {headlessCareer}=require('./headless-career.cjs');
 const resume=process.env.CAREER_RESUME?require('node:fs').readFileSync(process.env.CAREER_RESUME,'utf8'):null;
-let app=headlessCareer(resume),r=app.run;
-if(!resume)r("startCareerWithClub('HV71')");
+const swiss=process.env.CAREER_LEAGUE==='CH_NL';
+let app=headlessCareer(resume,{production:swiss}),r=app.run;
+if(!resume)r(swiss?"startCareerWithClub('EHC Kloten')":"startCareerWithClub('HV71')");
 const initialYear=r('state.season.year');
 const quiet=()=>r(`globalThis.checkpointSave=save;save=()=>{};render=()=>{};
  globalThis.soakStore=localStorage.setItem;localStorage.setItem=(key,value)=>{
@@ -32,6 +33,7 @@ for(let year=0;year<seasons;year++){
    }
   }`);
   assert.ok(r('managerEmployed()'),'No attainable job after twelve search weeks');
+  if(swiss)r(`preseasonConfigure('youth','assistant','rotation','assistant','assistant');for(const f of [...state.calendar.friendlies])calendarCancelFriendly(f.id);`);
   // Renew at actual demands if affordable; otherwise release expired players.
   r(`for(const p of [...managerRoster()].filter(p=>p.contractYears<=0)){
    const w=renewalWishes(p);openContractNegotiation(p.id);submitContractRenewal(p.id,w.salary,w.minYears,w.role);
@@ -67,8 +69,8 @@ for(let year=0;year<seasons;year++){
   }
   calendarAfterFixture();if(state.round%13===0)console.log(JSON.stringify({progress:state.season.year,round:state.round,date:state.calendar.date}));
  }`);
- assert.equal(r('state.schedule.filter(g=>g.played&&g.statsRecorded).length'),728);
- assert.equal(r('state.teams.reduce((n,t)=>n+t.pts,0)'),2184);
+ assert.equal(r('state.schedule.filter(g=>g.played&&g.statsRecorded).length'),swiss?364:728);
+ assert.equal(r('state.teams.reduce((n,t)=>n+t.pts,0)'),swiss?1092:2184);
  assert.equal(r('state.teams.reduce((n,t)=>n+t.gf,0)'),r('state.teams.reduce((n,t)=>n+t.ga,0)'));
  r(`enterPlayoffs();globalThis.turns=0;while(state.season.phase==='playoffs'&&turns++<100){{let days=0;while(state.calendar.date<calendarTarget()){if(++days>400)throw Error('Calendar failed to reach next fixture');calendarStep();}}for(const g of state.schedule.filter(g=>g.round===state.round&&g.seriesId&&!g.played))simulatePlayoffGame(g);finishPlayoffDay();}`);
  assert.equal(r('state.season.phase'),'review');
@@ -81,7 +83,7 @@ for(let year=0;year<seasons;year++){
  r('managerRenew();beginPreseason();checkpointSave()');
  assert.ok(r('JSON.stringify(careerRead(localStorage.getItem("hockey_manager_alpha02")))')===r('JSON.stringify(state)'),'Checkpoint must save the current career, not leave an older one after quota failure');
  assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
- const saved=app.storage.value;if(process.env.CAREER_CHECKPOINT)require('node:fs').writeFileSync(process.env.CAREER_CHECKPOINT,saved);const restored=boot(saved);const restoredState=restored.run('JSON.stringify(state)');r('state=JSON.parse('+JSON.stringify(restoredState)+')');
+ const saved=app.storage.value;if(process.env.CAREER_CHECKPOINT)require('node:fs').writeFileSync(process.env.CAREER_CHECKPOINT,saved);const restored=boot(saved,{production:swiss});const restoredState=restored.run('JSON.stringify(state)');r('state=JSON.parse('+JSON.stringify(restoredState)+')');
  const identities=r('[...Object.values(state.clubRosters).flat(),...state.playerWorld.freeAgents,...state.loans.external,...state.juniors.roster,...aiAcademyPlayers()].map(p=>String(p.id))');
  assert.equal(new Set(identities).size,identities.length);
  assert.ok(r('Object.values(state.clubRosters).flat().every(p=>Object.values(p.attributes).every(n=>Number.isFinite(n)&&n>=1&&n<=20))'));

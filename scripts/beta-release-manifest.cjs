@@ -11,7 +11,7 @@ function manifest({directory,smoke,version,revision,sourceRevision,tree}){
  assert.equal(installers.length,1,'Exactly one installer must be tested and delivered');
  const file=installers[0];assert.equal(file,`Hockey-Manager-${version}-Windows-x64-Setup.exe`);
  const bytes=fs.readFileSync(path.join(directory,file));assert.ok(bytes.length,'Empty installer');
- return {version,revision,sourceRevision,tree,platform:'Windows x64',installer:file,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),installedTest:{passed:true,checks:smoke.checks},playableLeagues:['SHL','Hockeyallsvenskan'],europeanLeagues:'preparation-only; not playable',codeSigned:false};
+ return {version,revision,sourceRevision,tree,platform:'Windows x64',installer:file,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),installedTest:{passed:true,checks:smoke.checks},playableLeagues:['SHL','Hockeyallsvenskan','National League (separate beta career)'],europeanLeagues:'CH_NL playable with documented beta limitations; CZ_ELH and FI_LIIGA preparation-only',codeSigned:false};
 }
 if(require.main===module){
  const {execFileSync}=require('node:child_process'),directory=path.resolve('dist/beta');

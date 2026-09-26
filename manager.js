@@ -65,7 +65,7 @@ function managerPreseason(){
 }
 function managerCreateJobs(){
  const c=state.managerCareer;if(state.season.phase!=='preseason')return;
- const clubs=Object.keys(CLUB_DATA).filter(name=>name!==managerClub());
+ const clubs=Object.keys(state.world?.membership||leagueInitial()).filter(name=>name!==managerClub());
  const ranked=clubs.map(name=>({name,rank:seasonRank(name)||14}));
  ranked.sort((a,b)=>(b.rank-careerIdentity(b.name).place)-(a.rank-careerIdentity(a.name).place));
  const chosen=[...ranked.slice(0,3),ranked[(3+c.week)%ranked.length]];

@@ -379,11 +379,11 @@ function studioStep(){
  studioMirror(e);
  if(m.medicalPauseWanted){m.medicalPauseWanted=false;m.running=false;m.pauseReason='Spelarbesked måste hanteras.';studioSyncPlans(e);e.stop('stoppage','Spelet pausas för medicinsk bedömning.',{...e.puck});}
  if(e.tick%10===0){aiDecisions();studioSyncPlans(e);}
- if(m.period===4&&m.hv!==m.opp){e.finished=true;finishMatch(true);return;}
+ if(m.period===4&&!liveNeedsOvertime()){e.finished=true;finishMatch(true);return;}
  if(e.finished){
   e.periodStart=e.time;
   if(m.period<3){matchRecover(180,`period:${m.period}`);addEvent(`Period ${m.period} är slut.`,'period');m.period++;m.minute=0;m.second=0;m.running=false;e.duration+=1200;}
-  else if(m.period===3){if(m.hv!==m.opp){e.finished=true;finishMatch(false);return;}startOvertime();for(const t of e.teams){t.wantPulled=false;t.pulled=false;}e.threeOnThree=!isPlayoffMatch();e.duration+=e.threeOnThree?300:1200;}
+  else if(m.period===3){if(!liveNeedsOvertime()){e.finished=true;finishMatch(false);return;}startOvertime();for(const t of e.teams){t.wantPulled=false;t.pulled=false;}e.threeOnThree=!isPlayoffMatch();e.duration+=e.threeOnThree?300:1200;}
   else if(isPlayoffMatch()){matchRecover(180,`overtime:${m.overtimePeriods||1}`);m.overtimePeriods=(m.overtimePeriods||1)+1;m.minute=0;m.second=0;m.running=false;e.duration+=1200;addEvent('Ny förlängningsperiod väntar.','period');}
   else{shootout();return;}
   matchPeriodPause();e.finished=false;e.stop('stoppage',m.period===4?'Förlängning väntar.':'Periodpaus. Nästa period väntar.');

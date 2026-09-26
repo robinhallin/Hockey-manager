@@ -54,3 +54,17 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/check-career-workflows.cjs
+
+  swiss-career:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Two Swiss seasons with real contracts, market and save reload
+        env:
+          CAREER_LEAGUE: CH_NL
+          CAREER_SEASONS: 2
+        run: node scripts/career-long-run.cjs

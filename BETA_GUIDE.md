@@ -1,10 +1,10 @@
-# Hockey Manager · Beta 0.1.0-beta.4
+# Hockey Manager · Beta 0.1.0-beta.5
 
 Privat testversion för 64-bitars Windows 10/11, stor skärm, mus och tangentbord.
 
 ## Installera och börja spela
 
-1. Kör `Hockey-Manager-0.1.0-beta.4-Windows-x64-Setup.exe`.
+1. Kör `Hockey-Manager-0.1.0-beta.5-Windows-x64-Setup.exe`.
 2. Välj installationsmapp och starta Hockey Manager från skrivbordet eller Startmenyn.
 3. Välj **Starta ny karriär**, välj klubb och acceptera styrelsens uppdrag.
 4. Börja med översikten, truppen och kedjorna. Fortsätt för spelets kalender framåt.
@@ -71,7 +71,7 @@ Installera den nya versionen i samma mapp som tidigare. Karriärerna ligger kvar
 - Matchbetyg visas med en decimal, 0,0–10,0. Truppens Snittbetyg visar bedömda tävlingsmatcher för aktuell klubb och säsong. Betyg utan tillräckligt underlag saknas i snittet; redan borttagna gamla rapporter går inte att återskapa.
 
 
-## Nytt i Beta 0.1.0-beta.4
+## Nytt i Beta 0.1.0-beta.5
 
 - Historiska matchrapporter behåller matchens egna händelser och spelarbedömningar.
 - Rekryteringens motbud, accepterade villkor och ekonomiska prognos följer samma affär till registreringen.
@@ -81,4 +81,8 @@ Installera den nya versionen i samma mapp som tidigare. Karriärerna ligger kvar
 
 ### Europeiska ligor är fortfarande inte spelbara
 
-Tjeckien, Schweiz och Finland ingår som förberedda data, inte som valbara karriärer i den här versionen. Tjeckiska spelarposter saknas i paketet. Registreringar, identitetskonflikter, ligaregler, kalenderintegration och säsongsskiften måste verifieras innan ligorna öppnas. Starta en svensk karriär för denna beta. Etapp 5 är inte slutförd genom denna betaleverans.
+Schweiz går att välja som en separat National League-karriär med 14 klubbar och 412 verkliga spelare från ligans underlag. Karriären börjar 1 augusti med fem träningsmatcher. Grundserien har 52 matcher per klubb, tvåmatchers play-in på sammanlagda mål, en andra chans för förloraren i 7–8 och slutspel i bäst av sju. Starta en ny karriär och välj National League. Svenska sparfiler behåller sin värld.
+
+Betans schweiziska värld omfattar endast högstaligan. Swiss League och nedflyttning ingår inte. Importlicenser simuleras inte eftersom registreringsunderlag saknas. Nationalitet som saknas visas som okänd. Kontrakt, löner, klubbresurser och transferfönstret är spelantaganden; alla belopp visas i SEK. Schemat är genererat inom säsongsfönstret 15 september–1 mars, inte det officiella matchschemat. Vid lika poäng används spelets målskillnad. Spelarlistan är inte ett verifierat registreringsregister. Spelarnas källor och osäkerhet visas i profilerna.
+
+Tjeckien och Finland är fortfarande förberedda data. Etapp 5:s samtliga europeiska ligor är därmed ännu inte färdiga.
