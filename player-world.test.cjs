@@ -54,4 +54,7 @@ assert.equal(saved.run('state.season.freeAgents===state.playerWorld.freeAgents')
 // Injured free agents recover with world time, including generated players without prior health.
 run('globalThis.free=state.playerWorld.freeAgents[0];delete free.health;ensureMedical();free.health.injury={remaining:1,readiness:50};medicalDay()');assert.equal(run('free.health.injury.remaining'),0);
 for(const tab of ['free','world']){run(`recruitTab('${tab}')`);assert.doesNotMatch(run('recruitmentView()'),/NaN|undefined/);}
+r("globalThis.memoryPlayer=managerRoster()[0];memoryPlayer.games=100;memoryPlayer.goals=30;memoryPlayer.assists=70;careerPlayerMilestones(memoryPlayer,managerClub());globalThis.memories=careerHistoryPlayer(memoryPlayer)");
+assert.ok(r("memories.some(e=>e.type==='games'&&e.value===100)"));assert.ok(r("memories.some(e=>e.type==='points'&&e.value===100)"));
+r("careerRecord('test-record','Testrekord',12,memoryPlayer.name,{playerId:memoryPlayer.id});careerRecord('test-record','Testrekord',10,'Annan')");assert.equal(r("ensureCareerHistory().records['test-record'].value"),12);
 console.log('PASS: legacy global pool, free transfers/scouting/reservations, retirement, contract decisions, AI intakes, 11 years of unique playable rosters, recovery, reload and views.');
