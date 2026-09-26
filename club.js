@@ -100,7 +100,7 @@ function clubJuniorFactor(){return clubProjectFactor('junior',state.clubOffice?.
 function clubGate(playoff=false,ticket=state.clubOffice.ticket){
  const o=state.clubOffice,rank=regularTable().findIndex(t=>t.name===managerClub())+1;
  const demand=.9+(8-rank)*.012+(playoff?.12:0)-(ticket-220)/700;
- const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubPriorityValue('attendance')*Math.max(.45,Math.min(1.2,demand))));
+ const attendance=Math.round(Math.min(o.capacity,Math.max(0,state.fans||0)*clubProjectFactor('attendance')*Math.max(.45,Math.min(1.2,demand))));
  return {attendance,revenue:attendance*ticket};
 }
 function clubSettleMatch(){
@@ -111,11 +111,11 @@ function clubSettleMatch(){
  if(home)clubPost('tickets',gate.revenue,`${gate.attendance.toLocaleString('sv-SE')} åskådare × ${o.ticket} kr · ${g.away}`);
  clubPost('matchday',home?-150000:-90000,home?'Arena & matcharrangemang':'Bortaresa & logi');
  if(!g.seriesId){
-  clubPost('sponsor',o.sponsor*clubPriorityValue('sponsor')/52,'Sponsor & centrala avtal · 1/52');
+  clubPost('sponsor',o.sponsor*clubProjectFactor('sponsor')/52,'Sponsor & centrala avtal · 1/52');
   clubPost('players',-annualWageCost()/52,'Spelarlöner · 1/52 av nuvarande årslön');
   clubPost('staff',-clubStaffCost()/52,'Personallöner · 1/52');
   if(managerSalary())clubPost('manager',-managerSalary()/52,'Huvudtränarens lön · 1/52');
-  clubPost('operations',-o.operations*clubPriorityValue('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
+  clubPost('operations',-o.operations*clubProjectFactor('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
   const p=CLUB_PRIORITIES[o.priority];if(p.cost)clubPost('priority',-p.cost/52,p.name+' · 1/52');
  }
  managerMessage(`finance:${key}`,'Ekonomirapport efter matchen',`${home?`Publikintäkt ${money(gate.revenue)}.`:'Bortamatch: ingen biljettintäkt.'} Kassa: ${money(state.money)}. ${state.money<0?'Kassan är negativ. Försäljningar och lägre kostnader behövs.':'Se återstående säsongsprognos och kostnader under Ekonomi.'}`,'Klubbekonomi',{link:'finance'});
@@ -124,8 +124,8 @@ function clubForecast(){
  const o=state.clubOffice,remaining=state.schedule.filter(g=>!g.played&&!g.seriesId&&(g.home===managerClub()||g.away===managerClub())),home=remaining.filter(g=>g.home===managerClub()).length;
  // During preseason the old schedule remains; project the next 52-fixture season.
  const preseason=state.season.phase==='preseason',games=preseason?52:remaining.length,homes=preseason?26:home;
- const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations*clubPriorityValue('operations')+CLUB_PRIORITIES[o.priority].cost;
- const income=homes*clubGate().revenue+games*o.sponsor*clubPriorityValue('sponsor')/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
+ const wage=annualWageCost()+clubStaffCost()+managerSalary(),recurring=o.operations*clubProjectFactor('operations')+CLUB_PRIORITIES[o.priority].cost;
+ const income=homes*clubGate().revenue+games*o.sponsor*clubProjectFactor('sponsor')/52,cost=games*(wage+recurring)/52+homes*150000+(games-homes)*90000;
  const reserved=(state.recruitment?.deals||[]).filter(d=>d.status==='pending').reduce((n,d)=>n+d.fee,0);
  return {games,homes,income,cost,reserved,cash:Math.round(state.money+income-cost-reserved)};
 }
