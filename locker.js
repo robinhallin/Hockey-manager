@@ -5,11 +5,7 @@ function ensureLocker(){
  if(!state.careerStarted)return;
  const initial=!state.locker;
  if(initial)state.locker={version:1,turn:0,captainId:null,captainChanged:-10,pairs:{},log:[],lastMatch:null,talkHistory:[]};
- for(const roster of Object.values(state.clubRosters))for(const p of roster)if(!p.social){
-   const neutral=p.fictional===false&&Boolean(p.research?.model);
-   const trait=key=>neutral?10:1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
-   p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),basis:neutral?'neutral-unobserved':'fictional',trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
- }
+ for(const roster of Object.values(state.clubRosters))for(const p of roster)playerIdentity(p);
  for(const p of managerRoster())rolePolicyUpgrade(p);
  if(initial)state.locker.captainId=[...managerRoster()].sort((a,b)=>b.social.leadership-a.social.leadership||b.age-a.age)[0]?.id??null;
  else if(!managerRoster().some(p=>samePlayerId(p.id,state.locker.captainId)))state.locker.captainId=null;
@@ -46,6 +42,27 @@ function socialRoleFollowup(p,missed,played,loss){
 function socialJournalView(p){
  const rows=p.social?.journal||[];
  return `<section class="fm-panel player-journal"><h2>Min historia med klubben</h2><p>Registrerade beslut och reaktioner i din karriär. Personligheten är fiktiv speldata.</p>${rows.length?`<div class="player-journal-list" tabindex="0" aria-label="Spelarens klubbjournal">${rows.map(e=>`<article><small>${trainingSafe(e.date||seasonLabel(e.year))} · ${trainingSafe(e.club)}</small><h3>${trainingSafe(e.title)}</h3><p>${trainingSafe(e.body)}</p>${e.change?`<strong>Förtroende ${e.change>0?'+':''}${e.change}</strong>`:''}</article>`).join('')}</div>`:'<p>Journalen börjar med nästa samtal, kaptensbeslut eller rolluppföljning. Äldre händelser återskapas inte.</p>'}</section>`;
+}
+function playerIdentity(p){
+ if(!p)return {ambition:10,loyalty:10,sensitivity:10,leadership:10,trust:60,basis:'neutral-unobserved'};
+ if(!p.social){
+  const neutral=p.fictional===false&&Boolean(p.research?.model),trait=key=>neutral?10:1+Math.floor(attrSeed(`${p.id}:personality:${key}`)*20);
+  p.social={ambition:trait('ambition'),loyalty:trait('loyalty'),sensitivity:trait('sensitivity'),leadership:trait('leadership'),basis:neutral?'neutral-unobserved':'fictional',trust:60,lastTalk:-10,missed:0,lastMinutes:null,praisedGrowth:socialGrowth(p),lastResponse:''};
+ }
+ return p.social;
+}
+function playerClubHistory(p,club=managerClub()){
+ const s=playerIdentity(p),rows=(s.journal||[]).filter(x=>x.club===club);
+ return {trust:s.trust??60,positive:rows.filter(x=>(x.change||0)>0).length,negative:rows.filter(x=>(x.change||0)<0).length,broken:rows.filter(x=>/brutet|infriades inte|motsvarar inte rollen/i.test((x.title||'')+' '+(x.body||''))).length};
+}
+function playerPreferenceProfile(p,club=managerClub()){
+ const s=playerIdentity(p),history=playerClubHistory(p,club),current=getPlayerClub(p.id)===club;
+ const ambition=(s.ambition-10)/10,loyalty=(s.loyalty-10)/10,security=(s.sensitivity-10)/10;
+ return {ambition:s.ambition,loyalty:s.loyalty,sensitivity:s.sensitivity,leadership:s.leadership,trust:history.trust,current,history,
+  salaryWeight:Math.max(.75,1+ambition*.12-loyalty*(current?.08:0)),
+  roleWeight:Math.max(.75,1+ambition*.22),
+  securityWeight:Math.max(.75,1+security*.18+loyalty*.08),
+  continuity:current?Math.max(-12,Math.min(12,(history.trust-60)/3+loyalty*5-history.broken*3)):0};
 }
 function socialGrowth(p){return Object.values(p.attributes||{}).reduce((sum,n)=>sum+n,0);}
 function socialPersonality(p){const s=p.social;if(s.basis==='neutral-unobserved')return 'Personlighet ej verklighetsbedömd · neutral spelmodell';return [s.ambition>=14?'Ambitiös':s.ambition<=7?'Tålmodig':'Målmedveten',s.loyalty>=14?'Lojal':s.loyalty<=7?'Självständig':'Lagorienterad',s.sensitivity>=14?'Behöver trygghet':s.sensitivity<=7?'Tål raka besked':'Lyhörd'].join(' · ');}
