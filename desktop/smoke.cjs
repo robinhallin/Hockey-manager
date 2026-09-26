@@ -140,6 +140,10 @@ async function close(){
   assert.equal(saved.live.running,false);assert.ok(saved.live.broadcast);
   await launch();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
   assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),JSON.stringify(saved.live));
+  // Relaunch maximizes to the hosted desktop (often 1024px). Restore the same
+  // desktop viewport before asserting the fixed match workspace layout.
+  await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1366,768);});
+  await page.waitForFunction(()=>innerWidth===1366 && innerHeight===768);
   await page.evaluate(()=>deskNavigate('match'));
   await require('../scripts/match-browser-checks.cjs').checkMatchReports(page,out);
   await page.locator('.settings-item').click();await page.getByText('Spelguide – din första vecka',{exact:true}).click();
