@@ -50,3 +50,24 @@ Tests add motion determinism, stationary pose, shooter identity, keeper
 response, old-frame compatibility and snapshot/save parity. Windows smoke
 reaches a real shot, captures Follow view and plays its real replay without
 changing the match ledger.
+
+## Models and large rink (development, no version bump)
+
+Rounded helmets/faces/gloves and a shaped jersey replace the cuboid silhouette.
+Goalkeepers have a mask cage and pad details. A contrasting alternate kit is
+used for the second side when primary colors are too similar. These are generic
+club-colored models, not claimed replicas of licensed equipment or official kits.
+Per-fragment key/fill lighting, material highlights, contact shadows and static
+seating improve depth. Unit sphere vertices and typed mesh buffers reduce CPU
+work; identical paused geometry is retained on the GPU.
+
+**Stor rink** hides the coach/stat/lineup panels while retaining score, clock,
+playback and strength/penalty status. **Visa coachbänken** restores controls.
+Clicking a player restores the coach panel with that player's task and pauses
+as before. Focus is session-local, applies only to active 3D and desktop width,
+and never changes the saved match.
+
+Validation adds finite geometry and a <50,000 dynamic-vertex budget for a normal
+on-ice unit, alternate kit contrast, read-only focus controls and actual Windows
+UI checks for layout, caching, GPU errors, player picking and returning to coach.
+Screenshot 35 and `3d-graphics-result.json` document the expanded surface.
