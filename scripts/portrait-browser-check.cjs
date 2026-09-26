@@ -20,7 +20,7 @@ const server=http.createServer((req,res)=>{
    const rows=Object.entries(PLAYER_PORTRAITS).map(([id,p])=>({id,src:p.src}));
    return Promise.all(rows.map(async p=>{const img=new Image();img.src=p.src;await img.decode();return {id:p.id,width:img.naturalWidth};}));
   });
-  assert.ok(loaded.length>=155);assert.ok(loaded.every(p=>p.width===384));
+  assert.ok(loaded.length>=177);assert.ok(loaded.every(p=>p.width===384));
   const avatar=page.locator('.fm-profile-header .player-avatar img');
   await avatar.waitFor();
   await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);
@@ -43,6 +43,9 @@ const server=http.createServer((req,res)=>{
   await page.evaluate(()=>deskOpenPlayer('ep-101250'));
   await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);
   assert.match(await page.locator('.fm-profile-header .player-avatar').getAttribute('aria-label'),/Jakub Vrána/);
-  assert.deepEqual(errors,[]);console.log(`PASS: ${loaded.length} portraits load, HV71, Brynäs, Frölunda, Färjestad Djurgården and Linköping profiles render, missing file falls back, no page errors`);
+  await page.evaluate(()=>deskOpenPlayer('ep-379904'));
+  await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);
+  assert.match(await page.locator('.fm-profile-header .player-avatar').getAttribute('aria-label'),/Matteus Ward/);
+  assert.deepEqual(errors,[]);console.log(`PASS: ${loaded.length} portraits load, HV71, Brynäs, Frölunda, Färjestad Djurgården Linköping and Luleå profiles render, missing file falls back, no page errors`);
  }finally{if(browser)await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
