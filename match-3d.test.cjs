@@ -196,3 +196,11 @@ test('replay keeps observed recovery frames immutable and motion survives save/r
  assert.notEqual(m.actor(actor.id).motion.heading,999,'live snapshots are detached from actors');
  m.faceoffPositions();assert.ok(m.actors.every(a=>!a.motion&&!a.presentationAction),'faceoff reset clears old poses');
 });
+test('loading a career during shot recovery preserves the exact paused match and replay',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
+ app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';for(let i=0;i<5000&&!studioEngine().latestReplay;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}pauseMatch();save();");
+ assert.ok(app.run('Boolean(studioEngine().latestReplay)&&studioEngine().replayTailUntil>studioEngine().wall'));
+ const digest=text=>require('node:crypto').createHash('sha256').update(text).digest('hex');
+ const before=digest(app.run('JSON.stringify(state.live)')),reloaded=boot(app.storage.value);
+ assert.equal(digest(reloaded.run('JSON.stringify(state.live)')),before,'hydration must not append a duplicate recovery frame');
+});

@@ -866,8 +866,10 @@ const StudioHockey = (() => {
       else if(this.latestReplay&&this.replayTailUntil){
         // Keep the actually observed recovery after a shot, without mutating a
         // replay already being viewed or inventing future frames while paused.
-        if(this.wall<=this.replayTailUntil+1e-7&&this.phase!=='faceoff')this.latestReplay={shot:this.latestReplay.shot,frames:[...this.latestReplay.frames.slice(-69),frame]};
-        else this.replayTailUntil=null;
+        if(this.wall>this.replayTailUntil+1e-7||this.phase==='faceoff')this.replayTailUntil=null;
+        // Hydration rebuilds history at the saved tick. It is not a new tick
+        // and must not append the same frame to the saved replay a second time.
+        else if(frame.wall>(this.latestReplay.frames.at(-1)?.wall??-Infinity)+1e-7)this.latestReplay={shot:this.latestReplay.shot,frames:[...this.latestReplay.frames.slice(-69),frame]};
       }
     }
     snapshot(){return this.history.at(-1);}
