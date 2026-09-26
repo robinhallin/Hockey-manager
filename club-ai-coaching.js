@@ -64,12 +64,17 @@ function aiCoachTraits(club){
   patience:240+Math.floor(seed('patience')*4)*120,adaptability:coach.adaptability||10,youth:Boolean(coach.youth)};
 }
 // Observations are match-local, bounded and serializable. Only completed time buckets enter the window.
+function aiFlowStats(context){
+ const flow=context.flow||{},own=flow.own||{},against=flow.against||{};
+ return {ownTurnovers:Number(own.turnovers||0),againstTurnovers:Number(against.turnovers||0),ownEntries:Number(own.entries||0),againstEntries:Number(against.entries||0),ownBattles:Number(own.battles||0),ownBattleWins:Number(own.battleWins||0)};
+}
 function aiObserveMatch(holder,context){
- const rows=holder.coachObservations??=[];
- if(!rows.length||context.seconds>rows.at(-1).seconds)rows.push({seconds:context.seconds,shots:context.shots,againstShots:context.againstShots});
+ const rows=holder.coachObservations??=[],flow=aiFlowStats(context);
+ if(!rows.length||context.seconds>rows.at(-1).seconds)rows.push({seconds:context.seconds,shots:context.shots,againstShots:context.againstShots,...flow});
  while(rows.length>7)rows.shift();
- const first=rows.find(r=>r.seconds>=context.seconds-600)||rows[0];
- return {...context,windowSeconds:context.seconds-first.seconds,recentShots:Math.max(0,context.shots-first.shots),recentAgainst:Math.max(0,context.againstShots-first.againstShots)};
+ const first=rows.find(r=>r.seconds>=context.seconds-600)||rows[0],delta=k=>Math.max(0,(flow[k]||0)-(first[k]||0));
+ return {...context,windowSeconds:context.seconds-first.seconds,recentShots:Math.max(0,context.shots-first.shots),recentAgainst:Math.max(0,context.againstShots-first.againstShots),
+  recentTurnovers:delta('ownTurnovers'),forcedTurnovers:delta('againstTurnovers'),recentEntries:delta('ownEntries'),againstEntries:delta('againstEntries'),recentBattles:delta('ownBattles'),recentBattleWins:delta('ownBattleWins')};
 }
 function aiCoachDecision(club,base,context){
  const {seconds,gf,ga,shots=0,againstShots=0,energy=100,strength=0,previous}=context,traits=aiCoachTraits(club);
@@ -78,16 +83,22 @@ function aiCoachDecision(club,base,context){
  const protecting=late&&deficit<0;
  const enough=context.windowSeconds>=traits.patience;
  const outplayed=adaptive&&enough&&context.recentAgainst>=context.recentShots*1.6+4;
+ const entryProblem=adaptive&&enough&&context.againstEntries>=context.recentEntries+3&&context.againstEntries>=5;
+ const puckProblem=adaptive&&enough&&context.recentTurnovers>=context.forcedTurnovers+3&&context.recentTurnovers>=4;
+ const battleProblem=adaptive&&enough&&context.recentBattles>=6&&context.recentBattleWins/context.recentBattles<.35;
  let decision={...base,posture:'balanced',tempo:base.tempo||'normal',rotation:base.rotation||'balanced',shiftLimit:base.shiftLimit||43,
   situation:'base',reason:base.reason||'Behåller grundplanen.',response:'Följ skottbild och ork innan du ändrar din plan.'};
  if(chasing)Object.assign(decision,{style:'pressure',posture:'attack',tempo:'high',rotation:'topHeavy',shiftLimit:35,situation:'chase',reason:'Jagar kvittering med mer istid för toppkedjorna.',response:'Överväg säkrare puckspel och behåll ett kontringshot när pressen ökar.'});
  else if(protecting&&traits.risk<.65)Object.assign(decision,{style:'counter',posture:'defense',tempo:'low',situation:'protect',reason:'Försvarar ledningen och sänker risken.',response:'Överväg bredare anfall och trafik framför mål; undvik att forcera passningar genom mitten.'});
  else if(outplayed)Object.assign(decision,{style:'counter',tempo:'low',matchup:true,situation:'pressure',reason:`Svarar på ${context.recentAgainst}–${context.recentShots} i skott under de senaste ${Math.round(context.windowSeconds/60)} minuterna.`,response:'Motståndaren täcker mitten. Överväg tålamod och spel längs kanterna.'});
+ else if(puckProblem)Object.assign(decision,{style:'control',tempo:'low',matchup:true,situation:'turnovers',reason:`Svarar på ${context.recentTurnovers} egna pucktapp mot ${context.forcedTurnovers} framtvingade under observationsfönstret. Sänker risken i uppspelen.`,response:'AI:n skyddar pucken bättre. Överväg högre forecheck eller att styra pressen mot svagare puckförare.'});
+ else if(entryProblem)Object.assign(decision,{style:'counter',forecheck:'balanced',tempo:'low',matchup:true,situation:'entries',reason:`Motståndaren har ${context.againstEntries} zoninträden mot våra ${context.recentEntries}. Prioriterar neutralzonen och blålinjen.`,response:'AI:n tätar zoninträden. Dumpa bakom pressen eller använd mer pucktransport från fart.'});
+ else if(battleProblem)Object.assign(decision,{posture:'balanced',matchup:true,situation:'battles',reason:`Bara ${context.recentBattleWins} av ${context.recentBattles} registrerade puckdueller är vunna. Söker bättre matchningar.`,response:'AI:n försöker få starkare spelare i duellerna. Utnyttja ytan som uppstår när matchningen prioriteras.'});
  if(energy<55&&!(chasing&&seconds>=3360))Object.assign(decision,{tempo:'low',rotation:'rollFour',shiftLimit:30,situation:'rest',reason:'Korta byten och fyra kedjor för att avlasta trötta spelare.',response:'Motståndaren sprider istiden. Överväg att möta reservkedjor med en utvilad offensiv formation.'});
  if(strength<0)Object.assign(decision,{style:'counter',posture:'defense',tempo:'low',shiftLimit:30,situation:'pk',reason:'Prioriterar att stänga mitten i numerärt underläge.',response:'Flytta pucken mellan sidorna och skapa trafik framför målvakten.'});
  else if(strength>0)Object.assign(decision,{style:'control',posture:'attack',tempo:energy<55?'low':'normal',situation:'pp',reason:'Söker etablerat powerplay i stället för att jaga med hela laget.',response:'Håll ihop boxplay och välj pressögonblick; undvik att dras isär.'});
  // A strategic change gets time to work. Score urgency and manpower changes override patience.
- if(previous&&['base','pressure'].includes(decision.situation)&&['base','pressure'].includes(previous.situation)&&seconds-(previous.changedAt||0)<traits.patience){
+ if(previous&&['base','pressure','turnovers','entries','battles'].includes(decision.situation)&&['base','pressure','turnovers','entries','battles'].includes(previous.situation)&&seconds-(previous.changedAt||0)<traits.patience){
   for(const key of ['style','posture','tempo','rotation','shiftLimit','matchup','situation','reason','response'])if(previous[key]!==undefined)decision[key]=previous[key];
  }
  decision.reason=decision.reason.replace(/ Ger kedja .*$/, '');
@@ -123,7 +134,7 @@ function aiRecordMeeting(club,opponentName,game,report,other){
 function validateAICoachSave(s){
  const a=s.live?.aiTeam;if(!a)return;
  const bad=()=>{throw Error('Matchtränarens observationer är felaktiga.');};
- if(a.coachObservations!==undefined&&(!Array.isArray(a.coachObservations)||a.coachObservations.length>7||a.coachObservations.some(r=>!r||['seconds','shots','againstShots'].some(k=>!Number.isFinite(r[k])||r[k]<0))))bad();
+ if(a.coachObservations!==undefined&&(!Array.isArray(a.coachObservations)||a.coachObservations.length>7||a.coachObservations.some(r=>!r||['seconds','shots','againstShots','ownTurnovers','againstTurnovers','ownEntries','againstEntries','ownBattles','ownBattleWins'].some(k=>r[k]!==undefined&&(!Number.isFinite(r[k])||r[k]<0)))))bad();
  if(a.coachChanges!==undefined&&(!Array.isArray(a.coachChanges)||a.coachChanges.length>20||a.coachChanges.some(r=>!r||!Number.isFinite(r.seconds)||r.seconds<0||typeof r.reason!=='string'||typeof r.response!=='string')))bad();
  if(a.hotLine!=null&&(!Number.isInteger(a.hotLine)||a.hotLine<1||a.hotLine>3))bad();
 }
