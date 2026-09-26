@@ -153,9 +153,8 @@ class CareerBroadcastMatch extends StudioHockey.Match {
  hasPowerPlay(side){return this.isShortHanded(1-side);}
  canGivePenalty(side){return this.skaters(side).length>0;}
  strength(side){
-  const own=this.penaltyCount(side),other=this.penaltyCount(1-side);
-  const normal=this.threeOnThree?3+Math.max(0,other-own):5-own;
-  return this.threeOnThree?Math.max(normal,this.otCounts?.[side]||0):normal;
+  const base=StudioHockey.strengthState(this.penaltyList(),this.threeOnThree)[side];
+  return this.threeOnThree?Math.max(base,this.otCounts?.[side]||0):base;
  }
  syncPenalty(){this.penalty=this.penaltyList().find(p=>p.affectsStrength!==false)||null;}
  opportunityState(){return {power:[0,1].map(side=>this.hasPowerPlay(side)),active:[0,1].map(side=>StudioHockey.activePenalties(this.penaltyList(),side))};}
