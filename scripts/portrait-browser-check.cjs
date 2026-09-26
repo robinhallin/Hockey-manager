@@ -17,10 +17,10 @@ const server=http.createServer((req,res)=>{
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.evaluate(()=>{startCareerWithClub('HV71');deskOpenPlayer('ep-796339');});
   const loaded=await page.evaluate(async()=>{
-   const rows=managerRoster().map(p=>({id:p.id,src:playerPortraitRecord(p)?.src}));
+   const rows=Object.entries(PLAYER_PORTRAITS).map(([id,p])=>({id,src:p.src}));
    return Promise.all(rows.map(async p=>{const img=new Image();img.src=p.src;await img.decode();return {id:p.id,width:img.naturalWidth};}));
   });
-  assert.equal(loaded.length,28);assert.ok(loaded.every(p=>p.width===384));
+  assert.ok(loaded.length>=52);assert.ok(loaded.every(p=>p.width===384));
   const avatar=page.locator('.fm-profile-header .player-avatar img');
   await avatar.waitFor();
   await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);
@@ -28,6 +28,9 @@ const server=http.createServer((req,res)=>{
   await page.evaluate(()=>{const img=document.querySelector('.fm-profile-header .player-avatar img');img.src='assets/portraits/missing-test.png';});
   await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.hidden);
   assert.match(await page.locator('.fm-profile-header .player-avatar').getAttribute('aria-label'),/kunde inte laddas/);
-  assert.deepEqual(errors,[]);console.log('PASS: profile portrait loads, missing file falls back, no page errors');
+  await page.evaluate(()=>deskOpenPlayer('ep-3682'));
+  await page.waitForFunction(()=>document.querySelector('.fm-profile-header .player-avatar img')?.naturalWidth>0);
+  assert.match(await page.locator('.fm-profile-header .player-avatar').getAttribute('aria-label'),/Nicklas Bäckström/);
+  assert.deepEqual(errors,[]);console.log(`PASS: ${loaded.length} portraits load, HV71 and Brynäs profiles render, missing file falls back, no page errors`);
  }finally{if(browser)await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
