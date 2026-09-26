@@ -1,13 +1,6 @@
 name: Windows beta
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'desktop/**'
-      - 'beta-support.js'
-      - 'scripts/beta-release-manifest.cjs'
-      - 'BETA_GUIDE.md'
-      - '.github/workflows/windows-beta.yml'
 permissions:
   contents: read
 jobs:
