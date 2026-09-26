@@ -122,6 +122,16 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    const collective=Math.max(.88,Math.min(1.12,fitFactor*taskFactor));
    return readinessAttribute(a.player.attributes[key]||10,key,energy,fit,chemistry,p?.morale??70,extra)*collective;
  }
+ goalieTarget(side,puck=this.puck){
+  const target=super.goalieTarget(side,puck);if(side!==0)return target;
+  const instruction=GOALIE_INSTRUCTIONS[goalieInstruction()]||GOALIE_INSTRUCTIONS.balanced,sign=side===0?1:-1;
+  target.x=Math.max(1,Math.min(59,target.x+instruction.depth*sign));return target;
+ }
+ reboundModel(goalie,context={}){
+  const model=super.reboundModel(goalie,context);if(goalie?.side!==0)return model;
+  const instruction=GOALIE_INSTRUCTIONS[goalieInstruction()]||GOALIE_INSTRUCTIONS.balanced;
+  model.freeze=Math.max(.2,Math.min(.94,model.freeze+instruction.rebound));model.safe=Math.max(.15,Math.min(.9,model.safe+instruction.rebound*.35));return model;
+ }
  attackTargets(side){
   super.attackTargets(side);const t=this.teams[side];
   if(this.hasPowerPlay(side)&&t.tactics.pp==='overload'&&this.phase==='attack'){
