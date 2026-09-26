@@ -1,6 +1,8 @@
-# Player portraits — HV71, Brynäs and Frölunda complete, wider production pending
+# Player portraits — HV71, Brynäs, Frölunda and Djurgården complete, wider production pending
 
-All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players and 23 of 24 Färjestad players have individual cartoon portraits: 101 of 715 active real senior players. The other 614 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players, all 25 Djurgården players and 23 of 24 Färjestad players have individual cartoon portraits: 126 of 715 active real senior players. The other 589 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+
+The Djurgården batch adds 25 individually referenced illustrations. `djurgarden-production.json` records exact IDs, source pages and final prompts. Twenty-four references come from the August 2026 Djurgården headshot series; Oliver Wahlstrom uses his NHLPA headshot. Each delivered illustration was visually reviewed and optimized to a transparent 384×384 PNG.
 
 The Färjestad batch adds 23 individually referenced illustrations. `farjestad-production.json` records exact IDs, source pages and final prompts. Twenty-two references come from the August 2026 Färjestad headshot series; Douglas Nilsson uses his identified Elite Prospects photo and retains his goalie mask. Samuel Eriksson (`ep-806192`) remains pending: his identified Elite Prospects image shows his back, and no usable face reference was retrieved. Each delivered illustration was visually reviewed and optimized to a transparent 384×384 PNG.
 
