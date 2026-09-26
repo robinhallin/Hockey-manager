@@ -5,6 +5,21 @@ const vm=require('node:vm');
 const ctx=vm.createContext({trainingSafe:s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;')});
 vm.runInContext(fs.readFileSync('player-portraits.js','utf8'),ctx);
 const run=s=>vm.runInContext(s,ctx);
+test('Färjestad has 23 distinct exact-ID portraits with Samuel Eriksson explicitly pending',()=>{
+ const app=require('./scripts/career-test-fixture.cjs').boot(undefined,{production:true});
+ app.run("startCareerWithClub('Färjestad BK')");
+ const rows=app.run("managerRoster().map(p=>({id:p.id,src:playerPortraitRecord(p)?.src}))");
+ assert.equal(rows.length,24);
+ assert.deepEqual(Array.from(rows.filter(p=>!p.src),p=>p.id),['ep-806192']);
+ const ready=Array.from(rows).filter(p=>p.src);
+ assert.equal(new Set(ready.map(p=>p.src)).size,23);
+ const manifest=JSON.parse(fs.readFileSync('assets/portraits/farjestad-production.json','utf8'));
+ assert.deepEqual(manifest.map(p=>p.id).sort(),ready.map(p=>p.id).sort());
+ for(const row of manifest){
+  assert.equal(run(`playerPortraitRecord({id:${JSON.stringify(row.id)}}).src`),row.asset);
+  assert.ok(row.source.startsWith('https://'));
+ }
+});
 test('the complete starting Frölunda roster has distinct exact-ID assets',()=>{
  const app=require('./scripts/career-test-fixture.cjs').boot(undefined,{production:true});
  app.run("startCareerWithClub('Frölunda HC')");
