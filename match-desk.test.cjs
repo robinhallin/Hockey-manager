@@ -18,5 +18,10 @@ for(const launch of [boot,bootLegacy]){
  for(const tab of ['feedback','report','stats','players','events','analysis']){
   r(`matchTab('${tab}')`);assert.doesNotMatch(r('matchCentreView()'),/id="match-play"|NaN|undefined/);
  }
+ if(r('studioActive()')){
+  r('studioReplayState={frames:[studioFrame(studioEngine())],elapsed:0,lastNow:null};');
+  assert.match(r('matchCentreView()'),/Repristempo/,'completed matches also expose replay pace');
+  assert.doesNotMatch(r('matchCentreView()'),/id="match-play"/,'replay never offers to restart a finished match');
+ }
 }
 console.log('PASS: current and legacy match views preserve simulation, home-away scoring order, profile context and post-match reports.');

@@ -86,8 +86,9 @@ The old full-match 4× default becomes the normal 1× presentation default.
 An opaque fast-forward panel explains why the match clock advances quickly.
 The hidden 3D frame is retained instead of rebuilt during this interval. Normal
 rendering resumes when a highlight starts or the user pauses. Simulation-only
-mode also hides the rink while paused. Replay time accumulates independently of
-match time, so changing pace neither exits nor restarts the replay.
+mode also hides the rink while paused. Replay time and speed are independent of
+the live match. Changing replay pace neither exits nor restarts the replay,
+and slow motion does not change the live pace when returning to the match.
 
 3D adds zoom (80–150%, with a reset) and an optional projected puck marker.
 Camera following eases in simulation time, freezes when paused, and resets for

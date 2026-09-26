@@ -218,6 +218,7 @@ function studioOnIceRate(m=state.live){
 }
 function studioFastChoice(m=state.live){return [m?.speed,state.matchPlayback?.fastSpeed,1].find(v=>[1,2,3,4].includes(v));}
 function studioHighlightRate(m=state.live){return studioOnIceRate(m);}
+function studioReplayRate(replay=studioReplayState){return [replay?.rate,state.matchPlayback?.replaySpeed,1].find(value=>MATCH_ICE_SPEEDS.some(([v])=>v===value));}
 function studioTrackHighlight(e,m=state.live){
  if(!studioHighlightMode(m)){studioHighlightWindow=null;return;}
  if(studioHighlightTrigger(e,m))studioHighlightWindow={engine:e,until:e.wall+6};
@@ -236,19 +237,23 @@ function setOnIceSpeed(value){
  clearTimeout(matchTimer);save();render();scheduleTick();
 }
 function setHighlightSpeed(value){setOnIceSpeed(value);}
+function setReplaySpeed(value){
+ const rate=Number(value);if(!studioReplayState||!MATCH_ICE_SPEEDS.some(([v])=>v===rate))return;
+ studioReplayState.rate=rate;studioReplayState.lastNow=null;(state.matchPlayback??={}).replaySpeed=rate;save();render();
+}
 function matchFastControl(label='Snabbspolning mellan höjdpunkter',id='match-fast-speed'){
- return `<label for="${id}">${label}<select id="${id}" onchange="setSpeed(this.value)">${MATCH_FAST_SPEEDS.map(([v,name])=>`<option value="${v}" ${studioFastChoice()===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
+ return `<label for="${id}">${label}<select id="${id}" aria-label="${label}" onchange="setSpeed(this.value)">${MATCH_FAST_SPEEDS.map(([v,name])=>`<option value="${v}" ${studioFastChoice()===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
 }
 function matchPlaybackControls(m=state.live){
  const replay=studioActive()&&Boolean(studioReplayState),commentary=m.rink.mode==='commentary'&&!replay;
  if(!studioActive())return matchFastControl('Matchtempo','match-legacy-speed');
- const hint=replay?'1× = verklig spelfart. Reprisen ändrar inte matchen.':commentary?'Matchen beräknas utan rinkbild. Pausa när du vill coacha.':studioHighlightMode(m)?'1× = verklig spelfart. Mellan höjdpunkter snabbspolar spelet.':'1× = verklig spelfart. Hela matchen visas utan snabbspolning.';
- const control=commentary?matchFastControl('Simuleringstempo'):`<label>${replay?'Repristempo':'Tempo på isen'}<select aria-label="${replay?'Repristempo':'Tempo på isen'}" aria-describedby="match-playback-hint" onchange="setOnIceSpeed(this.value)">${MATCH_ICE_SPEEDS.map(([v,name])=>`<option value="${v}" ${studioOnIceRate(m)===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
+ const hint=replay?'1× = verklig spelfart. Repristempot gäller bara reprisen.':commentary?'Matchen beräknas utan rinkbild. Pausa när du vill coacha.':studioHighlightMode(m)?'1× = verklig spelfart. Mellan höjdpunkter snabbspolar spelet.':'1× = verklig spelfart. Hela matchen visas utan snabbspolning.';
+ const control=commentary?matchFastControl('Simuleringstempo'):`<label>${replay?'Repristempo':'Tempo på isen'}<select aria-label="${replay?'Repristempo':'Tempo på isen'}" aria-describedby="match-playback-hint" onchange="${replay?'setReplaySpeed':'setOnIceSpeed'}(this.value)">${MATCH_ICE_SPEEDS.map(([v,name])=>`<option value="${v}" ${(replay?studioReplayRate():studioOnIceRate(m))===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
  return control+`<p id="match-playback-hint" class="mc-playback-hint">${hint}</p>`;
 }
 function matchPlaybackSettings(){
  if(!studioActive())return '';
- return `<section class="mc-playback-settings"><h3>Matchvisning och tempo</h3><p><b>Vad visas?</b> väljer hur mycket av matchen du ser. <b>Tempo på isen</b> styr spelarnas och puckens visningsfart. Normal, 1×, är verklig spelfart.</p>${matchFastControl('Snabbspolning mellan höjdpunkter','match-fast-setting')}<p>Påverkar bara väntan på nästa höjdpunkt och läget utan rinkbild. Hela matchen och repriser använder tempot på isen. Snabbspolningen begränsas av datorns kapacitet.</p><p>Dina val sparas och används i nästa match. Tempot ändrar inte lagets taktik eller hur matchen avgörs.</p></section>`;
+ return `<section class="mc-playback-settings"><h3>Matchvisning och tempo</h3><p><b>Vad visas?</b> väljer hur mycket av matchen du ser. <b>Tempo på isen</b> styr spelarnas och puckens visningsfart. Normal, 1×, är verklig spelfart.</p>${matchFastControl('Snabbspolning mellan höjdpunkter','match-fast-setting')}<p>Påverkar bara väntan på nästa höjdpunkt och läget utan rinkbild. Hela matchen använder tempot på isen. Repriser har ett eget tempo som väljs när reprisen visas. Snabbspolningen begränsas av datorns kapacitet.</p><p>Dina val sparas och används i nästa match. Tempot ändrar inte lagets taktik eller hur matchen avgörs.</p></section>`;
 }
 function matchFullscreen(){if(typeof document==='undefined')return;const root=document.documentElement;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
 

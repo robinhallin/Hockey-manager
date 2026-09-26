@@ -27,7 +27,7 @@ assert.match(r('matchPlaybackSettings()'),/Snabbspolning mellan höjdpunkter/);
 // Changing replay pace retains the same frames and playhead, without advancing the actual match.
 r('studioReplayState={frames:Array.from({length:51},(_,i)=>({...studioFrame(e),time:i*.2})),elapsed:0,lastNow:null};globalThis.ledger=JSON.stringify([e.rng,e.score,e.time,m.analysis]);studioReplayFrame(1000);studioReplayFrame(1500);');
 assert.equal(r('studioReplayState.elapsed'),.5);
-r('setOnIceSpeed(.5);studioReplayFrame(1600);');assert.equal(r('studioReplayState.elapsed'),.5);
+r('setReplaySpeed(.5);studioReplayFrame(1600);');assert.equal(r('studioReplayState.elapsed'),.5);assert.equal(r('studioOnIceRate()'),1,'slow replay does not slow the live match');
 r('studioReplayFrame(3600);');assert.equal(r('studioReplayState.elapsed'),1.5);
 assert.equal(r('JSON.stringify([e.rng,e.score,e.time,m.analysis])'),r('ledger'));assert.equal(r('m.running'),false);
 assert.match(r('matchPlaybackControls(m)'),/Repristempo/);

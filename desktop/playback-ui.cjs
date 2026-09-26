@@ -22,6 +22,7 @@ module.exports=async function checkPlayback(page,out){
  assert.equal(await page.getByLabel('Simuleringstempo',{exact:true}).inputValue(),'3');
  await page.getByLabel('Matchvisning',{exact:true}).selectOption('highlights');
  assert.equal(await page.getByLabel('Tempo på isen',{exact:true}).inputValue(),'2');
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'36-match-playback-settings.png'),fullPage:true});
  await page.getByLabel('Tempo på isen',{exact:true}).selectOption('1');
  await page.locator('#match-tab-feedback').click();

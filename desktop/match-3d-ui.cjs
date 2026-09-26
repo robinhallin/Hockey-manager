@@ -105,7 +105,7 @@ module.exports=async function check3D(page,out){
  assert.equal(await page.evaluate(()=>JSON.stringify([studioEngine().rng,studioEngine().score,studioEngine().time,state.live.analysis])),replayBefore,'3D replay does not re-simulate or alter reports');
  await page.getByRole('button',{name:'Tillbaka till matchen',exact:true}).click();
  await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
- await page.getByLabel('Tempo på isen',{exact:true}).selectOption('1');
+ assert.equal(await page.getByLabel('Tempo på isen',{exact:true}).inputValue(),'1','slow replay does not change live pace');
  await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.
  await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());

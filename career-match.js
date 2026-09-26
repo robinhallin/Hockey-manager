@@ -443,7 +443,7 @@ function studioDecisionView(){
  return `<span class="broadcast-shot-label">SPELARVAL</span><p><strong>${trainingSafe(last.player)}</strong> · ${labels[last.kind]||'Spelval'}</p><p>${trainingSafe(last.reason)}.</p>`;
 }
 function studioPlaybackStatus(){
- const m=state.live,e=studioEngine(),rate=String(studioOnIceRate(m)).replace('.',',')+'×';
+ const m=state.live,e=studioEngine(),rate=String(studioReplayState?studioReplayRate():studioOnIceRate(m)).replace('.',',')+'×';
  if(studioReplayState)return 'REPRIS · '+rate+' · MATCHEN PAUSAD';
  if(m.finished)return 'SLUTSIGNAL';if(!m.running)return 'PAUSAT · COACHA LAGET';
  if(m.rink.mode==='commentary')return 'SIMULERAR MATCHEN';
@@ -455,12 +455,12 @@ function studioView(){
  const changing=t.requested||t.change||t.changeQueue.length||t.needsSetup;
  return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioPlaybackStatus()}</strong></div><span>${m.finished?'Matchen avslutad':changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header>${studio3DControls()}<div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och energi finns under rinken. Klicka på en spelare för att pausa och läsa uppgiften."></canvas>${studioVisualMode==='3d'?'<canvas id="career-ice-3d" aria-label="3D-match. Klicka på en spelare för att läsa uppgiften."></canvas><span id="match-3d-carrier" hidden></span><span id="match-3d-puck" aria-hidden="true" hidden></span><span id="match-3d-error" role="status" hidden></span>':''}<div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHKLOCKAN GÅR SNABBARE</span><h3 id="broadcast-overview-title"></h3><p>Du kan pausa och coacha när du vill.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><footer><span>Klicka på en spelare för att läsa uppgiften. Matchen pausas.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
 }
-function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseMatch();studioReplayState={frames:e.latestReplay.frames,elapsed:0,lastNow:null};render();}
+function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseMatch();studioReplayState={frames:e.latestReplay.frames,elapsed:0,lastNow:null,rate:studioReplayRate(null)};render();}
 function studioExitReplay(){studioReplayState=null;render();}
 function studioReplayFrame(now){
  const r=studioReplayState;if(!r?.frames.length)return null;
  const duration=(r.frames.length-1)*.2,delta=r.lastNow==null?0:Math.max(0,(now-r.lastNow)/1000);
- r.elapsed=Math.min(duration,(r.elapsed||0)+delta*studioOnIceRate());r.lastNow=now;
+ r.elapsed=Math.min(duration,(r.elapsed||0)+delta*studioReplayRate(r));r.lastNow=now;
  const index=Math.min(r.frames.length-1,Math.floor(r.elapsed/.2));
  return {frame:r.frames[Math.min(index+1,r.frames.length-1)],previous:r.frames[index],blend:index===r.frames.length-1?1:(r.elapsed%.2)/.2};
 }
