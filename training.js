@@ -21,6 +21,7 @@ function veteranRoleRecommendation(p){
  const candidates=Object.entries(DEVELOPMENT_ROLE_PLANS).filter(([key])=>PLAYER_TASKS[key]?.groups.includes(group)).map(([to,plan])=>({to,value:plan.keys.reduce((sum,key)=>sum+(a[key]||0),0)/plan.keys.length}));
  return candidates.sort((a,b)=>b.value-a.value)[0]||null;
 }
+function playerRoleSuitability(p,key){const plan=DEVELOPMENT_ROLE_PLANS[key];if(!plan)return 0;const a=ensurePlayerAttributes(p),keys=plan.keys.filter(k=>Object.hasOwn(a,k));return keys.length?keys.reduce((n,k)=>n+a[k],0)/keys.length:0;}
 function youngRoleRecommendation(p){
  if(!p||p.pos==='MV'||p.age>24)return null;const group=p.pos==='B'?'defense':'forwards',keys=Object.keys(DEVELOPMENT_ROLE_PLANS).filter(k=>PLAYER_TASKS[k]?.groups.includes(group)),ranked=keys.map(k=>({key:k,value:playerRoleSuitability(p,k)})).sort((a,b)=>b.value-a.value),current=p.developmentRolePlan,currentValue=current?playerRoleSuitability(p,current):0;
  if(!ranked[0]||ranked[0].key===current||ranked[0].value<12.5||current&&ranked[0].value<currentValue+1)return null;
