@@ -29,7 +29,7 @@ const Match3D = (() => {
  }
  function cameraFrame(aspect,mode,frame,prior,zoom){
   let tracked=trackPuck(frame,prior),view=cameraView(aspect,mode,tracked,zoom);
-  const puck=project([frame.puck.x,.1,frame.puck.y],view.matrix);
+  const puck=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],view.matrix);
   // A fast pass or shot must stay visible even while the tracking camera eases.
   if((mode==='follow'||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
    tracked=trackPuck(frame,null);view=cameraView(aspect,mode,tracked,zoom);
@@ -46,11 +46,13 @@ const Match3D = (() => {
   const pos=(p,q)=>{
    const blend=continuous&&q&&Math.hypot(p.x-q.x,p.y-q.y)<(p.id!=null?5:18)?t:1;
    const result={...p,x:mix(q?.x??p.x,p.x,blend),y:mix(q?.y??p.y,p.y,blend)};
+   if(p.id==null&&(p.z!=null||q?.z!=null))result.z=mix(q?.z||0,p.z||0,blend);
    if(p.id!=null){
     Object.assign(result,{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:mix(before?.carrier===p.id?1:0,frame.carrier===p.id?1:0,blend)});
     if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
     // A capture may straddle a release. Never start its follow-through early.
     if(p.action?.at>wall)result.action=q?.action?.at<=wall?q.action:null;
+    if(p.keeperAction?.at>wall)result.keeperAction=q?.keeperAction?.at<=wall?q.keeperAction:null;
    }
    return result;
   };
@@ -60,7 +62,8 @@ const Match3D = (() => {
    const started=(frame.wall??frame.time)-flight.elapsed;
    flight=wall+1e-7<started?(before.flight?{...before.flight}:null):{...flight,elapsed:Math.max(0,wall-started)};
   }
-  return {...frame,time,wall,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight};
+  const effects=(frame.effects||[]).filter(e=>e.at<=wall+1e-7);
+  return {...frame,time,wall,actors:frame.actors.map(a=>pos(a,prior.get(a.id))),puck:pos(frame.puck,before?.puck),flight,effects};
  }
  const smooth=n=>{n=clamp(n,0,1);return n*n*(3-2*n);};
  const between=(a,b,t)=>a.map((v,i)=>mix(v,b[i],t));
@@ -72,8 +75,44 @@ const Match3D = (() => {
   const along=(upper*upper-lower*lower+d*d)/(2*d),height=Math.sqrt(Math.max(0,upper*upper-along*along));
   return root.map((v,i)=>v+axis[i]*along+normal[i]*height);
  }
+ function keeperPose(frame,a){
+  const speed=Math.hypot(a.vx||0,a.vy||0),clock=frame.wall??frame.time,action=a.keeperAction;
+  const age=action?clock-action.at:Infinity,recovery=age>=0?1-smooth((age-.18)/1.25):0;
+  const f=frame.flight,incoming=f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
+  const approach=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
+  const facing=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
+  const angle=recovery?turn(facing,action.facing,recovery):facing,catchSide=a.shoots==='R'?1:-1;
+  const height=incoming?(f.end.z??frame.puck.z??0):0;
+  const low=height<.48,style=recovery? action.style:low?'butterfly':'ready';
+  const drop=Math.max(approach*(low?1:.22),recovery*(['butterfly','stick'].includes(style)?1:.22));
+  const lower=.16+drop*.42,lean=.13,phase=(a.travelled||0)*Math.PI/1.1,stride=Math.sin(phase)*Math.min(1,speed/2.5)*(1-drop*.8);
+  const reachTarget=recovery?action.contact:incoming?f.end:null;
+  const lateral=reachTarget?-(reachTarget.x-a.x)*Math.sin(angle)+(reachTarget.y-a.y)*Math.cos(angle):0;
+  const push=clamp(lateral*.30,-.35,.35)*Math.max(recovery,approach);
+  const point=(forward,h,side)=>[a.x+Math.cos(angle)*forward-Math.sin(angle)*(side+push),h,a.y+Math.sin(angle)*forward+Math.cos(angle)*(side+push)];
+  const torso=point(lean,1.21-lower,0),torsoPoint=(f,h,s)=>point(lean+f,torso[1]+h,s);
+  const feet=[-1,1].map(side=>point(-drop*.12,.12,side*(.34+drop*.52)+stride*.06));
+  const legs=[-1,1].map((side,i)=>({hip:point(-.1,.92-lower,side*.18),knee:point(.20,.60-lower*.65,side*(.22+drop*.22)),ankle:[feet[i][0],feet[i][1]+.12,feet[i][2]]}));
+  let glove=point(.48,.98-drop*.26,catchSide*.52),blocker=point(.57,.86-drop*.25,-catchSide*.40),blade=point(.74,.065,-catchSide*.12);
+  const target=action?[action.contact.x,(action.contact.z||0)+.08,action.contact.y]:null;
+  if(recovery&&style==='glove')glove=between(glove,target,recovery);
+  if(recovery&&style==='blocker')blocker=between(blocker,target,recovery);
+  if(recovery&&style==='stick')blade=between(blade,target,recovery);
+  // The catch hand reaches independently; the blocker remains on the shaft.
+  const arms=[-1,1].map(side=>{
+   const shoulder=torsoPoint(0,.20,side*.35),desired=side===catchSide?glove:blocker,reach=sub(desired,shoulder),length=Math.hypot(...reach);
+   const hand=length>.90?shoulder.map((v,i)=>v+reach[i]*.90/length):desired;
+   if(side===catchSide)glove=hand;else blocker=hand;
+   return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.10,-.06,side*.65),.45,.47),hand,catching:side===catchSide};
+  });
+  const shaft=unit(sub(blocker,blade)),shaftTop=blocker.map((v,i)=>v+shaft[i]*.38),tip=point(.79,.065,.36*catchSide);
+  if(recovery&&style==='stick')for(let i=0;i<3;i++)tip[i]+=blade[i]-point(.74,.065,-catchSide*.12)[i];
+  return {keeper:true,speed,angle,release:0,contact:0,drop,stride,lean,lower,point,feet,legs,arms,glove,blocker,blade,tip,shaftTop,torso,torsoAngle:angle,torsoPoint,
+   style,recovery,state:recovery?(age<.2?style:'recovering'):approach?(low?'butterfly':'tracking'):speed>.12?'shuffling':'ready'};
+ }
  function pose(frame,a){
-  const keeper=a.role==='G',speed=Math.hypot(a.vx||0,a.vy||0),f=frame.flight,puckAngle=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
+  if(a.role==='G')return keeperPose(frame,a);
+  const keeper=false,speed=Math.hypot(a.vx||0,a.vy||0),f=frame.flight,puckAngle=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
   const skatingAngle=speed>.12?Math.atan2(a.vy,a.vx):(a.side===0?0:Math.PI);
   const clock=frame.wall??frame.time;
   let action=a.action;
@@ -87,17 +126,14 @@ const Match3D = (() => {
   const moving=smooth((speed-.1)/.8),brake=clamp(-acceleration/2.3,0,1)*moving;
   const drive=moving*(a.motion?smooth((acceleration-.15)/2):clamp(speed/3.5,0,1))*(1-brake);
   const curve=clamp((motion.turn||0)/1.6,-1,1)*moving*(1-brake),crossover=Math.abs(curve)*(1-backward*.6);
-  const facing=motion.heading??skatingAngle,angle=keeper?puckAngle:facing+brake*.45;
-  const incoming=keeper&&f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
-  // A low blocking attempt follows the approaching shot, not its hidden result.
-  const drop=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
-  const phase=(a.travelled||0)*Math.PI/1.6,stride=Math.sin(phase)*(keeper?Math.min(1,speed/3.5):drive);
+  const facing=motion.heading??skatingAngle,angle=facing+brake*.45;
+  const drop=0;
+  const phase=(a.travelled||0)*Math.PI/1.6,stride=Math.sin(phase)*drive;
   const hand=a.shoots==='R'?1:-1;
-  const lean=keeper?.12:.10+drive*.16+brake*.08,lower=keeper?.18+drop*.5:moving*.08+brake*.09+receiving*.035;
+  const lean=.10+drive*.16+brake*.08,lower=moving*.08+brake*.09+receiving*.035;
   // Ease the body anchor back after release; the puck itself is never offset.
-  const anchor=Math.max(contact,release),offset=keeper?0:-.65*anchor;
-  const point=(forward,height,side)=>{side-=keeper?0:anchor*.18*hand;return [a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
-  if(keeper){const feet=[-1,1].map(side=>point(0,.12,side*(.34+drop*.38)+stride*.06));return {keeper,speed,angle,release,contact,drop,stride,lean,lower,point,feet,blade:point(.65,.06,0)};}
+  const anchor=Math.max(contact,release),offset=-.65*anchor;
+  const point=(forward,height,side)=>{side-=anchor*.18*hand;return [a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
   const feet=[],footAngles=[],legs=[];
   for(const side of [-1,1]){
    const cycle=Math.sin(phase+(side===1?Math.PI:0)),push=Math.max(0,cycle),recover=Math.max(0,-cycle);
@@ -178,6 +214,20 @@ const Match3D = (() => {
   function rod(a,b,r,col){const axis=unit(sub(b,a)),u=unit(cross(axis,Math.abs(axis[1])>.9?[1,0,0]:[0,1,0])),v=cross(axis,u),point=(p,t)=>p.map((n,i)=>n+r*(Math.cos(t)*u[i]+Math.sin(t)*v[i]));for(let i=0;i<8;i++){const t=i*Math.PI/4,s=(i+1)*Math.PI/4;quad(point(a,t),point(b,t),point(b,s),point(a,s),col);}}
   function ring(x,z,r,width,col,start=0,end=Math.PI*2){for(let i=0;i<64;i++){const a=start+(end-start)*i/64,b=start+(end-start)*(i+1)/64,p=(t,rr)=>[x+Math.cos(t)*rr,.018,z+Math.sin(t)*rr];quad(p(a,r),p(b,r),p(b,r-width),p(a,r-width),col);}}
   function disk(x,y,z,r,col){for(let i=0;i<32;i++)tri([x,y,z],[x+Math.cos(i*Math.PI/16)*r,y,z+Math.sin(i*Math.PI/16)*r],[x+Math.cos((i+1)*Math.PI/16)*r,y,z+Math.sin((i+1)*Math.PI/16)*r],col);}
+  function shade(x,z,rx,rz,angle=0){
+   for(let layer=0;layer<3;layer++){
+    const r=1-layer*.25,c=[.80-layer*.055,.86-layer*.045,.89-layer*.04],cs=Math.cos(angle),sn=Math.sin(angle);
+    const p=t=>[x+Math.cos(t)*rx*r*cs-Math.sin(t)*rz*r*sn,.023+layer*.003,z+Math.cos(t)*rx*r*sn+Math.sin(t)*rz*r*cs];
+    for(let i=0;i<16;i++)tri([x,.023+layer*.003,z],p(i*Math.PI/8),p((i+1)*Math.PI/8),c);
+   }
+  }
+  function pad(a,b,width,depth,col,angle){
+   const u=[-Math.sin(angle),0,Math.cos(angle)],v=unit(cross(unit(sub(b,a)),u));
+   const p=(center,s,t)=>center.map((n,i)=>n+u[i]*s*width/2+v[i]*t*depth/2);
+   const ends=[a,b].map(c=>[p(c,-1,-1),p(c,1,-1),p(c,1,1),p(c,-1,1)]);
+   quad(...ends[0],col);quad(...ends[1],col);
+   for(let i=0;i<4;i++)quad(ends[0][i],ends[0][(i+1)%4],ends[1][(i+1)%4],ends[1][i],col);
+  }
   function ellipsoid(center,radii,col,angle=0){
    const cs=Math.cos(angle),sn=Math.sin(angle);
    for(const u of sphere){
@@ -191,7 +241,7 @@ const Match3D = (() => {
    for(let i=0;i<levels.length-1;i++)for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;quad(point(levels[i],a),point(levels[i+1],a),point(levels[i+1],b),point(levels[i],b),i===1?trim:main);}
    for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;tri(transform?transform(0,.32,0):[center[0],center[1]+.32,center[2]],point(levels.at(-1),a),point(levels.at(-1),b),main);}
   }
-  return {get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,ellipsoid,jersey};
+  return {get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,shade,pad,ellipsoid,jersey};
  }
  function rink(){
   const g=geometry(),ice=color('#e3edf1'),red=color('#b84c62'),blue=color('#3574a3'),white=color('#e5eaf0'),dark=color('#142337');
@@ -262,54 +312,102 @@ const Match3D = (() => {
   g.rod(between(m.heel,m.shaftTop,.84),m.shaftTop,.037,trim);
   g.rod(m.heel,m.tip,.05,black);
  }
- function figures(frame,teams){
-  const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),steel=color('#91a9ba'),uniforms=kits(teams);
-  for(const a of frame.actors){
-   const m=pose(frame,a),{keeper:goalkeeper,angle,point:p,lower,lean,drop}=m;
-   const {jersey,trim}=uniforms[a.side];
-   const box=(f,h,s,w,hh,d,c)=>g.box(...p(f,h,s),w,hh,d,c,angle);
-   const shadow=p(0,0,0);g.disk(shadow[0],.022,shadow[2],goalkeeper?.8:.62,color('#c0d3db'));g.disk(shadow[0],.028,shadow[2],goalkeeper?.59:.42,color('#a5becb'));
-   if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.08,trim);
-   if(!goalkeeper){skater(g,m,uniforms[a.side]);continue;}
-   for(const [i,side] of [-1,1].entries()){
-    const foot=m.feet[i],knee=p(.20,.60-lower*.65,side*(.22+drop*.24)),hip=p(-.10,.92-lower,side*.18);
-    g.box(...foot,.52,.17,.18,black,angle+(goalkeeper?side*drop*.8:side*Math.max(0,side*m.stride)*.35));
-    g.box(foot[0],.045,foot[2],.55,.035,.05,steel,angle);
-    g.rod([foot[0],.25,foot[2]],knee,.13,goalkeeper?white:jersey);g.rod(knee,hip,.16,black);
-    if(goalkeeper){g.rod([foot[0]+Math.cos(angle)*.12,.23,foot[2]+Math.sin(angle)*.12],knee,.22,white);g.box(knee[0]+Math.cos(angle)*.2,knee[1],knee[2]+Math.sin(angle)*.2,.08,.13,.30,trim,angle);}else g.rod(p(.18,.51-lower*.6,side*.24),p(.19,.59-lower*.6,side*.24),.145,trim);
+ const digitSegments=['abcdef','bc','abged','abgcd','fgbc','afgcd','afgecd','abc','abcdefg','abcdfg'];
+ function jerseyNumber(g,m,number,kit){
+  if(!Number.isInteger(number)||number<1||number>99)return;
+  const ink=dot(kit.jersey,[.2126,.7152,.0722])>.55?color('#102033'):color('#f6f4e8');
+  const paths={a:[[-.06,.12],[.06,.12]],b:[[.065,.115],[.065,.012]],c:[[.065,-.012],[.065,-.115]],d:[[-.06,-.12],[.06,-.12]],e:[[-.065,-.115],[-.065,-.012]],f:[[-.065,.012],[-.065,.115]],g:[[-.06,0],[.06,0]]};
+  const digits=String(number);
+  for(const [face,scale] of [[-1,1],[1,.65]])for(let i=0;i<digits.length;i++){
+   const center=(i-(digits.length-1)/2)*.18*scale;
+   for(const key of digitSegments[Number(digits[i])]){
+    const [a,b]=paths[key],p=([x,y])=>m.torsoPoint(face*.298,.07+y*scale,-face*(center+x*scale));
+    const from=p(a),to=p(b),thick=.011*scale;
+    const axis=unit(sub(to,from));
+    // A narrow flat strip, drawn just outside the fabric surface.
+    const tangent=unit(cross(axis,[Math.cos(m.torsoAngle),0,Math.sin(m.torsoAngle)]));
+    g.quad(from.map((v,j)=>v+tangent[j]*thick),to.map((v,j)=>v+tangent[j]*thick),to.map((v,j)=>v-tangent[j]*thick),from.map((v,j)=>v-tangent[j]*thick),ink);
    }
-   box(-.05,.84-lower,0,.38,.25,.47,black);g.jersey(p(lean,1.21-lower,0),angle,jersey,trim);
-   g.ellipsoid(p(lean+.12,1.64-lower,0),[.15,.19,.17],color('#caa887'),angle);
-   g.ellipsoid(p(lean+.08,1.80-lower,0),[.235,.195,.235],goalkeeper?white:jersey,angle);
-   box(lean+.11,1.65-lower,-.20,.30,.05,.035,black);box(lean+.11,1.65-lower,.20,.30,.05,.035,black);
-   box(lean+.30,1.73-lower,0,.025,.075,.31,steel);
-   if(goalkeeper){for(const z of [-.14,0,.14])g.rod(p(lean+.32,1.50-lower,z),p(lean+.34,1.77-lower,z),.014,steel);for(const h of [1.52,1.63,1.75])g.rod(p(lean+.33,h-lower,-.17),p(lean+.33,h-lower,.17),.014,steel);}
-   // A chest panel and sleeve cuffs keep kit identity readable from both sides.
-   box(lean+.275,1.28-lower,0,.022,.15,.16,trim);
-   // Hands travel with the shaft; both elbows and knees articulate independently.
-   const grip=p(.62,.96-lower*.6,.22),upper=goalkeeper?p(.52,.92-lower,-.51):p(.38,1.13-lower,.08);
-   for(const [i,side] of [-1,1].entries()){
-    const hand=i?grip:upper,elbow=p(.29,1.09-lower,side*.45);
-    g.rod(p(lean,1.41-lower,side*.36),elbow,.13,jersey);g.rod(elbow,hand,.10,jersey);
-    g.ellipsoid(hand,goalkeeper?[.15,.16,.21]:[.13,.12,.14],goalkeeper?white:black,angle);g.rod(p(lean,1.41-lower,side*.36),p(lean+.10,1.30-lower,side*.39),.14,trim);
-   }
-   g.rod(grip,m.blade,.035,black);g.rod(m.blade,[m.blade[0]+Math.cos(angle)*.40,m.blade[1],m.blade[2]+Math.sin(angle)*.40],.055,black);
   }
-  if(frame.flight){const start=frame.flight.start,dx=frame.puck.x-start.x,dz=frame.puck.y-start.y,d=Math.hypot(dx,dz),length=Math.min(d,2.3);if(d>.05)g.rod([frame.puck.x-dx/d*length,.045,frame.puck.y-dz/d*length],[frame.puck.x,.045,frame.puck.y],.025,color('#6c8797'));}
-  g.disk(frame.puck.x,.04,frame.puck.y,.27,white);g.disk(frame.puck.x,.065,frame.puck.y,.20,black);g.box(frame.puck.x,.09,frame.puck.y,.25,.12,.25,black);
+ }
+ function goalkeeper(g,m,kit){
+  const white=color('#e8eef1'),black=color('#101d2c'),steel=color('#91a9ba'),p=m.point,u=m.torsoPoint;
+  for(let i=0;i<2;i++){
+   const side=i?1:-1,foot=m.feet[i],leg=m.legs[i],angle=m.angle+side*m.drop*1.1;
+   g.box(...foot,.48,.17,.19,black,angle);g.box(foot[0],foot[1]-.075,foot[2],.52,.028,.05,steel,angle);
+   g.rod(leg.hip,leg.knee,.17,black);g.rod(leg.knee,leg.ankle,.14,kit.jersey);
+   const front=v=>[v[0]+Math.cos(m.angle)*.16,v[1],v[2]+Math.sin(m.angle)*.16];
+   g.pad(front(leg.ankle),front([leg.knee[0],leg.knee[1]+.13,leg.knee[2]]),.34,.19,white,m.angle);
+   g.pad(front(between(leg.ankle,leg.knee,.58)),front(between(leg.ankle,leg.knee,.77)),.35,.20,kit.trim,m.angle);
+  }
+  g.ellipsoid(p(-.05,.82-m.lower,0),[.28,.22,.32],black,m.angle);g.jersey(m.torso,m.angle,kit.jersey,kit.trim);
+  g.rod(u(0,.26,0),u(.05,.43,0),.10,color('#caa887'));
+  g.ellipsoid(u(.08,.47,0),[.17,.19,.18],color('#caa887'),m.angle);g.ellipsoid(u(.03,.61,0),[.245,.20,.245],white,m.angle);
+  for(const z of [-.15,0,.15])g.rod(u(.27,.35,z),u(.28,.62,z),.014,steel);
+  for(const h of [.36,.46,.58])g.rod(u(.28,h,-.17),u(.28,h,.17),.014,steel);
+  for(const arm of m.arms){
+   g.rod(arm.shoulder,arm.elbow,.145,kit.jersey);g.rod(arm.elbow,arm.hand,.115,kit.jersey);
+   g.rod(between(arm.shoulder,arm.elbow,.15),between(arm.shoulder,arm.elbow,.37),.155,kit.trim);
+   if(arm.catching){g.ellipsoid(arm.hand,[.13,.21,.25],white,m.angle);g.ellipsoid([arm.hand[0]+Math.cos(m.angle)*.1,arm.hand[1],arm.hand[2]+Math.sin(m.angle)*.1],[.035,.14,.17],color('#bccbd1'),m.angle);}
+   else g.box(...arm.hand,.14,.29,.24,white,m.angle);
+  }
+  g.rod(m.blade,m.shaftTop,.038,black);g.rod(m.blade,between(m.blade,m.blocker,.67),.06,white);g.rod(m.blade,m.tip,.055,black);
+ }
+ function figures(frame,teams){
+  const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),uniforms=kits(teams);
+  for(const a of frame.actors){
+   const m=pose(frame,a),kit=uniforms[a.side],shadow=m.point(0,0,0);
+   g.shade(shadow[0],shadow[2],m.keeper?.58:.47,m.keeper?.8:.50,m.angle);
+   for(const foot of m.feet)g.shade(foot[0],foot[2],.28,.13,m.angle);
+   if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.07,kit.trim);
+   if(m.keeper)goalkeeper(g,m,kit);else skater(g,m,kit);
+   jerseyNumber(g,m,a.number,kit);
+  }
+  const h=.09+(frame.puck.z||0);
+  // The ground shadow stays on the ice; the puck, marker and short trail use
+  // recorded height. A caught puck is enclosed by the keeper's equipment.
+  if(!frame.puck.heldBy){
+   g.shade(frame.puck.x,frame.puck.y,.20+(frame.puck.z||0)*.045,.15+(frame.puck.z||0)*.035);
+   if(frame.flight){
+    const start=frame.flight.start,dx=frame.puck.x-start.x,dz=frame.puck.y-start.y,d=Math.hypot(dx,dz),length=Math.min(d,2.3),fraction=d?length/d:0;
+    if(d>.05)g.rod([frame.puck.x-dx*fraction,mix(h,.09+(start.z||0),fraction),frame.puck.y-dz*fraction],[frame.puck.x,h,frame.puck.y],.018,color('#718a98'));
+   }
+   g.disk(frame.puck.x,h-.025,frame.puck.y,.24,white);g.disk(frame.puck.x,h+.025,frame.puck.y,.18,black);g.box(frame.puck.x,h,frame.puck.y,.22,.05,.22,black);
+  }
+  return g.data;
+ }
+ function crowdReaction(frame,side){
+  const clock=frame.wall??frame.time;
+  const event=(frame.effects||[]).filter(e=>e.at<=clock&&clock-e.at<2.8&&['goal','save','block','miss'].includes(e.kind)).at(-1);
+  if(!event)return 0;
+  const age=clock-event.at,envelope=smooth(age/.18)*(1-smooth((age-.65)/2.1));
+  return event.kind==='goal'?(event.side===side?1:.08)*envelope:['save','block'].includes(event.kind)&&event.side===side?.38*envelope:event.kind==='miss'&&event.side===side?.17*envelope:0;
+ }
+ function crowd(frame,teams,homeSide=0){
+  const g=geometry(),uniforms=kits(teams),skin=color('#b89c85'),pants=color('#162333');
+  for(let row=0;row<5;row++)for(let col=0;col<25;col++){
+   const x=col*2.5;if(Math.abs(x-30)<1.5||Math.abs(x-10)<1||Math.abs(x-50)<1)continue;
+   const i=row*25+col,side=i%7===0?1-homeSide:homeSide,level=crowdReaction(frame,side);
+   const lift=level*(.7+(i%4)*.1),y=1.03+row*.85+lift*.20,z=-3-row*1.7,shirt=i%3===0?uniforms[side].trim:uniforms[side].jersey;
+   g.box(x,y+.10,z,.55,.34,.38,pants);g.box(x,y+.47,z,.59,.47,.32,shirt);g.box(x,y+.86,z,.30,.32,.29,skin);
+   for(const arm of [-1,1]){
+    const shoulder=[x+arm*.3,y+.62,z],hand=[x+arm*(.34+lift*.1),y+.3+lift*.98,z+.17];
+    g.pad(shoulder,hand,.15,.15,shirt,0);g.box(...hand,.15,.15,.15,skin);
+   }
+  }
   return g.data;
  }
  let current=null;
- function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
  function create(canvas){
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true});if(!gl)throw Error('3D kunde inte starta på den här datorn. 2D är fortfarande tillgängligt.');
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);throw Error('3D kunde inte läsa grafikprogrammet.');}return s;};
   const vs=shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 normal;attribute vec3 color;uniform mat4 camera;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;void main(){tint=color;worldNormal=normal;worldPosition=position;gl_Position=camera*vec4(position,1.);}');
   const fs=shader(gl.FRAGMENT_SHADER,'precision mediump float;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;uniform vec3 eye;uniform float shine;void main(){vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 key=normalize(vec3(-.4,1.,.35));vec3 fill=normalize(vec3(.6,.5,-.7));float diffuse=.55+.35*max(0.,dot(n,key))+.16*max(0.,dot(n,fill));vec3 halfVector=normalize(key+normalize(eye-worldPosition));float highlight=pow(max(0.,dot(n,halfVector)),24.)*shine;vec3 lit=tint*diffuse+vec3(.83,.91,1.)*highlight;float mist=smoothstep(45.,95.,distance(eye,worldPosition))*.12;gl_FragColor=vec4(mix(lit,vec3(.10,.17,.24),mist),1.);}');
   const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(program,gl.LINK_STATUS)){gl.deleteProgram(program);throw Error('3D kunde inte starta grafikprogrammet.');}
-  const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
+  const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),crowdBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
   const lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',lost);
-  return {canvas,gl,program,staticBuffer,dynamicBuffer,count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
+  return {canvas,gl,program,staticBuffer,dynamicBuffer,crowdBuffer,count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
  }
  function draw(canvas,frame,before,t,options={}){
   if(!frame||canvas.dataset.error)return false;
@@ -322,18 +420,22 @@ const Match3D = (() => {
   const f=sample(frame,before,t),view=cameraFrame(w/h,options.camera,f,c.tracked,options.zoom),mat=view.matrix;c.tracked=view.tracked;
   gl.uniformMatrix4fv(c.matrix,false,mat);gl.uniform3fv(c.eye,view.eye);
   const bind=buffer=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,36,i*12);});};
-  bind(c.staticBuffer);gl.uniform1f(c.shine,.045);gl.drawArrays(gl.TRIANGLES,0,c.count);bind(c.dynamicBuffer);
+  bind(c.staticBuffer);gl.uniform1f(c.shine,.045);gl.drawArrays(gl.TRIANGLES,0,c.count);
+  const reactions=[0,1].map(side=>Math.round(crowdReaction(f,side)*15)/15),crowdKey=JSON.stringify([options.teams,options.homeSide,reactions]);
+  bind(c.crowdBuffer);
+  if(crowdKey!==c.crowdKey){const mesh=crowd(f,options.teams||[],options.homeSide??0);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.crowdCount=mesh.length/9;c.crowdKey=crowdKey;}
+  gl.drawArrays(gl.TRIANGLES,0,c.crowdCount);bind(c.dynamicBuffer);
   const geometryKey=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);
   if(geometryKey!==c.geometryKey){const started=performance.now(),dynamic=figures(f,options.teams||[]);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
   gl.uniform1f(c.shine,.13);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
-  c.hits=f.actors.map(a=>({id:a.id,name:a.name,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
+  c.hits=f.actors.map(a=>({id:a.id,name:a.name,number:a.number,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
   const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);
-  if(label){label.hidden=!carrier;if(carrier){label.textContent=carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
-  const marker=document.getElementById('match-3d-puck');if(marker){const p=project([f.puck.x,.1,f.puck.y],mat);marker.hidden=options.puckMarker===false||p.x<0||p.x>1||p.y<0||p.y>1;marker.style.left=p.x*100+'%';marker.style.top=p.y*100+'%';}
+  if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
+  const marker=document.getElementById('match-3d-puck');if(marker){const p=project([f.puck.x,.1+(f.puck.z||0),f.puck.y],mat);marker.hidden=Boolean(f.puck.heldBy)||options.puckMarker===false||p.x<0||p.x>1||p.y<0||p.y>1;marker.style.left=p.x*100+'%';marker.style.top=p.y*100+'%';}
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount,crowdVertices:current.crowdCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
 })();
 let studioVisualMode='2d',studioCamera3D='tv',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
@@ -341,4 +443,4 @@ function studioToggleRink(){if(studioVisualMode!=='3d')return;studioExpanded3D=!
 function studioSetCamera(mode){if(['tv','overhead','follow'].includes(mode))studioCamera3D=mode;}
 function studioSetZoom(value){const n=Number(value);if(!Number.isFinite(n))return;studioZoom3D=Math.max(.8,Math.min(1.5,Math.round(n*10)/10));const label=document.getElementById('match-3d-zoom');if(label)label.textContent=Math.round(studioZoom3D*100)+'%';}
 function studioTogglePuck(){studioPuckMarker3D=!studioPuckMarker3D;document.getElementById('match-3d-puck-toggle')?.setAttribute('aria-pressed',String(studioPuckMarker3D));}
-function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D · test</option></select></label>${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}
+function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D · test</option></select></label>${studioAudioControl()}${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}

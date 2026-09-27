@@ -19,6 +19,8 @@ module.exports=async function checkPlayback(page,out){
  assert.equal(await page.evaluate(()=>studioOnIceRate()),2);
  await page.locator('#match-tab-settings').click();
  await page.getByLabel('Snabbspolning mellan höjdpunkter',{exact:true}).selectOption('3');
+ await page.getByLabel('Matchljud',{exact:true}).selectOption('0.65');
+ assert.equal(await page.evaluate(()=>studioAudioPreferences().volume),.65);
  assert.equal(await page.getByLabel('Simuleringstempo',{exact:true}).inputValue(),'3');
  await page.getByLabel('Matchvisning',{exact:true}).selectOption('highlights');
  assert.equal(await page.getByLabel('Tempo på isen',{exact:true}).inputValue(),'2');

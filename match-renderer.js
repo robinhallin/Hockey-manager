@@ -26,8 +26,9 @@ const MatchBroadcastRenderer = (() => {
     ctx.fillStyle='#a8beca';ctx.font='700 35px system-ui';ctx.textAlign='center';if(options.homeCrest){const img=options.homeCrest,ratio=img.naturalWidth/img.naturalHeight,w=ratio>=1?132:132*ratio,h=ratio>=1?132/ratio:132;ctx.globalAlpha=.58;ctx.drawImage(img,W/2-w/2,H/2-h/2,w,h);ctx.globalAlpha=1;}else ctx.fillText(options.arena||'MATCHSÄNDNING',W/2,H/2+12);ctx.restore();
     // Bench gates make controlled changes readable instead of teleporting a whole formation.
     for(const [x,label,color] of [[27,teams[0].code,teams[0].primary],[33,teams[1].code,teams[1].primary]]){const p=xy({x,y:0});ctx.fillStyle=color;ctx.fillRect(p.x-29,top-18,58,16);ctx.font='700 13px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,p.x,top-6);}
-    const actors=frame.actors.map(a=>mix(a,before?.actors.find(b=>a.id===b.id)));
-    const puck=mix(frame.puck,before?.puck);
+    const sampled=typeof Match3D!=='undefined'?Match3D.sample(frame,before,t):null;
+    const actors=sampled?.actors||frame.actors.map(a=>mix(a,before?.actors.find(b=>a.id===b.id)));
+    const puck=sampled?.puck||mix(frame.puck,before?.puck);
     const visibleNames=new Set([frame.carrier,selected]);
     if(frame.flight){ctx.beginPath();const f=xy(frame.flight.start),end=xy(puck);ctx.moveTo(f.x,f.y);ctx.lineTo(end.x,end.y);ctx.lineWidth=frame.flight.kind==='shot'?4:2;ctx.strokeStyle=frame.flight.kind==='shot'?'#ba5e58aa':'#213f6070';ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);}
     for(const a of actors){
@@ -46,7 +47,11 @@ const MatchBroadcastRenderer = (() => {
         ctx.fillStyle=a.side===0?'#0d345aed':'#164331ed';ctx.beginPath();ctx.roundRect(lx,ly,width,labelHeight,4);ctx.fill();ctx.fillStyle='#fff';ctx.fillText(text,lx+width/2,ly+labelHeight/2);
       }
     }
-    const pp=xy(puck);ctx.beginPath();ctx.arc(pp.x+(frame.carrier?actorRadius*.8:0),pp.y+(frame.carrier?actorRadius*.5:0),Math.max(5.7,2.8/displayScale),0,Math.PI*2);ctx.fillStyle='#071426';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#fff';ctx.stroke();
+    if(!puck.heldBy){
+      const pp=xy(puck),height=puck.z||0;
+      if(height>.15){ctx.beginPath();ctx.arc(pp.x,pp.y,10+height*3,0,Math.PI*2);ctx.fillStyle='#17395425';ctx.fill();ctx.font='600 14px system-ui';ctx.fillStyle='#214761';ctx.fillText(height.toFixed(1).replace('.',',')+' m',pp.x,pp.y-18);}
+      ctx.beginPath();ctx.arc(pp.x+(frame.carrier?actorRadius*.8:0),pp.y+(frame.carrier?actorRadius*.5:0),Math.max(5.7,2.8/displayScale),0,Math.PI*2);ctx.fillStyle='#071426';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#fff';ctx.stroke();
+    }
     ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.font='600 15px system-ui';ctx.fillStyle='#426174';ctx.fillText(teams[0].name+' anfaller åt höger',pad,H-8);
     if(frame.phase==='stoppage'&&frame.eventType==='goal'){
       ctx.fillStyle='#082443e8';ctx.beginPath();ctx.roundRect(W/2-125,H/2-56,250,100,10);ctx.fill();ctx.fillStyle='#f3d25d';ctx.textAlign='center';ctx.font='800 54px system-ui';ctx.fillText('MÅL',W/2,H/2+13);
