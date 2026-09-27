@@ -303,6 +303,9 @@ with depth writes disabled. Paused geometry, textures and the depth map are
 cached; camera movement alone does not rebuild the shadow map. All additional
 GPU resources are released when leaving 3D. Texture generation never consumes
 simulation randomness, and arena identity follows the actual home club.
+The depth pass contains only rink-side casters, with seating and ice excluded;
+shadow filtering also skips spectators and concourse surfaces. Opaque draws
+avoid blending and the static ice/kit textures use mipmaps for distant detail.
 
 Native Windows checks exercise shader compilation, shadow allocation, each
 quality level, paused resource reuse, exact match-state preservation and

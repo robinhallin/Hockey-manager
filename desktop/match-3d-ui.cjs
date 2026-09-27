@@ -11,6 +11,7 @@ module.exports=async function check3D(page,out){
  const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
  assert.equal(rig.model.joints.length,15);assert.ok(rig.graphics.skinVertices>22000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
  assert.ok(rig.graphics.textureBuilds>0&&rig.graphics.glassVertices>0,'the arena loads its ice/club textures and glass');
+ assert.ok(rig.graphics.shadowCasterVertices>0&&rig.graphics.shadowCasterVertices<rig.graphics.arenaVertices*.35,'seating and ice stay out of the moving shadow pass');
  if(rig.graphics.shadowSupported){assert.equal(rig.graphics.shadowMode,'projected');assert.ok(rig.graphics.shadowSize>=512&&rig.graphics.shadowBuilds>0,'supported GPUs render actual player shadows');}
  require('node:fs').writeFileSync(path.join(out,'3d-rig-result.json'),JSON.stringify(rig,null,2));
  const pixels=await page.evaluate(()=>{

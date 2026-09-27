@@ -583,9 +583,20 @@ const Match3D = (() => {
   const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   return multiply([1/36,0,0,0,0,1/23,0,0,0,0,-2/70,0,0,0,-1,1],view);
  }
+ function shadowCasters(mesh){
+  // Only boards and goals cast onto the playing surface. Keep the ice and
+  // the much larger seating/concourse mesh out of the per-frame depth pass.
+  const data=new Float32Array(mesh.length);let used=0;
+  for(let i=0;i<mesh.length;i+=27){
+   let inside=true,raised=false;
+   for(let j=i;j<i+27;j+=9){inside&&=mesh[j]>=-.1&&mesh[j]<=60.1&&mesh[j+2]>=-.1&&mesh[j+2]<=30.1&&mesh[j+1]>=-.1;raised||=mesh[j+1]>.2;}
+   if(inside&&raised){data.set(mesh.subarray(i,i+27),used);used+=27;}
+  }
+  return data.subarray(0,used);
+ }
  let current=null;
  function releaseShadow(c){const gl=c.gl;if(c.shadowTarget)gl.deleteFramebuffer(c.shadowTarget);if(c.shadowDepth)gl.deleteTexture(c.shadowDepth);if(c.shadowColor)gl.deleteRenderbuffer(c.shadowColor);c.shadowTarget=c.shadowDepth=c.shadowColor=null;c.shadowSize=0;c.shadowKey=null;}
- function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);for(const key of ['staticBuffer','dynamicBuffer','crowdBuffer','analysisBuffer','skinBuffer','skinIndexBuffer','surfaceBuffer','glassBuffer'])c.gl.deleteBuffer(c[key]);for(const key of ['uniformTexture','iceTexture','boardTexture','emptyShadow'])c.gl.deleteTexture(c[key]);releaseShadow(c);c.gl.deleteProgram(c.program);c.gl.deleteProgram(c.shadowProgram);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);for(const key of ['staticBuffer','dynamicBuffer','crowdBuffer','analysisBuffer','skinBuffer','skinIndexBuffer','surfaceBuffer','glassBuffer','casterBuffer'])c.gl.deleteBuffer(c[key]);for(const key of ['uniformTexture','iceTexture','boardTexture','emptyShadow'])c.gl.deleteTexture(c[key]);releaseShadow(c);c.gl.deleteProgram(c.program);c.gl.deleteProgram(c.shadowProgram);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
  function ensureShadow(c,requested){
   const gl=c.gl,size=c.depthSupported?Math.min(requested,gl.getParameter(gl.MAX_TEXTURE_SIZE)):0;
   if(c.shadowRequested===size)return;c.shadowRequested=size;releaseShadow(c);if(!size)return;
@@ -610,7 +621,7 @@ precision mediump float;
    uniform sampler2D uniformMap;uniform sampler2D iceMap;uniform sampler2D boardMap;uniform sampler2D shadowMap;
    uniform vec3 eye;uniform float shine;uniform float detail;uniform float shadowTexel;
    float occlusion(vec3 n){
-    if(shadowTexel==0.)return 1.;vec3 p=lightPosition.xyz/lightPosition.w*.5+.5;
+    if(shadowTexel==0.||worldPosition.x<0.||worldPosition.x>60.||worldPosition.z<0.||worldPosition.z>30.||worldPosition.y>2.7||worldPosition.y<0.)return 1.;vec3 p=lightPosition.xyz/lightPosition.w*.5+.5;
     if(p.x<0.||p.x>1.||p.y<0.||p.y>1.||p.z<0.||p.z>1.)return 1.;
     float depth=p.z-max(.00065,.0017*(1.-max(0.,n.y))),sum=0.;
     for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++){
@@ -623,7 +634,7 @@ precision mediump float;
     vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 view=normalize(eye-worldPosition);
     if(tint.g<-.5){float edge=pow(1.-abs(dot(n,view)),3.);gl_FragColor=vec4(.63,.78,.88,.055+edge*.17);return;}
     vec3 base=tint;float rough=material.x,metal=material.y;
-    if(tint.r<-.5){vec2 uv=vec2(fract(worldPosition.x/7.),clamp((worldPosition.y-.25)/.69,0.,1.));if(tint.r< -1.5)uv.y=clamp((worldPosition.y-5.75)/.5,0.,1.);base=texture2D(boardMap,vec2(uv.x,1.-uv.y)).rgb;if(tint.r< -1.5){gl_FragColor=vec4(base*.72,1.);return;}}
+    if(tint.r<-.5){vec2 uv=vec2(fract((worldPosition.x-9.)/7.),clamp((worldPosition.y-.25)/.69,0.,1.));if(tint.r< -1.5)uv.y=clamp((worldPosition.y-5.75)/.5,0.,1.);base=texture2D(boardMap,vec2(uv.x,1.-uv.y)).rgb;if(tint.r< -1.5){gl_FragColor=vec4(base*.72,1.);return;}}
     if(tint.r>1.){gl_FragColor=vec4(clamp(tint,0.,1.),1.);return;}
     bool ice=worldPosition.y<.01&&worldPosition.y>=-.002&&n.y>.5;
     if(ice){base=texture2D(iceMap,worldPosition.xz/vec2(60.,30.)).rgb;rough=.27;}
@@ -643,7 +654,8 @@ precision mediump float;
      float reflected=(1.-smoothstep(.9,2.1,lamp.x))*(1.-smoothstep(.13,.95,lamp.y));
      lit+=vec3(.56,.71,.88)*reflected*(.09+fresnel*.12)*shade;
     }
-    // A restrained display transform retains the jersey colours and white ice.
+    // Keep the bright ice below clipping so its wear and reflected light remain visible.
+    if(ice)lit*=.76;
     lit=pow(lit/(vec3(1.)+lit*.12),vec3(1./2.2));
     float mist=smoothstep(48.,105.,distance(eye,worldPosition))*.16;
     gl_FragColor=vec4(mix(lit,vec3(.065,.105,.155),mist),1.);
@@ -652,12 +664,13 @@ precision mediump float;
   const depthVS=shader(gl.VERTEX_SHADER,'attribute vec3 position;uniform mat4 camera;void main(){gl_Position=camera*vec4(position,1.);}'),depthFS=shader(gl.FRAGMENT_SHADER,'precision mediump float;void main(){gl_FragColor=vec4(1.);}');
   const shadowProgram=gl.createProgram();gl.attachShader(shadowProgram,depthVS);gl.attachShader(shadowProgram,depthFS);gl.linkProgram(shadowProgram);gl.deleteShader(depthVS);gl.deleteShader(depthFS);if(!gl.getProgramParameter(shadowProgram,gl.LINK_STATUS))throw Error('3D kunde inte starta skuggorna.');
   const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),crowdBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
+  const casterBuffer=gl.createBuffer(),casters=shadowCasters(mesh);gl.bindBuffer(gl.ARRAY_BUFFER,casterBuffer);gl.bufferData(gl.ARRAY_BUFFER,casters,gl.STATIC_DRAW);
   const glassBuffer=gl.createBuffer(),panes=glass();gl.bindBuffer(gl.ARRAY_BUFFER,glassBuffer);gl.bufferData(gl.ARRAY_BUFFER,panes,gl.STATIC_DRAW);
   const lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',lost);
   const uniformTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   const texture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));for(const [key,value] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,key,value);return t;};
   gl.useProgram(program);for(const [name,slot] of [['uniformMap',0],['iceMap',1],['boardMap',2],['shadowMap',3]])gl.uniform1i(gl.getUniformLocation(program,name),slot);
-  return {canvas,gl,program,uniformTexture,iceTexture:texture(),boardTexture:texture(),emptyShadow:texture(),glassBuffer,glassCount:panes.length/9,shadowProgram,shadowPosition:gl.getAttribLocation(shadowProgram,'position'),shadowMatrix:gl.getUniformLocation(shadowProgram,'camera'),lightMatrix:shadowCamera(),lightLocation:gl.getUniformLocation(program,'lightCamera'),shadowTexel:gl.getUniformLocation(program,'shadowTexel'),depthSupported:Boolean(gl.getExtension('WEBGL_depth_texture')),shadowSize:0,skinBuffer:gl.createBuffer(),skinIndexBuffer:gl.createBuffer(),surfaceBuffer:gl.createBuffer(),surfaceLocation:gl.getAttribLocation(program,'surface'),skinCount:0,texLocation:gl.getAttribLocation(program,'uv'),staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),detail:gl.getUniformLocation(program,'detail'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
+  return {canvas,gl,program,casterBuffer,casterCount:casters.length/9,uniformTexture,iceTexture:texture(),boardTexture:texture(),emptyShadow:texture(),glassBuffer,glassCount:panes.length/9,shadowProgram,shadowPosition:gl.getAttribLocation(shadowProgram,'position'),shadowMatrix:gl.getUniformLocation(shadowProgram,'camera'),lightMatrix:shadowCamera(),lightLocation:gl.getUniformLocation(program,'lightCamera'),shadowTexel:gl.getUniformLocation(program,'shadowTexel'),depthSupported:Boolean(gl.getExtension('WEBGL_depth_texture')),shadowSize:0,skinBuffer:gl.createBuffer(),skinIndexBuffer:gl.createBuffer(),surfaceBuffer:gl.createBuffer(),surfaceLocation:gl.getAttribLocation(program,'surface'),skinCount:0,texLocation:gl.getAttribLocation(program,'uv'),staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),detail:gl.getUniformLocation(program,'detail'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
  }
  function draw(canvas,frame,before,t,options={}){
   if(!frame||canvas.dataset.error)return false;
@@ -680,24 +693,24 @@ precision mediump float;
   const geometryKey=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);
   if(geometryKey!==c.geometryKey){const started=performance.now(),poses=new Map(f.actors.map(a=>[a.id,pose(f,a)])),skinned=typeof HockeyPlayerModel!=='undefined',dynamic=figures(f,options.teams||[],skinned,poses);if(skinned){const skin=HockeyPlayerModel.mesh(f.actors,poses,kits(options.teams||[]),c.skinData);c.skinData=skin;gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);gl.bufferData(gl.ARRAY_BUFFER,skin,gl.DYNAMIC_DRAW);c.skinCount=skin.length/11;const layout=f.actors.map(HockeyPlayerModel.kind).join(',');if(layout!==c.skinLayout){const indices=HockeyPlayerModel.indices(f.actors);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);c.skinElements=indices.length;c.skinLayout=layout;c.skinActors=f.actors.length;gl.bindBuffer(gl.ARRAY_BUFFER,c.surfaceBuffer);gl.bufferData(gl.ARRAY_BUFFER,HockeyPlayerModel.surfaces(f.actors),gl.STATIC_DRAW);}bind(c.dynamicBuffer);}gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
   const crests=(options.teams||[]).map(team=>Boolean(typeof matchIceCrest==='function'&&matchIceCrest(team.name))),arenaKey=JSON.stringify([options.teams,options.homeSide,options.arena,crests]);
-  if(c.arenaKey!==arenaKey){const textures=arenaTextures(options.teams,options.homeSide??0,options.arena);for(const [texture,source] of [[c.iceTexture,textures.ice],[c.boardTexture,textures.board]]){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);}c.arenaKey=arenaKey;c.textureBuilds=(c.textureBuilds||0)+1;}
+  if(c.arenaKey!==arenaKey){const textures=arenaTextures(options.teams,options.homeSide??0,options.arena);for(const [texture,source] of [[c.iceTexture,textures.ice],[c.boardTexture,textures.board]]){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);}c.arenaKey=arenaKey;c.textureBuilds=(c.textureBuilds||0)+1;}
   if(c.skinCount){
    const atlasKey=JSON.stringify([f.actors.map(a=>[a.id,a.number,a.name,a.side]),options.teams,crests]);
-   if(c.atlasKey!==atlasKey){const atlas=HockeyPlayerModel.atlas(document.createElement('canvas'),f.actors,kits(options.teams||[]));gl.bindTexture(gl.TEXTURE_2D,c.uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);c.atlasKey=atlasKey;}
+   if(c.atlasKey!==atlasKey){const atlas=HockeyPlayerModel.atlas(document.createElement('canvas'),f.actors,kits(options.teams||[]));gl.bindTexture(gl.TEXTURE_2D,c.uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);c.atlasKey=atlasKey;}
   }
   if(c.shadowSize&&c.shadowKey!==geometryKey){
    gl.bindFramebuffer(gl.FRAMEBUFFER,c.shadowTarget);gl.viewport(0,0,c.shadowSize,c.shadowSize);gl.disable(gl.BLEND);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.shadowProgram);gl.uniformMatrix4fv(c.shadowMatrix,false,c.lightMatrix);
    for(const loc of [...c.locations,c.texLocation,c.surfaceLocation])gl.disableVertexAttribArray(loc);
    gl.enableVertexAttribArray(c.shadowPosition);
    const shadowMesh=(buffer,stride,count,indexed=false)=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(c.shadowPosition,3,gl.FLOAT,false,stride,0);if(indexed){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.drawElements(gl.TRIANGLES,count,gl.UNSIGNED_SHORT,0);}else gl.drawArrays(gl.TRIANGLES,0,count);};
-   shadowMesh(c.staticBuffer,36,c.count);shadowMesh(c.dynamicBuffer,36,c.dynamicCount);if(c.skinCount)shadowMesh(c.skinBuffer,44,c.skinElements,true);
+   shadowMesh(c.casterBuffer,36,c.casterCount);shadowMesh(c.dynamicBuffer,36,c.dynamicCount);if(c.skinCount)shadowMesh(c.skinBuffer,44,c.skinElements,true);
    c.shadowKey=geometryKey;c.shadowBuilds=(c.shadowBuilds||0)+1;gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,w,h);gl.useProgram(c.program);
   }
   for(const [slot,texture] of [[0,c.uniformTexture],[1,c.iceTexture],[2,c.boardTexture],[3,c.shadowDepth||c.emptyShadow]]){gl.activeTexture(gl.TEXTURE0+slot);gl.bindTexture(gl.TEXTURE_2D,texture);}
-  gl.activeTexture(gl.TEXTURE0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.activeTexture(gl.TEXTURE0);gl.disable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   bind(c.staticBuffer);gl.uniform1f(c.shine,.018);gl.drawArrays(gl.TRIANGLES,0,c.count);
   bind(c.crowdBuffer);gl.uniform1f(c.shine,0);gl.drawArrays(gl.TRIANGLES,0,c.crowdCount);
-  bind(c.dynamicBuffer);gl.uniform1f(c.shine,.06);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
+  gl.enable(gl.BLEND);bind(c.dynamicBuffer);gl.uniform1f(c.shine,.06);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);gl.disable(gl.BLEND);
   if(c.skinCount){
    gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,44,i*12);});gl.enableVertexAttribArray(c.texLocation);gl.vertexAttribPointer(c.texLocation,2,gl.FLOAT,false,44,36);gl.bindBuffer(gl.ARRAY_BUFFER,c.surfaceBuffer);gl.enableVertexAttribArray(c.surfaceLocation);gl.vertexAttribPointer(c.surfaceLocation,2,gl.FLOAT,false,8,0);gl.uniform1f(c.shine,.04);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.drawElements(gl.TRIANGLES,c.skinElements,gl.UNSIGNED_SHORT,0);gl.disableVertexAttribArray(c.texLocation);gl.vertexAttrib2f(c.texLocation,-1,-1);
   }
@@ -707,7 +720,7 @@ precision mediump float;
    if(key!==c.analysisKey){const mesh=analysisGeometry(options.analysis);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.analysisVertices=mesh.length/9;c.analysisKey=key;}
    c.analysisCount=c.analysisVertices;gl.uniform1f(c.shine,0);gl.drawArrays(gl.TRIANGLES,0,c.analysisCount);
   }
-  bind(c.glassBuffer);gl.depthMask(false);gl.drawArrays(gl.TRIANGLES,0,c.glassCount);gl.depthMask(true);gl.disable(gl.BLEND);
+  gl.enable(gl.BLEND);bind(c.glassBuffer);gl.depthMask(false);gl.drawArrays(gl.TRIANGLES,0,c.glassCount);gl.depthMask(true);gl.disable(gl.BLEND);
   c.hits=f.actors.map(a=>({id:a.id,name:a.name,number:a.number,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
   const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);
   if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
@@ -721,7 +734,7 @@ precision mediump float;
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,pose,quality,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{quality:current.quality,shadowSupported:current.depthSupported,shadowMode:current.shadowSize?'projected':'contact',shadowSize:current.shadowSize,shadowBuilds:current.shadowBuilds||0,textureBuilds:current.textureBuilds||0,arenaVertices:current.count,glassVertices:current.glassCount,motionFrames:current.motionFrames||0,motionAdvances:current.motionAdvances||0,width:current.canvas.width,height:current.canvas.height,frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount+current.skinCount,skinVertices:current.skinCount,modelActors:current.skinActors||0,rigJoints:current.skinCount?HockeyPlayerModel.model().joints.length:0,renderMS:current.renderMS,frameSamples:current.frameTimes?.length||0,frameP95:current.frameTimes?.length?[...current.frameTimes].sort((a,b)=>a-b)[Math.floor((current.frameTimes.length-1)*.95)]:null,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,quality,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{quality:current.quality,shadowSupported:current.depthSupported,shadowMode:current.shadowSize?'projected':'contact',shadowSize:current.shadowSize,shadowBuilds:current.shadowBuilds||0,textureBuilds:current.textureBuilds||0,arenaVertices:current.count,shadowCasterVertices:current.casterCount,glassVertices:current.glassCount,motionFrames:current.motionFrames||0,motionAdvances:current.motionAdvances||0,width:current.canvas.width,height:current.canvas.height,frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount+current.skinCount,skinVertices:current.skinCount,modelActors:current.skinActors||0,rigJoints:current.skinCount?HockeyPlayerModel.model().joints.length:0,renderMS:current.renderMS,frameSamples:current.frameTimes?.length||0,frameP95:current.frameTimes?.length?[...current.frameTimes].sort((a,b)=>a-b)[Math.floor((current.frameTimes.length-1)*.95)]:null,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
 })();
 let studioVisualMode='2d',studioCamera3D='auto',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
