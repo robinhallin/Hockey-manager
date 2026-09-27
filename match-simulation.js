@@ -89,7 +89,8 @@ const StudioHockey = (() => {
     const d=Math.max(.1,distance(a,b)),nx=(b.x-a.x)/d,ny=(b.y-a.y)/d;
     const drive=clamp(((a.vx||0)-(b.vx||0))*nx+((a.vy||0)-(b.vy||0))*ny,0,6);
     const heading=Math.atan2(a.vy||0,a.vx||0),brace=Math.abs(Math.cos(heading-Math.atan2(ny,nx)));
-    return drive*.18+brace*match.attribute(a,'balance')*.025+(a.shieldUntil>match.time?.7:0);
+    const stability=match.attribute(a,'strength')*.55+match.attribute(a,'skating')*.45;
+    return drive*.18+brace*stability*.025+(a.shieldUntil>match.time?.7:0);
   }
   function rating(p,keys){return keys.reduce((s,k)=>s+(p.attributes[k]||10),0)/keys.length;}
   // Shared finishing model. Callers provide measured or explicitly estimated context.
@@ -193,7 +194,7 @@ const StudioHockey = (() => {
     pressureAt(a){return clamp(1-Math.min(...this.skaters(1-a.side).map(b=>distance(a,b)))/3,0,1);}
     readDelay(a){
       const reading=this.attribute(a,'decisions')*.4+this.attribute(a,'vision')*.25+this.attribute(a,'puckControl')*.35;
-      return clamp(1.18-reading*.043+this.pressureAt(a)*(20-this.attribute(a,'composure'))*.018,.28,1.35);
+      return clamp(1.18-reading*.043+this.pressureAt(a)*(20-this.attribute(a,'composure'))*.018+this.balanceLevel(a)*.3,.28,1.55);
     }
     goalieTarget(side,puck=this.puck){
       const goalie=this.actors.find(a=>a.side===side&&a.role==='G');
@@ -213,6 +214,17 @@ const StudioHockey = (() => {
       return pressureWinChance(values(defender,['checking','strength','workRate']),values(carrier,['puckControl','strength','decisions']));
     }
     battleStrength(a){return this.attribute(a,'strength')*.35+this.attribute(a,'checking')*.2+this.attribute(a,'puckControl')*.25+this.attribute(a,'workRate')*.2;}
+    balanceLevel(a){const b=a?.balanceState;return b&&this.wall>=b.at?b.level*clamp((b.until-this.wall)/(b.until-b.at),0,1):0;}
+    disruptBalance(a,opponent,closing,scale=1){
+      if(!a||a.role==='G')return;
+      const strength=this.attribute(a,'strength'),skating=this.attribute(a,'skating');
+      const mass=clamp((opponent.player.weight||85)/(a.player.weight||85),.75,1.3);
+      const brace=.55+strength*.012+skating*.010+this.energyLevel(a)*.002+(a.shieldUntil>this.time?.2:0);
+      const level=clamp(closing*mass/(9*brace)*scale+this.balanceLevel(a)*.35,.04,.9);
+      const duration=.35+level*.95+(100-this.energyLevel(a))*.002;
+      a.balanceState={at:this.wall,until:this.wall+duration,level,direction:Math.atan2(a.y-opponent.y,a.x-opponent.x)};
+      delete a.footPlants;
+    }
     startBattle(a,b){
       if(!a||!b||a.side===b.side||distance(a,b)>2.3||(this.puck.z||0)>.45)return false;
       const boards=this.puck.y<4||this.puck.y>26||this.puck.x<3||this.puck.x>57;
@@ -223,6 +235,7 @@ const StudioHockey = (() => {
       this.battle={a:a.id,b:b.id,remaining:(type==='pin'?.85:.45)+this.random()*.55,spot:{...this.puck},boards,type,closing,
         balanceA:contactBalance(this,a,b),balanceB:contactBalance(this,b,a),axis:{x:nx,y:ny}};
       delete a.shotPreparation;delete b.shotPreparation;
+      if(type==='check'){this.disruptBalance(holder,defender,closing);this.disruptBalance(defender,holder,closing,.3);}
       for(const actor of [a,b]){
         this.recordContact(actor,actor===defender?type:'protect',this.puck,closing/5,actor===defender?holder:defender);
         actor.vx*=type==='pin'?.25:.6;actor.vy*=type==='pin'?.25:.6;
@@ -343,7 +356,7 @@ const StudioHockey = (() => {
           const z=a===center?[.65,0]:offset[a.role];
           const p=a.role==='G'?point(side,4.4,15):{x:clamp(this.restartSpot.x+dx*z[0],2,58),y:clamp(this.restartSpot.y+z[1],2,28)};
           a.x=p.x;a.y=p.y;a.target={...p};a.vx=0;a.vy=0;a.status='playing';
-          delete a.keeperState;delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;
+          delete a.keeperState;delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;delete a.balanceState;
         }
       }
     }
@@ -519,9 +532,10 @@ const StudioHockey = (() => {
         if(a.role!=='G'&&a.side!==this.owner)top*=.9+this.attribute(a,'workRate')*.008;
         if(a.id===this.carrier)top*=.86;
         if(a.role!=='G')top*=1-clamp((70-this.energyLevel(a))*.004,0,.18);
-        if(a.recoverUntil>this.time)top*=.55;
+        const unsteady=this.balanceLevel(a);
+        top*=Math.min(a.recoverUntil>this.time?.55:1,1-unsteady*.55);
         if(this.battle&&(a.id===this.battle.a||a.id===this.battle.b))top*=.3;
-        const accel=2.7+this.attribute(a,a.role==='G'?'movement':'acceleration')*.085;
+        const accel=(2.7+this.attribute(a,a.role==='G'?'movement':'acceleration')*.085)*(1-unsteady*.65);
         let speed=Math.min(top,Math.sqrt(2*accel*d));
         // Brake based on stopping distance before the puck enters, instead of
         // skating to an attacking target and correcting after the blue line.
@@ -881,7 +895,7 @@ const StudioHockey = (() => {
     }
     receiveContact(a,f,kind='stick'){
       const vx=(f.end.x-f.start.x)/f.duration,vy=(f.end.y-f.start.y)/f.duration,speed=Math.hypot(vx-a.vx,vy-a.vy);
-      const model=receptionModel({control:this.attribute(a,'puckControl'),composure:this.attribute(a,'composure'),pressure:this.pressureAt(a),speed,height:this.puck.z||0});
+      const model=receptionModel({control:this.attribute(a,'puckControl')*(1-this.balanceLevel(a)*.35),composure:this.attribute(a,'composure'),pressure:this.pressureAt(a),speed,height:this.puck.z||0});
       const roll=this.random(),clean=kind==='stick'&&roll<model.clean,bobble=!clean&&(kind==='body'||roll<model.clean+model.bobble);
       this.recordContact(a,clean?'receive':bobble?'bobble':'miss',this.puck,clamp(speed/24,.2,1));
       if(clean){
@@ -1089,6 +1103,7 @@ const StudioHockey = (() => {
     }
     decide(){
       const a=this.actor(this.carrier);if(!a)return;
+      if(this.balanceLevel(a)>.32){this.decision=.1;a.duty='Återfår balansen innan nästa puckbeslut';return;}
       const t=this.teams[a.side],p=progress(a.side,a.x),opponents=this.skaters(1-a.side),nearest=[...opponents].sort((b,c)=>distance(a,b)-distance(a,c))[0];
       const pk=this.isShortHanded(a.side),pp=this.hasPowerPlay(a.side);
       this.decision=this.readDelay(a)+.2+this.random()*.35;
@@ -1194,6 +1209,7 @@ const StudioHockey = (() => {
           energy:this.energyLevel(a),height:a.player.height||null,weight:a.player.weight||null,markedThreat:a.markedThreat||null,target:{...a.target},
           ...(a.footPlants?{footPlants:a.footPlants.map(p=>p?{...p}:null)}:{}),
           ...(a.motion?{motion:{...a.motion}}:{}),
+          ...(a.balanceState&&this.wall<a.balanceState.until?{balanceState:{...a.balanceState}}:{}),
           ...(a.shotPreparation?{windup:{...a.shotPreparation,target:{...a.shotPreparation.target}}}:{}),
           ...(a.contactAction&&this.wall-a.contactAction.at<1.3?{contactAction:{...a.contactAction,spot:{...a.contactAction.spot}}}:{}),
           ...(a.keeperState?{keeperState:{at:a.keeperState.at,drop:a.keeperState.drop,facing:a.keeperState.facing,glove:{...a.keeperState.glove},blocker:{...a.keeperState.blocker}}}:{}),

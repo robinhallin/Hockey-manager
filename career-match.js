@@ -433,7 +433,8 @@ function studioShotReasons(shot){
  return reasons.slice(0,3);
 }
 function studioShotView(){
- const e=studioEngine(),shot=studioReplayState?e.latestReplay?.shot:e.lastShot;
+ const e=studioEngine(),shot=studioReplayState?studioReplayState.shot:e.lastShot;
+ if(studioReplayState?.clip){const c=studioReplayState.clip;return `<span class="broadcast-shot-label">INSPELAD SITUATION · ${analysisTime(c.time)}</span><strong>${trainingSafe(matchClipLabel(c.kind))}</strong><p>${trainingSafe(e.teams[c.side].name)} · ${c.situation==='even'?'Lika styrka':c.situation==='ot'?'Förlängning':c.situation==='pp'?'Powerplay':'Boxplay'}</p><p>Se spelarnas faktiska positioner före och efter observationen.</p>`;}
  if(!shot?.context)return '<span class="broadcast-shot-label">SENASTE AVSLUTET</span><p>Här förklaras skottläget efter avslutet.</p>';
  const outcome=({goal:'Mål',save:'Räddning',block:'Blockerat',wide:'Utanför'})[shot.outcome]||'Avslut';
  return `<div><span class="broadcast-shot-label">${studioReplayState?'REPRIS':'SENASTE AVSLUTET'}</span><strong>${trainingSafe(shot.player)} <small>· ${trainingSafe(e.teams[shot.side].name)}</small></strong></div><b class="broadcast-shot-outcome ${shot.outcome==='goal'?'is-goal':''}">${outcome}</b><p>${studioShotReasons(shot).map(trainingSafe).join(' · ')}</p>`;
@@ -455,19 +456,20 @@ function studioPlaybackStatus(){
 function studioView(){
  const e=studioEngine(),m=state.live,t=e.teams[0];
  const changing=t.requested||t.change||t.changeQueue.length||t.needsSetup;
- return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioPlaybackStatus()}</strong></div><span>${m.finished?'Matchen avslutad':changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header>${studio3DControls()}<div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och energi finns under rinken. Klicka på en spelare för att pausa och läsa uppgiften."></canvas>${studioVisualMode==='3d'?'<canvas id="career-ice-3d" aria-label="3D-match. Klicka på en spelare för att läsa uppgiften."></canvas><span id="match-3d-carrier" hidden></span><span id="match-3d-puck" aria-hidden="true" hidden></span><span id="match-3d-error" role="status" hidden></span>':''}${studioReplayControls()}<div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHKLOCKAN GÅR SNABBARE</span><h3 id="broadcast-overview-title"></h3><p>Du kan pausa och coacha när du vill.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><footer><span>Klicka på en spelare för att läsa uppgiften. Matchen pausas.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
+ return `<section class="broadcast-view"><header><div><span class="broadcast-dot"></span><strong>${studioPlaybackStatus()}</strong></div><span>${m.finished?'Matchen avslutad':changing?'Byte begärt · inväntar säkert läge':StudioHockey.PHASES[e.phase]}</span></header>${studio3DControls()}<div class="broadcast-surface"><canvas id="career-ice" width="1200" height="650" role="img" aria-label="Matchsändning. ${trainingSafe(managerClub())} anfaller åt höger. Namn och energi finns under rinken. Klicka på en spelare för att pausa och läsa uppgiften."></canvas>${studioVisualMode==='3d'?'<canvas id="career-ice-3d" aria-label="3D-match. Klicka på en spelare för att läsa uppgiften."></canvas><span id="match-3d-carrier" hidden></span><span id="match-3d-puck" aria-hidden="true" hidden></span><span id="match-3d-error" role="status" hidden></span>':''}${studioReplayControls()}<div id="broadcast-overview" class="broadcast-overview" hidden><span>MATCHKLOCKAN GÅR SNABBARE</span><h3 id="broadcast-overview-title"></h3><p>Du kan pausa och coacha när du vill.</p><strong>${matchStats().shots[0]} – ${matchStats().shots[1]} <small>skott på mål</small></strong></div></div><div class="broadcast-caption" role="status"><strong id="broadcast-phase">${StudioHockey.PHASES[e.phase]}</strong><span id="broadcast-caption">${trainingSafe(e.caption)}</span></div><footer><span>Klicka på en spelare för att läsa uppgiften. Matchen pausas.</span><button class="btn secondary" onclick="${studioReplayState?'studioExitReplay()':'studioReplay()'}" ${!studioReplayState&&!e.latestReplay?'disabled':''}>${studioReplayState?'Tillbaka till matchen':'↺ Senaste avslutet'}</button></footer></section>`;
 }
 function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseMatch();studioReplayState={frames:e.latestReplay.frames,shot:e.latestReplay.shot,elapsed:0,lastNow:null,rate:studioReplayRate(null),paused:false,analysis:true};render();}
-function studioExitReplay(){studioReplayState=null;render();}
+function studioExitReplay(){const v=studioReplayState?.returnView;studioReplayState=null;if(v){studioVisualMode=v.visual;studioCamera3D=v.camera;studioExpanded3D=v.expanded;}render();}
 function studioReplayControls(){
  const r=studioReplayState;if(!r)return '';
- return `<div class="broadcast-replay-controls" aria-label="Repriskontroller"><button onclick="studioPauseReplay()" id="replay-play">${studioReplayPlayLabel()}</button><button onclick="studioReplayMoment()">Till skottet</button><label>Reprisförlopp<input id="replay-position" aria-label="Reprisförlopp" type="range" min="0" max="${Math.max(.2,(r.frames.length-1)*.2)}" step=".05" value="${r.elapsed}" oninput="studioSeekReplay(this.value)"></label><button id="replay-analysis" aria-pressed="${r.analysis!==false}" onclick="studioToggleReplayAnalysis()">Taktiska linjer</button></div>`;
+ return `<div class="broadcast-replay-controls" aria-label="Repriskontroller"><button onclick="studioPauseReplay()" id="replay-play">${studioReplayPlayLabel()}</button><button onclick="studioReplayMoment()">${r.clip?'Till observationen':'Till skottet'}</button><label>Reprisförlopp<input id="replay-position" aria-label="Reprisförlopp" type="range" min="0" max="${Math.max(.2,studioReplayDuration(r))}" step=".05" value="${r.elapsed}" oninput="studioSeekReplay(this.value)"></label><button id="replay-analysis" aria-pressed="${r.analysis!==false}" onclick="studioToggleReplayAnalysis()">Taktiska linjer</button></div>`;
 }
-function studioReplayPlayLabel(){const r=studioReplayState;if(!r)return '';return r.elapsed>=(r.frames.length-1)*.2?'Spela igen':r.paused?'Spela repris':'Pausa repris';}
-function studioPauseReplay(){const r=studioReplayState;if(!r)return;if(r.elapsed>=(r.frames.length-1)*.2){r.elapsed=0;r.paused=false;}else r.paused=!r.paused;r.lastNow=null;}
-function studioSeekReplay(value){const r=studioReplayState;if(!r||!Number.isFinite(Number(value)))return;r.elapsed=Math.max(0,Math.min((r.frames.length-1)*.2,Number(value)));r.paused=true;r.lastNow=null;MatchAudio.silence();}
+function studioReplayPlayLabel(){const r=studioReplayState;if(!r)return '';return r.elapsed>=studioReplayDuration(r)?'Spela igen':r.paused?'Spela repris':'Pausa repris';}
+function studioPauseReplay(){const r=studioReplayState;if(!r)return;if(r.elapsed>=studioReplayDuration(r)){r.elapsed=0;r.paused=false;}else r.paused=!r.paused;r.lastNow=null;}
+function studioSeekReplay(value){const r=studioReplayState;if(!r||!Number.isFinite(Number(value)))return;r.elapsed=Math.max(0,Math.min(studioReplayDuration(r),Number(value)));r.paused=true;r.lastNow=null;MatchAudio.silence();}
 function studioReplayMoment(){
  const r=studioReplayState;if(!r)return;
+ if(r.clip){studioSeekReplay(r.clip.wall-r.frames[0].wall);return;}
  const shooter=r.shot?.originalShooter?.id||r.shot?.playerId;
  const first=r.frames.findIndex(f=>(!r.shot||f.time>=r.shot.time-1e-6)&&(f.flight?.kind==='shot'&&(!shooter||f.flight.from===shooter)||f.actors.some(a=>(!shooter||a.id===shooter)&&a.action?.kind==='shot')));
  const lead=first>0&&r.frames[first-1].actors.some(a=>a.windup&&(!shooter||a.id===shooter))?first-1:first;
@@ -476,8 +478,9 @@ function studioReplayMoment(){
 function studioToggleReplayAnalysis(){if(studioReplayState)studioReplayState.analysis=studioReplayState.analysis===false;}
 function studioReplayFrame(now){
  const r=studioReplayState;if(!r?.frames.length)return null;
- const duration=(r.frames.length-1)*.2,delta=r.lastNow==null?0:Math.max(0,(now-r.lastNow)/1000);
+ const duration=studioReplayDuration(r),delta=r.lastNow==null?0:Math.max(0,(now-r.lastNow)/1000);
  r.elapsed=Math.min(duration,(r.elapsed||0)+(r.paused?0:delta*studioReplayRate(r)));r.lastNow=now;
+ if(r.clip){const at=r.frames[0].wall+r.elapsed;let index=0;while(index+1<r.frames.length&&r.frames[index+1].wall<=at+1e-7)index++;const previous=r.frames[index],frame=r.frames[Math.min(index+1,r.frames.length-1)],span=frame.wall-previous.wall;return {frame,previous,blend:span>0?Math.max(0,Math.min(1,(at-previous.wall)/span)):1};}
  const index=Math.min(r.frames.length-1,Math.floor(r.elapsed/.2));
  return {frame:r.frames[Math.min(index+1,r.frames.length-1)],previous:r.frames[index],blend:index===r.frames.length-1?1:(r.elapsed%.2)/.2};
 }
@@ -498,9 +501,9 @@ function studioMount(){
   const replay=studioReplayFrame(now);if(replay){({frame,previous,blend}=replay);}
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)blend=1;
   const hiddenRink=!studioReplayState&&(m.rink.mode==='commentary'||m.running&&!studioShouldShow(e,m));
-  const sampled=Match3D.sample(frame,previous,blend),analysis=studioReplayState&&studioReplayState.analysis!==false?Match3D.replayAnalysis(studioReplayState.frames,sampled):null;
+  const sampled=Match3D.sample(frame,previous,blend),analysis=studioReplayState&&studioReplayState.analysis!==false?Match3D.replayAnalysis(studioReplayState.frames,sampled,studioReplayState.clip):null;
   const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,homeSide:venue.ownHome?0:1,analysis,suspended:hiddenRink});
-  const audio=studioAudioPreferences(),replayMoving=studioReplayState&&!studioReplayState.paused&&studioReplayState.elapsed<(studioReplayState.frames.length-1)*.2;
+  const audio=studioAudioPreferences(),replayMoving=studioReplayState&&!studioReplayState.paused&&studioReplayState.elapsed<studioReplayDuration();
   MatchAudio.update(sampled,{source:studioReplayState||e,active:!document.hidden&&!hiddenRink&&Boolean(replayMoving||!studioReplayState&&m.running&&!m.finished),volume:audio.muted?0:audio.volume,homeSide:venue.ownHome?0:1});
   canvas.style.visibility=rendered3D?'hidden':'visible';
   if(canvas3d){canvas3d.style.visibility=rendered3D?'visible':'hidden';const error=document.getElementById('match-3d-error');if(error){error.hidden=Boolean(rendered3D);error.textContent=canvas3d.dataset.error||'3D kunde inte visas. Visar 2D.';}if(!rendered3D)for(const id of ['match-3d-carrier','match-3d-puck']){const label=document.getElementById(id);if(label)label.hidden=true;}}
@@ -537,7 +540,7 @@ function studioRefresh(){
  const ice=document.querySelector('.mc-on-ice>p');if(ice&&!ice.contains?.(document.activeElement))ice.innerHTML=matchDeskIcePlayers();
  set('.broadcast-overview>strong',`${s.shots[0]} – ${s.shots[1]} <small>skott på mål</small>`);
  set('.broadcast-shot',studioShotView());set('.broadcast-decision',studioDecisionView());
- const replay=document.querySelector('.broadcast-view footer button');if(replay)replay.disabled=!e.latestReplay;
+ const replay=document.querySelector('.broadcast-view footer button');if(replay)replay.disabled=!studioReplayState&&!e.latestReplay;
  const details=[...document.querySelectorAll('.mc-details')];
  for(const [i,node] of details.entries())if(node.open){
   const summary=node.querySelector('summary').outerHTML;
@@ -561,8 +564,26 @@ function validateSpatialMatchSave(s){
   penaltyIds.add(p.id);
  }
  const kinds=['carry','pass','shoot','dump','shield','clear'];
+ const observationKinds=['diagonal','turnover','support','marking','pp-rotation','pk-press'];
+ const rinkPoint=p=>p&&Number.isFinite(p.x)&&p.x>=0&&p.x<=60&&Number.isFinite(p.y)&&p.y>=0&&p.y<=30;
+ const observation=o=>o&&Number.isSafeInteger(o.id)&&o.id>0&&observationKinds.includes(o.kind)&&[0,1].includes(o.side)&&['even','pp','pk','ot'].includes(o.situation)&&Number.isFinite(o.time)&&o.time>=0&&o.time<=e.time+.1&&Number.isFinite(o.wall)&&o.wall>=0&&o.wall<=e.wall+.1&&Array.isArray(o.players)&&o.players.length<=4&&o.players.every(id=>typeof id==='string')&&rinkPoint(o.spot)&&(!o.from||rinkPoint(o.from));
+ if(e.observationSequence!==undefined&&(!Number.isSafeInteger(e.observationSequence)||e.observationSequence<0))bad();
+ if(e.tacticalObservations!==undefined&&(!Array.isArray(e.tacticalObservations)||e.tacticalObservations.length>96||e.tacticalObservations.some(o=>!observation(o)||o.id>e.observationSequence)))bad();
+ if(e.tacticalClips!==undefined){
+  if(!Array.isArray(e.tacticalClips)||e.tacticalClips.length>6)bad();
+  for(const c of e.tacticalClips){
+   if(!observation(c)||!Number.isFinite(c.until)||c.until<c.wall||c.until-c.wall>1.01||!Array.isArray(c.frames)||!c.frames.length||c.frames.length>30)bad();
+   for(let i=0;i<c.frames.length;i++){
+    const f=c.frames[i];if(!f||!Number.isFinite(f.time)||!Number.isFinite(f.wall)||f.wall<0||f.wall>e.wall+.1||i&&f.wall<=c.frames[i-1].wall||!rinkPoint(f.puck)||!Array.isArray(f.actors)||f.actors.length>24)bad();
+    for(const a of f.actors){if(typeof a.id!=='string'||![0,1].includes(a.side)||!rinkPoint(a)||!Number.isFinite(a.vx)||!Number.isFinite(a.vy))bad();for(const key of ['action','windup'])if(a[key]&&(!Number.isFinite(a[key].at)||!rinkPoint(a[key].target)||key==='action'&&!rinkPoint(a[key].origin)))bad();if(a.contactAction&&(!Number.isFinite(a.contactAction.at)||!rinkPoint(a.contactAction.spot)))bad();}
+    if(f.flight&&(!rinkPoint(f.flight.start)||!rinkPoint(f.flight.end)||!Number.isFinite(f.flight.duration)||f.flight.duration<=0||!Number.isFinite(f.flight.elapsed)))bad();
+   }
+  }
+ }
  if(e.decisionAudit){const a=e.decisionAudit;if(!a.counts||!Array.isArray(a.recent)||a.recent.length>30)bad();for(const [k,v] of Object.entries(a.counts))if(!kinds.includes(k)||!Number.isInteger(v)||v<0)bad();for(const r of a.recent)if(!r||!kinds.includes(r.kind)||!Number.isFinite(r.time)||r.time<0||![0,1].includes(r.side)||typeof r.player!=='string'||typeof r.reason!=='string'||!Array.isArray(r.alternatives)||r.alternatives.length>3||r.alternatives.some(o=>!o||!kinds.includes(o.kind)||!Number.isFinite(o.value)))bad();}
+ for(const a of e.actors||[])if(a.balanceState){const b=a.balanceState;if(!['at','until','level','direction'].every(k=>Number.isFinite(b[k]))||b.at<0||b.until<=b.at||b.until-b.at>2||b.level<0||b.level>1||Math.abs(b.direction)>Math.PI)bad();}
  for(const a of e.actors||[])if(a.keeperState){const k=a.keeperState;if(!['at','elapsed','seen','screen','drop','facing','recovery','error'].every(key=>Number.isFinite(k[key]))||k.at<0||k.elapsed<0||k.seen<0||k.drop<0||k.drop>1||k.screen<0||k.screen>1||['glove','blocker'].some(hand=>!k[hand]||!Number.isFinite(k[hand].lateral)||Math.abs(k[hand].lateral)>2||!Number.isFinite(k[hand].z)||k[hand].z<0||k[hand].z>2))bad();}
- for(const t of e.teams||[])if(t.attackPattern){const p=t.attackPattern;if(!['low-high','cycle','diagonal','give-go'].includes(p.kind)||!Number.isFinite(p.at)||!Number.isFinite(p.until)||p.until<p.at||p.until-p.at>6||!Number.isInteger(p.stage)||p.stage<0||p.stage>2||!Array.isArray(p.players)||p.players.length>3||p.players.some(id=>typeof id!=='string')||![-1,1].includes(p.lane))bad();}
+ for(const t of e.teams||[])if(t.attackPattern){const p=t.attackPattern;if(!['low-high','cycle','diagonal','give-go'].includes(p.kind)||!Number.isFinite(p.at)||!Number.isFinite(p.until)||p.until<p.at||p.until-p.at>(p.version===2?14:6)||!Number.isInteger(p.stage)||p.stage<0||p.stage>(p.version===2?6:2)||!Array.isArray(p.players)||p.players.length>(p.version===2?6:3)||p.players.some(id=>typeof id!=='string')||![-1,1].includes(p.lane))bad();}
+ for(const t of e.teams||[]){const p=t.specialPlay;if(p&&(!['press','flank-swap','low-cycle'].includes(p.kind)||!Number.isFinite(p.at)||!Number.isFinite(p.until)||p.until<p.at||p.until-p.at>5||!Array.isArray(p.players)||p.players.length>2||p.players.some(id=>typeof id!=='string')||p.targets?.some(q=>!Number.isFinite(q.x)||!Number.isFinite(q.y)||q.x<0||q.x>60||q.y<0||q.y>30)))bad();}
  for(const a of e.actors||[])for(const key of ['supportPlan','carryPlan'])if(a[key]){const p=a[key];if(!Number.isFinite(p.until)||!p.target||!Number.isFinite(p.target.x)||!Number.isFinite(p.target.y)||p.target.x<0||p.target.x>60||p.target.y<0||p.target.y>30)bad();}
 }

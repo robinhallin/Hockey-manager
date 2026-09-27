@@ -58,6 +58,7 @@ function matchEvidenceReport(){
  const m=state.live;
  const ps=m&&!m.finished?(studioActive()?studioPlayers(0,false):[...currentLinePlayers(),...currentDefensePlayers()]):[];
  const report=matchCoachEvidence(m?.analysis,m?analysisClock():0,[...new Map(ps.map(p=>[String(p.id),p])).values()].map(p=>({id:p.id,name:p.name,energy:matchEnergy(p)})),state.tacticalPlan||{});
+ if(studioActive()&&!m.finished)report.advice=[...matchClipAdvice(studioEngine()).slice(0,1),...report.advice].slice(0,2);
  const situation=m&&!m.finished&&matchCoachSituation(report.clock,{own:m.hv,against:m.opp},{...state.tacticalPlan,tactic:state.tactic});
  if(situation)report.advice=[situation,...report.advice].slice(0,2);
  return report;
@@ -66,7 +67,7 @@ function matchEvidenceBody(){
  const current=matchCoachCurrent();
  if(current)return matchBriefLive()+matchCoachFollowupView(current.row,current.closed,!state.live.finished);
  const report=matchEvidenceReport();
- return `${matchBriefLive()}${matchPictureView()}<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.slice(1).map(a=>`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(a.title)}</summary>${matchCoachAdviceView(a)}</details>`).join('')}<p class="mc-note">${trainingSafe(report.note)}</p>`;
+ return `${matchBriefLive()}${matchPictureView()}${matchClipCurrentFollowup()}<p class="mc-note">${analysisTime(report.start)}–${analysisTime(report.clock)} spelad matchtid · assistentens bedömning</p>${report.advice[0]?matchCoachAdviceView(report.advice[0]):''}${report.advice.slice(1).map(a=>`<details class="mc-other-observations"><summary>Ytterligare observation · ${trainingSafe(a.title)}</summary>${matchCoachAdviceView(a)}</details>`).join('')}<p class="mc-note">${trainingSafe(report.note)}</p>`;
 }
 function matchEvidenceView(){
  if(state.live?.finished){const last=[...tacticalReviewSnapshot()].reverse().find(r=>r.coachDecision);return last?`<section class="mc-evidence"><h3>Ditt senaste matchbeslut</h3>${matchCoachFollowupView(last,true)}</section>`:'';}

@@ -9,7 +9,7 @@ module.exports=async function check3D(page,out){
  assert.deepEqual(await page.evaluate(()=>{const d=Match3D.diagnostics();return {actors:d.actors,error:d.error};}),{actors:await page.evaluate(()=>studioFrame(studioEngine()).actors.length),error:0});
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),before,'3D selection does not change a paused match');
  const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
- assert.equal(rig.model.joints.length,10);assert.ok(rig.graphics.skinVertices>5000);assert.equal(rig.graphics.error,0);
+ assert.equal(rig.model.joints.length,15);assert.ok(rig.graphics.skinVertices>22000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
  require('node:fs').writeFileSync(path.join(out,'3d-rig-result.json'),JSON.stringify(rig,null,2));
  const pixels=await page.evaluate(()=>{
   const canvas=document.getElementById('career-ice-3d');Match3D.draw(canvas,studioFrame(studioEngine()),null,1,{teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D});
@@ -193,11 +193,37 @@ module.exports=async function check3D(page,out){
   }
   pauseMatch();render();return found;
  });
- assert.ok(battle&&['check','pin','poke'].includes(battle.type));assert.ok(battle.actors.some(a=>a.pose===battle.type));
+ assert.ok(battle&&['check','pin','poke'].includes(battle.type));assert.ok(battle.actors.some(a=>a.pose===battle.type||a.contact.kind===battle.type&&['stumbling','balance-recovery'].includes(a.pose)));
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'40-match-3d-contact.png'),fullPage:true});
  require('node:fs').writeFileSync(path.join(out,'3d-contact-result.json'),JSON.stringify(battle,null,2));
+ const balance=await page.evaluate(()=>{
+  startMatch();let found=null;
+  for(let i=0;i<3000&&!state.live.finished;i++){
+   if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
+   const e=studioEngine(),f=e.presentationFrame(),a=f.actors.find(a=>a.balanceState&&e.wall-a.balanceState.at>.08&&Match3D.pose(f,a).unsteady>.12);
+   if(a){const pose=Match3D.pose(f,a);found={actor:a.id,balance:a.balanceState,state:pose.state,unsteady:pose.unsteady};break;}
+  }
+  pauseMatch();render();return found;
+ });
+ assert.ok(balance&&balance.state==='stumbling','actual contact drives a visible balance recovery');
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.screenshot({path:path.join(out,'43-match-3d-balance.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-balance-result.json'),JSON.stringify(balance,null,2));
  await page.getByRole('button',{name:'Visa coachbänken',exact:true}).click();
+ await page.locator('#match-tab-analysis').click();
+ await page.locator('.mc-recorded-clips summary').click();
+ const observationBefore=await page.evaluate(()=>JSON.stringify(state.live));
+ await page.locator('.mc-recorded-clips button').first().click();
+ await page.getByRole('button',{name:'Till observationen',exact:true}).click();
+ await page.waitForFunction(()=>studioReplayState?.clip&&studioReplayState.paused&&Match3D.diagnostics()?.analysisVertices>0);
+ const observation=await page.evaluate(()=>({id:studioReplayState.clip.id,kind:studioReplayState.clip.kind,frames:studioReplayState.frames.length,duration:studioReplayDuration(),stateBytes:JSON.stringify(studioEngine().tacticalClips).length,graphics:Match3D.diagnostics()}));
+ assert.ok(observation.frames<=30&&observation.duration<=5.5);assert.equal(observation.graphics.error,0);
+ assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),observationBefore,'observational replay preserves the entire paused career');
+ await page.screenshot({path:path.join(out,'42-match-3d-coach-clip.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-observation-result.json'),JSON.stringify(observation,null,2));
+ await page.getByRole('button',{name:'Tillbaka till matchen',exact:true}).click();
+ await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.
  await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());

@@ -5,8 +5,8 @@ const ctx=vm.createContext({});for(const f of ['match-player-asset.js','match-pl
 const Model=vm.runInContext('HockeyPlayerModel',ctx),R=vm.runInContext('Match3D',ctx);
 function setup(side=0){const m=new H.Match(rosters,{seed:477,scenario:'attack',duration:70});m.time=m.wall=20;m.stoppage=0;m.owner=side;for(const a of m.actors)if(a.role!=='G'){a.x=30;a.y=3+m.skaters(a.side).indexOf(a)*4;}const a=m.skaters(side)[0],g=m.actors.find(a=>a.role==='G'&&a.side!==side);Object.assign(a,{x:H.progress(side,50),y:15,vx:0,vy:0});Object.assign(g,m.goalieTarget(1-side,a));m.puck={x:a.x,y:a.y};m.carrier=a.id;return {m,a,g};}
 test('bundled glTF has normalized skin weights and animates attached clothing without changing snapshots',()=>{
- const asset=Model.model();assert.equal(asset.joints.length,10);assert.ok(asset.vertices>500);const source=JSON.parse(fs.readFileSync('assets/models/hockey-uniform.gltf','utf8'));assert.equal(JSON.stringify(source),vm.runInContext('JSON.stringify(HockeyPlayerAsset)',ctx));
- for(let i=0;i<asset.vertices;i++){let sum=0;for(let j=0;j<4;j++){sum+=asset.attributes.WEIGHTS_0[i*4+j];assert.ok(asset.attributes.JOINTS_0[i*4+j]<10);}assert.ok(Math.abs(sum-1)<1e-6);}
+ const asset=Model.model();assert.equal(asset.joints.length,15);assert.ok(asset.vertices>500);const source=JSON.parse(fs.readFileSync('assets/models/hockey-uniform.gltf','utf8'));assert.equal(JSON.stringify(source),vm.runInContext('JSON.stringify(HockeyPlayerAsset)',ctx));
+ for(let i=0;i<asset.vertices;i++){let sum=0;for(let j=0;j<4;j++){sum+=asset.attributes.WEIGHTS_0[i*4+j];assert.ok(asset.attributes.JOINTS_0[i*4+j]<15);}assert.ok(Math.abs(sum-1)<1e-6);}
  const m=new H.Match(rosters,{scenario:'rush',duration:15,seed:79});let meshes=0;
  while(!m.finished){m.step();if(m.tick%10)continue;const f=m.presentationFrame(),snapshot=JSON.stringify(f),poses=new Map(f.actors.map(a=>[a.id,R.pose(f,a)])),mesh=Model.mesh(f.actors,poses,R.kits([]));assert.ok(mesh.every(Number.isFinite));assert.ok(mesh.length>10000);for(let i=1;i<mesh.length;i+=11)assert.ok(mesh[i]>-.1&&mesh[i]<2.5);assert.equal(JSON.stringify(f),snapshot);meshes++;}
  assert.ok(meshes>10);

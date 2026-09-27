@@ -139,3 +139,41 @@ backward/glide/brake/crossover motion, pass receipt, release after resolution,
 angular interpolation and release timestamps, save/reload and immutable replay
 recovery. Windows smoke checks the actual shot style and rig, native WebGL
 geometry/caching, and records `37-match-3d-motion.webm` from the real replay.
+
+## Equipped models, balance recovery and observed tactical clips
+
+The production asset now includes skaters and both goalkeeper handednesses with
+15 skin joints. Head, hands, feet and goalie pads follow their joints; names and
+numbers include keepers. Full meshes replace the extra procedural equipment in
+the production draw, while sticks retain their authoritative contact endpoints.
+
+A real check records a bounded balance disturbance derived from closing speed,
+mass, strength, skating, energy and puck protection. It limits acceleration,
+control and immediate decisions, then recovers in simulation wall time. The
+same recorded state controls torso lean, stance and knee flexion; no new random
+roll is used for the recovery. Legacy actors simply have no disturbance.
+
+Attack intentions reread actual lanes and can retain up to six changes of puck
+holder over 14 seconds. Blocked routes can become a point feed, cycle, diagonal
+or give-and-go. The original pass/shot choice still decides the action. PP can
+exchange the weak flank and bumper, or rotate low in the umbrella setup, while
+retaining the net-front screen. BP can press an observed bobble/miss with one
+leader and a second forward closing an outlet, leaving the far side available.
+Personnel/strength changes, turnovers and whistles end inapplicable plans.
+
+Six short observation clips and up to 96 recent factual observations are saved.
+Only two clips per kind/side/strength are retained, so frequent turnovers do not
+immediately erase every other type. Clips use real recorded frames, quantized
+to four decimal places for bounded storage; the simulation keeps full precision.
+They include completed diagonals, possession lost on a pass/battle, missing
+nearby passing support, open slot receptions, PP rotation passes and BP pressure.
+Faceoff wins are not labeled puck losses. Three-on-three overtime is separated.
+
+The coach can link repeated observations to these recordings. Manual tactical
+changes and accepted coach orders retain their clip query and exact simulation
+timestamp, allowing comparable examples before/after within the current match.
+Archived reports cannot accidentally display another match's clips. Playback
+uses each clip's actual timestamps, including events between regular captures.
+It pauses the live game, restores the previous view on exit and reveals the
+annotation only once its recorded moment is reached. Missing/old observations
+produce no invented recording. The existing shot replay remains separate.

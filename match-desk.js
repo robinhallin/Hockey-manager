@@ -1,11 +1,11 @@
 "use strict";
 // Presentation only. Match state, coaching decisions and clocks stay in their adapters.
 function matchDeskTabs(){return state.live?.finished?
- [['feedback','Lagsnack'],['report','Prestation'],['stats','Statistik'],['players','Istid'],['events','Händelser'],['analysis','Avslut']]:
- [['feedback','Matchcoach'],['tactics','Taktik'],['changes','Byten'],['lineup','Kedjor'],['settings','Inställningar'],['stats','Statistik'],['players','Istid'],['events','Händelser'],['analysis','Avslut']];}
+ [['feedback','Lagsnack'],['report','Prestation'],['stats','Statistik'],['players','Istid'],['events','Händelser'],['analysis','Analys']]:
+ [['feedback','Matchcoach'],['tactics','Taktik'],['changes','Byten'],['lineup','Kedjor'],['settings','Inställningar'],['stats','Statistik'],['players','Istid'],['events','Händelser'],['analysis','Analys']];}
 function matchDeskStats(){const s=matchStats();return [[state.live.analysis?.partial?'Registrerade skott på mål':'Skott på mål',s.shots],['Farliga chanser',s.danger],['Puckinnehav',s.possession,'%'],['Vunna tekningar',s.faceoffs],['Powerplay · mål/försök',s.pp],['Räddningar',s.saves]].map(([label,v,suffix])=>matchStatCard(label,matchVenueValues(v),suffix)).join('');}
 function matchDeskEvents(){return `<div class="mc-events">${state.live.events.map(e=>`<p><time>P${e.period||state.live.period} · ${trainingSafe(e.time||'')}</time><span>${matchEventReference(e)}</span></p>`).join('')||'<p>Händelser registreras från nedsläpp.</p>'}</div>`;}
-function matchDeskAnalysis(){return studioActive()?`<section class="mc-shot-analysis"><h3>Senaste avslutet</h3><div class="broadcast-shot">${studioShotView()}</div><h3>Spelarens beslut</h3><div class="broadcast-decision broadcast-shot">${studioDecisionView()}</div><p class="mc-note">Följ varför spelaren valde sitt alternativ. Reprisen öppnas under rinken och pausar matchen.</p></section>`:'<p class="mc-note">Detaljerade spelarbeslut saknas i den här äldre matchen. Skott och händelser finns under Statistik och Händelser.</p>';}
+function matchDeskAnalysis(){return studioActive()?`<section class="mc-shot-analysis"><h3>${studioReplayState?.clip?'Vald matchsekvens':'Senaste avslutet'}</h3><div class="broadcast-shot">${studioShotView()}</div><h3>Spelarens beslut</h3><div class="broadcast-decision broadcast-shot">${studioDecisionView()}</div><p class="mc-note">Följ varför spelaren valde sitt alternativ. Reprisen öppnas under rinken och pausar matchen.</p>${matchClipRecentView()}</section>`:'<p class="mc-note">Detaljerade spelarbeslut saknas i den här äldre matchen. Skott och händelser finns under Statistik och Händelser.</p>';}
 function matchDeskContent(){
  const m=state.live,tab=matchDesk.tab;
  if(tab==='report'&&m.finished){const report=analysisLiveReport();return analysisMatchVerdictView(report)+performanceView(report?.performance||m.performance)+(isPlayoffMatch()?seasonMatchPanel():'');}
