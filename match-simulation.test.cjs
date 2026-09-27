@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
-const {Match,STEP,distance,progress}=require('./match-simulation');
+const {Match,STEP,distance,progress,rinkLimit}=require('./match-simulation');
 const rosters=require('./match-lab-rosters');
 let checks=0;
 function test(name,fn){fn();checks++;console.log('OK '+name);}
@@ -27,10 +27,10 @@ test('A whole period preserves player counts, puck ownership, bounded motion and
         assert.equal(m.skaters(side).length,m.penalty?.side===side?4:5);
         assert.equal(m.actors.filter(a=>a.side===side&&a.role==='G').length,1);
       }
-      if(m.carrier){const carrier=m.actor(m.carrier);assert.ok(carrier,'the puck carrier cannot disappear on a change');assert.equal(carrier.side,m.owner);assert.ok(distance(carrier,m.puck)<(carrier.controlContact?.remaining>0?1.16:.001),'puck stays within the receiving blade reach or on the settled skating anchor');}
+      if(m.carrier){const carrier=m.actor(m.carrier);assert.ok(carrier,'the puck carrier cannot disappear on a change');assert.equal(carrier.side,m.owner);assert.ok(distance(carrier,m.puck)<=1.250001,'a controlled puck must remain inside the physical stick reach');}
       assert.ok(Number.isFinite(m.puck.x)&&Number.isFinite(m.puck.y));
       for(const a of m.actors){
-        assert.ok(Number.isFinite(a.x)&&Number.isFinite(a.y)&&a.x>=1&&a.x<=59&&a.y>=.6&&a.y<=29.4);
+        assert.ok(Number.isFinite(a.x)&&Number.isFinite(a.y)&&!rinkLimit(a,.339).hit,'body stays within the rounded rink');
         const before=previous.find(p=>p.id===a.id);
         if(before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(distance(a,before)<.72,'normal movement cannot teleport: '+a.player.name);
         if(!before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(a.y<1.5,'incoming replacement enters at the actual bench gate');
@@ -61,7 +61,10 @@ test('A committed PP shot uses the release geometry after momentum narrows the i
   m.decide();assert.ok(a.shotPreparation);assert.equal(m.flight,null);
   m.step();m.step();
   assert.equal(m.flight?.kind,'shot');assert.ok(m.flight.shot.context.angle>.6);
-  assert.deepEqual(m.flight.shot.context,m.shotContext(a),'the shot resolves from its actual release location');
+  const origin=m.flight.start,context=m.flight.shot.context;
+  assert.equal(m.flight.shot.x,origin.x);assert.equal(m.flight.shot.y,origin.y);
+  assert.equal(context.d,Math.hypot(56.5-origin.x,15-origin.y));
+  assert.equal(context.angle,Math.atan2(Math.abs(origin.y-15),56.5-origin.x),'shot geometry uses the observed release point');
   assert.equal(m.attackPasses,0);assert.equal(m.setupTime,0);
 });
 
@@ -104,7 +107,7 @@ test('The boxplay team clears a controlled puck and the fifth player returns fro
 
 test('Attributes, passing lanes and PP/PK instructions change hockey decisions and shape',()=>{
   const m=new Match(rosters,{scenario:'pp'}),a=m.skaters(0)[0],b=m.skaters(0)[1];
-  a.x=43;a.y=6;b.x=48;b.y=24;
+  a.x=43;a.y=6;m.carrier=a.id;m.puck={x:a.x,y:a.y};b.x=48;b.y=24;
   for(const d of m.skaters(1)){d.x=55;d.y=15;}
   const open=m.passChance(a,b),marker=m.skaters(1)[0];marker.x=45.5;marker.y=15;
   assert.ok(m.passChance(a,b)<open);
@@ -119,7 +122,7 @@ test('Attributes, passing lanes and PP/PK instructions change hockey decisions a
 
 test('Replay frames are immutable, data snapshots are untouched, and the prototype has no career writes',()=>{
   const original=JSON.stringify(rosters),m=new Match(rosters,{scenario:'pp',duration:120});
-  while(!m.latestReplay)m.step();const replay=m.latestReplay,originalReplay=JSON.stringify(replay);for(let i=0;i<50;i++)m.step();
+  while(!m.latestReplay&&!m.finished)m.step();assert.ok(m.latestReplay,'a completed shot supplies the replay');const replay=m.latestReplay,originalReplay=JSON.stringify(replay);for(let i=0;i<50;i++)m.step();
   assert.equal(JSON.stringify(replay),originalReplay);assert.equal(JSON.stringify(rosters),original);
   for(const file of ['match-simulation.js','match-lab.js'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/localStorage|sessionStorage|indexedDB/);
   for(const [,file] of fs.readFileSync('match-lab.html','utf8').matchAll(/(?:src|href)="([^"?]+)(?:\?[^\"]*)?"/g))assert.ok(fs.existsSync(file),file+' must exist');

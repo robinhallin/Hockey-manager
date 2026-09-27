@@ -260,7 +260,7 @@
     return result;
   };
   proto.shoot=function(a){const result=basePatternShoot.call(this,a);if(result){if(StudioHockey.progress(a.side,a.x)>48&&Math.abs(a.y-15)<5)this.stats[a.side].slotAttempts=(this.stats[a.side].slotAttempts||0)+1;this.teams[a.side].attackPattern=null;}return result;};
-  proto.stop=function(...args){for(const team of this.teams){team.attackPattern=null;team.specialPlay=null;team.markingPlan=null;}return basePatternStop.apply(this,args);};
+  proto.stop=function(...args){for(const team of this.teams){team.attackPattern=null;team.specialPlay=null;team.markingPlan=null;}for(const a of this.actors)delete a.netFront;return basePatternStop.apply(this,args);};
   const baseCoverage=proto.defenseTargets;
   proto.defenseTargets=function(side){
     baseCoverage.call(this,side);const coverage=this.teams[side].coverage,carrier=this.actor(this.carrier);
@@ -321,6 +321,31 @@
     const a=this.actor(this.carrier);
     if(a&&StudioHockey.progress(a.side,a.x)<32&&this.pressureAt(a)>.45&&!this.skaters(a.side).some(b=>b.id!==a.id&&b.status==='playing'&&StudioHockey.distance(a,b)<10&&this.laneRisk(a,b)<.45))this.observeTactic('support',a.side,{players:[a.id]});
     return baseTacticalDecide.call(this);
+  };
+  const baseNetFrontTargets=proto.targets;
+  proto.targets=function(){baseNetFrontTargets.call(this);this.netFrontTargets();};
+  proto.netFrontTargets=function(){
+    for(const a of this.actors)if(a.netFront?.until<=this.time)delete a.netFront;
+    if(this.stoppage||this.battle)return;
+    const carrier=this.actor(this.carrier),shot=this.flight?.kind==='shot',rebound=this.rebound&&this.time-this.rebound.time<2.5;
+    const side=carrier?.side??(shot?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44)return;
+    const goal={x:StudioHockey.progress(side,56.5),y:15},pp=this.hasPowerPlay(side);
+    const rotating=new Set((this.teams[side].specialPlay?.targets||[]).map(a=>a.id));
+    const candidates=this.skaters(side).filter(a=>a.status==='playing'&&a!==carrier&&!a.role.endsWith('D')&&(!pp||a.role==='C')&&!rotating.has(a.id)&&a.id!==this.flight?.to&&StudioHockey.progress(side,a.x)>49&&StudioHockey.distance(a,goal)<7);
+    const screen=candidates.sort((a,b)=>(StudioHockey.distance(a,goal)-(pp&&a.role==='C'?3:0))-(StudioHockey.distance(b,goal)-(pp&&b.role==='C'?3:0)))[0];if(!screen)return;
+    const defenders=this.skaters(1-side).filter(d=>d.status==='playing'&&StudioHockey.distance(d,screen)<3.2&&(!carrier||StudioHockey.distance(d,carrier)>2.7));
+    const guard=defenders.sort((a,b)=>(StudioHockey.distance(a,screen)-(a.markedThreat===screen.id?1:0))-(StudioHockey.distance(b,screen)-(b.markedThreat===screen.id?1:0)))[0];
+    const loose=rebound&&!this.flight&&!carrier;
+    const p=loose?{x:this.puck.x,y:this.puck.y}:{x:StudioHockey.progress(side,54.1),y:15+clamp((this.puck.y-15)*.16,-1.2,1.2)};
+    // Keep a screen on the observed sight line; after a real rebound attack
+    // that puck. The defender must reach the inside position to tie a stick.
+    this.assign(screen,p,loose?'Attackerar den faktiska returen':'Söker skymning och håller klubban spelbar framför mål');
+    const record=(a,kind,opponent)=>{const old=a.netFront;a.netFront={at:old?.kind===kind?old.at:this.wall,until:this.time+.35,kind,opponent:opponent?.id||null};};
+    record(screen,loose?'rebound':'screen',guard);
+    if(guard){
+      const dx=goal.x-screen.x,dy=goal.y-screen.y,n=Math.hypot(dx,dy)||1;
+      this.assign(guard,{x:screen.x+dx/n*.72,y:screen.y+dy/n*.72},'Håller insidan och försöker kontrollera klubban framför mål');record(guard,'boxout',screen);
+    }
   };
   proto.matchEngine4PlayerDecisionsInstalled=true;
 })();

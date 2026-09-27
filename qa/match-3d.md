@@ -217,3 +217,70 @@ budget, and high permits higher pixel density. All players remain present.
 graphics preferences and saved continuation. Windows smoke opens every quality
 through the actual settings control and records a real joined duel (44), all
 three quality settings (45), and goalie body/pose equality alongside match video.
+
+## Physical carrying, routes and continuous presentation
+
+The live foreground loop advances the fixed 100 ms engine steps from the
+animation callback and samples the remaining fraction on every screen frame.
+The timer still advances hidden windows and non-graphical clients. Ordinary
+entry/attack/possession changes preserve interpolation and camera tracking;
+an explicit faceoff epoch, skipped interval or rewind resets them. Automatic
+camera zoom eases inward while retaining immediate room for an outgoing puck.
+Snapshots are cached per engine tick, sampled once, and the skinned vertex
+buffer is reused. Pauses and reduced-motion preferences remain explicit.
+
+The authoritative carried puck moves toward a forehand, backhand or protected
+blade position at a control-dependent rate. Pressure chooses the protected
+side. A player pushed beyond reach releases a moving loose puck, and shots
+start at the same observed puck position. The body no longer shifts behind an
+invented carrier anchor in new recordings. Older frames retain their fallback.
+
+Skaters have speed-dependent turning radius, braking before a reversal and a
+physical heading/backward state. Swept goal-volume constraints and waypoints
+route bodies around either goal. Bodies remain inside the rendered rounded
+boards, and two symmetric contact passes preserve tangential skating motion.
+Loose pucks reflect off the rounded corners with normal/tangential energy loss.
+
+Nearby attackers seek the screen line and then the actual rebound. A defender
+must reach the inside position within stick range to reduce the attacker's
+reception and pickup reach. Active PP rotations retain their assigned players;
+whistles clear the net-front contest. Posture/control/contest state survives
+saved continuation with bounded validation.
+
+An opposing close carrier causes the goalkeeper to lower gradually into a
+partial ready stance before release. The stance uses observed puck distance,
+not a future shot target; moving the threat away lets the goalkeeper recover.
+This covers the actual short reaction window introduced by physical carrying.
+
+`match-physical-flow.test.cjs` covers both rink directions, release identity,
+reach loss, turn/brake behavior, goal routes, corner/body contact, physical
+stick control, phase/reset interpolation, frame-clock progression, buffer reuse
+and exact save continuation. Windows smoke requires motion to advance on over
+80% of the actual live rendered frames, writes moving-frame diagnostics and
+records the unmodified live rink in `46-match-3d-live-flow.webm`. Frame time
+describes that CI machine, rather than promising a universal frame rate.
+
+## Puck boundaries and release geometry
+
+Airborne passes, dumps and clearances now sweep against the rounded rink and
+the goal net's back, sides and sloping roof. The goal mouth remains open.
+Surface contacts reflect the actual incoming velocity with energy loss; the
+remaining time continues as a loose puck rather than finishing an impossible
+flight through the boards. Loose pucks use the same surfaces, including legacy
+rim waypoints. New dumps bounce from the actual wall instead of snapping onto
+a prescribed route outside its corner. The visible net now includes its sides.
+
+Passing speed, passing lanes, shot blocking and goalkeeper alignment use the
+carried puck's actual release position. A windup invalidated behind the goal
+line is cancelled so the carrier can make another decision. No team bonuses,
+attribute changes or relaxed balance thresholds are introduced.
+
+`match-puck-boundaries.test.cjs` reproduces the original net pass and four-corner
+dump failures, preserves the open mouth and air above the net, checks loose
+continuation, energy loss, fixed-step subdivision, serialization and release
+geometry. The existing SHL club matrix remains an unchanged gate. Its failing
+Brynäs/Linköping quality ratio improved from 0.694 to 0.975 in the original
+five-period sample during validation. A separate 20-period paired home/away
+sample gave 0.993, with 11.3 vs 10.35 shots per period. These small samples are
+regression evidence, not a claim of complete league calibration; the existing
+96-period calibration suite remains required as well.

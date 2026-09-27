@@ -28,11 +28,16 @@ test('safe reset behind blue gains value only when it provides an escape from ac
  const unforced=row();carrierPressure=.7;const escape=row();assert.ok(escape.value>unforced.value+.1);assert.match(escape.reason,/ta sig ur pressen/);
  receiverPressure=.8;assert.ok(row().value<escape.value-.1);assert.doesNotMatch(row().reason,/ta sig ur pressen/);
 });
-test('production dump continues around the boards from the chosen corner, including reload',()=>{
+test('production dump bounces from the chosen corner and continues exactly after reload',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
  app.run(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();e.stoppage=0;globalThis.a=e.skaters(0)[0];Object.assign(a,{x:35,y:5});for(const b of e.skaters(0).filter(b=>b!==a))Object.assign(b,{x:38,y:27});for(const d of e.skaters(1))Object.assign(d,{x:54,y:2});e.takePossession(a);e.dump(a);save();`);
  assert.equal(app.run('e.flight.dumpLane'),'high');assert.equal(app.run('e.flight.end.y'),28);
  const saved=boot(app.storage.value);saved.run('globalThis.e=studioEngine();e.resolveFlight(e.flight.duration);');app.run('e.resolveFlight(e.flight.duration);');
- assert.equal(app.run('JSON.stringify(e.rimPath)'),saved.run('JSON.stringify(e.rimPath)'));assert.equal(app.run('e.rimPath[0].y'),24.5);
- assert.equal(app.run('e.rng'),saved.run('e.rng'));
+ const physicalState='JSON.stringify([e.puck,e.puckVelocity,e.rimPath,e.rng])';
+ assert.equal(app.run(physicalState),saved.run(physicalState));
+ assert.ok(app.run('e.effects.some(effect=>effect.kind==="board"&&effect.y>22)'), 'the chosen high corner produces the observed bounce');
+ assert.equal(app.run('StudioHockey.rinkLimit(e.puck,.119).hit'),false);assert.ok(app.run('Math.hypot(e.puckVelocity.x,e.puckVelocity.y)>1'));
+ const before=app.run('JSON.stringify(e.puck)');app.run('e.moveFreePuck(.2)');saved.run('e.moveFreePuck(.2)');
+ assert.notEqual(app.run('JSON.stringify(e.puck)'),before,'the puck keeps moving after contact');
+ assert.equal(app.run(physicalState),saved.run(physicalState));assert.equal(app.run('StudioHockey.rinkLimit(e.puck,.119).hit'),false);
 });

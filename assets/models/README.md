@@ -8,7 +8,7 @@ to reproduce the glTF and its bundled offline copy, `match-player-asset.js`.
 There are three selectable glTF scenes: a skater, a left-catching goalkeeper
 and a right-catching goalkeeper. All use the same 15-joint skeleton: pelvis,
 chest, upper/lower arms and legs, head, hands and feet. Model vertex counts are
-1,890 / 2,104 / 2,104, with 2,516 / 2,820 / 2,820 triangles respectively.
+1,960 / 2,174 / 2,174, with 2,610 / 2,914 / 2,914 triangles respectively.
 
 The torso, sleeves and legs have blended skin weights. Helmets, visors/masks,
 segmented gloves, skate boots/laces/runners and goalkeeper pads are attached to
@@ -16,6 +16,12 @@ their corresponding joints. The goalie jersey and sleeves deform with the
 actual pose. Sticks remain procedural to meet the authoritative puck and keep
 the two-hand grip. The old procedural figures remain available to isolated
 renderer tests without the bundled asset; production renders the complete skin.
+
+The jersey tapers at the waist and has a separate collar. The narrower helmet
+and shorter visor expose the original facial geometry. Head yaw follows the
+observed play within neck limits; both skater gloves follow the actual shaft.
+Skinning writes into a reusable typed buffer, retaining joint weights and the
+same indexed surface layout without allocating a new actor mesh every frame.
 
 `match-player-model.js` reads this bundled subset: one embedded buffer,
 three indexed triangle meshes, float/unsigned-short accessors, vertex colors,

@@ -24,25 +24,25 @@ const HockeyPlayerModel=(()=>{
   const base=p(0,.84-m.lower,0),pelvis=matrix(base,[Math.cos(m.angle),0,Math.sin(m.angle)],[0,1,0],[-Math.sin(m.angle),0,Math.cos(m.angle)]);
   const chest=matrix(m.torso,sub(u(1,0,0),m.torso),sub(u(0,1,0),m.torso),sub(u(0,0,1),m.torso));
   const yaw=(p,angle)=>matrix(p,[Math.cos(angle),0,Math.sin(angle)],[0,1,0],[-Math.sin(angle),0,Math.cos(angle)]);
-  const head=matrix(u(.02,.47+(m.headRise||0),0),sub(u(1,0,0),m.torso),sub(u(0,1,0),m.torso),sub(u(0,0,1),m.torso));
-  return [pelvis,chest,...m.arms.flatMap(a=>[frame(a.shoulder,a.elbow,forward),frame(a.elbow,a.hand,forward)]),...m.legs.flatMap(l=>[frame(l.hip,l.knee,forward),frame(l.knee,l.ankle,forward)]),head,...m.arms.map(a=>yaw(a.hand,m.torsoAngle)),...m.legs.map((l,i)=>yaw(l.ankle,m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1))].map((p,i)=>multiply(p,model().bind.subarray(i*16,i*16+16)));
+  const head=yaw(u(.02,.47+(m.headRise||0),0),m.headAngle??m.torsoAngle),shaft=unit(sub(m.shaftTop,m.heel||m.blade));
+  const hands=m.arms.map(a=>a.catching?yaw(a.hand,m.torsoAngle):frame(a.hand,a.hand.map((v,i)=>v+shaft[i]),forward));
+  return [pelvis,chest,...m.arms.flatMap(a=>[frame(a.shoulder,a.elbow,forward),frame(a.elbow,a.hand,forward)]),...m.legs.flatMap(l=>[frame(l.hip,l.knee,forward),frame(l.knee,l.ankle,forward)]),head,...hands,...m.legs.map((l,i)=>yaw(l.ankle,m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1))].map((p,i)=>multiply(p,model().bind.subarray(i*16,i*16+16)));
  }
- function mesh(actors,poses,kits){
-  const out=new Float32Array(actors.reduce((sum,a)=>sum+model(kind(a)).vertices,0)*11),height=atlasRows(actors);let n=0;
+ function mesh(actors,poses,kits,reuse){
+  const size=actors.reduce((sum,a)=>sum+model(kind(a)).vertices,0)*11,out=reuse?.length===size?reuse:new Float32Array(size),height=atlasRows(actors);let n=0;
   actors.forEach((actor,row)=>{
    const asset=model(kind(actor)),a=asset.attributes;
-   const matrices=palette(poses.get(actor.id)),kit=kits[actor.side],positions=new Float32Array(asset.vertices*6);
-   for(let i=0;i<asset.vertices;i++)for(let joint=0;joint<4;joint++){
-    const weight=a.WEIGHTS_0[i*4+joint];if(!weight)continue;const m=matrices[a.JOINTS_0[i*4+joint]],p=i*3;
-    for(let axis=0;axis<3;axis++){
-     positions[i*6+axis]+=weight*(m[axis]*a.POSITION[p]+m[4+axis]*a.POSITION[p+1]+m[8+axis]*a.POSITION[p+2]+m[12+axis]);
-     positions[i*6+3+axis]+=weight*(m[axis]*a.NORMAL[p]+m[4+axis]*a.NORMAL[p+1]+m[8+axis]*a.NORMAL[p+2]);
-    }
-   }
+   const matrices=palette(poses.get(actor.id)),kit=kits[actor.side];
    for(let i=0;i<asset.vertices;i++){
-    for(let k=0;k<6;k++)out[n++]=positions[i*6+k];
-    const c=a.COLOR_0.subarray(i*3,i*3+3),fabric=Math.abs(c[0]-c[1])<1e-5&&Math.abs(c[1]-c[2])<1e-5,source=fabric&&c[0]>.99?kit.jersey:fabric&&Math.abs(c[0]-.65)<1e-5?kit.trim:c;
-    for(let k=0;k<3;k++)out[n++]=source[k];
+    const p=i*3,px=a.POSITION[p],py=a.POSITION[p+1],pz=a.POSITION[p+2],nx=a.NORMAL[p],ny=a.NORMAL[p+1],nz=a.NORMAL[p+2];
+    let x=0,y=0,z=0,rx=0,ry=0,rz=0;
+    for(let j=0;j<4;j++){const weight=a.WEIGHTS_0[i*4+j];if(!weight)continue;const m=matrices[a.JOINTS_0[i*4+j]];
+     x+=weight*(m[0]*px+m[4]*py+m[8]*pz+m[12]);y+=weight*(m[1]*px+m[5]*py+m[9]*pz+m[13]);z+=weight*(m[2]*px+m[6]*py+m[10]*pz+m[14]);
+     rx+=weight*(m[0]*nx+m[4]*ny+m[8]*nz);ry+=weight*(m[1]*nx+m[5]*ny+m[9]*nz);rz+=weight*(m[2]*nx+m[6]*ny+m[10]*nz);
+    }
+    out[n++]=x;out[n++]=y;out[n++]=z;out[n++]=rx;out[n++]=ry;out[n++]=rz;
+    const r=a.COLOR_0[p],g=a.COLOR_0[p+1],b=a.COLOR_0[p+2],fabric=Math.abs(r-g)<1e-5&&Math.abs(g-b)<1e-5,source=fabric&&r>.99?kit.jersey:fabric&&Math.abs(r-.65)<1e-5?kit.trim:null;
+    out[n++]=source?source[0]:r;out[n++]=source?source[1]:g;out[n++]=source?source[2]:b;
     const u=a.TEXCOORD_0[i*2],v=a.TEXCOORD_0[i*2+1];out[n++]=u;out[n++]=u<0?-1:(row+1-v)/height;
    }
   });return out;
