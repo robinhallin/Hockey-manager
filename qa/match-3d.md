@@ -259,3 +259,28 @@ and exact save continuation. Windows smoke requires motion to advance on over
 80% of the actual live rendered frames, writes moving-frame diagnostics and
 records the unmodified live rink in `46-match-3d-live-flow.webm`. Frame time
 describes that CI machine, rather than promising a universal frame rate.
+
+## Puck boundaries and release geometry
+
+Airborne passes, dumps and clearances now sweep against the rounded rink and
+the goal net's back, sides and sloping roof. The goal mouth remains open.
+Surface contacts reflect the actual incoming velocity with energy loss; the
+remaining time continues as a loose puck rather than finishing an impossible
+flight through the boards. Loose pucks use the same surfaces, including legacy
+rim waypoints. New dumps bounce from the actual wall instead of snapping onto
+a prescribed route outside its corner. The visible net now includes its sides.
+
+Passing speed, passing lanes, shot blocking and goalkeeper alignment use the
+carried puck's actual release position. A windup invalidated behind the goal
+line is cancelled so the carrier can make another decision. No team bonuses,
+attribute changes or relaxed balance thresholds are introduced.
+
+`match-puck-boundaries.test.cjs` reproduces the original net pass and four-corner
+dump failures, preserves the open mouth and air above the net, checks loose
+continuation, energy loss, fixed-step subdivision, serialization and release
+geometry. The existing SHL club matrix remains an unchanged gate. Its failing
+Brynäs/Linköping quality ratio improved from 0.694 to 0.975 in the original
+five-period sample during validation. A separate 20-period paired home/away
+sample gave 0.993, with 11.3 vs 10.35 shots per period. These small samples are
+regression evidence, not a claim of complete league calibration; the existing
+96-period calibration suite remains required as well.

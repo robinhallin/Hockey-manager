@@ -323,6 +323,11 @@ const Match3D = (() => {
    g.rod([x,1.22,14.08],[x,1.22,15.92],.05,red);
    for(let i=0;i<=10;i++){const z=14.08+i*1.84/10;g.rod([back,0,z],[back,.9,z],.012,white);g.rod([back,.9,z],[x,1.22,z],.012,white);}
    for(let i=0;i<=6;i++){const h=i*.15;g.rod([back,h,14.08],[back,h,15.92],.012,white);}
+   // Match the two physical side panels, leaving the goal mouth open.
+   for(const z of [14.08,15.92]){
+    for(let i=0;i<=8;i++){const t=i/8,at=x+(back-x)*t;g.rod([at,0,z],[at,1.22-.32*t,z],.012,white);}
+    for(let i=0;i<=6;i++){const h=i*.15;g.rod([x,h,z],[back,h,z],.012,white);}
+   }
   }
   for(let i=0;i<5;i++){
    const height=.5+i*.85,z=-3-i*1.7;g.box(30,height,z,65,.65,1.5,color('#182b3d'));

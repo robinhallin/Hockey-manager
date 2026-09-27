@@ -1,20 +1,20 @@
 'use strict';
 const assert=require('node:assert/strict');
-const {Match}=require('./scripts/current-match-engine.cjs');
+const {Match,rinkLimit}=require('./scripts/current-match-engine.cjs');
 const rosters=require('./match-lab-rosters');
 const speed=m=>m.puckVelocity?Math.hypot(m.puckVelocity.x,m.puckVelocity.y):0;
 function loose(puck,velocity,rimPath=null){const m=new Match(rosters,{seed:17});Object.assign(m,{stoppage:0,carrier:null,flight:null,battle:null,puck:{...puck},puckVelocity:{...velocity},rimPath:rimPath?.map(p=>({...p})),icingCandidate:null});return m;}
 const scenarios=[['ice',{x:30,y:15},{x:14,y:0},null],['boards',{x:58,y:15},{x:25,y:9},null],['rim',{x:57,y:2},{x:14,y:5},[{x:59,y:5.5},{x:58.7,y:24.5},{x:54,y:29},{x:47,y:28.7}]]];
 for(const [label,puck,velocity,path] of scenarios){
  const m=loose(puck,velocity,path),rng=m.rng;let previous=speed(m),steps=0,travel=0;
- while(m.puckVelocity&&steps++<100){const before={...m.puck};m.moveFreePuck(.1);const next=speed(m);assert.ok(next<=previous+1e-8,label+' must never gain energy');previous=next;travel+=Math.hypot(m.puck.x-before.x,m.puck.y-before.y);assert.ok(m.puck.x>=.35&&m.puck.x<=59.65&&m.puck.y>=.35&&m.puck.y<=29.65);}
+ while(m.puckVelocity&&steps++<100){const before={...m.puck};m.moveFreePuck(.1);const next=speed(m);assert.ok(next<=previous+1e-8,label+' must never gain energy');previous=next;travel+=Math.hypot(m.puck.x-before.x,m.puck.y-before.y);assert.equal(rinkLimit(m.puck,.119).hit,false,label+' stays inside the physical rounded boards');}
  assert.ok(steps<100,label+' stops unaided before ten seconds');assert.ok(travel<75,label+' must not circle the rink repeatedly');assert.equal(m.rimPath,null);assert.equal(m.carrier,null,'no player took possession');assert.equal(m.stoppage,0,'no artificial whistle stopped the puck');assert.equal(m.rng,rng,'physics is deterministic');
  const stopped={...m.puck};for(let i=0;i<50;i++)m.moveFreePuck(.1);assert.deepEqual(m.puck,stopped,'stationary puck does not drift or restart');
  console.log(JSON.stringify({label,stopSeconds:steps/10,travel:+travel.toFixed(1)}));
 }
 // A sharp impact loses normal speed; grazing contact retains forward movement.
 const straight=loose({x:59.5,y:15},{x:10,y:0});straight.moveFreePuck(.1);assert.ok(straight.puckVelocity.x<0&&Math.abs(straight.puckVelocity.x)<5);
-const grazing=loose({x:30,y:.4},{x:12,y:-2});grazing.moveFreePuck(.1);assert.ok(grazing.puckVelocity.y>0&&grazing.puckVelocity.x>9);
+const grazing=loose({x:30,y:.17},{x:12,y:-2});grazing.moveFreePuck(.1);assert.ok(grazing.puckVelocity.y>0&&grazing.puckVelocity.x>9);
 // Waypoints consume remaining travel instead of overshooting and turning back.
 const corner=loose({x:58.9,y:5},{x:10,y:0},[{x:59,y:5},{x:59,y:20}]);corner.moveFreePuck(.1);assert.ok(Math.abs(corner.puck.x-59)<1e-8);assert.ok(corner.puck.y>5);assert.ok(Math.abs(corner.puckVelocity.x)<1e-8&&corner.puckVelocity.y>0);
 // Splitting the engine timestep and resuming serialized physics retain the path.
