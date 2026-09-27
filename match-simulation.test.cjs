@@ -107,7 +107,7 @@ test('The boxplay team clears a controlled puck and the fifth player returns fro
 
 test('Attributes, passing lanes and PP/PK instructions change hockey decisions and shape',()=>{
   const m=new Match(rosters,{scenario:'pp'}),a=m.skaters(0)[0],b=m.skaters(0)[1];
-  a.x=43;a.y=6;b.x=48;b.y=24;
+  a.x=43;a.y=6;m.carrier=a.id;m.puck={x:a.x,y:a.y};b.x=48;b.y=24;
   for(const d of m.skaters(1)){d.x=55;d.y=15;}
   const open=m.passChance(a,b),marker=m.skaters(1)[0];marker.x=45.5;marker.y=15;
   assert.ok(m.passChance(a,b)<open);
@@ -122,7 +122,7 @@ test('Attributes, passing lanes and PP/PK instructions change hockey decisions a
 
 test('Replay frames are immutable, data snapshots are untouched, and the prototype has no career writes',()=>{
   const original=JSON.stringify(rosters),m=new Match(rosters,{scenario:'pp',duration:120});
-  while(!m.latestReplay)m.step();const replay=m.latestReplay,originalReplay=JSON.stringify(replay);for(let i=0;i<50;i++)m.step();
+  while(!m.latestReplay&&!m.finished)m.step();assert.ok(m.latestReplay,'a completed shot supplies the replay');const replay=m.latestReplay,originalReplay=JSON.stringify(replay);for(let i=0;i<50;i++)m.step();
   assert.equal(JSON.stringify(replay),originalReplay);assert.equal(JSON.stringify(rosters),original);
   for(const file of ['match-simulation.js','match-lab.js'])assert.doesNotMatch(fs.readFileSync(file,'utf8'),/localStorage|sessionStorage|indexedDB/);
   for(const [,file] of fs.readFileSync('match-lab.html','utf8').matchAll(/(?:src|href)="([^"?]+)(?:\?[^\"]*)?"/g))assert.ok(fs.existsSync(file),file+' must exist');

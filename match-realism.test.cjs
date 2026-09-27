@@ -124,7 +124,7 @@ test('Skating, acceleration, work rate and stamina act on movement and energy',(
 });
 
 test('Positioning and work rate block shots on the actual lane, including close pressure',()=>{
- const {m,a}=setup(),d=m.skaters(1)[0];a.x=43;a.y=15;d.x=44;d.y=15;
+ const {m,a}=setup(),d=m.skaters(1)[0];a.x=43;a.y=15;m.puck={x:a.x,y:a.y};d.x=44;d.y=15;
  const open=m.shotModel(a).block;d.y=23;assert.ok(m.shotModel(a).block<open);d.y=15;
  for(const key of ['positioning','workRate']){d.player.attributes[key]=3;const low=m.shotModel(a).block;d.player.attributes[key]=19;assert.ok(m.shotModel(a).block>low);}
  m.random=()=>0;m.puck={x:a.x,y:a.y};m.shoot(a);assert.equal(m.flight.shot.outcome,null);assert.equal(m.flight.shot.blockerId,null);
