@@ -160,7 +160,8 @@ test('retreating defenders face the play; acceleration, glide and stops use dist
  for(let i=0;i<20;i++)m.recordMotion(a,3,0,.1);
  const f=m.presentationFrame(),actor=f.actors.find(x=>x.id===a.id),back=renderer.pose(f,actor);
  assert.equal(back.state,'backward');assert.ok(Math.cos(back.angle)*a.vx<0,'chest faces against retreat velocity');
- const base={...actor,motion:{...actor.motion,heading:0,backward:0,turn:0}};
+ // Legacy recordings have acceleration but no recorded transition weights.
+ const base={...actor,motion:{...actor.motion,heading:0,backward:0,turn:0,drive:undefined,brake:undefined,curve:undefined}};
  const drive=renderer.pose(f,{...base,motion:{...base.motion,acceleration:2.5}}),glide=renderer.pose(f,{...base,motion:{...base.motion,acceleration:0}}),stop=renderer.pose(f,{...base,motion:{...base.motion,acceleration:-3}});
  assert.equal(drive.state,'skating');assert.equal(glide.state,'gliding');assert.equal(stop.state,'braking');
  assert.ok(drive.drive>glide.drive*2);assert.ok(stop.footAngles.every(angle=>Math.abs(angle)>1),'both blades turn across movement to brake');

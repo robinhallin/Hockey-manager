@@ -24,6 +24,13 @@ names and numbers are generated offline at runtime in a cached texture atlas.
 Each actor's model and handedness determine the index offsets; all actors,
 including goalkeepers, are skinned in the normal draw path.
 
+The renderer uploads a separate, cached surface buffer per model layout.
+Original bind-mesh colors and joint attachment identify cloth, skin, helmet
+shells, gloves/pads, skate boots and steel. Their roughness/metal response is
+independent of the club kit color and uses the existing original asset. This
+keeps material properties attached to the equipment as it moves without
+duplicating vertex geometry or adding downloaded textures.
+
 Poses come from recorded match facts. Contact imbalance affects the engine's
 acceleration, control and decision readiness, and the displayed body follows
 that state. Replays never reroll a contact or fabricate a later outcome.

@@ -57,5 +57,25 @@ const HockeyPlayerModel=(()=>{
   });return canvas;
  }
  function indices(actors){const assets=actors.map(a=>model(kind(a))),out=new Uint16Array(assets.reduce((sum,a)=>sum+a.indices.length,0));let vertex=0,index=0;for(const a of assets){for(const i of a.indices)out[index++]=vertex+i;vertex+=a.vertices;}return out;}
- return {decode,model,kind,palette,mesh,atlas,indices};
+ // Equipment identity is derived once from the original bind mesh, never
+ // from club colors or the posed world height. Preserve the compact asset.
+ function surfaces(actors){
+  const out=new Float32Array(actors.reduce((sum,a)=>sum+model(kind(a)).vertices,0)*2);let n=0;
+  for(const actor of actors){const a=model(kind(actor)).attributes;
+   for(let i=0;i<a.POSITION.length/3;i++){
+    const c=Array.from(a.COLOR_0.subarray(i*3,i*3+3)),joint=a.JOINTS_0[i*4];
+    const is=color=>c.every((v,k)=>Math.abs(v-color[k])<.001);
+    let rough=.9,metal=0;
+    if(is([.56,.65,.71])){rough=.24;metal=.82;}
+    else if(is([.66,.78,.83]))rough=.13;
+    else if(is([.79,.66,.53]))rough=.68;
+    else if(joint===10)rough=.25;
+    else if(joint===11||joint===12)rough=actor.role==='G'?.52:.65;
+    else if(joint>=13)rough=.72;
+    else if(actor.role==='G'&&(joint===7||joint===9))rough=.5;
+    out[n++]=rough;out[n++]=metal;
+   }
+  }return out;
+ }
+ return {decode,model,kind,palette,mesh,atlas,indices,surfaces};
 })();

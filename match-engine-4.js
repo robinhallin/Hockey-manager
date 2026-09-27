@@ -260,7 +260,7 @@
     return result;
   };
   proto.shoot=function(a){const result=basePatternShoot.call(this,a);if(result){if(StudioHockey.progress(a.side,a.x)>48&&Math.abs(a.y-15)<5)this.stats[a.side].slotAttempts=(this.stats[a.side].slotAttempts||0)+1;this.teams[a.side].attackPattern=null;}return result;};
-  proto.stop=function(...args){for(const team of this.teams){team.attackPattern=null;team.specialPlay=null;}return basePatternStop.apply(this,args);};
+  proto.stop=function(...args){for(const team of this.teams){team.attackPattern=null;team.specialPlay=null;team.markingPlan=null;}return basePatternStop.apply(this,args);};
   const baseCoverage=proto.defenseTargets;
   proto.defenseTargets=function(side){
     baseCoverage.call(this,side);const coverage=this.teams[side].coverage,carrier=this.actor(this.carrier);
