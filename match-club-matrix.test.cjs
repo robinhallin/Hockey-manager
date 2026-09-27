@@ -1,13 +1,7 @@
 const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const vm=require('node:vm');
 const {boot}=require('./scripts/career-test-fixture.cjs');
-global.StudioHockey=require('./match-simulation');
-vm.runInThisContext(fs.readFileSync('match-rules-3.js','utf8'),{filename:'match-rules-3.js'});
-vm.runInThisContext(fs.readFileSync('match-engine-3.js','utf8'),{filename:'match-engine-3.js'});
-vm.runInThisContext(fs.readFileSync('match-control-integration.js','utf8'),{filename:'match-control-integration.js'});
-const {Match}=StudioHockey;
-assert.equal(Match.prototype.matchEngine31Installed,true,'club matrix must exercise Match Engine 3.1');
+const {Match}=require('./scripts/current-match-engine.cjs');
+assert.equal(Match.prototype.matchEngine4PlayerDecisionsInstalled,true,'club matrix must exercise the production Match Engine 4');
 assert.equal(Match.prototype.managerControlsInstalled,true,'club matrix must exercise manager control integration');
 const app=boot(),r=app.run;
 r("startCareerWithClub('HV71')");

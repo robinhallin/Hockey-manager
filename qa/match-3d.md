@@ -177,3 +177,43 @@ uses each clip's actual timestamps, including events between regular captures.
 It pauses the live game, restores the previous view on exit and reveals the
 annotation only once its recorded moment is reached. Missing/old observations
 produce no invented recording. The existing shot replay remains separate.
+
+## Connected motion, supported battles and graphics quality
+
+Recorded drive/brake/turn weights ease between skating states. A contacting
+blade slides along its recorded edge while resisting lateral drift; contact
+weight blends out before the recovery stride. Windup returns to the actual
+puck at release and remains available when replay interpolation crosses that
+timestamp. These animation fields do not influence simulation decisions.
+
+One nearby helper per side can join a duel by physically reaching stick range.
+A board contest with support can release a moving loose puck. The two engaged
+players have a short pickup delay; the ordinary loose-puck race decides who
+collects it. Bench-bound players and distant helpers do not contribute.
+
+Goalkeepers carry butterfly depth, facing and lateral load between shots.
+Turning and recovery take time; low posture limits lateral skating speed.
+Lateral load reduces the remaining pad spread in both contact geometry and
+the visible stance, so a sliding keeper cannot retain full leg extension.
+Sharp-angle play adds a post stance. New shots reuse the actual posture and
+equipment positions, and 3D uses the same recorded body state. Old recordings
+without this state retain the earlier compatible presentation.
+
+Five-on-five marking changes are adopted as a complete assignment after a
+skill-dependent read interval, keeping one defender per threat. A forward can
+cover inside a back pressing at the boards, at the cost of leaving a higher
+opponent more room. Plans expire or reset after personnel/strength changes,
+possession and whistles.
+
+Original bind-mesh equipment determines roughness and metal response, independent
+of club colors. Cloth, helmet shells, gloves/pads and steel use different
+surfaces. Normal/high add fill-light highlights; high adds restrained ceiling
+light reflections in the ice. This is local shading, not scene ray tracing.
+The graphics setting persists with the career and applies to live/replay:
+low uses fewer spectators and reduced resolution, normal retains the standard
+budget, and high permits higher pixel density. All players remain present.
+
+`match-flow-materials.test.cjs` covers these mechanics, immutable recordings,
+graphics preferences and saved continuation. Windows smoke opens every quality
+through the actual settings control and records a real joined duel (44), all
+three quality settings (45), and goalie body/pose equality alongside match video.

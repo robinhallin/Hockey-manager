@@ -177,9 +177,9 @@ module.exports=async function check3D(page,out){
   const id=keeper.id;for(let i=0;i<3;i++){if(!state.live.running)startMatch();studioStep();}
   pauseMatch();studioExpanded3D=true;studioCamera3D='follow';render();
   const f=studioFrame(studioEngine()),a=f.actors.find(a=>a.id===id),p=Match3D.pose(f,a);
-  return {number:a.number,action:a.keeperAction,pose:{style:p.style,state:p.state,drop:p.drop,recovery:p.recovery},height:f.puck.z||0,crowd:Match3D.crowdReaction(f,a.side)};
+  return {number:a.number,action:a.keeperAction,body:a.keeperBody,pose:{style:p.style,state:p.state,drop:p.drop,recovery:p.recovery},height:f.puck.z||0,crowd:Match3D.crowdReaction(f,a.side)};
  });
- assert.ok(save?.action?.kind==='save');assert.equal(save.pose.state,'recovering');assert.ok(save.crowd>0&&save.number>0);
+ assert.ok(save?.action?.kind==='save');assert.equal(save.pose.state,save.body.mode);assert.equal(save.pose.drop,save.body.drop);assert.ok(save.crowd>0&&save.number>0);
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'38-match-3d-goalie-save.png'),fullPage:true});
  require('node:fs').writeFileSync(path.join(out,'3d-arena-result.json'),JSON.stringify({audible,paused:await page.evaluate(()=>MatchAudio.diagnostics()),save},null,2));
@@ -210,7 +210,31 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'43-match-3d-balance.png'),fullPage:true});
  require('node:fs').writeFileSync(path.join(out,'3d-balance-result.json'),JSON.stringify(balance,null,2));
+ const support=await page.evaluate(()=>{
+  startMatch();let found=null;
+  for(let i=0;i<3000&&!state.live.finished;i++){
+   if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
+   const e=studioEngine();if(e.battle?.support?.length){const f=e.presentationFrame();found={type:e.battle.type,participants:[e.battle.a,e.battle.b],support:e.battle.support,poses:e.battle.support.map(r=>({id:r.id,state:Match3D.pose(f,f.actors.find(a=>a.id===r.id)).state}))};break;}
+  }
+  pauseMatch();render();return found;
+ });
+ assert.ok(support?.support.length>0&&support.support.length<=2);assert.ok(support.poses.every(p=>['support','stumbling','balance-recovery'].includes(p.state)));
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.screenshot({path:path.join(out,'44-match-3d-support.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-support-result.json'),JSON.stringify(support,null,2));
  await page.getByRole('button',{name:'Visa coachbänken',exact:true}).click();
+ await page.locator('#match-tab-settings').click();
+ const qualityBefore=await page.evaluate(()=>JSON.stringify(state.live)),qualities={};
+ for(const quality of ['low','normal','high']){
+  await page.getByLabel('3D-grafik',{exact:true}).selectOption(quality);
+  await page.waitForFunction(q=>Match3D.diagnostics()?.quality===q&&document.getElementById('career-ice-3d')?.dataset.ready==='true',quality);
+  qualities[quality]=await page.evaluate(()=>Match3D.diagnostics());assert.equal(qualities[quality].error,0);assert.equal(qualities[quality].modelActors,qualities[quality].actors);
+  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),qualityBefore,'graphics quality cannot change the live simulation');
+  await page.screenshot({path:path.join(out,'45-match-3d-quality-'+quality+'.png'),fullPage:true});
+ }
+ assert.ok(qualities.low.width<qualities.normal.width);assert.ok(qualities.low.crowdVertices<qualities.normal.crowdVertices);assert.equal(qualities.high.actors,qualities.low.actors);
+ require('node:fs').writeFileSync(path.join(out,'3d-quality-result.json'),JSON.stringify(qualities,null,2));
+ await page.getByLabel('3D-grafik',{exact:true}).selectOption('normal');
  await page.locator('#match-tab-analysis').click();
  await page.locator('.mc-recorded-clips summary').click();
  const observationBefore=await page.evaluate(()=>JSON.stringify(state.live));
