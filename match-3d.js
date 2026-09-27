@@ -20,7 +20,7 @@ const Match3D = (() => {
   const z=unit(sub(eye,target)),x=unit(cross([0,1,0],z)),y=cross(z,x);
   const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   // Fit the whole rink even when the coach panels reduce the viewport width.
-  const fov=2*Math.atan(Math.max(Math.tan(.61/2),(mode==='rinkside'?8:['follow','auto'].includes(mode)?21:40.5)/(Math.hypot(...sub(eye,target))*aspect))/zoom),f=1/Math.tan(fov/2),near=.1,far=180;
+  const fov=2*Math.atan(Math.max(Math.tan((mode==='tv'?.70:.61)/2),(mode==='rinkside'?8:['follow','auto'].includes(mode)?21:40.5)/(Math.hypot(...sub(eye,target))*aspect))/zoom),f=1/Math.tan(fov/2),near=.1,far=180;
   return {matrix:multiply([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0],view),eye,target,fov,near,far};
  }
  function camera(aspect,mode,puck,zoom){return cameraView(aspect,mode,puck,zoom).matrix;}

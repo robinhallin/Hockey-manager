@@ -125,7 +125,8 @@ bakåtåkning, översteg, passning och de olika skotten. Fotfäste, klubba,
 puckkontakt, målvaktsrörelser och kroppskontakter följer matchens inspelade data.
 
 Arenan har fler läktarrader, ljusriggar, tunnlar, resultattavla, spelarbänkar
-och tränarstaber. Isen visar spelarnas speglingar och korta issprut vid
+och tränarstaber. Avlägsna spelare och publik använder enklare detaljnivåer;
+närbilder och hög kvalitet visar de detaljerade modellerna. Isen visar spelarnas speglingar och korta issprut vid
 inbromsning. Matchkameran följer spelet och går närmare efter observerade
 avblåsningar; repriser får en egen kameravinkel. **Kamera → Isnivå** ger en
 närmare vy av spelet och **Stor rink** ger mer bildyta.

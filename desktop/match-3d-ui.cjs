@@ -9,7 +9,7 @@ module.exports=async function check3D(page,out){
  assert.deepEqual(await page.evaluate(()=>{const d=Match3D.diagnostics();return {actors:d.actors,error:d.error};}),{actors:await page.evaluate(()=>studioFrame(studioEngine()).actors.length),error:0});
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),before,'3D selection does not change a paused match');
  const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
- assert.equal(rig.model.joints.length,15);assert.equal(rig.graphics.renderer,'three');assert.equal(rig.graphics.gpuSkinning,true);assert.ok(rig.graphics.skinVertices>55000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
+ assert.equal(rig.model.joints.length,15);assert.equal(rig.graphics.renderer,'three');assert.equal(rig.graphics.gpuSkinning,true);assert.ok(rig.graphics.skinVertices>25000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
  assert.ok(rig.graphics.textureBuilds>0&&rig.graphics.glassVertices>0,'the arena loads its ice/club textures and glass');
  assert.ok(rig.graphics.shadowCasterVertices>0&&rig.graphics.shadowCasterVertices<rig.graphics.arenaVertices*.35,'seating and ice stay out of the moving shadow pass');
  if(rig.graphics.shadowSupported){assert.equal(rig.graphics.shadowMode,'projected');assert.ok(rig.graphics.shadowSize>=512&&rig.graphics.shadowBuilds>0,'supported GPUs render actual player shadows');}
@@ -78,6 +78,11 @@ module.exports=async function check3D(page,out){
  await page.getByLabel('3D-kamera').selectOption('auto');
  await page.waitForFunction(()=>studioCamera3D==='auto');
  await page.screenshot({path:path.join(out,'41-match-3d-automatic.png'),fullPage:true});
+ const cameraBefore=await page.evaluate(()=>JSON.stringify(state.live));
+ await page.getByLabel('3D-kamera').selectOption('rinkside');
+ await page.waitForFunction(()=>studioCamera3D==='rinkside'&&Match3D.diagnostics().reflectionBuilds>0);
+ await page.screenshot({path:path.join(out,'47-match-3d-rinkside.png'),fullPage:true});
+ assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),cameraBefore,'rinkside camera preserves the paused match');
  await page.getByLabel('3D-kamera').selectOption('follow');
 
  // Expand the rink through the ordinary control; preserve the exact paused game.

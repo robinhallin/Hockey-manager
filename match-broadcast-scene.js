@@ -8,11 +8,12 @@ const HockeyBroadcast3D=(()=>{
   const model=kind=>{if(!assets.has(kind))assets.set(kind,HockeyPlayerModel.decode(HockeyBroadcastAsset,kind));return assets.get(kind);};
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function color(T,r,g,b){return new T.Color().setRGB(r,g,b,T.SRGBColorSpace);}
-  function geometry(T,data,{art=false,alpha=false}={},reuse){
+  function geometry(T,data,{art=false,alpha=false,bake=false}={},reuse){
    const n=data.length/9,p=new Float32Array(n*3),normal=new Float32Array(n*3),col=new Float32Array(n*(alpha?4:3)),uv=new Float32Array(n*2),tint=new T.Color();
    for(let i=0;i<n;i++){
     const at=i*9,x=data[at],y=data[at+1],z=data[at+2];p.set(data.subarray(at,at+3),i*3);normal.set(data.subarray(at+3,at+6),i*3);
     const c=alpha?tint.setRGB(.035,.075,.11,T.SRGBColorSpace):art?tint.setRGB(1,1,1):tint.setRGB(Math.max(0,data[at+6]),Math.max(0,data[at+7]),Math.max(0,data[at+8]),T.SRGBColorSpace);
+    if(bake)c.multiplyScalar(.70+.23*Math.max(0,data[at+4])+.16*Math.max(0,data[at+3]*.2+data[at+4]*.9+data[at+5]*.4));
     col.set([c.r,c.g,c.b],i*(alpha?4:3));if(alpha)col[i*4+3]=Math.max(0,data[at+6]);
     uv[i*2]=art?((x-9)/7%1+1)%1:x/60;uv[i*2+1]=art?clamp((y-(data[at+6]<-1.5?5.75:.25))/(data[at+6]<-1.5?.5:.69),0,1):1-z/30;
    }
@@ -21,7 +22,8 @@ const HockeyBroadcast3D=(()=>{
   }
   function split(data,classify){const groups=new Map();for(let i=0;i<data.length;i+=27){const key=classify(data,i);if(!groups.has(key))groups.set(key,[]);const out=groups.get(key);for(let j=i;j<i+27;j++)out.push(data[j]);}return [...groups].map(([key,rows])=>[key,new Float32Array(rows)]);}
   function texture(c,canvas){const t=new c.T.CanvasTexture(canvas);t.colorSpace=c.T.SRGBColorSpace;t.anisotropy=Math.min(4,c.renderer.capabilities.getMaxAnisotropy());c.textures.add(t);return t;}
-  function material(c,options={}){const m=new c.T.MeshStandardMaterial({roughness:.8,vertexColors:true,side:c.T.DoubleSide,...options});c.materials.add(m);return m;}
+  function shadowShader(c,shader){shader.fragmentShader=shader.fragmentShader.replace('#include <shadowmap_pars_fragment>',c.shadowChunk);}
+  function material(c,options={}){const {simple=false,unlit=false,roughness=.8,...rest}=options,Material=unlit?c.T.MeshBasicMaterial:simple?c.T.MeshLambertMaterial:c.T.MeshStandardMaterial,m=new Material({...(simple||unlit?{}:{roughness}),vertexColors:true,side:c.T.DoubleSide,...rest});m.onBeforeCompile=shader=>shadowShader(c,shader);c.materials.add(m);return m;}
   function mesh(c,g,m,{cast=false,receive=true,reflection=false}={}){const obj=new c.T.Mesh(g,m);obj.castShadow=cast;obj.receiveShadow=receive;if(reflection)obj.layers.enable(1);c.scene.add(obj);c.geometries.add(g);return obj;}
   function environment(c){
    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=512;const x=canvas.getContext('2d'),wash=x.createLinearGradient(0,0,0,512);
@@ -30,10 +32,11 @@ const HockeyBroadcast3D=(()=>{
    const source=texture(c,canvas);source.mapping=c.T.EquirectangularReflectionMapping;const pmrem=new c.T.PMREMGenerator(c.renderer);c.environment=pmrem.fromEquirectangular(source);c.scene.environment=c.environment.texture;pmrem.dispose();
   }
   function buildRink(c){
-   const T=c.T,rows=core.sceneData.rink(),iceMaterial=new T.MeshPhysicalMaterial({color:0xffffff,roughness:.38,metalness:.02,clearcoat:.32,clearcoatRoughness:.3,envMapIntensity:.35,side:T.DoubleSide});
+   const T=c.T,rows=core.sceneData.rink(),iceMaterial=new T.MeshLambertMaterial({color:'#e8f0f6',side:T.DoubleSide});
    c.materials.add(iceMaterial);c.iceMaterial=iceMaterial;
    c.reflectionUniforms={rinkReflection:{value:c.reflection.texture},rinkProjection:{value:new T.Matrix4()},rinkReflectivity:{value:0}};
    iceMaterial.onBeforeCompile=shader=>{
+    shadowShader(c,shader);
     Object.assign(shader.uniforms,c.reflectionUniforms);
     shader.vertexShader='uniform mat4 rinkProjection;varying vec4 vRinkProjection;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvRinkProjection=rinkProjection*modelMatrix*vec4(transformed,1.);');
@@ -48,9 +51,9 @@ const HockeyBroadcast3D=(()=>{
    };
    c.boardMaterials=[];c.arenaVertices=rows.length/9;c.shadowCasterVertices=0;
    for(const [key,data] of split(rows,classify)){
-    const art=key==='boards'||key==='ribbon';let m=key==='ice'?iceMaterial:key==='lamps'?new T.MeshBasicMaterial({vertexColors:true}):material(c,{roughness:key==='casters'?.52:.83});
+    const art=key==='boards'||key==='ribbon';let m=key==='ice'?iceMaterial:key==='lamps'?new T.MeshBasicMaterial({vertexColors:true}):material(c,{unlit:true});
     if(key==='ribbon')m=new T.MeshBasicMaterial({color:0xffffff});if(art)c.boardMaterials.push(m);c.materials.add(m);
-    const object=mesh(c,geometry(T,data,{art}),m,{cast:key==='casters',reflection:key==='casters'});if(key==='ice')c.ice=object;if(key==='casters')c.shadowCasterVertices+=data.length/9;
+    const object=mesh(c,geometry(T,data,{art,bake:key!=='ice'&&key!=='lamps'&&key!=='ribbon'}),m,{cast:key==='casters',reflection:key==='casters'});if(key==='ice')c.ice=object;if(key==='casters')c.shadowCasterVertices+=data.length/9;
    }
    // Glass catches grazing highlights but stays transparent in the match view.
    const panes=core.sceneData.glass(),glassMaterial=new T.MeshPhysicalMaterial({color:'#a4c8df',roughness:.18,metalness:.05,transparent:true,opacity:.09,depthWrite:false,side:T.DoubleSide,envMapIntensity:.7});
@@ -76,7 +79,7 @@ const HockeyBroadcast3D=(()=>{
    }
    g.box(30,.8,-2,3.4,1.4,1.8,rgb('#1b2c3d'));g.box(30,1.57,-2,3.7,.12,1.95,rgb('#a4b3bb'));
    for(const x of [29.2,30.8])g.box(x,1.8,-2,.5,.35,.10,rgb('#111922'));
-   const rows=g.data;c.arenaVertices+=rows.length/9;mesh(c,geometry(c.T,rows),material(c,{roughness:.72}),{receive:false});
+   const rows=g.data;c.arenaVertices+=rows.length/9;mesh(c,geometry(c.T,rows,{bake:true}),material(c,{unlit:true}),{receive:false});
    const board=new c.T.BoxGeometry(8,3.1,1.5),scoreMaterial=new c.T.MeshBasicMaterial({color:0xffffff});c.materials.add(scoreMaterial);c.scoreMaterial=scoreMaterial;
    c.scoreboard=mesh(c,board,scoreMaterial,{receive:false});c.scoreboard.position.set(30,10.55,-15.25);
    const rear=new c.T.MeshBasicMaterial({color:'#07131f'});c.materials.add(rear);
@@ -89,13 +92,18 @@ const HockeyBroadcast3D=(()=>{
    for(const end of [-1,1])for(let row=0;row<9;row++)for(let col=0;col<17;col++){
     const z=2+col*1.6;if(Math.abs(z-15)<1.2)continue;c.seats.push({x:end<0?-3-row*1.6:63+row*1.6,y:1.23+row*.8,z,angle:end*Math.PI/2});
    }
-   const count=c.seats.length,mat=material(c,{roughness:.96,vertexColors:false});
-   c.crowd={body:new c.T.InstancedMesh(new c.T.BoxGeometry(.46,.50,.28),mat,count),head:new c.T.InstancedMesh(new c.T.SphereGeometry(.14,7,5),mat,count),arms:new c.T.InstancedMesh(new c.T.CylinderGeometry(.055,.055,.39,5),mat,count*2)};
-   for(const obj of Object.values(c.crowd)){obj.frustumCulled=false;obj.instanceMatrix.setUsage(c.T.DynamicDrawUsage);c.geometries.add(obj.geometry);c.scene.add(obj);}
+   const count=c.seats.length,mat=material(c,{unlit:true});
+   const headCanvas=document.createElement('canvas');headCanvas.width=headCanvas.height=32;const headContext=headCanvas.getContext('2d');headContext.fillStyle='#ffffff';headContext.beginPath();headContext.arc(16,16,15,0,Math.PI*2);headContext.fill();
+   c.crowdMaterial=mat;c.crowdHeadMaterial=material(c,{unlit:true,map:texture(c,headCanvas),alphaTest:.25});
+   c.crowdShapes={body:[new c.T.PlaneGeometry(.46,.5),new c.T.BoxGeometry(.46,.50,.28)],head:[new c.T.PlaneGeometry(.28,.28),new c.T.SphereGeometry(.14,7,5)],arms:[new c.T.PlaneGeometry(.11,.39),new c.T.CylinderGeometry(.055,.055,.39,5)]};
+   for(const shapes of Object.values(c.crowdShapes))for(const geo of shapes){const normal=geo.attributes.normal,colors=new Float32Array(normal.count*3);for(let i=0;i<normal.count;i++){const lit=.83+.15*Math.max(0,normal.getY(i))+.12*Math.max(0,normal.getZ(i));colors.set([lit,lit,lit],i*3);}geo.setAttribute('color',new c.T.BufferAttribute(colors,3));c.geometries.add(geo);}
+   c.crowd=Object.fromEntries(Object.entries(c.crowdShapes).map(([name,shapes])=>[name,new c.T.InstancedMesh(shapes[0],name==='head'?c.crowdHeadMaterial:mat,count*(name==='arms'?2:1))]));
+   for(const obj of Object.values(c.crowd)){obj.frustumCulled=false;obj.instanceMatrix.setUsage(c.T.DynamicDrawUsage);c.scene.add(obj);}
    c.benchGroup=new c.T.Group();c.scene.add(c.benchGroup);
   }
   function updateCrowd(c,f,options,q){
-   const reactions=[0,1].map(side=>Math.round(core.crowdReaction(f,side)*12)/12),key=JSON.stringify([options.teams,options.homeSide,reactions,q.crowdStep]);if(key===c.crowdKey)return;
+   const detailed=q.level>1||options.camera==='rinkside',reactions=[0,1].map(side=>Math.round(core.crowdReaction(f,side)*12)/12),key=JSON.stringify([options.teams,options.homeSide,reactions,q.crowdStep,detailed]);if(key===c.crowdKey)return;
+   for(const [name,obj] of Object.entries(c.crowd)){obj.geometry=c.crowdShapes[name][detailed?1:0];obj.material=name==='head'&&!detailed?c.crowdHeadMaterial:c.crowdMaterial;}
    const T=c.T,kits=core.kits(options.teams||[]),m=new T.Matrix4(),v=new T.Vector3(),rot=new T.Quaternion(),scale=new T.Vector3(1,1,1);let n=0;
    for(let i=0;i<c.seats.length;i+=q.crowdStep){
     const seat=c.seats[i],side=i%9===0?1-(options.homeSide??0):(options.homeSide??0),react=reactions[side],raise=react*(.55+(i%5)*.08),tint=i%7===0?color(T,.34,.42,.52):i%4===0?color(T,...kits[side].trim):color(T,...kits[side].jersey);
@@ -120,36 +128,47 @@ const HockeyBroadcast3D=(()=>{
    // Fifteen joints fit vertex uniforms. Avoid sixteen bone-texture reads per
    // vertex on software and integrated GPUs; retain Three's skinning transforms.
    shader.uniforms.hockeyBones={value:bones.map(b=>b.matrixWorld)};
-   shader.vertexShader=shader.vertexShader.replace('#include <skinning_pars_vertex>','#ifdef USE_SKINNING\nuniform mat4 bindMatrix;uniform mat4 bindMatrixInverse;uniform mat4 hockeyBones[15];mat4 getBoneMatrix(const in float i){return hockeyBones[int(i)];}\n#endif');
+   shader.vertexShader=shader.vertexShader.replace('#include <skinning_pars_vertex>','#ifdef USE_SKINNING\nuniform mat4 bindMatrix;uniform mat4 bindMatrixInverse;uniform mat4 hockeyBones['+bones.length+'];mat4 getBoneMatrix(const in float i){return hockeyBones[int(i)];}\n#endif');
    shader.vertexShader=shader.vertexShader.replace('#include <skinbase_vertex>','#ifdef USE_SKINNING\nmat4 boneMatX=getBoneMatrix(skinIndex.x);mat4 boneMatY=skinWeight.y>0.?getBoneMatrix(skinIndex.y):mat4(0.);mat4 boneMatZ=mat4(0.);mat4 boneMatW=mat4(0.);\n#endif');
   }
   function playerMaterial(c,map,bones){
    const m=material(c,{map,roughness:.86,envMapIntensity:.65,side:c.T.FrontSide});
    m.onBeforeCompile=shader=>{
-    skinShader(shader,bones);
+    shadowShader(c,shader);skinShader(shader,bones);
     shader.vertexShader='attribute vec2 surface;varying vec2 vEquipment;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvEquipment=surface;');
     shader.fragmentShader='varying vec2 vEquipment;\n'+shader.fragmentShader;
     shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#ifdef USE_MAP\nif(vMapUv.x>=0.){vec4 ink=texture2D(map,vMapUv);diffuseColor.rgb=mix(diffuseColor.rgb,ink.rgb,ink.a);}\n#endif');
     shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>','float roughnessFactor=vEquipment.x;').replace('#include <metalnessmap_fragment>','float metalnessFactor=vEquipment.y;');
-   };return m;
+   };m.customProgramCacheKey=()=> 'hockey-skin-'+bones.length;return m;
   }
   function players(c,f,options){
-   const T=c.T,kits=core.kits(options.teams||[]),crests=(options.teams||[]).map(t=>Boolean(typeof matchIceCrest==='function'&&matchIceCrest(t.name))),key=JSON.stringify([f.actors.map(a=>[a.id,a.number,a.name,a.side,HockeyPlayerModel.kind(a)]),kits,crests]);
+   const T=c.T,fine=c.quality==='high'||options.camera==='rinkside'||options.replay||c.closeup,level=fine?'':'Lod',kits=core.kits(options.teams||[]),crests=(options.teams||[]).map(t=>Boolean(typeof matchIceCrest==='function'&&matchIceCrest(t.name))),key=JSON.stringify([level,f.actors.map(a=>[a.id,a.number,a.name,a.side,HockeyPlayerModel.kind(a)]),kits,crests]);
    if(key===c.playerKey)return;
-   for(const p of c.players.values()){c.scene.remove(p.object);p.skeleton.dispose();p.object.geometry.dispose();c.geometries.delete(p.object.geometry);p.material.dispose();c.materials.delete(p.material);p.depthMaterial.dispose();c.materials.delete(p.depthMaterial);p.texture.dispose();c.textures.delete(p.texture);}c.players.clear();
-   for(const actor of f.actors){
-    const kind=HockeyPlayerModel.kind(actor),g=playerGeometry(c,kind,kits[actor.side]),canvas=HockeyPlayerModel.atlas(document.createElement('canvas'),[{...actor,side:0}],[kits[actor.side]]);
-    const map=texture(c,canvas),bones=Array.from({length:15},()=>new T.Bone()),m=playerMaterial(c,map,bones),skeleton=new T.Skeleton(bones,bones.map(()=>new T.Matrix4())),object=new T.SkinnedMesh(g,m);
-    const depthMaterial=new T.MeshDepthMaterial();depthMaterial.onBeforeCompile=shader=>skinShader(shader,bones);c.materials.add(depthMaterial);object.customDepthMaterial=depthMaterial;
+   for(const p of c.playerBatches){c.scene.remove(p.object);p.skeleton.dispose();p.object.geometry.dispose();c.geometries.delete(p.object.geometry);p.material.dispose();c.materials.delete(p.material);p.depthMaterial.dispose();c.materials.delete(p.depthMaterial);p.texture.dispose();c.textures.delete(p.texture);}c.players.clear();c.playerBatches=[];
+   // Batch players into the available vertex-uniform budget. Jerseys share one
+   // atlas and each player keeps its own 15-joint palette and recorded pose.
+   const perBatch=Math.max(1,Math.min(16,Math.floor((c.renderer.capabilities.maxVertexUniforms-64)/60)));
+   for(let first=0;first<f.actors.length;first+=perBatch){
+    const actors=f.actors.slice(first,first+perBatch),parts=actors.map(a=>playerGeometry(c,HockeyPlayerModel.kind(a)+level,kits[a.side])),g=new T.BufferGeometry(),total=parts.reduce((n,p)=>n+p.attributes.position.count,0),height=2**Math.ceil(Math.log2(actors.length));
+    for(const name of Object.keys(parts[0].attributes)){
+     const sample=parts[0].attributes[name],array=new sample.array.constructor(total*sample.itemSize);let at=0;
+     parts.forEach((part,row)=>{const data=part.attributes[name];array.set(data.array,at);if(name==='skinIndex')for(let i=at;i<at+data.array.length;i++)array[i]+=row*15;if(name==='uv')for(let i=at;i<at+data.array.length;i+=2)if(array[i]>=0)array[i+1]=(height-row-1+array[i+1])/height;at+=data.array.length;});
+     g.setAttribute(name,new T.BufferAttribute(array,sample.itemSize));
+    }
+    const indices=new Uint32Array(parts.reduce((n,p)=>n+p.index.count,0));let vertex=0,index=0;
+    for(const part of parts){for(const i of part.index.array)indices[index++]=vertex+i;vertex+=part.attributes.position.count;part.dispose();c.geometries.delete(part);}g.setIndex(new T.BufferAttribute(indices,1));c.geometries.add(g);
+    const map=texture(c,HockeyPlayerModel.atlas(document.createElement('canvas'),actors,kits)),bones=Array.from({length:actors.length*15},()=>new T.Bone()),m=playerMaterial(c,map,bones),skeleton=new T.Skeleton(bones,bones.map(()=>new T.Matrix4())),object=new T.SkinnedMesh(g,m);
+    const depthMaterial=new T.MeshDepthMaterial();depthMaterial.onBeforeCompile=shader=>skinShader(shader,bones);depthMaterial.customProgramCacheKey=()=> 'hockey-depth-'+bones.length;c.materials.add(depthMaterial);object.customDepthMaterial=depthMaterial;
     object.bind(skeleton,new T.Matrix4());object.frustumCulled=false;object.castShadow=true;object.receiveShadow=true;object.layers.enable(1);c.scene.add(object);
-    c.players.set(actor.id,{object,skeleton,material:m,depthMaterial,texture:map,kind});
+    c.playerBatches.push({object,skeleton,material:m,depthMaterial,texture:map});
+    actors.forEach((actor,row)=>c.players.set(actor.id,{bones:bones.slice(row*15,row*15+15)}));
    }
-   c.playerKey=key;c.skinVertices=f.actors.reduce((sum,a)=>sum+model(HockeyPlayerModel.kind(a)).vertices,0);c.textureBuilds++;c.geometryKey=null;
+   c.playerKey=key;c.skinVertices=f.actors.reduce((sum,a)=>sum+model(HockeyPlayerModel.kind(a)+level).vertices,0);c.textureBuilds++;c.detailLevel=fine?'detailed':'distant';c.geometryKey=null;
   }
   function updateGeometry(c,f,options){
    const key=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);if(key===c.geometryKey)return false;
    const start=performance.now(),poses=new Map(f.actors.map(a=>[a.id,core.pose(f,a)]));
-   for(const a of f.actors){const p=c.players.get(a.id),palette=HockeyPlayerModel.palette(poses.get(a.id));for(let i=0;i<15;i++)p.skeleton.bones[i].matrixWorld.fromArray(palette[i]);}
+   for(const a of f.actors){const p=c.players.get(a.id),palette=HockeyPlayerModel.palette(poses.get(a.id));for(let i=0;i<15;i++)p.bones[i].matrixWorld.fromArray(palette[i]);}
    const data=core.figures(f,options.teams||[],true,poses);
    const retained=new Set();
    for(const [kind,rows] of split(data,(a,i)=>a[i+8]<-.5?'shadow':'equipment')){
@@ -163,7 +182,7 @@ const HockeyBroadcast3D=(()=>{
    if(c.quality!=='low')for(const a of f.actors){const pose=poses.get(a.id);if(a.role==='G'||pose.brake<.30||pose.speed<1)continue;
     const slot=Math.floor(clock*12);
     for(let i=0;i<12;i++){const age=((clock*12)%1+i/12)/12,side=i%2?1:-1,foot=pose.feet[i%2],spread=Math.sin((slot*13+i*31+(a.number||0))*1.71);positions.push(foot[0]-Math.cos(pose.angle)*pose.speed*age+Math.sin(pose.angle)*spread*.22,.03+Math.sin(age/.09*Math.PI)*.14,foot[2]-Math.sin(pose.angle)*pose.speed*age-Math.cos(pose.angle)*spread*.22+side*.03);}}
-   c.spray.geometry.setAttribute('position',new c.T.Float32BufferAttribute(positions,3));c.spray.visible=positions.length>0;c.sprayCount=positions.length/3;
+   const spray=c.spray.geometry;let sprayAttribute=spray.attributes.position;if(sprayAttribute.array.length<positions.length){spray.dispose();sprayAttribute=new c.T.Float32BufferAttribute(new Float32Array(positions.length*2),3);sprayAttribute.setUsage(c.T.DynamicDrawUsage);spray.setAttribute('position',sprayAttribute);}sprayAttribute.array.set(positions);sprayAttribute.needsUpdate=true;spray.setDrawRange(0,positions.length/3);c.spray.visible=positions.length>0;c.sprayCount=positions.length/3;
    c.geometryKey=key;c.geometryBuilds++;c.buildMS=performance.now()-start;c.dynamicCount=data.length/9;return true;
   }
   function clubArt(c,options,f){
@@ -192,26 +211,31 @@ const HockeyBroadcast3D=(()=>{
   }
   function create(canvas){
    const T=HockeyThree,renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'}),scene=new T.Scene();scene.background=new T.Color('#07121e');scene.fog=new T.Fog('#07121e',60,125);
-   renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFShadowMap;
-   const c={T,canvas,renderer,scene,camera:new T.PerspectiveCamera(),mirror:new T.PerspectiveCamera(),reflection:new T.WebGLRenderTarget(384,192,{depthBuffer:true}),players:new Map(),textures:new Set(),materials:new Set(),geometries:new Set(),dynamic:[],frames:0,geometryBuilds:0,shadowBuilds:0,reflectionBuilds:0,textureBuilds:0,frameTimes:[],hits:[],quality:'normal'};
+   renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.BasicShadowMap;
+   const c={T,canvas,renderer,scene,camera:new T.PerspectiveCamera(),mirror:new T.PerspectiveCamera(),reflection:new T.WebGLRenderTarget(384,192,{depthBuffer:true}),players:new Map(),playerBatches:[],textures:new Set(),materials:new Set(),geometries:new Set(),dynamic:[],frames:0,geometryBuilds:0,shadowBuilds:0,reflectionBuilds:0,textureBuilds:0,frameTimes:[],hits:[],quality:'normal'};
+   // Four stable depth comparisons avoid per-pixel trigonometry in the general
+   // purpose shadow filter. This keeps the ice's large receiving area affordable.
+   c.shadowChunk=T.ShaderChunk.shadowmap_pars_fragment.replace('shadow = step( shadowCoord.z, depth );',`vec2 d=shadowRadius/shadowMapSize*.65;
+    shadow=(step(shadowCoord.z,texture2D(shadowMap,shadowCoord.xy+vec2(-d.x,-d.y)).r)+step(shadowCoord.z,texture2D(shadowMap,shadowCoord.xy+vec2(d.x,-d.y)).r)+step(shadowCoord.z,texture2D(shadowMap,shadowCoord.xy+vec2(-d.x,d.y)).r)+step(shadowCoord.z,texture2D(shadowMap,shadowCoord.xy+d).r))*.25;`);
    scene.add(new T.HemisphereLight('#d7e7f6','#2b3849',1.65));
    const light=new T.DirectionalLight('#fff5e6',2.8);light.position.set(26,32,11);light.target.position.set(30,0,15);light.castShadow=true;Object.assign(light.shadow.camera,{left:-36,right:36,top:23,bottom:-23,near:1,far:80});light.shadow.bias=-.00035;light.shadow.normalBias=.025;light.shadow.radius=2;scene.add(light,light.target);c.light=light;
    const fill=new T.DirectionalLight('#b4d9ff',.65);fill.position.set(45,17,38);scene.add(fill);for(const l of [light,fill,...scene.children.filter(o=>o.isHemisphereLight)])l.layers.enable(1);
    environment(c);buildRink(c);arena(c);
    c.contactMaterial=new T.MeshBasicMaterial({vertexColors:true,transparent:true,depthWrite:false,side:T.DoubleSide});c.materials.add(c.contactMaterial);c.equipmentMaterial=material(c,{roughness:.57});
-   const sprayMaterial=new T.PointsMaterial({color:'#eaf5ff',size:.065,transparent:true,opacity:.52,depthWrite:false});c.materials.add(sprayMaterial);const sprayGeometry=new T.BufferGeometry();sprayGeometry.setAttribute('position',new T.Float32BufferAttribute([],3));c.geometries.add(sprayGeometry);c.spray=new T.Points(sprayGeometry,sprayMaterial);c.spray.frustumCulled=false;scene.add(c.spray);
+   const sprayMaterial=new T.PointsMaterial({color:'#eaf5ff',size:.065,transparent:true,opacity:.52,depthWrite:false});c.materials.add(sprayMaterial);const sprayGeometry=new T.BufferGeometry();sprayGeometry.setAttribute('position',new T.Float32BufferAttribute(new Float32Array(576),3).setUsage(T.DynamicDrawUsage));c.geometries.add(sprayGeometry);c.spray=new T.Points(sprayGeometry,sprayMaterial);c.spray.frustumCulled=false;scene.add(c.spray);
    c.scoreCanvas=document.createElement('canvas');c.scoreCanvas.width=1024;c.scoreCanvas.height=384;c.scoreTexture=texture(c,c.scoreCanvas);c.scoreMaterial.map=c.scoreTexture;
    c.lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',c.lost);return c;
   }
   function dispose(){
    core.dispose();if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);
-   for(const p of c.players.values())p.skeleton.dispose();for(const g of c.geometries)g.dispose();for(const m of c.materials)m.dispose();for(const t of c.textures)t.dispose();c.environment.dispose();c.reflection.dispose();c.light.shadow.map?.dispose();c.renderer.dispose();c.renderer.forceContextLoss();
+   for(const p of c.playerBatches)p.skeleton.dispose();for(const g of c.geometries)g.dispose();for(const m of c.materials)m.dispose();for(const t of c.textures)t.dispose();c.environment.dispose();c.reflection.dispose();c.light.shadow.map?.dispose();c.renderer.dispose();c.renderer.forceContextLoss();
   }
   function cameraView(c,f,options){
    const view=core.cameraFrame(c.canvas.width/c.canvas.height,options.camera,f,c.tracked,options.zoom);c.tracked=view.tracked;
    // The automatic director closes in only after an observed stoppage or in replay.
    const event=(f.effects||[]).filter(e=>e.at<=(f.wall??f.time)&&['goal','save'].includes(e.kind)).at(-1),age=event?(f.wall??f.time)-event.at:Infinity;
    const close=options.camera==='auto'&&f.phase==='stoppage'&&age>.8&&age<3.1?Math.sin((age-.8)/2.3*Math.PI):0;
+   c.closeup=close>.4;
    if(close){const focus=f.actors.find(a=>event.kind==='save'?a.role==='G'&&a.side===event.side:a.side===event.side&&a.action?.kind==='shot'&&a.action.at<=event.at&&event.at-a.action.at<2)||f.actors.find(a=>a.side===event.side&&a.role!=='G');if(focus){view.target=view.target.map((v,i)=>v+([focus.x,.9,focus.y][i]-v)*close*.75);view.eye=view.eye.map((v,i)=>v+([focus.x+4,4.2,focus.y+9][i]-v)*close*.75);}}
    if(options.replay&&options.camera==='auto'){view.eye[0]+=5;view.eye[1]*=.78;}
    const cam=c.camera;cam.position.fromArray(view.eye);cam.up.set(0,1,0);cam.lookAt(...view.target);cam.aspect=c.canvas.width/c.canvas.height;cam.fov=view.fov*180/Math.PI;cam.near=view.near;cam.far=view.far;cam.updateProjectionMatrix();cam.updateMatrixWorld();c.matrix=new c.T.Matrix4().multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse).elements;c.view=view;
@@ -241,7 +265,7 @@ const HockeyBroadcast3D=(()=>{
    const marker=document.getElementById('match-3d-puck');if(marker){const p=core.project([f.puck.x,.1+(f.puck.z||0),f.puck.y],c.matrix);marker.hidden=Boolean(f.puck.heldBy)||options.puckMarker===false||p.x<0||p.x>1||p.y<0||p.y>1;marker.style.left=p.x*100+'%';marker.style.top=p.y*100+'%';}
    c.renderMS=performance.now()-start;if(options.moving&&c.lastDraw!=null&&start-c.lastDraw<1000){c.motionFrames=(c.motionFrames||0)+1;if(c.lastWall!==f.wall)c.motionAdvances=(c.motionAdvances||0)+1;c.frameTimes.push(start-c.lastDraw);if(c.frameTimes.length>180)c.frameTimes.shift();}c.lastDraw=start;c.lastWall=f.wall;return true;
   }
-  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',quality:c.quality,shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,rigJoints:15,renderMS:c.renderMS,frameSamples:c.frameTimes.length,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
+  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',detailLevel:c.detailLevel,quality:c.quality,shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,playerBatches:c.playerBatches.length,rigJoints:15,renderMS:c.renderMS,frameSamples:c.frameTimes.length,frameMedian:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.5)]:null,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
   function pick(canvas,x,y){if(!current)return core.pick(canvas,x,y);if(current.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
   return {...core,draw,dispose,pick,diagnostics};
  }

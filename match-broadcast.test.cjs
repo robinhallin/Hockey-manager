@@ -9,14 +9,14 @@ const {Model,Motion,R,asset}=vm.runInContext('({Model:HockeyPlayerModel,Motion:H
 test('detailed offline models retain the shared bind pose, normalized weights and a bounded GPU budget',()=>{
  const source=JSON.parse(fs.readFileSync('assets/models/hockey-broadcast.gltf','utf8'));
  assert.equal(JSON.stringify(source),JSON.stringify(asset));
- for(const kind of ['skater','goalie','goalieR']){
-  const model=Model.decode(source,kind),base=Model.model(kind);
+ for(const kind of ['skater','goalie','goalieR','skaterLod','goalieLod','goalieRLod']){
+  const model=Model.decode(source,kind),base=Model.model(kind.replace(/Lod$/,''));
   assert.deepEqual(model.bind,base.bind);assert.deepEqual(Array.from(model.joints),Array.from(base.joints));
-  assert.ok(model.vertices>4500&&model.vertices<5500);assert.ok(model.indices.every(i=>i<model.vertices));
+  assert.ok(model.vertices>(kind.endsWith('Lod')?2000:4500)&&model.vertices<5500);assert.ok(model.indices.every(i=>i<model.vertices));
   for(const attribute of Object.values(model.attributes))assert.ok(attribute.every(Number.isFinite));
   for(let i=0;i<model.vertices;i++){
    const weights=model.attributes.WEIGHTS_0.subarray(i*4,i*4+4);
-   assert.ok(Math.abs(weights.reduce((n,w)=>n+w,0)-1)<1e-6);assert.ok(weights.every(w=>w>=0&&w<=1));
+   assert.ok(Math.abs(weights.reduce((n,w)=>n+w,0)-1)<1e-6);assert.ok(weights.every(w=>w>=0&&w<=1));assert.equal(weights[2]+weights[3],0,'compact GPU palette uses two influences');
    assert.ok(model.attributes.JOINTS_0.subarray(i*4,i*4+4).every(j=>j<15));
   }
  }
