@@ -42,6 +42,8 @@ test('players route around either goal and remain inside the same rounded rink t
 test('head-on bodies preserve a finite separation and a glancing loose puck reflects off a rounded corner',()=>{
  const {m,a}=setup(),b=m.skaters(1)[0];m.actors=[a,b];m.carrier=null;Object.assign(a,{x:30,y:15,vx:3,vy:0,target:{x:35,y:15}});Object.assign(b,{x:31,y:15,vx:-3,vy:0,target:{x:25,y:15}});
  for(let i=0;i<8;i++){m.move(.1);assert.ok(H.distance(a,b)>.63);assert.ok([a.x,a.y,b.x,b.y].every(Number.isFinite));}
+ Object.assign(a,{x:30,y:15,vx:5,vy:0});Object.assign(b,{x:30.8,y:15,vx:-5,vy:0});m.move(.1);assert.ok(a.x<b.x&&H.distance(a,b)>.65,'fast opposing bodies cannot exchange sides between ticks');
+ Object.assign(a,{x:30,y:15,vx:5,vy:0});Object.assign(b,{x:30.8,y:16.2,vx:-5,vy:0});b.target={x:25,y:16.2};m.move(.1);assert.ok(a.x>b.x,'a clear skating lane can pass beside another body');
  m.puck={x:57,y:3};m.puckVelocity={x:10,y:-10,z:0};m.moveFreePuck(.2);assert.equal(H.rinkLimit(m.puck,.119).hit,false);assert.ok(m.puckVelocity.x<0&&m.puckVelocity.y>0);
 });
 

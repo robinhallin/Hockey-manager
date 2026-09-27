@@ -693,8 +693,19 @@ const StudioHockey = (() => {
       // Symmetric body contacts avoid actor-order bias; preserve tangential
       // motion so a shoulder contact does not stop a whole group of players.
       for(let pass=0;pass<2;pass++)for(let i=0;i<this.actors.length;i++)for(let j=i+1;j<this.actors.length;j++){
-        const a=this.actors[i],b=this.actors[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),radius=a.role==='G'||b.role==='G'?.74:.66;if(d>=radius)continue;
-        const nx=d?dx/d:(String(a.id)<String(b.id)?1:-1),ny=d?dy/d:0,wa=1/(a.player.weight||85),wb=1/(b.player.weight||85),sum=wa+wb,shift=Math.min(.22,radius-d+.001);
+        const a=this.actors[i],b=this.actors[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),radius=a.role==='G'||b.role==='G'?.74:.66;
+        let nx=d?dx/d:(String(a.id)<String(b.id)?1:-1),ny=d?dy/d:0,shift=Math.min(.22,radius-d+.001),crossed=false;
+        if(pass===0){
+          const oldA=initial.get(a.id),oldB=initial.get(b.id),ox=oldB.x-oldA.x,oy=oldB.y-oldA.y,oldDistance=Math.hypot(ox,oy);
+          if(oldDistance>.001&&dx*ox+dy*oy<0){
+            const sx=dx-ox,sy=dy-oy,t=clamp(-(ox*sx+oy*sy)/(sx*sx+sy*sy),0,1);
+            if(Math.hypot(ox+sx*t,oy+sy*t)<radius){crossed=true;nx=ox/oldDistance;ny=oy/oldDistance;shift=radius-dx*nx-dy*ny+.001;}
+          }
+        }
+        // Preserve the incoming side when fast bodies cross between ticks;
+        // a separation based only on end positions would push them through.
+        if(!crossed&&d>=radius)continue;
+        const wa=1/(a.player.weight||85),wb=1/(b.player.weight||85),sum=wa+wb;
         a.x-=nx*shift*wa/sum;a.y-=ny*shift*wa/sum;b.x+=nx*shift*wb/sum;b.y+=ny*shift*wb/sum;
         const closing=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;if(closing>0){a.vx-=closing*nx*wa/sum;a.vy-=closing*ny*wa/sum;b.vx+=closing*nx*wb/sum;b.vy+=closing*ny*wb/sum;}
       }
