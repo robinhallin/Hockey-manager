@@ -108,6 +108,11 @@ test('similar club colors receive distinguishable kit colors, including two ligh
   const contrast=Math.hypot(...kits[0].jersey.map((v,i)=>v-kits[1].jersey[i]));assert.ok(contrast>.8);
  }
 });
+test('contrast kits retain the actual club identity used on jerseys and arena artwork',()=>{
+ const teams=[{name:'HV71',code:'HV71',primary:'#123456',color:'#dec464'},{name:'Leksands IF',code:'LIF',primary:'#123456',color:'#ffffff'}],saved=JSON.stringify(teams),kits=renderer.kits(teams);
+ assert.equal(kits[1].name,'Leksands IF');assert.equal(kits[1].code,'LIF');assert.notDeepEqual(kits[0].jersey,kits[1].jersey);assert.equal(JSON.stringify(teams),saved);
+ assert.equal(renderer.quality('low').shadowSize,0);assert.ok(renderer.quality('high').shadowSize>renderer.quality('normal').shadowSize);
+});
 test('large-rink mode keeps match state untouched and is limited to active 3D presentation',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.page='match';studioSetVisual('3d');");
  const stateBefore=app.run('JSON.stringify(state.live)');app.run('studioToggleRink();');

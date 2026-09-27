@@ -45,3 +45,8 @@ Windows verification records the production rig, render diagnostics, an actual
 match video, a physical balance recovery and an observation clip opened through
 the game's analysis tab. Frame-time measurements describe the CI machine and
 are not a guaranteed frame rate on every player's computer.
+
+The arena-graphics refinement smooths helmet/head contours, fits skates more
+closely and bevels keeper pads. The skater has 2,142 vertices and each keeper
+2,308, under the existing per-model budget. Club crests, outlined back numbers,
+names and waist/shoulder striping are cached in the runtime uniform atlas.

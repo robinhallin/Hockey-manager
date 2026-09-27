@@ -284,3 +284,30 @@ five-period sample during validation. A separate 20-period paired home/away
 sample gave 0.993, with 11.3 vs 10.35 shots per period. These small samples are
 regression evidence, not a claim of complete league calibration; the existing
 96-period calibration suite remains required as well.
+
+## Arena graphics
+
+The renderer now separates cool arena light, cloth, helmet shells, equipment,
+paint and worn ice. A cached 2048×1024 procedural ice texture carries restrained
+skate marks and the actual home crest; board panels and jersey crests use the
+same bundled club artwork. More closely spaced spectators, end stands, glass,
+aisles, a concourse ribbon and rear lighting replace the sparse first arena.
+The original player asset has smoother head/helmet contours, fitted skate
+proportions and bevelled goalie pads, retaining its 15-joint rig and fewer than
+2,400 vertices per model.
+
+Normal quality adds a 1024px light-space depth map for player, stick and goal
+shadows; high uses 2048px and nine shadow taps. Low and GPUs without depth
+textures use feathered contact shadows. Glass is drawn after opaque geometry
+with depth writes disabled. Paused geometry, textures and the depth map are
+cached; camera movement alone does not rebuild the shadow map. All additional
+GPU resources are released when leaving 3D. Texture generation never consumes
+simulation randomness, and arena identity follows the actual home club.
+The depth pass contains only rink-side casters, with seating and ice excluded;
+shadow filtering also skips spectators and concourse surfaces. Opaque draws
+avoid blending and the static ice/kit textures use mipmaps for distant detail.
+
+Native Windows checks exercise shader compilation, shadow allocation, each
+quality level, paused resource reuse, exact match-state preservation and
+context re-creation. The screenshots and recorded live/replay sequences must
+be inspected for legibility, shadow alignment and frame pacing before merge.
