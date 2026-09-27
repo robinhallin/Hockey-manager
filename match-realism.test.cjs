@@ -36,14 +36,16 @@ test('Paired actual shot outcomes reward finishing and real goalkeeper attribute
 
 test('Shot geometry, pressure, screens and recovery create distinct chances without consuming randomness',()=>{
  const {m,a,g}=setup(),rng=m.rng;
- const slot=m.shotQuality(a);a.y=27;Object.assign(g,m.goalieTarget(1,a));const corner=m.shotQuality(a);assert.ok(slot>corner*2);
- a.x=42;a.y=15;Object.assign(g,m.goalieTarget(1,a));assert.ok(slot>m.shotQuality(a));
- a.x=50;Object.assign(g,m.goalieTarget(1,a));const open=m.shotModel(a);
+ // Move the observed puck with the controlled carrier in each geometry.
+ const position=(x,y)=>{Object.assign(a,{x,y});m.puck={x,y};Object.assign(g,m.goalieTarget(1,m.puck));};
+ const slot=m.shotQuality(a);position(50,27);const corner=m.shotQuality(a);assert.ok(slot>corner*2);
+ position(42,15);assert.ok(slot>m.shotQuality(a));
+ position(50,15);const open=m.shotModel(a);
  const d=m.skaters(1)[0];d.x=50;d.y=16;assert.ok(m.shotModel(a).goalChance<open.goalChance);
  d.x=30;d.y=3;const teammate=m.skaters(0)[1];teammate.x=54;teammate.y=15;
  const screened=m.shotModel(a);assert.ok(screened.goalChance>open.goalChance);
  teammate.x=35;teammate.y=5;g.y=18;assert.ok(m.shotModel(a).goalChance>open.goalChance);
- a.x=58;assert.equal(m.shotQuality(a),0);assert.equal(m.shoot(a),false);assert.equal(m.rng,rng,'queries and an impossible shot must not roll outcomes');
+ position(58,15);assert.equal(m.shotQuality(a),0);assert.equal(m.shoot(a),false);assert.equal(m.rng,rng,'queries and an impossible shot must not roll outcomes');
 });
 
 test('A goalie with better movement gets across the crease and reduces the next shot chance',()=>{
