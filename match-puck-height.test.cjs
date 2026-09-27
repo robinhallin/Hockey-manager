@@ -16,10 +16,10 @@ test('vertical travel uses gravity, dissipative ice bounces and finite rest',()=
 });
 test('an airborne clearance passes over a nearby stick and cannot be possessed until it drops',()=>{
  const {m,a}=shotSetup(),d=m.skaters(1)[0];m.random=()=>0;m.clear(a);const f=m.flight;
- const t=.18,u=t/f.duration;Object.assign(d,{x:f.start.x+(f.end.x-f.start.x)*u,y:f.start.y+(f.end.y-f.start.y)*u});
+ const t=.25,u=t/f.duration,angle=Math.atan2(f.end.y-f.start.y,f.end.x-f.start.x);Object.assign(d,{x:f.start.x+(f.end.x-f.start.x)*u-Math.sin(angle)*.7,y:f.start.y+(f.end.y-f.start.y)*u+Math.cos(angle)*.7});
  m.resolveFlight(t);assert.ok(m.puck.z>.45);assert.equal(m.carrier,null);assert.equal(m.flight,f);
  m.takePossession(d);assert.equal(m.carrier,null,'no teleport from the air onto a blade');
- m.puck.z=.1;m.takePossession(d);assert.equal(m.carrier,d.id);assert.equal(m.puck.z||0,0);
+ m.puck.z=.1;m.takePossession(d);assert.equal(m.carrier,d.id);m.move(.2);assert.equal(m.puck.z||0,0);
 });
 test('a saved shot contacts the keeper in front of the goal, records its save and starts its real rebound there',()=>{
  for(const side of [0,1]){

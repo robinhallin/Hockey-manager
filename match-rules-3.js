@@ -46,7 +46,27 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
     const f=this.flight;
     if(f?.kind==='shot'&&f.deflectionCandidate&&!f.deflectionResolved){
       const next=Math.min(1,(f.elapsed+dt)/Math.max(.001,f.duration));
-      if(next>=f.deflectionCandidate.t)matchRule3ApplyDeflection(this,f.deflectionCandidate);
+      if(next>=f.deflectionCandidate.t){
+        if(f.contactVersion){
+          const wait=Math.max(0,f.duration*f.deflectionCandidate.t-f.elapsed);
+          const earlier=this.flightContact(f,f.elapsed,f.elapsed+wait);
+          if(earlier)return baseResolveFlight.call(this,dt);
+          baseResolveFlight.call(this,wait);
+          if(this.flight!==f)return;
+          if(matchRule3ApplyDeflection(this,f.deflectionCandidate)){
+            const tip=this.actor(f.shot.playerId),v=StudioHockey.flightVertical(f),remaining=f.duration-f.elapsed;
+            this.recordContact(tip,'tip',this.puck,.7);this.effect('stick',tip.side,.65);
+            f.shot.contact={kind:'tip',actor:tip.id,spot:{...this.puck},at:this.wall};
+            // Redirect the remaining trajectory at the observed touch; no
+            // scorer change ahead of contact and no discontinuity in height.
+            const bend=(tip.player.shoots==='R'?1:-1)*.14;
+            f.start={...this.puck};f.end={...f.end,y:f.end.y+bend};if(f.goalLine)f.goalLine={...f.goalLine,y:f.goalLine.y+bend};
+            f.vertical={z:v.z,vz:v.vz};f.duration=Math.max(.001,remaining);f.elapsed=0;
+          }
+          return baseResolveFlight.call(this,Math.max(0,dt-wait));
+        }
+        matchRule3ApplyDeflection(this,f.deflectionCandidate);
+      }
     }
     return baseResolveFlight.call(this,dt);
   };

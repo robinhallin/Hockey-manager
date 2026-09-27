@@ -86,9 +86,9 @@ test('Vision and decisions improve selection over the same passing opportunities
 });
 
 test('Passing, control and composure affect actual completion under pressure',()=>{
- const {m,a}=setup(),b=m.skaters(0)[1],d=m.skaters(1)[0];a.x=44;a.y=6;b.x=50;b.y=24;d.x=44;d.y=7;
+ const {m,a}=setup(),b=m.skaters(0)[1],d=m.skaters(1)[0];a.x=44;a.y=6;b.x=50;b.y=24;d.x=44;d.y=5;
  function outcomes(key,value,receiver=false){(receiver?b:a).player.attributes[key]=value;let made=0;
-  for(let i=0;i<2000;i++){seed(m,i);m.carrier=a.id;m.puck={x:a.x,y:a.y};m.pass(a,b);made+=m.flight.success;}return made;
+  for(let i=0;i<2000;i++){seed(m,i);m.stoppage=0;m.carrier=a.id;m.owner=0;m.puck={x:a.x,y:a.y};m.pass(a,b);m.resolveFlight(3);made+=m.carrier===b.id;}return made;
  }
  for(const [key,receiver] of [['passing',false],['puckControl',true],['composure',false]]){
   const low=outcomes(key,3,receiver),high=outcomes(key,19,receiver);assert.ok(high>low,`${key}: ${low} -> ${high}`);
@@ -125,8 +125,8 @@ test('Positioning and work rate block shots on the actual lane, including close 
  const {m,a}=setup(),d=m.skaters(1)[0];a.x=43;a.y=15;d.x=44;d.y=15;
  const open=m.shotModel(a).block;d.y=23;assert.ok(m.shotModel(a).block<open);d.y=15;
  for(const key of ['positioning','workRate']){d.player.attributes[key]=3;const low=m.shotModel(a).block;d.player.attributes[key]=19;assert.ok(m.shotModel(a).block>low);}
- m.random=()=>0;m.puck={x:a.x,y:a.y};m.shoot(a);assert.equal(m.flight.shot.outcome,'block');assert.equal(m.flight.shot.blockerId,d.id);
- assert.equal(m.flight.end.x,d.x);m.resolveFlight(10);assert.equal(m.stats[1].blocks,1);
+ m.random=()=>0;m.puck={x:a.x,y:a.y};m.shoot(a);assert.equal(m.flight.shot.outcome,null);assert.equal(m.flight.shot.blockerId,null);
+ m.resolveFlight(10);assert.equal(m.stats[1].blocks,1);assert.equal(m.lastShot.blockerId,d.id);assert.ok(distance(m.puck,d)<=.86,'block occurs at actual stick reach');
 });
 
 test('Discipline reduces called penalties in the same repeated close defensive challenges',()=>{
@@ -142,7 +142,7 @@ test('Discipline reduces called penalties in the same repeated close defensive c
 test('PP takes an open immediate shot, while a crowded blue-line carrier circulates the puck',()=>{
  const {m,a,g}=setup();m.penalty={side:1,remaining:100,name:'Test'};m.attackPasses=0;m.setupTime=0;m.phaseTime=0;
  a.x=52;a.y=15;Object.assign(g,m.goalieTarget(1,a));m.puck={x:a.x,y:a.y};m.random=()=>0;
- m.decide();assert.equal(m.flight.kind,'shot');assert.equal(m.attackPasses,0);
+ m.decide();assert.ok(a.shotPreparation);assert.equal(m.flight,null);m.step();m.step();assert.equal(m.flight.kind,'shot');assert.equal(m.attackPasses,0);
  m.flight=null;m.carrier=a.id;a.x=42;a.y=6;m.puck={x:a.x,y:a.y};m.decide();assert.notEqual(m.flight?.kind,'shot');
 });
 

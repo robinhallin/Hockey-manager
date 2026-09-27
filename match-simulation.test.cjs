@@ -16,7 +16,7 @@ test('A whole period preserves player counts, puck ownership, bounded motion and
         assert.equal(m.skaters(side).length,m.penalty?.side===side?4:5);
         assert.equal(m.actors.filter(a=>a.side===side&&a.role==='G').length,1);
       }
-      if(m.carrier){const carrier=m.actor(m.carrier);assert.ok(carrier,'the puck carrier cannot disappear on a change');assert.equal(carrier.side,m.owner);assert.ok(distance(carrier,m.puck)<.001);}
+      if(m.carrier){const carrier=m.actor(m.carrier);assert.ok(carrier,'the puck carrier cannot disappear on a change');assert.equal(carrier.side,m.owner);assert.ok(distance(carrier,m.puck)<(carrier.controlContact?.remaining>0?1.16:.001),'puck stays within the receiving blade reach or on the settled skating anchor');}
       assert.ok(Number.isFinite(m.puck.x)&&Number.isFinite(m.puck.y));
       for(const a of m.actors){
         assert.ok(Number.isFinite(a.x)&&Number.isFinite(a.y)&&a.x>=1&&a.x<=59&&a.y>=.6&&a.y<=29.4);
@@ -108,8 +108,8 @@ test('A blocked passing lane gives possession to its actual interceptor, and zon
   const m=new Match(rosters,{scenario:'attack'}),a=m.skaters(0)[0],b=m.skaters(0)[1],defender=m.skaters(1)[0];
   for(const d of m.skaters(1)){d.x=56;d.y=28;}
   a.x=43;a.y=5;b.x=50;b.y=22;b.vx=0;b.vy=0;defender.x=46.5;defender.y=13.5;
-  m.carrier=a.id;m.puck={x:a.x,y:a.y};m.random=()=>.999;m.pass(a,b);
-  assert.equal(m.flight.kind,'intercept');assert.equal(m.flight.to,defender.id);
+  m.carrier=a.id;m.puck={x:a.x,y:a.y};m.random=()=>0;m.pass(a,b);
+  assert.equal(m.flight.kind,'pass');assert.equal(m.flight.to,b.id);
   m.resolveFlight(5);assert.equal(m.carrier,defender.id);assert.equal(m.owner,1);
   const offside=new Match(rosters,{scenario:'rush'}),carrier=offside.actor(offside.carrier),early=offside.skaters(0).find(p=>p.id!==carrier.id);
   carrier.x=39.98;carrier.vx=4;carrier.y=7;early.x=45;early.y=25;offside.puck={x:carrier.x,y:carrier.y};

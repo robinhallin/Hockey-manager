@@ -180,7 +180,7 @@ test('joint lengths and two-handed stick grip hold through real skating, passes 
     assert.ok(Math.abs(separation(p.heel,arm.hand)+separation(arm.hand,p.shaftTop)-1.38)<1e-6,'gloves stay on the straight shaft');
    }
    assert.ok(Math.abs(separation(p.heel,p.shaftTop)-1.38)<1e-6);assert.ok(p.feet.every(foot=>foot[1]>=.12));
-   if(a.id===frame.carrier)assert.ok(separation(p.blade,[frame.puck.x,.08,frame.puck.y])<1e-6,'carried puck stays on the blade');
+   if(a.id===frame.carrier&&!p.windup)assert.ok(separation(p.blade,[frame.puck.x,.08,frame.puck.y])<1e-6,'carried puck stays on the blade outside the recorded backswing');
   }
  }
  assert.ok(poses>1000);for(const state of ['skating','gliding','backward','braking','crossover'])assert.ok(states.has(state),state+' occurs in a real sequence');
