@@ -9,8 +9,19 @@ function finish(m){let ticks=0;while(!m.finished&&ticks++<20000)m.step();assert.
 test('A whole period preserves player counts, puck ownership, bounded motion and the event ledger',()=>{
   for(const scenario of ['period','attack','rush','pp','pk','change']){
     const m=new Match(rosters,{scenario});let previous=m.actors.map(a=>({...a})),lastPhase=m.phase;
+    const chooseAction=m.chooseAction;
+    m.chooseAction=function(a){
+      const choice=chooseAction.call(this,a);
+      if(choice.kind==='shoot'&&this.hasPowerPlay(a.side)){
+        // Judge the decision when the player commits. Momentum can narrow the
+        // angle during the windup; release geometry still determines the shot.
+        const c=this.shotContext(a),open=c.d<11&&c.angle<.6&&c.pressure<.45;
+        assert.ok(c.oneTimer||c.rebound||open||this.attackPasses>=2&&this.setupTime>1.2,'PP establishes its shape unless a genuine immediate chance is available');
+      }
+      return choice;
+    };
     while(!m.finished){
-      const beforePenalty=Boolean(m.penalty),wasStopped=m.stoppage>0,oldEvents=m.events.length;m.step();
+      const beforePenalty=Boolean(m.penalty),wasStopped=m.stoppage>0;m.step();
       assert.equal(new Set(m.actors.map(a=>a.id)).size,m.actors.length);
       for(const side of [0,1]){
         assert.equal(m.skaters(side).length,m.penalty?.side===side?4:5);
@@ -23,10 +34,6 @@ test('A whole period preserves player counts, puck ownership, bounded motion and
         const before=previous.find(p=>p.id===a.id);
         if(before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(distance(a,before)<.72,'normal movement cannot teleport: '+a.player.name);
         if(!before&&!wasStopped&&m.stoppage<=0&&beforePenalty===Boolean(m.penalty))assert.ok(a.y<1.5,'incoming replacement enters at the actual bench gate');
-      }
-      if(m.events.slice(oldEvents).some(e=>e.type==='shot')&&m.penalty?.side!==m.owner&&m.penalty){
-        const c=m.flight.shot.context,open=c.d<11&&c.angle<.6&&c.pressure<.45;
-        assert.ok(c.oneTimer||c.rebound||open||m.attackPasses>=2&&m.setupTime>1.2,'PP establishes its shape unless a genuine immediate chance is available');
       }
       previous=m.actors.map(a=>({...a}));lastPhase=m.phase;
     }
@@ -42,6 +49,20 @@ test('A whole period preserves player counts, puck ownership, bounded motion and
     assert.ok(m.latestReplay.frames.length>2);
     assert.ok(m.latestReplay.frames.at(-1).time>=m.latestReplay.shot.time);
   }
+});
+
+test('A committed PP shot uses the release geometry after momentum narrows the initial opening',()=>{
+  const m=new Match(rosters,{scenario:'pp'});m.stoppage=0;m.pendingFaceoff=false;m.time=m.wall=20;m.phase='attack';m.attackPasses=m.setupTime=0;m.random=()=>0;
+  for(const b of m.skaters(0))Object.assign(b,{x:42,y:3,vx:0,vy:0});
+  for(const b of m.skaters(1))Object.assign(b,{x:58,y:26,vx:0,vy:0});
+  const a=m.skaters(0).find(a=>a.role==='C');Object.assign(a,{x:51.21,y:18.29,vx:4,vy:0});
+  m.owner=0;m.carrier=a.id;m.puck={x:a.x,y:a.y};m.flight=null;
+  const initial=m.shotContext(a);assert.ok(initial.d<11&&initial.angle<.6&&initial.pressure<.45);
+  m.decide();assert.ok(a.shotPreparation);assert.equal(m.flight,null);
+  m.step();m.step();
+  assert.equal(m.flight?.kind,'shot');assert.ok(m.flight.shot.context.angle>.6);
+  assert.deepEqual(m.flight.shot.context,m.shotContext(a),'the shot resolves from its actual release location');
+  assert.equal(m.attackPasses,0);assert.equal(m.setupTime,0);
 });
 
 test('The same fixed-step inputs produce the same match independent of rendering and snapshots',()=>{
