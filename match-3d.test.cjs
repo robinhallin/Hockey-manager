@@ -214,8 +214,11 @@ test('interpolation wraps facing through pi and waits for the recorded release t
  assert.ok(renderer.pose(middle,middle.actors[0]).release>.9);
 });
 test('replay keeps observed recovery frames immutable and motion survives save/reload',()=>{
- const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{scenario:'attack',duration:60});
- while(!m.latestReplay)m.step();const first=m.latestReplay,original=JSON.stringify(first),ended=first.frames.at(-1).wall;
+ const {Match}=require('./match-simulation'),m=new Match(require('./match-lab-rosters'),{scenario:'attack',duration:180});
+ // A physical board bounce can delay the first shot beyond a one-minute
+ // fixture. Stop at full time so a missing replay fails instead of hanging.
+ while(!m.latestReplay&&!m.finished)m.step();assert.ok(m.latestReplay,'a completed shot supplies the recovery replay');
+ const first=m.latestReplay,original=JSON.stringify(first),ended=first.frames.at(-1).wall;
  for(let i=0;i<4;i++)m.step();
  assert.equal(JSON.stringify(first),original);assert.equal(m.latestReplay.shot,first.shot);assert.ok(m.latestReplay.frames.at(-1).wall>ended);
  assert.ok(m.latestReplay.frames.length<=70);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
