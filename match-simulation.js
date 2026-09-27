@@ -1300,13 +1300,9 @@ const StudioHockey = (() => {
         for(let left=h,contacts=0;left>1e-9&&contacts<8;){
           let speed=Math.hypot(v.x,v.y);
           const airborne=(this.puck.z||0)>0||Math.abs(v.z||0)>.45;
-          if(speed<=.12){
-            if(!airborne){rest();return;}
-            const vertical=puckVertical({z:this.puck.z||0,vz:v.z||0},left);this.puck.z=vertical.z;v.z=vertical.vz;
-            if(vertical.bounces)this.effect('ice',this.owner,.3);break;
-          }
+          if(speed<=.12&&!airborne){rest();return;}
           const target=this.rimPath?.[0];let step=left;
-          if(target){
+          if(target&&speed>1e-9){
             const d=distance(this.puck,target);if(d<1e-7){this.rimPath.shift();continue;}
             const ux=(target.x-this.puck.x)/d,uy=(target.y-this.puck.y)/d;
             const loss=.85+.15*clamp((v.x*ux+v.y*uy)/speed,-1,1);v.x=ux*speed*loss;v.y=uy*speed*loss;speed*=loss;
@@ -1314,11 +1310,11 @@ const StudioHockey = (() => {
           }
           const next=Math.max(0,speed-1.8*step),travel=(speed+next)*.5*step,before={...this.puck};
           const initial={z:before.z||0,vz:v.z||0},vertical=puckVertical(initial,step);
-          const end={x:before.x+v.x/speed*travel,y:before.y+v.y/speed*travel,z:vertical.z},contact=puckSurfaceContact(before,end);
-          const travelled=travel*(contact?.t??1),spent=contact?Math.min(step,2*travelled/Math.max(.001,speed+Math.sqrt(Math.max(0,speed*speed-3.6*travelled)))):step;
+          const end={x:before.x+(speed?v.x/speed*travel:0),y:before.y+(speed?v.y/speed*travel:0),z:vertical.z},contact=puckSurfaceContact(before,end);
+          const travelled=travel*(contact?.t??1),spent=contact?(travel>1e-9?Math.min(step,2*travelled/Math.max(.001,speed+Math.sqrt(Math.max(0,speed*speed-3.6*travelled)))):step*contact.t):step;
           const flight=puckVertical(initial,spent),fraction=contact?.t??1;
           this.puck={x:before.x+(end.x-before.x)*fraction,y:before.y+(end.y-before.y)*fraction,z:flight.z};
-          const scale=Math.max(0,speed-1.8*spent)/speed;v.x*=scale;v.y*=scale;v.z=flight.vz;
+          const scale=speed?Math.max(0,speed-1.8*spent)/speed:0;v.x*=scale;v.y*=scale;v.z=flight.vz;
           if(flight.bounces)this.effect('ice',this.owner,.3);
           if(this.checkIcing(before))return;
           left-=spent;

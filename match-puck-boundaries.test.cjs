@@ -33,6 +33,17 @@ test('loose pucks use the same net surfaces, retain remaining impact time and ne
  const p=setup();p.actors=[];p.carrier=null;p.puck={x:57,y:13,z:0};p.puckVelocity={x:0,y:10,z:0};
  p.moveFreePuck(.2);assert.ok(p.puck.y<14.08);assert.ok(p.puckVelocity.y<0);assert.ok(Math.hypot(p.puckVelocity.x,p.puckVelocity.y)<10);
 });
+test('a vertically falling puck hits either net roof even without horizontal speed',()=>{
+ for(const side of [0,1])for(const horizontal of [0,.05]){
+  const m=setup(side);m.actors=[];m.carrier=null;m.puck={x:H.progress(side,57),y:15,z:1.8};m.puckVelocity={x:horizontal,y:0,z:0};
+  for(let i=0;i<16;i++){
+   m.moveFreePuck(.05);const depth=H.progress(side,m.puck.x)-56.5,roof=1.22-.32*depth/1.25;
+   assert.ok(depth>=0&&depth<=1.25);assert.ok(m.puck.z>=roof+.02,'the puck remains above the physical roof');
+   assert.ok(Object.values(m.puck).every(Number.isFinite));
+  }
+  assert.ok(m.effects.some(e=>e.kind==='stick'),'a net contact is observed');
+ }
+});
 test('surface continuation survives serialization and identical fixed-step subdivision',()=>{
  const make=()=>{const m=setup();delete m.random;m.actors=[];m.carrier=null;m.puck={x:56,y:3,z:.3};m.puckVelocity={x:18,y:-4,z:1};return m;};
  const a=make(),b=make();for(let i=0;i<15;i++){a.moveFreePuck(.1);b.moveFreePuck(.05);b.moveFreePuck(.05);}assert.deepEqual(a.puck,b.puck);assert.deepEqual(a.puckVelocity,b.puckVelocity);assert.equal(a.rng,b.rng);
