@@ -3,14 +3,17 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
 function boot(saved,options={}){
-  const storage={value:saved,extra:{}},nodes=new Map(),events={};
+  const storage={value:saved,extra:{}},nodes=new Map(),events={},listeners={};
+  // A browser keeps every listener. Audio activation and Escape navigation
+  // must coexist instead of replacing each other in the test environment.
+  const listen=(key,handler)=>{(listeners[key]??=[]).push(handler);events[key]=event=>{for(const fn of listeners[key].slice())fn(event);};};
   const node=()=>{const classes=new Set();return {innerHTML:'',textContent:'',attrs:{},style:{},scrollTop:0,inert:false,
     classList:{toggle(k,value){const on=value??!classes.has(k);if(on)classes.add(k);else classes.delete(k);return on;},contains:k=>classes.has(k)},
     setAttribute(k,v){this.attrs[k]=v;},addEventListener(){},focus(){this.focused=true;},scrollIntoView(options){this.scrolledIntoView=options;}};};
   const get=k=>{if(!nodes.has(k))nodes.set(k,node());return nodes.get(k);};
   const context=vm.createContext({Intl,Math,Date,console,setTimeout:()=>0,clearTimeout(){},...(options.window?{window:options.window}:{}),
     localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value??null:storage.extra[k]??null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;},removeItem:k=>{if(k==='hockey_manager_alpha02')storage.value=null;else delete storage.extra[k];}},
-    document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:(key,handler)=>events[key]=handler}});
+    document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:listen}});
   // Use the actual entrypoint order so this suite also catches missing modules.
   for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
   if(!options.production)vm.runInContext(require('./competitive-career-fixture.cjs'),context);

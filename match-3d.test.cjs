@@ -73,6 +73,35 @@ test('rounded models have finite geometry and a bounded mesh budget for a real o
  assert.ok(mesh.every(Number.isFinite));assert.equal(JSON.stringify(frame),snapshot);
  for(let i=0;i<mesh.length;i+=9)assert.ok(mesh[i+1]>=-.001&&mesh[i+1]<2.5,'vertices remain near player height');
 });
+test('puck height and observed save actions interpolate without exposing a future save or crowd response',()=>{
+ const a={id:'g',side:1,role:'G',x:55,y:15,vx:0,vy:0},before={time:10,wall:10,phase:'attack',puck:{x:52,y:15,z:.2},actors:[a],effects:[]};
+ const next={...before,time:10.2,wall:10.2,puck:{x:54,y:15,z:.8},actors:[{...a,keeperAction:{kind:'save',style:'glove',at:10.15,contact:{x:54,y:15,z:.8},origin:{x:55,y:15},facing:Math.PI}}],effects:[{id:1,kind:'save',side:1,at:10.15}]};
+ const sample=renderer.sample(next,before,.5);assert.equal(sample.puck.z,.5);assert.equal(sample.actors[0].keeperAction,null);assert.equal(sample.effects.length,0);assert.equal(renderer.crowdReaction(sample,1),0);
+ const after=renderer.sample(next,before,1);assert.equal(after.actors[0].keeperAction.kind,'save');assert.equal(after.effects.length,1);
+});
+test('keeper glove, blocker, butterfly and stick saves recover from actual contact while pause freezes the pose',()=>{
+ const {Match}=require('./match-simulation'),rosters=require('./match-lab-rosters'),seen=new Set();
+ for(const placement of [.005,.20,.65,.85]){
+  const m=new Match(rosters,{scenario:'attack'});m.time=m.wall=20;m.stoppage=0;
+  for(const a of m.actors)if(a.role!=='G'){a.x=30;a.y=2;}
+  const a=m.skaters(0)[0],g=m.actors.find(a=>a.side===1&&a.role==='G');Object.assign(a,{x:50,y:15});Object.assign(g,m.goalieTarget(1,a));m.puck={x:50,y:15};m.carrier=a.id;
+  const rolls=[.99,m.shotModel(a).onTarget*placement,1];m.random=()=>rolls.shift()??0;m.shoot(a);m.resolveFlight(m.flight.duration);
+  const frame=m.presentationFrame(),keeper=frame.actors.find(a=>a.id===g.id),pose=renderer.pose(frame,keeper);seen.add(pose.style);
+  assert.equal(keeper.keeperAction.kind,'save');assert.equal(JSON.stringify(renderer.pose(frame,keeper)),JSON.stringify(pose));
+  const recovery=renderer.pose({...frame,wall:20.8},keeper);assert.equal(recovery.state,'recovering');assert.ok(recovery.recovery<pose.recovery);
+  const done=renderer.pose({...frame,wall:22},keeper);assert.equal(done.recovery,0);assert.equal(done.drop,0);
+  for(const arm of pose.arms){assert.ok(arm.hand.every(Number.isFinite));assert.ok(separation(arm.shoulder,arm.hand)<=.901);}
+  const mesh=renderer.figures(frame,[]);assert.ok(mesh.every(Number.isFinite));for(let i=1;i<mesh.length;i+=9)assert.ok(mesh[i]>=-.001,'keeper equipment remains above the ice');
+ }
+ for(const style of ['stick','butterfly','glove','blocker'])assert.ok(seen.has(style),style);
+});
+test('fans react to recorded events for their own team and old frames remain quiet',()=>{
+ const f={time:10,wall:10,effects:[{id:1,kind:'goal',side:1,at:9.7}]},snapshot=JSON.stringify(f);
+ assert.ok(renderer.crowdReaction(f,1)>renderer.crowdReaction(f,0)*5);assert.equal(renderer.crowdReaction({...f,wall:9},1),0);assert.equal(renderer.crowdReaction({...f,wall:13},1),0);
+ assert.equal(renderer.crowdReaction({time:10,eventType:'goal'},1),0,'a retained caption never invents a new cheer');
+ const teams=[{primary:'#113366',color:'#ddbd55'},{primary:'#aa2222',color:'#eeeeee'}],home=renderer.crowd(f,teams,0),away=renderer.crowd(f,teams,1);
+ assert.ok(home.every(Number.isFinite)&&home.length/9<30000);assert.notDeepEqual(home,away);assert.equal(JSON.stringify(f),snapshot);
+});
 test('similar club colors receive distinguishable kit colors, including two light kits',()=>{
  for(const pair of [['#132940','#14314b'],['#eeeeee','#f1f0ef']]){
   const kits=renderer.kits(pair.map(primary=>({primary,color:'#d7b853'})));

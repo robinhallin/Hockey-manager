@@ -259,7 +259,7 @@ class CareerBroadcastMatch extends StudioHockey.Match {
   }
  }
  toJSON(){
-  const data={...this,history:[],accountingActors:undefined};
+  const data={...this,history:[],shotLeadIn:this.flight?.kind==='shot'?this.history.slice(-70):undefined,accountingActors:undefined};
   // Runtime interpolation is reproducible. Keep the last actual replay, not every frame.
   data.teams=this.teams.map(t=>({...t,forwards:t.forwards.map(p=>p.id),defense:t.defense.map(p=>p.id),goalie:t.goalie.id,
    change:t.change?{...t.change,row:{...t.change.row,player:t.change.row.player.id}}:null,
@@ -274,7 +274,7 @@ function studioEngine(){
   for(const t of e.teams){const find=id=>t.players.find(p=>samePlayerId(p.id,id));t.forwards=t.forwards.map(find);t.defense=t.defense.map(find);t.goalie=find(t.goalie);
    if(t.change)t.change.row.player=find(t.change.row.player);for(const r of t.changeQueue)r.player=find(r.player);}
   for(const a of e.actors){a.player=e.teams[a.side].players.find(p=>samePlayerId(p.id,a.player));a.shift??=state.live.energy?.players?.[String(a.player.id)]?.shift||0;}
-  e.upgrade();e.syncPenalty();e.history=[];e.capture();
+  e.upgrade();e.syncPenalty();e.history=e.shotLeadIn||[];delete e.shotLeadIn;e.capture();
  }
  return e;
 }
@@ -424,6 +424,7 @@ function studioFrame(e){return e.presentationFrame();}
 function studioShotReasons(shot){
  const c=shot.context;if(!c)return [];
  const reasons=[];
+ if(shot.miss==='high')reasons.push('Över ribban');else if(shot.saveStyle)reasons.push(({butterfly:'Butterflyräddning',glove:'Plockhandske',blocker:'Stöthandske',stick:'Klubbräddning'})[shot.saveStyle]);
  if(c.oneTimer)reasons.push('Sidledspassning och direktskott');else if(c.rebound)reasons.push('Avslut på en lös retur');else reasons.push(c.type);
  if(c.screen>.3)reasons.push('Skymd sikt');
  if(c.pressure>.5)reasons.push('Hård press på skytten');else if(c.angle>.85)reasons.push('Snäv skottvinkel');else if(c.d<8)reasons.push('Nära mål');
@@ -467,11 +468,11 @@ function studioReplayFrame(now){
 function studioMount(){
  if(typeof requestAnimationFrame!=='function'||studioRAF)return;studioRAF=true;
  const draw=now=>{
-  if(!studioActive()||state.page!=='match'){Match3D.dispose();studioRAF=false;return;}
+  if(!studioActive()||state.page!=='match'){Match3D.dispose();MatchAudio.silence();studioRAF=false;return;}
   const canvas=document.getElementById('career-ice'),e=studioEngine(),m=state.live;
-  if(!canvas?.getContext){Match3D.dispose();studioRAF=false;return;}
+  if(!canvas?.getContext){Match3D.dispose();MatchAudio.silence();studioRAF=false;return;}
   const canvas3d=document.getElementById('career-ice-3d');
-  if(canvas3d&&!canvas3d.dataset.clickBound){canvas3d.dataset.clickBound='true';canvas3d.addEventListener('click',event=>{if(studioReplayState)return;const r=canvas3d.getBoundingClientRect(),id=Match3D.pick(canvas3d,event.clientX-r.left,event.clientY-r.top),actor=studioEngine().actors.find(a=>a.id===id);if(actor){studioExpanded3D=false;pauseMatch();matchNotice(actor.player.name+' · '+actor.duty);}});}
+  if(canvas3d&&!canvas3d.dataset.clickBound){canvas3d.dataset.clickBound='true';canvas3d.addEventListener('click',event=>{if(studioReplayState)return;const r=canvas3d.getBoundingClientRect(),id=Match3D.pick(canvas3d,event.clientX-r.left,event.clientY-r.top),actor=studioEngine().actors.find(a=>a.id===id);if(actor){studioExpanded3D=false;pauseMatch();matchNotice('#'+studioFrame(studioEngine()).actors.find(a=>a.id===actor.id).number+' '+actor.player.name+' · '+actor.duty);}});}
   if(canvas!==studioCanvas){studioCanvas=canvas;canvas.addEventListener('click',event=>{
    if(studioReplayState)return;const rect=canvas.getBoundingClientRect(),fit=Math.min(rect.width/1200,rect.height/650),x=(event.clientX-rect.left-(rect.width-1200*fit)/2)/fit,y=(event.clientY-rect.top-(rect.height-650*fit)/2)/fit,scale=1112/60;
    const point={x:(x-44)/scale,y:(y-(650-30*scale)/2)/scale};const a=e.actors.find(a=>StudioHockey.distance(a,point)<1.6);
@@ -481,7 +482,9 @@ function studioMount(){
   const replay=studioReplayFrame(now);if(replay){({frame,previous,blend}=replay);}
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)blend=1;
   const hiddenRink=!studioReplayState&&(m.rink.mode==='commentary'||m.running&&!studioShouldShow(e,m));
-  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,suspended:hiddenRink});
+  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,homeSide:venue.ownHome?0:1,suspended:hiddenRink});
+  const audio=studioAudioPreferences(),replayMoving=studioReplayState&&studioReplayState.elapsed<(studioReplayState.frames.length-1)*.2;
+  MatchAudio.update(Match3D.sample(frame,previous,blend),{source:studioReplayState||e,active:!document.hidden&&!hiddenRink&&Boolean(replayMoving||!studioReplayState&&m.running&&!m.finished),volume:audio.muted?0:audio.volume,homeSide:venue.ownHome?0:1});
   canvas.style.visibility=rendered3D?'hidden':'visible';
   if(canvas3d){canvas3d.style.visibility=rendered3D?'visible':'hidden';const error=document.getElementById('match-3d-error');if(error){error.hidden=Boolean(rendered3D);error.textContent=canvas3d.dataset.error||'3D kunde inte visas. Visar 2D.';}if(!rendered3D)for(const id of ['match-3d-carrier','match-3d-puck']){const label=document.getElementById(id);if(label)label.hidden=true;}}
   if(!rendered3D&&!hiddenRink)MatchBroadcastRenderer.draw(canvas,frame,previous,blend,{teams,arena:venue.arena,homeCrest:matchIceCrest(venue.home)});
@@ -493,7 +496,7 @@ function studioMount(){
  };requestAnimationFrame(draw);
 }
 if(typeof window!=='undefined'){
- window.addEventListener('pagehide',()=>{if(studioActive()&&state.live.running){state.live.running=false;state.live.pauseReason='Matchen sparades när du lämnade spelet.';save();}});
+ window.addEventListener('pagehide',()=>{MatchAudio.silence();if(studioActive()&&state.live.running){state.live.running=false;state.live.pauseReason='Matchen sparades när du lämnade spelet.';save();}});
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&studioActive()&&state.live.running)pauseMatch('Spelet hamnade i bakgrunden.');});
 }
 
@@ -525,6 +528,11 @@ function studioRefresh(){
 function validateSpatialMatchSave(s){
  const e=s.live?.broadcast;if(!e)return;
  const bad=()=>{throw Error('Matchens spelarbeslut är felaktiga.');};
+ const height=v=>Number.isFinite(v)&&v>=0&&v<=30;
+ if(e.puck?.z!==undefined&&!height(e.puck.z))bad();
+ if(e.puckVelocity?.z!==undefined&&(!Number.isFinite(e.puckVelocity.z)||Math.abs(e.puckVelocity.z)>80))bad();
+ if(e.flight?.vertical&&(!height(e.flight.vertical.z)||!Number.isFinite(e.flight.vertical.vz)||Math.abs(e.flight.vertical.vz)>80))bad();
+ if(e.shotLeadIn!==undefined&&(!Array.isArray(e.shotLeadIn)||e.shotLeadIn.length>70||e.shotLeadIn.some(f=>!Number.isFinite(f?.time)||!Number.isFinite(f?.wall)||!Array.isArray(f.actors))))bad();
  if(e.penaltySequence!==undefined&&(!Number.isSafeInteger(e.penaltySequence)||e.penaltySequence<0))bad();
  const penaltyIds=new Set();
  for(const p of e.penalties||(e.penalty?[e.penalty]:[]))if(p.version!==undefined){

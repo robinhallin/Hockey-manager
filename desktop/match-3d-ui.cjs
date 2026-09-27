@@ -18,11 +18,21 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>studioCamera3D==='overhead');
  await page.screenshot({path:path.join(out,'32-match-3d-overblick.png'),fullPage:true});
  await require('./playback-ui.cjs')(page,out);
+ const soundBefore=await page.evaluate(()=>JSON.stringify(state.live));
+ await page.getByRole('button',{name:'Stäng av matchljud',exact:true}).click();
+ await page.waitForFunction(()=>!MatchAudio.diagnostics().active);
+ await page.getByRole('button',{name:'Slå på matchljud',exact:true}).click();
+ await page.waitForFunction(()=>MatchAudio.diagnostics().ready);
+ assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),soundBefore,'sound controls do not alter a paused match');
+ await page.getByLabel('Matchvisning',{exact:true}).selectOption('full');
  // A real live sequence updates the same engine, then pauses via ordinary control.
  await page.locator('#match-play').click();await page.waitForFunction(()=>state.live.running);
  const started=await page.evaluate(()=>studioEngine().time);
  await page.waitForFunction(t=>studioEngine().time>t+3,started);
+ await page.waitForFunction(()=>MatchAudio.diagnostics().active&&MatchAudio.diagnostics().level>.00001);
+ const audible=await page.evaluate(()=>MatchAudio.diagnostics());
  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
+ await page.waitForFunction(()=>!MatchAudio.diagnostics().active&&MatchAudio.diagnostics().voices===0&&MatchAudio.diagnostics().level<.00002);
  // Reach an actual shot in this career, using the real match loop and decisions.
  const shot=await page.evaluate(()=>{
   startMatch();let found=false;
@@ -39,11 +49,12 @@ module.exports=async function check3D(page,out){
  const motion=await page.evaluate(()=>{
   const f=studioFrame(studioEngine()),shooter=f.actors.find(a=>a.id===f.flight.from),keeper=f.actors.find(a=>a.role==='G'&&a.side!==f.flight.side);
   const pose=shooter?Match3D.pose(f,shooter):null;
-  return {shooter:!!shooter,travelled:f.actors.some(a=>a.travelled>0),release:pose?.release,keeperAngle:keeper?Match3D.pose(f,keeper).angle:null,
+  return {shooter:!!shooter,travelled:f.actors.some(a=>a.travelled>0),release:pose?.release,keeperAngle:keeper?Match3D.pose(f,keeper).angle:null,height:f.puck.z,
    action:shooter?.action?.kind,style:shooter?.action?.style,states:f.actors.filter(a=>a.role!=='G').map(a=>Match3D.pose(f,a).state),
    shaft:pose?Math.hypot(...pose.shaftTop.map((n,i)=>n-pose.heel[i])):null};
  });
  assert.ok(motion.shooter&&motion.travelled&&Number.isFinite(motion.keeperAngle));
+ assert.ok(motion.height>0,'the actual travelling shot has simulated height');
  assert.equal(motion.action,'shot');assert.ok(['wrist','slap','one-timer'].includes(motion.style));assert.ok(Math.abs(motion.shaft-1.38)<1e-6);
  require('node:fs').writeFileSync(path.join(out,'3d-motion-result.json'),JSON.stringify(motion,null,2));
  await page.screenshot({path:path.join(out,'33-match-3d-shot-follow.png'),fullPage:true});
@@ -69,6 +80,7 @@ module.exports=async function check3D(page,out){
   return {before,after,suspended,recovery};
  });
  assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
+ assert.ok(graphics.after.crowdVertices>10000&&graphics.after.crowdVertices<30000,'crowd has a separate bounded mesh');
  assert.equal(graphics.suspended.frames,graphics.after.frames,'hidden fast-forward does not draw');assert.equal(graphics.suspended.geometryBuilds,graphics.after.geometryBuilds);
  assert.equal(graphics.recovery.geometryBuilds,graphics.after.geometryBuilds+1,'stopped match clock does not freeze recorded follow-through');
  require('node:fs').writeFileSync(path.join(out,'3d-graphics-result.json'),JSON.stringify({compact,focused,graphics},null,2));
@@ -76,7 +88,7 @@ module.exports=async function check3D(page,out){
  assert.equal(await page.locator('#match-3d-zoom').innerText(),'120%');
  await page.locator('#match-3d-puck').waitFor({state:'visible'});
  await page.waitForFunction(()=>{
-  const c=document.getElementById('career-ice-3d'),r=c.getBoundingClientRect(),puck=studioFrame(studioEngine()).puck,p=Match3D.project([puck.x,.1,puck.y],Match3D.camera(r.width/r.height,studioCamera3D,puck,studioZoom3D)),m=document.getElementById('match-3d-puck').getBoundingClientRect();
+  const c=document.getElementById('career-ice-3d'),r=c.getBoundingClientRect(),puck=studioFrame(studioEngine()).puck,p=Match3D.project([puck.x,.1+(puck.z||0),puck.y],Match3D.camera(r.width/r.height,studioCamera3D,puck,studioZoom3D)),m=document.getElementById('match-3d-puck').getBoundingClientRect();
   return Math.hypot(m.x+m.width/2-r.x-p.x*r.width,m.y+m.height/2-r.y-p.y*r.height)<3;
  });
  await page.getByRole('button',{name:'Markera puck',exact:true}).click();await page.locator('#match-3d-puck').waitFor({state:'hidden'});
@@ -128,6 +140,25 @@ module.exports=async function check3D(page,out){
  await page.getByRole('button',{name:'Tillbaka till matchen',exact:true}).click();
  await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
  assert.equal(await page.getByLabel('Tempo på isen',{exact:true}).inputValue(),'1','slow replay does not change live pace');
+ // A real save drives the goalkeeper and crowd; do not manufacture a display pose.
+ const save=await page.evaluate(()=>{
+  startMatch();let keeper=null;
+  for(let i=0;i<4500&&!state.live.finished;i++){
+   if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
+   keeper=studioEngine().actors.find(a=>a.role==='G'&&a.keeperAction?.kind==='save'&&Math.abs(a.keeperAction.at-studioEngine().wall)<.001);
+   if(keeper)break;
+  }
+  if(!keeper)return null;
+  const id=keeper.id;for(let i=0;i<3;i++){if(!state.live.running)startMatch();studioStep();}
+  pauseMatch();studioExpanded3D=true;studioCamera3D='follow';render();
+  const f=studioFrame(studioEngine()),a=f.actors.find(a=>a.id===id),p=Match3D.pose(f,a);
+  return {number:a.number,action:a.keeperAction,pose:{style:p.style,state:p.state,drop:p.drop,recovery:p.recovery},height:f.puck.z||0,crowd:Match3D.crowdReaction(f,a.side)};
+ });
+ assert.ok(save?.action?.kind==='save');assert.equal(save.pose.state,'recovering');assert.ok(save.crowd>0&&save.number>0);
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.screenshot({path:path.join(out,'38-match-3d-goalie-save.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-arena-result.json'),JSON.stringify({audible,paused:await page.evaluate(()=>MatchAudio.diagnostics()),save},null,2));
+ await page.getByRole('button',{name:'Visa coachbänken',exact:true}).click();
  await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.
  await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());

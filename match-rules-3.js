@@ -23,6 +23,7 @@ function matchRule3ApplyDeflection(match,candidate){
   flight.deflectionResolved=true;
   const tip=match.actor(candidate.id),shooter=match.actor(candidate.shooterId);if(!tip||!shooter||tip.side!==shooter.side||['leaving','entering'].includes(tip.status))return false;
   const crossing={x:flight.start.x+(flight.end.x-flight.start.x)*candidate.t,y:flight.start.y+(flight.end.y-flight.start.y)*candidate.t};
+  if(flight.vertical&&StudioHockey.flightVertical(flight,flight.duration*candidate.t).z>1.17)return false;
   if(StudioHockey.distance(tip,crossing)>1.35||match.random()>=candidate.chance)return false;
   const original={id:shooter.id,name:candidate.shooterName||shooter.player.name,y:shooter.y,time:match.time},tipContext=match.shotContext(tip);
   shot.originalShooter={id:original.id,name:original.name};
