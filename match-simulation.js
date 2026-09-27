@@ -299,7 +299,7 @@ const StudioHockey = (() => {
     }
     recordKeeper(goalie,f,saved){
       if(!goalie)return;
-      goalie.keeperAction={kind:saved?'save':'attempt',at:this.wall,style:keeperStyle(goalie,this.puck,f.start),contact:{...this.puck},origin:{x:goalie.x,y:goalie.y},facing:Math.atan2(f.start.y-goalie.y,f.start.x-goalie.x)};
+      goalie.keeperAction={kind:saved?'save':'attempt',at:this.wall,style:f.shot.keeperContact?.style||keeperStyle(goalie,this.puck,f.start),contact:{...this.puck},origin:{x:goalie.x,y:goalie.y},facing:Math.atan2(f.start.y-goalie.y,f.start.x-goalie.x)};
       if(saved){f.shot.saveStyle=goalie.keeperAction.style;this.effect('save',goalie.side);}
     }
     installUnit(side){
@@ -343,7 +343,7 @@ const StudioHockey = (() => {
           const z=a===center?[.65,0]:offset[a.role];
           const p=a.role==='G'?point(side,4.4,15):{x:clamp(this.restartSpot.x+dx*z[0],2,58),y:clamp(this.restartSpot.y+z[1],2,28)};
           a.x=p.x;a.y=p.y;a.target={...p};a.vx=0;a.vy=0;a.status='playing';
-          delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;
+          delete a.keeperState;delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;
         }
       }
     }
@@ -685,6 +685,66 @@ const StudioHockey = (() => {
       const alignment=keeper?clamp(distance(keeper,this.goalieTarget(keeper.side,a))/2.5,0,1):1;
       return evaluateShot({shooter:{shooting, puckControl:control,composure:calm},keeper:keeperValues,context:c,block,alignment});
     }
+    beginKeeperRead(f){
+      const g=this.actors.find(a=>a.role==='G'&&a.side!==f.side);if(!g)return;
+      const catchSide=g.player.shoots==='R'?1:-1,previous=g.keeperState;
+      g.keeperState={at:this.wall,elapsed:0,seen:0,screen:0,drop:previous&&this.wall-previous.at<1.1?previous.drop:0,
+        facing:Math.atan2(f.start.y-g.y,f.start.x-g.x)+(20-this.attribute(g,'positioning'))*.003*Math.sin(this.time*.8+g.side*2),glove:previous&&this.wall-previous.at<1.1?{...previous.glove}:{lateral:catchSide*.53,z:.88},blocker:previous&&this.wall-previous.at<1.1?{...previous.blocker}:{lateral:-catchSide*.43,z:.78},
+        recovery:g.keeperAction?clamp(1-(this.wall-g.keeperAction.at)/1.1,0,1):0,
+        // The seeded read error affects the attempted reach, never awards a goal.
+        error:(f.shot.finishRoll-.5)*(.035+(20-this.attribute(g,'positioning'))*.012+(20-this.attribute(g,'composure'))*.006)};
+    }
+    updateKeeperPlane(f){
+      if(!f.goalLine||f.keeperPassed)return;
+      const g=this.actors.find(a=>a.role==='G'&&a.side!==f.side);if(!g?.keeperState)return;
+      const angle=g.keeperState.facing,cs=Math.cos(angle),sn=Math.sin(angle),dx=f.goalLine.x-f.start.x,dy=f.goalLine.y-f.start.y;
+      const toward=dx*cs+dy*sn;if(Math.abs(toward)<1e-8)return;
+      const total=f.duration+(f.goalDuration||0),start=(f.start.x-g.x)*cs+(f.start.y-g.y)*sn;
+      const fraction=clamp((.4-start)/toward,Math.min(1,f.elapsed/total),1);
+      // Keep the same path and velocity while the contact plane moves with the
+      // actual keeper. A retreating goalie must not be judged before arrival.
+      f.duration=Math.max(.001,total*fraction);f.goalDuration=Math.max(0,total-f.duration);
+      f.end={x:f.start.x+dx*fraction,y:f.start.y+dy*fraction,z:flightVertical(f,f.duration).z};
+    }
+    readKeeper(f,dt){
+      const g=this.actors.find(a=>a.role==='G'&&a.side!==f.side);if(!g)return;
+      if(!g.keeperState)this.beginKeeperRead(f);const s=g.keeperState;
+      const sight=this.skaters(0).concat(this.skaters(1)).filter(a=>a.id!==f.shot.playerId).reduce((n,a)=>{const ray=segmentDistance(a,g,this.puck);return ray.t>.07&&ray.t<.95&&ray.d<.36?n+1:n;},0);
+      s.screen=Math.min(1,sight*.55);s.elapsed+=dt;s.seen+=dt*(1-s.screen*.8);
+      const delay=.055+(20-this.attribute(g,'reflexes'))*.004+(20-this.attribute(g,'composure'))*.0015+s.recovery*.08;
+      const active=Math.max(0,Math.min(dt,s.seen-delay));
+      if(!active)return;
+      // Estimate from visible puck velocity. Deflections force a fresh read of
+      // the new path; no access to the finish roll or intended goal location.
+      const vx=(f.end.x-f.start.x)/f.duration,vy=(f.end.y-f.start.y)/f.duration;
+      const cs=Math.cos(s.facing),sn=Math.sin(s.facing),forward=(this.puck.x-g.x)*cs+(this.puck.y-g.y)*sn,closing=vx*cs+vy*sn;
+      const arrival=clamp((.4-forward)/(closing||.001),0,.8);
+      const end={x:this.puck.x+vx*arrival,y:this.puck.y+vy*arrival},vertical=flightVertical(f,Math.min(f.duration,f.elapsed+arrival));
+      const lateral=-(end.x-g.x)*Math.sin(s.facing)+(end.y-g.y)*Math.cos(s.facing)+s.error;
+      const z=vertical.z+.025,move=this.attribute(g,'movement'),rate=3.2+this.attribute(g,'reflexes')*.075;
+      s.drop=clamp(s.drop+(z<.53?1:-1)*active*(3.3+move*.07),0,1);
+      for(const [key,sign] of [['glove',g.player.shoots==='R'?1:-1],['blocker',g.player.shoots==='R'?-1:1]]){
+        const hand=s[key],targetL=clamp(lateral,sign<0?-.93:.12,sign<0?-.12:.93),targetZ=clamp(z,.34,1.48);
+        const dl=targetL-hand.lateral,dz=targetZ-hand.z,length=Math.hypot(dl,dz),step=Math.min(1,active*rate/Math.max(.001,length));
+        hand.lateral+=dl*step;hand.z+=dz*step;
+      }
+    }
+    keeperContact(g,puck){
+      if(!g||!g.keeperState)return null;
+      const s=g.keeperState,lateral=-(puck.x-g.x)*Math.sin(s.facing)+(puck.y-g.y)*Math.cos(s.facing),z=(puck.z||0)+.025;
+      const forward=(puck.x-g.x)*Math.cos(s.facing)+(puck.y-g.y)*Math.sin(s.facing);
+      if(Math.abs(forward)>.95)return null;
+      const drop=s.drop,bodyBottom=.50-drop*.27,bodyTop=1.48-drop*.40;
+      if(z<.13&&Math.abs(lateral)<.34+drop*.16)return {style:'stick',lateral,z};
+      if(Math.abs(lateral)<.34&&z>=bodyBottom&&z<=bodyTop)return {style:z<.55?'butterfly':'body',lateral,z};
+      // Pads spread as the actual butterfly develops. The five-hole closes last.
+      const padWidth=.19+drop*.25,padCenter=.23+drop*.19;
+      if(z<.61-drop*.12&&Math.min(Math.abs(lateral-padCenter),Math.abs(lateral+padCenter))<padWidth)return {style:'butterfly',lateral,z};
+      for(const [key,rx,rz] of [['glove',.245,.27],['blocker',.21,.24]]){
+        const hand=s[key];if(((lateral-hand.lateral)/rx)**2+((z-hand.z)/rz)**2<=1)return {style:key,lateral,z};
+      }
+      return null;
+    }
     shotQuality(a){return this.shotModel(a).quality;}
     pass(a,b){
       this.rebound=null;
@@ -715,7 +775,8 @@ const StudioHockey = (() => {
       const blockRoll=this.random(),targetRoll=this.random(),finishRoll=this.random();
       let outcome=targetRoll>model.onTarget?'wide':null;
       const placement=clamp(targetRoll/Math.max(.01,model.onTarget),0,1);
-      goal.y=15+Math.sin(placement*Math.PI*4)*.86;
+      const placementWidth=clamp(.72+this.attribute(a,'shooting')*.008,.74,.87);
+      goal.y=15+Math.sin(placement*Math.PI*4)*placementWidth;
       goal.z=.04+placement*1.04;
       let end={...goal},miss=null;
       if(outcome==='wide'){
@@ -739,7 +800,8 @@ const StudioHockey = (() => {
         goalLine={...goal};end={x:a.x+(goal.x-a.x)*fraction,y:a.y+(goal.y-a.y)*fraction};duration=fullDuration*fraction;goalDuration=fullDuration-duration;
       }
       end.z=puckVertical(vertical,duration).z;
-      this.flight={kind:'shot',contactVersion:1,contactRoll:blockRoll,start:{...this.puck},end,vertical,goalLine,goalDuration,velocity,elapsed:0,duration,shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
+      this.flight={kind:'shot',keeperVersion:2,contactVersion:1,contactRoll:blockRoll,start:{...this.puck},end,vertical,goalLine,goalDuration,velocity,elapsed:0,duration,shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
+      this.beginKeeperRead(this.flight);this.updateKeeperPlane(this.flight);
       this.recordAction(a,'shot',end,context.oneTimer?'one-timer':context.type==='Slagskott'?'slap':'wrist');
       const reason=context.oneTimer?' möter sidledspassningen med ett direktskott!':context.rebound?' hugger på returen!':context.screen>.3?' skjuter genom trafiken framför mål!':context.pressure>.5?' avslutar under hård press!':context.d<8?' avslutar från slottet!':' skjuter'+(context.angle>.65?' ur snäv vinkel!':' från distans!');
       this.say('shot',a.player.name+reason,a.side,true);return true;
@@ -842,6 +904,7 @@ const StudioHockey = (() => {
       }
     }
     advanceFlight(dt){
+      if(this.flight?.keeperVersion===2&&!this.flight.keeperPassed){this.updateKeeperPlane(this.flight);this.readKeeper(this.flight,Math.min(dt,this.flight.duration-this.flight.elapsed));}
       const f=this.flight;if(!f)return;
       const before={...this.puck};
       const oldElapsed=f.elapsed,left=Math.max(0,f.elapsed+dt-f.duration);
@@ -905,13 +968,14 @@ const StudioHockey = (() => {
         }else{this.setPhase('loose');this.lastTouches=[];this.looseTime=0;this.say('loose','Passningen bryts. Båda lagen söker pucken.',f.side);}
       }else if(f.kind==='shot'){
         const shot=f.shot;
-        if(shot.liveResolution&&shot.outcome===null){
+        if(shot.liveResolution&&shot.outcome===null&&!f.keeperVersion){
           const player=this.teams[f.side].players.find(p=>f.side+':'+p.id===shot.playerId);
           const shooter={side:f.side,id:shot.playerId,role:shot.role||this.actor(shot.playerId)?.role,player,x:shot.x,y:shot.y};
           const model=this.shotModel(shooter,shot.context);
           shot.quality=(1-shot.blockChance)*shot.onTargetChance*model.goalChance;shot.outcome=finishShot(model,shot.finishRoll);shot.alignment=model.alignment;
         }
         const goalie=this.actors.find(a=>a.side!==f.side&&a.role==='G');
+        if(f.keeperVersion===2&&shot.outcome===null){const contact=this.keeperContact(goalie,this.puck);shot.outcome=contact?'save':'goal';shot.keeperContact=contact;shot.keeperRead=goalie?.keeperState?{seen:goalie.keeperState.seen,screen:goalie.keeperState.screen,drop:goalie.keeperState.drop}:null;shot.alignment=goalie?clamp(distance(goalie,this.goalieTarget(goalie.side,f.start))/2.5,0,1):1;}
         if(f.vertical&&shot.outcome!=='block'&&!['post','bar'].includes(shot.contact?.kind)){
           const target=f.keeperPassed?this.puck:f.goalLine||this.puck;
           if((target.z||0)>1.17||Math.abs(target.y-15)>.87){shot.outcome='wide';shot.miss=(target.z||0)>1.17?'high':'wide';}
@@ -1132,6 +1196,7 @@ const StudioHockey = (() => {
           ...(a.motion?{motion:{...a.motion}}:{}),
           ...(a.shotPreparation?{windup:{...a.shotPreparation,target:{...a.shotPreparation.target}}}:{}),
           ...(a.contactAction&&this.wall-a.contactAction.at<1.3?{contactAction:{...a.contactAction,spot:{...a.contactAction.spot}}}:{}),
+          ...(a.keeperState?{keeperState:{at:a.keeperState.at,drop:a.keeperState.drop,facing:a.keeperState.facing,glove:{...a.keeperState.glove},blocker:{...a.keeperState.blocker}}}:{}),
           ...(a.keeperAction&&this.wall-a.keeperAction.at<1.6?{keeperAction:{...a.keeperAction,contact:{...a.keeperAction.contact},origin:{...a.keeperAction.origin}}}:{}),
           ...(a.presentationAction&&this.wall-a.presentationAction.at<1?{action:{...a.presentationAction,origin:{...a.presentationAction.origin},target:{...a.presentationAction.target}}}:{})})),
         flight:f?{kind:f.kind,start:{...f.start},end:{...f.end},from:f.from??f.shot?.playerId??null,to:f.to??null,side:f.side,elapsed:f.elapsed,duration:f.duration}:null};

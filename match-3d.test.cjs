@@ -18,7 +18,7 @@ test('selecting camera and presentation preserves match engine and career save',
  const before=app.run('JSON.stringify(state.live)');
  app.run("studioSetVisual('3d');studioSetCamera('overhead');studioSetVisual('2d');");
  assert.equal(app.run('JSON.stringify(state.live)'),before);
- assert.ok(app.run("studioView().includes('3D · test')"));
+ assert.ok(app.run("studioView().includes('>3D</option>')"));
 });
 
 test('skating uses real travelled distance; paused/stationary poses do not pedal',()=>{

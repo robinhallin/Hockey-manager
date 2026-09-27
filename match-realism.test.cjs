@@ -16,7 +16,7 @@ function sampledShots(key,value,{goalie=false,n=4000}={}){
  const {m,a,g}=setup();(goalie?g:a).player.attributes[key]=value;
  let goals=0,sog=0;
  for(let i=0;i<n;i++){
-  seed(m,i);m.carrier=a.id;m.puck={x:a.x,y:a.y};m.stoppage=0;m.lastTouches=[];m.rebound=null;m.battle=null;
+  seed(m,i);delete g.keeperState;delete g.keeperAction;Object.assign(g,m.goalieTarget(1,a));m.carrier=a.id;m.puck={x:a.x,y:a.y};m.stoppage=0;m.lastTouches=[];m.rebound=null;m.battle=null;
   m.shoot(a);const shot=m.flight.shot;m.resolveFlight(10);
   goals+=shot.outcome==='goal';sog+=['goal','save'].includes(shot.outcome);
  }

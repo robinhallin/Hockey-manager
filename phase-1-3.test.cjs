@@ -15,8 +15,8 @@ r('calendarStep(true)');
 assert.equal(r('managerLifePreviousDay().value'),r('latestActivity'),'a rest day must not erase the latest completed activity');
 
 // 2. The puck must reach a real teammate before a deflection can change scorer and ledger.
-// Save before the puck reaches the stick: reload must preserve the same pending spatial event.
-r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;e.rng=4440;e.shoot(s);globalThis.shot=e.flight.shot;shot.finishRoll=0;save()");
+// Put the keeper outside the lane, then save before the puck reaches the stick: reload must preserve the same pending spatial event.
+r("state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.s=e.skaters(0).find(a=>a.role==='LD')||e.skaters(0)[0];globalThis.tip=e.skaters(0).find(a=>a!==s&&!a.role.endsWith('D'))||e.skaters(0).find(a=>a!==s);Object.assign(s,{x:44,y:15});Object.assign(tip,{x:53,y:15});for(const d of e.skaters(1))Object.assign(d,{x:35,y:d.y});e.puck={x:s.x,y:s.y};e.owner=0;e.carrier=s.id;e.stoppage=0;e.rng=4440;e.shoot(s);globalThis.shot=e.flight.shot;e.actors.find(a=>a.side===1&&a.role==='G').y=22;save()");
 assert.equal(r('shot.context.deflection'),undefined,'release alone must not award the tip');
 assert.ok(r('e.flight.deflectionCandidate'),'a spatial candidate must be serialized with the travelling shot');
 const tipped=boot(office.storage.value),t=tipped.run;
