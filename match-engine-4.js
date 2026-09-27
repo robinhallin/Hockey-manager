@@ -32,7 +32,7 @@
         if(p<47&&c.d>14)row.value-=decisions*.035;
       }
       if(row.kind==='pass')row.value+=passing*.055+vision*.05+decisions*.03+composure*pressure*.025;
-      const pattern=this.teams[a.side].attackPattern,planned=pattern&&(pattern.stage?pattern.origin:pattern.receiver);
+      const pattern=this.teams[a.side].attackPattern,planned=pattern?.receiver;
       if(row.kind==='pass'&&row.to===planned){const receiver=this.actor(row.to);if(receiver&&this.laneRisk(a,receiver)<.45){row.value+=.035*this.attribute(a,'decisions')/20;row.reason='Söker nästa passning i lagets pågående kombination';}}
       if(row.kind==='carry')row.value+=control*.055+skating*.035+decisions*.02+control*pressure*.025;
       if(row.kind==='shield')row.value+=control*.05+strength*.045+composure*.035;
@@ -151,51 +151,116 @@
   proto.resolveFlight=function(dt){const f=this.flight,was=Boolean(f?.kind==='dump'&&f.matchEngine4Rim),side=f?.side,lane=f?.dumpLane;baseResolveFlight.call(this,dt);if(!was||this.flight||this.carrier||this.stoppage||!this.puckVelocity||!this.rimPath?.length)return;const low=lane==='low';this.rimPath=[{x:StudioHockey.progress(side,59),y:low?5.5:24.5},{x:StudioHockey.progress(side,58.7),y:low?24.5:5.5},{x:StudioHockey.progress(side,54),y:low?29:1},{x:StudioHockey.progress(side,47),y:low?28.7:1.3}];this.puckVelocity.x*=.82;this.puckVelocity.y*=.82;};
 
   // Loose-puck races now target where the puck is going, not only where it was.
-  proto.targets=function(){baseTargets.call(this);this.collectiveTargets();this.patternTargets();if(this.carrier||this.flight||this.battle)return;const v=this.puckVelocity||{x:0,y:0},speed=Math.hypot(v.x,v.y),look=clamp(.35+speed*.035,.35,1.15),future={x:clamp(this.puck.x+v.x*look,1,59),y:clamp(this.puck.y+v.y*look,1,29)};for(const side of [0,1]){const candidates=this.skaters(side).filter(a=>a.status!=='leaving').map(a=>{const pace=3.1+this.attribute(a,'skating')*.09,read=(this.attribute(a,'positioning')*.45+this.attribute(a,'decisions')*.3+this.attribute(a,'workRate')*.25)/20,eta=StudioHockey.distance(a,future)/Math.max(1,pace)-read*.32;return {a,eta,read};}).sort((x,y)=>x.eta-y.eta);const first=candidates[0];if(first){const lead=clamp(first.read*.55,0,.55);this.assign(first.a,{x:clamp(future.x+v.x/Math.max(1,speed)*lead,1,59),y:clamp(future.y+v.y/Math.max(1,speed)*lead,1,29)},speed>1.2?'Läser puckbanan och attackerar nästa sargpunkt':'Jagar den lösa pucken');}}};
-  // A short-lived shared intention survives a pass, but never a turnover,
-  // stoppage, manpower change or substitution of a required participant.
+  proto.targets=function(){baseTargets.call(this);this.collectiveTargets();this.patternTargets();if(this.carrier||this.flight||this.battle){this.specialTeamsTargets();return;}const v=this.puckVelocity||{x:0,y:0},speed=Math.hypot(v.x,v.y),look=clamp(.35+speed*.035,.35,1.15),future={x:clamp(this.puck.x+v.x*look,1,59),y:clamp(this.puck.y+v.y*look,1,29)};for(const side of [0,1]){const candidates=this.skaters(side).filter(a=>a.status!=='leaving').map(a=>{const pace=3.1+this.attribute(a,'skating')*.09,read=(this.attribute(a,'positioning')*.45+this.attribute(a,'decisions')*.3+this.attribute(a,'workRate')*.25)/20,eta=StudioHockey.distance(a,future)/Math.max(1,pace)-read*.32;return {a,eta,read};}).sort((x,y)=>x.eta-y.eta);const first=candidates[0];if(first){const lead=clamp(first.read*.55,0,.55);this.assign(first.a,{x:clamp(future.x+v.x/Math.max(1,speed)*lead,1,59),y:clamp(future.y+v.y/Math.max(1,speed)*lead,1,29)},speed>1.2?'Läser puckbanan och attackerar nästa sargpunkt':'Jagar den lösa pucken');}}this.specialTeamsTargets();};
+  // Retain the same attack, but reread actual coverage instead of prescribing
+  // its next two touches. Skill governs read latency and attention to lane risk.
+  proto.patternRoute=function(carrier,plan){
+    const side=carrier.side,p=StudioHockey.progress(side,carrier.x),lane=carrier.y<15?-1:1;
+    const preferred=this.hasPowerPlay(side)?'diagonal':p>51&&(carrier.y<9||carrier.y>21)?'low-high':carrier.y<9||carrier.y>21?'cycle':'give-go';
+    const reading=(this.attribute(carrier,'vision')+this.attribute(carrier,'decisions'))/40;
+    const options=[];
+    for(const a of this.skaters(side).filter(a=>a.id!==carrier.id&&a.status==='playing')){
+      const kinds=a.role.endsWith('D')?['low-high']:['cycle','diagonal','give-go'];
+      for(const kind of kinds){
+        if(kind==='cycle'&&p<47)continue;
+        const x=kind==='low-high'?44.5:kind==='cycle'?57.2:kind==='diagonal'?49.5:clamp(p+2.5,46,53);
+        const y=kind==='low-high'?15+lane*7:kind==='cycle'?15+lane*4:kind==='diagonal'?15-lane*8:15-lane*4;
+        const target={x:StudioHockey.progress(side,x),y};
+        const risk=this.laneRisk(carrier,a),future=this.laneRisk(carrier,target),space=1-this.pressureAt(a);
+        const score=space*.12-risk*(.26+reading*.2)-future*.13-StudioHockey.distance(a,target)*.009+(kind===preferred?.15:0)+(plan?.receiver===a.id&&plan.kind===kind?.06:0)+(plan?.previous===a.id&&kind==='give-go'?.04:0);
+        options.push({kind,receiver:a.id,target,risk,score,lane});
+      }
+    }
+    return options.sort((a,b)=>b.score-a.score)[0]||null;
+  };
   proto.updateAttackPattern=function(){
     const carrier=this.actor(this.carrier),side=carrier?.side??this.flight?.side;
     for(const team of this.teams){
       let plan=team.attackPattern;
       const actors=this.skaters(team.side).filter(a=>a.status==='playing'),valid=new Set(actors.map(a=>a.id));
-      if(plan&&(this.stoppage>0||side!==team.side||this.battle||this.time>plan.until||this.isShortHanded(team.side)||actors.length!==plan.strength||plan.players.some(id=>!valid.has(id))))plan=team.attackPattern=null;
-      if(!carrier||carrier.side!==team.side||StudioHockey.progress(team.side,carrier.x)<42)continue;
-      if(plan&&plan.holder!==carrier.id){plan.holder=carrier.id;plan.stage++;if(plan.stage>2)plan=team.attackPattern=null;}
-      if(plan||this.time<(team.nextPatternAt||0))continue;
-      const mates=actors.filter(a=>a.id!==carrier.id),backs=mates.filter(a=>a.role.endsWith('D')),forwards=mates.filter(a=>!a.role.endsWith('D'));
-      if(mates.length<3||!backs.length||actors.length!==this.skaters(team.side).length)continue;
-      const p=StudioHockey.progress(team.side,carrier.x),wall=carrier.y<9||carrier.y>21;
-      const kind=this.hasPowerPlay(team.side)?'diagonal':p>51&&wall?'low-high':wall?'cycle':'give-go';
-      const pool=kind==='low-high'?backs:forwards,receiver=[...pool].sort((a,b)=>this.laneRisk(carrier,a)-this.laneRisk(carrier,b)||StudioHockey.distance(carrier,a)-StudioHockey.distance(carrier,b))[0];
-      if(!receiver)continue;
-      const runner=forwards.find(a=>a!==receiver)||mates.find(a=>a!==receiver);
-      team.attackPattern={kind,at:this.time,until:this.time+5.5,stage:0,holder:carrier.id,origin:carrier.id,receiver:receiver.id,runner:runner?.id,players:[carrier.id,receiver.id,...(runner?[runner.id]:[])],strength:actors.length,lane:carrier.y<15?-1:1};
-      team.nextPatternAt=this.time+7;
+      const broken=this.stoppage>0||side!==team.side||this.battle||this.isShortHanded(team.side)||carrier&&carrier.side===team.side&&StudioHockey.progress(team.side,carrier.x)<40;
+      if(plan&&(broken||actors.length!==plan.strength||plan.players.some(id=>!valid.has(id)))){team.attackPattern=null;continue;}
+      if(plan&&this.time>plan.until)plan=team.attackPattern=null;
+      if(broken||!carrier||carrier.side!==team.side||StudioHockey.progress(team.side,carrier.x)<42)continue;
+      if(plan&&plan.holder!==carrier.id){plan.previous=plan.holder;plan.holder=carrier.id;plan.stage++;plan.readAt=0;if(plan.stage>6){team.attackPattern=null;continue;}}
+      if(!plan){
+        if(this.time<(team.nextPatternAt||0)||actors.length<4||actors.length!==this.skaters(team.side).length)continue;
+        plan=team.attackPattern={version:2,at:this.time,until:this.time+14,stage:0,holder:carrier.id,origin:carrier.id,players:actors.map(a=>a.id),strength:actors.length,readAt:0};
+        team.nextPatternAt=this.time+7;
+      }
+      if(this.time<(plan.readAt||0))continue;
+      const route=this.patternRoute(carrier,plan);if(!route){team.attackPattern=null;continue;}
+      const changed=plan.kind&& (plan.kind!==route.kind||plan.receiver!==route.receiver);
+      if(changed){plan.switchedAt=this.time;plan.reason=plan.risk>.3?'Byter fortsättning när passningsvägen stängs':'Läser en ny yta efter passningen';}
+      const runner=actors.filter(a=>a!==carrier&&a.id!==route.receiver&&!a.role.endsWith('D')).sort((a,b)=>StudioHockey.distance(a,{x:StudioHockey.progress(team.side,53),y:15})-StudioHockey.distance(b,{x:StudioHockey.progress(team.side,53),y:15}))[0];
+      Object.assign(plan,{kind:route.kind,receiver:route.receiver,target:route.target,risk:route.risk,lane:route.lane,runner:runner?.id,readAt:this.time+clamp(1.05-this.attribute(carrier,'decisions')*.025-this.attribute(carrier,'vision')*.01,.35,.9)});
     }
   };
   proto.patternTargets=function(){
     this.updateAttackPattern();const carrier=this.actor(this.carrier);if(!carrier)return;
     const plan=this.teams[carrier.side].attackPattern;if(!plan)return;
-    const p=StudioHockey.progress(carrier.side,carrier.x),receiver=this.actor(plan.stage?plan.origin:plan.receiver),runner=this.actor(plan.runner),point=(x,y)=>({x:StudioHockey.progress(carrier.side,x),y:clamp(y,3,27)});
+    const receiver=this.actor(plan.receiver),runner=this.actor(plan.runner);
     if(receiver&&receiver.id!==carrier.id&&!receiver.shotPreparation){
-      const target=plan.kind==='low-high'?point(plan.stage?53:44.5,15+plan.lane*(plan.stage?3:7)):plan.kind==='cycle'?point(56.9,15+plan.lane*5):plan.kind==='diagonal'?point(49.5,15-plan.lane*8):point(clamp(p+3,45,53),15-plan.lane*4);
-      this.assign(receiver,target,({ 'low-high':'Ger understöd för spel från hörnet till backen',cycle:'Erbjuder fortsatt spel bakom mål',diagonal:'Öppnar sig på bortre flanken','give-go':'Söker nästa yta i väggspelet'})[plan.kind]);
+      // Old saves acquire a current route at the next read before this target is used.
+      const target=plan.target||{x:StudioHockey.progress(carrier.side,49.5),y:15-plan.lane*8};
+      this.assign(receiver,target,({'low-high':'Ger understöd för spel från hörnet till backen',cycle:'Erbjuder fortsatt spel bakom mål',diagonal:'Öppnar sig på bortre flanken','give-go':'Söker nästa yta i väggspelet'})[plan.kind]);
     }
-    if(runner&&runner.id!==carrier.id&&runner!==receiver&&!runner.role.endsWith('D'))this.assign(runner,point(plan.kind==='low-high'?54:51,15+plan.lane*2.5),'Attackerar nästa yta medan medspelarna kombinerar');
+    if(!this.hasPowerPlay(carrier.side)&&runner&&runner.id!==carrier.id&&runner!==receiver&&!runner.role.endsWith('D'))this.assign(runner,{x:StudioHockey.progress(carrier.side,plan.kind==='low-high'?54:51),y:15+plan.lane*2.5},'Attackerar nästa yta medan medspelarna kombinerar');
+  };
+  proto.specialTeamsTargets=function(){
+    const carrier=this.actor(this.carrier);
+    for(const team of this.teams){
+      const side=team.side,actors=this.skaters(side).filter(a=>a.status==='playing'),ids=new Set(actors.map(a=>a.id));
+      const pp=this.hasPowerPlay(side),pk=this.isShortHanded(side),p=StudioHockey.progress(pp?side:1-side,this.puck.x);
+      let play=team.specialPlay;
+      if(play&&(this.stoppage>0||this.battle||this.time>=play.until||actors.length!==play.strength||play.players.some(id=>!ids.has(id))||(play.kind==='press'?!pk||carrier?.side===side:!pp||this.owner!==side)||p<40))team.specialPlay=play=null;
+      if(!pp&&!pk||this.stoppage>0||this.battle||p<43)continue;
+      if(pk&&!play){
+        const loose=this.skaters(1-side).filter(a=>['bobble','miss'].includes(a.contactAction?.kind)&&this.wall-a.contactAction.at<.8).sort((a,b)=>b.contactAction.at-a.contactAction.at)[0];
+        const forwards=actors.filter(a=>!a.role.endsWith('D')).sort((a,b)=>StudioHockey.distance(a,this.puck)-StudioHockey.distance(b,this.puck)),leader=forwards[0];
+        const signal=loose?.contactAction.at,delay=leader?.id?.length?clamp(.34-this.attribute(leader,'decisions')*.012,.10,.29):1;
+        if(loose&&leader&&actors.length>=3&&team.lastPressSignal!==signal&&this.wall-signal>=delay&&StudioHockey.distance(leader,this.puck)<8&&this.energyLevel(leader)>40&&(!carrier||carrier.side!==side)){
+          team.lastPressSignal=signal;play=team.specialPlay={kind:'press',at:this.time,until:this.time+1.35,players:forwards.slice(0,2).map(a=>a.id),strength:actors.length,leader:leader.id,source:loose.id};
+        }
+      }
+      if(pp&&!play&&carrier?.side===side&&actors.length===5&&this.time>=(team.nextSpecialAt||0)){
+        const flank=carrier.y<10||carrier.y>20;
+        const weak=actors.find(a=>a.id!==carrier.id&&['LW','RD'].includes(a.role)&&Math.abs(a.y-carrier.y)>8),bumper=actors.find(a=>a.role==='RW'&&a.id!==carrier.id);
+        if(flank&&weak&&bumper&&weak!==bumper&&(this.laneRisk(carrier,weak)>.28||this.pressureAt(carrier)>.3)){
+          const lane=carrier.y<15?-1:1,umbrella=team.tactics.pp!=='131';
+          const targets=umbrella?[{id:weak.id,x:57,y:15+lane*5},{id:bumper.id,x:49,y:15-lane*7}]:[{id:weak.id,x:50,y:15-lane*2},{id:bumper.id,x:48,y:15-lane*9}];
+          play=team.specialPlay={kind:umbrella?'low-cycle':'flank-swap',at:this.time,until:this.time+4.2,players:[weak.id,bumper.id],strength:actors.length,targets};team.nextSpecialAt=this.time+8;
+        }
+      }
+      if(!play)continue;
+      if(play.kind==='press'){
+        const leader=this.actor(play.leader);if(!leader)continue;
+        if(!play.observed&&this.time-play.at>=.3){play.observed=true;this.observeTactic('pk-press',side,{players:[leader.id,play.source]});}
+        if(this.flight?.kind==='pass'&&this.flight.side!==side&&StudioHockey.distance(leader,this.puck)>7){team.specialPlay=null;continue;}
+        this.assign(leader,{x:clamp(this.puck.x+(this.puckVelocity?.x||0)*.16,1,59),y:clamp(this.puck.y+(this.puckVelocity?.y||0)*.16,1,29)},'BP pressar den misslyckade mottagningen');
+        const cover=this.actor(play.players.find(id=>id!==leader.id));
+        if(cover){const outlet=this.skaters(1-side).filter(a=>a.id!==carrier?.id&&a.id!==play.source).sort((a,b)=>StudioHockey.distance(a,this.puck)-StudioHockey.distance(b,this.puck))[0];if(outlet)this.assign(cover,{x:clamp(this.puck.x+(outlet.x-this.puck.x)*.55,1,59),y:clamp(this.puck.y+(outlet.y-this.puck.y)*.55,4,26)},'BP stänger närmaste passning och lämnar bortre kanten');}
+      }else for(const target of play.targets){
+        const actor=this.actor(target.id);if(actor&&actor.id!==this.carrier&&actor.id!==this.flight?.to&&!actor.shotPreparation)this.assign(actor,{x:StudioHockey.progress(side,target.x),y:target.y},play.kind==='flank-swap'?'PP byter plats mellan flanken och slottet':'PP roterar via kortsidan för att öppna boxen');
+      }
+    }
   };
   const basePatternTake=proto.takePossession,basePatternShoot=proto.shoot,basePatternStop=proto.stop;
   proto.takePossession=function(a,options){
-    const f=this.flight;const result=basePatternTake.call(this,a,options);
+    const f=this.flight,owner=this.owner,holder=this.carrier,phase=this.phase;const result=basePatternTake.call(this,a,options);
+    if(a&&this.carrier===a.id&&a.side!==owner&&(holder||['pass','intercept'].includes(f?.kind)||phase==='battle'))this.observeTactic('turnover',owner,{players:[holder||f?.from,a.id]});
     if(a&&this.carrier===a.id&&f?.kind==='pass'&&f.side===a.side&&StudioHockey.progress(a.side,a.x)>42){
-      const stats=this.stats[a.side];if(Math.abs(f.start.y-a.y)>9)stats.diagonalPasses=(stats.diagonalPasses||0)+1;
+      const stats=this.stats[a.side];if(Math.abs(f.start.y-a.y)>9){stats.diagonalPasses=(stats.diagonalPasses||0)+1;this.observeTactic('diagonal',a.side,{players:[f.from,a.id],from:f.start});}
+      const marker=this.skaters(1-a.side).find(d=>d.status==='playing'&&d.markedThreat===a.id);
+      if(marker&&StudioHockey.progress(a.side,a.x)>49&&Math.abs(a.y-15)<5&&StudioHockey.distance(marker,a)>4)this.observeTactic('marking',1-a.side,{players:[marker.id,a.id],from:marker});
+      if(this.teams[a.side].specialPlay?.targets?.some(t=>t.id===a.id))this.observeTactic('pp-rotation',a.side,{players:[f.from,a.id],from:f.start});
       if(StudioHockey.progress(a.side,f.start.x)>51&&StudioHockey.progress(a.side,a.x)<48)stats.pointFeeds=(stats.pointFeeds||0)+1;
     }
     if(a)for(const team of this.teams)if(team.side!==a.side)team.attackPattern=null;
     return result;
   };
   proto.shoot=function(a){const result=basePatternShoot.call(this,a);if(result){if(StudioHockey.progress(a.side,a.x)>48&&Math.abs(a.y-15)<5)this.stats[a.side].slotAttempts=(this.stats[a.side].slotAttempts||0)+1;this.teams[a.side].attackPattern=null;}return result;};
-  proto.stop=function(...args){for(const team of this.teams)team.attackPattern=null;return basePatternStop.apply(this,args);};
+  proto.stop=function(...args){for(const team of this.teams){team.attackPattern=null;team.specialPlay=null;}return basePatternStop.apply(this,args);};
   const baseCoverage=proto.defenseTargets;
   proto.defenseTargets=function(side){
     baseCoverage.call(this,side);const coverage=this.teams[side].coverage,carrier=this.actor(this.carrier);
@@ -211,6 +276,51 @@
     }else if(coverage==='slot'){
       for(const a of defenders.filter(a=>!a.role.endsWith('D')).slice(0,2)){a.target.y=15+(a.target.y-15)*.68;a.target.x=StudioHockey.progress(side,clamp(StudioHockey.progress(side,a.target.x),6,12));a.duty='Skyddar slottet; ger motståndaren mer tid ute på kanten';}
     }
+  };
+  // Bounded, observational clips. Recording never draws randomness or changes
+  // a decision. Each clip owns its frame list so an open replay stays immutable.
+  const compactFrames=new WeakMap();
+  function clipFrame(frame){
+    if(!compactFrames.has(frame)){
+      // Quantize presentation coordinates to 0.1 mm; physics retains full
+      // precision. Keep action targets (needed by the stick pose), omit only
+      // actor coaching fields that are not used to render these recordings.
+      const clean={...frame,actors:frame.actors.map(({target,duty,status,...a})=>a)};
+      const copy=value=>typeof value==='number'?Math.round(value*10000)/10000:Array.isArray(value)?value.map(copy):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).map(([k,v])=>[k,copy(v)])):value;
+      compactFrames.set(frame,copy(clean));
+    }
+    return compactFrames.get(frame);
+  }
+  proto.observeTactic=function(kind,side,details={}){
+    const kinds=['diagonal','turnover','support','marking','pp-rotation','pk-press'];
+    if(!kinds.includes(kind)||![0,1].includes(side))return;
+    const recent=this.tacticalObservations||[],last=[...recent].reverse().find(o=>o.kind===kind&&o.side===side);
+    if(last&&this.time-last.time<(kind==='support'?8:.15))return;
+    const id=(this.observationSequence||0)+1;this.observationSequence=id;
+    const row={id,kind,side,time:this.time,wall:Math.round(this.wall*10000)/10000,situation:this.hasPowerPlay(side)?'pp':this.isShortHanded(side)?'pk':this.threeOnThree?'ot':'even',players:(details.players||[]).filter(id=>typeof id==='string').slice(0,4),spot:{x:this.puck.x,y:this.puck.y},...(details.from?{from:{x:details.from.x,y:details.from.y}}:{})};
+    this.tacticalObservations=[...recent.filter(o=>this.time-o.time<=300),row].slice(-96);
+    const clips=this.tacticalClips||[],same=[...clips].reverse().find(c=>c.kind===kind&&c.side===side);
+    if(same&&this.wall-same.wall<4)return;
+    const frame=clipFrame(this.presentationFrame()),frames=this.history.filter(f=>f.wall<frame.wall-1e-4&&frame.wall-f.wall<4.4).slice(-22).map(clipFrame);
+    frames.push(frame);
+    const clip={...row,frames,until:this.wall+1};
+    const peers=clips.filter(c=>c.kind===kind&&c.side===side&&c.situation===row.situation);
+    const retained=peers.length>=2?clips.filter(c=>c!==peers[0]):clips;
+    this.tacticalClips=[...retained,clip].slice(-6);
+  };
+  const baseTacticalCapture=proto.capture,baseTacticalDecide=proto.decide;
+  proto.capture=function(){
+    baseTacticalCapture.call(this);if(this.tick%2!==0||!this.tacticalClips?.some(c=>this.wall<=c.until))return;
+    const latest=this.history.at(-1);if(!latest)return;const frame=clipFrame(latest);
+    this.tacticalClips=this.tacticalClips.map(c=>{
+      if(this.wall>c.until||frame.phase==='faceoff'||frame.wall<=(c.frames.at(-1)?.wall??Infinity)+1e-7)return c;
+      return {...c,frames:[...c.frames,frame].slice(-30)};
+    });
+  };
+  proto.decide=function(){
+    const a=this.actor(this.carrier);
+    if(a&&StudioHockey.progress(a.side,a.x)<32&&this.pressureAt(a)>.45&&!this.skaters(a.side).some(b=>b.id!==a.id&&b.status==='playing'&&StudioHockey.distance(a,b)<10&&this.laneRisk(a,b)<.45))this.observeTactic('support',a.side,{players:[a.id]});
+    return baseTacticalDecide.call(this);
   };
   proto.matchEngine4PlayerDecisionsInstalled=true;
 })();
