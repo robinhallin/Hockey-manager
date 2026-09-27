@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const context=vm.createContext({});for(const name of ['match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
+const context=vm.createContext({});for(const name of ['match-player-asset.js','match-player-model.js','match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
 const Model=vm.runInContext('HockeyPlayerModel',context),R=vm.runInContext('Match3D',context);
 function setup(side=0){
  const m=new H.Match(rosters,{seed:912,scenario:'attack'});m.time=m.wall=20;m.stoppage=0;m.owner=side;m.battle=null;m.flight=null;

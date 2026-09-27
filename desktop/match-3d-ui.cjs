@@ -9,14 +9,14 @@ module.exports=async function check3D(page,out){
  assert.deepEqual(await page.evaluate(()=>{const d=Match3D.diagnostics();return {actors:d.actors,error:d.error};}),{actors:await page.evaluate(()=>studioFrame(studioEngine()).actors.length),error:0});
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),before,'3D selection does not change a paused match');
  const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
- assert.equal(rig.model.joints.length,15);assert.ok(rig.graphics.skinVertices>22000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
+ assert.equal(rig.model.joints.length,15);assert.equal(rig.graphics.renderer,'three');assert.equal(rig.graphics.gpuSkinning,true);assert.ok(rig.graphics.skinVertices>55000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
  assert.ok(rig.graphics.textureBuilds>0&&rig.graphics.glassVertices>0,'the arena loads its ice/club textures and glass');
  assert.ok(rig.graphics.shadowCasterVertices>0&&rig.graphics.shadowCasterVertices<rig.graphics.arenaVertices*.35,'seating and ice stay out of the moving shadow pass');
  if(rig.graphics.shadowSupported){assert.equal(rig.graphics.shadowMode,'projected');assert.ok(rig.graphics.shadowSize>=512&&rig.graphics.shadowBuilds>0,'supported GPUs render actual player shadows');}
  require('node:fs').writeFileSync(path.join(out,'3d-rig-result.json'),JSON.stringify(rig,null,2));
  const pixels=await page.evaluate(()=>{
   const canvas=document.getElementById('career-ice-3d');Match3D.draw(canvas,studioFrame(studioEngine()),null,1,{teams:[managerClub(),state.live.opponent].map(name=>({name,...careerIdentity(name)})),camera:studioCamera3D});
-  const gl=canvas.getContext('webgl'),p=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let bright=0;for(let i=0;i<p.length;i+=4)if(p[i]>130&&p[i+1]>130&&p[i+2]>130)bright++;return bright/(canvas.width*canvas.height);
+  const gl=canvas.getContext('webgl2')||canvas.getContext('webgl'),p=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let bright=0;for(let i=0;i<p.length;i+=4)if(p[i]>130&&p[i+1]>130&&p[i+2]>130)bright++;return bright/(canvas.width*canvas.height);
  });
  assert.ok(pixels>.15&&pixels<.9,'3D draws a lit rink rather than an empty canvas: '+pixels);
  await page.screenshot({path:path.join(out,'31-match-3d-tv.png'),fullPage:true});
@@ -101,9 +101,9 @@ module.exports=async function check3D(page,out){
   Match3D.draw(canvas,f,null,1,options);
   return {before,after,suspended,recovery};
  });
- assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
+ assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<75000,'GPU player geometry remains bounded');
  assert.equal(graphics.after.shadowBuilds,graphics.before.shadowBuilds,'paused shadows reuse the same depth map');assert.equal(graphics.after.textureBuilds,graphics.before.textureBuilds,'ice wear and club artwork are not regenerated per frame');
- assert.ok(graphics.after.crowdVertices>10000&&graphics.after.crowdVertices<30000,'crowd has a separate bounded mesh');
+ assert.ok(graphics.after.crowdInstances>700&&graphics.after.crowdInstances<1400,'the full crowd uses bounded instances');assert.ok(graphics.after.drawCalls<45,'crowd and arena stay batched');assert.equal(graphics.after.reflectionBuilds,graphics.before.reflectionBuilds,'paused reflections are reused');
  assert.equal(graphics.suspended.frames,graphics.after.frames,'hidden fast-forward does not draw');assert.equal(graphics.suspended.geometryBuilds,graphics.after.geometryBuilds);
  assert.equal(graphics.recovery.geometryBuilds,graphics.after.geometryBuilds+1,'stopped match clock does not freeze recorded follow-through');
  require('node:fs').writeFileSync(path.join(out,'3d-graphics-result.json'),JSON.stringify({compact,focused,graphics},null,2));
@@ -266,7 +266,7 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>!studioReplayState&&document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.
- await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl').getExtension('WEBGL_lose_context').loseContext());
+ await page.evaluate(()=>document.getElementById('career-ice-3d').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
  await page.waitForFunction(()=>!document.getElementById('match-3d-error').hidden&&document.getElementById('career-ice').style.visibility==='visible');
  assert.equal(await page.locator('#match-3d-puck').isVisible(),false,'3D marker is hidden in 2D fallback');
  await page.getByLabel('Matchvy',{exact:true}).selectOption('2d');

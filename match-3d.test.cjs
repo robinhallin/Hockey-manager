@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
 test('3D interpolation follows actual player IDs and leaves snapshots unchanged',()=>{
  const previous={time:10,puck:{x:5,y:7},actors:[{id:'a',x:4,y:6},{id:'b',x:20,y:21}]};
  const frame={time:10.2,carrier:'b',puck:{x:9,y:11},actors:[{id:'b',x:22,y:23},{id:'c',x:40,y:15},{id:'a',x:6,y:8}]};
@@ -130,7 +130,7 @@ test('tracking eases in simulation time, freezes at pause and resets at disconti
  assert.equal(renderer.trackPuck({...next,phase:'faceoff'},tracked).x,34,'faceoff resets camera');
 });
 test('zoom and tracking keep the actual puck visible through fast changes and at every board',()=>{
- for(const mode of ['tv','overhead','follow'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
+ for(const mode of ['tv','overhead','follow','rinkside'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
   let prior=null,time=0;
   for(const x of [0,15,60,45,30,3.5,56.5])for(const y of [0,15,30,7,23]){
    const frame={time:time+=.1,phase:'attack',puck:{x,y}},view=renderer.cameraFrame(ratio,mode,frame,prior,zoom);prior=view.tracked;

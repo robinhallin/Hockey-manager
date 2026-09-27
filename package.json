@@ -22,9 +22,12 @@
     "check:ai-overtime": "node scripts/check-ai-overtime.cjs",
     "desktop:install": "npm ci --prefix desktop",
     "desktop:start": "npm start --prefix desktop",
-    "desktop:windows": "npm run dist:win --prefix desktop"
+    "desktop:windows": "npm run dist:win --prefix desktop",
+    "build:3d": "node scripts/build-three.cjs && node scripts/build-hockey-model.cjs --broadcast"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
+    "three": "0.186.1",
     "vite": "8.0.13"
   }
 }
