@@ -30,11 +30,21 @@ module.exports=async function check3D(page,out){
  await page.getByLabel('Matchvisning',{exact:true}).selectOption('full');
  // A real live sequence updates the same engine, then pauses via ordinary control.
  await page.locator('#match-play').click();await page.waitForFunction(()=>state.live.running);
- const started=await page.evaluate(()=>studioEngine().time);
+ const started=await page.evaluate(()=>{
+  const stream=document.getElementById('career-ice-3d').captureStream(30),chunks=[],type='video/webm;codecs=vp8';
+  const recorder=new MediaRecorder(stream,{...(MediaRecorder.isTypeSupported(type)?{mimeType:type}:{}),videoBitsPerSecond:1800000});
+  const completed=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onstop=async()=>resolve(Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer())));});
+  globalThis.liveFlowCapture={stream,recorder,completed};recorder.start();return studioEngine().time;
+ });
  await page.waitForFunction(t=>studioEngine().time>t+3,started);
  await page.waitForFunction(()=>MatchAudio.diagnostics().active&&MatchAudio.diagnostics().level>.00001);
  const audible=await page.evaluate(()=>MatchAudio.diagnostics());
- const timings=await page.evaluate(()=>Match3D.diagnostics());assert.ok(timings.frameSamples>0&&timings.frameP95>0);require('node:fs').writeFileSync(path.join(out,'3d-frame-times.json'),JSON.stringify(timings,null,2));
+ const timings=await page.evaluate(()=>Match3D.diagnostics());assert.ok(timings.frameSamples>0&&timings.frameP95>0);
+ assert.ok(timings.motionFrames>15,'live flow has enough rendered frames to inspect');
+ assert.ok(timings.motionAdvances/timings.motionFrames>.8,'live interpolation advances on screen frames instead of repeating timer samples: '+JSON.stringify(timings));
+ require('node:fs').writeFileSync(path.join(out,'3d-frame-times.json'),JSON.stringify(timings,null,2));
+ const liveClip=await page.evaluate(async()=>{const c=globalThis.liveFlowCapture;c.recorder.stop();const bytes=await c.completed;c.stream.getTracks().forEach(t=>t.stop());delete globalThis.liveFlowCapture;return bytes;});
+ assert.ok(liveClip.length>1000);require('node:fs').writeFileSync(path.join(out,'46-match-3d-live-flow.webm'),Buffer.from(liveClip));
  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
  await page.waitForFunction(()=>!MatchAudio.diagnostics().active&&MatchAudio.diagnostics().voices===0&&MatchAudio.diagnostics().level<.00002);
  // Reach an actual shot in this career, using the real match loop and decisions.

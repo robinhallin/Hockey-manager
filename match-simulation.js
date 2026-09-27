@@ -57,6 +57,36 @@ const StudioHockey = (() => {
   }
   const penaltyDetails=p=>({penaltyId:p.id,playerId:p.playerId,playerName:p.name,minutes:p.minutes,kind:p.kind,label:p.label,affectsStrength:p.affectsStrength,releasable:p.releasable});
   function segmentDistance(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l=dx*dx+dy*dy,t=l?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l,0,1):0;return {d:distance(p,{x:a.x+dx*t,y:a.y+dy*t}),t};}
+  const angleDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
+  // Same eight-metre corners as the visible rink. Project centres inward by
+  // their physical radius, retaining the wall normal for a glancing contact.
+  function rinkLimit(p,radius=.35){
+    const x=clamp(p.x,radius,60-radius),y=clamp(p.y,radius,30-radius),cx=clamp(x,8,52),cy=clamp(y,8,22),dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy),r=8-radius;
+    let q={x,y};if(d>r)q={x:cx+dx*r/d,y:cy+dy*r/d};
+    const nx=p.x-q.x,ny=p.y-q.y,n=Math.hypot(nx,ny);return {...q,nx:n?nx/n:0,ny:n?ny/n:0,hit:n>1e-8};
+  }
+  function netObstacle(a,b,radius=.35){
+    if(Math.min(a.x,b.x)>3.5+radius&&Math.max(a.x,b.x)<56.5-radius)return null;
+    for(const x of [3.5,56.5]){
+      const back=x+(x<30?-1.25:1.25),lo=Math.min(x,back)-radius,hi=Math.max(x,back)+radius,bottom=14.08-radius,top=15.92+radius;
+      // Slab intersection catches crossings, not just endpoints inside a net.
+      let enter=0,leave=1,nx=0,ny=0;
+      for(const [p,v,min,max,axis] of [[a.x,b.x-a.x,lo,hi,0],[a.y,b.y-a.y,bottom,top,1]]){
+        if(Math.abs(v)<1e-9){if(p<min||p>max){leave=-1;break;}continue;}
+        const t1=(min-p)/v,t2=(max-p)/v,t=Math.min(t1,t2);
+        if(t>enter){enter=t;nx=axis?0:(v>0?-1:1);ny=axis?(v>0?-1:1):0;}leave=Math.min(leave,Math.max(t1,t2));
+      }
+      if(enter<=leave&&leave>=0&&enter<=1)return {x:clamp(a.x+(b.x-a.x)*Math.max(0,enter-.001),.35,59.65),y:a.y+(b.y-a.y)*Math.max(0,enter-.001),nx,ny,lo,hi,bottom,top};
+    }return null;
+  }
+  function skateVelocity(v,desired,acceleration,edge,dt){
+    const speed=Math.hypot(v.x,v.y),target=Math.hypot(desired.x,desired.y);
+    if(speed<.12){const gain=Math.min(target,acceleration*dt);return {x:desired.x/Math.max(.001,target)*gain||0,y:desired.y/Math.max(.001,target)*gain||0};}
+    const travel=Math.atan2(v.y,v.x),change=target>.03?angleDelta(travel,Math.atan2(desired.y,desired.x)):0;
+    const rate=edge/Math.max(.65,speed),turn=clamp(change,-rate*dt,rate*dt);
+    const aim=target*Math.max(0,Math.cos(change)),brake=acceleration*1.7,next=speed+clamp(aim-speed,-brake*dt,acceleration*dt);
+    return {x:Math.cos(travel+turn)*Math.max(0,next)||0,y:Math.sin(travel+turn)*Math.max(0,next)||0};
+  }
   // Earliest contact between two moving points. Sweeps prevent a fast puck
   // tunnelling through a player between the fixed 100 ms simulation ticks.
   function sweepContact(p,q,a,b,radius){
@@ -301,8 +331,8 @@ const StudioHockey = (() => {
       const puckAngle=Math.atan2(this.puck.y-a.y,this.puck.x-a.x);
       const retreat=a.role!=='G'&&a.status==='playing'&&a.side!==this.owner&&speed<4.2&&distance(a,this.puck)<22&&Math.cos(travel-puckAngle)<(m?.backward>.5?-.15:-.5);
       const blend=1-Math.exp(-dt/.18),backward=(m?.backward||0)+((retreat?1:0)-(m?.backward||0))*blend;
-      const aim=a.role==='G'?puckAngle:speed>.18?travel+wrap(puckAngle-travel)*backward:(m?.heading??puckAngle);
-      const heading=m?m.heading+wrap(aim-m.heading)*blend:aim;
+      const aim=a.skateState?.heading??(a.role==='G'?puckAngle:speed>.18?travel+wrap(puckAngle-travel)*backward:(m?.heading??puckAngle));
+      const heading=a.skateState?.heading??(m?m.heading+wrap(aim-m.heading)*blend:aim);
       const acceleration=(speed-oldSpeed)/dt,rotation=oldSpeed>.35&&speed>.35?wrap(travel-Math.atan2(oldVy,oldVx))/dt:0;
       a.motion={heading:wrap(heading),travel,backward,
         acceleration:(m?.acceleration||0)+(acceleration-(m?.acceleration||0))*blend,
@@ -314,7 +344,7 @@ const StudioHockey = (() => {
         a.motion.drive=(m?.drive||0)+(drive-(m?.drive||0))*ease;
         a.motion.brake=(m?.brake||0)+(brake-(m?.brake||0))*ease;
         a.motion.curve=(m?.curve||0)+(curve-(m?.curve||0))*ease;
-        const phase=(a.travelled||0)*Math.PI/1.6,anchor=a.id===this.carrier?-.65:0;
+        const phase=(a.travelled||0)*Math.PI/1.6,anchor=!a.skateState&&a.id===this.carrier?-.65:0;
         a.footPlants=[-1,1].map((side,i)=>{
           const cycle=Math.sin(phase+(side===1?Math.PI:0)),old=a.footPlants?.[i];
           if(cycle<=0||speed<.25)return null;
@@ -372,13 +402,14 @@ const StudioHockey = (() => {
       a.controlContact=this.phase!=='faceoff'&&reach>.02&&reach<=1.15?{x:this.puck.x,y:this.puck.y,z:this.puck.z||0,remaining:.18}:null;
       if(!a.controlContact)this.puck={x:a.x,y:a.y};
       this.decision=this.readDelay(a)+this.random()*.15;
-      a.controlledAt=this.time;delete a.carryPlan;delete a.receivedPass;
+      a.controlledAt=this.time;delete a.carryPlan;delete a.receivedPass;delete a.stickControl;
       if(changed&&this.rebound?.side!==a.side)this.rebound=null;
       const p=progress(a.side,a.x);
       this.setPhase(p>40?'attack':changed&&p>18?'counter':p>23?'entry':'breakout');
       if(turnover){this.stats[a.side].turnovers++;this.say('turnover',a.player.name+' läser spelet och vinner pucken.',a.side,true);}
     }
     faceoffPositions(){
+      this.presentationReset=(this.presentationReset||0)+1;
       for(const side of [0,1]){
         this.teams[side].markingPlan=null;
         const skaters=this.skaters(side),center=skaters.find(a=>a.role==='C')||[...skaters].sort((a,b)=>this.attribute(b,'faceoffs')-this.attribute(a,'faceoffs'))[0],dx=side===0?-1:1;
@@ -387,7 +418,7 @@ const StudioHockey = (() => {
           const z=a===center?[.65,0]:offset[a.role];
           const p=a.role==='G'?point(side,4.4,15):{x:clamp(this.restartSpot.x+dx*z[0],2,58),y:clamp(this.restartSpot.y+z[1],2,28)};
           a.x=p.x;a.y=p.y;a.target={...p};a.vx=0;a.vy=0;a.status='playing';
-          delete a.keeperState;delete a.keeperBody;delete a.markHandoff;delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;delete a.balanceState;
+          delete a.keeperState;delete a.keeperBody;delete a.markHandoff;delete a.motion;delete a.presentationAction;delete a.keeperAction;delete a.contactAction;delete a.shotPreparation;delete a.controlContact;delete a.footPlants;delete a.balanceState;delete a.skateState;delete a.stickControl;delete a.netFront;
         }
       }
     }
@@ -578,10 +609,58 @@ const StudioHockey = (() => {
         if(a.status==='leaving')this.assign(a,{x:this.teams[a.side].change.gate,y:.7},'Går till bänken');
       }
     }
+    routeAroundNet(a,target){
+      const hit=netObstacle(a,target,.55);if(!hit)return rinkLimit(target,.4);
+      const y=(a.y<14.5||a.y<15.5&&target.y<15)?hit.bottom-.45:hit.top+.45;
+      const beyond=a.y<hit.bottom||a.y>hit.top;
+      const x=(beyond?target.x:a.x)<(hit.lo+hit.hi)/2?hit.lo-.4:hit.hi+.4;
+      return rinkLimit({x,y},.4);
+    }
+    netFrontHold(a){
+      const d=this.actor(a.netFront?.opponent);if(!d||a.netFront.until<=this.time||d.side===a.side||d.status!=='playing'||distance(a,d)>1.05)return 0;
+      const inside=progress(a.side,d.x)>progress(a.side,a.x);if(!inside)return 0;
+      const defending=this.attribute(d,'strength')*.45+this.attribute(d,'checking')*.3+this.attribute(d,'positioning')*.25,attacking=this.attribute(a,'strength')*.45+this.attribute(a,'puckControl')*.55;
+      return clamp(.2+(defending-attacking)*.035,0,.65)*(1-clamp((distance(a,d)-.65)/.4,0,1));
+    }
+    constrainBody(a,before){
+      const wall=rinkLimit(a,a.role==='G'?.38:.34);
+      if(wall.hit){a.x=wall.x;a.y=wall.y;const toward=a.vx*wall.nx+a.vy*wall.ny;if(toward>0){a.vx-=toward*wall.nx;a.vy-=toward*wall.ny;}}
+      const hit=netObstacle(before,a,a.role==='G'?.30:.34);
+      if(hit){
+        if(hit.nx||hit.ny){a.x=hit.x;a.y=hit.y;const toward=a.vx*hit.nx+a.vy*hit.ny;if(toward<0){a.vx-=toward*hit.nx;a.vy-=toward*hit.ny;}}
+        else{const exits=[[Math.abs(a.x-hit.lo),'x',hit.lo-.002],[Math.abs(a.x-hit.hi),'x',hit.hi+.002],[Math.abs(a.y-hit.bottom),'y',hit.bottom-.002],[Math.abs(a.y-hit.top),'y',hit.top+.002]].sort((x,y)=>x[0]-y[0]);a[exits[0][1]]=exits[0][2];a[exits[0][1]==='x'?'vx':'vy']=0;}
+      }
+    }
+    updateStickControl(a,dt){
+      const heading=a.skateState?.heading??(a.side?Math.PI:0),hand=a.player.shoots==='R'?1:-1,skill=this.attribute(a,'puckControl'),speed=Math.hypot(a.vx,a.vy);
+      const defender=this.skaters(1-a.side).filter(b=>b.status==='playing').sort((b,c)=>distance(a,b)-distance(a,c))[0];
+      const pressure=defender?clamp(1-distance(a,defender)/2.4,0,1):0;
+      const protecting=pressure>.22||a.shieldUntil>this.time,enemySide=defender?-(defender.x-a.x)*Math.sin(heading)+(defender.y-a.y)*Math.cos(heading):0;
+      const turnSide=-(a.target.x-a.x)*Math.sin(heading)+(a.target.y-a.y)*Math.cos(heading);
+      const side=protecting&&Math.abs(enemySide)>.1?-Math.sign(enemySide):speed>1&&Math.abs(turnSide)>2?Math.sign(turnSide):hand;
+      const state=a.stickControl??={at:this.wall,lateral:0,forward:0,heading,mode:'forehand'};
+      const lateral=side*(protecting?.48:.28),forward=(protecting?.35:.58)+speed*.018;
+      const reachRate=2+skill*.1;state.lateral+=clamp(lateral-state.lateral,-reachRate*dt,reachRate*dt);state.forward+=clamp(forward-state.forward,-reachRate*dt,reachRate*dt);
+      state.heading=heading;state.mode=protecting?'protect':state.lateral*hand<-.05?'backhand':'forehand';
+      const target=rinkLimit({x:a.x+Math.cos(heading)*state.forward-Math.sin(heading)*state.lateral,y:a.y+Math.sin(heading)*state.forward+Math.cos(heading)*state.lateral},.12);
+      const c=a.controlContact;
+      if(c?.remaining>0){c.remaining=Math.max(0,c.remaining-dt);const t=c.remaining/.18;this.puck={x:target.x+(c.x-target.x)*t,y:target.y+(c.y-target.y)*t,z:c.z*t};}
+      else{
+        const d=distance(this.puck,target),step=Math.min(1,(speed+3+skill*.15)*(1-this.balanceLevel(a)*.45)*dt/Math.max(.001,d));
+        this.puck={x:this.puck.x+(target.x-this.puck.x)*step,y:this.puck.y+(target.y-this.puck.y)*step,z:0};
+      }
+      // A body pushed beyond its stick cannot retain possession by teleporting
+      // the puck. The ordinary loose-puck race settles the next touch.
+      if(distance(a,this.puck)>1.25||netObstacle(a,this.puck,.04)){
+        this.carrier=null;this.puckVelocity={x:a.vx*.7,y:a.vy*.7,z:0};a.pickupAfter=this.time+.25;this.setPhase('loose');this.looseTime=0;
+        this.recordContact(a,'bobble',this.puck,.45);this.say('bobble',a.player.name+' tappar pucken utanför räckhåll.',a.side);
+      }
+    }
     move(dt){
+      const initial=new Map(this.actors.map(a=>[a.id,{x:a.x,y:a.y,vx:a.vx,vy:a.vy}]));
       for(const a of this.actors){
         a.sweepStart={x:a.x,y:a.y,at:this.time};
-        const dx=a.target.x-a.x,dy=a.target.y-a.y,d=Math.hypot(dx,dy);
+        const target=this.routeAroundNet(a,a.target),dx=target.x-a.x,dy=target.y-a.y,d=Math.hypot(dx,dy);
         let top=a.role==='G'?2.2+this.attribute(a,'movement')*.09:3.1+this.attribute(a,'skating')*.09;
         if(a.role!=='G'&&a.side!==this.owner)top*=.9+this.attribute(a,'workRate')*.008;
         if(a.role==='G'&&a.keeperBody)top*=1-a.keeperBody.drop*.16;
@@ -591,6 +670,9 @@ const StudioHockey = (() => {
         top*=Math.min(a.recoverUntil>this.time?.55:1,1-unsteady*.55);
         if(this.battle&&(a.id===this.battle.a||a.id===this.battle.b))top*=.3;
         const accel=(2.7+this.attribute(a,a.role==='G'?'movement':'acceleration')*.085)*(1-unsteady*.65);
+        const travel=Math.hypot(a.vx,a.vy)>.12?Math.atan2(a.vy,a.vx):Math.atan2(dy,dx),puckAngle=Math.atan2(this.puck.y-a.y,this.puck.x-a.x);
+        const backward=a.role!=='G'&&a.side!==this.owner&&distance(a,this.puck)<22&&Math.cos(travel-puckAngle)<-.5;
+        if(backward)top*=.85+this.attribute(a,'skating')*.006;
         let speed=Math.min(top,Math.sqrt(2*accel*d));
         // Brake based on stopping distance before the puck enters, instead of
         // skating to an attacking target and correcting after the blue line.
@@ -599,24 +681,29 @@ const StudioHockey = (() => {
           if(progress(a.side,a.target.x)>progress(a.side,a.x))speed=Math.min(speed,Math.sqrt(2*accel*room));
         }
         let vx=d>.03?dx/d*speed:0,vy=d>.03?dy/d*speed:0;
-        for(const b of this.actors){if(a.id===b.id)continue;const gap=distance(a,b);if(gap>.02&&gap<1.1){vx+=(a.x-b.x)/gap*(1.1-gap)*1.6;vy+=(a.y-b.y)/gap*(1.1-gap)*1.6;}}
-        const change=Math.hypot(vx-a.vx,vy-a.vy),blend=change?Math.min(1,accel*dt/change):1;
-        const oldVx=a.vx,oldVy=a.vy;
-        a.vx+=(vx-a.vx)*blend;a.vy+=(vy-a.vy)*blend;
-        const oldX=a.x,oldY=a.y;
-        a.x=clamp(a.x+a.vx*dt,1,59);a.y=clamp(a.y+a.vy*dt,.6,29.4);
-        a.travelled=(a.travelled||0)+Math.hypot(a.x-oldX,a.y-oldY);
-        this.recordMotion(a,oldVx,oldVy,dt);
+        for(const b of this.actors){if(a.id===b.id)continue;const old=initial.get(b.id),gap=distance(a,old);if(gap>.02&&gap<1.1){vx+=(a.x-old.x)/gap*(1.1-gap)*1.6;vy+=(a.y-old.y)/gap*(1.1-gap)*1.6;}}
+        if(a.role==='G'){const change=Math.hypot(vx-a.vx,vy-a.vy),blend=change?Math.min(1,accel*dt/change):1;a.vx+=(vx-a.vx)*blend;a.vy+=(vy-a.vy)*blend;}
+        else{
+          const velocity=skateVelocity({x:a.vx,y:a.vy},{x:vx,y:vy},accel,(3.8+this.attribute(a,'skating')*.12)*(1-unsteady*.4),dt);a.vx=velocity.x;a.vy=velocity.y;
+          const aim=backward?puckAngle:Math.hypot(a.vx,a.vy)>.12?Math.atan2(a.vy,a.vx):a.skateState?.heading??travel,previous=a.skateState?.heading??aim;
+          a.skateState={at:this.wall,heading:previous+clamp(angleDelta(previous,aim),-4.8*dt,4.8*dt),backward};a.skateState.heading=Math.atan2(Math.sin(a.skateState.heading),Math.cos(a.skateState.heading));
+        }
+        a.x+=a.vx*dt;a.y+=a.vy*dt;this.constrainBody(a,initial.get(a.id));
       }
+      // Symmetric body contacts avoid actor-order bias; preserve tangential
+      // motion so a shoulder contact does not stop a whole group of players.
+      for(let pass=0;pass<2;pass++)for(let i=0;i<this.actors.length;i++)for(let j=i+1;j<this.actors.length;j++){
+        const a=this.actors[i],b=this.actors[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),radius=a.role==='G'||b.role==='G'?.74:.66;if(d>=radius)continue;
+        const nx=d?dx/d:(String(a.id)<String(b.id)?1:-1),ny=d?dy/d:0,wa=1/(a.player.weight||85),wb=1/(b.player.weight||85),sum=wa+wb,shift=Math.min(.22,radius-d+.001);
+        a.x-=nx*shift*wa/sum;a.y-=ny*shift*wa/sum;b.x+=nx*shift*wb/sum;b.y+=ny*shift*wb/sum;
+        const closing=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;if(closing>0){a.vx-=closing*nx*wa/sum;a.vy-=closing*ny*wa/sum;b.vx+=closing*nx*wb/sum;b.vy+=closing*ny*wb/sum;}
+      }
+      for(const a of this.actors){const old=initial.get(a.id);this.constrainBody(a,old);a.travelled=(a.travelled||0)+distance(a,old);this.recordMotion(a,old.vx,old.vy,dt);}
       const carrier=this.actor(this.carrier);
-      if(carrier){
-        const c=carrier.controlContact;
-        if(c&&c.remaining>0){c.remaining=Math.max(0,c.remaining-dt);const t=c.remaining/.18;this.puck={x:carrier.x+(c.x-carrier.x)*t,y:carrier.y+(c.y-carrier.y)*t,z:c.z*t};}
-        else this.puck={x:carrier.x,y:carrier.y};
-      }
+      if(carrier)this.updateStickControl(carrier,dt);
       // Contact can happen between puck decisions; a player cannot skate through
       // a defender merely because the next decision timer has not expired.
-      if(carrier&&!this.battle&&this.time>(carrier.contactUntil||0)){
+      if(carrier&&this.carrier===carrier.id&&!this.battle&&this.time>(carrier.contactUntil||0)){
         const challenger=this.skaters(1-carrier.side).filter(d=>this.time>(d.contactUntil||0)&&distance(d,carrier)<1.45).sort((a,b)=>distance(a,carrier)-distance(b,carrier))[0];
         if(challenger&&this.random()<1-Math.exp(-this.battleChance(challenger,carrier)*6*dt))this.startBattle(carrier,challenger);
       }
@@ -730,12 +817,12 @@ const StudioHockey = (() => {
       return selected;
     }
     shotContext(a){
-      const goal=point(a.side,56.5,15),d=distance(a,goal),forward=56.5-progress(a.side,a.x);
-      const angle=Math.atan2(Math.abs(a.y-15),Math.max(.1,forward));
+      const origin=this.carrier===a.id?this.puck:a,goal=point(a.side,56.5,15),d=distance(origin,goal),forward=56.5-progress(a.side,origin.x);
+      const angle=Math.atan2(Math.abs(origin.y-15),Math.max(.1,forward));
       const last=a.receivedPass,oneTimer=Boolean(last&&this.time-last.time<.85&&Math.abs(last.y-a.y)>5);
       const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3&&(!this.rebound.spot||distance(a,this.rebound.spot)<6));
       const screen=this.actors.filter(b=>b.role!=='G'&&b.id!==a.id).reduce((sum,b)=>{
-        const lane=segmentDistance(b,a,goal);
+        const lane=segmentDistance(b,origin,goal);
         return sum+(lane.t>.5&&lane.t<.98&&distance(b,goal)<9?clamp(1-lane.d/.95,0,1)*(b.side===a.side?1:.55):0);
       },0);
       return {d,angle,pressure:this.pressureAt(a),screen:clamp(screen,0,1),oneTimer,rebound,behind:forward<=0,
@@ -761,7 +848,11 @@ const StudioHockey = (() => {
       const p=progress(g.side,this.puck.x),y=this.puck.y-15,nearPost=!incoming&&p<7.7&&Math.abs(y)>1.8&&Math.abs(y)<9&&distance(g,this.goalieTarget(g.side))<1.3;
       const age=this.wall-(g.keeperAction?.at??-100),hold=age<.42&&distance(g,this.puck)<9;
       if(!incoming){
-        const target=nearPost?.68:hold?Math.min(1,previous?.drop??body.drop):0;
+        // Prepare for an observed close carrier before release. The keeper
+        // cannot wait for flight to begin at point-blank range, and does not
+        // know the intended shot height or its eventual outcome.
+        const carrier=this.actor(this.carrier),ready=carrier&&carrier.side!==g.side&&p>3.5&&p<11?.20*clamp((8-distance(g,this.puck))/4,0,1):0;
+        const target=nearPost?.68:Math.max(ready,hold?Math.min(1,previous?.drop??body.drop):0);
         const rate=target>body.drop?2.4:.85+move*.045;
         body.drop+=clamp(target-body.drop,-rate*dt,rate*dt);
         if(previous){
@@ -892,9 +983,9 @@ const StudioHockey = (() => {
         if(miss==='high')end.z=1.4+spread*.13;
         else end.y=15+(a.y<15?-1:1)*spread;
       }
-      const shot={time:this.time,side:a.side,player:a.player.name,playerId:a.id,role:a.role,x:a.x,y:a.y,quality:model.quality,outcome,context,finishRoll,blockChance:model.block,onTargetChance:model.onTarget,liveResolution:true,blockerId:null,miss,assists:this.lastTouches.filter(t=>t.id!==a.id&&this.time-t.time<10).slice(-2).reverse()};
+      const origin={...this.puck},shot={time:this.time,side:a.side,player:a.player.name,playerId:a.id,role:a.role,x:origin.x,y:origin.y,quality:model.quality,outcome,context,finishRoll,blockChance:model.block,onTargetChance:model.onTarget,liveResolution:true,blockerId:null,miss,assists:this.lastTouches.filter(t=>t.id!==a.id&&this.time-t.time<10).slice(-2).reverse()};
       const velocity=context.type==='Slagskott'?28+this.attribute(a,'strength')*.2:23+this.attribute(a,'shooting')*.22;
-      const fullDuration=Math.max(.18,distance(a,end)/velocity),startZ=this.puck.z||0;
+      const fullDuration=Math.max(.18,distance(origin,end)/velocity),startZ=this.puck.z||0;
       const vertical={z:startZ,vz:(end.z-startZ)/fullDuration+GRAVITY*fullDuration/2};
       let duration=fullDuration;
       // Resolve at the keeper's front, then let an unbeaten shot cross the
@@ -902,9 +993,9 @@ const StudioHockey = (() => {
       const keeper=this.actors.find(b=>b.side!==a.side&&b.role==='G');
       let goalLine=null,goalDuration=0;
       if(outcome===null&&keeper){
-        const plane=clamp(progress(a.side,keeper.x)-.4,progress(a.side,a.x)+.15,56.45);
-        const fraction=clamp((plane-progress(a.side,a.x))/(56.5-progress(a.side,a.x)),.02,1);
-        goalLine={...goal};end={x:a.x+(goal.x-a.x)*fraction,y:a.y+(goal.y-a.y)*fraction};duration=fullDuration*fraction;goalDuration=fullDuration-duration;
+        const plane=clamp(progress(a.side,keeper.x)-.4,progress(a.side,origin.x)+.15,56.45);
+        const fraction=clamp((plane-progress(a.side,origin.x))/(56.5-progress(a.side,origin.x)),.02,1);
+        goalLine={...goal};end={x:origin.x+(goal.x-origin.x)*fraction,y:origin.y+(goal.y-origin.y)*fraction};duration=fullDuration*fraction;goalDuration=fullDuration-duration;
       }
       end.z=puckVertical(vertical,duration).z;
       this.flight={kind:'shot',keeperVersion:2,contactVersion:1,contactRoll:blockRoll,start:{...this.puck},end,vertical,goalLine,goalDuration,velocity,elapsed:0,duration,shot,side:a.side};this.carrier=null;this.focusUntil=this.wall+4;
@@ -988,7 +1079,7 @@ const StudioHockey = (() => {
     }
     receiveContact(a,f,kind='stick'){
       const vx=(f.end.x-f.start.x)/f.duration,vy=(f.end.y-f.start.y)/f.duration,speed=Math.hypot(vx-a.vx,vy-a.vy);
-      const model=receptionModel({control:this.attribute(a,'puckControl')*(1-this.balanceLevel(a)*.35),composure:this.attribute(a,'composure'),pressure:this.pressureAt(a),speed,height:this.puck.z||0});
+      const model=receptionModel({control:this.attribute(a,'puckControl')*(1-this.balanceLevel(a)*.35)*(1-this.netFrontHold(a)*.35),composure:this.attribute(a,'composure'),pressure:this.pressureAt(a),speed,height:this.puck.z||0});
       const roll=this.random(),clean=kind==='stick'&&roll<model.clean,bobble=!clean&&(kind==='body'||roll<model.clean+model.bobble);
       this.recordContact(a,clean?'receive':bobble?'bobble':'miss',this.puck,clamp(speed/24,.2,1));
       if(clean){
@@ -1191,6 +1282,8 @@ const StudioHockey = (() => {
           const wall=this.puck.y<.35?.35:29.65;this.puck.y=wall+(wall-this.puck.y)*.48;v.y*=-.48;v.x*=.9;this.rimPath=null;
           this.effect('board',this.owner,clamp(speed/18,.15,1));
         }
+        const corner=rinkLimit(this.puck,.12);
+        if(corner.hit){this.puck.x=corner.x;this.puck.y=corner.y;const normal=v.x*corner.nx+v.y*corner.ny;if(normal>0){v.x=(v.x-normal*corner.nx)*.9-normal*corner.nx*.48;v.y=(v.y-normal*corner.ny)*.9-normal*corner.ny*.48;}this.rimPath=null;this.effect('board',this.owner,clamp(speed/18,.15,1));}
         if((next<=.12||Math.hypot(v.x,v.y)<=.12)&&!airborne){rest();return;}
       }
     }
@@ -1270,8 +1363,8 @@ const StudioHockey = (() => {
       else if(!this.carrier){
         this.looseTime=(this.looseTime||0)+dt;this.moveFreePuck(dt);if(this.stoppage>0){this.capture();return;}
         const closest=[...this.skaters(0),...this.skaters(1)].filter(a=>a.status!=='leaving'&&!(a.pickupAfter>this.time)).sort((a,b)=>distance(a,this.puck)-distance(b,this.puck));
-        const first=closest[0],rival=first&&closest.find(a=>a.side!==first.side);
-        if(first&&distance(first,this.puck)<1.1&&(this.puck.z||0)<=.45){
+        const first=closest.find(a=>distance(a,this.puck)<1.1*(1-this.netFrontHold(a)*.25)),rival=first&&closest.find(a=>a.side!==first.side);
+        if(first&&(this.puck.z||0)<=.45){
           if(rival&&distance(rival,this.puck)<1.35&&this.time>(first.contactUntil||0)&&this.time>(rival.contactUntil||0))this.startBattle(first,rival);
           else this.takePossession(first,{turnover:first.side!==this.owner});
         }
@@ -1297,12 +1390,15 @@ const StudioHockey = (() => {
     presentationFrame(){
       const f=this.flight;
       // Presentation receives observed flight data, never hidden outcome rolls.
-      return {time:this.time,wall:this.wall,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
+      return {time:this.time,wall:this.wall,reset:this.presentationReset||0,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
         effects:(this.effects||[]).filter(e=>this.wall-e.at<3).map(e=>({...e})),
         actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,number:a.player.jerseyNumber||this.teams[a.side].players.findIndex(p=>p.id===a.player.id)+1,shoots:a.player.shoots||null,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status,
           energy:this.energyLevel(a),height:a.player.height||null,weight:a.player.weight||null,markedThreat:a.markedThreat||null,target:{...a.target},
           ...(a.footPlants?{footPlants:a.footPlants.map(p=>p?{...p}:null)}:{}),
           ...(a.motion?{motion:{...a.motion}}:{}),
+          ...(a.skateState?{skateState:{...a.skateState}}:{}),
+          ...(a.stickControl?{stickControl:{...a.stickControl}}:{}),
+          ...(a.netFront&&a.netFront.until>this.time?{netFront:{...a.netFront,hold:this.netFrontHold(a)}}:{}),
           ...(a.keeperBody?{keeperBody:{...a.keeperBody}}:{}),
           ...(a.balanceState&&this.wall<a.balanceState.until?{balanceState:{...a.balanceState}}:{}),
           ...(a.shotPreparation?{windup:{...a.shotPreparation,target:{...a.shotPreparation.target}}}:{}),
@@ -1351,6 +1447,6 @@ const StudioHockey = (() => {
       this.advice=scenario==='rush'?'Puckföraren kan skjuta eller spela över. Den ensamma backen måste skydda mitten.':scenario==='pk'?'Skydda slottet. Kontra bara när en fri passningsväg finns.':'Se hur spelarna söker passningsvägar samtidigt som försvararna täcker farliga ytor.';
     }
   }
-  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,puckVertical,flightVertical,keeperStyle,sweepContact,goalFrameContact,receptionModel,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance,penaltyCount,activePenalties,strengthState,penaltyOffender,penaltyRecord,penaltyDetails};
+  return {Match,STEP,PHASES,ROLE_NAMES,progress,distance,rinkLimit,netObstacle,skateVelocity,puckVertical,flightVertical,keeperStyle,sweepContact,goalFrameContact,receptionModel,evaluateShot,shootoutChance,resolveShootout,shotBlockChance,shotFlightOutcome,finishShot,shotTacticalBias,pressureWinChance,penaltyCount,activePenalties,strengthState,penaltyOffender,penaltyRecord,penaltyDetails};
 })();
 if(typeof module!=="undefined")module.exports=StudioHockey;

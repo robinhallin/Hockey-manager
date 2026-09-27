@@ -34,7 +34,7 @@ function build(kind){
   surface(Array.from({length:rings+1},(_,i)=>t=>{const a=i*Math.PI/rings,b=t*Math.PI*2,n=[Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b)];return {p:center.map((v,k)=>v+n[k]*size[k]),n:unit(n.map((v,k)=>v/size[k])),j:[joint,joint],c:col};}),segments);
  }
  function tube(a,b,r,col,joint){const y=unit(sub(b,a)),x=unit(cross(y,Math.abs(y[1])>.9?[1,0,0]:[0,1,0])),z=cross(x,y);surface([a,b].map(p=>t=>{const n=x.map((v,i)=>v*Math.cos(t*Math.PI*2)+z[i]*Math.sin(t*Math.PI*2));return {p:p.map((v,i)=>v+n[i]*r),n,j:[joint,joint],c:col};}),6);}
- const levels=[[.88,.21,.28],[.97,.22,.29],[1.05,.24,.31],[1.25,.28,.39],[1.43,.23,.35],[1.50,.15,.24]];
+ const levels=[[.88,.20,.27],[.97,.21,.28],[1.05,.225,.30],[1.25,keeper?.28:.25,keeper?.39:.355],[1.43,.22,.34],[1.50,.14,.22]];
  surface(levels.map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.08,Math.sin(t*Math.PI*2)/w]),uv:[t,(h-.88)/.62],j:[1,0],w:Math.max(0,Math.min(1,(h-.86)/.25)),c:jersey})),20);
  for(const [upper,lower,arm] of [[2,3,true],[4,5,true],[6,7,false],[8,9,false]]){
   const a=origins[upper],b=origins[lower],c=ends[lower],rows=[];
@@ -45,16 +45,22 @@ function build(kind){
   }
   surface(rows,12);
  }
+ // A fitted collar and shoulder panels give the jersey a hockey silhouette
+ // without increasing the rig or depending on a licensed equipment texture.
+ surface([[1.48,.12,.15],[1.515,.10,.13]].map(([h,d,w])=>t=>({p:[.01+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2),.3,Math.sin(t*Math.PI*2)]),j:[1,1],c:trim})),12);
  surface([[.69,.20,.28],[.82,.25,.31],[.94,.21,.29]].map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,0,Math.sin(t*Math.PI*2)/w]),j:[0,1],w:1,c:black})),16);
- ellipsoid([.01,1.55,0],[.095,.16,.10],skin,1);ellipsoid([.045,1.67,0],[.155,.19,.16],skin,10);
+ ellipsoid([.01,1.55,0],[.085,.14,.09],skin,1);ellipsoid([.045,1.665,0],[.145,.18,.15],skin,10);
+ ellipsoid([.187,1.648,0],[.036,.045,.032],skin,10,8,4);
+ for(const side of [-1,1])quad([.19,1.699,side*.038],[.19,1.699,side*.082],[.19,1.683,side*.082],[.19,1.683,side*.038],black,10);
+ quad([.18,1.574,-.039],[.18,1.574,.039],[.18,1.565,.039],[.18,1.565,-.039],[.40,.27,.23],10);
  const helmet=keeper?white:jersey;
- surface([[1.64,.15,.19],[1.73,.22,.23],[1.84,.215,.22],[1.92,.15,.16],[1.945,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),16);
+ surface([[1.64,.15,.18],[1.73,.205,.21],[1.82,.20,.205],[1.89,.14,.15],[1.915,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),16);
  for(const side of [-1,1]){tube([-.12,1.72,side*.18],[.11,1.52,side*.14],.017,black,10);for(const x of [-.07,.035])box([x,1.894,side*.095],[.065,.012,.035],black,10);}
  if(keeper){
   for(const z of [-.15,0,.15])tube([.23,1.51,z],[.25,1.80,z],.012,steel,10);
   for(const h of [1.54,1.65,1.77])tube([.25,h,-.16],[.25,h,.16],.012,steel,10);
   ellipsoid([.16,1.49,0],[.10,.075,.15],white,10);
- }else for(const side of [-1,1])quad([.218,1.755,0],[.18,1.755,side*.18],[.19,1.64,side*.18],[.25,1.64,0],[.66,.78,.83],10);
+ }else for(const side of [-1,1])quad([.218,1.755,0],[.18,1.755,side*.17],[.19,1.707,side*.17],[.235,1.707,0],[.66,.78,.83],10);
  for(const [i,side] of [[0,-1],[1,1]]){
   const foot=origins[13+i],f=(x,y,z)=>[foot[0]+x,foot[1]+y,foot[2]+z];
   // Boot, laces, holder and runner stay attached to one foot joint.

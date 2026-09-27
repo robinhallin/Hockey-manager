@@ -404,22 +404,26 @@ function studioQueueUnit(kind,index){
  studioMirror(e);matchNotice(e.stoppage>0?'Femman är redo för nedsläpp.':'Byte begärt. Spelarna byter vid ett säkert puckläge eller nästa avblåsning.');
 }
 
-let studioLastPulse=0,studioAccumulator=0,studioLastPaint=0,studioLastSave=0,studioPrevious=null,studioReplayState=null,studioRAF=false,studioCanvas=null;
-function studioRestartClock(keepPresentation=false){studioLastPulse=Date.now();studioAccumulator=0;if(!keepPresentation){studioReplayState=null;studioHighlightWindow=null;}else if(studioReplayState)studioReplayState.lastNow=null;studioPrevious=studioEngine()?studioFrame(studioEngine()):null;studioSyncPlans();}
-function studioPulse(){
+let studioLastPulse=0,studioAccumulator=0,studioLastPaint=0,studioLastSave=0,studioPrevious=null,studioReplayState=null,studioRAF=false,studioCanvas=null,studioRenderCache=null;
+function studioRenderFrame(e){if(studioRenderCache?.engine!==e||studioRenderCache.tick!==e.tick||studioRenderCache.wall!==e.wall)studioRenderCache={engine:e,tick:e.tick,wall:e.wall,frame:studioFrame(e)};return studioRenderCache.frame;}
+function studioRestartClock(keepPresentation=false){studioLastPulse=Date.now();studioAccumulator=0;studioRenderCache=null;if(!keepPresentation){studioReplayState=null;studioHighlightWindow=null;}else if(studioReplayState)studioReplayState.lastNow=null;studioPrevious=studioEngine()?studioRenderFrame(studioEngine()):null;studioSyncPlans();}
+function studioPulse(fromAnimation=false){
  const m=state.live,e=studioEngine();if(!e||!m.running||m.finished)return;
+ // Foreground presentation and fixed-step simulation share one frame clock.
+ // The timer remains a fallback for hidden windows and non-graphical clients.
+ if(!fromAnimation&&studioRAF&&state.page==='match'&&!document.hidden){matchTimer=setTimeout(studioPulse,100);return;}
  const now=Date.now(),real=Math.min(.1,Math.max(0,(now-studioLastPulse)/1000));studioLastPulse=now;
  studioTrackHighlight(e,m);
  studioAccumulator=Math.min(60,studioAccumulator+real*studioPlaybackRate(e,m));
  const goals=m.hv+m.opp,period=m.period,budget=Date.now();
- for(let i=0;studioAccumulator>=StudioHockey.STEP&&i<600&&m.running&&!m.finished&&Date.now()-budget<24;i++){
-  const focus=studioShouldShow(e,m);studioPrevious=studioFrame(e);studioStep();studioAccumulator-=StudioHockey.STEP;studioTrackHighlight(e,m);
+ for(let i=0;studioAccumulator>=StudioHockey.STEP&&i<600&&m.running&&!m.finished&&Date.now()-budget<(fromAnimation&&studioShouldShow(e,m)?8:24);i++){
+  const focus=studioShouldShow(e,m);studioPrevious=studioRenderFrame(e);studioStep();studioRenderCache=null;studioAccumulator-=StudioHockey.STEP;studioTrackHighlight(e,m);
   if(!focus&&studioShouldShow(e,m)&&m.rink.mode!=='full'){studioAccumulator=0;break;}
  }
  if(goals!==m.hv+m.opp||period!==m.period||!m.running){render();studioLastPaint=now;}
  else if(now-studioLastPaint>500){studioRefresh();studioLastPaint=now;}
  if(now-studioLastSave>5000||!m.running){save();studioLastSave=now;}
- if(m.running&&!m.finished)matchTimer=setTimeout(studioPulse,50);
+ if(!fromAnimation&&m.running&&!m.finished)matchTimer=setTimeout(studioPulse,50);
 }
 function studioFrame(e){return e.presentationFrame();}
 function studioShotReasons(shot){
@@ -488,21 +492,22 @@ function studioMount(){
  if(typeof requestAnimationFrame!=='function'||studioRAF)return;studioRAF=true;
  const draw=now=>{
   if(!studioActive()||state.page!=='match'){Match3D.dispose();MatchAudio.silence();studioRAF=false;return;}
+  if(state.live.running&&!document.hidden&&!studioReplayState)studioPulse(true);
   const canvas=document.getElementById('career-ice'),e=studioEngine(),m=state.live;
   if(!canvas?.getContext){Match3D.dispose();MatchAudio.silence();studioRAF=false;return;}
   const canvas3d=document.getElementById('career-ice-3d');
   if(canvas3d&&!canvas3d.dataset.clickBound){canvas3d.dataset.clickBound='true';canvas3d.addEventListener('click',event=>{if(studioReplayState)return;const r=canvas3d.getBoundingClientRect(),id=Match3D.pick(canvas3d,event.clientX-r.left,event.clientY-r.top),actor=studioEngine().actors.find(a=>a.id===id);if(actor){studioExpanded3D=false;pauseMatch();matchNotice('#'+studioFrame(studioEngine()).actors.find(a=>a.id===actor.id).number+' '+actor.player.name+' · '+actor.duty);}});}
-  if(canvas!==studioCanvas){studioCanvas=canvas;canvas.addEventListener('click',event=>{
+  if(canvas!==studioCanvas){studioRenderCache=null;studioCanvas=canvas;canvas.addEventListener('click',event=>{
    if(studioReplayState)return;const rect=canvas.getBoundingClientRect(),fit=Math.min(rect.width/1200,rect.height/650),x=(event.clientX-rect.left-(rect.width-1200*fit)/2)/fit,y=(event.clientY-rect.top-(rect.height-650*fit)/2)/fit,scale=1112/60;
    const point={x:(x-44)/scale,y:(y-(650-30*scale)/2)/scale};const a=e.actors.find(a=>StudioHockey.distance(a,point)<1.6);
   if(a){studioExpanded3D=false;pauseMatch();matchNotice(a.player.name+' · '+a.duty+'. '+(a.role==='G'?'Förflyttning, positionering och reflexer avgör räddningen; puckhantering och returkontroll avgör vad som händer sedan.':a.role.endsWith('D')?'Positionering och beslut styr täckningen. Tacklingar, styrka och arbetskapacitet hjälper i puckduellerna.':'Spelförståelse och beslut hjälper spelaren välja. Passningar, puckkontroll och skott avgör utförandet.'));}
   });}
-  let frame=studioFrame(e),previous=studioPrevious,blend=m.running?Math.min(1,studioAccumulator/StudioHockey.STEP):1;
+  let frame=studioRenderFrame(e),previous=studioPrevious,blend=m.running?Math.min(1,studioAccumulator/StudioHockey.STEP):1;
   const replay=studioReplayFrame(now);if(replay){({frame,previous,blend}=replay);}
   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)blend=1;
   const hiddenRink=!studioReplayState&&(m.rink.mode==='commentary'||m.running&&!studioShouldShow(e,m));
   const sampled=Match3D.sample(frame,previous,blend),analysis=studioReplayState&&studioReplayState.analysis!==false?Match3D.replayAnalysis(studioReplayState.frames,sampled,studioReplayState.clip):null;
-  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,quality:studioGraphicsQuality(),homeSide:venue.ownHome?0:1,analysis,suspended:hiddenRink});
+  const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{sampled,moving:!hiddenRink&&Boolean(studioReplayState?!studioReplayState.paused:m.running),teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,quality:studioGraphicsQuality(),homeSide:venue.ownHome?0:1,analysis,suspended:hiddenRink});
   const audio=studioAudioPreferences(),replayMoving=studioReplayState&&!studioReplayState.paused&&studioReplayState.elapsed<studioReplayDuration();
   MatchAudio.update(sampled,{source:studioReplayState||e,active:!document.hidden&&!hiddenRink&&Boolean(replayMoving||!studioReplayState&&m.running&&!m.finished),volume:audio.muted?0:audio.volume,homeSide:venue.ownHome?0:1});
   canvas.style.visibility=rendered3D?'hidden':'visible';
@@ -552,6 +557,7 @@ function validateSpatialMatchSave(s){
  const e=s.live?.broadcast;if(!e)return;
  const bad=()=>{throw Error('Matchens spelarbeslut är felaktiga.');};
  const height=v=>Number.isFinite(v)&&v>=0&&v<=30;
+ if(e.presentationReset!==undefined&&(!Number.isSafeInteger(e.presentationReset)||e.presentationReset<0))bad();
  if(e.puck?.z!==undefined&&!height(e.puck.z))bad();
  if(e.puckVelocity?.z!==undefined&&(!Number.isFinite(e.puckVelocity.z)||Math.abs(e.puckVelocity.z)>80))bad();
  if(e.flight?.vertical&&(!height(e.flight.vertical.z)||!Number.isFinite(e.flight.vertical.vz)||Math.abs(e.flight.vertical.vz)>80))bad();
@@ -583,6 +589,9 @@ function validateSpatialMatchSave(s){
  if(e.decisionAudit){const a=e.decisionAudit;if(!a.counts||!Array.isArray(a.recent)||a.recent.length>30)bad();for(const [k,v] of Object.entries(a.counts))if(!kinds.includes(k)||!Number.isInteger(v)||v<0)bad();for(const r of a.recent)if(!r||!kinds.includes(r.kind)||!Number.isFinite(r.time)||r.time<0||![0,1].includes(r.side)||typeof r.player!=='string'||typeof r.reason!=='string'||!Array.isArray(r.alternatives)||r.alternatives.length>3||r.alternatives.some(o=>!o||!kinds.includes(o.kind)||!Number.isFinite(o.value)))bad();}
  for(const a of e.actors||[])if(a.balanceState){const b=a.balanceState;if(!['at','until','level','direction'].every(k=>Number.isFinite(b[k]))||b.at<0||b.until<=b.at||b.until-b.at>2||b.level<0||b.level>1||Math.abs(b.direction)>Math.PI)bad();}
  for(const a of e.actors||[])if(a.keeperBody){const b=a.keeperBody;if(!['at','drop','facing','load','post'].every(k=>Number.isFinite(b[k]))||b.at<0||b.at>e.wall+.1||b.drop<0||b.drop>1||Math.abs(b.facing)>Math.PI+.001||Math.abs(b.load)>1||![-1,0,1].includes(b.post)||!['ready','tracking','post','butterfly','butterfly-slide','recovering'].includes(b.mode))bad();}
+ for(const a of e.actors||[])if(a.skateState){const s=a.skateState;if(!Number.isFinite(s.at)||s.at<0||s.at>e.wall+.1||!Number.isFinite(s.heading)||Math.abs(s.heading)>Math.PI+.001||typeof s.backward!=='boolean')bad();}
+ for(const a of e.actors||[])if(a.stickControl){const s=a.stickControl;if(!['at','heading','forward','lateral'].every(k=>Number.isFinite(s[k]))||s.at<0||s.at>e.wall+.1||Math.abs(s.heading)>Math.PI+.001||s.forward<0||s.forward>1.2||Math.abs(s.lateral)>.8||!['forehand','backhand','protect'].includes(s.mode))bad();}
+ for(const a of e.actors||[])if(a.netFront){const s=a.netFront;if(!Number.isFinite(s.at)||s.at<0||s.at>e.wall+.1||!Number.isFinite(s.until)||s.until>e.time+1||!['screen','boxout','rebound'].includes(s.kind)||s.opponent!==null&&typeof s.opponent!=='string')bad();}
  for(const a of e.actors||[])if(a.motion)for(const key of ['drive','brake','curve'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||a.motion[key]<(key==='curve'?-1:0)||a.motion[key]>1))bad();
  if(e.battle?.support&&(!Array.isArray(e.battle.support)||e.battle.support.length>2||new Set(e.battle.support.map(r=>r.side)).size!==e.battle.support.length||e.battle.support.some(r=>typeof r.id!=='string'||![0,1].includes(r.side)||!Number.isFinite(r.at)||r.at<0||r.at>e.time+.1)))bad();
  for(const t of e.teams||[])if(t.markingPlan){const p=t.markingPlan;if(!Number.isFinite(p.at)||!Number.isFinite(p.readAt)||p.at<0||p.readAt<p.at||p.readAt-p.at>1||!Array.isArray(p.marks)||p.marks.length>6||p.marks.some(r=>typeof r.id!=='string'||typeof r.threat!=='string')||new Set(p.marks.map(r=>r.id)).size!==p.marks.length||new Set(p.marks.map(r=>r.threat)).size!==p.marks.length)bad();}
