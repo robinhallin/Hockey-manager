@@ -35,7 +35,7 @@ function build(kind){
  }
  function tube(a,b,r,col,joint){const y=unit(sub(b,a)),x=unit(cross(y,Math.abs(y[1])>.9?[1,0,0]:[0,1,0])),z=cross(x,y);surface([a,b].map(p=>t=>{const n=x.map((v,i)=>v*Math.cos(t*Math.PI*2)+z[i]*Math.sin(t*Math.PI*2));return {p:p.map((v,i)=>v+n[i]*r),n,j:[joint,joint],c:col};}),6);}
  const levels=[[.88,.20,.27],[.97,.21,.28],[1.05,.225,.30],[1.25,keeper?.28:.25,keeper?.39:.355],[1.43,.22,.34],[1.50,.14,.22]];
- surface(levels.map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.08,Math.sin(t*Math.PI*2)/w]),uv:[t,(h-.88)/.62],j:[1,0],w:Math.max(0,Math.min(1,(h-.86)/.25)),c:jersey})),20);
+ surface(levels.map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.08,Math.sin(t*Math.PI*2)/w]),uv:[t,(h-.88)/.62],j:[1,0],w:Math.max(0,Math.min(1,(h-.86)/.25)),c:jersey})),24);
  for(const [upper,lower,arm] of [[2,3,true],[4,5,true],[6,7,false],[8,9,false]]){
   const a=origins[upper],b=origins[lower],c=ends[lower],rows=[];
   for(let k=0;k<=8;k++){
@@ -49,12 +49,13 @@ function build(kind){
  // without increasing the rig or depending on a licensed equipment texture.
  surface([[1.48,.12,.15],[1.515,.10,.13]].map(([h,d,w])=>t=>({p:[.01+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2),.3,Math.sin(t*Math.PI*2)]),j:[1,1],c:trim})),12);
  surface([[.69,.20,.28],[.82,.25,.31],[.94,.21,.29]].map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,0,Math.sin(t*Math.PI*2)/w]),j:[0,1],w:1,c:black})),16);
- ellipsoid([.01,1.55,0],[.085,.14,.09],skin,1);ellipsoid([.045,1.665,0],[.145,.18,.15],skin,10);
+ ellipsoid([.01,1.55,0],[.085,.14,.09],skin,1);ellipsoid([.045,1.665,0],[.145,.18,.15],skin,10,16,8);
+ if(!keeper)for(const side of [-1,1])ellipsoid([.005,1.65,side*.15],[.024,.047,.026],skin,10,8,4);
  ellipsoid([.187,1.648,0],[.036,.045,.032],skin,10,8,4);
  for(const side of [-1,1])quad([.19,1.699,side*.038],[.19,1.699,side*.082],[.19,1.683,side*.082],[.19,1.683,side*.038],black,10);
  quad([.18,1.574,-.039],[.18,1.574,.039],[.18,1.565,.039],[.18,1.565,-.039],[.40,.27,.23],10);
  const helmet=keeper?white:jersey;
- surface([[1.64,.15,.18],[1.73,.205,.21],[1.82,.20,.205],[1.89,.14,.15],[1.915,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),16);
+ surface([[1.64,.15,.18],[1.73,.205,.21],[1.82,.20,.205],[1.89,.14,.15],[1.915,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),24);
  for(const side of [-1,1]){tube([-.12,1.72,side*.18],[.11,1.52,side*.14],.017,black,10);for(const x of [-.07,.035])box([x,1.894,side*.095],[.065,.012,.035],black,10);}
  if(keeper){
   for(const z of [-.15,0,.15])tube([.23,1.51,z],[.25,1.80,z],.012,steel,10);
@@ -64,9 +65,9 @@ function build(kind){
  for(const [i,side] of [[0,-1],[1,1]]){
   const foot=origins[13+i],f=(x,y,z)=>[foot[0]+x,foot[1]+y,foot[2]+z];
   // Boot, laces, holder and runner stay attached to one foot joint.
-  ellipsoid(f(.015,-.105,0),[.225,.11,.10],black,13+i);box(f(-.115,-.015,0),[.18,.17,.16],black,13+i);box(f(-.10,.068,0),[.16,.025,.18],trim,13+i);
+  ellipsoid(f(.015,-.105,0),[.185,.11,.095],black,13+i);box(f(-.10,-.015,0),[.15,.17,.15],black,13+i);box(f(-.09,.068,0),[.14,.025,.17],trim,13+i);
   for(let n=0;n<4;n++)box(f(-.035+n*.045,-.015-n*.012,0),[.014,.012,.11],white,13+i);
-  box(f(0,-.185,0),[.40,.036,.06],white,13+i);box(f(0,-.215,0),[.47,.025,.036],steel,13+i);
+  box(f(0,-.185,0),[.35,.036,.06],white,13+i);box(f(0,-.215,0),[.41,.025,.036],steel,13+i);
   const hand=origins[11+i],h=(x,y,z)=>[hand[0]+x,hand[1]+y,hand[2]+z];
   if(!keeper){
    ellipsoid(hand,[.125,.11,.14],black,11+i);box(h(-.035,.092,0),[.14,.04,.20],trim,11+i);
@@ -80,11 +81,12 @@ function build(kind){
    }else{ellipsoid(hand,[.095,.115,.10],black,11+i);box(h(.085,.035,0),[.10,.31,.26],white,11+i);box(h(.141,.035,0),[.012,.20,.17],trim,11+i);}
    const ankle=origins[13+i],knee=origins[7+i*2],up=unit(sub(knee,ankle)),right=[0,0,1],front=[1,0,0];
    const pad=(height,depth,width)=>ankle.map((v,k)=>v+up[k]*height+front[k]*depth+right[k]*width),top=.47,bottom=-.03,half=.18;
-   quad(pad(bottom,.22,-half),pad(bottom,.22,half),pad(top,.22,half),pad(top,.22,-half),white,7+i*2);
+   quad(pad(bottom,.235,-half+.025),pad(bottom,.235,half-.025),pad(top,.235,half-.025),pad(top,.235,-half+.025),white,7+i*2);
+   for(const side of [-1,1])quad(pad(bottom,.20,side*half),pad(bottom,.235,side*(half-.025)),pad(top,.235,side*(half-.025)),pad(top,.20,side*half),[.80,.85,.87],7+i*2);
    for(const edge of [-half,half])quad(pad(bottom,.02,edge),pad(bottom,.22,edge),pad(top,.22,edge),pad(top,.02,edge),white,7+i*2);
    quad(pad(top,.02,-half),pad(top,.22,-half),pad(top,.22,half),pad(top,.02,half),white,7+i*2);
-   for(const y of [.10,.27,.42])quad(pad(y,.225,-half),pad(y,.225,half),pad(y+.022,.225,half),pad(y+.022,.225,-half),trim,7+i*2);
-   for(const z of [-.105,.105])tube(pad(bottom,.226,z),pad(top,.226,z),.006,steel,7+i*2);
+   for(const y of [.10,.27,.42])quad(pad(y,.24,-half+.025),pad(y,.24,half-.025),pad(y+.022,.24,half-.025),pad(y+.022,.24,-half+.025),trim,7+i*2);
+   for(const z of [-.105,.105])tube(pad(bottom,.24,z),pad(top,.24,z),.006,steel,7+i*2);
   }
  }
  counts.push({kind,vertices:P.length/3,triangles:I.length/3});

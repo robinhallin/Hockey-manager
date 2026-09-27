@@ -10,9 +10,11 @@ module.exports=async function check3D(page,out){
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),before,'3D selection does not change a paused match');
  const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
  assert.equal(rig.model.joints.length,15);assert.ok(rig.graphics.skinVertices>22000);assert.equal(rig.graphics.modelActors,rig.graphics.actors);assert.equal(rig.graphics.error,0);
+ assert.ok(rig.graphics.textureBuilds>0&&rig.graphics.glassVertices>0,'the arena loads its ice/club textures and glass');
+ if(rig.graphics.shadowSupported){assert.equal(rig.graphics.shadowMode,'projected');assert.ok(rig.graphics.shadowSize>=512&&rig.graphics.shadowBuilds>0,'supported GPUs render actual player shadows');}
  require('node:fs').writeFileSync(path.join(out,'3d-rig-result.json'),JSON.stringify(rig,null,2));
  const pixels=await page.evaluate(()=>{
-  const canvas=document.getElementById('career-ice-3d');Match3D.draw(canvas,studioFrame(studioEngine()),null,1,{teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D});
+  const canvas=document.getElementById('career-ice-3d');Match3D.draw(canvas,studioFrame(studioEngine()),null,1,{teams:[managerClub(),state.live.opponent].map(name=>({name,...careerIdentity(name)})),camera:studioCamera3D});
   const gl=canvas.getContext('webgl'),p=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let bright=0;for(let i=0;i<p.length;i+=4)if(p[i]>130&&p[i+1]>130&&p[i+2]>130)bright++;return bright/(canvas.width*canvas.height);
  });
  assert.ok(pixels>.15&&pixels<.9,'3D draws a lit rink rather than an empty canvas: '+pixels);
@@ -90,7 +92,7 @@ module.exports=async function check3D(page,out){
  }
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),focusBefore,'large view preserves live state');
  const graphics=await page.evaluate(()=>{
-  const canvas=document.getElementById('career-ice-3d'),f=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D};
+  const canvas=document.getElementById('career-ice-3d'),f=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(name=>({name,...careerIdentity(name)})),camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D};
   Match3D.draw(canvas,f,null,1,options);const before=Match3D.diagnostics();Match3D.draw(canvas,f,null,1,options);const after=Match3D.diagnostics();
   Match3D.draw(canvas,{...f,time:f.time+5},null,1,{...options,suspended:true});const suspended=Match3D.diagnostics();
   // The match clock can stop at a whistle while observed follow-through advances.
@@ -99,6 +101,7 @@ module.exports=async function check3D(page,out){
   return {before,after,suspended,recovery};
  });
  assert.equal(graphics.after.geometryBuilds,graphics.before.geometryBuilds,'paused mesh is reused');assert.equal(graphics.after.error,0);assert.ok(graphics.after.vertices<50000);
+ assert.equal(graphics.after.shadowBuilds,graphics.before.shadowBuilds,'paused shadows reuse the same depth map');assert.equal(graphics.after.textureBuilds,graphics.before.textureBuilds,'ice wear and club artwork are not regenerated per frame');
  assert.ok(graphics.after.crowdVertices>10000&&graphics.after.crowdVertices<30000,'crowd has a separate bounded mesh');
  assert.equal(graphics.suspended.frames,graphics.after.frames,'hidden fast-forward does not draw');assert.equal(graphics.suspended.geometryBuilds,graphics.after.geometryBuilds);
  assert.equal(graphics.recovery.geometryBuilds,graphics.after.geometryBuilds+1,'stopped match clock does not freeze recorded follow-through');
@@ -243,6 +246,8 @@ module.exports=async function check3D(page,out){
   await page.screenshot({path:path.join(out,'45-match-3d-quality-'+quality+'.png'),fullPage:true});
  }
  assert.ok(qualities.low.width<qualities.normal.width);assert.ok(qualities.low.crowdVertices<qualities.normal.crowdVertices);assert.equal(qualities.high.actors,qualities.low.actors);
+ assert.equal(qualities.low.shadowSize,0);assert.equal(qualities.low.shadowMode,'contact');
+ if(qualities.normal.shadowSupported){assert.ok(qualities.normal.shadowSize>0);assert.ok(qualities.high.shadowSize>qualities.normal.shadowSize);}
  require('node:fs').writeFileSync(path.join(out,'3d-quality-result.json'),JSON.stringify(qualities,null,2));
  await page.getByLabel('3D-grafik',{exact:true}).selectOption('normal');
  await page.locator('#match-tab-analysis').click();

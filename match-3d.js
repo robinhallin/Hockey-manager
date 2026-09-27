@@ -9,7 +9,7 @@ const Match3D = (() => {
  const unit=a=>{const n=Math.hypot(...a)||1;return a.map(v=>v/n);};
  function multiply(a,b){const o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o;}
  const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
- const QUALITY={low:{level:0,scale:.8,dpr:1,crowdStep:2},normal:{level:1,scale:1,dpr:1.5,crowdStep:1},high:{level:2,scale:1,dpr:2,crowdStep:1}};
+ const QUALITY={low:{level:0,scale:.8,dpr:1,crowdStep:2,shadowSize:0},normal:{level:1,scale:1,dpr:1.5,crowdStep:1,shadowSize:1024},high:{level:2,scale:1,dpr:2,crowdStep:1,shadowSize:2048}};
  const quality=value=>QUALITY[Object.hasOwn(QUALITY,value)?value:'normal'];
  const turn=(a,b,t)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
  function cameraView(aspect,mode,puck={x:30,y:15},zoom=1){
@@ -242,7 +242,7 @@ const Match3D = (() => {
    const light=dot(rows[0].jersey,[.2126,.7152,.0722]);
    rows[1]={jersey:color(light>.65?'#243951':'#f2f0e8'),trim:rows[1].jersey};
   }
-  return rows;
+  return rows.map((row,i)=>({...row,name:teams[i]?.name||'',code:teams[i]?.code||''}));
  }
  // Reuse a small unit sphere; transform vertices without per-vertex arrays.
  const sphere=[];
@@ -271,10 +271,11 @@ const Match3D = (() => {
   function ring(x,z,r,width,col,start=0,end=Math.PI*2){for(let i=0;i<64;i++){const a=start+(end-start)*i/64,b=start+(end-start)*(i+1)/64,p=(t,rr)=>[x+Math.cos(t)*rr,.018,z+Math.sin(t)*rr];quad(p(a,r),p(b,r),p(b,r-width),p(a,r-width),col);}}
   function disk(x,y,z,r,col){for(let i=0;i<32;i++)tri([x,y,z],[x+Math.cos(i*Math.PI/16)*r,y,z+Math.sin(i*Math.PI/16)*r],[x+Math.cos((i+1)*Math.PI/16)*r,y,z+Math.sin((i+1)*Math.PI/16)*r],col);}
   function shade(x,z,rx,rz,angle=0){
-   for(let layer=0;layer<3;layer++){
-    const r=1-layer*.25,c=[.80-layer*.055,.86-layer*.045,.89-layer*.04],cs=Math.cos(angle),sn=Math.sin(angle);
-    const p=t=>[x+Math.cos(t)*rx*r*cs-Math.sin(t)*rz*r*sn,.023+layer*.003,z+Math.cos(t)*rx*r*sn+Math.sin(t)*rz*r*cs];
-    for(let i=0;i<16;i++)tri([x,.023+layer*.003,z],p(i*Math.PI/8),p((i+1)*Math.PI/8),c);
+   const cs=Math.cos(angle),sn=Math.sin(angle);
+   // Negative blue marks a transparent contact shadow, never opaque grey ice.
+   for(let i=0;i<24;i++){
+    vertex(x,.032,z,0,1,0,[.23,0,-1]);
+    for(const t of [i*Math.PI/12,(i+1)*Math.PI/12])vertex(x+Math.cos(t)*rx*cs-Math.sin(t)*rz*sn,.032,z+Math.cos(t)*rx*sn+Math.sin(t)*rz*cs,0,1,0,[0,0,-1]);
    }
   }
   function pad(a,b,width,depth,col,angle){
@@ -300,8 +301,8 @@ const Match3D = (() => {
   return {get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,shade,pad,ellipsoid,jersey};
  }
  function rink(){
-  const g=geometry(),ice=color('#e3edf1'),red=color('#b84c62'),blue=color('#3574a3'),white=color('#e5eaf0'),dark=color('#142337');
-  g.box(30,-.45,15,78,.5,48,dark);
+  const g=geometry(),ice=color('#f0f6fb'),red=color('#cb304a'),blue=color('#2264b2'),white=color('#e6ebef'),dark=color('#101c2b');
+  g.box(30,-.45,15,94,.5,68,dark);
   // Rounded ice and matching boards, in the engine's 60 × 30 coordinate space.
   const points=[];for(const [x,z,start] of [[52,8,-Math.PI/2],[52,22,0],[8,22,Math.PI/2],[8,8,Math.PI]])for(let i=0;i<=16;i++){const a=start+i*Math.PI/32;points.push([x+8*Math.cos(a),0,z+8*Math.sin(a)]);}
   for(let i=0;i<points.length;i++){
@@ -309,16 +310,25 @@ const Match3D = (() => {
    g.quad(a,b,[b[0],1.05,b[2]],[a[0],1.05,a[2]],white);
    g.rod([a[0],1.08,a[2]],[b[0],1.08,b[2]],.07,blue);
    g.quad([a[0],.02,a[2]],[b[0],.02,b[2]],[b[0],.18,b[2]],[a[0],.18,a[2]],color('#e0b23d'));
-   // Far-side glass only: no opaque glass blocking the broadcast camera.
-   if(a[2]<15){g.rod([a[0],1.1,a[2]],[a[0],2.5,a[2]],.022,color('#819daa'));g.rod([a[0],2.5,a[2]],[b[0],2.5,b[2]],.025,color('#819daa'));}
+   if(a[2]<15){g.rod([a[0],1.1,a[2]],[a[0],2.65,a[2]],.022,color('#7994a1'));g.rod([a[0],2.65,a[2]],[b[0],2.65,b[2]],.019,color('#7994a1'));}
   }
+  // Club-specific board panels are baked into a small reusable texture.
+  for(let x=9;x<51;x+=7)g.quad([x,.25,.018],[x+6.75,.25,.018],[x+6.75,.94,.018],[x,.94,.018],[-1,0,0]);
   for(const [x,w,c] of [[20,.3,blue],[40,.3,blue],[30,.16,red],[3.5,.12,red],[56.5,.12,red]])g.box(x,.012,15,w,.01,x<4||x>56?18:30,c);
   g.ring(30,15,4.5,.09,blue);g.disk(30,.025,15,.18,blue);
-  for(const x of [13,47])for(const z of [9,21]){g.ring(x,z,4.5,.07,red);g.disk(x,.025,z,.18,red);}
+  for(const x of [13,47])for(const z of [9,21]){
+   g.ring(x,z,4.5,.055,red);g.disk(x,.025,z,.18,red);
+   for(const side of [-1,1]){
+    g.box(x+side*.45,.018,z,.06,.009,1.15,red);
+    for(const edge of [-1,1])g.box(x+side*.70,.018,z+edge*.57,.5,.009,.055,red);
+    for(const mark of [-.45,.45])g.box(x+mark,.018,z+side*4.64,.055,.009,.55,red);
+   }
+  }
   for(const x of [23,37])for(const z of [9,21])g.disk(x,.025,z,.16,red);
   for(const x of [3.5,56.5]){
    const dir=x<30?1:-1,back=x-dir*1.25;
-   for(let i=0;i<32;i++){const a=-Math.PI/2+i*Math.PI/32,b=a+Math.PI/32;g.tri([x,.025,15],[x+dir*Math.cos(a)*1.8,.025,15+Math.sin(a)*1.8],[x+dir*Math.cos(b)*1.8,.025,15+Math.sin(b)*1.8],color('#9ecddd'));}
+   for(let i=0;i<32;i++){const a=-Math.PI/2+i*Math.PI/32,b=a+Math.PI/32;g.tri([x,.025,15],[x+dir*Math.cos(a)*1.8,.025,15+Math.sin(a)*1.8],[x+dir*Math.cos(b)*1.8,.025,15+Math.sin(b)*1.8],color('#a7d5e9'));}
+   g.ring(x,15,1.83,.055,red,dir>0?-Math.PI/2:Math.PI/2,dir>0?Math.PI/2:Math.PI*1.5);
    for(const z of [14.08,15.92]){g.rod([x,0,z],[x,1.22,z],.05,red);g.rod([x,1.22,z],[back,.9,z],.04,red);g.rod([back,0,z],[back,.9,z],.04,red);}
    g.rod([x,1.22,14.08],[x,1.22,15.92],.05,red);
    for(let i=0;i<=10;i++){const z=14.08+i*1.84/10;g.rod([back,0,z],[back,.9,z],.012,white);g.rod([back,.9,z],[x,1.22,z],.012,white);}
@@ -329,13 +339,32 @@ const Match3D = (() => {
     for(let i=0;i<=6;i++){const h=i*.15;g.rod([x,h,z],[back,h,z],.012,white);}
    }
   }
-  for(let i=0;i<5;i++){
-   const height=.5+i*.85,z=-3-i*1.7;g.box(30,height,z,65,.65,1.5,color('#182b3d'));
-   for(let x=0;x<=60;x+=1.25){if(Math.abs(x-30)<1.5||Math.abs(x-10)<1||Math.abs(x-50)<1)continue;const seat=color((Math.floor(x/1.25)+i)%7===0?'#51657a':'#2c4762');g.box(x,height+.48,z,.80,.18,.75,seat);g.box(x,height+.82,z-.35,.80,.62,.12,seat);}
+  for(let i=0;i<8;i++){
+   const height=.5+i*.85,z=-3-i*1.7;g.box(30,height,z,65,.65,1.7,color(i%2?'#243442':'#2c3e4c'));
+   for(let x=0;x<=60;x+=1.25){if(Math.abs(x-30)<1.5||Math.abs(x-10)<1||Math.abs(x-50)<1)continue;const seat=color((Math.floor(x/1.25)+i)%7===0?'#485d70':'#1e344b');g.box(x,height+.48,z,.80,.18,.75,seat);g.box(x,height+.82,z-.35,.80,.62,.12,seat);}
+   for(const x of [10,30,50]){g.box(x,height+.42,z,1.2,.12,1.7,color('#75838c'));g.box(x,height+.46,z+.78,1.15,.04,.07,color('#d9bd71'));}
   }
-  // End stands establish arena depth without introducing fake on-ice actors.
-  for(const x of [-3,63])for(let row=0;row<3;row++)g.box(x+(x<0?-1:1)*row*1.6,.7+row*.8,15,1.4,.7,26,color(row%2?'#203850':'#29415a'));
+  for(const x of [-3,63])for(let row=0;row<4;row++){
+   const at=x+(x<0?-1:1)*row*1.6,y=.7+row*.8;g.box(at,y,15,1.6,.7,26,color(row%2?'#243442':'#2c3e4c'));
+   for(let z=3;z<28;z+=1.6){if(Math.abs(z-15)<1.5)continue;g.box(at,y+.45,z,.75,.18,.8,color('#233b52'));g.box(at+(x<0?-.35:.35),y+.76,z,.12,.62,.8,color('#233b52'));}
+  }
+  // Rear concourse, ribbon and truss stay behind the play in every camera.
+  g.box(30,6.7,-17,71,3.4,.7,color('#172533'));
+  g.quad([-4,5.75,-16.6],[64,5.75,-16.6],[64,6.25,-16.6],[-4,6.25,-16.6],[-2,0,0]);
+  for(const x of [10,30,50]){g.box(x,6.2,-16.5,2.5,2.5,.2,color('#0b1420'));g.box(x,7.4,-16.3,1.5,.20,.06,color('#5a9d83'));}
+  for(const y of [8.4,9.05])g.rod([-5,y,-17],[65,y,-17],.09,color('#556777'));
+  for(let x=-5;x<65;x+=3.5)g.rod([x,8.4,-17],[x+3.5,9.05,-17],.045,color('#647889'));
+  for(const x of [5,18,42,55]){g.box(x,8.10,-16.75,3,.16,.35,color('#c5d3dc'));g.box(x,8.02,-16.45,2.75,.08,.2,[1.1,1.12,1.14]);}
   for(const x of [25,35]){g.box(x,.45,-1.2,7,.6,1,blue);g.box(x,.9,-1.6,7,.5,.15,dark);}
+  return g.data;
+ }
+ function glass(){
+  const g=geometry();
+  for(const [x,z,start] of [[52,8,-Math.PI/2],[8,8,Math.PI]])for(let i=0;i<16;i++){
+   const a=start+i*Math.PI/32,b=a+Math.PI/32,p=(t,y)=>[x+8*Math.cos(t),y,z+8*Math.sin(t)];
+   g.quad(p(a,1.1),p(b,1.1),p(b,2.65),p(a,2.65),[.7,-1,.85]);
+  }
+  for(let x=8;x<52;x+=2.75)g.quad([x,1.1,0],[x+2.75,1.1,0],[x+2.75,2.65,0],[x,2.65,0],[.7,-1,.85]);
   return g.data;
  }
  function skater(g,m,kit,uniform=true){
@@ -505,47 +534,130 @@ const Match3D = (() => {
   return event.kind==='goal'?(event.side===side?1:.08)*envelope:['save','block'].includes(event.kind)&&event.side===side?.38*envelope:event.kind==='miss'&&event.side===side?.17*envelope:0;
  }
  function crowd(frame,teams,homeSide=0,step=1){
-  const g=geometry(),uniforms=kits(teams),skin=color('#b89c85'),pants=color('#162333');
-  for(let row=0;row<5;row++)for(let col=0;col<25;col+=step){
-   const x=col*2.5;if(Math.abs(x-30)<1.5||Math.abs(x-10)<1||Math.abs(x-50)<1)continue;
-   const i=row*25+col,side=i%7===0?1-homeSide:homeSide,level=crowdReaction(frame,side);
-   const lift=level*(.7+(i%4)*.1),y=1.03+row*.85+lift*.20,z=-3-row*1.7,shirt=i%3===0?uniforms[side].trim:uniforms[side].jersey;
-   g.box(x,y+.10,z,.55,.34,.38,pants);g.box(x,y+.47,z,.59,.47,.32,shirt);g.box(x,y+.86,z,.30,.32,.29,skin);
-   for(const arm of [-1,1]){
-    const shoulder=[x+arm*.3,y+.62,z],hand=[x+arm*(.34+lift*.1),y+.3+lift*.98,z+.17];
-    g.pad(shoulder,hand,.15,.15,shirt,0);g.box(...hand,.15,.15,.15,skin);
-   }
+  const g=geometry(),uniforms=kits(teams),pants=color('#142131');
+  const spectator=(x,y,z,angle,i)=>{
+   const side=i%7===0?1-homeSide:homeSide,level=crowdReaction(frame,side),lift=level*(.7+(i%4)*.1);
+   const kit=uniforms[side],shirt=i%5===0?color('#718292'):i%3===0?kit.trim:kit.jersey,skin=color(['#bba18d','#d6b79b','#916c53','#c09c7c'][i%4]);
+   const cs=Math.cos(angle),sn=Math.sin(angle),p=(a,b,c)=>[x+a*cs-c*sn,y+b+lift*.20,z+a*sn+c*cs];
+   const bottom=[p(-.19,.23,-.13),p(.19,.23,-.13),p(.19,.23,.13),p(-.19,.23,.13)],top=[p(-.25,.64,-.13),p(.25,.64,-.13),p(.25,.64,.13),p(-.25,.64,.13)];
+   for(let k=0;k<4;k++)g.quad(bottom[k],bottom[(k+1)%4],top[(k+1)%4],top[k],shirt);
+   const points=[p(-.13,.83,0),p(0,.83,.14),p(.13,.83,0),p(0,.83,-.13)];
+   for(let k=0;k<4;k++){g.tri(p(0,1.01,0),points[k],points[(k+1)%4],i%4===0?pants:skin);g.tri(p(0,.69,0),points[(k+1)%4],points[k],skin);}
+   for(const side of [-1,1])g.quad(p(side*.23,.62,0),p(side*(.26+lift*.12),.29+lift*.94,.13),p(side*(.37+lift*.12),.28+lift*.94,.13),p(side*.34,.59,0),shirt);
+  };
+  for(let row=0;row<8;row++)for(let col=0;col<49;col+=step){
+   const x=col*1.25;if(Math.abs(x-30)<1.5||Math.abs(x-10)<1||Math.abs(x-50)<1)continue;
+   spectator(x,1.03+row*.85,-3-row*1.7,0,row*49+col);
+  }
+  for(const end of [-1,1])for(let row=0;row<4;row++)for(let col=0;col<16;col+=step){
+   const z=3+col*1.6;if(Math.abs(z-15)<1.5)continue;
+   spectator(end<0?-3-row*1.6:63+row*1.6,1.23+row*.8,z,end*Math.PI/2,400+row*16+col);
   }
   return g.data;
  }
+ function arenaTextures(teams=[],homeSide=0,arenaName=''){
+  const home=teams[homeSide]||{},crest=typeof matchIceCrest==='function'?matchIceCrest(home.name):null;
+  const ice=document.createElement('canvas');ice.width=2048;ice.height=1024;const c=ice.getContext('2d');
+  const wash=c.createLinearGradient(0,0,0,1024);wash.addColorStop(0,'#e5eef5');wash.addColorStop(.48,'#f4f8fc');wash.addColorStop(1,'#e7f0f6');c.fillStyle=wash;c.fillRect(0,0,2048,1024);
+  for(let x=0;x<2048;x+=171){c.fillStyle=x%342===0?'rgba(155,184,202,.035)':'rgba(255,255,255,.09)';c.fillRect(x,0,167,1024);}
+  // Deterministic surface wear is a visual asset, independent of match RNG.
+  let seed=7391;const random=()=>((seed=Math.imul(seed,1664525)+1013904223>>>0)/4294967296);
+  for(let i=0;i<7600;i++){
+   const x=random()*2048,y=random()*1024,angle=random()*Math.PI*2,length=2+random()*27;
+   c.strokeStyle=i%3?'rgba(99,135,158,.055)':'rgba(255,255,255,.22)';c.lineWidth=.35+random()*.65;c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.cos(angle)*length,y+Math.sin(angle)*length);c.stroke();
+  }
+  for(const x of [13,47])for(const z of [9,21])for(let i=0;i<22;i++){
+   c.strokeStyle='rgba(110,145,166,.035)';c.lineWidth=.6;c.beginPath();c.ellipse(x/60*2048+(random()-.5)*80,z/30*1024+(random()-.5)*80,35+random()*120,25+random()*80,random(),0,Math.PI*1.5);c.stroke();
+  }
+  c.save();c.translate(1024,512);c.globalAlpha=.22;
+  if(crest)c.drawImage(crest,-110,-110,220,220);
+  else{c.fillStyle=home.primary||'#244d74';c.textAlign='center';c.textBaseline='middle';c.font='800 75px Arial';c.fillText(home.code||home.name||'HOCKEY',0,0,230);}
+  c.restore();c.textAlign='center';c.fillStyle='rgba(41,72,101,.30)';c.font='600 23px Arial';c.fillText((arenaName||home.name||'').toUpperCase(),1024,738,510);
+  const board=document.createElement('canvas');board.width=1024;board.height=128;const b=board.getContext('2d');b.fillStyle='#f5f7f8';b.fillRect(0,0,1024,128);
+  b.fillStyle=home.primary||'#163b62';b.fillRect(0,115,1024,13);b.textAlign='center';b.textBaseline='middle';b.font='800 48px Arial';b.fillText((home.name||home.code||'HOCKEY').toUpperCase(),560,61,780);
+  if(crest)b.drawImage(crest,40,15,84,84);else{b.fillStyle=home.color||'#d6bf74';b.fillRect(38,32,60,60);}
+  return {ice,board};
+ }
+ function shadowCamera(){
+  const eye=[26,35,10],target=[30,0,15],z=unit(sub(eye,target)),x=unit(cross([0,1,0],z)),y=cross(z,x);
+  const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
+  return multiply([1/36,0,0,0,0,1/23,0,0,0,0,-2/70,0,0,0,-1,1],view);
+ }
  let current=null;
- function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteBuffer(c.analysisBuffer);c.gl.deleteBuffer(c.skinBuffer);c.gl.deleteBuffer(c.skinIndexBuffer);c.gl.deleteBuffer(c.surfaceBuffer);c.gl.deleteTexture(c.uniformTexture);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function releaseShadow(c){const gl=c.gl;if(c.shadowTarget)gl.deleteFramebuffer(c.shadowTarget);if(c.shadowDepth)gl.deleteTexture(c.shadowDepth);if(c.shadowColor)gl.deleteRenderbuffer(c.shadowColor);c.shadowTarget=c.shadowDepth=c.shadowColor=null;c.shadowSize=0;c.shadowKey=null;}
+ function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);for(const key of ['staticBuffer','dynamicBuffer','crowdBuffer','analysisBuffer','skinBuffer','skinIndexBuffer','surfaceBuffer','glassBuffer'])c.gl.deleteBuffer(c[key]);for(const key of ['uniformTexture','iceTexture','boardTexture','emptyShadow'])c.gl.deleteTexture(c[key]);releaseShadow(c);c.gl.deleteProgram(c.program);c.gl.deleteProgram(c.shadowProgram);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function ensureShadow(c,requested){
+  const gl=c.gl,size=c.depthSupported?Math.min(requested,gl.getParameter(gl.MAX_TEXTURE_SIZE)):0;
+  if(c.shadowRequested===size)return;c.shadowRequested=size;releaseShadow(c);if(!size)return;
+  c.shadowDepth=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,c.shadowDepth);gl.texImage2D(gl.TEXTURE_2D,0,gl.DEPTH_COMPONENT,size,size,0,gl.DEPTH_COMPONENT,gl.UNSIGNED_SHORT,null);
+  for(const [key,value] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,key,value);
+  c.shadowColor=gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,c.shadowColor);gl.renderbufferStorage(gl.RENDERBUFFER,gl.RGBA4,size,size);
+  c.shadowTarget=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,c.shadowTarget);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.TEXTURE_2D,c.shadowDepth,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.RENDERBUFFER,c.shadowColor);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE)c.shadowSize=size;else releaseShadow(c);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+ }
  function create(canvas){
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true});if(!gl)throw Error('3D kunde inte starta på den här datorn. 2D är fortfarande tillgängligt.');
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);throw Error('3D kunde inte läsa grafikprogrammet.');}return s;};
-  const vs=shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 normal;attribute vec3 color;attribute vec2 uv;attribute vec2 surface;uniform mat4 camera;varying vec2 texCoord;varying vec2 material;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;void main(){texCoord=uv;material=surface;tint=color;worldNormal=normal;worldPosition=position;gl_Position=camera*vec4(position,1.);}');
-  const fs=shader(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 texCoord;varying vec2 material;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;uniform sampler2D uniformMap;uniform vec3 eye;uniform float shine;uniform float detail;void main(){
-   vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 key=normalize(vec3(-.4,1.,.35)),fill=normalize(vec3(.6,.5,-.7));
-   float diffuse=.55+.35*max(0.,dot(n,key))+.16*max(0.,dot(n,fill));vec3 base=tint;
-   if(texCoord.x>=0.){vec4 ink=texture2D(uniformMap,texCoord);base=mix(base,ink.rgb,ink.a);if(detail>.5)base*=.987+.013*sin(texCoord.x*980.);}
-   vec3 view=normalize(eye-worldPosition),halfVector=normalize(key+view);float rough=material.x,metal=material.y;
-   bool ice=worldPosition.y<.022&&worldPosition.y>=-.002;
-   if(ice){rough=.28;if(detail>.5){float scratches=sin(worldPosition.x*83.+sin(worldPosition.z*13.))*sin(worldPosition.z*41.);base*=.993+scratches*.007;}}
-   float exponent=mix(8.,100.,1.-rough),spec=pow(max(0.,dot(n,halfVector)),exponent)*(shine+(1.-rough)*.22+metal*.2);
-   vec3 specColor=mix(vec3(.83,.91,1.),base,metal),lit=base*diffuse*(1.-metal*.22)+specColor*spec;
-   if(detail>.5){vec3 second=normalize(vec3(.55,1.,-.45)+view);lit+=specColor*pow(max(0.,dot(n,second)),exponent)*(.035+(1.-rough)*.09);}
-   if(ice&&detail>1.5){
-    vec3 r=reflect(-view,n);float t=(15.-worldPosition.y)/max(.08,r.y);vec2 ceiling=worldPosition.xz+r.xz*t;
-    vec2 lamp=abs(mod(ceiling+vec2(3.,1.5),vec2(12.,10.))-vec2(6.,5.));
-    float reflected=(1.-smoothstep(.7,1.8,lamp.x))*(1.-smoothstep(.22,.75,lamp.y));
-    lit+=vec3(.78,.87,1.)*reflected*.10*max(0.,r.y);
+  const vs=shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 normal;attribute vec3 color;attribute vec2 uv;attribute vec2 surface;uniform mat4 camera;uniform mat4 lightCamera;varying vec2 texCoord;varying vec2 material;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;varying vec4 lightPosition;void main(){texCoord=uv;material=surface;tint=color;worldNormal=normal;worldPosition=position;lightPosition=lightCamera*vec4(position,1.);gl_Position=camera*vec4(position,1.);}');
+  const fs=shader(gl.FRAGMENT_SHADER,`
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+   varying vec2 texCoord;varying vec2 material;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;varying vec4 lightPosition;
+   uniform sampler2D uniformMap;uniform sampler2D iceMap;uniform sampler2D boardMap;uniform sampler2D shadowMap;
+   uniform vec3 eye;uniform float shine;uniform float detail;uniform float shadowTexel;
+   float occlusion(vec3 n){
+    if(shadowTexel==0.)return 1.;vec3 p=lightPosition.xyz/lightPosition.w*.5+.5;
+    if(p.x<0.||p.x>1.||p.y<0.||p.y>1.||p.z<0.||p.z>1.)return 1.;
+    float depth=p.z-max(.00065,.0017*(1.-max(0.,n.y))),sum=0.;
+    for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++){
+     if(detail>1.5||(x!=0&&y!=0))sum+=step(depth,texture2D(shadowMap,p.xy+vec2(float(x),float(y))*shadowTexel*1.25).r);
+    }
+    return mix(.48,1.,sum/(detail>1.5?9.:4.));
    }
-   float mist=smoothstep(45.,95.,distance(eye,worldPosition))*.12;gl_FragColor=vec4(mix(lit,vec3(.10,.17,.24),mist),1.);}`);
+   void main(){
+    if(tint.b<-.5){gl_FragColor=vec4(.07,.13,.20,tint.r);return;}
+    vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 view=normalize(eye-worldPosition);
+    if(tint.g<-.5){float edge=pow(1.-abs(dot(n,view)),3.);gl_FragColor=vec4(.63,.78,.88,.055+edge*.17);return;}
+    vec3 base=tint;float rough=material.x,metal=material.y;
+    if(tint.r<-.5){vec2 uv=vec2(fract(worldPosition.x/7.),clamp((worldPosition.y-.25)/.69,0.,1.));if(tint.r< -1.5)uv.y=clamp((worldPosition.y-5.75)/.5,0.,1.);base=texture2D(boardMap,vec2(uv.x,1.-uv.y)).rgb;if(tint.r< -1.5){gl_FragColor=vec4(base*.72,1.);return;}}
+    if(tint.r>1.){gl_FragColor=vec4(clamp(tint,0.,1.),1.);return;}
+    bool ice=worldPosition.y<.01&&worldPosition.y>=-.002&&n.y>.5;
+    if(ice){base=texture2D(iceMap,worldPosition.xz/vec2(60.,30.)).rgb;rough=.27;}
+    if(texCoord.x>=0.){vec4 ink=texture2D(uniformMap,texCoord);base=mix(base,ink.rgb,ink.a);if(detail>.5)base*=.976+.012*sin(texCoord.x*1600.)+.012*sin(texCoord.y*3200.);}
+    vec3 key=normalize(vec3(-.115,1.,-.143)),fill=normalize(vec3(.65,.7,.55));float shade=occlusion(n);
+    vec3 ambient=mix(vec3(.18,.23,.30),vec3(.44,.48,.54),n.y*.5+.5);
+    vec3 linear=pow(max(base,vec3(0.)),vec3(2.2));
+    vec3 lit=linear*(ambient+vec3(.70,.73,.76)*max(0.,dot(n,key))*shade+vec3(.23,.25,.30)*max(0.,dot(n,fill)))*(1.-metal*.23);
+    float exponent=mix(9.,140.,1.-rough),fresnel=pow(1.-max(0.,dot(n,view)),5.);
+    vec3 specColor=mix(vec3(.76,.87,1.),linear,metal);
+    float spec=pow(max(0.,dot(n,normalize(key+view))),exponent)*(.025+(1.-rough)*.26+metal*.28+shine)*shade;
+    if(detail>.5)spec+=pow(max(0.,dot(n,normalize(fill+view))),exponent)*(.025+(1.-rough)*.075);
+    lit+=specColor*spec+vec3(.20,.30,.43)*fresnel*(1.-rough)*.16;
+    if(ice&&detail>.5){
+     vec3 r=reflect(-view,n);vec2 ceiling=worldPosition.xz+r.xz*(15./max(.08,r.y));
+     vec2 lamp=abs(mod(ceiling+vec2(3.,1.5),vec2(12.,10.))-vec2(6.,5.));
+     float reflected=(1.-smoothstep(.9,2.1,lamp.x))*(1.-smoothstep(.13,.95,lamp.y));
+     lit+=vec3(.56,.71,.88)*reflected*(.09+fresnel*.12)*shade;
+    }
+    // A restrained display transform retains the jersey colours and white ice.
+    lit=pow(lit/(vec3(1.)+lit*.12),vec3(1./2.2));
+    float mist=smoothstep(48.,105.,distance(eye,worldPosition))*.16;
+    gl_FragColor=vec4(mix(lit,vec3(.065,.105,.155),mist),1.);
+   }`);
   const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(program,gl.LINK_STATUS)){gl.deleteProgram(program);throw Error('3D kunde inte starta grafikprogrammet.');}
+  const depthVS=shader(gl.VERTEX_SHADER,'attribute vec3 position;uniform mat4 camera;void main(){gl_Position=camera*vec4(position,1.);}'),depthFS=shader(gl.FRAGMENT_SHADER,'precision mediump float;void main(){gl_FragColor=vec4(1.);}');
+  const shadowProgram=gl.createProgram();gl.attachShader(shadowProgram,depthVS);gl.attachShader(shadowProgram,depthFS);gl.linkProgram(shadowProgram);gl.deleteShader(depthVS);gl.deleteShader(depthFS);if(!gl.getProgramParameter(shadowProgram,gl.LINK_STATUS))throw Error('3D kunde inte starta skuggorna.');
   const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),crowdBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
+  const glassBuffer=gl.createBuffer(),panes=glass();gl.bindBuffer(gl.ARRAY_BUFFER,glassBuffer);gl.bufferData(gl.ARRAY_BUFFER,panes,gl.STATIC_DRAW);
   const lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',lost);
   const uniformTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-  return {canvas,gl,program,uniformTexture,skinBuffer:gl.createBuffer(),skinIndexBuffer:gl.createBuffer(),surfaceBuffer:gl.createBuffer(),surfaceLocation:gl.getAttribLocation(program,'surface'),skinCount:0,texLocation:gl.getAttribLocation(program,'uv'),staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),detail:gl.getUniformLocation(program,'detail'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
+  const texture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));for(const [key,value] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,key,value);return t;};
+  gl.useProgram(program);for(const [name,slot] of [['uniformMap',0],['iceMap',1],['boardMap',2],['shadowMap',3]])gl.uniform1i(gl.getUniformLocation(program,name),slot);
+  return {canvas,gl,program,uniformTexture,iceTexture:texture(),boardTexture:texture(),emptyShadow:texture(),glassBuffer,glassCount:panes.length/9,shadowProgram,shadowPosition:gl.getAttribLocation(shadowProgram,'position'),shadowMatrix:gl.getUniformLocation(shadowProgram,'camera'),lightMatrix:shadowCamera(),lightLocation:gl.getUniformLocation(program,'lightCamera'),shadowTexel:gl.getUniformLocation(program,'shadowTexel'),depthSupported:Boolean(gl.getExtension('WEBGL_depth_texture')),shadowSize:0,skinBuffer:gl.createBuffer(),skinIndexBuffer:gl.createBuffer(),surfaceBuffer:gl.createBuffer(),surfaceLocation:gl.getAttribLocation(program,'surface'),skinCount:0,texLocation:gl.getAttribLocation(program,'uv'),staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),detail:gl.getUniformLocation(program,'detail'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
  }
  function draw(canvas,frame,before,t,options={}){
   if(!frame||canvas.dataset.error)return false;
@@ -556,21 +668,37 @@ const Match3D = (() => {
   const q=quality(options.quality);c.quality=Object.hasOwn(QUALITY,options.quality)?options.quality:'normal';
   const rect=canvas.getBoundingClientRect(),dpr=Math.min(q.dpr,globalThis.devicePixelRatio||1)*q.scale,w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
-  gl.viewport(0,0,w,h);gl.clearColor(.035,.065,.105,1);gl.enable(gl.DEPTH_TEST);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.program);
+  gl.activeTexture(gl.TEXTURE0);ensureShadow(c,q.shadowSize);
+  gl.viewport(0,0,w,h);gl.clearColor(.025,.045,.070,1);gl.enable(gl.DEPTH_TEST);gl.depthMask(true);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.program);
   const f=options.sampled||sample(frame,before,t),view=cameraFrame(w/h,options.camera,f,c.tracked,options.zoom),mat=view.matrix;c.tracked=view.tracked;
-  gl.uniformMatrix4fv(c.matrix,false,mat);gl.uniform3fv(c.eye,view.eye);gl.uniform1f(c.detail,q.level);
+  gl.uniformMatrix4fv(c.matrix,false,mat);gl.uniformMatrix4fv(c.lightLocation,false,c.lightMatrix);gl.uniform3fv(c.eye,view.eye);gl.uniform1f(c.detail,q.level);gl.uniform1f(c.shadowTexel,c.shadowSize?1/c.shadowSize:0);
   const bind=buffer=>{gl.disableVertexAttribArray(c.surfaceLocation);gl.vertexAttrib2f(c.surfaceLocation,.85,0);gl.disableVertexAttribArray(c.texLocation);gl.vertexAttrib2f(c.texLocation,-1,-1);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,36,i*12);});};
-  bind(c.staticBuffer);gl.uniform1f(c.shine,.045);gl.drawArrays(gl.TRIANGLES,0,c.count);
   const reactions=[0,1].map(side=>Math.round(crowdReaction(f,side)*15)/15),crowdKey=JSON.stringify([options.teams,options.homeSide,reactions,q.crowdStep]);
   bind(c.crowdBuffer);
   if(crowdKey!==c.crowdKey){const mesh=crowd(f,options.teams||[],options.homeSide??0,q.crowdStep);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.crowdCount=mesh.length/9;c.crowdKey=crowdKey;}
-  gl.drawArrays(gl.TRIANGLES,0,c.crowdCount);bind(c.dynamicBuffer);
+  bind(c.dynamicBuffer);
   const geometryKey=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);
   if(geometryKey!==c.geometryKey){const started=performance.now(),poses=new Map(f.actors.map(a=>[a.id,pose(f,a)])),skinned=typeof HockeyPlayerModel!=='undefined',dynamic=figures(f,options.teams||[],skinned,poses);if(skinned){const skin=HockeyPlayerModel.mesh(f.actors,poses,kits(options.teams||[]),c.skinData);c.skinData=skin;gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);gl.bufferData(gl.ARRAY_BUFFER,skin,gl.DYNAMIC_DRAW);c.skinCount=skin.length/11;const layout=f.actors.map(HockeyPlayerModel.kind).join(',');if(layout!==c.skinLayout){const indices=HockeyPlayerModel.indices(f.actors);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);c.skinElements=indices.length;c.skinLayout=layout;c.skinActors=f.actors.length;gl.bindBuffer(gl.ARRAY_BUFFER,c.surfaceBuffer);gl.bufferData(gl.ARRAY_BUFFER,HockeyPlayerModel.surfaces(f.actors),gl.STATIC_DRAW);}bind(c.dynamicBuffer);}gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
-  gl.uniform1f(c.shine,.13);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
+  const crests=(options.teams||[]).map(team=>Boolean(typeof matchIceCrest==='function'&&matchIceCrest(team.name))),arenaKey=JSON.stringify([options.teams,options.homeSide,options.arena,crests]);
+  if(c.arenaKey!==arenaKey){const textures=arenaTextures(options.teams,options.homeSide??0,options.arena);for(const [texture,source] of [[c.iceTexture,textures.ice],[c.boardTexture,textures.board]]){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);}c.arenaKey=arenaKey;c.textureBuilds=(c.textureBuilds||0)+1;}
   if(c.skinCount){
-   const atlasKey=JSON.stringify([f.actors.map(a=>[a.id,a.number,a.name,a.side]),options.teams]);
+   const atlasKey=JSON.stringify([f.actors.map(a=>[a.id,a.number,a.name,a.side]),options.teams,crests]);
    if(c.atlasKey!==atlasKey){const atlas=HockeyPlayerModel.atlas(document.createElement('canvas'),f.actors,kits(options.teams||[]));gl.bindTexture(gl.TEXTURE_2D,c.uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);c.atlasKey=atlasKey;}
+  }
+  if(c.shadowSize&&c.shadowKey!==geometryKey){
+   gl.bindFramebuffer(gl.FRAMEBUFFER,c.shadowTarget);gl.viewport(0,0,c.shadowSize,c.shadowSize);gl.disable(gl.BLEND);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.shadowProgram);gl.uniformMatrix4fv(c.shadowMatrix,false,c.lightMatrix);
+   for(const loc of [...c.locations,c.texLocation,c.surfaceLocation])gl.disableVertexAttribArray(loc);
+   gl.enableVertexAttribArray(c.shadowPosition);
+   const shadowMesh=(buffer,stride,count,indexed=false)=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(c.shadowPosition,3,gl.FLOAT,false,stride,0);if(indexed){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.drawElements(gl.TRIANGLES,count,gl.UNSIGNED_SHORT,0);}else gl.drawArrays(gl.TRIANGLES,0,count);};
+   shadowMesh(c.staticBuffer,36,c.count);shadowMesh(c.dynamicBuffer,36,c.dynamicCount);if(c.skinCount)shadowMesh(c.skinBuffer,44,c.skinElements,true);
+   c.shadowKey=geometryKey;c.shadowBuilds=(c.shadowBuilds||0)+1;gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,w,h);gl.useProgram(c.program);
+  }
+  for(const [slot,texture] of [[0,c.uniformTexture],[1,c.iceTexture],[2,c.boardTexture],[3,c.shadowDepth||c.emptyShadow]]){gl.activeTexture(gl.TEXTURE0+slot);gl.bindTexture(gl.TEXTURE_2D,texture);}
+  gl.activeTexture(gl.TEXTURE0);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  bind(c.staticBuffer);gl.uniform1f(c.shine,.018);gl.drawArrays(gl.TRIANGLES,0,c.count);
+  bind(c.crowdBuffer);gl.uniform1f(c.shine,0);gl.drawArrays(gl.TRIANGLES,0,c.crowdCount);
+  bind(c.dynamicBuffer);gl.uniform1f(c.shine,.06);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
+  if(c.skinCount){
    gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,44,i*12);});gl.enableVertexAttribArray(c.texLocation);gl.vertexAttribPointer(c.texLocation,2,gl.FLOAT,false,44,36);gl.bindBuffer(gl.ARRAY_BUFFER,c.surfaceBuffer);gl.enableVertexAttribArray(c.surfaceLocation);gl.vertexAttribPointer(c.surfaceLocation,2,gl.FLOAT,false,8,0);gl.uniform1f(c.shine,.04);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.drawElements(gl.TRIANGLES,c.skinElements,gl.UNSIGNED_SHORT,0);gl.disableVertexAttribArray(c.texLocation);gl.vertexAttrib2f(c.texLocation,-1,-1);
   }
   c.analysisCount=0;
@@ -579,6 +707,7 @@ const Match3D = (() => {
    if(key!==c.analysisKey){const mesh=analysisGeometry(options.analysis);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.analysisVertices=mesh.length/9;c.analysisKey=key;}
    c.analysisCount=c.analysisVertices;gl.uniform1f(c.shine,0);gl.drawArrays(gl.TRIANGLES,0,c.analysisCount);
   }
+  bind(c.glassBuffer);gl.depthMask(false);gl.drawArrays(gl.TRIANGLES,0,c.glassCount);gl.depthMask(true);gl.disable(gl.BLEND);
   c.hits=f.actors.map(a=>({id:a.id,name:a.name,number:a.number,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
   const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);
   if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
@@ -592,7 +721,7 @@ const Match3D = (() => {
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,pose,quality,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{quality:current.quality,motionFrames:current.motionFrames||0,motionAdvances:current.motionAdvances||0,width:current.canvas.width,height:current.canvas.height,frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount+current.skinCount,skinVertices:current.skinCount,modelActors:current.skinActors||0,rigJoints:current.skinCount?HockeyPlayerModel.model().joints.length:0,renderMS:current.renderMS,frameSamples:current.frameTimes?.length||0,frameP95:current.frameTimes?.length?[...current.frameTimes].sort((a,b)=>a-b)[Math.floor((current.frameTimes.length-1)*.95)]:null,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,quality,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{quality:current.quality,shadowSupported:current.depthSupported,shadowMode:current.shadowSize?'projected':'contact',shadowSize:current.shadowSize,shadowBuilds:current.shadowBuilds||0,textureBuilds:current.textureBuilds||0,arenaVertices:current.count,glassVertices:current.glassCount,motionFrames:current.motionFrames||0,motionAdvances:current.motionAdvances||0,width:current.canvas.width,height:current.canvas.height,frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount+current.skinCount,skinVertices:current.skinCount,modelActors:current.skinActors||0,rigJoints:current.skinCount?HockeyPlayerModel.model().joints.length:0,renderMS:current.renderMS,frameSamples:current.frameTimes?.length||0,frameP95:current.frameTimes?.length?[...current.frameTimes].sort((a,b)=>a-b)[Math.floor((current.frameTimes.length-1)*.95)]:null,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
 })();
 let studioVisualMode='2d',studioCamera3D='auto',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
@@ -604,4 +733,4 @@ function studio3DControls(){return `<div class="match-3d-controls"><label>Matchv
 
 function studioGraphicsQuality(){return ['low','normal','high'].includes(matchPreferences().graphics3d)?matchPreferences().graphics3d:'normal';}
 function studioSetGraphics(value){if(!['low','normal','high'].includes(value))return;matchPreferences().graphics3d=value;save();render();}
-function studioGraphicsSettings(){return `<section class="mc-playback-settings"><h3>Grafik för 3D-matchen</h3><label>Grafiknivå <select aria-label="3D-grafik" onchange="studioSetGraphics(this.value)">${[['low','Låg'],['normal','Normal'],['high','Hög']].map(([v,label])=>`<option value="${v}" ${studioGraphicsQuality()===v?'selected':''}>${label}</option>`).join('')}</select></label><p>Låg minskar upplösningen och publiken. Normal ger balanserad detaljrikedom. Hög ger skarpare bild på högupplösta skärmar och ljusreflexer i isen.</p><p>Valet sparas och gäller även repriser. Matchens tempo ställer du in separat.</p></section>`;}
+function studioGraphicsSettings(){return `<section class="mc-playback-settings"><h3>Grafik för 3D-matchen</h3><label>Grafiknivå <select aria-label="3D-grafik" onchange="studioSetGraphics(this.value)">${[['low','Låg'],['normal','Normal'],['high','Hög']].map(([v,label])=>`<option value="${v}" ${studioGraphicsQuality()===v?'selected':''}>${label}</option>`).join('')}</select></label><p>Låg förenklar skuggorna och minskar upplösningen och publiken. Normal visar spelarskuggor och reflexer i isen. Hög ger mjukare, skarpare skuggor och högre upplösning på högupplösta skärmar.</p><p>Valet sparas och gäller även repriser. Matchens tempo ställer du in separat.</p></section>`;}

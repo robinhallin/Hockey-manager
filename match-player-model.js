@@ -48,12 +48,24 @@ const HockeyPlayerModel=(()=>{
   });return out;
  }
  function atlas(canvas,actors,kits){
-  canvas.width=1024;canvas.height=atlasRows(actors)*64;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);
+  canvas.width=1024;canvas.height=atlasRows(actors)*128;const c=canvas.getContext('2d');c.clearRect(0,0,canvas.width,canvas.height);
+  const css=a=>'rgb('+a.map(v=>Math.round(v*255)).join(',')+')';
   actors.forEach((a,row)=>{
-   const top=row*64,kit=kits[a.side],light=dot(kit.jersey,[.2126,.7152,.0722])>.55;
-   c.fillStyle=light?'#102033':'#fff9e9';c.textAlign='center';c.textBaseline='middle';c.font='bold 39px Arial';
-   const num=Number.isInteger(a.number)?String(a.number):'';c.fillText(num,512,top+36);c.font='bold 22px Arial';c.fillText(num,18,top+35);c.fillText(num,1006,top+35);
-   c.font='bold 11px Arial';c.fillText((a.name||'').split(' ').at(-1).toUpperCase(),512,top+9,215);
+   const top=row*128,kit=kits[a.side],light=dot(kit.jersey,[.2126,.7152,.0722])>.55,ink=light?'#132539':'#fffaf0';
+   c.save();c.beginPath();c.rect(0,top,1024,128);c.clip();
+   c.fillStyle=css(kit.trim);c.fillRect(0,top+100,1024,13);c.fillRect(0,top+4,1024,5);
+   c.fillStyle=ink;c.globalAlpha=.82;c.fillRect(0,top+96,1024,3);c.fillRect(0,top+115,1024,2);c.globalAlpha=1;
+   c.fillStyle='rgba(6,16,29,.16)';c.fillRect(244,top+8,4,88);c.fillRect(776,top+8,4,88);
+   c.fillStyle=ink;c.strokeStyle=css(kit.jersey);c.lineJoin='round';c.lineWidth=3;c.textAlign='center';c.textBaseline='middle';
+   const num=Number.isInteger(a.number)?String(a.number):'';c.font='900 74px Arial';c.strokeText(num,512,top+69);c.fillText(num,512,top+69);
+   c.font='bold 15px Arial';c.fillText((a.name||'').split(' ').at(-1).toUpperCase(),512,top+20,240);
+   c.font='bold 24px Arial';c.fillText(num,218,top+25);c.fillText(num,806,top+25);
+   const crest=typeof matchIceCrest==='function'?matchIceCrest(kit.name):null;
+   for(const x of [0,1024]){
+    if(crest)c.drawImage(crest,x-80,top+25,160,66);
+    else{c.font='900 36px Arial';c.fillText(kit.code||kit.name||'',x,top+60,190);}
+   }
+   c.restore();
   });return canvas;
  }
  function indices(actors){const assets=actors.map(a=>model(kind(a))),out=new Uint16Array(assets.reduce((sum,a)=>sum+a.indices.length,0));let vertex=0,index=0;for(const a of assets){for(const i of a.indices)out[index++]=vertex+i;vertex+=a.vertices;}return out;}
