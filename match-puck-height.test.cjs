@@ -34,7 +34,7 @@ test('a saved shot contacts the keeper in front of the goal, records its save an
 });
 test('an unbeaten shot is counted only when its continuation crosses the goal line',()=>{
  for(const side of [0,1]){
-  const {m,a}=shotSetup(side);m.random=()=>.5;m.shoot(a);const f=m.flight;f.shot.finishRoll=0;
+  const {m,a,g}=shotSetup(side);m.random=()=>.5;m.shoot(a);const f=m.flight;g.y=18;
   m.resolveFlight(f.duration);assert.equal(m.score[side],0);assert.equal(m.shots.length,0);assert.equal(m.flight.keeperPassed,true);
   assert.ok(!m.presentationFrame().effects.some(e=>e.kind==='goal'));
   const remaining=m.flight.duration,goal={...m.flight.end};m.resolveFlight(remaining);
@@ -66,7 +66,7 @@ test('career saves between the keeper and goal line award a single goal and pres
   for(const p of e.actors)if(p.role!=='G'){p.x=30;p.y=3+e.skaters(p.side).indexOf(p)*4;}
   globalThis.shooter=e.skaters(0)[0];Object.assign(shooter,{x:50,y:15,vx:0,vy:0});
   Object.assign(e.actors.find(p=>p.side===1&&p.role==='G'),e.goalieTarget(1,shooter));e.puck={x:50,y:15};e.carrier=shooter.id;e.random=()=>.5;
-  e.shoot(shooter);e.flight.shot.finishRoll=0;delete e.random;e.resolveFlight(e.flight.duration);e.tick=2;e.capture();pauseMatch();save();`);
+  e.shoot(shooter);e.actors.find(p=>p.side===1&&p.role==='G').y=18;delete e.random;e.resolveFlight(e.flight.duration);e.tick=2;e.capture();pauseMatch();save();`);
  assert.equal(app.run('e.score[0]'),0);assert.equal(app.run('e.flight.keeperPassed'),true);
  const restored=boot(app.storage.value);const finish=`globalThis.e=studioEngine();e.wall+=.1;e.resolveFlight(e.flight.duration);e.tick=2;e.capture();`;
  app.run(finish);restored.run(finish);

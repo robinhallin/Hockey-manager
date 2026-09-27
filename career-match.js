@@ -305,6 +305,7 @@ function studioSyncPlans(e=studioEngine()){
   t.defenseChemistry=lineChemistry((t.plan.defense||[]).slice(t.pair*2,t.pair*2+2),side===0?managerClub():m.opponent).value;
   t.chemistry=lineChemistry((t.plan.forwards||[]).slice(t.line*3,t.line*3+3),side===0?managerClub():m.opponent).value;
   t.attackStyle=style||'control';t.posture=side===0?state.tactic:(m.aiTeam?.posture||'balanced');t.tempo=side===0?plan.tempo:(m.aiTeam?.tempo||'normal');t.forecheck=side===0?plan.forecheck:(m.aiTeam?.forecheck||'balanced');
+  t.coverage=side===1?(m.aiTeam?.coverage||'balanced'):'balanced';
   t.safeCounter=side===0&&state.specialPlans?.counter==='safe';
   t.rotation=aiCoachRotation(side===0?{rotation:plan.lineUsage}:m.aiTeam||{});
   t.shiftLimit=side===0?(plan.shiftLength==='short'?30:plan.shiftLength==='long'?60:45):(m.aiTeam?.shiftLimit||43);
@@ -424,7 +425,7 @@ function studioFrame(e){return e.presentationFrame();}
 function studioShotReasons(shot){
  const c=shot.context;if(!c)return [];
  const reasons=[];
- if(shot.miss==='post')reasons.push('Stolpträff');else if(shot.miss==='bar')reasons.push('Ribbträff');else if(shot.miss==='high')reasons.push('Över ribban');else if(shot.saveStyle)reasons.push(({butterfly:'Butterflyräddning',glove:'Plockhandske',blocker:'Stöthandske',stick:'Klubbräddning'})[shot.saveStyle]);
+ if(shot.miss==='post')reasons.push('Stolpträff');else if(shot.miss==='bar')reasons.push('Ribbträff');else if(shot.miss==='high')reasons.push('Över ribban');else if(shot.saveStyle)reasons.push(({butterfly:'Butterflyräddning',glove:'Plockhandske',blocker:'Stöthandske',stick:'Klubbräddning',body:'Räddning med kroppen'})[shot.saveStyle]);
  if(c.oneTimer)reasons.push('Sidledspassning och direktskott');else if(c.rebound)reasons.push('Avslut på en lös retur');else reasons.push(c.type);
  if(c.screen>.3)reasons.push('Skymd sikt');
  if(c.pressure>.5)reasons.push('Hård press på skytten');else if(c.angle>.85)reasons.push('Snäv skottvinkel');else if(c.d<8)reasons.push('Nära mål');
@@ -561,5 +562,7 @@ function validateSpatialMatchSave(s){
  }
  const kinds=['carry','pass','shoot','dump','shield','clear'];
  if(e.decisionAudit){const a=e.decisionAudit;if(!a.counts||!Array.isArray(a.recent)||a.recent.length>30)bad();for(const [k,v] of Object.entries(a.counts))if(!kinds.includes(k)||!Number.isInteger(v)||v<0)bad();for(const r of a.recent)if(!r||!kinds.includes(r.kind)||!Number.isFinite(r.time)||r.time<0||![0,1].includes(r.side)||typeof r.player!=='string'||typeof r.reason!=='string'||!Array.isArray(r.alternatives)||r.alternatives.length>3||r.alternatives.some(o=>!o||!kinds.includes(o.kind)||!Number.isFinite(o.value)))bad();}
+ for(const a of e.actors||[])if(a.keeperState){const k=a.keeperState;if(!['at','elapsed','seen','screen','drop','facing','recovery','error'].every(key=>Number.isFinite(k[key]))||k.at<0||k.elapsed<0||k.seen<0||k.drop<0||k.drop>1||k.screen<0||k.screen>1||['glove','blocker'].some(hand=>!k[hand]||!Number.isFinite(k[hand].lateral)||Math.abs(k[hand].lateral)>2||!Number.isFinite(k[hand].z)||k[hand].z<0||k[hand].z>2))bad();}
+ for(const t of e.teams||[])if(t.attackPattern){const p=t.attackPattern;if(!['low-high','cycle','diagonal','give-go'].includes(p.kind)||!Number.isFinite(p.at)||!Number.isFinite(p.until)||p.until<p.at||p.until-p.at>6||!Number.isInteger(p.stage)||p.stage<0||p.stage>2||!Array.isArray(p.players)||p.players.length>3||p.players.some(id=>typeof id!=='string')||![-1,1].includes(p.lane))bad();}
  for(const a of e.actors||[])for(const key of ['supportPlan','carryPlan'])if(a[key]){const p=a[key];if(!Number.isFinite(p.until)||!p.target||!Number.isFinite(p.target.x)||!Number.isFinite(p.target.y)||p.target.x<0||p.target.x>60||p.target.y<0||p.target.y>30)bad();}
 }

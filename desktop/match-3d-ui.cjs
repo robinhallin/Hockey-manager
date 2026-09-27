@@ -8,6 +8,9 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  assert.deepEqual(await page.evaluate(()=>{const d=Match3D.diagnostics();return {actors:d.actors,error:d.error};}),{actors:await page.evaluate(()=>studioFrame(studioEngine()).actors.length),error:0});
  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),before,'3D selection does not change a paused match');
+ const rig=await page.evaluate(()=>({model:{joints:HockeyPlayerModel.model().joints,vertices:HockeyPlayerModel.model().vertices},graphics:Match3D.diagnostics()}));
+ assert.equal(rig.model.joints.length,10);assert.ok(rig.graphics.skinVertices>5000);assert.equal(rig.graphics.error,0);
+ require('node:fs').writeFileSync(path.join(out,'3d-rig-result.json'),JSON.stringify(rig,null,2));
  const pixels=await page.evaluate(()=>{
   const canvas=document.getElementById('career-ice-3d');Match3D.draw(canvas,studioFrame(studioEngine()),null,1,{teams:[managerClub(),state.live.opponent].map(c=>careerIdentity(c)),camera:studioCamera3D});
   const gl=canvas.getContext('webgl'),p=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let bright=0;for(let i=0;i<p.length;i+=4)if(p[i]>130&&p[i+1]>130&&p[i+2]>130)bright++;return bright/(canvas.width*canvas.height);
@@ -31,6 +34,7 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(t=>studioEngine().time>t+3,started);
  await page.waitForFunction(()=>MatchAudio.diagnostics().active&&MatchAudio.diagnostics().level>.00001);
  const audible=await page.evaluate(()=>MatchAudio.diagnostics());
+ const timings=await page.evaluate(()=>Match3D.diagnostics());assert.ok(timings.frameSamples>0&&timings.frameP95>0);require('node:fs').writeFileSync(path.join(out,'3d-frame-times.json'),JSON.stringify(timings,null,2));
  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
  await page.waitForFunction(()=>!MatchAudio.diagnostics().active&&MatchAudio.diagnostics().voices===0&&MatchAudio.diagnostics().level<.00002);
  // Reach an actual shot in this career, using the real match loop and decisions.
@@ -58,6 +62,11 @@ module.exports=async function check3D(page,out){
  assert.equal(motion.action,'shot');assert.ok(['wrist','slap','one-timer'].includes(motion.style));assert.ok(Math.abs(motion.shaft-1.38)<1e-6);
  require('node:fs').writeFileSync(path.join(out,'3d-motion-result.json'),JSON.stringify(motion,null,2));
  await page.screenshot({path:path.join(out,'33-match-3d-shot-follow.png'),fullPage:true});
+ await page.getByLabel('3D-kamera').selectOption('auto');
+ await page.waitForFunction(()=>studioCamera3D==='auto');
+ await page.screenshot({path:path.join(out,'41-match-3d-automatic.png'),fullPage:true});
+ await page.getByLabel('3D-kamera').selectOption('follow');
+
  // Expand the rink through the ordinary control; preserve the exact paused game.
  const compact=await page.locator('#career-ice-3d').boundingBox();
  const focusBefore=await page.evaluate(()=>JSON.stringify(state.live));

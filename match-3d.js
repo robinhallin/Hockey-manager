@@ -12,13 +12,13 @@ const Match3D = (() => {
  const turn=(a,b,t)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
  function cameraView(aspect,mode,puck={x:30,y:15},zoom=1){
   zoom=Number.isFinite(zoom)?clamp(zoom,.8,1.5):1;
-  const tracking=mode==='follow'?1:clamp((zoom-1)*2,0,1);
+  const tracking=['follow','auto'].includes(mode)?1:clamp((zoom-1)*2,0,1);
   const target=[mix(30,clamp(puck.x,10,50),tracking),0,mix(15,clamp(puck.y,7,23),tracking)];
-  const eye=mode==='follow'?[target[0],23,target[2]+31]:mode==='overhead'?[target[0],65,target[2]+18]:[target[0],43,target[2]+43];
+  const eye=['follow','auto'].includes(mode)?[target[0],23,target[2]+31]:mode==='overhead'?[target[0],65,target[2]+18]:[target[0],43,target[2]+43];
   const z=unit(sub(eye,target)),x=unit(cross([0,1,0],z)),y=cross(z,x);
   const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   // Fit the whole rink even when the coach panels reduce the viewport width.
-  const fov=2*Math.atan(Math.max(Math.tan(.61/2),(mode==='follow'?21:37.5)/(Math.hypot(...sub(eye,target))*aspect))/zoom),f=1/Math.tan(fov/2),near=.1,far=180;
+  const fov=2*Math.atan(Math.max(Math.tan(.61/2),(['follow','auto'].includes(mode)?21:37.5)/(Math.hypot(...sub(eye,target))*aspect))/zoom),f=1/Math.tan(fov/2),near=.1,far=180;
   return {matrix:multiply([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0],view),eye};
  }
  function camera(aspect,mode,puck,zoom){return cameraView(aspect,mode,puck,zoom).matrix;}
@@ -28,10 +28,21 @@ const Match3D = (() => {
   return {time:frame.time,phase:frame.phase,x:mix(prior?.x??frame.puck.x,frame.puck.x,t),y:mix(prior?.y??frame.puck.y,frame.puck.y,t)};
  }
  function cameraFrame(aspect,mode,frame,prior,zoom){
-  let tracked=trackPuck(frame,prior),view=cameraView(aspect,mode,tracked,zoom);
+  let focus=frame.puck,important=[frame.puck];
+  if(mode==='auto'){
+   important.push(...frame.actors.filter(a=>Math.hypot(a.x-frame.puck.x,a.y-frame.puck.y)<12));
+   if(frame.flight){important.push(frame.flight.start,frame.flight.end);}
+   const xs=important.map(p=>p.x),ys=important.map(p=>p.y);
+   focus={x:(Math.min(...xs)+Math.max(...xs))/2,y:(Math.min(...ys)+Math.max(...ys))/2};
+  }
+  let tracked=trackPuck({...frame,puck:focus},prior),view=cameraView(aspect,mode,tracked,zoom);
+  if(mode==='auto'){
+   let fit=zoom||1;
+   for(let i=0;i<8&&important.some(p=>{const q=project([p.x,p.id?1:.1+(p.z||0),p.y],view.matrix);return q.x<.06||q.x>.94||q.y<.06||q.y>.94;});i++){fit*=.92;view=cameraView(aspect,mode,tracked,fit);}
+  }
   const puck=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],view.matrix);
   // A fast pass or shot must stay visible even while the tracking camera eases.
-  if((mode==='follow'||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
+  if((['follow','auto'].includes(mode)||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
    tracked=trackPuck(frame,null);view=cameraView(aspect,mode,tracked,zoom);
   }
   return {...view,tracked};
@@ -52,6 +63,7 @@ const Match3D = (() => {
     if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
     // A capture may straddle a release. Never start its follow-through early.
     if(p.action?.at>wall)result.action=q?.action?.at<=wall?q.action:null;
+    if(p.keeperState&&q?.keeperState&&p.keeperState.at===q.keeperState.at){result.keeperState={...p.keeperState,drop:mix(q.keeperState.drop,p.keeperState.drop,blend),glove:{lateral:mix(q.keeperState.glove.lateral,p.keeperState.glove.lateral,blend),z:mix(q.keeperState.glove.z,p.keeperState.glove.z,blend)},blocker:{lateral:mix(q.keeperState.blocker.lateral,p.keeperState.blocker.lateral,blend),z:mix(q.keeperState.blocker.z,p.keeperState.blocker.z,blend)}};}else if(p.keeperState?.at>wall)result.keeperState=q?.keeperState||null;
     if(p.keeperAction?.at>wall)result.keeperAction=q?.keeperAction?.at<=wall?q.keeperAction:null;
     if(p.contactAction?.at>wall)result.contactAction=q?.contactAction?.at<=wall?q.contactAction:null;
     if(p.windup?.at>wall)result.windup=q?.windup?.at<=wall?q.windup:null;
@@ -80,23 +92,26 @@ const Match3D = (() => {
  }
  function keeperPose(frame,a){
   const speed=Math.hypot(a.vx||0,a.vy||0),clock=frame.wall??frame.time,action=a.keeperAction;
-  const age=action?clock-action.at:Infinity,recovery=age>=0?1-smooth((age-.18)/1.25):0;
+  const age=action?clock-action.at:Infinity,recordedRecovery=age>=0?1-smooth((age-.18)/1.25):0;
   const f=frame.flight,incoming=f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
+  const recovery=incoming?0:recordedRecovery;
+  const physical=a.keeperState&&clock>=a.keeperState.at&&clock-a.keeperState.at<2?a.keeperState:null;
   const approach=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
   const facing=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
-  const angle=recovery?turn(facing,action.facing,recovery):facing,catchSide=a.shoots==='R'?1:-1;
+  const angle=physical?physical.facing:recovery?turn(facing,action.facing,recovery):facing,catchSide=a.shoots==='R'?1:-1;
   const height=incoming?(f.end.z??frame.puck.z??0):0;
   const low=height<.48,style=recovery? action.style:low?'butterfly':'ready';
-  const drop=Math.max(approach*(low?1:.22),recovery*(['butterfly','stick'].includes(style)?1:.22));
+  const drop=physical?physical.drop*(incoming?1:recovery):Math.max(approach*(low?1:.22),recovery*(['butterfly','stick'].includes(style)?1:.22));
   const lower=.16+drop*.42,lean=.13,phase=(a.travelled||0)*Math.PI/1.1,stride=Math.sin(phase)*Math.min(1,speed/2.5)*(1-drop*.8);
   const reachTarget=recovery?action.contact:incoming?f.end:null;
   const lateral=reachTarget?-(reachTarget.x-a.x)*Math.sin(angle)+(reachTarget.y-a.y)*Math.cos(angle):0;
-  const push=clamp(lateral*.30,-.35,.35)*Math.max(recovery,approach);
+  const push=physical?0:clamp(lateral*.30,-.35,.35)*Math.max(recovery,approach);
   const point=(forward,h,side)=>[a.x+Math.cos(angle)*forward-Math.sin(angle)*(side+push),h,a.y+Math.sin(angle)*forward+Math.cos(angle)*(side+push)];
   const torso=point(lean,1.21-lower,0),torsoPoint=(f,h,s)=>point(lean+f,torso[1]+h,s);
   const feet=[-1,1].map(side=>point(-drop*.12,.12,side*(.34+drop*.52)+stride*.06));
   const legs=[-1,1].map((side,i)=>({hip:point(-.1,.92-lower,side*.18),knee:point(.20,.60-lower*.65,side*(.22+drop*.22)),ankle:[feet[i][0],feet[i][1]+.12,feet[i][2]]}));
   let glove=point(.48,.98-drop*.26,catchSide*.52),blocker=point(.57,.86-drop*.25,-catchSide*.40),blade=point(.74,.065,-catchSide*.12);
+  if(physical&&incoming){glove=point(.4,physical.glove.z,physical.glove.lateral);blocker=point(.4,physical.blocker.z,physical.blocker.lateral);}
   const target=action?[action.contact.x,(action.contact.z||0)+.08,action.contact.y]:null;
   if(recovery&&style==='glove')glove=between(glove,target,recovery);
   if(recovery&&style==='blocker')blocker=between(blocker,target,recovery);
@@ -127,6 +142,7 @@ const Match3D = (() => {
   const contact=a.contact??(frame.carrier===a.id?1:0),physical=a.contactAction;
   const contactAge=physical?clock-physical.at:Infinity,engagement=contactAge>=0?1-smooth(contactAge/1.1):0;
   const windup=a.windup&&clock>=a.windup.at?clamp((clock-a.windup.at)/a.windup.duration,0,1):0;
+  const goal=(frame.effects||[]).filter(e=>e.kind==='goal'&&e.side===a.side&&e.at<=clock).at(-1),celebration=goal&&frame.phase==='stoppage'?smooth((clock-goal.at-.65)/.65)*(1-smooth((clock-goal.at-2.4)/1.1)):0;
   const fatigue=clamp((65-(a.energy??100))/50,0,1);
   const motion=a.motion||{},backward=clamp(motion.backward||0,0,1),acceleration=motion.acceleration||0;
   const moving=smooth((speed-.1)/.8),brake=clamp(-acceleration/2.3,0,1)*moving;
@@ -152,7 +168,9 @@ const Match3D = (() => {
    let foot=point(forward,.12+recover*drive*.075+crossStep*.14,lateral);
    const plant=a.footPlants?.[side===-1?0:1];
    if(plant&&drive>.3&&anchor<.05&&Math.hypot(plant.x-foot[0],plant.y-foot[2])<.42)foot=[plant.x,.12,plant.y];
-   const hip=point(-.10,.90-lower,side*.18),ankle=[foot[0],foot[1]+.11,foot[2]];
+   const hip=point(-.10,.90-lower,side*.18),vertical=foot[1]+.11-hip[1],room=Math.sqrt(Math.max(0,.909*.909-vertical*vertical)),horizontal=Math.hypot(foot[0]-hip[0],foot[2]-hip[2]);
+   if(horizontal>room){foot=[hip[0]+(foot[0]-hip[0])*room/horizontal,foot[1],hip[2]+(foot[2]-hip[2])*room/horizontal];}
+   const ankle=[foot[0],foot[1]+.11,foot[2]];
    const knee=joint(hip,ankle,point(.65,.55-lower,side*.22),.45,.46);
    feet.push(foot);footAngles.push(angle+side*push*drive*.32+backward*side*.18+brake*.95+curve*.18);
    legs.push({hip,knee,ankle});
@@ -183,6 +201,7 @@ const Match3D = (() => {
   }
   if(contact>.01&&!windup&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=between(blade,[frame.puck.x,.08,frame.puck.y],contact);
   if(engagement&&!contact&&['poke','block','tip','bobble'].includes(physical.kind))blade=between(blade,[physical.spot.x,.08+(physical.spot.z||0),physical.spot.y],engagement);
+  if(celebration&&!release){blade=between(blade,point(.75,.8,.26*hand),celebration);}
   // Keep an incoming/outgoing reach inside the skater's actual arm/stick span.
   const root=point(0,0,0),reach=Math.hypot(blade[0]-root[0],blade[2]-root[2]);
   if(reach>1.25){blade[0]=root[0]+(blade[0]-root[0])*1.25/reach;blade[2]=root[2]+(blade[2]-root[2])*1.25/reach;}
@@ -198,7 +217,7 @@ const Match3D = (() => {
    return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14,-.05,side*.68),.40,.42),hand};
   });
   const state=windup?'windup':engagement?physical.kind:speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
-  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,windup,engagement,fatigue,bodyWidth,headRise,style:action?.style};
+  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,windup,engagement,fatigue,bodyWidth,headRise,celebration,style:action?.style};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};
  function kits(teams){
@@ -298,24 +317,23 @@ const Match3D = (() => {
   for(const x of [25,35]){g.box(x,.45,-1.2,7,.6,1,blue);g.box(x,.9,-1.6,7,.5,.15,dark);}
   return g.data;
  }
- function skater(g,m,kit){
+ function skater(g,m,kit,uniform=true){
   const black=color('#101d2c'),steel=color('#91a9ba'),{jersey,trim}=kit,p=m.point,u=m.torsoPoint;
   for(let i=0;i<2;i++){
    const foot=m.feet[i],leg=m.legs[i],yaw=m.footAngles[i];
    g.box(...foot,.43,.17,.18,black,yaw);
    // Lifted recovery skate and its runner remain one rigid piece.
    g.box(foot[0],foot[1]-.075,foot[2],.47,.028,.048,steel,yaw);
-   g.rod(leg.ankle,leg.knee,.12,jersey);g.rod(leg.knee,leg.hip,.155,black);
+   if(uniform){g.rod(leg.ankle,leg.knee,.12,jersey);g.rod(leg.knee,leg.hip,.155,black);}
    g.rod(between(leg.ankle,leg.knee,.64),between(leg.ankle,leg.knee,.84),.135,trim);
-   g.ellipsoid(leg.knee,[.145,.145,.15],jersey,m.angle);
+   if(uniform)g.ellipsoid(leg.knee,[.145,.145,.15],jersey,m.angle);
    if(m.brake>.45)for(let j=0;j<3;j++){
     const cs=Math.cos(yaw),sn=Math.sin(yaw),spread=(j+1)*.09*m.brake;
     const x=foot[0]-sn*spread,z=foot[2]+cs*spread;
     g.tri([x,.025,z],[x+cs*.05,.05+j*.035,z+sn*.05],[x-sn*.08,.03,z+cs*.08],color('#eaf6f8'));
    }
   }
-  g.ellipsoid(p(-.07,.79-m.lower,0),[.26,.23,.29],black,m.angle);
-  g.jersey(m.torso,m.torsoAngle,jersey,trim,u);
+  if(uniform){g.ellipsoid(p(-.07,.79-m.lower,0),[.26,.23,.29],black,m.angle);g.jersey(m.torso,m.torsoAngle,jersey,trim,u);}
   g.rod(u(0,.25,0),u(.02,.43,0),.10,color('#caa887'));
   const head=u(.02,.47+m.headRise,0),helmet=u(-.01,.62+m.headRise,0);
   g.ellipsoid(head,[.15,.19,.17],color('#caa887'),m.torsoAngle);
@@ -332,7 +350,7 @@ const Match3D = (() => {
   // Chest and cuffs use the same spine/arm transforms as the jersey.
   g.quad(u(.277,.02,-.08),u(.277,.17,-.08),u(.277,.17,.08),u(.277,.02,.08),trim);
   for(const arm of m.arms){
-   g.rod(arm.shoulder,arm.elbow,.13,jersey);g.rod(arm.elbow,arm.hand,.10,jersey);
+   if(uniform){g.rod(arm.shoulder,arm.elbow,.13,jersey);g.rod(arm.elbow,arm.hand,.10,jersey);}
    g.rod(between(arm.shoulder,arm.elbow,.16),between(arm.shoulder,arm.elbow,.38),.14,trim);
    g.ellipsoid(arm.hand,[.13,.12,.14],black,m.torsoAngle);
    g.box(arm.hand[0],arm.hand[1]+.09,arm.hand[2],.12,.026,.17,trim,m.torsoAngle);
@@ -382,15 +400,15 @@ const Match3D = (() => {
   }
   g.rod(m.blade,m.shaftTop,.038,black);g.rod(m.blade,between(m.blade,m.blocker,.67),.06,white);g.rod(m.blade,m.tip,.055,black);
  }
- function figures(frame,teams){
+ function figures(frame,teams,skinned=false,poses=new Map()){
   const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),uniforms=kits(teams);
   for(const a of frame.actors){
-   const m=pose(frame,a),kit=uniforms[a.side],shadow=m.point(0,0,0);
+   const m=poses.get(a.id)||pose(frame,a),kit=uniforms[a.side],shadow=m.point(0,0,0);
    g.shade(shadow[0],shadow[2],m.keeper?.58:.47,m.keeper?.8:.50,m.angle);
    for(const foot of m.feet)g.shade(foot[0],foot[2],.28,.13,m.angle);
    if(a.id===frame.carrier)g.ring(a.x,a.y,.85,.07,kit.trim);
-   if(m.keeper)goalkeeper(g,m,kit);else skater(g,m,kit);
-   jerseyNumber(g,m,a.number,kit);
+   if(m.keeper)goalkeeper(g,m,kit);else skater(g,m,kit,!skinned);
+   if(m.keeper||!skinned)jerseyNumber(g,m,a.number,kit);
   }
   const h=.09+(frame.puck.z||0);
   // The ground shadow stays on the ice; the puck, marker and short trail use
@@ -471,36 +489,50 @@ const Match3D = (() => {
   return g.data;
  }
  let current=null;
- function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteBuffer(c.analysisBuffer);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteBuffer(c.analysisBuffer);c.gl.deleteBuffer(c.skinBuffer);c.gl.deleteBuffer(c.skinIndexBuffer);c.gl.deleteTexture(c.uniformTexture);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
  function create(canvas){
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true});if(!gl)throw Error('3D kunde inte starta på den här datorn. 2D är fortfarande tillgängligt.');
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);throw Error('3D kunde inte läsa grafikprogrammet.');}return s;};
-  const vs=shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 normal;attribute vec3 color;uniform mat4 camera;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;void main(){tint=color;worldNormal=normal;worldPosition=position;gl_Position=camera*vec4(position,1.);}');
-  const fs=shader(gl.FRAGMENT_SHADER,'precision mediump float;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;uniform vec3 eye;uniform float shine;void main(){vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 key=normalize(vec3(-.4,1.,.35));vec3 fill=normalize(vec3(.6,.5,-.7));float diffuse=.55+.35*max(0.,dot(n,key))+.16*max(0.,dot(n,fill));vec3 halfVector=normalize(key+normalize(eye-worldPosition));float highlight=pow(max(0.,dot(n,halfVector)),24.)*shine;vec3 lit=tint*diffuse+vec3(.83,.91,1.)*highlight;float mist=smoothstep(45.,95.,distance(eye,worldPosition))*.12;gl_FragColor=vec4(mix(lit,vec3(.10,.17,.24),mist),1.);}');
+  const vs=shader(gl.VERTEX_SHADER,'attribute vec3 position;attribute vec3 normal;attribute vec3 color;attribute vec2 uv;uniform mat4 camera;varying vec2 texCoord;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;void main(){texCoord=uv;tint=color;worldNormal=normal;worldPosition=position;gl_Position=camera*vec4(position,1.);}');
+  const fs=shader(gl.FRAGMENT_SHADER,`precision mediump float;varying vec2 texCoord;varying vec3 tint;varying vec3 worldNormal;varying vec3 worldPosition;uniform sampler2D uniformMap;uniform vec3 eye;uniform float shine;void main(){
+   vec3 n=normalize(worldNormal);if(!gl_FrontFacing)n=-n;vec3 key=normalize(vec3(-.4,1.,.35)),fill=normalize(vec3(.6,.5,-.7));
+   float diffuse=.55+.35*max(0.,dot(n,key))+.16*max(0.,dot(n,fill));vec3 base=tint;
+   if(texCoord.x>=0.){vec4 ink=texture2D(uniformMap,texCoord);base=mix(base,ink.rgb,ink.a);base*=.98+.02*sin(texCoord.x*980.);}
+   vec3 halfVector=normalize(key+normalize(eye-worldPosition));float highlight=pow(max(0.,dot(n,halfVector)),24.)*shine;
+   bool ice=worldPosition.y<.022&&worldPosition.y>=-.002&&tint.r>.65;
+   if(ice){float scratches=sin(worldPosition.x*83.+sin(worldPosition.z*13.))*sin(worldPosition.z*41.);base*=.985+scratches*.012;highlight+=pow(max(0.,dot(n,halfVector)),65.)*.20;}
+   vec3 lit=base*diffuse+vec3(.83,.91,1.)*highlight;float mist=smoothstep(45.,95.,distance(eye,worldPosition))*.12;gl_FragColor=vec4(mix(lit,vec3(.10,.17,.24),mist),1.);}`);
   const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(program,gl.LINK_STATUS)){gl.deleteProgram(program);throw Error('3D kunde inte starta grafikprogrammet.');}
   const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),crowdBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
   const lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',lost);
-  return {canvas,gl,program,staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
+  const uniformTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,0]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  return {canvas,gl,program,uniformTexture,skinBuffer:gl.createBuffer(),skinIndexBuffer:gl.createBuffer(),skinCount:0,texLocation:gl.getAttribLocation(program,'uv'),staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
  }
  function draw(canvas,frame,before,t,options={}){
   if(!frame||canvas.dataset.error)return false;
   if(current?.canvas!==canvas){dispose();try{current=create(canvas);}catch(error){canvas.dataset.error=error.message;return false;}}
   const c=current,gl=c.gl;if(gl.isContextLost())return false;
-  if(options.suspended&&canvas.dataset.ready==='true')return true;
+  if(options.suspended&&canvas.dataset.ready==='true'){c.lastDraw=null;return true;}
+  const drawStarted=performance.now();
   const rect=canvas.getBoundingClientRect(),dpr=Math.min(1.5,globalThis.devicePixelRatio||1),w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
   gl.viewport(0,0,w,h);gl.clearColor(.035,.065,.105,1);gl.enable(gl.DEPTH_TEST);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(c.program);
   const f=sample(frame,before,t),view=cameraFrame(w/h,options.camera,f,c.tracked,options.zoom),mat=view.matrix;c.tracked=view.tracked;
   gl.uniformMatrix4fv(c.matrix,false,mat);gl.uniform3fv(c.eye,view.eye);
-  const bind=buffer=>{gl.bindBuffer(gl.ARRAY_BUFFER,buffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,36,i*12);});};
+  const bind=buffer=>{gl.disableVertexAttribArray(c.texLocation);gl.vertexAttrib2f(c.texLocation,-1,-1);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,36,i*12);});};
   bind(c.staticBuffer);gl.uniform1f(c.shine,.045);gl.drawArrays(gl.TRIANGLES,0,c.count);
   const reactions=[0,1].map(side=>Math.round(crowdReaction(f,side)*15)/15),crowdKey=JSON.stringify([options.teams,options.homeSide,reactions]);
   bind(c.crowdBuffer);
   if(crowdKey!==c.crowdKey){const mesh=crowd(f,options.teams||[],options.homeSide??0);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.crowdCount=mesh.length/9;c.crowdKey=crowdKey;}
   gl.drawArrays(gl.TRIANGLES,0,c.crowdCount);bind(c.dynamicBuffer);
   const geometryKey=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);
-  if(geometryKey!==c.geometryKey){const started=performance.now(),dynamic=figures(f,options.teams||[]);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
+  if(geometryKey!==c.geometryKey){const started=performance.now(),poses=new Map(f.actors.map(a=>[a.id,pose(f,a)])),skinned=typeof HockeyPlayerModel!=='undefined',dynamic=figures(f,options.teams||[],skinned,poses);if(skinned){const skin=HockeyPlayerModel.mesh(f.actors,poses,kits(options.teams||[]));gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);gl.bufferData(gl.ARRAY_BUFFER,skin,gl.DYNAMIC_DRAW);c.skinCount=skin.length/11;const count=f.actors.filter(a=>a.role!=='G').length;if(count!==c.skinActors){const indices=HockeyPlayerModel.indices(f.actors);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indices,gl.STATIC_DRAW);c.skinElements=indices.length;c.skinActors=count;}bind(c.dynamicBuffer);}gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
   gl.uniform1f(c.shine,.13);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
+  if(c.skinCount){
+   const atlasKey=JSON.stringify([f.actors.filter(a=>a.role!=='G').map(a=>[a.id,a.number,a.name,a.side]),options.teams]);
+   if(c.atlasKey!==atlasKey){const atlas=HockeyPlayerModel.atlas(document.createElement('canvas'),f.actors,kits(options.teams||[]));gl.bindTexture(gl.TEXTURE_2D,c.uniformTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlas);c.atlasKey=atlasKey;}
+   gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);c.locations.forEach((loc,i)=>{gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,3,gl.FLOAT,false,44,i*12);});gl.enableVertexAttribArray(c.texLocation);gl.vertexAttribPointer(c.texLocation,2,gl.FLOAT,false,44,36);gl.uniform1f(c.shine,.04);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.skinIndexBuffer);gl.drawElements(gl.TRIANGLES,c.skinElements,gl.UNSIGNED_SHORT,0);gl.disableVertexAttribArray(c.texLocation);gl.vertexAttrib2f(c.texLocation,-1,-1);
+  }
   c.analysisCount=0;
   if(options.analysis){
    bind(c.analysisBuffer);const key=JSON.stringify(options.analysis);
@@ -511,15 +543,16 @@ const Match3D = (() => {
   const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);
   if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
   const marker=document.getElementById('match-3d-puck');if(marker){const p=project([f.puck.x,.1+(f.puck.z||0),f.puck.y],mat);marker.hidden=Boolean(f.puck.heldBy)||options.puckMarker===false||p.x<0||p.x>1||p.y<0||p.y>1;marker.style.left=p.x*100+'%';marker.style.top=p.y*100+'%';}
+  c.renderMS=performance.now()-drawStarted;c.frameTimes??=[];if(c.lastDraw!=null&&drawStarted-c.lastDraw<1000&&c.lastFrameWall!==f.wall){c.frameTimes.push(drawStarted-c.lastDraw);if(c.frameTimes.length>180)c.frameTimes.shift();}c.lastDraw=drawStarted;c.lastFrameWall=f.wall;
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount+current.skinCount,skinVertices:current.skinCount,rigJoints:current.skinCount?10:0,renderMS:current.renderMS,frameSamples:current.frameTimes?.length||0,frameP95:current.frameTimes?.length?[...current.frameTimes].sort((a,b)=>a-b)[Math.floor((current.frameTimes.length-1)*.95)]:null,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
 })();
-let studioVisualMode='2d',studioCamera3D='tv',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
+let studioVisualMode='2d',studioCamera3D='auto',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
 function studioToggleRink(){if(studioVisualMode!=='3d')return;studioExpanded3D=!studioExpanded3D;render();}
-function studioSetCamera(mode){if(['tv','overhead','follow'].includes(mode))studioCamera3D=mode;}
+function studioSetCamera(mode){if(['tv','overhead','follow','auto'].includes(mode))studioCamera3D=mode;}
 function studioSetZoom(value){const n=Number(value);if(!Number.isFinite(n))return;studioZoom3D=Math.max(.8,Math.min(1.5,Math.round(n*10)/10));const label=document.getElementById('match-3d-zoom');if(label)label.textContent=Math.round(studioZoom3D*100)+'%';}
 function studioTogglePuck(){studioPuckMarker3D=!studioPuckMarker3D;document.getElementById('match-3d-puck-toggle')?.setAttribute('aria-pressed',String(studioPuckMarker3D));}
-function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D · test</option></select></label>${studioAudioControl()}${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}
+function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D</option></select></label>${studioAudioControl()}${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="auto" ${studioCamera3D==='auto'?'selected':''}>Matchkamera</option><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}

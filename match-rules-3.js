@@ -62,6 +62,7 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
             const bend=(tip.player.shoots==='R'?1:-1)*.14;
             f.start={...this.puck};f.end={...f.end,y:f.end.y+bend};if(f.goalLine)f.goalLine={...f.goalLine,y:f.goalLine.y+bend};
             f.vertical={z:v.z,vz:v.vz};f.duration=Math.max(.001,remaining);f.elapsed=0;
+            const keeper=this.actors.find(a=>a.role==='G'&&a.side!==f.side);if(f.keeperVersion===2&&keeper?.keeperState)keeper.keeperState.seen=0;
           }
           return baseResolveFlight.call(this,Math.max(0,dt-wait));
         }
