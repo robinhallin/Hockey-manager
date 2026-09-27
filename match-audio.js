@@ -29,7 +29,7 @@ const MatchAudio=(()=>{
  }
  function burst(kind,strength=1,pan=0,delay=0){
   if(!ctx||ctx.state!=='running'||voices.size>=20)return;
-  const profiles={stick:[1550,.09,.18],board:[210,.26,.38],ice:[2100,.055,.075],save:[430,.19,.20],block:[330,.15,.22],goal:[690,2.3,.23],miss:[620,.65,.06],whistle:[1900,.18,.035]};
+  const profiles={stick:[1550,.09,.18],board:[210,.26,.38],ice:[2100,.055,.075],save:[430,.19,.20],block:[330,.15,.22],post:[2400,.32,.12],goal:[690,2.3,.23],miss:[620,.65,.06],whistle:[1900,.18,.035]};
   const p=profiles[kind];if(!p)return;
   const [frequency,duration,level]=p,start=ctx.currentTime+delay,amp=ctx.createGain();amp.gain.setValueAtTime(0,start);amp.gain.linearRampToValueAtTime(level*strength,start+(kind==='goal'?.18:.008));amp.gain.exponentialRampToValueAtTime(.0001,start+duration);
   let input,filter=null;

@@ -53,6 +53,9 @@ const Match3D = (() => {
     // A capture may straddle a release. Never start its follow-through early.
     if(p.action?.at>wall)result.action=q?.action?.at<=wall?q.action:null;
     if(p.keeperAction?.at>wall)result.keeperAction=q?.keeperAction?.at<=wall?q.keeperAction:null;
+    if(p.contactAction?.at>wall)result.contactAction=q?.contactAction?.at<=wall?q.contactAction:null;
+    if(p.windup?.at>wall)result.windup=q?.windup?.at<=wall?q.windup:null;
+    if(p.footPlants)result.footPlants=p.footPlants.map((plant,i)=>plant?.at>wall?q?.footPlants?.[i]||null:plant);
    }
    return result;
   };
@@ -121,7 +124,10 @@ const Match3D = (() => {
   const age=action?clock-action.at:Infinity,shooting=action?.kind==='shot',duration=shooting?.72:.52;
   const release=action&&action.kind!=='receive'&&age>=0&&age<duration?1-smooth(age/duration):0;
   const receiving=action?.kind==='receive'&&age>=0&&age<.45?1-smooth(age/.45):0;
-  const contact=a.contact??(frame.carrier===a.id?1:0);
+  const contact=a.contact??(frame.carrier===a.id?1:0),physical=a.contactAction;
+  const contactAge=physical?clock-physical.at:Infinity,engagement=contactAge>=0?1-smooth(contactAge/1.1):0;
+  const windup=a.windup&&clock>=a.windup.at?clamp((clock-a.windup.at)/a.windup.duration,0,1):0;
+  const fatigue=clamp((65-(a.energy??100))/50,0,1);
   const motion=a.motion||{},backward=clamp(motion.backward||0,0,1),acceleration=motion.acceleration||0;
   const moving=smooth((speed-.1)/.8),brake=clamp(-acceleration/2.3,0,1)*moving;
   const drive=moving*(a.motion?smooth((acceleration-.15)/2):clamp(speed/3.5,0,1))*(1-brake);
@@ -130,17 +136,22 @@ const Match3D = (() => {
   const drop=0;
   const phase=(a.travelled||0)*Math.PI/1.6,stride=Math.sin(phase)*drive;
   const hand=a.shoots==='R'?1:-1;
-  const lean=.10+drive*.16+brake*.08,lower=moving*.08+brake*.09+receiving*.035;
+  const lean=.10+drive*.16+brake*.08+fatigue*.04,lower=moving*.08+brake*.09+receiving*.035+engagement*.055;
   // Ease the body anchor back after release; the puck itself is never offset.
   const anchor=Math.max(contact,release),offset=-.65*anchor;
-  const point=(forward,height,side)=>{side-=anchor*.18*hand;return [a.x+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,a.y+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
+  // While cushioning a reception, anchor the connected body behind the actual
+  // contact point. The puck remains exactly where the engine put it.
+  const cx=contact?mix(a.x,frame.puck.x,contact):a.x,cy=contact?mix(a.y,frame.puck.y,contact):a.y;
+  const point=(forward,height,side)=>{side-=anchor*.18*hand;return [cx+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,cy+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
   const feet=[],footAngles=[],legs=[];
   for(const side of [-1,1]){
    const cycle=Math.sin(phase+(side===1?Math.PI:0)),push=Math.max(0,cycle),recover=Math.max(0,-cycle);
    const outer=side===-Math.sign(curve),crossStep=outer?crossover*recover:0;
    const forward=(-push*.31+recover*.18)*drive*(1-backward*1.6);
    const lateral=side*(.24+push*.30*drive+brake*.12)+Math.sign(curve)*crossStep*.47;
-   const foot=point(forward,.12+recover*drive*.075+crossStep*.14,lateral);
+   let foot=point(forward,.12+recover*drive*.075+crossStep*.14,lateral);
+   const plant=a.footPlants?.[side===-1?0:1];
+   if(plant&&drive>.3&&anchor<.05&&Math.hypot(plant.x-foot[0],plant.y-foot[2])<.42)foot=[plant.x,.12,plant.y];
    const hip=point(-.10,.90-lower,side*.18),ankle=[foot[0],foot[1]+.11,foot[2]];
    const knee=joint(hip,ankle,point(.65,.55-lower,side*.22),.45,.46);
    feet.push(foot);footAngles.push(angle+side*push*drive*.32+backward*side*.18+brake*.95+curve*.18);
@@ -149,24 +160,29 @@ const Match3D = (() => {
   const releaseAngle=release?Math.atan2(action.target.y-action.origin.y,action.target.x-action.origin.x):angle;
   const waiting=f?.kind==='pass'&&f.to===a.id&&f.side===a.side;
   const prepare=waiting?clamp((3-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/2,0,1):0;
-  const aim=release?releaseAngle:receiving?Math.atan2(action.target.y-a.y,action.target.x-a.x):(contact||prepare)&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)>.08?puckAngle:angle;
-  const twist=clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving));
+  const aim=release?releaseAngle:receiving?Math.atan2(action.target.y-a.y,action.target.x-a.x):engagement?Math.atan2(physical.spot.y-a.y,physical.spot.x-a.x):(contact||prepare)&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)>.08?puckAngle:angle;
+  const twist=clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving,engagement));
   const swing=release?Math.sin(Math.PI*clamp(age/duration,0,1)):0;
-  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12),roll=-curve*.19,pitch=.12+drive*.19+brake*.12;
+  const tackle=engagement&&['check','pin','protect'].includes(physical.kind)?engagement:0;
+  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12)-hand*windup*.4,roll=-curve*.19+tackle*Math.sin((physical?.direction??angle)-angle)*.16,pitch=.12+drive*.19+brake*.12+tackle*.12+fatigue*.08;
+  const bodyWidth=clamp((a.weight||85)/85,.92,1.08),headRise=clamp(((a.height||185)-185)*.003,-.045,.055);
   const torso=point(lean,1.20-lower,curve*.10);
   const torsoPoint=(forward,height,side)=>{
+   side*=bodyWidth;
    const fwd=forward*Math.cos(pitch)+height*Math.sin(pitch),up=height*Math.cos(pitch)-forward*Math.sin(pitch);
    const lateral=side*Math.cos(roll)-up*Math.sin(roll),vertical=up*Math.cos(roll)+side*Math.sin(roll);
    return [torso[0]+fwd*Math.cos(torsoAngle)-lateral*Math.sin(torsoAngle),torso[1]+vertical,torso[2]+fwd*Math.sin(torsoAngle)+lateral*Math.cos(torsoAngle)];
   };
   let blade=point(1.02,.08,.26*hand);
+  if(windup)blade=between(blade,point(a.windup.style==='slap'?-.5:.15,.1+windup*(a.windup.style==='slap'?1.05:.2),hand*.5),windup);
   if(prepare){const direction=unit([frame.puck.x-a.x,0,frame.puck.y-a.y]);blade=between(blade,[a.x+direction[0]*.85,.08,a.y+direction[2]*.85],prepare*.8);}
   if(release){
    const power=shooting?(action.style==='slap'?.72:action.style==='one-timer'?.58:.44):.18;
    const follow=[action.origin.x+Math.cos(releaseAngle)*swing*.5+Math.sin(releaseAngle)*hand*swing*.18,.08+swing*power,action.origin.y+Math.sin(releaseAngle)*swing*.5-Math.cos(releaseAngle)*hand*swing*.18];
    blade=between(blade,follow,release);
   }
-  if(contact>.01&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=between(blade,[frame.puck.x,.08,frame.puck.y],contact);
+  if(contact>.01&&!windup&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=between(blade,[frame.puck.x,.08,frame.puck.y],contact);
+  if(engagement&&!contact&&['poke','block','tip','bobble'].includes(physical.kind))blade=between(blade,[physical.spot.x,.08+(physical.spot.z||0),physical.spot.y],engagement);
   // Keep an incoming/outgoing reach inside the skater's actual arm/stick span.
   const root=point(0,0,0),reach=Math.hypot(blade[0]-root[0],blade[2]-root[2]);
   if(reach>1.25){blade[0]=root[0]+(blade[0]-root[0])*1.25/reach;blade[2]=root[2]+(blade[2]-root[2])*1.25/reach;}
@@ -174,10 +190,15 @@ const Match3D = (() => {
   const heel=[blade[0]-Math.cos(bladeAngle)*.18,blade[1],blade[2]-Math.sin(bladeAngle)*.18];
   const tip=[blade[0]+Math.cos(bladeAngle)*.23,blade[1],blade[2]+Math.sin(bladeAngle)*.23];
   const shaftDirection=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
-  const hands=(hand===1?[1.23,.87]:[.87,1.23]).map(length=>heel.map((v,i)=>v+shaftDirection[i]*length));
-  const arms=[-1,1].map((side,i)=>{const shoulder=torsoPoint(0,.20,side*.34),hand=hands[i];return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14,-.05,side*.68),.40,.42),hand};});
-  const state=speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
-  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,style:action?.style};
+  const grips=hand===1?[1.23,.87]:[.87,1.23];
+  const arms=[-1,1].map((side,i)=>{
+   const shoulder=torsoPoint(0,.20,side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
+   const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i],Math.max(.4,along-span),Math.min(1.36,along+span));
+   const hand=heel.map((v,i)=>v+shaftDirection[i]*length);
+   return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14,-.05,side*.68),.40,.42),hand};
+  });
+  const state=windup?'windup':engagement?physical.kind:speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
+  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,windup,engagement,fatigue,bodyWidth,headRise,style:action?.style};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};
  function kits(teams){
@@ -296,17 +317,25 @@ const Match3D = (() => {
   g.ellipsoid(p(-.07,.79-m.lower,0),[.26,.23,.29],black,m.angle);
   g.jersey(m.torso,m.torsoAngle,jersey,trim,u);
   g.rod(u(0,.25,0),u(.02,.43,0),.10,color('#caa887'));
-  const head=u(.02,.47,0),helmet=u(-.01,.62,0);
+  const head=u(.02,.47+m.headRise,0),helmet=u(-.01,.62+m.headRise,0);
   g.ellipsoid(head,[.15,.19,.17],color('#caa887'),m.torsoAngle);
   g.ellipsoid(helmet,[.235,.195,.235],jersey,m.torsoAngle);
   for(const side of [-1,1])g.rod(u(-.10,.43,side*.17),u(.14,.39,side*.17),.023,black);
   g.box(...u(.22,.55,0),.026,.085,.32,steel,m.torsoAngle);
+  // Visor rim, helmet ventilation and fabric panels add readable equipment
+  // detail without textures, external assets or another draw call per player.
+  for(const side of [-1,1]){
+   g.quad(u(-.08,.69+m.headRise,side*.18),u(.08,.69+m.headRise,side*.18),u(.10,.66+m.headRise,side*.20),u(-.08,.66+m.headRise,side*.20),black);
+   g.quad(u(.275,.52+m.headRise,side*.01),u(.25,.52+m.headRise,side*.15),u(.25,.48+m.headRise,side*.15),u(.275,.48+m.headRise,side*.01),color('#b7d5df'));
+   g.quad(u(-.20,.17,side*.32),u(.18,.17,side*.32),u(.20,.13,side*.32),u(-.20,.13,side*.32),trim);
+  }
   // Chest and cuffs use the same spine/arm transforms as the jersey.
   g.quad(u(.277,.02,-.08),u(.277,.17,-.08),u(.277,.17,.08),u(.277,.02,.08),trim);
   for(const arm of m.arms){
    g.rod(arm.shoulder,arm.elbow,.13,jersey);g.rod(arm.elbow,arm.hand,.10,jersey);
    g.rod(between(arm.shoulder,arm.elbow,.16),between(arm.shoulder,arm.elbow,.38),.14,trim);
    g.ellipsoid(arm.hand,[.13,.12,.14],black,m.torsoAngle);
+   g.box(arm.hand[0],arm.hand[1]+.09,arm.hand[2],.12,.026,.17,trim,m.torsoAngle);
   }
   g.rod(m.heel,m.shaftTop,.032,black);
   g.rod(between(m.heel,m.shaftTop,.84),m.shaftTop,.037,trim);
@@ -376,6 +405,50 @@ const Match3D = (() => {
   }
   return g.data;
  }
+ function replayAnalysis(frames,frame){
+  const clock=frame.wall??frame.time,past=frames.filter(f=>(f.wall??f.time)<=clock+1e-7&&(f.wall??f.time)>=clock-5);
+  const latest=predicate=>[...past,frame].reverse().find(predicate),lines=[],rings=[],notes=[];
+  const pass=latest(f=>f.flight?.kind==='pass');
+  if(pass){lines.push({kind:'pass',points:[pass.flight.start,pass.flight.end]});notes.push('Blå linje: den spelade passningsvägen.');}
+  let shot=latest(f=>f.flight?.kind==='shot');
+  if(!shot){
+   // A close block/save may complete between replay captures. The observed
+   // release action still records its real origin and intended shooting lane.
+   const release=[...past,frame].flatMap(f=>f.actors).filter(a=>a.action?.kind==='shot'&&a.action.at<=clock&&clock-a.action.at<5).sort((a,b)=>b.action.at-a.action.at)[0];
+   if(release)shot={flight:{from:release.id,side:release.side,start:release.action.origin,end:release.action.target}};
+  }
+  const side=shot?.flight.side??frame.owner;
+  const preparing=frame.actors.find(a=>a.windup&&a.windup.at<=clock);
+  if(preparing){lines.push({kind:'shot',points:[frame.puck,preparing.windup.target]});notes.unshift('Rött: skytten förbereder avslutet och kan fortfarande störas.');}
+  else if(shot)lines.push({kind:'shot',points:[shot.flight.start,shot.flight.end]});
+  const keeper=frame.actors.find(a=>a.role==='G'&&a.side!==side);
+  if(keeper){
+   const trail=past.filter(f=>(f.wall??f.time)>=clock-2.5).map(f=>f.actors.find(a=>a.id===keeper.id)).filter(Boolean);
+   trail.push(keeper);const travel=trail.slice(1).reduce((sum,a,i)=>sum+Math.hypot(a.x-trail[i].x,a.y-trail[i].y),0);
+   if(travel>.15){lines.push({kind:'keeper',points:trail.map(a=>({x:a.x,y:a.y}))});notes.push('Grönt spår: målvakten har förflyttat sig '+travel.toFixed(1).replace('.',',')+' m.');}
+   if(shot){
+    const origin=shot.flight.start,dx=keeper.x-origin.x,dy=keeper.y-origin.y,l=dx*dx+dy*dy;
+    const screens=frame.actors.filter(a=>a.role!=='G'&&a.id!==shot.flight.from).filter(a=>{
+     const t=l?((a.x-origin.x)*dx+(a.y-origin.y)*dy)/l:0;return t>.15&&t<.98&&Math.hypot(a.x-origin.x-dx*t,a.y-origin.y-dy*t)<.9;
+    });
+    if(screens.length){lines.push({kind:'screen',points:[origin,{x:keeper.x,y:keeper.y}]});screens.forEach(a=>rings.push({kind:'screen',x:a.x,y:a.y}));notes.unshift('Gult: '+screens.map(a=>a.name?.split(' ').at(-1)||'spelare').join(', ')+' står i målvaktens siktlinje.');}
+    else notes.unshift('Fri siktlinje mellan skottet och målvakten i detta ögonblick.');
+   }
+  }
+  const contacts=frame.actors.filter(a=>a.contactAction&&clock-a.contactAction.at>=0&&clock-a.contactAction.at<.9);
+  for(const a of contacts){const c=a.contactAction;if(['block','tip','check','pin','bobble'].includes(c.kind)){rings.push({kind:'contact',x:c.spot.x,y:c.spot.y});notes.unshift((a.name||'Spelaren')+' · '+({block:'blockerar vid puckkontakten',tip:'styr pucken',check:'fullföljer tacklingen',pin:'låser sargduellen',bobble:'tappar den första mottagningen'})[c.kind]+'.');}}
+  if(!notes.length)notes.push('Spola fram till passningen eller skottet för att läsa situationen.');
+  return {lines,rings,notes:notes.slice(0,3)};
+ }
+ function analysisGeometry(analysis){
+  const g=geometry(),colors={pass:color('#148ed1'),screen:color('#c58c00'),keeper:color('#15866e'),contact:color('#cf503b'),shot:color('#b54c46')};
+  for(const line of analysis?.lines||[])for(let i=1;i<line.points.length;i++){
+   const a=line.points[i-1],b=line.points[i];if(Math.hypot(a.x-b.x,a.y-b.y)<.02)continue;
+   g.rod([a.x,.09,a.y],[b.x,.09,b.y],.075,colors[line.kind]);
+  }
+  for(const ring of analysis?.rings||[])g.ring(ring.x,ring.y,.9,.10,colors[ring.kind]);
+  return g.data;
+ }
  function crowdReaction(frame,side){
   const clock=frame.wall??frame.time;
   const event=(frame.effects||[]).filter(e=>e.at<=clock&&clock-e.at<2.8&&['goal','save','block','miss'].includes(e.kind)).at(-1);
@@ -398,7 +471,7 @@ const Match3D = (() => {
   return g.data;
  }
  let current=null;
- function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ function dispose(){if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);c.gl.deleteBuffer(c.staticBuffer);c.gl.deleteBuffer(c.dynamicBuffer);c.gl.deleteBuffer(c.crowdBuffer);c.gl.deleteBuffer(c.analysisBuffer);c.gl.deleteProgram(c.program);c.gl.getExtension('WEBGL_lose_context')?.loseContext();}
  function create(canvas){
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true});if(!gl)throw Error('3D kunde inte starta på den här datorn. 2D är fortfarande tillgängligt.');
   const shader=(type,source)=>{const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){gl.deleteShader(s);throw Error('3D kunde inte läsa grafikprogrammet.');}return s;};
@@ -407,7 +480,7 @@ const Match3D = (() => {
   const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(program,gl.LINK_STATUS)){gl.deleteProgram(program);throw Error('3D kunde inte starta grafikprogrammet.');}
   const staticBuffer=gl.createBuffer(),dynamicBuffer=gl.createBuffer(),crowdBuffer=gl.createBuffer(),mesh=rink();gl.bindBuffer(gl.ARRAY_BUFFER,staticBuffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
   const lost=e=>{e.preventDefault();canvas.dataset.error='Grafiken avbröts. Välj 2D eller försök 3D igen.';};canvas.addEventListener('webglcontextlost',lost);
-  return {canvas,gl,program,staticBuffer,dynamicBuffer,crowdBuffer,count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
+  return {canvas,gl,program,staticBuffer,dynamicBuffer,crowdBuffer,analysisBuffer:gl.createBuffer(),count:mesh.length/9,locations:['position','normal','color'].map(n=>gl.getAttribLocation(program,n)),matrix:gl.getUniformLocation(program,'camera'),eye:gl.getUniformLocation(program,'eye'),shine:gl.getUniformLocation(program,'shine'),lost,hits:[],frames:0,geometryBuilds:0,geometryKey:null,dynamicCount:0};
  }
  function draw(canvas,frame,before,t,options={}){
   if(!frame||canvas.dataset.error)return false;
@@ -428,6 +501,12 @@ const Match3D = (() => {
   const geometryKey=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);
   if(geometryKey!==c.geometryKey){const started=performance.now(),dynamic=figures(f,options.teams||[]);gl.bufferData(gl.ARRAY_BUFFER,dynamic,gl.DYNAMIC_DRAW);c.dynamicCount=dynamic.length/9;c.geometryKey=geometryKey;c.geometryBuilds++;c.buildMS=performance.now()-started;}
   gl.uniform1f(c.shine,.13);gl.drawArrays(gl.TRIANGLES,0,c.dynamicCount);
+  c.analysisCount=0;
+  if(options.analysis){
+   bind(c.analysisBuffer);const key=JSON.stringify(options.analysis);
+   if(key!==c.analysisKey){const mesh=analysisGeometry(options.analysis);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.DYNAMIC_DRAW);c.analysisVertices=mesh.length/9;c.analysisKey=key;}
+   c.analysisCount=c.analysisVertices;gl.uniform1f(c.shine,0);gl.drawArrays(gl.TRIANGLES,0,c.analysisCount);
+  }
   c.hits=f.actors.map(a=>({id:a.id,name:a.name,number:a.number,...project([a.x,1,a.y],mat)}));c.frames++;canvas.dataset.ready='true';
   const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);
   if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=Math.max(8,Math.min(92,carrier.x*100))+'%';label.style.top=Math.max(8,Math.min(85,carrier.y*100-8))+'%';}}
@@ -435,7 +514,7 @@ const Match3D = (() => {
   return true;
  }
  function pick(canvas,x,y){if(current?.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
- return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount,crowdVertices:current.crowdCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
+ return {draw,dispose,pick,sample,pose,camera,cameraFrame,project,trackPuck,kits,figures,crowd,crowdReaction,replayAnalysis,analysisGeometry,diagnostics:()=>current?{frames:current.frames,actors:current.hits.length,vertices:current.dynamicCount,crowdVertices:current.crowdCount,analysisVertices:current.analysisCount,geometryBuilds:current.geometryBuilds,buildMS:current.buildMS,error:current.gl.getError()}:null};
 })();
 let studioVisualMode='2d',studioCamera3D='tv',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}

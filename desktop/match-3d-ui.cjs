@@ -125,6 +125,22 @@ module.exports=async function check3D(page,out){
  assert.ok(await page.evaluate(()=>Boolean(studioReplayState)),'pace change stays in replay');
  assert.ok(await page.evaluate(()=>studioReplayState.elapsed)>=replayElapsed,'replay does not rewind when changing pace');
  await page.screenshot({path:path.join(out,'34-match-3d-replay.png'),fullPage:true});
+ await page.getByRole('button',{name:'Till skottet',exact:true}).click();
+ await page.waitForFunction(()=>studioReplayState.paused&&Match3D.diagnostics().analysisVertices>0);
+ const tactical=await page.evaluate(()=>{
+  const r=studioReplayState,s=studioReplayFrame(performance.now()),f=Match3D.sample(s.frame,s.previous,s.blend),analysis=Match3D.replayAnalysis(r.frames,f);
+  return {elapsed:r.elapsed,analysis,diagnostics:Match3D.diagnostics()};
+ });
+ assert.ok(tactical.analysis.notes.length>0&&tactical.diagnostics.error===0);
+ const pausedAt=tactical.elapsed;
+ await page.getByRole('button',{name:'Taktiska linjer',exact:true}).click();
+ await page.waitForFunction(()=>Match3D.diagnostics().analysisVertices===0);
+ assert.equal(await page.evaluate(()=>studioReplayState.elapsed),pausedAt,'pausing freezes replay while switching tactical overlays');
+ await page.getByRole('button',{name:'Taktiska linjer',exact:true}).click();
+ await page.waitForFunction(()=>Match3D.diagnostics().analysisVertices>0);
+ await page.screenshot({path:path.join(out,'39-match-3d-tactical-replay.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-tactical-result.json'),JSON.stringify(tactical,null,2));
+ await page.getByRole('button',{name:'Spela repris',exact:true}).click();
  // The clip comes from the real WebGL canvas and real recorded match frames.
  // It makes the stride/receive/release timing reviewable alongside still images.
  const clip=await page.evaluate(async()=>{
@@ -158,6 +174,20 @@ module.exports=async function check3D(page,out){
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'38-match-3d-goalie-save.png'),fullPage:true});
  require('node:fs').writeFileSync(path.join(out,'3d-arena-result.json'),JSON.stringify({audible,paused:await page.evaluate(()=>MatchAudio.diagnostics()),save},null,2));
+ const battle=await page.evaluate(()=>{
+  startMatch();let found=null;
+  for(let i=0;i<3000&&!state.live.finished;i++){
+   if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
+   const e=studioEngine();if(e.battle?.type&&e.presentationFrame().actors.some(a=>a.contactAction&&e.wall-a.contactAction.at<.3)){
+    const f=e.presentationFrame();found={type:e.battle.type,actors:f.actors.filter(a=>a.contactAction).map(a=>({id:a.id,contact:a.contactAction,pose:Match3D.pose(f,a).state}))};break;
+   }
+  }
+  pauseMatch();render();return found;
+ });
+ assert.ok(battle&&['check','pin','poke'].includes(battle.type));assert.ok(battle.actors.some(a=>a.pose===battle.type));
+ await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+ await page.screenshot({path:path.join(out,'40-match-3d-contact.png'),fullPage:true});
+ require('node:fs').writeFileSync(path.join(out,'3d-contact-result.json'),JSON.stringify(battle,null,2));
  await page.getByRole('button',{name:'Visa coachbänken',exact:true}).click();
  await page.getByLabel('3D-kamera').selectOption('tv');
  // GPU loss must leave the ongoing career usable with the actual 2D fallback.

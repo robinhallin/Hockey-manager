@@ -182,7 +182,7 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
       const attack=this.rebound.side,att=matchEngine31ReboundClaim(this,attack,this.rebound.spot),def=matchEngine31ReboundClaim(this,1-attack,this.rebound.spot);
       if(att?.a&&def?.a&&StudioHockey.distance(att.a,this.rebound.spot)<1.7&&StudioHockey.distance(def.a,this.rebound.spot)<1.7&&att.a.id!==def.a.id&&!this.battle){
         const started=this.startBattle(def.a,att.a);
-        if(started)this.say('net-front',att.a.player.name+' och '+def.a.player.name.split(' ').at(-1)+' slåss om returen framför mål.',attack,true);
+        if(started){this.say('net-front',att.a.player.name+' och '+def.a.player.name.split(' ').at(-1)+' slåss om returen framför mål.',attack,true);return;}
       }
     }
     return baseTakePossession31.call(this,a,opts);

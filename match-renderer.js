@@ -30,6 +30,9 @@ const MatchBroadcastRenderer = (() => {
     const actors=sampled?.actors||frame.actors.map(a=>mix(a,before?.actors.find(b=>a.id===b.id)));
     const puck=sampled?.puck||mix(frame.puck,before?.puck);
     const visibleNames=new Set([frame.carrier,selected]);
+    const colors={pass:'#148ed1',screen:'#c58c00',keeper:'#15866e',contact:'#cf503b',shot:'#b54c46'};
+    for(const line of options.analysis?.lines||[]){ctx.beginPath();line.points.forEach((p,i)=>{const s=xy(p);if(i)ctx.lineTo(s.x,s.y);else ctx.moveTo(s.x,s.y);});ctx.strokeStyle=colors[line.kind];ctx.lineWidth=4;ctx.stroke();}
+    for(const ring of options.analysis?.rings||[])circle(ring.x,ring.y,.9,colors[ring.kind],4);
     if(frame.flight){ctx.beginPath();const f=xy(frame.flight.start),end=xy(puck);ctx.moveTo(f.x,f.y);ctx.lineTo(end.x,end.y);ctx.lineWidth=frame.flight.kind==='shot'?4:2;ctx.strokeStyle=frame.flight.kind==='shot'?'#ba5e58aa':'#213f6070';ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);}
     for(const a of actors){
       const p=xy(a),hasPuck=a.id===frame.carrier;
