@@ -36,6 +36,9 @@ function studioFormationIndex(e,side,kind='forward'){
 }
 class CareerBroadcastMatch extends StudioHockey.Match {
  shiftTime(a){return state.live?.energy?.players?.[String(a.player.id)]?.shift??super.shiftTime(a);}
+ // Career energy is authoritative. The lab's periodically synchronized player
+ // copy can differ on resume and must not affect speed or the recorded pose.
+ energyLevel(a){const p=studioPlayer(a.side,a.player.id);return p?matchEnergy(p):super.energyLevel(a);}
  unit(side,line=this.teams[side].line,pair=this.teams[side].pair){
   const t=this.teams[side],p=t.plan||{},short=this.isShortHanded(side),pp=this.hasPowerPlay(side);
   const eligible=x=>x.pos!=='MV'&&x.available!==false&&!this.penaltyList().some(p=>p.side===side&&samePlayerId(x.id,p.playerId));
@@ -457,9 +460,10 @@ function studioReplay(){const e=studioEngine();if(!e?.latestReplay)return;pauseM
 function studioExitReplay(){studioReplayState=null;render();}
 function studioReplayControls(){
  const r=studioReplayState;if(!r)return '';
- return `<div class="broadcast-replay-controls" aria-label="Repriskontroller"><button onclick="studioPauseReplay()" id="replay-play">${r.paused?'Spela repris':'Pausa repris'}</button><button onclick="studioReplayMoment()">Till skottet</button><label>Reprisförlopp<input id="replay-position" aria-label="Reprisförlopp" type="range" min="0" max="${Math.max(.2,(r.frames.length-1)*.2)}" step=".05" value="${r.elapsed}" oninput="studioSeekReplay(this.value)"></label><button id="replay-analysis" aria-pressed="${r.analysis!==false}" onclick="studioToggleReplayAnalysis()">Taktiska linjer</button></div>`;
+ return `<div class="broadcast-replay-controls" aria-label="Repriskontroller"><button onclick="studioPauseReplay()" id="replay-play">${studioReplayPlayLabel()}</button><button onclick="studioReplayMoment()">Till skottet</button><label>Reprisförlopp<input id="replay-position" aria-label="Reprisförlopp" type="range" min="0" max="${Math.max(.2,(r.frames.length-1)*.2)}" step=".05" value="${r.elapsed}" oninput="studioSeekReplay(this.value)"></label><button id="replay-analysis" aria-pressed="${r.analysis!==false}" onclick="studioToggleReplayAnalysis()">Taktiska linjer</button></div>`;
 }
-function studioPauseReplay(){const r=studioReplayState;if(!r)return;r.paused=!r.paused;r.lastNow=null;}
+function studioReplayPlayLabel(){const r=studioReplayState;if(!r)return '';return r.elapsed>=(r.frames.length-1)*.2?'Spela igen':r.paused?'Spela repris':'Pausa repris';}
+function studioPauseReplay(){const r=studioReplayState;if(!r)return;if(r.elapsed>=(r.frames.length-1)*.2){r.elapsed=0;r.paused=false;}else r.paused=!r.paused;r.lastNow=null;}
 function studioSeekReplay(value){const r=studioReplayState;if(!r||!Number.isFinite(Number(value)))return;r.elapsed=Math.max(0,Math.min((r.frames.length-1)*.2,Number(value)));r.paused=true;r.lastNow=null;MatchAudio.silence();}
 function studioReplayMoment(){
  const r=studioReplayState;if(!r)return;
@@ -505,7 +509,7 @@ function studioMount(){
   document.getElementById('broadcast-phase').textContent=studioReplayState?'REPRIS · '+analysisTime(frame.time):m.finished?'SLUTSIGNAL':StudioHockey.PHASES[e.phase];
   document.getElementById('broadcast-caption').textContent=m.finished&&!studioReplayState?matchVenue().home+' '+matchVenueScore().join('–')+' '+matchVenue().away+(m.analysisShootout?' · Efter straffar':''):analysis?analysis.notes.join(' '):frame.caption;
   const position=document.getElementById('replay-position');if(position&&document.activeElement!==position)position.value=studioReplayState.elapsed;
-  const play=document.getElementById('replay-play');if(play)play.textContent=studioReplayState.paused?'Spela repris':'Pausa repris';
+  const play=document.getElementById('replay-play');if(play)play.textContent=studioReplayPlayLabel();
   document.getElementById('replay-analysis')?.setAttribute('aria-pressed',String(studioReplayState?.analysis!==false));
   requestAnimationFrame(draw);
  };requestAnimationFrame(draw);

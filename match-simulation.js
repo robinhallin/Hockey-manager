@@ -180,6 +180,7 @@ const StudioHockey = (() => {
     skaters(side){return this.actors.filter(a=>a.side===side&&a.role!=='G');}
     shiftTime(a){return a.shift||0;}
     actor(id){return this.actors.find(a=>a.id===id);}
+    energyLevel(a){return a?.player.energy??100;}
     attribute(a,key){return clamp((a?.player.attributes[key]||10)*(1-(100-(a?.player.energy??100))*.0035),1,20);}
     // Upgrade old in-progress saves without re-rolling an already travelling puck.
     upgrade(){
@@ -517,7 +518,7 @@ const StudioHockey = (() => {
         let top=a.role==='G'?2.2+this.attribute(a,'movement')*.09:3.1+this.attribute(a,'skating')*.09;
         if(a.role!=='G'&&a.side!==this.owner)top*=.9+this.attribute(a,'workRate')*.008;
         if(a.id===this.carrier)top*=.86;
-        if(a.role!=='G')top*=1-clamp((70-(a.player.energy??100))*.004,0,.18);
+        if(a.role!=='G')top*=1-clamp((70-this.energyLevel(a))*.004,0,.18);
         if(a.recoverUntil>this.time)top*=.55;
         if(this.battle&&(a.id===this.battle.a||a.id===this.battle.b))top*=.3;
         const accel=2.7+this.attribute(a,a.role==='G'?'movement':'acceleration')*.085;
@@ -793,7 +794,7 @@ const StudioHockey = (() => {
     flightContact(f,from,to){
       if(!f.contactVersion||f.preRealism||f.shot&&!f.shot.liveResolution)return null;
       const position=t=>({x:f.start.x+(f.end.x-f.start.x)*t/f.duration,y:f.start.y+(f.end.y-f.start.y)*t/f.duration,z:flightVertical(f,t).z});
-      const p=position(from),q=position(to),hits=[],frame=goalFrameContact(p,q);
+      const p=position(from),q=position(to),hits=[],frame=f.framePassed?null:goalFrameContact(p,q);
       if(frame)hits.push({...frame,elapsed:from+(to-from)*frame.t});
       for(const a of this.actors){
         if(a.role==='G'||a.id===(f.from||f.shot?.playerId)||a.status==='leaving'||f.touched?.includes(a.id))continue;
@@ -865,6 +866,17 @@ const StudioHockey = (() => {
         f.contactVelocity={x:(velocity.x-2*inward*contact.nx)*loss,y:(velocity.y-2*inward*contact.ny)*loss,z:(velocity.z-2*inward*contact.nz)*loss};
         if(f.shot)f.shot.contact={kind:contact.kind,actor:contact.actor?.id||null,spot:{...this.puck},at:this.wall};
         if(!contact.actor)this.effect('post',f.side,.9);
+        if(!contact.actor&&f.kind==='shot'){
+          const v=f.contactVelocity,goalX=progress(f.side,56.5),time=(goalX-this.puck.x)/v.x;
+          const y=this.puck.y+v.y*time,z=puckVertical({z:this.puck.z||0,vz:v.z},time).z;
+          // A glancing post/bar contact can still send the puck into the net.
+          // Keep travelling and award the goal only at the later line crossing.
+          if(time>1e-6&&time<.12&&Math.abs(y-15)<.832&&z<1.15){
+            f.shot.outcome='goal';f.shot.woodwork=contact.kind;f.shot.miss=null;
+            this.flight={...f,start:{...this.puck},end:{x:goalX,y,z},vertical:{z:this.puck.z||0,vz:v.z},elapsed:0,duration:time,goalLine:null,keeperPassed:true,framePassed:true};
+            const remaining=dt-(f.elapsed-oldElapsed);if(remaining>1e-9)this.advanceFlight(remaining);return;
+          }
+        }
         fraction=1;
       }
       if(!f.contactVersion&&['clear','dump'].includes(f.kind)){
@@ -1115,7 +1127,7 @@ const StudioHockey = (() => {
       return {time:this.time,wall:this.wall,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
         effects:(this.effects||[]).filter(e=>this.wall-e.at<3).map(e=>({...e})),
         actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,number:a.player.jerseyNumber||this.teams[a.side].players.findIndex(p=>p.id===a.player.id)+1,shoots:a.player.shoots||null,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status,
-          energy:a.player.energy,height:a.player.height||null,weight:a.player.weight||null,markedThreat:a.markedThreat||null,target:{...a.target},
+          energy:this.energyLevel(a),height:a.player.height||null,weight:a.player.weight||null,markedThreat:a.markedThreat||null,target:{...a.target},
           ...(a.footPlants?{footPlants:a.footPlants.map(p=>p?{...p}:null)}:{}),
           ...(a.motion?{motion:{...a.motion}}:{}),
           ...(a.shotPreparation?{windup:{...a.shotPreparation,target:{...a.shotPreparation.target}}}:{}),

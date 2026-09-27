@@ -40,6 +40,12 @@ test('post and crossbar impacts reflect and cannot award a goal',()=>{
  const bar=H.goalFrameContact({x:56,y:15,z:1.21},{x:57,y:15,z:1.21});assert.equal(bar.kind,'bar');
  assert.equal(H.goalFrameContact({x:56,y:15,z:.5},{x:57,y:15,z:.5}),null);
 });
+test('a glancing post-in still has to cross the goal line before the goal counts',()=>{
+ const {m,a}=setup();a.y=15.835;m.puck={x:a.x,y:a.y};const f=flatShot(m,a);f.start.y=f.end.y=15.835;f.goalLine=null;f.end.x=56.5;f.shot.outcome='goal';
+ const hit=H.goalFrameContact(f.start,{...f.end,z:0});assert.ok(hit);
+ m.resolveFlight(f.duration*hit.t+1e-8);assert.equal(m.score[0],0);assert.equal(m.shots.length,0);assert.equal(m.flight.framePassed,true);
+ assert.ok(m.puck.x<56.5);m.resolveFlight(m.flight.duration);assert.equal(m.score[0],1);assert.equal(m.shots.length,1);assert.equal(m.lastShot.woodwork,'post');assert.equal(m.puck.x,56.5);
+});
 test('a receiver must meet the puck and can cushion, bobble or miss the same incoming pass',()=>{
  const outcomes=[];
  for(const roll of [0,.965,.999]){
@@ -80,6 +86,12 @@ test('an early career block enters the shot ledger exactly once',()=>{
  app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();e.stoppage=0;e.time=e.wall=20;for(const p of e.actors)if(p.role!=='G')Object.assign(p,{x:30,y:2,vx:0,vy:0});globalThis.a=e.skaters(0)[0];globalThis.d=e.skaters(1)[0];Object.assign(a,{x:44,y:15});e.puck={x:44,y:15};e.carrier=a.id;e.owner=0;e.random=()=>0;e.shoot(a);Object.assign(d,{x:45.5,y:15});globalThis.before=state.live.analysis.shots.length;globalThis.full=e.flight.duration;e.resolveFlight(.1);");
  assert.ok(app.run('full>.1'));assert.equal(app.run('state.live.analysis.shots.length-before'),1);assert.equal(app.run('e.stats[1].blocks'),1);
  app.run('e.resolveFlight(.1)');assert.equal(app.run('state.live.analysis.shots.length-before'),1);
+});
+test('career movement and presentation read canonical fatigue even before the next cache sync',()=>{
+ const app=require('./scripts/career-test-fixture.cjs').boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.e=studioEngine();globalThis.a=e.skaters(0)[0];globalThis.p=studioPlayer(0,a.player.id);state.live.energy??={version:1,players:{},breaks:[]};state.live.energy.players[String(a.player.id)]={level:35};a.player.energy=90;globalThis.level=matchEnergy(p);");
+ assert.equal(app.run('e.energyLevel(a)'),app.run('level'));assert.equal(app.run('e.presentationFrame().actors.find(x=>x.id===a.id).energy'),app.run('level'));
+ app.run('globalThis.original=e.actors.map(p=>({x:p.x,y:p.y,vx:p.vx,vy:p.vy}));a.target={x:a.x+5,y:a.y};e.carrier=null;e.move(.1);globalThis.first=[a.x,a.y,a.vx,a.vy];e.actors.forEach((p,i)=>Object.assign(p,original[i]));a.player.energy=35;e.move(.1);');
+ assert.equal(app.run('JSON.stringify([a.x,a.y,a.vx,a.vy])'),app.run('JSON.stringify(first)'));
 });
 test('support triangles stay onside and forecheck choices change actual pressure distance',()=>{
  for(const side of [0,1]){

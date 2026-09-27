@@ -24,9 +24,14 @@ test('replay pause, seeking, shot jump and overlays never advance or change the 
  const before=app.run('JSON.stringify(state.live)');app.run('studioPauseReplay();studioReplayFrame(1000);studioReplayFrame(3000);');assert.equal(app.run('studioReplayState.elapsed'),0);
  app.run('studioReplayMoment()');assert.ok(app.run('studioReplayState.paused'));assert.ok(app.run('studioReplayState.elapsed')>0);
  app.run('studioSeekReplay(999)');assert.equal(app.run('studioReplayState.elapsed'),app.run('(studioReplayState.frames.length-1)*.2'));
+ assert.equal(app.run('studioReplayPlayLabel()'),'Spela igen');app.run('studioPauseReplay()');assert.equal(app.run('studioReplayState.elapsed'),0);assert.equal(app.run('studioReplayState.paused'),false);
  app.run('studioToggleReplayAnalysis()');assert.equal(app.run('studioReplayState.analysis'),false);
  app.run('studioSeekReplay(-1);studioPauseReplay();studioReplayFrame(5000);studioReplayFrame(5500)');assert.ok(app.run('studioReplayState.elapsed')>0);
  assert.equal(app.run('JSON.stringify(state.live)'),before);assert.ok(app.run("studioView().includes('Reprisförlopp')"));
+});
+test('a shot completed between captures still has its recorded release lane',()=>{
+ const f=scene();f.flight=null;f.actors[0].action={kind:'shot',at:9.95,origin:{x:46,y:15},target:{x:54.5,y:15},style:'wrist'};
+ const analysis=R.replayAnalysis([f],f);assert.ok(analysis.lines.some(l=>l.kind==='shot'));assert.ok(R.analysisGeometry(analysis).length>0);
 });
 test('windup and physical contacts produce connected, paused poses with finite equipment',()=>{
  for(const kind of ['check','pin','poke','protect','block','tip','bobble','recover']){

@@ -410,7 +410,14 @@ const Match3D = (() => {
   const latest=predicate=>[...past,frame].reverse().find(predicate),lines=[],rings=[],notes=[];
   const pass=latest(f=>f.flight?.kind==='pass');
   if(pass){lines.push({kind:'pass',points:[pass.flight.start,pass.flight.end]});notes.push('Blå linje: den spelade passningsvägen.');}
-  const shot=latest(f=>f.flight?.kind==='shot'),side=shot?.flight.side??frame.owner;
+  let shot=latest(f=>f.flight?.kind==='shot');
+  if(!shot){
+   // A close block/save may complete between replay captures. The observed
+   // release action still records its real origin and intended shooting lane.
+   const release=[...past,frame].flatMap(f=>f.actors).filter(a=>a.action?.kind==='shot'&&a.action.at<=clock&&clock-a.action.at<5).sort((a,b)=>b.action.at-a.action.at)[0];
+   if(release)shot={flight:{from:release.id,side:release.side,start:release.action.origin,end:release.action.target}};
+  }
+  const side=shot?.flight.side??frame.owner;
   const preparing=frame.actors.find(a=>a.windup&&a.windup.at<=clock);
   if(preparing){lines.push({kind:'shot',points:[frame.puck,preparing.windup.target]});notes.unshift('Rött: skytten förbereder avslutet och kan fortfarande störas.');}
   else if(shot)lines.push({kind:'shot',points:[shot.flight.start,shot.flight.end]});
@@ -418,13 +425,13 @@ const Match3D = (() => {
   if(keeper){
    const trail=past.filter(f=>(f.wall??f.time)>=clock-2.5).map(f=>f.actors.find(a=>a.id===keeper.id)).filter(Boolean);
    trail.push(keeper);const travel=trail.slice(1).reduce((sum,a,i)=>sum+Math.hypot(a.x-trail[i].x,a.y-trail[i].y),0);
-   if(travel>.15){lines.push({kind:'keeper',points:trail});notes.push('Grönt spår: målvakten har förflyttat sig '+travel.toFixed(1).replace('.',',')+' m.');}
+   if(travel>.15){lines.push({kind:'keeper',points:trail.map(a=>({x:a.x,y:a.y}))});notes.push('Grönt spår: målvakten har förflyttat sig '+travel.toFixed(1).replace('.',',')+' m.');}
    if(shot){
     const origin=shot.flight.start,dx=keeper.x-origin.x,dy=keeper.y-origin.y,l=dx*dx+dy*dy;
     const screens=frame.actors.filter(a=>a.role!=='G'&&a.id!==shot.flight.from).filter(a=>{
      const t=l?((a.x-origin.x)*dx+(a.y-origin.y)*dy)/l:0;return t>.15&&t<.98&&Math.hypot(a.x-origin.x-dx*t,a.y-origin.y-dy*t)<.9;
     });
-    if(screens.length){lines.push({kind:'screen',points:[origin,keeper]});screens.forEach(a=>rings.push({kind:'screen',x:a.x,y:a.y}));notes.unshift('Gult: '+screens.map(a=>a.name?.split(' ').at(-1)||'spelare').join(', ')+' står i målvaktens siktlinje.');}
+    if(screens.length){lines.push({kind:'screen',points:[origin,{x:keeper.x,y:keeper.y}]});screens.forEach(a=>rings.push({kind:'screen',x:a.x,y:a.y}));notes.unshift('Gult: '+screens.map(a=>a.name?.split(' ').at(-1)||'spelare').join(', ')+' står i målvaktens siktlinje.');}
     else notes.unshift('Fri siktlinje mellan skottet och målvakten i detta ögonblick.');
    }
   }
@@ -437,7 +444,7 @@ const Match3D = (() => {
   const g=geometry(),colors={pass:color('#148ed1'),screen:color('#c58c00'),keeper:color('#15866e'),contact:color('#cf503b'),shot:color('#b54c46')};
   for(const line of analysis?.lines||[])for(let i=1;i<line.points.length;i++){
    const a=line.points[i-1],b=line.points[i];if(Math.hypot(a.x-b.x,a.y-b.y)<.02)continue;
-   g.rod([a.x,.07,a.y],[b.x,.07,b.y],.045,colors[line.kind]);
+   g.rod([a.x,.09,a.y],[b.x,.09,b.y],.075,colors[line.kind]);
   }
   for(const ring of analysis?.rings||[])g.ring(ring.x,ring.y,.9,.10,colors[ring.kind]);
   return g.data;
