@@ -173,7 +173,7 @@ module.exports=async function check3D(page,out){
  // It makes the stride/receive/release timing reviewable alongside still images.
  const clip=await page.evaluate(async()=>{
   const canvas=document.getElementById('career-ice-3d'),r=studioReplayState;
-  r.elapsed=Math.max(0,(r.frames.length-1)*.2-2.1);r.lastNow=null;
+  r.elapsed=Math.max(0,studioReplayDuration(r)-2.1);r.lastNow=null;
   const stream=canvas.captureStream(24),chunks=[],type='video/webm;codecs=vp8';
   const recorder=new MediaRecorder(stream,{...(MediaRecorder.isTypeSupported(type)?{mimeType:type}:{}),videoBitsPerSecond:1800000});
   const completed=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onstop=async()=>resolve(Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer())));});
@@ -189,7 +189,7 @@ module.exports=async function check3D(page,out){
   startMatch();let keeper=null;
   for(let i=0;i<4500&&!state.live.finished;i++){
    if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
-   keeper=studioEngine().actors.find(a=>a.role==='G'&&a.keeperAction?.kind==='save'&&Math.abs(a.keeperAction.at-studioEngine().wall)<.001);
+   const e=studioEngine();keeper=e.actors.find(a=>a.role==='G'&&a.keeperAction?.kind==='save'&&a.keeperAction.at>e.wall-StudioHockey.STEP-1e-7&&a.keeperAction.at<=e.wall+1e-7);
    if(keeper)break;
   }
   if(!keeper)return null;

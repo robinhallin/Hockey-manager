@@ -26,6 +26,9 @@ function build(kind){
  const keeper=kind!=='skater',catchSide=kind==='goalieR'?1:-1;
  const P=[],N=[],UV=[],J=[],W=[],C=[],I=[],dedup=new Map();
  function vertex(p,n,uv,j,w,color){
+  // Keep the original rig but correct the oversized head/helmet silhouette.
+  // Scale every head-bound surface together, including visor and goalie cage.
+  if(j[0]===10&&j[1]===10){p=[.02+(p[0]-.02)*.80,1.67+(p[1]-1.67)*.84,p[2]*.74];n=unit([n[0]/.80,n[1]/.84,n[2]/.74]);}
   const key=[...p,...n,...uv,...j,w,...color].map(v=>v.toFixed(6)).join(',');if(dedup.has(key)){I.push(dedup.get(key));return;}
   const index=P.length/3;dedup.set(key,index);I.push(index);P.push(...p);N.push(...n);UV.push(...uv);J.push(j[0],j[1],0,0);W.push(w,1-w,0,0);C.push(...color);
  }

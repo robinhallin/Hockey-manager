@@ -186,7 +186,7 @@ test('joint lengths and two-handed stick grip hold through real skating, passes 
     assert.ok(Math.abs(separation(p.heel,arm.hand)+separation(arm.hand,p.shaftTop)-1.38)<1e-6,'gloves stay on the straight shaft');
    }
    assert.ok(Math.abs(separation(p.heel,p.shaftTop)-1.38)<1e-6);assert.ok(p.feet.every(foot=>foot[1]>=.12));
-   if(a.id===frame.carrier&&!p.windup)assert.ok(separation(p.blade,[frame.puck.x,.08,frame.puck.y])<1e-6,'carried puck stays on the blade outside the recorded backswing');
+   if(a.id===frame.carrier&&!p.windup)assert.ok(separation(p.blade,[frame.puck.x,.08+(frame.puck.z||0),frame.puck.y])<1e-6,'carried puck stays on the blade outside the recorded backswing, including a lifted reception');
   }
  }
  assert.ok(poses>1000);for(const state of ['skating','gliding','backward','braking','crossover'])assert.ok(states.has(state),state+' occurs in a real sequence');
@@ -226,7 +226,7 @@ test('replay keeps observed recovery frames immutable and motion survives save/r
  const first=m.latestReplay,original=JSON.stringify(first),ended=first.frames.at(-1).wall;
  for(let i=0;i<4;i++)m.step();
  assert.equal(JSON.stringify(first),original);assert.equal(m.latestReplay.shot,first.shot);assert.ok(m.latestReplay.frames.at(-1).wall>ended);
- assert.ok(m.latestReplay.frames.length<=70);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
+ assert.ok(m.latestReplay.frames.length<=142);assert.ok(m.latestReplay.frames.at(-1).wall-m.latestReplay.frames[0].wall<=14.001);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
  const restored=Object.assign(Object.create(Match.prototype),JSON.parse(JSON.stringify(m))),savedFrame=restored.presentationFrame(),frame=m.presentationFrame();
  assert.deepEqual(savedFrame,frame);
  for(let i=0;i<frame.actors.length;i++)assert.equal(JSON.stringify(renderer.pose(frame,frame.actors[i])),JSON.stringify(renderer.pose(savedFrame,savedFrame.actors[i])));

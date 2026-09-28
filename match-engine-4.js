@@ -301,7 +301,7 @@
     this.tacticalObservations=[...recent.filter(o=>this.time-o.time<=300),row].slice(-96);
     const clips=this.tacticalClips||[],same=[...clips].reverse().find(c=>c.kind===kind&&c.side===side);
     if(same&&this.wall-same.wall<4)return;
-    const frame=clipFrame(this.presentationFrame()),frames=this.history.filter(f=>f.wall<frame.wall-1e-4&&frame.wall-f.wall<4.4).slice(-22).map(clipFrame);
+    const frame=clipFrame(this.presentationFrame()),frames=this.history.filter(f=>f.wall<frame.wall-1e-4&&frame.wall-f.wall<4.4).slice(-44).filter((f,i)=>i%2===0).map(clipFrame);
     frames.push(frame);
     const clip={...row,frames,until:this.wall+1};
     const peers=clips.filter(c=>c.kind===kind&&c.side===side&&c.situation===row.situation);

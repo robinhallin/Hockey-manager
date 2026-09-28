@@ -14,8 +14,8 @@
     const real=last?Math.min(.1,(now-last)/1000):0;last=now;
     if(replay){
       if(running)replay.elapsed+=real;
-      const frames=replay.frames,index=Math.min(frames.length-1,Math.floor(replay.elapsed/.2));
-      const next=frames[Math.min(index+1,frames.length-1)];draw(next,frames[index],(replay.elapsed%.2)/.2);
+      const frames=replay.frames,stamp=f=>f.wall??f.time,at=stamp(frames[0])+replay.elapsed;let index=0;while(index+1<frames.length&&stamp(frames[index+1])<=at)index++;
+      const next=frames[Math.min(index+1,frames.length-1)],span=stamp(next)-stamp(frames[index]);draw(next,frames[index],span?(at-stamp(frames[index]))/span:1);
       $('clock').textContent=time(frames[index].time);
       $('commentary').textContent=frames[index].caption;$('event-label').textContent=labels[frames[index].eventType]||'REPRIS';
       if(index===frames.length-1){replay=null;running=false;announcement='';$('replay-label').hidden=true;updateUI();}

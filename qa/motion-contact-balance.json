@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-28",
+  "beforeCommit": "5b8001230d94d18df142ebd03bd4d45ca3298849",
+  "afterCodeCommit": "0208462",
+  "before": {
+    "engine": "Match Engine 4 + manager controls; career modifiers excluded",
+    "periods": 24,
+    "seedRule": "i * 1107, i=1..24",
+    "perTeamPer60": {
+      "goals": 2.19,
+      "shots": 29.69,
+      "attempts": 57.13,
+      "blocks": 9.94,
+      "hits": 26.31,
+      "penalties": 2.38,
+      "passes": 172.06,
+      "passAttempts": 272.44,
+      "quality": 3.4
+    },
+    "shotTypes": {
+      "Direktskott": 381,
+      "Handledsskott": 320,
+      "Näravslut": 205,
+      "Retur": 5,
+      "Styrning": 2,
+      "Slagskott": 1
+    },
+    "savePct": 92.63
+  },
+  "after": {
+    "engine": "Match Engine 4 + manager controls; career modifiers excluded",
+    "periods": 24,
+    "seedRule": "i * 1107, i=1..24",
+    "perTeamPer60": {
+      "goals": 2.13,
+      "shots": 29.63,
+      "attempts": 57.25,
+      "blocks": 9.75,
+      "hits": 26.63,
+      "penalties": 2.13,
+      "passes": 171.94,
+      "passAttempts": 273.56,
+      "quality": 3.41
+    },
+    "shotTypes": {
+      "Direktskott": 370,
+      "Handledsskott": 327,
+      "Näravslut": 211,
+      "Retur": 5,
+      "Styrning": 2,
+      "Slagskott": 1
+    },
+    "savePct": 92.83
+  },
+  "limitations": [
+    "24 periods per version, not 24 complete career matches.",
+    "Existing production sample; career modifiers excluded.",
+    "Different engine revisions may diverge; presentation modes within the same engine must agree.",
+    "Not calibrated to SHL; original sample already has excessive save percentage."
+  ]
+}

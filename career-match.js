@@ -250,16 +250,16 @@ class CareerBroadcastMatch extends StudioHockey.Match {
    }
   }
  }
- resolveFlight(dt){
+ resolveFlight(dt,startWall=this.wall-dt){
   const f=this.flight,landing=f?.kind==='shot';
   const actors=landing?this.actors.slice():null,penalty=landing?this.penaltyList().map(p=>({...p})):null,shots=this.shots.length;
-  super.resolveFlight(dt);
+  super.resolveFlight(dt,startWall);
   if(landing&&this.shots.length>shots){
    this.accountingActors=actors;studioRecordShot(this,f.shot,penalty);delete this.accountingActors;
   }
  }
  toJSON(){
-  const data={...this,history:[],shotLeadIn:this.flight?.kind==='shot'||this.actor(this.carrier)?.shotPreparation?this.history.slice(-70):undefined,accountingActors:undefined};
+  const data={...this,history:[],shotLeadIn:this.flight?.kind==='shot'||this.actor(this.carrier)?.shotPreparation?this.history.filter(f=>this.wall-f.wall<14):undefined,accountingActors:undefined};
   // Runtime interpolation is reproducible. Keep the last actual replay, not every frame.
   data.teams=this.teams.map(t=>({...t,forwards:t.forwards.map(p=>p.id),defense:t.defense.map(p=>p.id),goalie:t.goalie.id,
    change:t.change?{...t.change,row:{...t.change.row,player:t.change.row.player.id}}:null,
@@ -412,12 +412,15 @@ function studioPulse(fromAnimation=false){
  // Foreground presentation and fixed-step simulation share one frame clock.
  // The timer remains a fallback for hidden windows and non-graphical clients.
  if(!fromAnimation&&studioRAF&&state.page==='match'&&!document.hidden){matchTimer=setTimeout(studioPulse,100);return;}
- const now=Date.now(),real=Math.min(.1,Math.max(0,(now-studioLastPulse)/1000));studioLastPulse=now;
+ // Keep elapsed foreground time through ordinary rendering hitches. The
+ // fixed-step accumulator and work budget catch up without changing rules.
+ // Visibility changes pause the match; cap only an exceptional one-second stall.
+ const now=Date.now(),real=Math.min(1,Math.max(0,(now-studioLastPulse)/1000));studioLastPulse=now;
  studioTrackHighlight(e,m);
  studioAccumulator=Math.min(60,studioAccumulator+real*studioPlaybackRate(e,m));
  const goals=m.hv+m.opp,period=m.period,budget=Date.now();
- for(let i=0;studioAccumulator>=StudioHockey.STEP&&i<600&&m.running&&!m.finished&&Date.now()-budget<(fromAnimation&&studioShouldShow(e,m)?8:24);i++){
-  const focus=studioShouldShow(e,m);studioPrevious=studioRenderFrame(e);studioStep();studioRenderCache=null;studioAccumulator-=StudioHockey.STEP;studioTrackHighlight(e,m);
+ for(let i=0;studioAccumulator+1e-9>=StudioHockey.STEP&&i<600&&m.running&&!m.finished&&Date.now()-budget<(fromAnimation&&studioShouldShow(e,m)?8:24);i++){
+  const focus=studioShouldShow(e,m);studioPrevious=studioRenderFrame(e);studioStep();studioRenderCache=null;studioAccumulator=Math.max(0,studioAccumulator-StudioHockey.STEP);studioTrackHighlight(e,m);
   if(!focus&&studioShouldShow(e,m)&&m.rink.mode!=='full'){studioAccumulator=0;break;}
  }
  if(goals!==m.hv+m.opp||period!==m.period||!m.running){render();studioLastPaint=now;}
@@ -426,6 +429,23 @@ function studioPulse(fromAnimation=false){
  if(!fromAnimation&&m.running&&!m.finished)matchTimer=setTimeout(studioPulse,50);
 }
 function studioFrame(e){return e.presentationFrame();}
+function studioRecordedScoreboard(frame,homeSide=0){
+ const period=frame.period??Math.min(4,1+Math.floor(Math.max(0,frame.time-1e-6)/1200));
+ const elapsed=Math.max(0,frame.time-(frame.periodStart??(period-1)*1200));
+ const count=frame.strength||[0,1].map(side=>frame.actors.filter(a=>a.side===side&&a.role!=='G').length);
+ return {score:homeSide===0?frame.score:[...frame.score].reverse(),
+  clock:(period===4?'Förlängning':'Period '+period)+' · '+analysisTime(elapsed),
+  strength:count[0]+' mot '+count[1]+(count[0]>count[1]?' · Powerplay':count[0]<count[1]?' · Boxplay':''),
+  penalties:frame.penalties?.length?frame.penalties.map(p=>p.name+' '+analysisTime(Math.ceil(p.remaining))).join(' · '):'Inga utvisningar'};
+}
+function studioPaintScoreboard(frame,homeSide){
+ if(!frame.score)return;
+ const b=studioRecordedScoreboard(frame,homeSide),score=document.querySelector('.mc-result>b');
+ const html=b.score[0]+'<i>–</i>'+b.score[1];if(score&&score.innerHTML!==html)score.innerHTML=html;
+ const text=(selector,value)=>{const node=document.querySelector(selector);if(node&&node.textContent!==value)node.textContent=value;};
+ text('.mc-result>small',b.clock);text('.mc-situation strong',b.strength);
+ if(studioReplayState){text('.mc-result>span','REPRIS');text('.mc-situation>span',b.penalties);}
+}
 function studioShotReasons(shot){
  const c=shot.context;if(!c)return [];
  const reasons=[];
@@ -477,16 +497,18 @@ function studioReplayMoment(){
  const shooter=r.shot?.originalShooter?.id||r.shot?.playerId;
  const first=r.frames.findIndex(f=>(!r.shot||f.time>=r.shot.time-1e-6)&&(f.flight?.kind==='shot'&&(!shooter||f.flight.from===shooter)||f.actors.some(a=>(!shooter||a.id===shooter)&&a.action?.kind==='shot')));
  const lead=first>0&&r.frames[first-1].actors.some(a=>a.windup&&(!shooter||a.id===shooter))?first-1:first;
- studioSeekReplay(Math.max(0,lead)*.2);
+ const firstFrame=r.frames[0],moment=r.frames[Math.max(0,lead)];
+ studioSeekReplay(Math.max(0,(moment.wall??moment.time)-(firstFrame.wall??firstFrame.time)));
 }
 function studioToggleReplayAnalysis(){if(studioReplayState)studioReplayState.analysis=studioReplayState.analysis===false;}
 function studioReplayFrame(now){
  const r=studioReplayState;if(!r?.frames.length)return null;
  const duration=studioReplayDuration(r),delta=r.lastNow==null?0:Math.max(0,(now-r.lastNow)/1000);
  r.elapsed=Math.min(duration,(r.elapsed||0)+(r.paused?0:delta*studioReplayRate(r)));r.lastNow=now;
- if(r.clip){const at=r.frames[0].wall+r.elapsed;let index=0;while(index+1<r.frames.length&&r.frames[index+1].wall<=at+1e-7)index++;const previous=r.frames[index],frame=r.frames[Math.min(index+1,r.frames.length-1)],span=frame.wall-previous.wall;return {frame,previous,blend:span>0?Math.max(0,Math.min(1,(at-previous.wall)/span)):1};}
- const index=Math.min(r.frames.length-1,Math.floor(r.elapsed/.2));
- return {frame:r.frames[Math.min(index+1,r.frames.length-1)],previous:r.frames[index],blend:index===r.frames.length-1?1:(r.elapsed%.2)/.2};
+ const stamp=f=>f.wall??f.time,at=stamp(r.frames[0])+r.elapsed;let lo=0,hi=r.frames.length-1;
+ while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(stamp(r.frames[mid])<=at+1e-7)lo=mid;else hi=mid-1;}
+ const previous=r.frames[lo],frame=r.frames[Math.min(lo+1,r.frames.length-1)],span=stamp(frame)-stamp(previous);
+ return {frame,previous,blend:span>0?Math.max(0,Math.min(1,(at-stamp(previous))/span)):1};
 }
 function studioMount(){
  if(typeof requestAnimationFrame!=='function'||studioRAF)return;studioRAF=true;
@@ -508,6 +530,7 @@ function studioMount(){
   const hiddenRink=!studioReplayState&&(m.rink.mode==='commentary'||m.running&&!studioShouldShow(e,m));
   const sampled=Match3D.sample(frame,previous,blend),analysis=studioReplayState&&studioReplayState.analysis!==false?Match3D.replayAnalysis(studioReplayState.frames,sampled,studioReplayState.clip):null;
   const teams=[managerClub(),m.opponent].map(name=>({name,...careerIdentity(name)}));const venue=matchVenue();const rendered3D=canvas3d&&Match3D.draw(canvas3d,frame,previous,blend,{sampled,moving:!hiddenRink&&Boolean(studioReplayState?!studioReplayState.paused:m.running),teams,camera:studioCamera3D,zoom:studioZoom3D,puckMarker:studioPuckMarker3D,quality:studioGraphicsQuality(),replay:Boolean(studioReplayState),benches:e.teams.map((team,side)=>team.players.filter(p=>p.available!==false&&!sampled.actors.some(a=>a.id===side+':'+p.id))),homeSide:venue.ownHome?0:1,arena:venue.arena,analysis,suspended:hiddenRink});
+  studioPaintScoreboard(sampled,venue.ownHome?0:1);
   const audio=studioAudioPreferences(),replayMoving=studioReplayState&&!studioReplayState.paused&&studioReplayState.elapsed<studioReplayDuration();
   MatchAudio.update(sampled,{source:studioReplayState||e,active:!document.hidden&&!hiddenRink&&Boolean(replayMoving||!studioReplayState&&m.running&&!m.finished),volume:audio.muted?0:audio.volume,homeSide:venue.ownHome?0:1});
   canvas.style.visibility=rendered3D?'hidden':'visible';
@@ -561,7 +584,7 @@ function validateSpatialMatchSave(s){
  if(e.puck?.z!==undefined&&!height(e.puck.z))bad();
  if(e.puckVelocity?.z!==undefined&&(!Number.isFinite(e.puckVelocity.z)||Math.abs(e.puckVelocity.z)>80))bad();
  if(e.flight?.vertical&&(!height(e.flight.vertical.z)||!Number.isFinite(e.flight.vertical.vz)||Math.abs(e.flight.vertical.vz)>80))bad();
- if(e.shotLeadIn!==undefined&&(!Array.isArray(e.shotLeadIn)||e.shotLeadIn.length>70||e.shotLeadIn.some(f=>!Number.isFinite(f?.time)||!Number.isFinite(f?.wall)||!Array.isArray(f.actors))))bad();
+ if(e.shotLeadIn!==undefined&&(!Array.isArray(e.shotLeadIn)||e.shotLeadIn.length>142||e.shotLeadIn.some(f=>!Number.isFinite(f?.time)||!Number.isFinite(f?.wall)||!Array.isArray(f.actors))))bad();
  if(e.penaltySequence!==undefined&&(!Number.isSafeInteger(e.penaltySequence)||e.penaltySequence<0))bad();
  const penaltyIds=new Set();
  for(const p of e.penalties||(e.penalty?[e.penalty]:[]))if(p.version!==undefined){
@@ -572,6 +595,7 @@ function validateSpatialMatchSave(s){
  const kinds=['carry','pass','shoot','dump','shield','clear'];
  const observationKinds=['diagonal','turnover','support','marking','pp-rotation','pk-press'];
  const rinkPoint=p=>p&&Number.isFinite(p.x)&&p.x>=0&&p.x<=60&&Number.isFinite(p.y)&&p.y>=0&&p.y<=30;
+ if(e.puckPath!==undefined&&(!Array.isArray(e.puckPath)||e.puckPath.length>32||e.puckPath.some((p,i)=>!rinkPoint(p)||!height(p.z)||!Number.isFinite(p.at)||p.at<0||p.at>e.wall+.001||i&&p.at<e.puckPath[i-1].at)))bad();
  const observation=o=>o&&Number.isSafeInteger(o.id)&&o.id>0&&observationKinds.includes(o.kind)&&[0,1].includes(o.side)&&['even','pp','pk','ot'].includes(o.situation)&&Number.isFinite(o.time)&&o.time>=0&&o.time<=e.time+.1&&Number.isFinite(o.wall)&&o.wall>=0&&o.wall<=e.wall+.1&&Array.isArray(o.players)&&o.players.length<=4&&o.players.every(id=>typeof id==='string')&&rinkPoint(o.spot)&&(!o.from||rinkPoint(o.from));
  if(e.observationSequence!==undefined&&(!Number.isSafeInteger(e.observationSequence)||e.observationSequence<0))bad();
  if(e.tacticalObservations!==undefined&&(!Array.isArray(e.tacticalObservations)||e.tacticalObservations.length>96||e.tacticalObservations.some(o=>!observation(o)||o.id>e.observationSequence)))bad();
@@ -593,6 +617,7 @@ function validateSpatialMatchSave(s){
  for(const a of e.actors||[])if(a.stickControl){const s=a.stickControl;if(!['at','heading','forward','lateral'].every(k=>Number.isFinite(s[k]))||s.at<0||s.at>e.wall+.1||Math.abs(s.heading)>Math.PI+.001||s.forward<0||s.forward>1.2||Math.abs(s.lateral)>.8||!['forehand','backhand','protect'].includes(s.mode))bad();}
  for(const a of e.actors||[])if(a.netFront){const s=a.netFront;if(!Number.isFinite(s.at)||s.at<0||s.at>e.wall+.1||!Number.isFinite(s.until)||s.until>e.time+1||!['screen','boxout','rebound'].includes(s.kind)||s.opponent!==null&&typeof s.opponent!=='string')bad();}
  for(const a of e.actors||[])if(a.motion)for(const key of ['drive','brake','curve'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||a.motion[key]<(key==='curve'?-1:0)||a.motion[key]>1))bad();
+ for(const a of e.actors||[])if(a.motion)for(const key of ['phase','distance'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||a.motion[key]<0))bad();
  if(e.battle?.support&&(!Array.isArray(e.battle.support)||e.battle.support.length>2||new Set(e.battle.support.map(r=>r.side)).size!==e.battle.support.length||e.battle.support.some(r=>typeof r.id!=='string'||![0,1].includes(r.side)||!Number.isFinite(r.at)||r.at<0||r.at>e.time+.1)))bad();
  for(const t of e.teams||[])if(t.markingPlan){const p=t.markingPlan;if(!Number.isFinite(p.at)||!Number.isFinite(p.readAt)||p.at<0||p.readAt<p.at||p.readAt-p.at>1||!Array.isArray(p.marks)||p.marks.length>6||p.marks.some(r=>typeof r.id!=='string'||typeof r.threat!=='string')||new Set(p.marks.map(r=>r.id)).size!==p.marks.length||new Set(p.marks.map(r=>r.threat)).size!==p.marks.length)bad();}
  for(const a of e.actors||[])if(a.keeperState){const k=a.keeperState;if(!['at','elapsed','seen','screen','drop','facing','recovery','error'].every(key=>Number.isFinite(k[key]))||k.at<0||k.elapsed<0||k.seen<0||k.drop<0||k.drop>1||k.screen<0||k.screen>1||['glove','blocker'].some(hand=>!k[hand]||!Number.isFinite(k[hand].lateral)||Math.abs(k[hand].lateral)>2||!Number.isFinite(k[hand].z)||k[hand].z<0||k[hand].z>2))bad();}

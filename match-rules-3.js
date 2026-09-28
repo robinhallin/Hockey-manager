@@ -42,7 +42,7 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
   StudioHockey.Match.prototype.shoot=function(a){
     const started=baseShoot.call(this,a);if(started)matchRule3PrepareDeflection(this,a);return started;
   };
-  StudioHockey.Match.prototype.resolveFlight=function(dt){
+  StudioHockey.Match.prototype.resolveFlight=function(dt,startWall=this.wall-dt){
     const f=this.flight;
     if(f?.kind==='shot'&&f.deflectionCandidate&&!f.deflectionResolved){
       const next=Math.min(1,(f.elapsed+dt)/Math.max(.001,f.duration));
@@ -50,13 +50,14 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
         if(f.contactVersion){
           const wait=Math.max(0,f.duration*f.deflectionCandidate.t-f.elapsed);
           const earlier=this.flightContact(f,f.elapsed,f.elapsed+wait);
-          if(earlier)return baseResolveFlight.call(this,dt);
-          baseResolveFlight.call(this,wait);
+          if(earlier)return baseResolveFlight.call(this,dt,startWall);
+          baseResolveFlight.call(this,wait,startWall);
           if(this.flight!==f)return;
-          if(matchRule3ApplyDeflection(this,f.deflectionCandidate)){
+          const prior=this._contactWall;this._contactWall=startWall+wait;
+          try{if(matchRule3ApplyDeflection(this,f.deflectionCandidate)){
             const tip=this.actor(f.shot.playerId),v=StudioHockey.flightVertical(f),remaining=f.duration-f.elapsed;
             this.recordContact(tip,'tip',this.puck,.7);this.effect('stick',tip.side,.65);
-            f.shot.contact={kind:'tip',actor:tip.id,spot:{...this.puck},at:this.wall};
+            f.shot.contact={kind:'tip',actor:tip.id,spot:{...this.puck},at:this._contactWall};
             // Redirect the remaining trajectory at the observed touch; no
             // scorer change ahead of contact and no discontinuity in height.
             const bend=(tip.player.shoots==='R'?1:-1)*.14;
@@ -64,12 +65,13 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchRules3I
             f.vertical={z:v.z,vz:v.vz};f.duration=Math.max(.001,remaining);f.elapsed=0;
             const keeper=this.actors.find(a=>a.role==='G'&&a.side!==f.side);if(f.keeperVersion===2&&keeper?.keeperState)keeper.keeperState.seen=0;
           }
-          return baseResolveFlight.call(this,Math.max(0,dt-wait));
+          }finally{if(prior===undefined)delete this._contactWall;else this._contactWall=prior;}
+          return baseResolveFlight.call(this,Math.max(0,dt-wait),startWall+wait);
         }
         matchRule3ApplyDeflection(this,f.deflectionCandidate);
       }
     }
-    return baseResolveFlight.call(this,dt);
+    return baseResolveFlight.call(this,dt,startWall);
   };
   StudioHockey.Match.prototype.matchRules3Installed=true;
 }
