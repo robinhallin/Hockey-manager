@@ -68,7 +68,7 @@ const Match3D = (() => {
    if(p.id==null&&(p.z!=null||q?.z!=null))result.z=mix(q?.z||0,p.z||0,blend);
    if(p.id!=null){
     Object.assign(result,{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:holder===p.id?1:0});
-    if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
+    if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=key==='stopSide'?p.motion[key]:['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
     if(p.stickControl&&q?.stickControl){result.stickControl={...p.stickControl};for(const k of ['forward','lateral'])result.stickControl[k]=mix(q.stickControl[k],p.stickControl[k],blend);result.stickControl.heading=turn(q.stickControl.heading,p.stickControl.heading,blend);}
     if(p.netFront?.at>wall)result.netFront=q?.netFront?.at<=wall?q.netFront:null;
     // A capture may straddle a release. Never start its follow-through early.
@@ -80,7 +80,7 @@ const Match3D = (() => {
     if(p.contactAction?.at>wall)result.contactAction=q?.contactAction?.at<=wall?q.contactAction:null;
     if(p.windup?.at>wall)result.windup=q?.windup?.at<=wall?q.windup:null;
     if(!p.windup&&q?.windup&&wall<q.windup.at+q.windup.duration)result.windup=q.windup;
-    if(p.footPlants)result.footPlants=p.footPlants.map((plant,i)=>{const old=q?.footPlants?.[i];return plant?.at>wall?old||null:plant&&old&&plant.at===old.at?{...plant,x:mix(old.x,plant.x,blend),y:mix(old.y,plant.y,blend)}:plant;});
+    if(p.footPlants)result.footPlants=p.footPlants.map((plant,i)=>{const old=q?.footPlants?.[i];return plant?.at>wall?old||null:plant&&old&&plant.at===old.at?{...plant,x:mix(old.x,plant.x,blend),y:mix(old.y,plant.y,blend),...(Number.isFinite(plant.angle)?{angle:turn(old.angle??plant.angle,plant.angle,blend)}:{})}:plant;});
    }
    return result;
   };
@@ -109,6 +109,10 @@ const Match3D = (() => {
  }
  const smooth=n=>{n=clamp(n,0,1);return n*n*(3-2*n);};
  const between=(a,b,t)=>a.map((v,i)=>mix(v,b[i],t));
+ function orientedPoint(origin,yaw,pitch=0,roll=0,width=1){
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch),cr=Math.cos(roll),sr=Math.sin(roll);
+  return (forward,height,side)=>{side*=width;const f=forward*cp+height*sp,up=height*cp-forward*sp,s=side*cr-up*sr;return [origin[0]+f*cy-s*sy,origin[1]+up*cr+side*sr,origin[2]+f*sy+s*cy];};
+ }
  // A two-bone chain with fixed segment lengths and an explicit bend direction.
  // The pole keeps knees forward and elbows outside the jersey at every yaw.
  function joint(root,end,pole,upper,lower){
@@ -178,34 +182,37 @@ const Match3D = (() => {
   const moving=smooth((speed-.1)/.8),brake=motion.brake??clamp(-acceleration/2.3,0,1)*moving;
   const drive=motion.drive??moving*(a.motion?smooth((acceleration-.15)/2):clamp(speed/3.5,0,1))*(1-brake);
   const curve=motion.curve??clamp((motion.turn||0)/1.6,-1,1)*moving*(1-brake),crossover=Math.abs(curve)*(1-backward*.6);
-  const facing=motion.heading??skatingAngle,angle=facing+brake*.45;
+  const stopSide=motion.stopSide||1,facing=motion.heading??skatingAngle,angle=facing+stopSide*brake*.45;
   const drop=0;
-  const phase=(a.travelled||0)*Math.PI/1.6,stride=Math.sin(phase)*drive;
+  const phase=(motion.phase??(a.travelled||0)/3.2)*Math.PI*2,stride=Math.sin(phase)*drive;
   const hand=a.shoots==='R'?1:-1;
-  const lean=.10+drive*.16+brake*.08+fatigue*.04,lower=moving*.08+brake*.09+receiving*.035+engagement*.055+unsteady*.16;
+  const posture=typeof HockeyMotion!=='undefined'&&HockeyMotion.body?HockeyMotion.body(a.travelled||0,{...motion,drive,brake,backward},speed,fatigue):null;
+  const lean=posture?.lean??(.10+drive*.16+brake*.08+fatigue*.04),lower=(posture?.lower??(moving*.08+brake*.09))+receiving*.035+engagement*.055+unsteady*.16;
   // Ease the body anchor back after release; the puck itself is never offset.
   const anchor=a.skateState?0:Math.max(contact,release),offset=-.65*anchor;
   // While cushioning a reception, anchor the connected body behind the actual
   // contact point. The puck remains exactly where the engine put it.
   const cx=contact&&!a.skateState?mix(a.x,frame.puck.x,contact):a.x,cy=contact&&!a.skateState?mix(a.y,frame.puck.y,contact):a.y;
   const point=(forward,height,side)=>{side-=anchor*.18*hand;return [cx+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,cy+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
-  const feet=[],footAngles=[],footPitches=[],legs=[];
+  const pelvis=point(posture?.forward||0,.84-lower,posture?.lateral||0),pelvisPoint=orientedPoint(pelvis,angle+(posture?.yaw||0),posture?.pelvisPitch||0,posture?.roll||0);
+  const feet=[],footAngles=[],footPitches=[],footRolls=[],legs=[];
   for(const side of [-1,1]){
    const cycle=Math.sin(phase+(side===1?Math.PI:0)),push=Math.max(0,cycle),recover=Math.max(0,-cycle);
    const outer=side===-Math.sign(curve),crossStep=outer?crossover*recover:0;
    const forward=(-push*.31+recover*.18)*drive*(1-backward*1.6);
    const lateral=side*(.24+push*.30*drive+brake*.12+unsteady*.12)+Math.sign(curve)*crossStep*.47;
-   const authored=typeof HockeyMotion!=='undefined'?HockeyMotion.cycle(a.travelled||0,side,{drive,backward,curve,brake,phase:motion.phase}):null;
+   const authored=typeof HockeyMotion!=='undefined'?HockeyMotion.cycle(a.travelled||0,side,{drive,backward,curve,brake,phase:motion.phase,start:motion.start||0,stopSide,pivot:posture?.pivot||0,bank:posture?.bank||0}):null;
    let foot=authored?point(authored.forward,.12+authored.lift,authored.lateral+side*unsteady*.12):point(forward,.12+recover*drive*.075+crossStep*.14,lateral);
    const plant=a.footPlants?.[side===-1?0:1];
    const grip=plant&&drive>.05?(authored?.load??smooth(cycle/.35))*smooth(drive/.4)*(1-smooth((Math.hypot(plant.x-foot[0],plant.y-foot[2])-.2)/.5)):0;
    if(grip)foot=between(foot,[plant.x,.12,plant.y],grip);
-   const hip=point(-.10,.90-lower,side*.18),vertical=foot[1]+.11-hip[1],room=Math.sqrt(Math.max(0,.909*.909-vertical*vertical)),horizontal=Math.hypot(foot[0]-hip[0],foot[2]-hip[2]);
+   const hip=pelvisPoint(-.10,.06,side*.18),vertical=foot[1]+.11-hip[1],room=Math.sqrt(Math.max(0,.909*.909-vertical*vertical)),horizontal=Math.hypot(foot[0]-hip[0],foot[2]-hip[2]);
    if(horizontal>room){foot=[hip[0]+(foot[0]-hip[0])*room/horizontal,foot[1],hip[2]+(foot[2]-hip[2])*room/horizontal];}
    const ankle=[foot[0],foot[1]+.11,foot[2]];
    const knee=joint(hip,ankle,point(.65,.55-lower,side*.22),.45,.46);
    feet.push(foot);footAngles.push(turn(angle+(authored?.edge??(side*push*drive*.32+backward*side*.18+brake*.95+curve*.18)),plant?.angle??angle,grip));
    footPitches.push((authored?.pitch||0)*(1-grip)*smooth((foot[1]-.12)/.06));
+   footRolls.push(authored?.roll||0);
    legs.push({hip,knee,ankle});
   }
   const releaseAngle=release?Math.atan2(action.target.y-action.origin.y,action.target.x-action.origin.x):angle;
@@ -216,15 +223,10 @@ const Match3D = (() => {
   const swing=release?(typeof HockeyMotion!=='undefined'?HockeyMotion.action(shooting?action.style:'pass',clamp(age/duration,0,1)):Math.sin(Math.PI*clamp(age/duration,0,1))):0;
   const tackle=engagement&&['check','pin','protect'].includes(physical.kind)?engagement:0;
   const load=typeof HockeyMotion!=='undefined'?HockeyMotion.action('windup',windup):Math.sin(Math.PI*windup);
-  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12)-hand*load*.4,roll=-curve*.19+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27,pitch=.12+drive*.19+brake*.12+tackle*.12+fatigue*.08+unsteady*.23;
+  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12)-hand*load*.4-(posture?.yaw||0)*.35,roll=(posture?.torsoRoll??-curve*.19)+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27,pitch=(posture?.pitch??(.12+drive*.19+brake*.12+fatigue*.08))+tackle*.12+unsteady*.23;
   const bodyWidth=clamp((a.weight||85)/85,.92,1.08),headRise=clamp(((a.height||185)-185)*.003,-.045,.055);
-  const torso=point(lean,1.20-lower,curve*.10-Math.sin(phase)*drive*.055);
-  const torsoPoint=(forward,height,side)=>{
-   side*=bodyWidth;
-   const fwd=forward*Math.cos(pitch)+height*Math.sin(pitch),up=height*Math.cos(pitch)-forward*Math.sin(pitch);
-   const lateral=side*Math.cos(roll)-up*Math.sin(roll),vertical=up*Math.cos(roll)+side*Math.sin(roll);
-   return [torso[0]+fwd*Math.cos(torsoAngle)-lateral*Math.sin(torsoAngle),torso[1]+vertical,torso[2]+fwd*Math.sin(torsoAngle)+lateral*Math.cos(torsoAngle)];
-  };
+  const torso=point(lean+(posture?.forward||0)*.6,1.20-lower,posture?posture.lateral*.65:curve*.10-Math.sin(phase)*drive*.055);
+  const torsoPoint=orientedPoint(torso,torsoAngle,pitch,roll,bodyWidth);
   let blade=point(1.02,.08,.26*hand);
   if(preparing){
    // A wrist shot loads the body while the blade keeps controlling the puck.
@@ -260,7 +262,7 @@ const Match3D = (() => {
   });
   const state=unsteady>.12?'stumbling':unsteady>.015?'balance-recovery':windup?'windup':engagement?physical.kind:speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
   const gaze=contact&&a.target?Math.atan2(a.target.y-a.y,a.target.x-a.x):puckAngle,headAngle=torsoAngle+clamp(Math.atan2(Math.sin(gaze-torsoAngle),Math.cos(gaze-torsoAngle)),-.6,.6);
-  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,feet,blade,footAngles,footPitches,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,unsteady,windup,engagement,fatigue,bodyWidth,headRise,headAngle,celebration,style:action?.style};
+  return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,pelvis,pelvisPoint,feet,blade,footAngles,footPitches,footRolls,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,unsteady,windup,engagement,fatigue,bodyWidth,headRise,headAngle,celebration,style:action?.style};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};
  function kits(teams){
@@ -277,8 +279,8 @@ const Match3D = (() => {
   const v=(t,p)=>[Math.sin(t)*Math.cos(p),Math.cos(t),Math.sin(t)*Math.sin(p)],t=i*Math.PI/6,p=j*Math.PI/5,a=v(t,p),b=v(t,p+Math.PI/5),c=v(t+Math.PI/6,p+Math.PI/5),d=v(t+Math.PI/6,p);
   sphere.push(...(i===0?[a,c,d]:i===5?[a,b,c]:[a,b,c,a,c,d]));
  }
- function geometry(){
-  let data=new Float32Array(450000),used=0;
+ function geometry(capacity=450000){
+  let data=new Float32Array(capacity),used=0;
   function vertex(x,y,z,nx,ny,nz,col){
    if(used+9>data.length){const grown=new Float32Array(data.length*2);grown.set(data);data=grown;}
    data[used++]=x;data[used++]=y;data[used++]=z;data[used++]=nx;data[used++]=ny;data[used++]=nz;data[used++]=col[0];data[used++]=col[1];data[used++]=col[2];
@@ -325,7 +327,7 @@ const Match3D = (() => {
    for(let i=0;i<levels.length-1;i++)for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;quad(point(levels[i],a),point(levels[i+1],a),point(levels[i+1],b),point(levels[i],b),i===1?trim:main);}
    for(let j=0;j<10;j++){const a=j*Math.PI/5,b=(j+1)*Math.PI/5;tri(transform?transform(0,.32,0):[center[0],center[1]+.32,center[2]],point(levels.at(-1),a),point(levels.at(-1),b),main);}
   }
-  return {get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,shade,pad,ellipsoid,jersey};
+  return {reset(){used=0;},get data(){return data.subarray(0,used);},tri,quad,box,rod,ring,disk,shade,pad,ellipsoid,jersey};
  }
  function rink(){
   const g=geometry(),ice=color('#f0f6fb'),red=color('#cb304a'),blue=color('#2264b2'),white=color('#e6ebef'),dark=color('#101c2b');
@@ -479,8 +481,8 @@ const Match3D = (() => {
   }
   g.rod(m.blade,m.shaftTop,.038,black);g.rod(m.blade,between(m.blade,m.blocker,.67),.06,white);g.rod(m.blade,m.tip,.055,black);
  }
- function figures(frame,teams,skinned=false,poses=new Map()){
-  const g=geometry(),black=color('#101d2c'),white=color('#e8eef1'),uniforms=kits(teams);
+ function figures(frame,teams,skinned=false,poses=new Map(),g=geometry()){
+  g.reset();const black=color('#101d2c'),white=color('#e8eef1'),uniforms=kits(teams);
   for(const a of frame.actors){
    const m=poses.get(a.id)||pose(frame,a),kit=uniforms[a.side],shadow=m.point(0,0,0);
    g.shade(shadow[0],shadow[2],m.keeper?.58:.47,m.keeper?.8:.50,m.angle);

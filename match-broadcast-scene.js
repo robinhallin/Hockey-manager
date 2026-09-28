@@ -7,20 +7,51 @@ const HockeyBroadcast3D=(()=>{
   const ready=()=>typeof HockeyThree!=='undefined'&&typeof HockeyBroadcastAsset!=='undefined';
   const model=kind=>{if(!assets.has(kind))assets.set(kind,HockeyPlayerModel.decode(HockeyBroadcastAsset,kind));return assets.get(kind);};
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  // Optional review instrumentation. Query results are polled later; never
+  // synchronously wait for the GPU or include shader compilation in CPU time.
+  function gpuPass(c,name,enabled,render){
+   if(!enabled){render();return;}
+   const gl=c.renderer.getContext();
+   if(!c.gpu)c.gpu={ext:gl.getExtension('EXT_disjoint_timer_query_webgl2'),pending:[],samples:{},disjoint:0};
+   const p=c.gpu;if(!p.ext){render();return;}
+   const disjoint=gl.getParameter(p.ext.GPU_DISJOINT_EXT);
+   p.pending=p.pending.filter(row=>{
+    if(!disjoint&&!gl.getQueryParameter(row.query,gl.QUERY_RESULT_AVAILABLE))return true;
+    if(disjoint)p.disjoint++;else {const samples=p.samples[row.name]??=[];samples.push(gl.getQueryParameter(row.query,gl.QUERY_RESULT)/1e6);if(samples.length>600)samples.shift();}
+    gl.deleteQuery(row.query);return false;
+   });
+   if(disjoint||p.pending.length>=8){render();return;}
+   const query=gl.createQuery();gl.beginQuery(p.ext.TIME_ELAPSED_EXT,query);
+   try{render();}finally{gl.endQuery(p.ext.TIME_ELAPSED_EXT);p.pending.push({name,query});}
+  }
+  function gpuStats(c){
+   if(!c.gpu)return null;
+   return {supported:Boolean(c.gpu.ext),disjoint:c.gpu.disjoint,passes:Object.fromEntries(Object.entries(c.gpu.samples).map(([name,rows])=>{const s=rows.slice().sort((a,b)=>a-b);return [name,{samples:s.length,median:s[Math.floor((s.length-1)*.5)],p95:s[Math.floor((s.length-1)*.95)]}];}))};
+  }
   function color(T,r,g,b){return new T.Color().setRGB(r,g,b,T.SRGBColorSpace);}
-  function geometry(T,data,{art=false,alpha=false,bake=false}={},reuse){
-   const n=data.length/9,p=new Float32Array(n*3),normal=new Float32Array(n*3),col=new Float32Array(n*(alpha?4:3)),uv=new Float32Array(n*2),tint=new T.Color();
+  function geometry(T,data,{art=false,alpha=false,bake=false,dynamic=false}={},reuse){
+   const n=data.length/9,capacity=dynamic?2**Math.ceil(Math.log2(Math.max(1,n))):n;
+   const g=reuse&&reuse.attributes.position.count>=n?reuse:new T.BufferGeometry();
+   if(g!==reuse)for(const [name,size] of [['position',3],['normal',3],['color',alpha?4:3],['uv',2]]){const attr=new T.BufferAttribute(new Float32Array(capacity*size),size);if(dynamic)attr.setUsage(T.DynamicDrawUsage);g.setAttribute(name,attr);}
+   const p=g.attributes.position.array,normal=g.attributes.normal.array,col=g.attributes.color.array,uv=g.attributes.uv.array,tint=new T.Color(),channels=alpha?4:3;
    for(let i=0;i<n;i++){
-    const at=i*9,x=data[at],y=data[at+1],z=data[at+2];p.set(data.subarray(at,at+3),i*3);normal.set(data.subarray(at+3,at+6),i*3);
+    const at=i*9,j=i*3,x=data[at],y=data[at+1],z=data[at+2];p[j]=x;p[j+1]=y;p[j+2]=z;normal[j]=data[at+3];normal[j+1]=data[at+4];normal[j+2]=data[at+5];
     const c=alpha?tint.setRGB(.035,.075,.11,T.SRGBColorSpace):art?tint.setRGB(1,1,1):tint.setRGB(Math.max(0,data[at+6]),Math.max(0,data[at+7]),Math.max(0,data[at+8]),T.SRGBColorSpace);
     if(bake)c.multiplyScalar(.70+.23*Math.max(0,data[at+4])+.16*Math.max(0,data[at+3]*.2+data[at+4]*.9+data[at+5]*.4));
-    col.set([c.r,c.g,c.b],i*(alpha?4:3));if(alpha)col[i*4+3]=Math.max(0,data[at+6]);
+    col[i*channels]=c.r;col[i*channels+1]=c.g;col[i*channels+2]=c.b;if(alpha)col[i*4+3]=Math.max(0,data[at+6]);
     uv[i*2]=art?((x-9)/7%1+1)%1:x/60;uv[i*2+1]=art?clamp((y-(data[at+6]<-1.5?5.75:.25))/(data[at+6]<-1.5?.5:.69),0,1):1-z/30;
    }
-   if(reuse&&reuse.attributes.position.count===n){for(const [key,rows] of [['position',p],['normal',normal],['color',col],['uv',uv]]){reuse.attributes[key].array.set(rows);reuse.attributes[key].needsUpdate=true;}return reuse;}
-   const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setAttribute('normal',new T.BufferAttribute(normal,3));g.setAttribute('color',new T.BufferAttribute(col,alpha?4:3));g.setAttribute('uv',new T.BufferAttribute(uv,2));return g;
+   for(const attr of Object.values(g.attributes)){attr.clearUpdateRanges();attr.addUpdateRange(0,n*attr.itemSize);attr.needsUpdate=true;}g.setDrawRange(0,n);return g;
   }
-  function split(data,classify){const groups=new Map();for(let i=0;i<data.length;i+=27){const key=classify(data,i);if(!groups.has(key))groups.set(key,[]);const out=groups.get(key);for(let j=i;j<i+27;j++)out.push(data[j]);}return [...groups].map(([key,rows])=>[key,new Float32Array(rows)]);}
+  function split(data,classify,groups=new Map()){
+   for(const group of groups.values())group.used=0;
+   for(let i=0;i<data.length;i+=27){
+    const key=classify(data,i);let group=groups.get(key);if(!group){group={rows:new Float32Array(Math.max(27,data.length)),used:0};groups.set(key,group);}
+    if(group.used+27>group.rows.length){const grown=new Float32Array(group.rows.length*2);grown.set(group.rows);group.rows=grown;}
+    for(let j=i;j<i+27;j++)group.rows[group.used++]=data[j];
+   }
+   return [...groups].filter(([,group])=>group.used).map(([key,group])=>[key,group.rows.subarray(0,group.used)]);
+  }
   function texture(c,canvas){const t=new c.T.CanvasTexture(canvas);t.colorSpace=c.T.SRGBColorSpace;t.anisotropy=Math.min(4,c.renderer.capabilities.getMaxAnisotropy());c.textures.add(t);return t;}
   function shadowShader(c,shader){shader.fragmentShader=shader.fragmentShader.replace('#include <shadowmap_pars_fragment>',c.shadowChunk);}
   function material(c,options={}){const {simple=false,unlit=false,roughness=.8,...rest}=options,Material=unlit?c.T.MeshBasicMaterial:simple?c.T.MeshLambertMaterial:c.T.MeshStandardMaterial,m=new Material({...(simple||unlit?{}:{roughness}),vertexColors:true,side:c.T.DoubleSide,...rest});m.onBeforeCompile=shader=>shadowShader(c,shader);c.materials.add(m);return m;}
@@ -144,7 +175,7 @@ const HockeyBroadcast3D=(()=>{
   function players(c,f,options){
    const T=c.T,fine=c.quality==='high'||options.camera==='rinkside'||options.replay||c.closeup,level=fine?'':'Lod',kits=core.kits(options.teams||[]),crests=(options.teams||[]).map(t=>Boolean(typeof matchIceCrest==='function'&&matchIceCrest(t.name))),key=JSON.stringify([level,f.actors.map(a=>[a.id,a.number,a.name,a.side,HockeyPlayerModel.kind(a)]),kits,crests]);
    if(key===c.playerKey)return;
-   for(const p of c.playerBatches){c.scene.remove(p.object);p.skeleton.dispose();p.object.geometry.dispose();c.geometries.delete(p.object.geometry);p.material.dispose();c.materials.delete(p.material);p.depthMaterial.dispose();c.materials.delete(p.depthMaterial);p.texture.dispose();c.textures.delete(p.texture);}c.players.clear();c.playerBatches=[];
+   const previous=c.playerBatches;c.players.clear();c.playerBatches=[];
    // Batch players into the available vertex-uniform budget. Jerseys share one
    // atlas and each player keeps its own 15-joint palette and recorded pose.
    const perBatch=Math.max(1,Math.min(16,Math.floor((c.renderer.capabilities.maxVertexUniforms-64)/60)));
@@ -157,22 +188,32 @@ const HockeyBroadcast3D=(()=>{
     }
     const indices=new Uint32Array(parts.reduce((n,p)=>n+p.index.count,0));let vertex=0,index=0;
     for(const part of parts){for(const i of part.index.array)indices[index++]=vertex+i;vertex+=part.attributes.position.count;part.dispose();c.geometries.delete(part);}g.setIndex(new T.BufferAttribute(indices,1));c.geometries.add(g);
-    const map=texture(c,HockeyPlayerModel.atlas(document.createElement('canvas'),actors,kits)),bones=Array.from({length:actors.length*15},()=>new T.Bone()),m=playerMaterial(c,map,bones),skeleton=new T.Skeleton(bones,bones.map(()=>new T.Matrix4())),object=new T.SkinnedMesh(g,m);
-    const depthMaterial=new T.MeshDepthMaterial();depthMaterial.onBeforeCompile=shader=>skinShader(shader,bones);depthMaterial.customProgramCacheKey=()=> 'hockey-depth-'+bones.length;c.materials.add(depthMaterial);object.customDepthMaterial=depthMaterial;
-    object.bind(skeleton,new T.Matrix4());object.frustumCulled=false;object.castShadow=true;object.receiveShadow=true;object.layers.enable(1);c.scene.add(object);
-    c.playerBatches.push({object,skeleton,material:m,depthMaterial,texture:map});
-    actors.forEach((actor,row)=>c.players.set(actor.id,{bones:bones.slice(row*15,row*15+15)}));
+    // Keep fixed-capacity palettes and their compiled materials alive when
+    // jerseys change. Line changes must not evict the last skin/depth program.
+    let batch=previous[first/perBatch];
+    if(batch){
+     batch.object.geometry.dispose();c.geometries.delete(batch.object.geometry);batch.object.geometry=g;
+     batch.texture.dispose();c.textures.delete(batch.texture);batch.texture=texture(c,HockeyPlayerModel.atlas(document.createElement('canvas'),actors,kits));batch.material.map=batch.texture;c.batchReuses++;
+    }else{
+     const map=texture(c,HockeyPlayerModel.atlas(document.createElement('canvas'),actors,kits)),bones=Array.from({length:perBatch*15},()=>new T.Bone()),m=playerMaterial(c,map,bones),skeleton=new T.Skeleton(bones,bones.map(()=>new T.Matrix4())),object=new T.SkinnedMesh(g,m);
+     const depthMaterial=new T.MeshDepthMaterial();depthMaterial.onBeforeCompile=shader=>skinShader(shader,bones);depthMaterial.customProgramCacheKey=()=> 'hockey-depth-'+bones.length;c.materials.add(depthMaterial);object.customDepthMaterial=depthMaterial;
+     object.bind(skeleton,new T.Matrix4());object.frustumCulled=false;object.castShadow=true;object.receiveShadow=true;object.layers.enable(1);c.scene.add(object);
+     batch={object,skeleton,material:m,depthMaterial,texture:map};c.batchBuilds++;
+    }
+    c.playerBatches.push(batch);
+    actors.forEach((actor,row)=>c.players.set(actor.id,{bones:batch.skeleton.bones.slice(row*15,row*15+15)}));
    }
+   for(const p of previous.slice(c.playerBatches.length)){c.scene.remove(p.object);p.skeleton.dispose();p.object.geometry.dispose();c.geometries.delete(p.object.geometry);p.material.dispose();c.materials.delete(p.material);p.depthMaterial.dispose();c.materials.delete(p.depthMaterial);p.texture.dispose();c.textures.delete(p.texture);}
    c.playerKey=key;c.skinVertices=f.actors.reduce((sum,a)=>sum+model(HockeyPlayerModel.kind(a)+level).vertices,0);c.textureBuilds++;c.detailLevel=fine?'detailed':'distant';c.geometryKey=null;
   }
   function updateGeometry(c,f,options){
    const key=JSON.stringify([f.time,f.wall,f.phase,f.carrier,f.puck,f.flight,f.actors,options.teams]);if(key===c.geometryKey)return false;
    const start=performance.now(),poses=new Map(f.actors.map(a=>[a.id,core.pose(f,a)]));
    for(const a of f.actors){const p=c.players.get(a.id),palette=HockeyPlayerModel.palette(poses.get(a.id));for(let i=0;i<15;i++)p.bones[i].matrixWorld.fromArray(palette[i]);}
-   const data=core.figures(f,options.teams||[],true,poses);
+   const data=core.figures(f,options.teams||[],true,poses,c.figureBuilder);
    const retained=new Set();
-   for(const [kind,rows] of split(data,(a,i)=>a[i+8]<-.5?'shadow':'equipment')){
-    const alpha=kind==='shadow',prior=c.dynamic.find(obj=>obj.userData.kind===kind),g=geometry(c.T,rows,{alpha},prior?.geometry);
+   for(const [kind,rows] of split(data,(a,i)=>a[i+8]<-.5?'shadow':'equipment',c.dynamicRows)){
+    const alpha=kind==='shadow',prior=c.dynamic.find(obj=>obj.userData.kind===kind),g=geometry(c.T,rows,{alpha,dynamic:true},prior?.geometry);
     let object=prior;if(prior&&g!==prior.geometry){prior.geometry.dispose();c.geometries.delete(prior.geometry);prior.geometry=g;c.geometries.add(g);}
     if(!object){object=mesh(c,g,alpha?c.contactMaterial:c.equipmentMaterial,{cast:!alpha,reflection:!alpha});object.frustumCulled=false;object.userData.kind=kind;c.dynamic.push(object);}if(alpha)object.renderOrder=2;retained.add(object);
    }
@@ -212,7 +253,7 @@ const HockeyBroadcast3D=(()=>{
   function create(canvas){
    const T=HockeyThree,renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'}),scene=new T.Scene();scene.background=new T.Color('#07121e');scene.fog=new T.Fog('#07121e',60,125);
    renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.BasicShadowMap;
-   const c={T,canvas,renderer,scene,camera:new T.PerspectiveCamera(),mirror:new T.PerspectiveCamera(),reflection:new T.WebGLRenderTarget(384,192,{depthBuffer:true}),players:new Map(),playerBatches:[],textures:new Set(),materials:new Set(),geometries:new Set(),dynamic:[],frames:0,geometryBuilds:0,shadowBuilds:0,reflectionBuilds:0,textureBuilds:0,frameTimes:[],hits:[],quality:'normal'};
+   const c={T,canvas,renderer,scene,camera:new T.PerspectiveCamera(),mirror:new T.PerspectiveCamera(),reflection:new T.WebGLRenderTarget(384,192,{depthBuffer:true}),players:new Map(),playerBatches:[],batchBuilds:0,batchReuses:0,figureBuilder:core.sceneData.geometry(18000),dynamicRows:new Map(),textures:new Set(),materials:new Set(),geometries:new Set(),dynamic:[],frames:0,geometryBuilds:0,shadowBuilds:0,reflectionBuilds:0,textureBuilds:0,frameTimes:[],hits:[],quality:'normal'};
    // Four stable depth comparisons avoid per-pixel trigonometry in the general
    // purpose shadow filter. This keeps the ice's large receiving area affordable.
    c.shadowChunk=T.ShaderChunk.shadowmap_pars_fragment.replace('shadow = step( shadowCoord.z, depth );',`vec2 d=shadowRadius/shadowMapSize*.65;
@@ -228,6 +269,7 @@ const HockeyBroadcast3D=(()=>{
   }
   function dispose(){
    core.dispose();if(!current)return;const c=current;current=null;c.canvas.removeEventListener('webglcontextlost',c.lost);
+   for(const row of c.gpu?.pending||[])c.renderer.getContext().deleteQuery(row.query);
    for(const p of c.playerBatches)p.skeleton.dispose();for(const g of c.geometries)g.dispose();for(const m of c.materials)m.dispose();for(const t of c.textures)t.dispose();c.environment.dispose();c.reflection.dispose();c.light.shadow.map?.dispose();c.renderer.dispose();c.renderer.forceContextLoss();
   }
   function cameraView(c,f,options){
@@ -256,10 +298,10 @@ const HockeyBroadcast3D=(()=>{
     const reflectionHeight=Math.max(128,Math.round(reflectionSize*h/w));if(c.reflection.width!==reflectionSize||c.reflection.height!==reflectionHeight)c.reflection.setSize(reflectionSize,reflectionHeight);
     c.mirror.copy(c.camera);c.mirror.position.y=-c.camera.position.y;c.mirror.up.set(0,-1,0);c.mirror.lookAt(c.view.target[0],-c.view.target[1],c.view.target[2]);c.mirror.layers.set(1);c.mirror.updateMatrixWorld();
     const bias=new T.Matrix4().set(.5,0,0,.5,0,.5,0,.5,0,0,.5,.5,0,0,0,1);c.reflectionUniforms.rinkProjection.value.copy(bias).multiply(c.mirror.projectionMatrix).multiply(c.mirror.matrixWorldInverse);
-    const background=c.scene.background;c.scene.background=null;c.renderer.setClearColor(0x000000,0);c.renderer.setRenderTarget(c.reflection);c.renderer.render(c.scene,c.mirror);c.renderer.setRenderTarget(null);c.scene.background=background;c.reflectionBuilds++;c.reflectionCamera=cameraKey;
+    const background=c.scene.background;c.scene.background=null;c.renderer.setClearColor(0x000000,0);c.renderer.setRenderTarget(c.reflection);gpuPass(c,'reflection-and-shadow',options.profile,()=>c.renderer.render(c.scene,c.mirror));c.renderer.setRenderTarget(null);c.scene.background=background;c.reflectionBuilds++;c.reflectionCamera=cameraKey;
    }
    c.reflectionUniforms.rinkReflectivity.value=q.level>0?.18:0;
-   c.renderer.render(c.scene,c.camera);c.frames++;canvas.dataset.ready='true';
+   gpuPass(c,'main',options.profile,()=>c.renderer.render(c.scene,c.camera));c.frames++;canvas.dataset.ready='true';
    c.hits=f.actors.map(a=>({id:a.id,name:a.name,number:a.number,...core.project([a.x,1,a.y],c.matrix)}));
    const label=document.getElementById('match-3d-carrier'),carrier=c.hits.find(a=>a.id===f.carrier);if(label){label.hidden=!carrier;if(carrier){label.textContent=(carrier.number?'#'+carrier.number+' ':'')+carrier.name;label.style.left=clamp(carrier.x*100,8,92)+'%';label.style.top=clamp(carrier.y*100-8,8,85)+'%';}}
    const marker=document.getElementById('match-3d-puck');if(marker){const p=core.project([f.puck.x,.1+(f.puck.z||0),f.puck.y],c.matrix);marker.hidden=Boolean(f.puck.heldBy)||options.puckMarker===false||p.x<0||p.x>1||p.y<0||p.y>1;marker.style.left=p.x*100+'%';marker.style.top=p.y*100+'%';}
@@ -273,7 +315,7 @@ const HockeyBroadcast3D=(()=>{
    }
    c.lastDraw=start;c.lastWall=f.wall;c.wasMoving=Boolean(options.moving);return true;
   }
-  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',detailLevel:c.detailLevel,quality:c.quality,shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,playerBatches:c.playerBatches.length,rigJoints:15,renderMS:c.renderMS,frameStats:c.frameStats?{...c.frameStats}:null,frameP99:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.99)]:null,frameSamples:c.frameTimes.length,frameMedian:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.5)]:null,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
+  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',gpu:gpuStats(c),programs:c.renderer.info.programs.length,detailLevel:c.detailLevel,quality:c.quality,shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,playerBatches:c.playerBatches.length,batchBuilds:c.batchBuilds,batchReuses:c.batchReuses,rigJoints:15,renderMS:c.renderMS,frameStats:c.frameStats?{...c.frameStats}:null,frameP99:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.99)]:null,frameSamples:c.frameTimes.length,frameMedian:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.5)]:null,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
   function pick(canvas,x,y){if(!current)return core.pick(canvas,x,y);if(current.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
   return {...core,draw,dispose,pick,diagnostics};
  }

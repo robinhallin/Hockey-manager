@@ -134,7 +134,7 @@ async function close(){
   for(const [name,rect] of Object.entries({rink:layout.rink,controls:layout.controls})){
    assert.ok(rect.width>0 && rect.height>0 && rect.x>=0 && rect.y>=0 && rect.right<=layout.viewport.width+1 && rect.bottom<=layout.viewport.height+1,name+' fits the desktop viewport');
   }
-  await require('./match-3d-ui.cjs')(page,out);
+  await require('./match-3d-ui.cjs')(page,out,application);
   fs.writeFileSync(path.join(out,'layout-result.json'),JSON.stringify(layout,null,2));
   await page.locator('#match-play').click();await page.waitForFunction(()=>state.live.running);
   // Closing a running match must pause and persist it through the real native close handler.

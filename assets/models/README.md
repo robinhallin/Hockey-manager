@@ -74,3 +74,14 @@ animation license is required; no separate open-source license is assigned to
 the original project assets here. The third-party Three.js runtime retains its
 MIT license at `assets/vendor/three-LICENSE.txt`. Existing club identity assets
 and their provenance are unchanged by this revision.
+
+## Skating balance pass
+
+The original distance-keyed movement curves now include authored pelvis load,
+compression and counter-rotation. Starting effort shortens strokes; turning
+speed controls the body bank, with an eased forward/backward pivot and skate
+edge roll. Left/right stopping preference is recorded and held through braking.
+Stable player IDs select initial gait offsets without consuming match RNG.
+The fifteen-joint rig, its bind mesh and both analytic leg/hand chains remain.
+These are original code-authored base curves with procedural adjustments, not
+imported clips or a claim of final artist-reviewed animation quality.

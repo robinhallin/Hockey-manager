@@ -386,19 +386,21 @@ const StudioHockey = (() => {
         a.motion.drive=(m?.drive||0)+(drive-(m?.drive||0))*ease;
         a.motion.brake=(m?.brake||0)+(brake-(m?.brake||0))*ease;
         a.motion.curve=(m?.curve||0)+(curve-(m?.curve||0))*ease;
-        if(skating)Object.assign(a.motion,skating.advance(m,{speed,acceleration:a.motion.acceleration,turn:a.motion.turn,distance:Math.max(0,(a.travelled||0)-(m?.distance??a.travelled??0)),height:a.player.height||185,energy:this.energyLevel(a),dt}));
+        const identity=Array.from(String(a.id)).reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,0);
+        if(skating)Object.assign(a.motion,skating.advance(m,{speed,acceleration:a.motion.acceleration,turn:a.motion.turn,distance:Math.max(0,(a.travelled||0)-(m?.distance??a.travelled??0)),height:a.player.height||185,energy:this.energyLevel(a),dt,phaseOffset:(identity%997)/997,preferredSide:identity%2?1:-1}));
         a.motion.distance=a.travelled||0;
         const phase=(a.travelled||0)*Math.PI/1.6,anchor=!a.skateState&&a.id===this.carrier?-.65:0;
+        const body=skating?.body(a.travelled||0,a.motion,speed),facing=heading+(a.motion.stopSide||1)*a.motion.brake*.45;
         a.footPlants=[-1,1].map((side,i)=>{
-          const stroke=skating?.cycle(a.travelled||0,side,{...a.motion}),cycle=stroke?stroke.load:Math.sin(phase+(side===1?Math.PI:0)),old=a.footPlants?.[i];
+          const stroke=skating?.cycle(a.travelled||0,side,{...a.motion,bank:body?.bank||0,pivot:body?.pivot||0}),cycle=stroke?stroke.load:Math.sin(phase+(side===1?Math.PI:0)),old=a.footPlants?.[i];
           if(cycle<.5||speed<.25||a.motion.drive<.05)return null;
           if(old&&this.wall-old.at<.55&&distance(a,old)<1.1){
             // A blade slides along its edge, while resisting sideways drift.
-            const desired=heading+(stroke?.edge||0),angle=(old.angle??heading)+wrap(desired-(old.angle??heading))*Math.min(1,dt*8),along=(a.vx*Math.cos(angle)+a.vy*Math.sin(angle))*dt;
+            const desired=facing+(stroke?.edge||0),angle=(old.angle??facing)+wrap(desired-(old.angle??facing))*Math.min(1,dt*8),along=(a.vx*Math.cos(angle)+a.vy*Math.sin(angle))*dt;
             return {...old,x:old.x+Math.cos(angle)*along,y:old.y+Math.sin(angle)*along,angle};
           }
           const forward=anchor+(stroke?.forward??.08),lateral=stroke?.lateral??side*.28;
-          return {x:a.x+Math.cos(heading)*forward-Math.sin(heading)*lateral,y:a.y+Math.sin(heading)*forward+Math.cos(heading)*lateral,angle:heading+(stroke?.edge||0),at:this.wall};
+          return {x:a.x+Math.cos(facing)*forward-Math.sin(facing)*lateral,y:a.y+Math.sin(facing)*forward+Math.cos(facing)*lateral,angle:facing+(stroke?.edge||0),at:this.wall};
         });
       }
     }

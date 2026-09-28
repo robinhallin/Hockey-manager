@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
-module.exports=async function check3D(page,out){
+module.exports=async function check3D(page,out,application){
  const bounds=await page.locator('#career-ice').boundingBox();
  assert.ok(bounds.height>200&&bounds.width>500,'view controls leave room for the rink');
  const before=await page.evaluate(()=>JSON.stringify(state.live));
@@ -19,6 +19,17 @@ module.exports=async function check3D(page,out){
   const gl=canvas.getContext('webgl2')||canvas.getContext('webgl'),p=new Uint8Array(canvas.width*canvas.height*4);gl.readPixels(0,0,canvas.width,canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,p);let bright=0;for(let i=0;i<p.length;i+=4)if(p[i]>130&&p[i+1]>130&&p[i+2]>130)bright++;return bright/(canvas.width*canvas.height);
  });
  assert.ok(pixels>.15&&pixels<.9,'3D draws a lit rink rather than an empty canvas: '+pixels);
+ // A roster remap must retain shader programs and leave the real match alone.
+ const remap=await page.evaluate(()=>{
+  const saved=JSON.stringify(state.live),canvas=document.getElementById('career-ice-3d'),frame=studioFrame(studioEngine()),options={teams:[managerClub(),state.live.opponent].map(name=>({name,...careerIdentity(name)})),camera:studioCamera3D};
+  Match3D.draw(canvas,frame,null,1,options);const before=Match3D.diagnostics();
+  const changed={...frame,actors:frame.actors.map((a,i)=>i? a:{...a,id:a.id+'-render-fixture',name:'Renderkontroll',number:91})};
+  Match3D.draw(canvas,changed,null,1,options);const after=Match3D.diagnostics();Match3D.draw(canvas,frame,null,1,options);
+  return {before,after,unchanged:JSON.stringify(state.live)===saved};
+ });
+ assert.equal(remap.after.batchBuilds,remap.before.batchBuilds);assert.equal(remap.after.batchReuses,remap.before.batchReuses+1);
+ assert.equal(remap.after.programs,remap.before.programs);assert.equal(remap.after.error,0);assert.equal(remap.unchanged,true);
+ require('node:fs').writeFileSync(path.join(out,'3d-roster-reuse.json'),JSON.stringify(remap,null,2));
  await page.screenshot({path:path.join(out,'31-match-3d-tv.png'),fullPage:true});
  await page.getByLabel('3D-kamera').selectOption('overhead');
  await page.waitForFunction(()=>studioCamera3D==='overhead');
@@ -50,6 +61,7 @@ module.exports=async function check3D(page,out){
  assert.ok(liveClip.length>1000);require('node:fs').writeFileSync(path.join(out,'46-match-3d-live-flow.webm'),Buffer.from(liveClip));
  await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
  await page.waitForFunction(()=>!MatchAudio.diagnostics().active&&MatchAudio.diagnostics().voices===0&&MatchAudio.diagnostics().level<.00002);
+ if(application)await require('./match-performance.cjs')(page,out,application);
  // Reach an actual shot in this career, using the real match loop and decisions.
  const shot=await page.evaluate(()=>{
   startMatch();let found=false;

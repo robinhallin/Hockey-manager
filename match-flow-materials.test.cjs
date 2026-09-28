@@ -9,7 +9,7 @@ test('recorded motion eases between push and glide; blade contacts slide along t
  const {m,a}=setup();a.vx=3;a.vy=0;a.travelled=.8;m.recordMotion(a,2.6,0,.1);const first=a.motion.drive;assert.ok(first>0&&first<1);
  m.wall+=.1;m.recordMotion(a,3,0,.1);assert.ok(Math.abs(a.motion.drive-first)<.5);
  const plant=a.footPlants.find(Boolean);assert.ok(plant);const before={...plant};m.wall+=.1;m.recordMotion(a,3,0,.1);
- const after=a.footPlants.find(Boolean);assert.ok(after.x>before.x);assert.ok(Math.abs(after.y-before.y)<1e-9);
+ const after=a.footPlants.find(Boolean);assert.ok(after.x>before.x);assert.ok(Math.abs(-(after.x-before.x)*Math.sin(after.angle)+(after.y-before.y)*Math.cos(after.angle))<1e-9,'the loaded blade slides along its edge without lateral drift');
  const f=m.presentationFrame(),snapshot=JSON.stringify(f),pose=R.pose(f,f.actors.find(p=>p.id===a.id));assert.equal(JSON.stringify(R.pose(f,f.actors.find(p=>p.id===a.id))),JSON.stringify(pose));assert.equal(JSON.stringify(f),snapshot);
  const old={...f.actors.find(p=>p.id===a.id),motion:{heading:0,acceleration:2,turn:0,backward:0}};assert.ok(Number.isFinite(R.pose(f,old).pitch));
 });
