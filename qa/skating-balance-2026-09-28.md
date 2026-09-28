@@ -33,12 +33,19 @@ Detta är inte en färdig artistgranskad animationsbank eller motion capture.
 
 ## Kontroller
 
-53 riktade tester passerade: åkfas, belastning, start/glid, stopp åt båda håll,
+54 riktade tester passerade: åkfas, belastning, start/glid, stopp åt båda håll,
 fixa benlängder, klubba–puck-kontakt, repris, skinnad rigg, tidsstyrning,
 spelbeslut, sparning/återläsning och validering. Fem ytterligare kontroller för
 lagring och desktop passerade, inklusive exakt återupptagning av match och
 oförändrad sparfil vid skrivfel. Tester bevisar respektive kontrakt, inte att
 animationerna har nått beställningens slutliga visuella kvalitet.
+
+Den längre Windows-körningen hittade en befintlig återläsningsavvikelse i
+sista reprisbildernas energi under skottförberedelse/flygande puck. Karriären
+bokför trötthet efter motorns bildinspelning; återläsning återskapade samma bild
+med de nyare värdena. Återläsningen behåller nu den redan inspelade bilden.
+Regressionen jämför varje sparat matchfält och fortsatt spel i båda lägena.
+Windows-omkörningen ska passera innan merge.
 
 Den riktiga karriärmotorn spelade samma sparade HV71–Björklöven-situation med
 12 spelare, samma RNG och samma start som förra passet. Två jämförbara
@@ -87,6 +94,21 @@ så att en dyr kontextavveckling inte räknas som vanlig aktiv rendering.
 GPU-frågor används endast vid begärd profilering, läses asynkront och väntar
 aldrig på GPU:n i produktionsloopen.
 
+En tre minuter lång körning med låg grafik gav 1 179 bildrutor, median 150 ms,
+p95 300 ms, p99 649,9 ms och max 799,9 ms. Canvas var 1509×589. Den gick utan
+JavaScript-/WebGL-fel; spelarresurserna byggdes en gång och återanvändes vid tio
+uppdateringar av spelaruppsättningen. Det är en längre lokal kontroll, inte en
+hel match eller ett uppnått flytmål.
+
+Den första Windows-körningens separata grafikmätning hann genomföras före
+sparningsfelet: Windows 10.0.26100, AMD EPYC 7763, 4 logiska CPU, 16 GiB,
+Electron 44.4.5/Chromium 152, Microsoft Basic Render Driver via ANGLE/D3D11.
+Det är också **mjukvarurendering**. Normal grafik: 452 bildrutor under 60 s,
+median 125 ms, p95 140,6, p99 578 och max 1 000 ms. Låg grafik: 252 bildrutor
+under 20 s, median 78,1 ms, p95 78,2, p99 437,5 och max 500 ms. Inga WebGL-fel
+eller sidskroll. Mätningen visar ingen 60 fps-prestanda på en referens-GPU.
+Slutlig Windows-status och omkörningens värden finns i PR 272.
+
 Rådata: `qa/skating-balance-performance.json`. Reproduktion:
 
 ```sh
@@ -108,6 +130,6 @@ fysisk GPU eller hel match i kontinuerlig 3D har prestandagodkänts.
 | Pose, IK, fot- och bäckenleder | `match-3d.js`, `match-player-model.js` |
 | Buffertar, spelarbyten, GPU-diagnostik | `match-broadcast-scene.js` |
 | Sparvalidering | `career-match.js` |
-| Logik- och buffertkontroller | `match-skating-flow.test.cjs`, `match-flow-materials.test.cjs` |
+| Logik- och buffertkontroller | `match-skating-flow.test.cjs`, `match-flow-materials.test.cjs`, `match-motion-contact.test.cjs` |
 | Windows-kontroller och mätning | `desktop/match-3d-ui.cjs`, `desktop/match-performance.cjs`, `desktop/smoke.cjs` |
 | Reproduktion och tillgångsbeskrivning | `scripts/review-match-motion.cjs`, `assets/models/README.md` |

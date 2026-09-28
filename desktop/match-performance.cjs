@@ -6,8 +6,8 @@ module.exports=async function measureMatch(page,out,application){
  const bounds=await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0],size=w.getContentSize();w.setContentSize(1920,1080);return size;});
  await page.waitForFunction(()=>innerWidth===1920&&innerHeight===1080);
  const settings=await page.evaluate(()=>{
-  pauseMatch();const saved={camera:studioCamera3D,expanded:studioExpanded3D,mode:state.live.rink.mode,rate:state.live.rink.onIceRate,speed:state.live.speed,quality:studioGraphicsQuality()};
-  studioCamera3D='follow';studioExpanded3D=true;state.live.rink.mode='full';state.live.rink.onIceRate=1;state.live.speed=1;matchPreferences().graphics3d='normal';render();return saved;
+  pauseMatch();const saved={camera:studioCamera3D,expanded:studioExpanded3D,mode:state.live.rink.mode,rate:state.live.onIceSpeed,speed:state.live.speed,quality:studioGraphicsQuality()};
+  studioCamera3D='follow';studioExpanded3D=true;state.live.rink.mode='full';state.live.onIceSpeed=1;state.live.speed=1;matchPreferences().graphics3d='normal';render();return saved;
  });
  const results={platform:os.platform(),release:os.release(),cpu:os.cpus()[0]?.model,logicalCpus:os.cpus().length,memoryGiB:os.totalmem()/1024**3,measurements:[]};
  for(const [quality,seconds] of [['normal',60],['low',20]]){
@@ -26,7 +26,7 @@ module.exports=async function measureMatch(page,out,application){
   results.measurements.push({quality,...result});await page.evaluate(()=>pauseMatch());
   fs.writeFileSync(path.join(out,'3d-performance-1080.json'),JSON.stringify(results,null,2));
  }
- await page.evaluate(s=>{studioCamera3D=s.camera;studioExpanded3D=s.expanded;state.live.rink.mode=s.mode;state.live.rink.onIceRate=s.rate;state.live.speed=s.speed;matchPreferences().graphics3d=s.quality;render();},settings);
+ await page.evaluate(s=>{studioCamera3D=s.camera;studioExpanded3D=s.expanded;state.live.rink.mode=s.mode;state.live.onIceSpeed=s.rate;state.live.speed=s.speed;matchPreferences().graphics3d=s.quality;render();},settings);
  await application.evaluate(({BrowserWindow},size)=>BrowserWindow.getAllWindows()[0].setContentSize(...size),bounds);
  await page.waitForFunction(size=>innerWidth===size[0]&&innerHeight===size[1],bounds);
 };

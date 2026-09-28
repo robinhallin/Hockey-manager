@@ -21,7 +21,7 @@ const server=http.createServer((req,res)=>{
   const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(({save,offline})=>{localStorage.setItem('hockey_manager_alpha02',save);if(offline)window.requestAnimationFrame=fn=>{window.reviewDraw=fn;return 1;};},{save,offline:!args.perf});
   await page.goto('http://127.0.0.1:'+server.address().port);
-  await page.evaluate(({quality,camera})=>{pauseMatch();resumeCareer();deskNavigate('match');studioVisualMode='3d';studioExpanded3D=true;studioCamera3D=camera;state.live.rink.mode='full';state.live.rink.onIceRate=1;matchPreferences().graphics3d=quality;render();},{quality,camera:args.camera||'follow'});
+  await page.evaluate(({quality,camera})=>{pauseMatch();resumeCareer();deskNavigate('match');studioVisualMode='3d';studioExpanded3D=true;studioCamera3D=camera;state.live.rink.mode='full';state.live.onIceSpeed=1;matchPreferences().graphics3d=quality;render();},{quality,camera:args.camera||'follow'});
   const initial=await page.evaluate(()=>({rng:studioEngine().rng,time:studioEngine().time,wall:studioEngine().wall,ids:studioEngine().actors.map(a=>a.id)}));
   if(args.perf){
    await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');

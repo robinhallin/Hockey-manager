@@ -143,7 +143,14 @@ async function close(){
   const saved=JSON.parse(JSON.parse(fs.readFileSync(savePath,'utf8')).payload);
   assert.equal(saved.live.running,false);assert.ok(saved.live.broadcast);
   await launch();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
-  assert.equal(await page.evaluate(()=>JSON.stringify(state.live)),JSON.stringify(saved.live));
+  const restoredLive=await page.evaluate(()=>JSON.stringify(state.live)),savedLive=JSON.stringify(saved.live),reloadChanges=[];
+  const compare=(before,after,at='live')=>{
+   if(Object.is(before,after)||reloadChanges.length>=20)return;
+   if(!before||!after||typeof before!=='object'||typeof after!=='object'){reloadChanges.push({path:at,before,after});return;}
+   for(const key of new Set([...Object.keys(before),...Object.keys(after)]))compare(before[key],after[key],at+'.'+key);
+  };
+  if(restoredLive!==savedLive){compare(saved.live,JSON.parse(restoredLive));fs.writeFileSync(path.join(out,'reload-differences.json'),JSON.stringify(reloadChanges,null,2));}
+  assert.ok(restoredLive===savedLive,'Native reload must preserve every saved field: '+JSON.stringify(reloadChanges));
   // Relaunch maximizes to the hosted desktop (often 1024px). Restore the same
   // desktop viewport before asserting the fixed match workspace layout.
   await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1366,768);});

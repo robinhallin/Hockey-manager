@@ -274,7 +274,10 @@ function studioEngine(){
   for(const t of e.teams){const find=id=>t.players.find(p=>samePlayerId(p.id,id));t.forwards=t.forwards.map(find);t.defense=t.defense.map(find);t.goalie=find(t.goalie);
    if(t.change)t.change.row.player=find(t.change.row.player);for(const r of t.changeQueue)r.player=find(r.player);}
   for(const a of e.actors){a.player=e.teams[a.side].players.find(p=>samePlayerId(p.id,a.player));a.shift??=state.live.energy?.players?.[String(a.player.id)]?.shift||0;}
-  e.upgrade();e.syncPenalty();e.history=e.shotLeadIn||[];delete e.shotLeadIn;e.capture();
+  e.upgrade();e.syncPenalty();e.history=e.shotLeadIn||[];delete e.shotLeadIn;
+  // The career fatigue ledger is applied after the simulation's capture.
+  // Hydration must retain an observed frame, not rewrite its energy values.
+  const recorded=e.history.at(-1);if(!recorded||Math.abs((recorded.wall??recorded.time)-e.wall)>1e-7)e.capture();
  }
  return e;
 }

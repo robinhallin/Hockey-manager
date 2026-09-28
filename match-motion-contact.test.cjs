@@ -72,3 +72,16 @@ test('replay scoreboard uses the recorded period, strength and venue order',()=>
  const early=R.sample(frame,before,.5),goal=R.sample(frame,before,.9);
  assert.deepEqual(Array.from(early.score),[0,0]);assert.deepEqual(Array.from(early.strength),[5,4]);assert.deepEqual(Array.from(goal.score),[1,0]);assert.deepEqual(Array.from(goal.strength),[5,5]);
 });
+
+
+test('reload during shot preparation and flight preserves the already recorded fatigue and every saved match field',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot(),digest=text=>require('node:crypto').createHash('sha256').update(text).digest('hex');
+ app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';");
+ for(const predicate of ["studioEngine().actors.some(a=>a.shotPreparation)","studioEngine().flight?.kind==='shot'"]){
+  app.run(`for(let i=0;i<5000&&!(${predicate});i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}pauseMatch();save();`);
+  assert.ok(app.run(predicate));const saved=app.run('JSON.stringify(state.live)');assert.ok(JSON.parse(saved).broadcast.shotLeadIn.length>1);
+  const restored=boot(app.storage.value);assert.equal(digest(restored.run('JSON.stringify(state.live)')),digest(saved),'loading cannot recapture the last frame with the newer career energy ledger');
+  const advance="for(let i=0;i<10;i++){state.live.running=true;studioStep();}JSON.stringify([studioEngine().rng,studioEngine().puck,studioEngine().stats,state.live.energy])";
+  assert.equal(restored.run(advance),app.run(advance),'resuming either copy still produces identical decisions and fatigue');
+ }
+});
