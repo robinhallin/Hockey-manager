@@ -114,3 +114,28 @@ Välj **Kamera → Följ pucken** för en närmare vy. TV och Överblick finns k
 Även repriser använder de inspelade rörelsedata som den aktuella matchen gav.
 Äldre sparade repriser fungerar, men saknar de nya rörelsedetaljerna.
 Puckhöjd och avancerade kroppskontakter återstår; spelarmodellerna är fortsatt enkla.
+
+## Senaste grafikuppdateringen
+
+Välj **Matchvy → 3D**. Den aktuella vyn använder ett lokalt medföljande
+Three.js-grafiklager, mer detaljerade originalmodeller och separata material
+för dräkter, hjälmar, skydd och skridskostål. Modellerna har 15 leder och
+animeras på grafikkortet. Åtta nya rörelsekurvor formar framåtåkning,
+bakåtåkning, översteg, passning och de olika skotten. Fotfäste, klubba,
+puckkontakt, målvaktsrörelser och kroppskontakter följer matchens inspelade data.
+
+Arenan har fler läktarrader, ljusriggar, tunnlar, resultattavla, spelarbänkar
+och tränarstaber. Avlägsna spelare och publik använder enklare detaljnivåer;
+närbilder och hög kvalitet visar de detaljerade modellerna. Isen visar spelarnas speglingar och korta issprut vid
+inbromsning. Matchkameran följer spelet och går närmare efter observerade
+avblåsningar; repriser får en egen kameravinkel. **Kamera → Isnivå** ger en
+närmare vy av spelet och **Stor rink** ger mer bildyta.
+
+Grafikkvaliteten Låg stänger av speglingar och projicerade skuggor och
+minskar publik och upplösning. Normal och Hög har olika skugg- och
+reflektionsupplösning. 2D finns kvar om datorn saknar stödet för den nya
+3D-vyn. Alla resurser följer med för spel utan internet.
+
+Det är egenbyggda modeller och rörelser, inte motion capture eller
+fotorealistiska spelarporträtt. Matchregler, utfall och sparformat ändras
+inte av grafikuppdateringen. Ingen ny betaversion publiceras med detta steg.

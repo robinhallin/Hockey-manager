@@ -1,6 +1,7 @@
 'use strict';
 // Original articulated hockey models. Reproducible offline glTF 2.0, no external assets.
 const fs=require('node:fs'),path=require('node:path'),root=path.join(__dirname,'..');
+const detailed=process.argv.includes('--broadcast');
 const names=['pelvis','chest','armL','forearmL','armR','forearmR','thighL','shinL','thighR','shinR','head','handL','handR','footL','footR'];
 const origins=[[0,.84,0],[0,1.20,0],[0,1.40,-.34],[0,1.03,-.50],[0,1.40,.34],[0,1.03,.50],[-.10,.90,-.18],[.16,.54,-.23],[-.10,.90,.18],[.16,.54,.23],[.02,1.67,0],[.30,.75,-.50],[.30,.75,.50],[0,.23,-.24],[0,.23,.24]];
 const ends=[null,null,origins[3],origins[11],origins[5],origins[12],origins[7],origins[13],origins[9],origins[14],null,null,null,null,null];
@@ -21,41 +22,56 @@ function accessor(values,type,componentType){
 const jersey=[1,1,1],trim=[.65,.65,.65],black=[.06,.10,.15],white=[.91,.94,.95],steel=[.56,.65,.71],skin=[.79,.66,.53];
 const counts=[];
 function build(kind){
+ const modelName=kind,high=detailed&&!kind.endsWith('Lod');kind=kind.replace(/Lod$/,'');
  const keeper=kind!=='skater',catchSide=kind==='goalieR'?1:-1;
  const P=[],N=[],UV=[],J=[],W=[],C=[],I=[],dedup=new Map();
  function vertex(p,n,uv,j,w,color){
+  // Keep the original rig but correct the oversized head/helmet silhouette.
+  // Scale every head-bound surface together, including visor and goalie cage.
+  if(j[0]===10&&j[1]===10){p=[.02+(p[0]-.02)*.80,1.67+(p[1]-1.67)*.84,p[2]*.74];n=unit([n[0]/.80,n[1]/.84,n[2]/.74]);}
   const key=[...p,...n,...uv,...j,w,...color].map(v=>v.toFixed(6)).join(',');if(dedup.has(key)){I.push(dedup.get(key));return;}
   const index=P.length/3;dedup.set(key,index);I.push(index);P.push(...p);N.push(...n);UV.push(...uv);J.push(j[0],j[1],0,0);W.push(w,1-w,0,0);C.push(...color);
  }
  function surface(rows,segments){for(let i=0;i<rows.length-1;i++)for(let j=0;j<segments;j++)for(const [r,k] of [[i,j],[i+1,j],[i+1,j+1],[i,j],[i+1,j+1],[i,j+1]]){const v=rows[r](k/segments);vertex(v.p,v.n,v.uv||[-1,-1],v.j,v.w??1,v.c);}}
  function quad(a,b,c,d,col,joint){const normal=unit(cross(sub(b,a),sub(c,a)));for(const p of [a,b,c,a,c,d])vertex(p,normal,[-1,-1],[joint,joint],1,col);}
  function box(center,size,col,joint){const p=(a,b,c)=>center.map((v,i)=>v+[a,b,c][i]*size[i]/2),v=[p(-1,-1,-1),p(1,-1,-1),p(1,-1,1),p(-1,-1,1),p(-1,1,-1),p(1,1,-1),p(1,1,1),p(-1,1,1)];for(const f of [[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]])quad(...f.map(i=>v[i]),col,joint);}
- function ellipsoid(center,size,col,joint,segments=12,rings=6){
+ function ellipsoid(center,size,col,joint,segments=high?20:12,rings=high?10:6){
   surface(Array.from({length:rings+1},(_,i)=>t=>{const a=i*Math.PI/rings,b=t*Math.PI*2,n=[Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b)];return {p:center.map((v,k)=>v+n[k]*size[k]),n:unit(n.map((v,k)=>v/size[k])),j:[joint,joint],c:col};}),segments);
  }
- function tube(a,b,r,col,joint){const y=unit(sub(b,a)),x=unit(cross(y,Math.abs(y[1])>.9?[1,0,0]:[0,1,0])),z=cross(x,y);surface([a,b].map(p=>t=>{const n=x.map((v,i)=>v*Math.cos(t*Math.PI*2)+z[i]*Math.sin(t*Math.PI*2));return {p:p.map((v,i)=>v+n[i]*r),n,j:[joint,joint],c:col};}),6);}
+ function tube(a,b,r,col,joint){const y=unit(sub(b,a)),x=unit(cross(y,Math.abs(y[1])>.9?[1,0,0]:[0,1,0])),z=cross(x,y);surface([a,b].map(p=>t=>{const n=x.map((v,i)=>v*Math.cos(t*Math.PI*2)+z[i]*Math.sin(t*Math.PI*2));return {p:p.map((v,i)=>v+n[i]*r),n,j:[joint,joint],c:col};}),high?10:6);}
  const levels=[[.88,.20,.27],[.97,.21,.28],[1.05,.225,.30],[1.25,keeper?.28:.25,keeper?.39:.355],[1.43,.22,.34],[1.50,.14,.22]];
- surface(levels.map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.08,Math.sin(t*Math.PI*2)/w]),uv:[t,(h-.88)/.62],j:[1,0],w:Math.max(0,Math.min(1,(h-.86)/.25)),c:jersey})),24);
+ const cloth=detailed?[[.865,.207,.276],[.905,.222,.285],[.95,.216,.28],[1.01,.23,.292],[1.08,.225,.302],[1.16,.252,.325],[1.25,keeper?.29:.27,keeper?.40:.365],[1.34,.28,.386],[1.41,.237,.358],[1.46,.19,.30],[1.50,.14,.22]]:levels;
+ surface(cloth.map(([h,d,w])=>t=>{const a=t*Math.PI*2,fold=detailed?.009*Math.sin(a*9+h*28)*Math.sin((h-.865)/.635*Math.PI):0;return {p:[Math.cos(a)*(d+fold),h,Math.sin(a)*(w+fold)],n:unit([Math.cos(a)/d,.08,Math.sin(a)/w]),uv:[t,detailed?(h-.865)/.635:(h-.88)/.62],j:[1,0],w:Math.max(0,Math.min(1,(h-.86)/.25)),c:jersey};}),high?40:24);
  for(const [upper,lower,arm] of [[2,3,true],[4,5,true],[6,7,false],[8,9,false]]){
   const a=origins[upper],b=origins[lower],c=ends[lower],rows=[];
-  for(let k=0;k<=8;k++){
-   const t=k/8,u=t<.5?t*2:(t-.5)*2,from=t<.5?a:b,to=t<.5?b:c,center=from.map((n,i)=>n+(to[i]-n)*u),axis=unit(sub(to,from)),x=unit(sub([1,0,0],axis.map(n=>n*axis[0]))),z=cross(x,axis);
+  for(let k=0;k<=(high?14:8);k++){
+   const t=k/(high?14:8),u=t<.5?t*2:(t-.5)*2,from=t<.5?a:b,to=t<.5?b:c,center=from.map((n,i)=>n+(to[i]-n)*u),axis=unit(sub(to,from)),x=unit(sub([1,0,0],axis.map(n=>n*axis[0]))),z=cross(x,axis);
    const radius=arm?(keeper?.163:.145)-t*.053:.18-t*.06,blend=Math.max(0,Math.min(1,(t-.37)/.26));
-   rows.push(s=>{const angle=s*Math.PI*2,n=x.map((v,i)=>v*Math.cos(angle)+z[i]*Math.sin(angle));return {p:center.map((v,i)=>v+n[i]*radius),n,j:[upper,lower],w:1-blend,c:!arm&&t<.5?black:t>.70&&t<.85?trim:jersey};});
+   rows.push(s=>{const angle=s*Math.PI*2,n=x.map((v,i)=>v*Math.cos(angle)+z[i]*Math.sin(angle));return {p:center.map((v,i)=>v+n[i]*radius),n,uv:detailed&&arm?[.22+(s-.5)*.13,.88-t*.78]:[-1,-1],j:[upper,lower],w:1-blend,c:!arm&&t<.5?black:t>.70&&t<.85?trim:jersey};});
   }
-  surface(rows,12);
+  surface(rows,high?20:12);
  }
  // A fitted collar and shoulder panels give the jersey a hockey silhouette
  // without increasing the rig or depending on a licensed equipment texture.
  surface([[1.48,.12,.15],[1.515,.10,.13]].map(([h,d,w])=>t=>({p:[.01+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2),.3,Math.sin(t*Math.PI*2)]),j:[1,1],c:trim})),12);
  surface([[.69,.20,.28],[.82,.25,.31],[.94,.21,.29]].map(([h,d,w])=>t=>({p:[Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,0,Math.sin(t*Math.PI*2)/w]),j:[0,1],w:1,c:black})),16);
- ellipsoid([.01,1.55,0],[.085,.14,.09],skin,1);ellipsoid([.045,1.665,0],[.145,.18,.15],skin,10,16,8);
+ ellipsoid([.01,1.55,0],[.085,.14,.09],skin,1);ellipsoid([.045,1.665,0],[.145,.18,.15],skin,10,high?28:16,high?14:8);
  if(!keeper)for(const side of [-1,1])ellipsoid([.005,1.65,side*.15],[.024,.047,.026],skin,10,8,4);
  ellipsoid([.187,1.648,0],[.036,.045,.032],skin,10,8,4);
  for(const side of [-1,1])quad([.19,1.699,side*.038],[.19,1.699,side*.082],[.19,1.683,side*.082],[.19,1.683,side*.038],black,10);
  quad([.18,1.574,-.039],[.18,1.574,.039],[.18,1.565,.039],[.18,1.565,-.039],[.40,.27,.23],10);
+ if(high){
+  // Cheekbones, jaw, brows, nose bridge and lips remain attached to the head.
+  for(const side of [-1,1]){
+   ellipsoid([.117,1.612,side*.088],[.050,.062,.052],skin,10,12,6);
+   ellipsoid([.160,1.700,side*.064],[.028,.017,.052],skin,10,12,5);
+   ellipsoid([.183,1.686,side*.061],[.013,.008,.014],[.12,.18,.20],10,8,4);
+  }
+  ellipsoid([.176,1.672,0],[.029,.060,.028],skin,10,12,8);
+  ellipsoid([.143,1.563,0],[.042,.027,.065],skin,10,12,5);
+ }
  const helmet=keeper?white:jersey;
- surface([[1.64,.15,.18],[1.73,.205,.21],[1.82,.20,.205],[1.89,.14,.15],[1.915,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),24);
+ surface([[1.64,.15,.18],[1.73,.205,.21],[1.82,.20,.205],[1.89,.14,.15],[1.915,.005,.005]].map(([h,d,w])=>t=>({p:[-.015+Math.cos(t*Math.PI*2)*d,h,Math.sin(t*Math.PI*2)*w],n:unit([Math.cos(t*Math.PI*2)/d,.5,Math.sin(t*Math.PI*2)/w]),j:[10,10],c:helmet})),high?40:24);
  for(const side of [-1,1]){tube([-.12,1.72,side*.18],[.11,1.52,side*.14],.017,black,10);for(const x of [-.07,.035])box([x,1.894,side*.095],[.065,.012,.035],black,10);}
  if(keeper){
   for(const z of [-.15,0,.15])tube([.23,1.51,z],[.25,1.80,z],.012,steel,10);
@@ -89,12 +105,15 @@ function build(kind){
    for(const z of [-.105,.105])tube(pad(bottom,.24,z),pad(top,.24,z),.006,steel,7+i*2);
   }
  }
- counts.push({kind,vertices:P.length/3,triangles:I.length/3});
- return {name:kind,primitives:[{attributes:{POSITION:accessor(P,'VEC3',5126),NORMAL:accessor(N,'VEC3',5126),TEXCOORD_0:accessor(UV,'VEC2',5126),JOINTS_0:accessor(J,'VEC4',5123),WEIGHTS_0:accessor(W,'VEC4',5126),COLOR_0:accessor(C,'VEC3',5126)},indices:accessor(I,'SCALAR',5123),material:0}]};
+ if(detailed)for(let i=0;i<I.length;i+=3){const [a,b,c]=I.slice(i,i+3).map(v=>v*3),normal=cross(sub(P.slice(b,b+3),P.slice(a,a+3)),sub(P.slice(c,c+3),P.slice(a,a+3)));if(dot(normal,N.slice(a,a+3))<0)[I[i+1],I[i+2]]=[I[i+2],I[i+1]];}
+ counts.push({kind:modelName,vertices:P.length/3,triangles:I.length/3});
+ return {name:modelName,primitives:[{attributes:{POSITION:accessor(P,'VEC3',5126),NORMAL:accessor(N,'VEC3',5126),TEXCOORD_0:accessor(UV,'VEC2',5126),JOINTS_0:accessor(J,'VEC4',5123),WEIGHTS_0:accessor(W,'VEC4',5126),COLOR_0:accessor(C,'VEC3',5126)},indices:accessor(I,'SCALAR',5123),material:0}]};
 }
-const meshes=['skater','goalie','goalieR'].map(build),bind=accessor(names.flatMap((_,i)=>inverse(mat(i))),'MAT4',5126);
+const meshes=(detailed?['skater','goalie','goalieR','skaterLod','goalieLod','goalieRLod']:['skater','goalie','goalieR']).map(build),bind=accessor(names.flatMap((_,i)=>inverse(mat(i))),'MAT4',5126);
 const nodes=names.map((name,i)=>({name,matrix:parents[i]<0?mat(i):multiply(inverse(mat(parents[i])),mat(i)),...(parents.some(p=>p===i)?{children:parents.flatMap((p,j)=>p===i?[j]:[])}:{})}));
 for(let i=0;i<meshes.length;i++)nodes.push({name:meshes[i].name,mesh:i,skin:0});
 const gltf={asset:{version:'2.0',generator:'Hockey Manager original player authoring script',copyright:'Original project asset; no third-party models or animations.'},scene:0,scenes:meshes.map((m,i)=>({name:m.name,nodes:[0,names.length+i]})),nodes,skins:[{skeleton:0,joints:names.map((_,i)=>i),inverseBindMatrices:bind}],meshes,materials:[{name:'Team and equipment',pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:0,roughnessFactor:.87},doubleSided:true}],buffers:[{byteLength:offset,uri:'data:application/octet-stream;base64,'+Buffer.concat(chunks).toString('base64')}],bufferViews:views,accessors};
-const json=JSON.stringify(gltf);fs.writeFileSync(path.join(root,'assets/models/hockey-uniform.gltf'),json+'\n');fs.writeFileSync(path.join(root,'match-player-asset.js'),"'use strict';\n// Generated by scripts/build-hockey-model.cjs. Offline copy of assets/models/hockey-uniform.gltf.\nconst HockeyPlayerAsset="+json+';\n');
+const json=JSON.stringify(gltf),file=detailed?'hockey-broadcast':'hockey-uniform';
+fs.writeFileSync(path.join(root,'assets/models/'+file+'.gltf'),json+'\n');
+fs.writeFileSync(path.join(root,detailed?'assets/models/hockey-broadcast.js':'match-player-asset.js'),"'use strict';\n// Generated by scripts/build-hockey-model.cjs"+(detailed?' --broadcast':'')+(detailed?". Original offline glTF model.":". Offline copy of assets/models/hockey-uniform.gltf.")+"\nconst "+(detailed?'HockeyBroadcastAsset':'HockeyPlayerAsset')+'='+json+';\n');
 console.log(JSON.stringify({models:counts,joints:names.length,bytes:offset}));

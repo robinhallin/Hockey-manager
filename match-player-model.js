@@ -26,7 +26,8 @@ const HockeyPlayerModel=(()=>{
   const yaw=(p,angle)=>matrix(p,[Math.cos(angle),0,Math.sin(angle)],[0,1,0],[-Math.sin(angle),0,Math.cos(angle)]);
   const head=yaw(u(.02,.47+(m.headRise||0),0),m.headAngle??m.torsoAngle),shaft=unit(sub(m.shaftTop,m.heel||m.blade));
   const hands=m.arms.map(a=>a.catching?yaw(a.hand,m.torsoAngle):frame(a.hand,a.hand.map((v,i)=>v+shaft[i]),forward));
-  return [pelvis,chest,...m.arms.flatMap(a=>[frame(a.shoulder,a.elbow,forward),frame(a.elbow,a.hand,forward)]),...m.legs.flatMap(l=>[frame(l.hip,l.knee,forward),frame(l.knee,l.ankle,forward)]),head,...hands,...m.legs.map((l,i)=>yaw(l.ankle,m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1))].map((p,i)=>multiply(p,model().bind.subarray(i*16,i*16+16)));
+  const feet=m.legs.map((l,i)=>{const a=m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1,p=m.footPitches?.[i]||0,c=Math.cos(a),s=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);return matrix(l.ankle,[c*cp,-sp,s*cp],[c*sp,cp,s*sp],[-s,0,c]);});
+  return [pelvis,chest,...m.arms.flatMap(a=>[frame(a.shoulder,a.elbow,forward),frame(a.elbow,a.hand,forward)]),...m.legs.flatMap(l=>[frame(l.hip,l.knee,forward),frame(l.knee,l.ankle,forward)]),head,...hands,...feet].map((p,i)=>multiply(p,model().bind.subarray(i*16,i*16+16)));
  }
  function mesh(actors,poses,kits,reuse){
   const size=actors.reduce((sum,a)=>sum+model(kind(a)).vertices,0)*11,out=reuse?.length===size?reuse:new Float32Array(size),height=atlasRows(actors);let n=0;

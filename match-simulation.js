@@ -4,6 +4,7 @@
  * Phase transitions, player motion and puck flights share one authoritative event stream.
  */
 const StudioHockey = (() => {
+  const skating=typeof HockeyMotion!=='undefined'?HockeyMotion:typeof require==='function'?require('./match-broadcast-motion.js'):null;
   const STEP=.1, clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   const progress=(side,x)=>side===0?x:60-x;
@@ -385,35 +386,45 @@ const StudioHockey = (() => {
         a.motion.drive=(m?.drive||0)+(drive-(m?.drive||0))*ease;
         a.motion.brake=(m?.brake||0)+(brake-(m?.brake||0))*ease;
         a.motion.curve=(m?.curve||0)+(curve-(m?.curve||0))*ease;
+        if(skating)Object.assign(a.motion,skating.advance(m,{speed,acceleration:a.motion.acceleration,turn:a.motion.turn,distance:Math.max(0,(a.travelled||0)-(m?.distance??a.travelled??0)),height:a.player.height||185,energy:this.energyLevel(a),dt}));
+        a.motion.distance=a.travelled||0;
         const phase=(a.travelled||0)*Math.PI/1.6,anchor=!a.skateState&&a.id===this.carrier?-.65:0;
         a.footPlants=[-1,1].map((side,i)=>{
-          const cycle=Math.sin(phase+(side===1?Math.PI:0)),old=a.footPlants?.[i];
-          if(cycle<=0||speed<.25)return null;
-          if(old&&this.wall-old.at<.45&&distance(a,old)<1.1){
+          const stroke=skating?.cycle(a.travelled||0,side,{...a.motion}),cycle=stroke?stroke.load:Math.sin(phase+(side===1?Math.PI:0)),old=a.footPlants?.[i];
+          if(cycle<.5||speed<.25||a.motion.drive<.05)return null;
+          if(old&&this.wall-old.at<.55&&distance(a,old)<1.1){
             // A blade slides along its edge, while resisting sideways drift.
-            const angle=old.angle??heading,along=(a.vx*Math.cos(angle)+a.vy*Math.sin(angle))*dt;
+            const desired=heading+(stroke?.edge||0),angle=(old.angle??heading)+wrap(desired-(old.angle??heading))*Math.min(1,dt*8),along=(a.vx*Math.cos(angle)+a.vy*Math.sin(angle))*dt;
             return {...old,x:old.x+Math.cos(angle)*along,y:old.y+Math.sin(angle)*along,angle};
           }
-          const forward=anchor+.08,lateral=side*.28;
-          return {x:a.x+Math.cos(heading)*forward-Math.sin(heading)*lateral,y:a.y+Math.sin(heading)*forward+Math.cos(heading)*lateral,angle:heading,at:this.wall};
+          const forward=anchor+(stroke?.forward??.08),lateral=stroke?.lateral??side*.28;
+          return {x:a.x+Math.cos(heading)*forward-Math.sin(heading)*lateral,y:a.y+Math.sin(heading)*forward+Math.cos(heading)*lateral,angle:heading+(stroke?.edge||0),at:this.wall};
         });
       }
     }
     recordAction(a,kind,target,style=null){
-      a.presentationAction={kind,at:this.wall,origin:{...this.puck},target:{...target},style};
+      a.presentationAction={kind,at:this._contactWall??this.wall,origin:{...this.puck},target:{...target},style};
       this.effect('stick',a.side,kind==='shot'?1:kind==='receive'?.3:.55);
     }
     recordContact(a,kind,spot,strength=.5,opponent=null){
-      a.contactAction={kind,at:this.wall,spot:{...spot},strength:clamp(strength,0,1),opponent:opponent?.id||null,
+      a.contactAction={kind,at:this._contactWall??this.wall,spot:{...spot},strength:clamp(strength,0,1),opponent:opponent?.id||null,
         direction:opponent?Math.atan2(opponent.y-a.y,opponent.x-a.x):Math.atan2(spot.y-a.y,spot.x-a.x)};
     }
     effect(kind,side=this.owner,strength=1){
       this.effectSequence=(this.effectSequence||0)+1;
-      this.effects=[...(this.effects||[]).filter(e=>this.wall-e.at<3).slice(-15),{id:this.effectSequence,at:this.wall,kind,side,strength,x:this.puck.x,y:this.puck.y,z:this.puck.z||0}];
+      this.effects=[...(this.effects||[]).filter(e=>this.wall-e.at<3).slice(-15),{id:this.effectSequence,at:this._contactWall??this.wall,kind,side,strength,x:this.puck.x,y:this.puck.y,z:this.puck.z||0}];
+    }
+    recordPuckPoint(at,p=this.puck){
+      if(!Number.isFinite(at)||at<0)return;
+      const row={at,x:p.x,y:p.y,z:p.z||0};
+      const path=this.puckPath??=[];
+      if(path.length&&Math.abs(path.at(-1).at-at)<1e-7)path[path.length-1]=row;
+      else if(!path.length||at>path.at(-1).at)path.push(row);
+      while(path.length>32||path.length&&at-path[0].at>.4)path.shift();
     }
     recordKeeper(goalie,f,saved){
       if(!goalie)return;
-      goalie.keeperAction={kind:saved?'save':'attempt',at:this.wall,style:f.shot.keeperContact?.style||keeperStyle(goalie,this.puck,f.start),contact:{...this.puck},origin:{x:goalie.x,y:goalie.y},facing:Math.atan2(f.start.y-goalie.y,f.start.x-goalie.x)};
+      goalie.keeperAction={kind:saved?'save':'attempt',at:this._contactWall??this.wall,style:f.shot.keeperContact?.style||keeperStyle(goalie,this.puck,f.start),contact:{...this.puck},origin:{x:goalie.x,y:goalie.y},facing:Math.atan2(f.start.y-goalie.y,f.start.x-goalie.x)};
       if(saved){f.shot.saveStyle=goalie.keeperAction.style;this.effect('save',goalie.side);}
     }
     installUnit(side){
@@ -450,7 +461,7 @@ const StudioHockey = (() => {
       if(turnover){this.stats[a.side].turnovers++;this.say('turnover',a.player.name+' läser spelet och vinner pucken.',a.side,true);}
     }
     faceoffPositions(){
-      this.presentationReset=(this.presentationReset||0)+1;
+      this.presentationReset=(this.presentationReset||0)+1;this.puckPath=[];
       for(const side of [0,1]){
         this.teams[side].markingPlan=null;
         const skaters=this.skaters(side),center=skaters.find(a=>a.role==='C')||[...skaters].sort((a,b)=>this.attribute(b,'faceoffs')-this.attribute(a,'faceoffs'))[0],dx=side===0?-1:1;
@@ -1102,7 +1113,7 @@ const StudioHockey = (() => {
       this.rememberTouch(f.shot.playerId,f.shot.player,f.start.y);
       this.say('rebound',name+(safe?' styr returen ut mot sargen.':' lämnar en lös retur i slottet!'),f.side,true);
     }
-    resolveFlight(dt){return this.advanceFlight(dt);}
+    resolveFlight(dt,startWall=this.wall-dt){return this.advanceFlight(dt,startWall);}
     flightContact(f,from,to){
       if(!f.contactVersion||f.preRealism||f.shot&&!f.shot.liveResolution)return null;
       const position=t=>({x:f.start.x+(f.end.x-f.start.x)*t/f.duration,y:f.start.y+(f.end.y-f.start.y)*t/f.duration,z:flightVertical(f,t).z});
@@ -1154,16 +1165,23 @@ const StudioHockey = (() => {
         this.say(bobble?'bobble':'loose',a.player.name+(bobble?' får en studsande puck på klubban.':' får inte kontroll på pucken.'),a.side);
       }
     }
-    advanceFlight(dt){
+    advanceFlight(dt,startWall=this.wall-dt){
+      const prior=this._contactWall;
+      try{return this.advancePuckFlight(dt,startWall);}finally{if(prior===undefined)delete this._contactWall;else this._contactWall=prior;}
+    }
+    advancePuckFlight(dt,startWall){
       if(this.flight?.keeperVersion===2&&!this.flight.keeperPassed){this.updateKeeperPlane(this.flight);this.readKeeper(this.flight,Math.min(dt,this.flight.duration-this.flight.elapsed));}
       const f=this.flight;if(!f)return;
       const before={...this.puck};
       const oldElapsed=f.elapsed,left=Math.max(0,f.elapsed+dt-f.duration);
+      this.recordPuckPoint(startWall,before);
       const contact=this.flightContact(f,oldElapsed,Math.min(f.duration,f.elapsed+dt));
       f.elapsed=contact?.elapsed??Math.min(f.duration,f.elapsed+dt);let fraction=Math.min(1,f.elapsed/f.duration);
       this.puck={x:f.start.x+(f.end.x-f.start.x)*fraction,y:f.start.y+(f.end.y-f.start.y)*fraction};
-      const vertical=flightVertical(f);
+      const vertical=flightVertical(f);this._contactWall=startWall+f.elapsed-oldElapsed;
       if(f.vertical){this.puck.z=vertical.z;if(vertical.bounces>flightVertical(f,oldElapsed).bounces)this.effect('ice',f.side,.3);}
+      this._contactWall=startWall+f.elapsed-oldElapsed;
+      this.recordPuckPoint(this._contactWall);
       if(this.checkIcing(before))return;
       if(contact){
         const velocity={x:(f.end.x-f.start.x)/f.duration,y:(f.end.y-f.start.y)/f.duration,z:vertical.vz};
@@ -1178,7 +1196,7 @@ const StudioHockey = (() => {
         }
         const inward=Math.min(0,velocity.x*contact.nx+velocity.y*contact.ny+velocity.z*contact.nz),loss=contact.actor?.24:.65;
         f.contactVelocity=contact.actor?{x:(velocity.x-2*inward*contact.nx)*loss,y:(velocity.y-2*inward*contact.ny)*loss,z:(velocity.z-2*inward*contact.nz)*loss}:surfaceBounce(velocity,contact);
-        if(f.shot)f.shot.contact={kind:contact.kind,actor:contact.actor?.id||null,spot:{...this.puck},at:this.wall};
+        if(f.shot)f.shot.contact={kind:contact.kind,actor:contact.actor?.id||null,spot:{...this.puck},at:this._contactWall};
         if(!contact.actor)this.effect(contact.kind==='board'?'board':contact.kind==='net'?'stick':'post',f.side,contact.kind==='net'?.2:.9);
         if(!contact.actor&&['post','bar'].includes(contact.kind)&&f.kind==='shot'){
           const v=f.contactVelocity,goalX=progress(f.side,56.5),time=(goalX-this.puck.x)/v.x;
@@ -1188,7 +1206,7 @@ const StudioHockey = (() => {
           if(time>1e-6&&time<.12&&Math.abs(y-15)<.832&&z<1.15){
             f.shot.outcome='goal';f.shot.woodwork=contact.kind;f.shot.miss=null;
             this.flight={...f,start:{...this.puck},end:{x:goalX,y,z},vertical:{z:this.puck.z||0,vz:v.z},elapsed:0,duration:time,goalLine:null,keeperPassed:true,framePassed:true};
-            const remaining=dt-(f.elapsed-oldElapsed);if(remaining>1e-9)this.advanceFlight(remaining);return;
+            const remaining=dt-(f.elapsed-oldElapsed);if(remaining>1e-9)this.advanceFlight(remaining,this._contactWall);return;
           }
         }
         fraction=1;
@@ -1239,11 +1257,11 @@ const StudioHockey = (() => {
             this.flight={...f,start:{...this.puck},end:{...f.goalLine},vertical:{z:vertical.z,vz:vertical.vz},elapsed:0,duration:Math.max(.001,f.goalDuration??distance(this.puck,f.goalLine)/f.velocity),keeperPassed:true};
             // Large explicit steps still resolve once, without re-entering
             // the career ledger or the production deflection wrappers.
-            if(left>1e-9)this.advanceFlight(left);
+            if(left>1e-9)this.advanceFlight(left,this._contactWall);
             return;
           }
         }else if(shot.outcome==='save')this.recordKeeper(goalie,f,true);
-        shot.height=this.puck.z||0;
+        shot.height=this.puck.z||0;shot.resolvedAt=this._contactWall;
         this.shots.push(shot);this.stats[f.side].attempts++;
         const shooter=this.teams[f.side].players.find(p=>f.side+':'+p.id===shot.playerId);this.playerEvent({player:shooter},'xG',shot.quality);
         if(shot.blockerId)this.playerEvent(this.actor(shot.blockerId),'blocks');
@@ -1274,7 +1292,7 @@ const StudioHockey = (() => {
       if(contact&&['board','net'].includes(contact.kind)&&!this.carrier&&!this.flight&&!this.stoppage){
         this.rimPath=null;
         this.puck.x+=contact.nx*.002;this.puck.y+=contact.ny*.002;this.puck.z=Math.max(0,(this.puck.z||0)+contact.nz*.002);
-        const remaining=dt-(f.elapsed-oldElapsed);if(remaining>1e-9)this.moveFreePuck(remaining);
+        const remaining=dt-(f.elapsed-oldElapsed);if(remaining>1e-9)this.moveFreePuck(remaining,this._contactWall);
       }
     }
     glideFrom(f,factor=1){
@@ -1290,8 +1308,13 @@ const StudioHockey = (() => {
         this.icingCandidate=null;
       }return false;
     }
-    moveFreePuck(dt){
+    moveFreePuck(dt,startWall=this.wall-dt){
+      const prior=this._contactWall;
+      try{return this.advanceFreePuck(dt,startWall);}finally{if(prior===undefined)delete this._contactWall;else this._contactWall=prior;}
+    }
+    advanceFreePuck(dt,startWall){
       const v=this.puckVelocity;if(!v||!Number.isFinite(dt)||dt<=0)return;
+      this.recordPuckPoint(startWall);
       const rest=()=>{this.puckVelocity=null;this.rimPath=null;this.icingCandidate=null;};
       // Fixed small slices preserve save/reload and split-step equivalence.
       // Every impact consumes only the time spent reaching its actual surface.
@@ -1314,6 +1337,7 @@ const StudioHockey = (() => {
           const travelled=travel*(contact?.t??1),spent=contact?(travel>1e-9?Math.min(step,2*travelled/Math.max(.001,speed+Math.sqrt(Math.max(0,speed*speed-3.6*travelled)))):step*contact.t):step;
           const flight=puckVertical(initial,spent),fraction=contact?.t??1;
           this.puck={x:before.x+(end.x-before.x)*fraction,y:before.y+(end.y-before.y)*fraction,z:flight.z};
+          this._contactWall=startWall+dt-remaining-left+spent;this.recordPuckPoint(this._contactWall);
           const scale=speed?Math.max(0,speed-1.8*spent)/speed:0;v.x*=scale;v.y*=scale;v.z=flight.vz;
           if(flight.bounces)this.effect('ice',this.owner,.3);
           if(this.checkIcing(before))return;
@@ -1349,7 +1373,9 @@ const StudioHockey = (() => {
       if(choice.kind==='shoot'){
         const context=this.shotContext(a);
         if(context.oneTimer){this.shoot(a);return;}
-        const delay=context.type==='Slagskott'?.32:.18;
+        // Contact is a fixed-step event. Use its actual scheduled timestamp in
+        // the rig too; .18/.32 windups used to finish before the .2/.4 release.
+        const delay=Math.ceil((context.type==='Slagskott'?.32:.18)/STEP)*STEP;
         a.shotPreparation={at:this.wall,releaseAt:this.time+delay,duration:delay,style:context.type==='Slagskott'?'slap':'wrist',target:point(a.side,56.5,15)};
         a.duty='Förbereder avslutet';this.decision=delay;return;
       }
@@ -1384,7 +1410,7 @@ const StudioHockey = (() => {
     step(){
       if(this.finished)return;
       this.upgrade();
-      const dt=STEP;this.wall+=dt;this.tick++;
+      const dt=STEP;this.recordPuckPoint(this.wall);this.wall+=dt;this.tick++;
       for(const g of this.actors.filter(a=>a.role==='G'))this.updateKeeperBody(g,dt);
       if(this.stoppage>0){
         this.stoppage-=dt;
@@ -1435,7 +1461,11 @@ const StudioHockey = (() => {
       const f=this.flight;
       // Presentation receives observed flight data, never hidden outcome rolls.
       return {time:this.time,wall:this.wall,reset:this.presentationReset||0,score:[...this.score],phase:this.phase,caption:this.caption,eventType:this.eventType,puck:{...this.puck},carrier:this.carrier,owner:this.owner,
+        periodStart:this.periodStart||0,period:Math.min(4,1+Math.floor((this.periodStart||0)/1200)),
+        strength:[0,1].map(side=>this.skaters(side).length),
+        penalties:(this.penaltyList?.()||(this.penalty?[this.penalty]:[])).map(p=>({side:p.side,name:p.name,remaining:p.remaining})),
         effects:(this.effects||[]).filter(e=>this.wall-e.at<3).map(e=>({...e})),
+        ...(this.puckPath?.length?{puckPath:[...this.puckPath.filter(p=>this.wall-p.at<=.4).map(p=>({...p})),{at:this.wall,x:this.puck.x,y:this.puck.y,z:this.puck.z||0}]}:{}),
         actors:this.actors.map(a=>({id:a.id,side:a.side,role:a.role,name:a.player.name,number:a.player.jerseyNumber||this.teams[a.side].players.findIndex(p=>p.id===a.player.id)+1,shoots:a.player.shoots||null,x:a.x,y:a.y,vx:a.vx,vy:a.vy,travelled:a.travelled||0,duty:a.duty,status:a.status,
           energy:this.energyLevel(a),height:a.player.height||null,weight:a.player.weight||null,markedThreat:a.markedThreat||null,target:{...a.target},
           ...(a.footPlants?{footPlants:a.footPlants.map(p=>p?{...p}:null)}:{}),
@@ -1453,19 +1483,18 @@ const StudioHockey = (() => {
         flight:f?{kind:f.kind,start:{...f.start},end:{...f.end},from:f.from??f.shot?.playerId??null,to:f.to??null,side:f.side,elapsed:f.elapsed,duration:f.duration}:null};
     }
     capture(){
-      if(this.tick%2!==0)return;
       const frame=this.presentationFrame();
       if(Math.abs((this.history.at(-1)?.wall??-Infinity)-frame.wall)<1e-7)this.history[this.history.length-1]=frame;
       else this.history.push(frame);
-      if(this.history.length>150)this.history.shift();
-      if(this.pendingReplayShot){this.latestReplay={shot:this.pendingReplayShot,frames:this.history.slice(-70)};this.replayTailUntil=this.wall+.8;this.pendingReplayShot=null;}
+      if(this.history.length>300)this.history.shift();
+      if(this.pendingReplayShot){this.latestReplay={shot:this.pendingReplayShot,frames:this.history.filter(f=>this.wall-f.wall<14)};this.replayTailUntil=this.wall+.8;this.pendingReplayShot=null;}
       else if(this.latestReplay&&this.replayTailUntil){
         // Keep the actually observed recovery after a shot, without mutating a
         // replay already being viewed or inventing future frames while paused.
         if(this.wall>this.replayTailUntil+1e-7||this.phase==='faceoff')this.replayTailUntil=null;
         // Hydration rebuilds history at the saved tick. It is not a new tick
         // and must not append the same frame to the saved replay a second time.
-        else if(frame.wall>(this.latestReplay.frames.at(-1)?.wall??-Infinity)+1e-7)this.latestReplay={shot:this.latestReplay.shot,frames:[...this.latestReplay.frames.slice(-69),frame]};
+        else if(frame.wall>(this.latestReplay.frames.at(-1)?.wall??-Infinity)+1e-7)this.latestReplay={shot:this.latestReplay.shot,frames:[...this.latestReplay.frames.filter(f=>frame.wall-f.wall<14),frame]};
       }
     }
     snapshot(){return this.history.at(-1);}

@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
 test('3D interpolation follows actual player IDs and leaves snapshots unchanged',()=>{
  const previous={time:10,puck:{x:5,y:7},actors:[{id:'a',x:4,y:6},{id:'b',x:20,y:21}]};
  const frame={time:10.2,carrier:'b',puck:{x:9,y:11},actors:[{id:'b',x:22,y:23},{id:'c',x:40,y:15},{id:'a',x:6,y:8}]};
@@ -130,7 +130,7 @@ test('tracking eases in simulation time, freezes at pause and resets at disconti
  assert.equal(renderer.trackPuck({...next,phase:'faceoff'},tracked).x,34,'faceoff resets camera');
 });
 test('zoom and tracking keep the actual puck visible through fast changes and at every board',()=>{
- for(const mode of ['tv','overhead','follow'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
+ for(const mode of ['tv','overhead','follow','rinkside'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
   let prior=null,time=0;
   for(const x of [0,15,60,45,30,3.5,56.5])for(const y of [0,15,30,7,23]){
    const frame={time:time+=.1,phase:'attack',puck:{x,y}},view=renderer.cameraFrame(ratio,mode,frame,prior,zoom);prior=view.tracked;
@@ -186,7 +186,7 @@ test('joint lengths and two-handed stick grip hold through real skating, passes 
     assert.ok(Math.abs(separation(p.heel,arm.hand)+separation(arm.hand,p.shaftTop)-1.38)<1e-6,'gloves stay on the straight shaft');
    }
    assert.ok(Math.abs(separation(p.heel,p.shaftTop)-1.38)<1e-6);assert.ok(p.feet.every(foot=>foot[1]>=.12));
-   if(a.id===frame.carrier&&!p.windup)assert.ok(separation(p.blade,[frame.puck.x,.08,frame.puck.y])<1e-6,'carried puck stays on the blade outside the recorded backswing');
+   if(a.id===frame.carrier&&!p.windup)assert.ok(separation(p.blade,[frame.puck.x,.08+(frame.puck.z||0),frame.puck.y])<1e-6,'carried puck stays on the blade outside the recorded backswing, including a lifted reception');
   }
  }
  assert.ok(poses>1000);for(const state of ['skating','gliding','backward','braking','crossover'])assert.ok(states.has(state),state+' occurs in a real sequence');
@@ -226,7 +226,7 @@ test('replay keeps observed recovery frames immutable and motion survives save/r
  const first=m.latestReplay,original=JSON.stringify(first),ended=first.frames.at(-1).wall;
  for(let i=0;i<4;i++)m.step();
  assert.equal(JSON.stringify(first),original);assert.equal(m.latestReplay.shot,first.shot);assert.ok(m.latestReplay.frames.at(-1).wall>ended);
- assert.ok(m.latestReplay.frames.length<=70);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
+ assert.ok(m.latestReplay.frames.length<=142);assert.ok(m.latestReplay.frames.at(-1).wall-m.latestReplay.frames[0].wall<=14.001);assert.ok(m.latestReplay.frames.every(f=>f.wall<=m.wall),'no unobserved future frames');
  const restored=Object.assign(Object.create(Match.prototype),JSON.parse(JSON.stringify(m))),savedFrame=restored.presentationFrame(),frame=m.presentationFrame();
  assert.deepEqual(savedFrame,frame);
  for(let i=0;i<frame.actors.length;i++)assert.equal(JSON.stringify(renderer.pose(frame,frame.actors[i])),JSON.stringify(renderer.pose(savedFrame,savedFrame.actors[i])));

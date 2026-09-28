@@ -7,8 +7,8 @@ to reproduce the glTF and its bundled offline copy, `match-player-asset.js`.
 
 There are three selectable glTF scenes: a skater, a left-catching goalkeeper
 and a right-catching goalkeeper. All use the same 15-joint skeleton: pelvis,
-chest, upper/lower arms and legs, head, hands and feet. Model vertex counts are
-1,960 / 2,174 / 2,174, with 2,610 / 2,914 / 2,914 triangles respectively.
+chest, upper/lower arms and legs, head, hands and feet. Compact model vertex counts are
+2,142 / 2,308 / 2,308, with 2,954 / 3,138 / 3,138 triangles respectively.
 
 The torso, sleeves and legs have blended skin weights. Helmets, visors/masks,
 segmented gloves, skate boots/laces/runners and goalkeeper pads are attached to
@@ -50,3 +50,27 @@ The arena-graphics refinement smooths helmet/head contours, fits skates more
 closely and bevels keeper pads. The skater has 2,142 vertices and each keeper
 2,308, under the existing per-model budget. Club crests, outlined back numbers,
 names and waist/shoulder striping are cached in the runtime uniform atlas.
+
+
+## Motion/contact revision, 28 September 2026
+
+The broadcast model has 4,682 skater vertices and 5,216 goalkeeper vertices;
+its distant LOD has 2,281 and 2,447 respectively. Reproduce both broadcasts with
+`node scripts/build-hockey-model.cjs --broadcast`. Head, helmet, visor and mask
+geometry are resized together around their bind pivot, keeping the 15 joints
+and equipment attachment intact. Skate joints now include return-stroke pitch.
+
+`match-broadcast-motion.js` is an original set of authored hockey curves, loaded
+before the simulation. Fixed simulation steps record the distance-driven gait
+phase; both ice contacts and the rig sample that same phase. Steady skating,
+coasting, braking, backwards skating and crossovers blend from observed motion.
+This is a stylized, programmatically authored asset set, **not motion capture or
+a finished photorealistic character library**. Hand and leg IK remain analytic;
+there are no licensed external clips hidden in the bundle.
+
+Origin/use rights: these models and movement curves are produced by the
+project's checked-in authoring code for Hockey Manager. No third-party model or
+animation license is required; no separate open-source license is assigned to
+the original project assets here. The third-party Three.js runtime retains its
+MIT license at `assets/vendor/three-LICENSE.txt`. Existing club identity assets
+and their provenance are unchanged by this revision.

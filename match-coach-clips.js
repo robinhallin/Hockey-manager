@@ -32,7 +32,7 @@ function studioObservationClip(id){
  studioReplayState={frames:clip.frames,clip,elapsed:0,lastNow:null,rate:studioReplayRate(null),paused:false,analysis:true,returnView};
  render();matchFocus('career-ice-3d');
 }
-function studioReplayDuration(r=studioReplayState){return r?Math.max(0,r.clip?Number((r.frames.at(-1).wall-r.frames[0].wall).toFixed(6)):(r.frames.length-1)*.2):0;}
+function studioReplayDuration(r=studioReplayState){if(!r?.frames?.length)return 0;const first=r.frames[0],last=r.frames.at(-1);return Math.max(0,Number(((last.wall??last.time)-(first.wall??first.time)).toFixed(6)));}
 function matchClipFollowup(row){
  if(!row.clipMatchId||row.clipMatchId!==state.live?.analysis?.id)return '';
  const query=row.clipQuery||row.coachDecision?.clipQuery;if(!query?.length)return '';

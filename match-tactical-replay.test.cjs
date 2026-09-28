@@ -23,7 +23,7 @@ test('replay pause, seeking, shot jump and overlays never advance or change the 
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();for(let i=0;i<5000&&!studioEngine().latestReplay;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}pauseMatch();studioReplay();");
  const before=app.run('JSON.stringify(state.live)');app.run('studioPauseReplay();studioReplayFrame(1000);studioReplayFrame(3000);');assert.equal(app.run('studioReplayState.elapsed'),0);
  app.run('studioReplayMoment()');assert.ok(app.run('studioReplayState.paused'));assert.ok(app.run('studioReplayState.elapsed')>0);
- app.run('studioSeekReplay(999)');assert.equal(app.run('studioReplayState.elapsed'),app.run('(studioReplayState.frames.length-1)*.2'));
+ app.run('studioSeekReplay(999)');assert.equal(app.run('studioReplayState.elapsed'),app.run('Number((studioReplayState.frames.at(-1).wall-studioReplayState.frames[0].wall).toFixed(6))'));
  assert.equal(app.run('studioReplayPlayLabel()'),'Spela igen');app.run('studioPauseReplay()');assert.equal(app.run('studioReplayState.elapsed'),0);assert.equal(app.run('studioReplayState.paused'),false);
  app.run('studioToggleReplayAnalysis()');assert.equal(app.run('studioReplayState.analysis'),false);
  app.run('studioSeekReplay(-1);studioPauseReplay();studioReplayFrame(5000);studioReplayFrame(5500)');assert.ok(app.run('studioReplayState.elapsed')>0);
