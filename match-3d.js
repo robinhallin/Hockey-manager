@@ -68,7 +68,7 @@ const Match3D = (() => {
    if(p.id==null&&(p.z!=null||q?.z!=null))result.z=mix(q?.z||0,p.z||0,blend);
    if(p.id!=null){
     Object.assign(result,{vx:mix(q?.vx??p.vx??0,p.vx||0,blend),vy:mix(q?.vy??p.vy??0,p.vy||0,blend),travelled:mix(q?.travelled??p.travelled??0,p.travelled||0,blend),contact:holder===p.id?1:0});
-    if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=key==='stopSide'?p.motion[key]:['heading','travel'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
+    if(p.motion){result.motion={...p.motion};if(q?.motion)for(const key of Object.keys(p.motion))result.motion[key]=key==='stopSide'?p.motion[key]:['heading','travel','upperHeading','gazeHeading'].includes(key)?turn(q.motion[key]??p.motion[key],p.motion[key],blend):mix(q.motion[key]??p.motion[key],p.motion[key],blend);}
     if(p.stickControl&&q?.stickControl){result.stickControl={...p.stickControl};for(const k of ['forward','lateral'])result.stickControl[k]=mix(q.stickControl[k],p.stickControl[k],blend);result.stickControl.heading=turn(q.stickControl.heading,p.stickControl.heading,blend);}
     if(p.netFront?.at>wall)result.netFront=q?.netFront?.at<=wall?q.netFront:null;
     // A capture may straddle a release. Never start its follow-through early.
@@ -126,7 +126,7 @@ const Match3D = (() => {
   const age=action?clock-action.at:Infinity,recordedRecovery=age>=0?1-smooth((age-.18)/1.25):0;
   const f=frame.flight,incoming=f?.kind==='shot'&&[0,1].includes(f.side)&&f.side!==a.side&&Math.abs(f.end.x-a.x)<5;
   const body=a.keeperBody, recovery=incoming?0:body?body.drop:recordedRecovery;
-  const physical=a.keeperState&&clock>=a.keeperState.at&&clock-a.keeperState.at<2?a.keeperState:null;
+  const physical=a.keeperState&&clock>=a.keeperState.at?a.keeperState:null;
   const approach=incoming?clamp((9-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/7,0,1):0;
   const facing=Math.atan2(frame.puck.y-a.y,frame.puck.x-a.x);
   const angle=body?body.facing:physical?physical.facing:recovery&&action?turn(facing,action.facing,recovery):facing,catchSide=a.shoots==='R'?1:-1;
@@ -136,12 +136,13 @@ const Match3D = (() => {
   const lower=.16+drop*.42,lean=.13,phase=(a.travelled||0)*Math.PI/1.1,stride=Math.sin(phase)*Math.min(1,speed/2.5)*(1-drop*.8);
   const reachTarget=recovery&&action?action.contact:incoming?f.end:null;
   const lateral=reachTarget?-(reachTarget.x-a.x)*Math.sin(angle)+(reachTarget.y-a.y)*Math.cos(angle):0;
-  const push=body?body.load*.045:physical?0:clamp(lateral*.30,-.35,.35)*Math.max(recovery,approach);
+  const shared=typeof HockeyMotion!=='undefined'&&HockeyMotion.keeper;
+  const push=shared?0:body?body.load*.045:physical?0:clamp(lateral*.30,-.35,.35)*Math.max(recovery,approach);
   const point=(forward,h,side)=>[a.x+Math.cos(angle)*forward-Math.sin(angle)*(side+push),h,a.y+Math.sin(angle)*forward+Math.cos(angle)*(side+push)];
   const torso=point(lean,1.21-lower,0),torsoPoint=(f,h,s)=>point(lean+f,torso[1]+h,s);
   const spread=1-Math.abs(body?.load||0)*.30;
-  const feet=[-1,1].map(side=>point(-drop*.12,.12,side*(.34+drop*.52*spread)+stride*.06));
-  const legs=[-1,1].map((side,i)=>{const hip=point(-.1,.92-lower,side*.18),ankle=[feet[i][0],feet[i][1]+.11,feet[i][2]];return {hip,knee:joint(hip,ankle,point(.65,.5-lower*.4,side*.25),.45,.46),ankle};});
+  let feet=[-1,1].map(side=>point(-drop*.12,.12,side*(.34+drop*.52*spread)+stride*.06));
+  let legs=[-1,1].map((side,i)=>{const hip=point(-.1,.92-lower,side*.18),ankle=[feet[i][0],feet[i][1]+.11,feet[i][2]];return {hip,knee:joint(hip,ankle,point(.65,.5-lower*.4,side*.25),.45,.46),ankle};});
   let glove=point(.48,.98-drop*.26,catchSide*.52),blocker=point(.57,.86-drop*.25,-catchSide*.40),blade=point(.74,.065,-catchSide*.12);
   if(physical&&incoming){glove=point(.4,physical.glove.z,physical.glove.lateral);blocker=point(.4,physical.blocker.z,physical.blocker.lateral);}
   const target=action?[action.contact.x,(action.contact.z||0)+.08,action.contact.y]:null;
@@ -149,16 +150,24 @@ const Match3D = (() => {
   if(target&&recovery&&style==='blocker')blocker=between(blocker,target,recovery);
   if(target&&recovery&&style==='stick')blade=between(blade,target,recovery);
   // The catch hand reaches independently; the blocker remains on the shaft.
-  const arms=[-1,1].map(side=>{
+  let arms=[-1,1].map(side=>{
    const shoulder=torsoPoint(0,.20,side*.35),desired=side===catchSide?glove:blocker,reach=sub(desired,shoulder),length=Math.hypot(...reach);
    const hand=length>.90?shoulder.map((v,i)=>v+reach[i]*.90/length):desired;
    if(side===catchSide)glove=hand;else blocker=hand;
    return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.10,-.06,side*.65),.45,.47),hand,catching:side===catchSide};
   });
+  let equipment=null;
+  if(shared){
+   equipment=HockeyMotion.keeper({drop,load:body?.load||0,catchSide,glove:physical?.glove,blocker:physical?.blocker});
+   const world=p=>point(p[0],p[1],p[2]);
+   feet=equipment.feet.map(world);legs=equipment.legs.map(l=>({hip:world(l.hip),knee:world(l.knee),ankle:world(l.ankle)}));
+   arms=equipment.arms.map(l=>({shoulder:world(l.shoulder),elbow:world(l.elbow),hand:world(l.hand),catching:l.catching}));
+   glove=world(equipment.glove);blocker=world(equipment.blocker);blade=world(equipment.blade);
+  }
   const shaft=unit(sub(blocker,blade)),shaftTop=blocker.map((v,i)=>v+shaft[i]*.38),tip=point(.79,.065,.36*catchSide);
-  if(recovery&&style==='stick')for(let i=0;i<3;i++)tip[i]+=blade[i]-point(.74,.065,-catchSide*.12)[i];
+  if(!shared&&recovery&&style==='stick')for(let i=0;i<3;i++)tip[i]+=blade[i]-point(.74,.065,-catchSide*.12)[i];
   return {keeper:true,speed,angle,release:0,contact:0,drop,stride,lean,lower,point,feet,legs,arms,glove,blocker,blade,tip,shaftTop,torso,torsoAngle:angle,torsoPoint,
-   style,recovery,state:body?.mode|| (recovery?(age<.2?style:'recovering'):approach?(low?'butterfly':'tracking'):speed>.12?'shuffling':'ready')};
+   style,recovery,equipment,state:body?.mode|| (recovery?(age<.2?style:'recovering'):approach?(low?'butterfly':'tracking'):speed>.12?'shuffling':'ready')};
  }
  function pose(frame,a){
   if(a.role==='G')return keeperPose(frame,a);
@@ -219,15 +228,16 @@ const Match3D = (() => {
   const waiting=f?.kind==='pass'&&f.to===a.id&&f.side===a.side;
   const prepare=waiting?clamp((3-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/2,0,1):0;
   const aim=release?releaseAngle:receiving?Math.atan2(action.target.y-a.y,action.target.x-a.x):engagement?Math.atan2(physical.spot.y-a.y,physical.spot.x-a.x):(contact||prepare)&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)>.08?puckAngle:angle;
-  const twist=clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving,engagement));
+  const twist=Number.isFinite(motion.upperHeading)?clamp(Math.atan2(Math.sin(motion.upperHeading-angle),Math.cos(motion.upperHeading-angle)),-.75,.75):clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving,engagement));
+  const upper=typeof HockeyMotion!=='undefined'&&HockeyMotion.upper?HockeyMotion.upper(motion.phase??(a.travelled||0)/3.2,drive,Math.max(contact,prepare,receiving,release,preparing?1:0,engagement),backward):{yaw:0,shoulder:0,elbow:0,grip:0,stick:0};
   const swing=release?(typeof HockeyMotion!=='undefined'?HockeyMotion.action(shooting?action.style:'pass',clamp(age/duration,0,1)):Math.sin(Math.PI*clamp(age/duration,0,1))):0;
   const tackle=engagement&&['check','pin','protect'].includes(physical.kind)?engagement:0;
   const load=typeof HockeyMotion!=='undefined'?HockeyMotion.action('windup',windup):Math.sin(Math.PI*windup);
-  const torsoAngle=angle+twist-hand*swing*(shooting?.28:.12)-hand*load*.4-(posture?.yaw||0)*.35,roll=(posture?.torsoRoll??-curve*.19)+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27,pitch=(posture?.pitch??(.12+drive*.19+brake*.12+fatigue*.08))+tackle*.12+unsteady*.23;
+  const torsoAngle=angle+twist+upper.yaw-hand*swing*(shooting?.28:.12)-hand*load*.4-(posture?.yaw||0)*.35,roll=(posture?.torsoRoll??-curve*.19)+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27,pitch=(posture?.pitch??(.12+drive*.19+brake*.12+fatigue*.08))+tackle*.12+unsteady*.23;
   const bodyWidth=clamp((a.weight||85)/85,.92,1.08),headRise=clamp(((a.height||185)-185)*.003,-.045,.055);
   const torso=point(lean+(posture?.forward||0)*.6,1.20-lower,posture?posture.lateral*.65:curve*.10-Math.sin(phase)*drive*.055);
   const torsoPoint=orientedPoint(torso,torsoAngle,pitch,roll,bodyWidth);
-  let blade=point(1.02,.08,.26*hand);
+  let blade=point(1.02+upper.stick,.08,.26*hand+upper.stick*.35);
   if(preparing){
    // A wrist shot loads the body while the blade keeps controlling the puck.
    // Only the slap backswing leaves the ice, returning to the same puck at
@@ -238,8 +248,9 @@ const Match3D = (() => {
   if(prepare){const direction=unit([frame.puck.x-a.x,0,frame.puck.y-a.y]);blade=between(blade,[a.x+direction[0]*.85,.08,a.y+direction[2]*.85],prepare*.8);}
   if(release){
    const power=shooting?(action.style==='slap'?.72:action.style==='one-timer'?.58:.44):.18;
-   const follow=[action.origin.x+Math.cos(releaseAngle)*swing*.5+Math.sin(releaseAngle)*hand*swing*.18,.08+swing*power,action.origin.y+Math.sin(releaseAngle)*swing*.5-Math.cos(releaseAngle)*hand*swing*.18];
-   blade=between(blade,follow,release);
+   const follow=[action.origin.x+Math.cos(releaseAngle)*swing*.5+Math.sin(releaseAngle)*hand*swing*.18,.08+(action.origin.z||0)+swing*power,action.origin.y+Math.sin(releaseAngle)*swing*.5-Math.cos(releaseAngle)*hand*swing*.18];
+   // Contact starts on the recorded origin, then returns through a smooth arc.
+   blade=between(follow,blade,smooth(age/duration));
   }
   if(contact>.01&&!preparing&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)<1.7)blade=between(blade,[frame.puck.x,.08+(frame.puck.z||0),frame.puck.y],contact);
   if(engagement&&!contact&&['poke','block','tip','bobble','support'].includes(physical.kind))blade=between(blade,[physical.spot.x,.08+(physical.spot.z||0),physical.spot.y],engagement);
@@ -255,13 +266,13 @@ const Match3D = (() => {
   const shaftDirection=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
   const grips=hand===1?[1.23,.87]:[.87,1.23];
   const arms=[-1,1].map((side,i)=>{
-   const shoulder=torsoPoint(0,.20,side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
-   const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i],Math.max(.4,along-span),Math.min(1.36,along+span));
+   const shoulder=torsoPoint(side*upper.shoulder,.20,side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
+   const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i]+side*upper.grip,Math.max(.4,along-span),Math.min(1.36,along+span));
    const hand=heel.map((v,i)=>v+shaftDirection[i]*length);
-   return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14,-.05,side*.68),.40,.42),hand};
+   return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14+side*upper.elbow,-.05,side*.68),.40,.42),hand};
   });
   const state=unsteady>.12?'stumbling':unsteady>.015?'balance-recovery':windup?'windup':engagement?physical.kind:speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
-  const gaze=contact&&a.target?Math.atan2(a.target.y-a.y,a.target.x-a.x):puckAngle,headAngle=torsoAngle+clamp(Math.atan2(Math.sin(gaze-torsoAngle),Math.cos(gaze-torsoAngle)),-.6,.6);
+  const gaze=motion.gazeHeading??(contact&&a.target?Math.atan2(a.target.y-a.y,a.target.x-a.x):puckAngle),headAngle=torsoAngle+clamp(Math.atan2(Math.sin(gaze-torsoAngle),Math.cos(gaze-torsoAngle)),-.6,.6);
   return {keeper,speed,angle,release,receiving,prepare,contact,drop,stride,lean,lower,point,pelvis,pelvisPoint,feet,blade,footAngles,footPitches,footRolls,legs,arms,heel,tip,shaftTop,torso,torsoAngle,torsoPoint,pitch,roll,drive,brake,backward,crossover,state,unsteady,windup,engagement,fatigue,bodyWidth,headRise,headAngle,celebration,style:action?.style};
  }
  const color=hex=>{const h=/^#[\da-f]{6}$/i.test(hex)?hex:'#264663';return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);};

@@ -6,7 +6,7 @@ function betaDownload(text,name,type='application/json') {
  const url=URL.createObjectURL(new Blob([text],{type})), a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function betaPerformanceReport(){
- const names=['render','save','nextDay','nextDayAborted','aiMarket'];
+ const names=['render','save','nextDay','nextDayAborted','aiMarket','autosaveSnapshot','autosaveSerialize','autosavePack','autosaveWrite'];
  return {unit:'ms',sampleWindow:30,metrics:Object.fromEntries(names.map(name=>[name,performanceSummary(name)]))};
 }
 function betaReportText() {

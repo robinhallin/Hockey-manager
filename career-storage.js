@@ -93,3 +93,65 @@ function careerReplaceStored(text,previousText){
   throw error;
  }
 }
+
+// Only periodic match saves use this queue. Explicit save, pause, import and
+// close retain their synchronous contract and invalidate every older snapshot.
+const careerAutosave={worker:null,id:0,timer:null,busy:false,again:false,disabled:false,completed:0,cancelled:0,fallbacks:0,last:null};
+function careerCancelAutosave(){
+ careerAutosave.id++;careerAutosave.again=false;careerAutosave.busy=false;
+ if(careerAutosave.timer!==null)clearTimeout(careerAutosave.timer);
+ careerAutosave.timer=null;
+ if(careerAutosave.worker)careerAutosave.worker.terminate();careerAutosave.worker=null;
+ careerAutosave.cancelled++;
+}
+function careerAutosaveSample(name,value){
+ if(typeof performanceProfile==='undefined'||!Number.isFinite(value))return;
+ const samples=performanceProfile.samples[name]??=[];samples.push(value);if(samples.length>30)samples.shift();
+}
+function careerAutosaveDiagnostics(){return {busy:careerAutosave.busy,queued:careerAutosave.timer!==null||careerAutosave.again,worker:!!careerAutosave.worker,completed:careerAutosave.completed,cancelled:careerAutosave.cancelled,fallbacks:careerAutosave.fallbacks,last:careerAutosave.last};}
+function careerRequestAutosave(){
+ if(careerLoadIssue)return false;
+ if(careerAutosave.busy){careerAutosave.again=true;return true;}
+ if(careerAutosave.timer!==null)return true;
+ careerAutosave.timer=setTimeout(()=>{careerAutosave.timer=null;careerStartAutosave();},0);
+ return true;
+}
+function careerStartAutosave(){
+ if(careerLoadIssue)return;
+ if(typeof Worker==='undefined'||careerAutosave.disabled){careerAutosave.fallbacks++;save({normalize:false});return;}
+ const id=++careerAutosave.id,career=state,started=performanceNow();careerAutosave.busy=true;
+ const finish=(ok,code='')=>{
+  if(id!==careerAutosave.id||state!==career)return;
+  careerAutosave.busy=false;careerSaveError=!ok;careerSaveErrorCode=code;
+  if(ok)careerAutosave.completed++;renderSaveStatus();
+  if(careerAutosave.again){careerAutosave.again=false;careerRequestAutosave();}
+ };
+ try{
+  if(!careerAutosave.worker)careerAutosave.worker=new Worker('career-save-worker.js');
+  const worker=careerAutosave.worker;
+  worker.onerror=()=>{
+   if(id!==careerAutosave.id)return;
+   careerAutosave.disabled=true;worker.terminate();careerAutosave.worker=null;careerAutosave.busy=false;
+   // Unsupported workers retain the old persistence path outside the RAF task.
+   careerAutosave.fallbacks++;save({normalize:false});
+  };
+  worker.onmessage=async({data})=>{
+   if(data.id!==careerAutosave.id||state!==career)return;
+   if(data.error){finish(false,data.code);return;}
+   const startWrite=performanceNow();
+   try{
+    const backend=careerStorageBackend();
+    if(typeof backend.setItemAsync==='function')await backend.setItemAsync(CAREER_SAVE_KEY,data.value);
+    else backend.setItem(CAREER_SAVE_KEY,data.value);
+    if(id!==careerAutosave.id||state!==career)return;
+    if(data.packed)careerPackedKeys.add(CAREER_SAVE_KEY);
+    const writeMS=performanceNow()-startWrite;
+    careerAutosaveSample('autosaveSerialize',data.serializeMS);careerAutosaveSample('autosavePack',data.packMS);careerAutosaveSample('autosaveWrite',writeMS);
+    careerAutosave.last={serializeMS:data.serializeMS,packMS:data.packMS,writeMS,characters:data.characters,packed:data.packed};
+    finish(true);
+   }catch(error){finish(false,error.name);}
+  };
+  worker.postMessage({id,state:career,pack:!(typeof window!=='undefined'&&window.hockeyDesktop)});
+  careerAutosaveSample('autosaveSnapshot',performanceNow()-started);
+ }catch(error){careerAutosave.disabled=true;careerCancelAutosave();careerAutosave.fallbacks++;save({normalize:false});}
+}

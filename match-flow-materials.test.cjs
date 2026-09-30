@@ -1,7 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const ctx=vm.createContext({});for(const f of ['match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
+const Motion=require('./match-broadcast-motion');
+const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),Model=vm.runInContext('HockeyPlayerModel',ctx);
 function setup(side=0){const m=new H.Match(rosters,{seed:381,scenario:'attack',duration:100});m.time=m.wall=20;m.stoppage=0;m.owner=side;for(const a of m.actors)if(a.role!=='G')Object.assign(a,{x:30,y:3+m.skaters(a.side).indexOf(a)*5,vx:0,vy:0});const a=m.skaters(side)[0],d=m.skaters(1-side)[0],g=m.actors.find(a=>a.role==='G'&&a.side!==side);Object.assign(a,{x:H.progress(side,50),y:15});m.carrier=a.id;m.puck={x:a.x,y:a.y};Object.assign(g,m.goalieTarget(1-side,a));return {m,a,d,g};}
 
@@ -56,7 +57,9 @@ test('crossing attackers trigger a coordinated handoff after the read, while a p
 
 test('a sliding butterfly has less remaining pad extension in both contact geometry and the visible stance',()=>{
  const {m,a,g}=setup();m.updateKeeperBody(g,.1);m.random=()=>.5;m.shoot(a);g.keeperState.drop=g.keeperBody.drop=1;g.keeperBody.load=0;
- const angle=g.keeperState.facing,puck={x:g.x-Math.sin(angle)*.79,y:g.y+Math.cos(angle)*.79,z:.25};assert.equal(m.keeperContact(g,puck)?.style,'butterfly');
+ const equipment=load=>Motion.keeper({...g.keeperState,load,catchSide:g.player.shoots==='R'?1:-1}),outer=load=>Math.max(...equipment(load).pads.map(p=>p.center[2]+p.width));
+ const edge=(outer(0)+outer(1))/2;assert.ok(outer(0)>outer(1),'sliding reduces the reachable outer pad edge');
+ const angle=g.keeperState.facing,puck={x:g.x-Math.sin(angle)*edge,y:g.y+Math.cos(angle)*edge,z:.25};assert.equal(m.keeperContact(g,puck)?.style,'butterfly');
  const pose=()=>{const f=m.presentationFrame();return R.pose(f,f.actors.find(a=>a.id===g.id));},standing=pose();g.keeperBody.load=1;
  assert.equal(m.keeperContact(g,puck),null);const moving=pose(),width=p=>Math.hypot(...p.feet[0].map((n,i)=>n-p.feet[1][i]));assert.ok(width(moving)<width(standing));
 });

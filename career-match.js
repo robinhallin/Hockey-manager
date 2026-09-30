@@ -428,7 +428,7 @@ function studioPulse(fromAnimation=false){
  }
  if(goals!==m.hv+m.opp||period!==m.period||!m.running){render();studioLastPaint=now;}
  else if(now-studioLastPaint>500){studioRefresh();studioLastPaint=now;}
- if(now-studioLastSave>5000||!m.running){save();studioLastSave=now;}
+ if(now-studioLastSave>5000||!m.running){if(m.running)careerRequestAutosave();else save();studioLastSave=now;}
  if(!fromAnimation&&m.running&&!m.finished)matchTimer=setTimeout(studioPulse,50);
 }
 function studioFrame(e){return e.presentationFrame();}
@@ -622,6 +622,7 @@ function validateSpatialMatchSave(s){
  for(const a of e.actors||[])if(a.motion)for(const key of ['drive','brake','curve'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||a.motion[key]<(key==='curve'?-1:0)||a.motion[key]>1))bad();
  for(const a of e.actors||[])if(a.motion)for(const key of ['phase','distance'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||a.motion[key]<0))bad();
  for(const a of e.actors||[])if(a.motion){const m=a.motion;if(m.start!==undefined&&(!Number.isFinite(m.start)||m.start<0||m.start>1))bad();if(m.stopSide!==undefined&&![-1,1].includes(m.stopSide))bad();}
+ for(const a of e.actors||[])if(a.motion)for(const key of ['upperHeading','gazeHeading'])if(a.motion[key]!==undefined&&(!Number.isFinite(a.motion[key])||Math.abs(a.motion[key])>Math.PI+.001))bad();
  if(e.battle?.support&&(!Array.isArray(e.battle.support)||e.battle.support.length>2||new Set(e.battle.support.map(r=>r.side)).size!==e.battle.support.length||e.battle.support.some(r=>typeof r.id!=='string'||![0,1].includes(r.side)||!Number.isFinite(r.at)||r.at<0||r.at>e.time+.1)))bad();
  for(const t of e.teams||[])if(t.markingPlan){const p=t.markingPlan;if(!Number.isFinite(p.at)||!Number.isFinite(p.readAt)||p.at<0||p.readAt<p.at||p.readAt-p.at>1||!Array.isArray(p.marks)||p.marks.length>6||p.marks.some(r=>typeof r.id!=='string'||typeof r.threat!=='string')||new Set(p.marks.map(r=>r.id)).size!==p.marks.length||new Set(p.marks.map(r=>r.threat)).size!==p.marks.length)bad();}
  for(const a of e.actors||[])if(a.keeperState){const k=a.keeperState;if(!['at','elapsed','seen','screen','drop','facing','recovery','error'].every(key=>Number.isFinite(k[key]))||k.at<0||k.elapsed<0||k.seen<0||k.drop<0||k.drop>1||k.screen<0||k.screen>1||['glove','blocker'].some(hand=>!k[hand]||!Number.isFinite(k[hand].lateral)||Math.abs(k[hand].lateral)>2||!Number.isFinite(k[hand].z)||k[hand].z<0||k[hand].z>2))bad();}

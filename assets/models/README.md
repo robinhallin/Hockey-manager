@@ -1,5 +1,12 @@
 # Articulated hockey players
 
+The body/contact pass adds original distance-sampled shoulder/arm counter-swing
+and recorded upper-body/gaze orientation in `match-broadcast-motion.js` and the
+shared engine. The same module supplies the goalkeeper's local equipment pose
+to simulation coverage and rendering, with limited hand reach. These are project-
+authored curves and geometric envelopes, not imported clips, mocap or an artist-
+approved animation library. Their use is governed by this repository's license.
+
 `hockey-uniform.gltf` contains original project models, authored by
 `scripts/build-hockey-model.cjs`. No external model, texture, motion capture or
 licensed equipment design is included. Run `node scripts/build-hockey-model.cjs`

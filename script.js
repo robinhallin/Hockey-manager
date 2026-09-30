@@ -1070,6 +1070,7 @@ function normalizeCareerState(){
 }
 function save({normalize=true}={}){
   const perfStart=performanceNow();
+  careerCancelAutosave();
   if(careerLoadIssue){renderSaveStatus();return false;}
   if(normalize)normalizeCareerState();
   try{

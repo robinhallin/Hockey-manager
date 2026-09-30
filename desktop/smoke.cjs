@@ -135,6 +135,14 @@ async function close(){
    assert.ok(rect.width>0 && rect.height>0 && rect.x>=0 && rect.y>=0 && rect.right<=layout.viewport.width+1 && rect.bottom<=layout.viewport.height+1,name+' fits the desktop viewport');
   }
   await require('./match-3d-ui.cjs')(page,out,application);
+  const writeOrder=await page.evaluate(async()=>{
+    pauseMatch();const first=JSON.stringify(state),second=JSON.stringify({...state,money:state.money+1});
+    const pending=window.hockeyDesktop.storage.setItemAsync(CAREER_SAVE_KEY,first);
+    window.hockeyDesktop.storage.setItem(CAREER_SAVE_KEY,second);await pending;
+    const latest=window.hockeyDesktop.storage.getItem(CAREER_SAVE_KEY)===second;
+    const restored=save();return {latest,restored};
+  });
+  assert.deepEqual(writeOrder,{latest:true,restored:true},'a queued old autosave cannot overwrite the later explicit save');
   fs.writeFileSync(path.join(out,'layout-result.json'),JSON.stringify(layout,null,2));
   await page.locator('#match-play').click();await page.waitForFunction(()=>state.live.running);
   // Closing a running match must pause and persist it through the real native close handler.
