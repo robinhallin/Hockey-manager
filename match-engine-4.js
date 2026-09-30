@@ -3,8 +3,12 @@
 // Match Engine 4: additive hockey intelligence around the authoritative Match.
 (function installMatchEngine4PlayerDecisions(){
   if(typeof StudioHockey==='undefined'||StudioHockey.Match.prototype.matchEngine4PlayerDecisionsInstalled)return;
-  const proto=StudioHockey.Match.prototype,baseActionOptions=proto.actionOptions,baseDefenseTargets=proto.defenseTargets,baseDump=proto.dump,baseResolveFlight=proto.resolveFlight,baseTargets=proto.targets;
+  const proto=StudioHockey.Match.prototype,baseActionOptions=proto.actionOptions,basePassingOptions=proto.passingOptions,baseDefenseTargets=proto.defenseTargets,baseDump=proto.dump,baseResolveFlight=proto.resolveFlight,baseTargets=proto.targets;
   const clamp=(n,a,b)=>Math.max(a,Math.min(b,n)),centered=(m,a,k)=>clamp((m.attribute(a,k)-10)/10,-.55,.75);
+  function usableOutlet(m,a,b){
+    const d=StudioHockey.distance(a,b),origin=m.carrier===a.id?m.puck:a;
+    return d>3&&d<16&&m.pressureAt(b)<.38&&m.laneRisk(a,b)<.35&&!StudioHockey.netObstacle(origin,b,.04);
+  }
   function zoneRead(m,a){
     const p=StudioHockey.progress(a.side,a.x),pressure=m.pressureAt(a);
     const mates=m.skaters(a.side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status));
@@ -13,8 +17,37 @@
       offside:ahead.filter(b=>StudioHockey.progress(a.side,b.x)>40).length,
       onsideAhead:ahead.filter(b=>StudioHockey.progress(a.side,b.x)<=40).length,
       support:mates.filter(b=>Math.abs(StudioHockey.progress(a.side,b.x)-p)<9).length,
-      outlets:ahead.filter(b=>StudioHockey.progress(a.side,b.x)<32&&m.pressureAt(b)<.38).length};
+      outlets:mates.filter(b=>StudioHockey.progress(a.side,b.x)<32&&usableOutlet(m,a,b)).length};
   }
+  proto.passingOptions=function(a){
+    const p=StudioHockey.progress(a.side,a.x),origin=this.carrier===a.id?this.puck:a;
+    // A ground pass cannot travel through a goal cage. Swept collision remains
+    // authoritative if players or the puck move after the decision.
+    return basePassingOptions.call(this,a).filter(row=>!StudioHockey.netObstacle(origin,row.b,.04)).map(row=>{
+      if(p<23&&StudioHockey.progress(a.side,row.b.x)<p&&usableOutlet(this,a,row.b)){
+        // Remove the blanket backward-pass penalty only for a genuinely safe
+        // release. No forced D-D touch; transport and other passes still compete.
+        row.score+=.2+this.pressureAt(a)*.08;
+      }
+      return row;
+    });
+  };
+  proto.breakoutSupportTarget=function(a,carrier,anchor){
+    const key=this.owner+':'+this.phase+':'+carrier.id,plan=a.supportPlan;
+    if(plan?.breakout&&plan.anchor&&plan.key===key&&plan.until>this.time&&StudioHockey.distance(plan.anchor,anchor)<2.5)return plan.target;
+    const p=StudioHockey.progress(a.side,anchor.x),back=a.role.endsWith('D');
+    const candidates=[[0,0],[-2,0],[2,0],[0,-2],[0,2]].map(([dx,dy])=>{
+      const target={x:StudioHockey.progress(a.side,clamp(p+dx,4.5,back?Math.max(4.5,StudioHockey.progress(a.side,carrier.x)-1):37.5)),y:clamp(anchor.y+dy,3,27)};
+      const lane=this.laneRisk(carrier,target),origin=this.carrier===carrier.id?this.puck:carrier;
+      const open=Math.min(4,...this.skaters(1-a.side).map(b=>StudioHockey.distance(b,target)))/4;
+      const cost=StudioHockey.distance(a,target)*.018+StudioHockey.distance(anchor,target)*.055;
+      return {target,value:(1-lane)*.55+open*.3-cost-(StudioHockey.netObstacle(origin,target,.04)?2:0)};
+    }).sort((a,b)=>b.value-a.value);
+    const target=candidates[0].target;
+    // Reuse the existing serialized support plan and player's read latency.
+    // Small local adjustments retain role shape; never mirror across the rink.
+    a.supportPlan={key,breakout:true,anchor,until:this.time+clamp(this.readDelay(a),.3,.8),target};return target;
+  };
   proto.actionOptions=function(a){
     const rows=baseActionOptions.call(this,a);
     if(!a||a.role==='G')return rows;
@@ -41,7 +74,14 @@
       if(r.breakout){
         const hard=pressure>.42;
         row.zoneReason=r.outlets?'Söker förstapass genom öppet understöd':'Pressen stänger förstapasset';
-        if(row.kind==='pass')row.value+=r.outlets*.035+(passing+vision+decisions)*.025-(hard&&r.outlets===0?.13:0);
+        if(row.kind==='pass'){
+          const receiver=this.actor(row.to),safe=receiver&&usableOutlet(this,a,receiver);
+          row.value+=(safe?.035:0)+(passing+vision+decisions)*.025-(hard&&!safe?.13:0);
+          if(safe&&StudioHockey.progress(a.side,receiver.x)<p){
+            row.value+=.025+pressure*.04;
+            row.reason='Återspelar till lågt, fritt understöd för att ta sig ur pressen';
+          }
+        }
         if(row.kind==='carry')row.value+=r.outlets?-.025:clamp((control+skating+decisions)*.035-pressure*.12,-.11,.08);
         if(row.kind==='shield')row.value+=(hard?.07:0)+control*.02+composure*.018;
         if(row.kind==='clear')row.value+=(hard&&r.outlets===0?.14:-.06)+decisions*.02;
@@ -82,8 +122,10 @@
       const passive=team.forecheck==='passive',aggressive=team.forecheck==='aggressive';
       if(f1)this.assign(f1,point(clamp(ownP-(passive?4.5:aggressive?.25:.7),1,59),clamp(carrier.y+(carrier.y<15?1:-1),2,28)),passive?'F1 styr från mittzonen och håller avstånd':'F1 styr puckföraren mot sargen');
       if(f2){
-        const outlet=this.skaters(carrier.side).filter(a=>a.id!==carrier.id&&!['leaving','entering'].includes(a.status))
-          .sort((a,b)=>StudioHockey.distance(a,carrier)-StudioHockey.distance(b,carrier))[0];
+        // Cover a usable first-pass lane rather than automatically shadowing
+        // the nearest teammate, who may already be trapped by F1.
+        const outlet=this.passingOptions(carrier).filter(row=>StudioHockey.distance(row.b,carrier)<20)
+          .sort((a,b)=>(b.score-this.laneRisk(carrier,b.b)*.4)-(a.score-this.laneRisk(carrier,a.b)*.4))[0]?.b;
         const outletP=outlet?StudioHockey.progress(side,outlet.x):ownP-5;
         this.assign(f2,point(clamp(Math.min(ownP-(passive?7:2),outletP-(aggressive?.3:1)),6,47),clamp(outlet?(outlet.y+carrier.y)/2:15,5,25)),'F2 stänger förstapasset och skyddar mitten');
       }
@@ -108,7 +150,24 @@
     const side=carrier.side,p=StudioHockey.progress(side,carrier.x),team=this.teams[side];
     const mates=this.skaters(side).filter(a=>a.id!==carrier.id&&a.status==='playing');
     const pp=this.hasPowerPlay(side),pk=this.isShortHanded(side);
-    if(p<32&&!pk&&mates.length>=2){
+    const backs=mates.filter(a=>a.role.endsWith('D')),forwards=mates.filter(a=>!a.role.endsWith('D'));
+    const deepBreakout=p<20&&!pp&&!pk&&carrier.role.endsWith('D')&&backs.length===1&&forwards.length===3;
+    if(deepBreakout){
+      const lane=carrier.y<15?-1:1,point=(x,y)=>({x:StudioHockey.progress(side,clamp(x,1.8,37.5)),y:clamp(y,3,27)});
+      const center=forwards.find(a=>a.role==='C');
+      const wings=forwards.filter(a=>a!==center).sort((a,b)=>Math.abs(a.y-(15+lane*11))-Math.abs(b.y-(15+lane*11)));
+      if(center&&wings.length===2){
+        // Separate a low release, inside curl, board outlet and weak-side
+        // stretch. The partner stays below pressure instead of joining a rush.
+        // Movement still goes through skating and routeAroundNet; no relocation.
+        const support=(a,anchor,duty)=>this.assign(a,this.breakoutSupportTarget(a,carrier,anchor),duty);
+        support(backs[0],point(Math.max(4.5,p-3),15-lane*5),'Ger lågt backunderstöd för återspel');
+        support(center,point(p+4,15+lane*3),'Kommer lågt genom mitten för förstapasset');
+        support(wings[0],point(p+9,15+lane*11),'Öppnar förstapasset längs pucksidans sarg');
+        const stretch=team.attackStyle==='counter'||team.tactics.mentality==='direct'?19:14;
+        support(wings[1],point(p+stretch,15-lane*9),'Håller bredd på bortre sidan och sträcker uppspelet');
+      }
+    }else if(p<32&&!pk&&mates.length>=2){
       const forwards=mates.filter(a=>!a.role.endsWith('D'));
       const support=[...forwards,...mates.filter(a=>a.role.endsWith('D'))].sort((a,b)=>StudioHockey.distance(a,carrier)-StudioHockey.distance(b,carrier)).slice(0,2);
       const span=team.attackStyle==='counter'||team.tactics.mentality==='direct'?8:5.5;
@@ -280,6 +339,23 @@
   // Bounded, observational clips. Recording never draws randomness or changes
   // a decision. Each clip owns its frame list so an open replay stays immutable.
   const compactFrames=new WeakMap();
+  const frameSizes=new WeakMap();
+  function boundedClips(clips){
+    // Evict whole older recordings, never edit frames held by an open replay.
+    // Count cached serialized frames so this is independent of actor payloads
+    // without repeatedly serializing every frame in the render/match loop.
+    const size=clip=>{
+      const {frames,...metadata}=clip;
+      return JSON.stringify(metadata).length+12+frames.reduce((n,frame)=>{
+        if(!frameSizes.has(frame))frameSizes.set(frame,JSON.stringify(frame).length);
+        return n+frameSizes.get(frame)+1;
+      },0);
+    };
+    const retained=clips.slice(-6),sizes=retained.map(size);
+    let total=sizes.reduce((n,v)=>n+v,2);
+    while(total>1300000&&retained.length>1){total-=sizes.shift()+1;retained.shift();}
+    return retained;
+  }
   function clipFrame(frame){
     if(!compactFrames.has(frame)){
       // Quantize presentation coordinates to 0.1 mm; physics retains full
@@ -306,16 +382,16 @@
     const clip={...row,frames,until:this.wall+1};
     const peers=clips.filter(c=>c.kind===kind&&c.side===side&&c.situation===row.situation);
     const retained=peers.length>=2?clips.filter(c=>c!==peers[0]):clips;
-    this.tacticalClips=[...retained,clip].slice(-6);
+    this.tacticalClips=boundedClips([...retained,clip]);
   };
   const baseTacticalCapture=proto.capture,baseTacticalDecide=proto.decide;
   proto.capture=function(){
     baseTacticalCapture.call(this);if(this.tick%2!==0||!this.tacticalClips?.some(c=>this.wall<=c.until))return;
     const latest=this.history.at(-1);if(!latest)return;const frame=clipFrame(latest);
-    this.tacticalClips=this.tacticalClips.map(c=>{
+    this.tacticalClips=boundedClips(this.tacticalClips.map(c=>{
       if(this.wall>c.until||frame.phase==='faceoff'||frame.wall<=(c.frames.at(-1)?.wall??Infinity)+1e-7)return c;
       return {...c,frames:[...c.frames,frame].slice(-30)};
-    });
+    }));
   };
   proto.decide=function(){
     const a=this.actor(this.carrier);

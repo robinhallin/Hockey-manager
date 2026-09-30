@@ -8,9 +8,14 @@ for(const name of ['QuotaExceededError','SecurityError']){
  assert.equal(r('scheduled.at(-1)===studioPulse'),true,'resume schedules the clock despite save failure');
  assert.equal(r('careerSaveError'),true);
  assert.ok(a.get('#save-status-root').innerHTML.includes('Ladda ner sparfil'));
- const before=r('studioEngine().time');
+ const before=r('studioEngine().time'),beforeWall=r('studioEngine().wall');
  r('studioLastPulse=Date.now()-100;studioLastSave=0;studioPulse()');
- assert.ok(r('studioEngine().time')>before);
+ // During the initial faceoff the simulation must advance, but the match
+ // clock must remain stopped. A loaded worker may exhaust the pulse's work
+ // budget before that pause ends; checking game time after one pulse flakes.
+ assert.ok(r('studioEngine().wall')>beforeWall,'simulation advances despite save failure');
+ r(`for(let i=0;i<100&&studioEngine().time<=${before};i++){studioLastPulse=Date.now()-100;studioPulse();}`);
+ assert.ok(r('studioEngine().time')>before,'match clock resumes after the actual faceoff pause');
  assert.equal(r('scheduled.at(-1)===studioPulse'),true,'autosave failure does not kill the next tick');
  assert.doesNotThrow(()=>r('pauseMatch();matchPlay()'));
  assert.equal(r('state.live.running'),true);
