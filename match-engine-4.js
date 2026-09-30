@@ -74,7 +74,14 @@
       if(r.breakout){
         const hard=pressure>.42;
         row.zoneReason=r.outlets?'Söker förstapass genom öppet understöd':'Pressen stänger förstapasset';
-        if(row.kind==='pass')row.value+=r.outlets*.035+(passing+vision+decisions)*.025-(hard&&r.outlets===0?.13:0);
+        if(row.kind==='pass'){
+          const receiver=this.actor(row.to),safe=receiver&&usableOutlet(this,a,receiver);
+          row.value+=(safe?.035:0)+(passing+vision+decisions)*.025-(hard&&!safe?.13:0);
+          if(safe&&StudioHockey.progress(a.side,receiver.x)<p){
+            row.value+=.025+pressure*.04;
+            row.reason='Återspelar till lågt, fritt understöd för att ta sig ur pressen';
+          }
+        }
         if(row.kind==='carry')row.value+=r.outlets?-.025:clamp((control+skating+decisions)*.035-pressure*.12,-.11,.08);
         if(row.kind==='shield')row.value+=(hard?.07:0)+control*.02+composure*.018;
         if(row.kind==='clear')row.value+=(hard&&r.outlets===0?.14:-.06)+decisions*.02;

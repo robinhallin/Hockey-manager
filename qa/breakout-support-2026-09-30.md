@@ -57,13 +57,22 @@ taktisk stretch, special-team-undantag och exakt fortsättning efter save/reload
 Ytterligare 29 riktade tester passerade för kontakt, mottagning, skottfaser,
 returer, försvarsgap, understöd, målvakt och managerbeslut.
 
-96 perioder i den slutliga motorversionen passerade befintliga testgränser:
+96 perioder före den sista korrigeringen av mottagarspecifika handlingsvärden
+passerade befintliga testgränser:
 2,75 mål, 27,6875 skott, 56,65625 avslutsförsök per lag/60 minuter och
 90,07 procent räddningar. Före: 3,046875 mål, 29,875 skott, 58,984375
 försök och 89,8 procent. Gränserna ändrades inte. Detta är spelets interna
 regressionsurval, inte ett verifierat jämförelsematerial från aktuell SHL.
-Hel match, utökade höjdpunkter, höjdpunkter och kommentarsläge gav identiska
-resultat (5–6), statistik, ork och slumpström.
+Hel match, utökade höjdpunkter, höjdpunkter och kommentarsläge gav i den
+körningen identiska resultat (5–6), statistik, ork och slumpström. Slutlig
+balans och paritet måste köras om för sista handlingskorrigeringen.
+
+Den sista korrigeringen kopplar fri mottagare/passningslinje till varje
+passnings handlingsvärde, inte bara passingOptions-score. Det senare används
+bland annat av forechecken, medan puckförarens chooseAction har egen värdering.
+En fri medspelare ska inte ge ett generellt värdepåslag till andra täckta
+passningar. Ett test kontrollerar att den riktiga handlingens värde och orsak
+ändras när återspelsmottagaren blir täckt.
 
 Ett befintligt återstartstest flakade vid CPU-belastning: det krävde att
 matchklockan gick efter en enda UI-puls trots pågående nedsläppspaus och
@@ -78,12 +87,12 @@ Jämförelse med ovanstående main-revision (samma frön och startpositioner):
 
 | Mått, båda lagen tillsammans | Före | Efter |
 | --- | ---: | ---: |
-| Passningsförsök | 333 | 410 |
-| Fullbordade passningar | 200 | 271 |
-| Zoningångar | 65 | 78 |
-| Skott | 21 | 30 |
+| Passningsförsök | 333 | 398 |
+| Fullbordade passningar | 200 | 263 |
+| Zoningångar | 65 | 63 |
+| Skott | 21 | 31 |
 | Mål | 2 | 2 |
-| Största aktiva förflyttning per simsteg, meter | 0,479 | 0,481 |
+| Största aktiva förflyttning per simsteg, meter | 0,479 | 0,477 |
 
 Detta är diagnostik av ett smalt testläge, inte SHL-kalibrering eller bevis
 för bättre animationer. Alla första passningar i urvalet gick till LW,

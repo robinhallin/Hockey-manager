@@ -28,9 +28,13 @@ test('production targets separate low D, center curl, board outlet and weak-side
 test('safe backward outlet competes with forward passes, but pressure closes that outlet',()=>{
   const {m,c,point}=setup(),back=m.skaters(0).find(a=>a.role==='RD');Object.assign(back,point(5,11));
   const open=m.passingOptions(c).find(row=>row.b===back).score;
+  const release=m.actionOptions(c).find(row=>row.kind==='pass'&&row.to===back.id);
+  assert.ok(release.reason.includes('lågt, fritt understöd'),'authoritative action decision recognizes the backward outlet');
   Object.assign(m.skaters(1)[0],point(5,11.5));
   const covered=m.passingOptions(c).find(row=>row.b===back).score;
   assert.ok(open>covered+.2,'receiver pressure removes safe-release bonus and lowers pass value');
+  const shut=m.actionOptions(c).find(row=>row.kind==='pass'&&row.to===back.id);
+  assert.ok(shut.value<release.value&&!shut.reason.includes('lågt, fritt understöd'),'closing this receiver affects the actual action, not just the legacy pass ranking');
 });
 test('first-pass evaluation does not select a route through either net',()=>{
   for(const side of [0,1]){
