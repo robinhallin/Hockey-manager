@@ -57,6 +57,20 @@ taktisk stretch, special-team-undantag och exakt fortsättning efter save/reload
 Ytterligare 29 riktade tester passerade för kontakt, mottagning, skottfaser,
 returer, försvarsgap, understöd, målvakt och managerbeslut.
 
+96 perioder i den slutliga motorversionen passerade befintliga testgränser:
+2,75 mål, 27,6875 skott, 56,65625 avslutsförsök per lag/60 minuter och
+90,07 procent räddningar. Före: 3,046875 mål, 29,875 skott, 58,984375
+försök och 89,8 procent. Gränserna ändrades inte. Detta är spelets interna
+regressionsurval, inte ett verifierat jämförelsematerial från aktuell SHL.
+Hel match, utökade höjdpunkter, höjdpunkter och kommentarsläge gav identiska
+resultat (5–6), statistik, ork och slumpström.
+
+Ett befintligt återstartstest flakade vid CPU-belastning: det krävde att
+matchklockan gick efter en enda UI-puls trots pågående nedsläppspaus och
+pulsens begränsade arbetsbudget. Testet kontrollerar nu först att
+simuleringstiden går och sedan att matchklockan börjar gå efter pausen,
+inom ett begränsat antal pulser. Ingen matchregel eller arbetsbudget ändras.
+
 scripts/check-breakout-flow.cjs kör 32 × 60 sekunder från kontrollerade
 uppspelspositioner med två kompletta femmor och målvakter. Bara startläget
 är valt; produktionsmotorn bestämmer samtliga efterföljande handlingar.
