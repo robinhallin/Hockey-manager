@@ -176,6 +176,9 @@ const PLAYER_PORTRAITS = Object.freeze({
  'ep-249755': Object.freeze({src:'assets/portraits/ep-249755.png',kind:'real',name:"Pavol Regenda"}),
  'ep-217795': Object.freeze({src:'assets/portraits/ep-217795.png',kind:'real',name:"Markuss Komuls"}),
  'ep-871864': Object.freeze({src:'assets/portraits/ep-871864.png',kind:'real',name:"Noel Skarby"}),
+ 'ep-602267': Object.freeze({src:'assets/portraits/ep-602267.jpg',kind:'real',name:'Oskar Blomgren'}),
+ 'ep-100297': Object.freeze({src:'assets/portraits/ep-100297.jpg',kind:'real',name:'Marek Langhamer'}),
+ 'ep-299929': Object.freeze({src:'assets/portraits/ep-299929.jpg',kind:'real',name:'Seth Barton'}),
  'ep-251447': Object.freeze({src:'assets/portraits/ep-251447.png',kind:'real',name:'Jonathan Ang'}),
  'ep-796339': Object.freeze({src:'assets/portraits/ep-796339.png',kind:'real',name:'Herman Liv'})
 });
