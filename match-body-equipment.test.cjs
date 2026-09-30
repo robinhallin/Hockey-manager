@@ -51,3 +51,10 @@ test('either team can reach a travelling rebound before its endpoint',()=>{
   m.random=()=>0;m.resolveFlight(.5);assert.equal(m.carrier,receiver.id);assert.equal(m.owner,side);assert.ok(m.puck.x>45,'contact precedes the planned endpoint');
  }
 });
+test('a skater recovering from a bobble or the first shot cannot instantly catch a rebound',()=>{
+ const m=new H.Match(rosters,{seed:99,scenario:'attack'});m.time=m.wall=20;for(const a of m.skaters(0).concat(m.skaters(1)))Object.assign(a,{x:30,y:4});
+ const a=m.skaters(0)[0];Object.assign(a,{x:48,y:15,pickupAfter:20.2});
+ const f={kind:'rebound',contactVersion:1,side:0,start:{x:50,y:15},end:{x:45,y:15},elapsed:0,duration:1,vertical:{z:0,vz:0}};
+ assert.equal(m.flightContact(f,0,.5),null);delete a.pickupAfter;a.presentationAction={kind:'shot',at:20};assert.equal(m.flightContact(f,0,.5),null);
+ m.wall=20.2;assert.equal(m.flightContact(f,0,.5)?.actor.id,a.id);
+});

@@ -19,7 +19,9 @@ Inga nya ligor, installationsfiler eller parallella matcher.
   räddningspunkt. Äldre inspelningar har kvar en begränsad presentationsfallback.
 - Returer lämnar faktisk kontakt och påverkas av inkommande rörelse, träffad
   utrustning och returkontroll. Plock, stöt och klubba har olika förmåga att
-  hålla pucken. Returer kan möta sarg och spelare under sitt puckförlopp.
+  hålla pucken. Returer kan möta sarg och spelare från båda lagen under sitt
+  puckförlopp. Befintlig mottagningsåterhämtning och skottets första 0,18 s
+  uppföljning hindrar omedelbar egen returkontroll.
 - Periodisk matchsparning går genom en kö och en dedikerad Web Worker. Ett
   sammanhängande kopierat tillstånd serialiseras där. Webbläsarens befintliga
   lossless-format komprimeras i samma worker. Desktop skriver via asynkron IPC.
@@ -40,9 +42,34 @@ räckvidd, returer i båda rinkriktningar, kö/coalescing, gamla workerresultat,
 asynkrona kvittenser, sparfel och verklig worker-komprimering av en full karriär.
 De befintliga riktade match-, återläsnings- och desktopfilerna passerar lokalt.
 
-Slutlig regression, 96 perioders utfallsprov, uppspelningsparitet, Windows-
-omkörning, videogranskning och uppmätta bildrutetider redovisas i den tillhörande
-PR:n efter avslutade körningar. De får inte anses godkända utifrån detta dokument.
+96 perioder med produktionsmotorn ger per lag och 60 minuter 3,046875 mål,
+29,875 skott på mål, 58,984375 avslutsförsök och 89,8 % räddningar. Befintliga
+interna gränser passerar utan utvidgning. Detta är ett regressionsprov, inte
+en verifierad kalibrering mot aktuella SHL-data.
+
+Windows före/efter, huvud `128238a49ce9dfb62b9ae9be4a169abb87c5767d`:
+Windows 10.0.26100, AMD EPYC 9V74, 4 logiska CPU, 16 GiB, Electron 44.4.5,
+Microsoft Basic Render Driver via ANGLE/D3D11. Fönster 1920×1080, faktisk
+matchcanvas 1886×736, normal grafik, 1×, 10 s uppvärmning + 40 s per version.
+
+| Bildrutetid | Före | Efter |
+|---|---:|---:|
+| Median | 109,4 ms | 124,9 ms |
+| p95 | 125,1 ms | 125,1 ms |
+| p99 | 328,1 ms | 140,7 ms |
+| Max under mätning | 437,5 ms | 140,7 ms |
+
+Stora återkommande ryck minskar i detta prov; medianen förbättras inte.
+Autosparningen hade 9 slutförda workerjobb, 0 fallback. Snapshot på rendertråden:
+26,16 ms medel, 34,7 ms max. Serialisering i worker: 212,9 ms medel.
+Asynkron skrivningskvittenstid: 2 182 ms medel (inte rendertrådsblockering).
+Före-versionens synkrona `save` tog 187,52 ms medel, 309,5 ms max.
+Separat normalprov 60 s: median 125 ms, p99 156,3 ms, max 172 ms.
+Låg grafik 20 s: median 78,1 ms, p99 109,4 ms, max 140,7 ms.
+Mätmiljön är mjukvarurenderad och visar ungefär 8–13 fps, inte godkända 60 fps.
+
+Slutlig regression, uppspelningsparitet, senaste Windows-omkörning och
+tidsordnad videogranskning redovisas i PR 274 efter avslutade körningar.
 
 `desktop/match-comparison.cjs` öppnar riktig baseline och ändrad Electron-app
 med samma initiala karriär. Motorn fattar besluten. Den mäter 1×/normal grafik
@@ -65,7 +92,7 @@ Tacklingar, byten, regelprofil, ligakalibrering och ljud är inte slutgodkända 
 | Sparning och validering | `career-storage.js`, `career-save-worker.js`, `script.js`, `career-match.js` |
 | Native skrivning | `desktop/preload.cjs`, `desktop/main.cjs` |
 | Diagnostik och cacheversioner | `beta-support.js`, `index.html` |
-| Regression | `match-body-equipment.test.cjs`, `match-rig-goalie-pattern.test.cjs`, `career-autosave.test.cjs` |
+| Regression | `match-body-equipment.test.cjs`, `match-flow-materials.test.cjs`, `match-rig-goalie-pattern.test.cjs`, `career-autosave.test.cjs` |
 | Windows och före/efter | `desktop/match-performance.cjs`, `desktop/match-comparison.cjs`, `.github/workflows/desktop-ui.yml` |
 | Ursprung | `assets/models/README.md` |
 

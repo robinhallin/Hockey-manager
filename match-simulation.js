@@ -1146,6 +1146,7 @@ const StudioHockey = (() => {
       for(const a of this.actors){
         if(a.role==='G'||a.id===(f.from||f.shot?.playerId)||a.status==='leaving'||f.touched?.includes(a.id))continue;
         if(a.side===f.side&&a.id!==f.to&&f.kind!=='rebound')continue;
+        if(f.kind==='rebound'&&(a.pickupAfter>this.time||a.presentationAction?.kind==='shot'&&this.wall-a.presentationAction.at<.18))continue;
         const before=a.sweepStart?.at===this.time?a.sweepStart:a;
         const catching=a.id===f.to&&f.kind==='pass';
         const facing=Math.atan2(a.vy||0,(a.vx||0)||(a.side? -1:1)),sx=-Math.sin(facing)*.23,sy=Math.cos(facing)*.23;
