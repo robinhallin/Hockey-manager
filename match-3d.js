@@ -39,12 +39,17 @@ const Match3D = (() => {
  }
  function cameraFrame(aspect,mode,frame,prior,zoom){
   let focus=frame.puck,important=[frame.puck];
+  // Apply the permitted pan range to the destination before damping. Clamping
+  // an already moving camera at the end made it hit an invisible stop behind
+  // the goal, then start abruptly again when the puck returned into the slot.
+  const panTarget=p=>({x:clamp(p.x,mode==='rinkside'?2:10,mode==='rinkside'?58:50),y:clamp(p.y,mode==='rinkside'?1:7,mode==='rinkside'?29:23)});
   if(mode==='auto'){
    important.push(...frame.actors.filter(a=>Math.hypot(a.x-frame.puck.x,a.y-frame.puck.y)<12));
    if(frame.flight){important.push(frame.flight.start,frame.flight.end);}
    const xs=important.map(p=>p.x),ys=important.map(p=>p.y);
    focus={x:(Math.min(...xs)+Math.max(...xs))/2,y:(Math.min(...ys)+Math.max(...ys))/2};
   }
+  focus=panTarget(focus);
   const requestedZoom=Number.isFinite(zoom)?clamp(zoom,.8,1.5):1;
   let tracked=trackPuck({...frame,puck:focus},prior),fit=requestedZoom,view=cameraView(aspect,mode,tracked,fit);
   if(mode==='auto'){
@@ -59,12 +64,13 @@ const Match3D = (() => {
   // large cuts during shots and rebounds, especially at rinkside/close zoom.
   if((['follow','auto','rinkside'].includes(mode)||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
    const origin=tracked,inside=v=>{const p=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],v.matrix);return p.x>=.06&&p.x<=.94&&p.y>=.06&&p.y<=.94;};
-   let lo=0,hi=1,corrected={...tracked,x:frame.puck.x,y:frame.puck.y},correctedView=cameraView(aspect,mode,corrected,fit);
+   const centered=panTarget(frame.puck);
+   let lo=0,hi=1,corrected={...tracked,...centered},correctedView=cameraView(aspect,mode,corrected,fit);
    // At close rinkside zoom a lifted puck can leave the top even when centred.
    // Open the lens only as needed, then ease back to the user's zoom above.
    while(!inside(correctedView)&&fit>.8){fit=Math.max(.8,fit*.92);correctedView=cameraView(aspect,mode,corrected,fit);}
    if(inside(correctedView))for(let i=0;i<10;i++){
-    const amount=(lo+hi)/2,candidate={...origin,x:mix(origin.x,frame.puck.x,amount),y:mix(origin.y,frame.puck.y,amount)},candidateView=cameraView(aspect,mode,candidate,fit);
+    const amount=(lo+hi)/2,candidate={...origin,x:mix(origin.x,centered.x,amount),y:mix(origin.y,centered.y,amount)},candidateView=cameraView(aspect,mode,candidate,fit);
     if(inside(candidateView)){hi=amount;corrected=candidate;correctedView=candidateView;}else lo=amount;
    }
    // Do not retain momentum pointing away from the correction. Preserve fit

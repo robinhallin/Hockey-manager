@@ -19,12 +19,22 @@ test('camera integration agrees across display cadences for a held focus and pau
  const input=frame(.3,34,17),saved=JSON.stringify([input,single]);assert.deepEqual(R.trackPuck(input,single),single);assert.equal(JSON.stringify([input,single]),saved);
 });
 
+test('a puck behind the goal eases the camera to the pan limit without a hard stop',()=>{
+ let view=R.cameraFrame(1.8,'follow',frame(0,30),null,1);
+ for(let i=1;i<=120;i++){
+  const f=frame(i/60,Math.max(6,30-i*.4)),next=R.cameraFrame(1.8,'follow',f,view.tracked,1);
+  assert.ok(next.tracked.x>=10&&next.tracked.x<=50,'no invisible pan continues outside the permitted camera range');
+  assert.ok(next.target[0]>10,'approach the limit smoothly instead of clamping a moving pan');view=next;
+ }
+ assert.ok(view.target[0]<10.01,'the camera still reaches the end-zone view');
+});
+
 test('edge recovery keeps the puck visible without cutting all the way to its position',()=>{
  for(const direction of [-1,1]){
-  const before=frame(10),prior=R.cameraFrame(1.8,'rinkside',before,null,1.5),after=frame(10.1,30+direction*8),saved=JSON.stringify([after,prior]);
+  const before=frame(10),prior=R.cameraFrame(1.8,'rinkside',before,null,1.5),after=frame(10.1,30+direction*12),saved=JSON.stringify([after,prior]);
   const view=R.cameraFrame(1.8,'rinkside',after,prior.tracked,1.5),p=R.project([after.puck.x,.1,15],view.matrix);
   assert.ok(p.x>=.059&&p.x<=.941&&p.y>0&&p.y<1,'puck stays inside the safety margin');
-  assert.ok(Math.abs(view.tracked.x-prior.tracked.x)<6,'avoid the old full eight-metre re-centre');
+  assert.ok(Math.abs(view.tracked.x-prior.tracked.x)<10,'avoid the old full twelve-metre re-centre');
   const held=R.cameraFrame(1.8,'rinkside',after,view.tracked,1.5);assert.deepEqual(held.matrix,view.matrix,'a paused boundary correction does not drift');
   assert.equal(JSON.stringify([after,prior]),saved,'framing cannot mutate a match snapshot or prior camera');
  }
