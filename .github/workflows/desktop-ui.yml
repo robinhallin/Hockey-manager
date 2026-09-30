@@ -24,6 +24,7 @@ jobs:
           cache-dependency-path: desktop/package-lock.json
       - run: npm ci --prefix desktop
       - name: Record an ordinary minute at 1x
+        timeout-minutes: 4
         run: node desktop/record-match-window.cjs
       - uses: actions/upload-artifact@v4
         if: always()

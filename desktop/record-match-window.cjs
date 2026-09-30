@@ -18,8 +18,13 @@ fs.mkdirSync(out,{recursive:true});
    calendarPlayFriendly(friendly.id);startMatch();pauseMatch();studioSetVisual('3d');render();
   });
   await require('./record-match-flow.cjs')(page,out,application);
- }finally{
-  if(application)await application.close();
+ }catch(error){console.error(error);process.exitCode=1;}finally{
+  // This disposable recording profile has no user saves. Do not wait on
+  // a native save-error dialog during cleanup; ordinary closing is covered
+  // by the separate full UI suite.
+  if(application&&application.process().exitCode===null){
+   const exited=new Promise(resolve=>application.process().once('exit',resolve));application.process().kill();await exited;
+  }
   fs.rmSync(profile,{recursive:true,force:true});
  }
 })().catch(error=>{console.error(error);process.exitCode=1;});
