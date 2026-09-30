@@ -402,14 +402,21 @@
   proto.targets=function(){baseNetFrontTargets.call(this);this.netFrontTargets();};
   proto.netFrontTargets=function(){
     for(const a of this.actors)if(a.netFront?.until<=this.time)delete a.netFront;
-    if(this.stoppage||this.battle)return;
+    const release=(screenId,guardId)=>{for(const a of this.actors)if(a.netFront&&a.id!==screenId&&a.id!==guardId)delete a.netFront;};
+    if(this.stoppage||this.battle){release();return;}
     const carrier=this.actor(this.carrier),shot=this.flight?.kind==='shot',rebound=this.rebound&&this.time-this.rebound.time<2.5;
-    const side=carrier?.side??(shot?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44)return;
+    const side=carrier?.side??(shot?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44){release();return;}
     const goal={x:StudioHockey.progress(side,56.5),y:15},pp=this.hasPowerPlay(side);
+    const pattern=this.teams[side].attackPattern,route=carrier&&pattern?.until>this.time?pattern:null;
     const rotating=new Set((this.teams[side].specialPlay?.targets||[]).map(a=>a.id));
-    const candidates=this.skaters(side).filter(a=>a.status==='playing'&&a!==carrier&&!a.role.endsWith('D')&&(!pp||a.role==='C')&&!rotating.has(a.id)&&a.id!==this.flight?.to&&StudioHockey.progress(side,a.x)>49&&StudioHockey.distance(a,goal)<7);
-    const screen=candidates.sort((a,b)=>(StudioHockey.distance(a,goal)-(pp&&a.role==='C'?3:0))-(StudioHockey.distance(b,goal)-(pp&&b.role==='C'?3:0)))[0];if(!screen)return;
-    const defenders=this.skaters(1-side).filter(d=>d.status==='playing'&&StudioHockey.distance(d,screen)<3.2&&(!carrier||StudioHockey.distance(d,carrier)>2.7));
+    // A low outlet or weak-side receiver must remain available. Screening is
+    // the third forward's job, not a second order imposed on the receiver.
+    const candidates=this.skaters(side).filter(a=>a.status==='playing'&&a!==carrier&&!a.shotPreparation&&!a.role.endsWith('D')&&(!pp||a.role==='C')&&!rotating.has(a.id)&&a.id!==this.flight?.to&&a.id!==route?.receiver&&StudioHockey.progress(side,a.x)>49&&StudioHockey.distance(a,goal)<7);
+    const cost=a=>StudioHockey.distance(a,goal)-(a.netFront?.kind==='screen'?1.4:0)-(a.id===route?.runner?1.6:0);
+    const screen=candidates.sort((a,b)=>cost(a)-cost(b))[0];if(!screen){release();return;}
+    // Respect the shared marking plan: a defender cannot abandon the puck
+    // carrier or another threat merely because the screen is nearby.
+    const defenders=this.skaters(1-side).filter(d=>d.status==='playing'&&StudioHockey.distance(d,screen)<3.2&&(!carrier||StudioHockey.distance(d,carrier)>2.7)&&(pp||!d.markedThreat||d.markedThreat===screen.id));
     const guard=defenders.sort((a,b)=>(StudioHockey.distance(a,screen)-(a.markedThreat===screen.id?1:0))-(StudioHockey.distance(b,screen)-(b.markedThreat===screen.id?1:0)))[0];
     const loose=rebound&&!this.flight&&!carrier;
     const p=loose?{x:this.puck.x,y:this.puck.y}:{x:StudioHockey.progress(side,54.1),y:15+clamp((this.puck.y-15)*.16,-1.2,1.2)};
@@ -422,6 +429,7 @@
       const dx=goal.x-screen.x,dy=goal.y-screen.y,n=Math.hypot(dx,dy)||1;
       this.assign(guard,{x:screen.x+dx/n*.72,y:screen.y+dy/n*.72},'Håller insidan och försöker kontrollera klubban framför mål');record(guard,'boxout',screen);
     }
+    release(screen.id,guard?.id);
   };
   proto.matchEngine4PlayerDecisionsInstalled=true;
 })();
