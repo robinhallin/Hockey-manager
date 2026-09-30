@@ -3,7 +3,7 @@
 // from frame-time measurements so encoding does not taint the benchmark.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async function recordMatchFlow(page,out,application){
- const bounds=await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0],size=w.getContentSize();w.setContentSize(1280,960);return size;});
+ const bounds=await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0],size=w.getContentSize();w.unmaximize();w.setContentSize(1280,960);return size;});
  await page.waitForFunction(()=>innerWidth===1280&&innerHeight===960);
  const settings=await page.evaluate(()=>{
   pauseMatch();const saved={camera:studioCamera3D,expanded:studioExpanded3D,zoom:studioZoom3D,mode:state.live.rink.mode,rate:state.live.onIceSpeed,speed:state.live.speed,quality:studioGraphicsQuality()};
