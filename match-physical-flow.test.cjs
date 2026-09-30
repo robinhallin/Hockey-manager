@@ -50,6 +50,7 @@ test('head-on bodies preserve a finite separation and a glancing loose puck refl
 test('net-front inside position constrains the attackers stick only while the defender physically holds it',()=>{
  for(const side of [0,1]){
   const {m,a}=setup(side),screen=m.skaters(side).find(p=>p.role==='C'),d=m.skaters(1-side).find(p=>p.role==='LD');Object.assign(a,{x:H.progress(side,49),y:7});m.puck={x:a.x,y:a.y};Object.assign(screen,{x:H.progress(side,54),y:15});Object.assign(d,{x:H.progress(side,54.7),y:15});
+  d.markedThreat=screen.id; // This physical hold belongs to the screen's actual marker.
   m.netFrontTargets();assert.equal(screen.netFront.kind,'screen');assert.equal(d.netFront.kind,'boxout');assert.ok(m.netFrontHold(screen)>0);
   d.y+=3;assert.equal(m.netFrontHold(screen),0);m.carrier=null;m.rebound={side,time:m.time,spot:{x:H.progress(side,53),y:17}};m.puck={...m.rebound.spot};m.netFrontTargets();assert.equal(screen.netFront.kind,'rebound');assert.deepEqual(screen.target,m.puck);
  }
