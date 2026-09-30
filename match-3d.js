@@ -295,11 +295,46 @@ const Match3D = (() => {
   const bladeAngle=turn(angle,releaseAngle,release*smooth(age/.09))+(a.stickControl?clamp(a.stickControl.lateral,-.5,.5)*.55:hand*Math.max(contact,release)*Math.sin(phase*.5)*.24);
   const heel=[blade[0]-Math.cos(bladeAngle)*.18,blade[1],blade[2]-Math.sin(bladeAngle)*.18];
   const tip=[blade[0]+Math.cos(bladeAngle)*.23,blade[1],blade[2]+Math.sin(bladeAngle)*.23];
-  const shaftDirection=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
-  const grips=hand===1?[1.23,.87]:[.87,1.23];
+  const grips=hand===1?[1.23,.87]:[.87,1.23],shoulders=[-1,1].map(side=>{
+   const lowerHand=side===hand;
+   return torsoPoint(side*upper.shoulder+(lowerHand?1:-.45)*delivery.shoulder,.20-(lowerHand?delivery.shoulder*.3:0),side*.34);
+  });
+  // A lifted blade must tilt the stick through the hands, rather than lift
+  // both hands above the helmet. Keep the original contact pose and fade the
+  // chest-height follow-through back into the ordinary skating grip.
+  const followGrip=release?smooth(age/.075)*(1-smooth((age/duration-.7)/.3)):0;
+  let shaftDirection=unit(sub(torsoPoint(.13+followGrip*.25,.05,-.12*hand),heel));
+  if(followGrip){
+   const ceiling=torsoPoint(.2,.18,0)[1],limit=clamp((ceiling-heel[1])/1.23,-.95,.98);
+   if(shaftDirection[1]>limit){
+    const horizontal=Math.hypot(shaftDirection[0],shaftDirection[2]),h=Math.sqrt(1-limit*limit);
+    const direction=horizontal>1e-6?[shaftDirection[0]/horizontal,shaftDirection[2]/horizontal]:[Math.cos(torsoAngle),Math.sin(torsoAngle)];
+    shaftDirection=unit(between(shaftDirection,[direction[0]*h,limit,direction[1]*h],followGrip));
+   }
+   // A body turning away from the release may not reach the full tilt. Keep
+   // both hands on a reachable portion of the shaft before solving elbows.
+   const reachable=direction=>{
+    const lengths=[];
+    for(let i=0;i<2;i++){
+     const v=sub(shoulders[i],heel),along=dot(v,direction),perpendicular=Math.max(0,dot(v,v)-along*along);
+     if(perpendicular>.819*.819)return false;
+     const span=Math.sqrt(.819*.819-perpendicular),low=Math.max(.4,along-span),high=Math.min(1.36,along+span),side=i?1:-1;
+     if(low>high)return false;
+     lengths.push(clamp(grips[i]+side*upper.grip-(side===hand?delivery.grip:0),low,high));
+    }
+    const top=hand===1?0:1,bottom=1-top;
+    return lengths[top]>=1.1&&lengths[top]-lengths[bottom]>=.24;
+   };
+   if(!reachable(shaftDirection)){
+    const held=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),wanted=shaftDirection;let low=0,high=1;
+    for(let i=0;i<12;i++){const mid=(low+high)/2;if(reachable(unit(between(held,wanted,mid))))low=mid;else high=mid;}
+    shaftDirection=unit(between(held,wanted,low));
+   }
+  }
+  const shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
   const arms=[-1,1].map((side,i)=>{
    const lowerHand=side===hand,reach=lowerHand?1:-.45;
-   const shoulder=torsoPoint(side*upper.shoulder+reach*delivery.shoulder,.20-(lowerHand?delivery.shoulder*.3:0),side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
+   const shoulder=shoulders[i],vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
    const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i]+side*upper.grip-(lowerHand?delivery.grip:0),Math.max(.4,along-span),Math.min(1.36,along+span));
    const grip=heel.map((v,i)=>v+shaftDirection[i]*length);
    return {shoulder,elbow:joint(shoulder,grip,torsoPoint(-.14+side*upper.elbow+reach*delivery.elbow,-.05,side*.68),.40,.42),hand:grip};
