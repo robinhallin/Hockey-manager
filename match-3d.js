@@ -224,15 +224,17 @@ const Match3D = (() => {
   const drop=0;
   const phase=(motion.phase??(a.travelled||0)/3.2)*Math.PI*2,stride=Math.sin(phase)*drive;
   const hand=a.shoots==='R'?1:-1;
+  const load=typeof HockeyMotion!=='undefined'?HockeyMotion.action('windup',windup):Math.sin(Math.PI*windup);
+  const delivery=typeof HockeyMotion!=='undefined'&&HockeyMotion.delivery?HockeyMotion.delivery(preparing?a.windup.style:shooting?action.style:'pass',load,release?clamp(age/duration,0,1):1):{forward:0,lower:0,yaw:0,chest:0,pitch:0,roll:0,shoulder:0,elbow:0,grip:0};
   const posture=typeof HockeyMotion!=='undefined'&&HockeyMotion.body?HockeyMotion.body(a.travelled||0,{...motion,drive,brake,backward},speed,fatigue):null;
-  const lean=posture?.lean??(.10+drive*.16+brake*.08+fatigue*.04),lower=(posture?.lower??(moving*.08+brake*.09))+receiving*.035+engagement*.055+unsteady*.16;
+  const lean=posture?.lean??(.10+drive*.16+brake*.08+fatigue*.04),lower=(posture?.lower??(moving*.08+brake*.09))+receiving*.035+engagement*.055+unsteady*.16+delivery.lower;
   // Ease the body anchor back after release; the puck itself is never offset.
   const anchor=a.skateState?0:Math.max(contact,release),offset=-.65*anchor;
   // While cushioning a reception, anchor the connected body behind the actual
   // contact point. The puck remains exactly where the engine put it.
   const cx=contact&&!a.skateState?mix(a.x,frame.puck.x,contact):a.x,cy=contact&&!a.skateState?mix(a.y,frame.puck.y,contact):a.y;
   const point=(forward,height,side)=>{side-=anchor*.18*hand;return [cx+Math.cos(angle)*(forward+offset)-Math.sin(angle)*side,height,cy+Math.sin(angle)*(forward+offset)+Math.cos(angle)*side];};
-  const pelvis=point(posture?.forward||0,.84-lower,posture?.lateral||0),pelvisPoint=orientedPoint(pelvis,angle+(posture?.yaw||0),posture?.pelvisPitch||0,posture?.roll||0);
+  const pelvis=point((posture?.forward||0)+delivery.forward,.84-lower,posture?.lateral||0),pelvisPoint=orientedPoint(pelvis,angle+(posture?.yaw||0)+hand*delivery.yaw,posture?.pelvisPitch||0,posture?.roll||0);
   const feet=[],footAngles=[],footPitches=[],footRolls=[],legs=[];
   for(const side of [-1,1]){
    const cycle=Math.sin(phase+(side===1?Math.PI:0)),push=Math.max(0,cycle),recover=Math.max(0,-cycle);
@@ -261,10 +263,9 @@ const Match3D = (() => {
   const upper=typeof HockeyMotion!=='undefined'&&HockeyMotion.upper?HockeyMotion.upper(motion.phase??(a.travelled||0)/3.2,drive,Math.max(contact,prepare,receiving,release,preparing?1:0,engagement),backward):{yaw:0,shoulder:0,elbow:0,grip:0,stick:0};
   const swing=release?(typeof HockeyMotion!=='undefined'?HockeyMotion.action(shooting?action.style:'pass',clamp(age/duration,0,1)):Math.sin(Math.PI*clamp(age/duration,0,1))):0;
   const tackle=engagement&&['check','pin','protect'].includes(physical.kind)?engagement:0;
-  const load=typeof HockeyMotion!=='undefined'?HockeyMotion.action('windup',windup):Math.sin(Math.PI*windup);
-  const torsoAngle=angle+twist+upper.yaw-hand*swing*(shooting?.28:.12)-hand*load*.4-(posture?.yaw||0)*.35,roll=(posture?.torsoRoll??-curve*.19)+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27,pitch=(posture?.pitch??(.12+drive*.19+brake*.12+fatigue*.08))+tackle*.12+unsteady*.23;
+  const torsoAngle=angle+twist+upper.yaw-hand*swing*(shooting?.28:.12)+hand*load*.4-(posture?.yaw||0)*.35,roll=(posture?.torsoRoll??-curve*.19)+tackle*Math.sin((physical?.direction??angle)-angle)*.16+unsteady*Math.sin((b?.direction??angle)-angle)*.27-hand*delivery.roll,pitch=(posture?.pitch??(.12+drive*.19+brake*.12+fatigue*.08))+tackle*.12+unsteady*.23+delivery.pitch;
   const bodyWidth=clamp((a.weight||85)/85,.92,1.08),headRise=clamp(((a.height||185)-185)*.003,-.045,.055);
-  const torso=point(lean+(posture?.forward||0)*.6,1.20-lower,posture?posture.lateral*.65:curve*.10-Math.sin(phase)*drive*.055);
+  const torso=point(lean+(posture?.forward||0)*.6+delivery.chest,1.20-lower,posture?posture.lateral*.65:curve*.10-Math.sin(phase)*drive*.055);
   const torsoPoint=orientedPoint(torso,torsoAngle,pitch,roll,bodyWidth);
   let blade=point(1.02+upper.stick,.08,.26*hand+upper.stick*.35);
   if(preparing){
@@ -289,16 +290,19 @@ const Match3D = (() => {
   // Keep an incoming/outgoing reach inside the skater's actual arm/stick span.
   const root=point(0,0,0),reach=Math.hypot(blade[0]-root[0],blade[2]-root[2]);
   if(reach>1.25){blade[0]=root[0]+(blade[0]-root[0])*1.25/reach;blade[2]=root[2]+(blade[2]-root[2])*1.25/reach;}
-  const bladeAngle=turn(angle,releaseAngle,release)+(a.stickControl?clamp(a.stickControl.lateral,-.5,.5)*.55:hand*contact*Math.sin(phase*.5)*.24);
+  // Start with the held blade orientation; rotating straight to the shot line
+  // at contact would jerk the heel, shaft and both hands despite a fixed puck.
+  const bladeAngle=turn(angle,releaseAngle,release*smooth(age/.09))+(a.stickControl?clamp(a.stickControl.lateral,-.5,.5)*.55:hand*Math.max(contact,release)*Math.sin(phase*.5)*.24);
   const heel=[blade[0]-Math.cos(bladeAngle)*.18,blade[1],blade[2]-Math.sin(bladeAngle)*.18];
   const tip=[blade[0]+Math.cos(bladeAngle)*.23,blade[1],blade[2]+Math.sin(bladeAngle)*.23];
   const shaftDirection=unit(sub(torsoPoint(.13,.05,-.12*hand),heel)),shaftTop=heel.map((v,i)=>v+shaftDirection[i]*1.38);
   const grips=hand===1?[1.23,.87]:[.87,1.23];
   const arms=[-1,1].map((side,i)=>{
-   const shoulder=torsoPoint(side*upper.shoulder,.20,side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
-   const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i]+side*upper.grip,Math.max(.4,along-span),Math.min(1.36,along+span));
-   const hand=heel.map((v,i)=>v+shaftDirection[i]*length);
-   return {shoulder,elbow:joint(shoulder,hand,torsoPoint(-.14+side*upper.elbow,-.05,side*.68),.40,.42),hand};
+   const lowerHand=side===hand,reach=lowerHand?1:-.45;
+   const shoulder=torsoPoint(side*upper.shoulder+reach*delivery.shoulder,.20-(lowerHand?delivery.shoulder*.3:0),side*.34),vector=sub(shoulder,heel),along=dot(vector,shaftDirection),perpendicular=Math.max(0,dot(vector,vector)-along*along);
+   const span=Math.sqrt(Math.max(0,.819*.819-perpendicular)),length=clamp(grips[i]+side*upper.grip-(lowerHand?delivery.grip:0),Math.max(.4,along-span),Math.min(1.36,along+span));
+   const grip=heel.map((v,i)=>v+shaftDirection[i]*length);
+   return {shoulder,elbow:joint(shoulder,grip,torsoPoint(-.14+side*upper.elbow+reach*delivery.elbow,-.05,side*.68),.40,.42),hand:grip};
   });
   const state=unsteady>.12?'stumbling':unsteady>.015?'balance-recovery':windup?'windup':engagement?physical.kind:speed<.18?'idle':brake>.45?'braking':backward>.55?'backward':crossover>.35?'crossover':drive<.3?'gliding':'skating';
   const gaze=motion.gazeHeading??(contact&&a.target?Math.atan2(a.target.y-a.y,a.target.x-a.x):puckAngle),headAngle=torsoAngle+clamp(Math.atan2(Math.sin(gaze-torsoAngle),Math.cos(gaze-torsoAngle)),-.6,.6);
