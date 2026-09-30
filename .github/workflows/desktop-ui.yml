@@ -1,6 +1,12 @@
 name: Desktop UI
 on:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      compare_motion:
+        description: 'Record the production match against the pinned skating baseline'
+        type: boolean
+        default: false
   push:
     branches: [main]
 permissions:
@@ -8,9 +14,13 @@ permissions:
 jobs:
   desktop-ui:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    env:
+      HM_MATCH_BEFORE_ROOT: ${{ runner.temp }}/hockey-match-before
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -19,6 +29,14 @@ jobs:
       - run: npm ci --prefix desktop
       - name: Exercise the ordinary game in Electron
         run: npm run test:ui --prefix desktop
+      - name: Prepare the tested motion baseline and video encoder
+        if: github.head_ref == 'feature/body-contact-save-flow' || inputs.compare_motion
+        run: |
+          git worktree add --detach "$env:HM_MATCH_BEFORE_ROOT" 6d7a343df161717a7a7dfe5aa50dc4490f013999
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) { choco install ffmpeg --no-progress -y }
+      - name: Compare actual match motion and 1080p frame times
+        if: github.head_ref == 'feature/body-contact-save-flow' || inputs.compare_motion
+        run: node desktop/match-comparison.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

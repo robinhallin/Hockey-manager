@@ -389,6 +389,16 @@ const StudioHockey = (() => {
         const identity=Array.from(String(a.id)).reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,0);
         if(skating)Object.assign(a.motion,skating.advance(m,{speed,acceleration:a.motion.acceleration,turn:a.motion.turn,distance:Math.max(0,(a.travelled||0)-(m?.distance??a.travelled??0)),height:a.player.height||185,energy:this.energyLevel(a),dt,phaseOffset:(identity%997)/997,preferredSide:identity%2?1:-1}));
         a.motion.distance=a.travelled||0;
+        const incoming=this.flight?.kind==='pass'&&this.flight.to===a.id;
+        const action=a.presentationAction,active=action&&this.wall-action.at<.72;
+        const target=a.shotPreparation?.target||active&&action.kind!=='receive'&&action.target||this.puck;
+        const looking=Math.atan2(target.y-a.y,target.x-a.x),weight=a.id===this.carrier||incoming||a.shotPreparation||active?1:.35;
+        const upperAim=heading+clamp(wrap(looking-heading),-.75,.75)*weight;
+        const oldUpper=m?.upperHeading??heading,change=wrap(upperAim-oldUpper);
+        // Angular speed belongs to the fixed-step recording, not the render FPS.
+        a.motion.upperHeading=wrap(oldUpper+clamp(change*(1-Math.exp(-dt/.18)),-2.8*dt,2.8*dt));
+        const oldGaze=m?.gazeHeading??a.motion.upperHeading;
+        a.motion.gazeHeading=wrap(oldGaze+clamp(wrap(looking-oldGaze)*(1-Math.exp(-dt/.12)),-4*dt,4*dt));
         const phase=(a.travelled||0)*Math.PI/1.6,anchor=!a.skateState&&a.id===this.carrier?-.65:0;
         const body=skating?.body(a.travelled||0,a.motion,speed),facing=heading+(a.motion.stopSide||1)*a.motion.brake*.45;
         a.footPlants=[-1,1].map((side,i)=>{
@@ -994,17 +1004,16 @@ const StudioHockey = (() => {
       const s=g.keeperState,lateral=-(puck.x-g.x)*Math.sin(s.facing)+(puck.y-g.y)*Math.cos(s.facing),z=(puck.z||0)+.025;
       const forward=(puck.x-g.x)*Math.cos(s.facing)+(puck.y-g.y)*Math.sin(s.facing);
       if(Math.abs(forward)>.95)return null;
-      const drop=s.drop,bodyBottom=.50-drop*.27,bodyTop=1.48-drop*.40;
-      if(z<.13&&Math.abs(lateral)<.34+drop*.16)return {style:'stick',lateral,z};
+      const drop=s.drop,equipment=skating.keeper({drop,load:g.keeperBody?.load||0,catchSide:g.player.shoots==='R'?1:-1,glove:s.glove,blocker:s.blocker});
+      const {bodyBottom,bodyTop}=equipment;
+      if(z<.13&&Math.abs(lateral-equipment.blade[2])<.34+drop*.16&&Math.abs(forward-equipment.blade[0])<.36)return {style:'stick',lateral,z};
       if(Math.abs(lateral)<.34&&z>=bodyBottom&&z<=bodyTop)return {style:z<.55?'butterfly':'body',lateral,z};
       // Pads spread as the actual butterfly develops. The five-hole closes last.
       // A moving butterfly cannot keep both legs at maximum extension. The
       // same remaining spread is used by the rendered legs, not a save roll.
-      const spread=1-Math.abs(g.keeperBody?.load||0)*.30;
-      const padWidth=.19+drop*.25*spread,padCenter=.23+drop*.19*spread;
-      if(z<.61-drop*.12&&Math.min(Math.abs(lateral-padCenter),Math.abs(lateral+padCenter))<padWidth)return {style:'butterfly',lateral,z};
+      if(equipment.pads.some(p=>z<p.top&&Math.abs(lateral-p.center[2])<p.width))return {style:'butterfly',lateral,z};
       for(const [key,rx,rz] of [['glove',.245,.27],['blocker',.21,.24]]){
-        const hand=s[key];if(((lateral-hand.lateral)/rx)**2+((z-hand.z)/rz)**2<=1)return {style:key,lateral,z};
+        const hand=equipment[key];if(((lateral-hand[2])/rx)**2+((z-hand[1])/rz)**2<=1)return {style:key,lateral,z};
       }
       return null;
     }
@@ -1100,17 +1109,28 @@ const StudioHockey = (() => {
     }
     saveRebound(goalie,f){
       const model=this.reboundModel(goalie,f.shot.context),name=goalie?.player.name||'Målvakten';
-      if(this.random()<model.freeze){
+      const style=f.shot.keeperContact?.style||goalie?.keeperAction?.style||'body';
+      const freeze=clamp(model.freeze+(style==='glove'?.15:style==='blocker'?-.24:style==='stick'?-.14:0),.15,.94);
+      if(this.random()<freeze){
         this.stop('save',name+' räddar och håller fast pucken.',point(f.side,47,f.start.y<15?9:21));
         if(goalie)this.puck.heldBy=goalie.id;return;
       }
       const safe=this.random()<model.safe;
-      const end=point(f.side,safe?54+this.random()*3:51+this.random()*3,safe?(f.start.y<15?4+this.random()*3:23+this.random()*3):12+this.random()*6);
+      const facing=goalie?.keeperState?.facing??Math.atan2(f.start.y-this.puck.y,f.start.x-this.puck.x),cs=Math.cos(facing),sn=Math.sin(facing);
+      const incomingX=(f.end.x-f.start.x)/f.duration,incomingY=(f.end.y-f.start.y)/f.duration,incomingL=-incomingX*sn+incomingY*cs;
+      const lateral=f.shot.keeperContact?.lateral||0,hand=goalie?.player.shoots==='R'?1:-1;
+      const side=style==='glove'?hand:style==='blocker'?-hand:Math.abs(lateral)>.12?Math.sign(lateral):Math.abs(incomingL)>.1?Math.sign(incomingL):hand;
+      // The contacted surface redirects the incoming velocity. Control chooses
+      // how far it is steered; the release always begins at the actual save.
+      const forward=(style==='glove'?1.8:3.0)+this.random()*1.7;
+      const sideways=safe?side*(6.5+this.attribute(goalie,'reboundControl')*.15+this.random()*1.5):incomingL*.22+side*(.7+this.random()*1.8);
+      const vx=cs*forward-sn*sideways,vy=sn*forward+cs*sideways,span=safe?.85:.65;
+      const end=rinkLimit({x:this.puck.x+vx*span,y:this.puck.y+vy*span},.04);
       this.rebound={side:f.side,time:this.time,spot:{...end}};
       if(!safe)this.stats[1-f.side].dangerousRebounds++;
       // A rebound travels out from the save. It does not appear magically in the slot.
-      this.flight={kind:'rebound',side:f.side,start:{...this.puck},end,elapsed:0,duration:Math.max(.3,distance(this.puck,end)/10)};
-      this.flight.vertical={z:this.puck.z||0,vz:(this.puck.z||0)>.4?-.7:1.1};
+      this.flight={kind:'rebound',contactVersion:1,side:f.side,start:{...this.puck},end:{x:end.x,y:end.y},elapsed:0,duration:Math.max(.1,distance(this.puck,end)/Math.hypot(vx,vy)),saveStyle:style};
+      this.flight.vertical={z:this.puck.z||0,vz:(this.puck.z||0)>.4?-.7:style==='stick'?.35:1.1};
       this.setPhase('loose');this.looseTime=0;
       this.rememberTouch(f.shot.playerId,f.shot.player,f.start.y);
       this.say('rebound',name+(safe?' styr returen ut mot sargen.':' lämnar en lös retur i slottet!'),f.side,true);

@@ -9,6 +9,13 @@ protocol.registerSchemesAsPrivileged([{scheme:'hockey', privileges:{standard:tru
 app.setPath('userData', app.isPackaged ? path.join(app.getPath('appData'),'Hockey Manager') : process.env.HM_TEST_USER_DATA || path.join(app.getPath('appData'),'Hockey Manager Development'));
 if(!app.requestSingleInstanceLock()) {app.quit();} else {
 let window, store, closing=false, closeTimer=null;
+const storageRevisions=new Map();
+function currentWrite(key,revision){
+ store.file(key);
+ if(!Number.isSafeInteger(revision)||revision<1)throw Error('Ogiltig sparningsordning.');
+ if(revision<=(storageRevisions.get(key)||0))return false;
+ storageRevisions.set(key,revision);return true;
+}
 const trusted=event=>window && event.sender===window.webContents && event.senderFrame===window.webContents.mainFrame && trustedPage(event.senderFrame.url);
 app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.focus();}});
 app.whenReady().then(()=>{
@@ -17,21 +24,26 @@ app.whenReady().then(()=>{
     try {const r=resourcePath(path.join(__dirname,'game'),request.url);return new Response(fs.readFileSync(r.file),{headers:{'Content-Type':r.type,'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-src 'none'"}});}
     catch{return new Response('Resursen finns inte.',{status:404});}
   });
-  ipcMain.on('hm:storage',(event,action,key,value)=>{
+  ipcMain.on('hm:storage',(event,action,key,value,revision)=>{
     if(!trusted(event)){event.returnValue={ok:false,error:'Åtkomst nekad.'};return;}
     try{
       let result;
       switch(action){
         case 'version':result=app.getVersion();break;
         case 'get':result=store.getItem(key);break;
-        case 'set':store.setItem(key,value);break;
-        case 'remove':store.removeItem(key);break;
+        case 'set':if(currentWrite(key,revision))store.setItem(key,value);break;
+        case 'remove':if(currentWrite(key,revision))store.removeItem(key);break;
         case 'backups':result=store.listBackups();break;
         case 'backup':result=store.readBackup(key);break;
         default:throw Error('Okänd handling.');
       }
       event.returnValue={ok:true,value:result};
     }catch(error){event.returnValue={ok:false,error:error.message};}
+  });
+  ipcMain.handle('hm:storage-write',async(event,key,value,revision)=>{
+    if(!trusted(event))return {ok:false,error:'Åtkomst nekad.'};
+    try{if(currentWrite(key,revision))store.setItem(key,value);return {ok:true};}
+    catch(error){return {ok:false,error:error.message};}
   });
   ipcMain.handle('hm:open-saves',async event=>{if(!trusted(event))return 'Åtkomst nekad.';return shell.openPath(store.directory);});
   function quitDecision(message){
@@ -45,6 +57,7 @@ app.whenReady().then(()=>{
     else quitDecision('Karriären kunde inte sparas. Stanna för att exportera en sparfil eller försöka igen.');
   });
   window=new BrowserWindow({width:1600,height:1000,minWidth:1100,minHeight:720,backgroundColor:'#08111f',show:false,title:'Hockey Manager · Beta '+app.getVersion(),webPreferences:{preload:path.join(__dirname,'preload.cjs'),sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true}});
+  window.webContents.on('did-start-navigation',(_event,_url,_inPlace,isMainFrame)=>{if(isMainFrame)storageRevisions.clear();});
   // The local game's user-initiated fullscreen control needs this permission.
   // Requests from other contents/frames and every other capability stay denied.
   const allowFullscreen=(wc,permission,details)=>wc===window.webContents && permission==='fullscreen' && details?.isMainFrame===true && trustedPage(details.requestingUrl) && trustedPage(wc.getURL());

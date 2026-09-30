@@ -13,7 +13,8 @@ test('bundled glTF has normalized skin weights and animates attached clothing wi
 });
 test('keeper coverage requires contact and respects both rink directions, equipment and out-of-reach shots',()=>{
  for(const side of [0,1]){const {m,a,g}=setup(side);m.random=()=>.5;m.shoot(a);const f=m.flight;assert.equal(f.keeperVersion,2);m.readKeeper(f,.15);g.keeperState.facing=side?0:Math.PI;g.keeperState.drop=1;
-  assert.equal(m.keeperContact(g,{x:g.x,y:g.y,z:.06}).style,'stick');assert.equal(m.keeperContact(g,{x:g.x,y:g.y+.65,z:.25}).style,'butterfly');assert.equal(m.keeperContact(g,{x:g.x,y:g.y+2,z:.5}),null);
+  const facing=g.keeperState.facing,hand=g.player.shoots==='R'?1:-1;
+  assert.equal(m.keeperContact(g,{x:g.x+Math.cos(facing)*.74+Math.sin(facing)*hand*.12,y:g.y+Math.sin(facing)*.74-Math.cos(facing)*hand*.12,z:.06}).style,'stick');assert.equal(m.keeperContact(g,{x:g.x,y:g.y+.65,z:.25}).style,'butterfly');assert.equal(m.keeperContact(g,{x:g.x,y:g.y+2,z:.5}),null);
   g.y=19;m.resolveFlight(f.duration);assert.equal(m.shots.length,0);assert.equal(m.flight.keeperPassed,true);m.resolveFlight(m.flight.duration);assert.equal(m.score[side],1);
  }
 });

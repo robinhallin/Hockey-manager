@@ -59,6 +59,35 @@ const HockeyMotion=(()=>{
    curve:mix(previous?.curve||0,clamp(turn/1.6,-1,1)*moving*(1-brake),ease)};
  }
  function action(name,t){return at(clips[name]?name:'pass',t)[0];}
- return {cycle,body,advance,action,names:Object.freeze(Object.keys(clips))};
+ // Upper-body counter-swing follows the same distance clock as the legs.
+ // Holding/receiving a puck suppresses the free swing, leaving hands on shaft.
+ function upper(phase,drive,occupied=0,backward=0){
+  const wave=Math.sin(phase*Math.PI*2),counter=Math.sin(phase*Math.PI*2+.55);
+  const free=drive*(1-smooth(occupied))*(1-backward*.45);
+  return {yaw:wave*free*.085,shoulder:counter*free*.035,elbow:wave*free*.09,grip:counter*free*.045,stick:wave*free*.075};
+ }
+ function joint(root,end,pole,upper,lower){
+  const v=end.map((n,i)=>n-root[i]),length=Math.hypot(...v)||1,axis=v.map(n=>n/length),d=clamp(length,.001,upper+lower-.001);
+  const bend=pole.map((n,i)=>n-root[i]),projection=bend.reduce((s,n,i)=>s+n*axis[i],0),normal=bend.map((n,i)=>n-axis[i]*projection),size=Math.hypot(...normal)||1;
+  const along=(upper*upper-lower*lower+d*d)/(2*d),height=Math.sqrt(Math.max(0,upper*upper-along*along));
+  return root.map((n,i)=>n+axis[i]*along+normal[i]/size*height);
+ }
+ // Local coordinates: forward, height above ice, lateral. This equipment
+ // envelope is shared by the simulation and renderer, including arm reach.
+ function keeper({drop=0,load=0,catchSide=-1,glove,blocker}={}){
+  drop=clamp(drop,0,1);const lower=.16+drop*.42,spread=1-Math.abs(load)*.30,torso=[.13,1.21-lower,0];
+  const hands={},arms=[];
+  for(const side of [-1,1]){
+   const key=side===catchSide?'glove':'blocker',read=key==='glove'?glove:blocker;
+   const shoulder=[.13,torso[1]+.20,side*.35],desired=read?[.4,read.z,read.lateral]:key==='glove'?[.48,.98-drop*.26,catchSide*.52]:[.57,.86-drop*.25,-catchSide*.40];
+   const reach=desired.map((n,i)=>n-shoulder[i]),length=Math.hypot(...reach),hand=length>.90?shoulder.map((n,i)=>n+reach[i]*.90/length):desired;
+   hands[key]=hand;arms.push({shoulder,hand,elbow:joint(shoulder,hand,[.03,torso[1]-.06,side*.65],.45,.47),catching:key==='glove'});
+  }
+  const feet=[-1,1].map(side=>[-drop*.12,.12,side*(.34+drop*.52*spread)]);
+  const legs=feet.map((foot,i)=>{const side=i?1:-1,hip=[-.1,.92-lower,side*.18],ankle=[foot[0],foot[1]+.11,foot[2]];return {hip,ankle,knee:joint(hip,ankle,[.65,.5-lower*.4,side*.25],.45,.46)};});
+  const pads=legs.map(l=>({center:l.knee.map((n,i)=>(n+l.ankle[i])/2),width:.19+drop*.18*spread,top:.61-drop*.12}));
+  return {lower,torso,feet,legs,arms,...hands,blade:[.74,.065,-catchSide*.12],pads,bodyBottom:.50-drop*.27,bodyTop:1.48-drop*.40};
+ }
+ return {cycle,body,advance,action,upper,keeper,names:Object.freeze(Object.keys(clips))};
 })();
 if(typeof module!=='undefined')module.exports=HockeyMotion;
