@@ -21,12 +21,12 @@ const HockeyPlayerModel=(()=>{
  function frame(a,b,forward){const y=unit(sub(b,a)),x=unit(sub(forward,y.map(v=>v*dot(forward,y))));return matrix(a,x,y,cross(x,y));}
  function palette(m){
   const forward=[Math.cos(m.torsoAngle),0,Math.sin(m.torsoAngle)],p=m.point,u=m.torsoPoint;
-  const base=p(0,.84-m.lower,0),pelvis=matrix(base,[Math.cos(m.angle),0,Math.sin(m.angle)],[0,1,0],[-Math.sin(m.angle),0,Math.cos(m.angle)]);
+  const base=m.pelvis||p(0,.84-m.lower,0),pelvis=m.pelvisPoint?matrix(base,sub(m.pelvisPoint(1,0,0),base),sub(m.pelvisPoint(0,1,0),base),sub(m.pelvisPoint(0,0,1),base)):matrix(base,[Math.cos(m.angle),0,Math.sin(m.angle)],[0,1,0],[-Math.sin(m.angle),0,Math.cos(m.angle)]);
   const chest=matrix(m.torso,sub(u(1,0,0),m.torso),sub(u(0,1,0),m.torso),sub(u(0,0,1),m.torso));
   const yaw=(p,angle)=>matrix(p,[Math.cos(angle),0,Math.sin(angle)],[0,1,0],[-Math.sin(angle),0,Math.cos(angle)]);
   const head=yaw(u(.02,.47+(m.headRise||0),0),m.headAngle??m.torsoAngle),shaft=unit(sub(m.shaftTop,m.heel||m.blade));
   const hands=m.arms.map(a=>a.catching?yaw(a.hand,m.torsoAngle):frame(a.hand,a.hand.map((v,i)=>v+shaft[i]),forward));
-  const feet=m.legs.map((l,i)=>{const a=m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1,p=m.footPitches?.[i]||0,c=Math.cos(a),s=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p);return matrix(l.ankle,[c*cp,-sp,s*cp],[c*sp,cp,s*sp],[-s,0,c]);});
+  const feet=m.legs.map((l,i)=>{const a=m.footAngles?.[i]??m.angle+(i?1:-1)*m.drop*1.1,p=m.footPitches?.[i]||0,r=m.footRolls?.[i]||0,c=Math.cos(a),s=Math.sin(a),cp=Math.cos(p),sp=Math.sin(p),cr=Math.cos(r),sr=Math.sin(r);return matrix(l.ankle,[c*cp,-sp,s*cp],[c*sp*cr+s*sr,cp*cr,s*sp*cr-c*sr],[c*sp*sr-s*cr,cp*sr,s*sp*sr+c*cr]);});
   return [pelvis,chest,...m.arms.flatMap(a=>[frame(a.shoulder,a.elbow,forward),frame(a.elbow,a.hand,forward)]),...m.legs.flatMap(l=>[frame(l.hip,l.knee,forward),frame(l.knee,l.ankle,forward)]),head,...hands,...feet].map((p,i)=>multiply(p,model().bind.subarray(i*16,i*16+16)));
  }
  function mesh(actors,poses,kits,reuse){

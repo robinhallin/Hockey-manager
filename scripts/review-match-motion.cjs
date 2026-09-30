@@ -4,6 +4,7 @@
 // to --root checkouts before/after. Offline 30 fps video is NOT an FPS benchmark.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),{spawn}=require('node:child_process');
 const args=Object.fromEntries(process.argv.slice(2).map(a=>{const [k,...v]=a.replace(/^--/,'').split('=');return [k,v.join('=')||true];}));
+if(args.profile)args.perf=true;
 const root=path.resolve(args.root||'.'),out=path.resolve(args.out||'review-motion'),save=fs.readFileSync(args.save,'utf8');
 const {chromium}=require(args.playwright||path.join(root,'desktop/node_modules/playwright'));
 const seconds=Number(args.seconds||24),fps=30,startWall=Number(args.start||40),quality=args.quality||'normal';
@@ -20,15 +21,20 @@ const server=http.createServer((req,res)=>{
   const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(({save,offline})=>{localStorage.setItem('hockey_manager_alpha02',save);if(offline)window.requestAnimationFrame=fn=>{window.reviewDraw=fn;return 1;};},{save,offline:!args.perf});
   await page.goto('http://127.0.0.1:'+server.address().port);
-  await page.evaluate(({quality})=>{pauseMatch();resumeCareer();deskNavigate('match');studioVisualMode='3d';studioExpanded3D=true;studioCamera3D='follow';state.live.rink.mode='full';state.live.rink.onIceRate=1;matchPreferences().graphics3d=quality;render();},{quality});
+  await page.evaluate(({quality,camera})=>{pauseMatch();resumeCareer();deskNavigate('match');studioVisualMode='3d';studioExpanded3D=true;studioCamera3D=camera;state.live.rink.mode='full';state.live.onIceSpeed=1;matchPreferences().graphics3d=quality;render();},{quality,camera:args.camera||'follow'});
   const initial=await page.evaluate(()=>({rng:studioEngine().rng,time:studioEngine().time,wall:studioEngine().wall,ids:studioEngine().actors.map(a=>a.id)}));
   if(args.perf){
    await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
+   if(args.profile)await page.evaluate(()=>{const draw=Match3D.draw;Match3D.draw=(canvas,frame,before,t,options={})=>draw(canvas,frame,before,t,{...options,profile:true});});
    await page.evaluate(()=>startMatch());await page.waitForTimeout(10000);
+   const profiler=args.profile?await page.context().newCDPSession(page):null;
+   if(profiler){await profiler.send('Profiler.enable');await profiler.send('Profiler.setSamplingInterval',{interval:1000});await profiler.send('Profiler.start');}
    await page.evaluate(()=>{globalThis.reviewIntervals=[];globalThis.reviewActive=true;let last=performance.now();function tick(now){if(!reviewActive)return;reviewIntervals.push(now-last);last=now;requestAnimationFrame(tick);}requestAnimationFrame(tick);});
    for(let i=0;i<seconds;i+=10){await page.waitForTimeout(Math.min(10,seconds-i)*1000);console.log('measured '+Math.min(i+10,seconds)+' s');}
-   const performanceResult=await page.evaluate(()=>{reviewActive=false;pauseMatch();const sorted=reviewIntervals.slice().sort((a,b)=>a-b),q=p=>sorted[Math.floor((sorted.length-1)*p)];return {samples:sorted.length,median:q(.5),p95:q(.95),p99:q(.99),max:Math.max(...sorted),over50:sorted.filter(x=>x>50).length,over100:sorted.filter(x=>x>100).length,time:studioEngine().time,wall:studioEngine().wall,diagnostics:Match3D.diagnostics()};});
-   fs.writeFileSync(out+'/performance.json',JSON.stringify(performanceResult,null,2));
+   const performanceResult=await page.evaluate(()=>{reviewActive=false;const sorted=reviewIntervals.slice().sort((a,b)=>a-b),q=p=>sorted[Math.floor((sorted.length-1)*p)];return {samples:sorted.length,median:q(.5),p95:q(.95),p99:q(.99),max:Math.max(...sorted),over50:sorted.filter(x=>x>50).length,over100:sorted.filter(x=>x>100).length,time:studioEngine().time,wall:studioEngine().wall,diagnostics:Match3D.diagnostics()};});
+   if(profiler){const {profile}=await profiler.send('Profiler.stop');fs.writeFileSync(out+'/render.cpuprofile',JSON.stringify(profile));await profiler.detach();}
+   await page.evaluate(()=>pauseMatch());
+   fs.writeFileSync(out+'/performance.json',JSON.stringify(performanceResult,null,2));if(performanceResult.diagnostics.error)throw Error('WebGL error '+performanceResult.diagnostics.error);
   }else{
    const recorded=await page.evaluate(({startWall,seconds})=>{
     const e=studioEngine(),frames=[];let last=-1;const shots=[];
@@ -48,6 +54,7 @@ const server=http.createServer((req,res)=>{
   }
   const environment=await page.evaluate(()=>{const c=document.getElementById('career-ice-3d'),gl=c.getContext('webgl2'),d=gl.getExtension('WEBGL_debug_renderer_info');return {ua:navigator.userAgent,gpu:d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),viewport:[innerWidth,innerHeight],canvas:[c.width,c.height],overflow:document.documentElement.scrollHeight>innerHeight,diagnostics:Match3D.diagnostics()};});
   fs.writeFileSync(out+'/environment.json',JSON.stringify({mode:args.perf?'live measurement':'offline replay, not a performance measurement',initial,environment,errors},null,2));
+  if(environment.diagnostics.error)throw Error('WebGL error '+environment.diagnostics.error);
   if(errors.length)throw Error(errors.join('\n'));
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
