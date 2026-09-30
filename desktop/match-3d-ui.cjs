@@ -199,18 +199,22 @@ module.exports=async function check3D(page,out,application){
  // A real save drives the goalkeeper and crowd; do not manufacture a display pose.
  const save=await page.evaluate(()=>{
   startMatch();let keeper=null;
-  for(let i=0;i<4500&&!state.live.finished;i++){
+  // Search the remaining regulation/overtime, rather than assuming a save
+  // must occur within an arbitrary 450 seconds after the earlier UI checks.
+  for(let i=0;i<90000&&!state.live.finished;i++){
    if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
    const e=studioEngine();keeper=e.actors.find(a=>a.role==='G'&&a.keeperAction?.kind==='save'&&a.keeperAction.at>e.wall-StudioHockey.STEP-1e-7&&a.keeperAction.at<=e.wall+1e-7);
    if(keeper)break;
   }
-  if(!keeper)return null;
-  const id=keeper.id;for(let i=0;i<3;i++){if(!state.live.running)startMatch();studioStep();}
+  if(!keeper)return {missing:true,time:studioEngine().time,stats:studioEngine().stats};
+  // Inspect the contact frame. A subsequent whistle/line change may replace
+  // the actor; advancing three ticks can erase the save we just observed.
+  const id=keeper.id;
   pauseMatch();studioExpanded3D=true;studioCamera3D='follow';render();
   const f=studioFrame(studioEngine()),a=f.actors.find(a=>a.id===id),p=Match3D.pose(f,a);
   return {number:a.number,action:a.keeperAction,body:a.keeperBody,pose:{style:p.style,state:p.state,drop:p.drop,recovery:p.recovery},height:f.puck.z||0,crowd:Match3D.crowdReaction(f,a.side)};
  });
- assert.ok(save?.action?.kind==='save');assert.equal(save.pose.state,save.body.mode);assert.equal(save.pose.drop,save.body.drop);assert.ok(save.crowd>0&&save.number>0);
+ assert.ok(save?.action?.kind==='save',JSON.stringify(save));assert.equal(save.pose.state,save.body.mode);assert.equal(save.pose.drop,save.body.drop);assert.ok(save.crowd>0&&save.number>0);
  await page.waitForFunction(()=>document.getElementById('career-ice-3d')?.dataset.ready==='true');
  await page.screenshot({path:path.join(out,'38-match-3d-goalie-save.png'),fullPage:true});
  require('node:fs').writeFileSync(path.join(out,'3d-arena-result.json'),JSON.stringify({audible,paused:await page.evaluate(()=>MatchAudio.diagnostics()),save},null,2));

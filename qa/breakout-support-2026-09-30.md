@@ -113,3 +113,23 @@ Etablerat anfall, zonförsvar, rörelsekaraktär och variation i uppspel kräver
 fortsatt faktisk matchbildsgranskning. Full regression och den nya
 96-perioders balanskörningen ska bedömas före merge; gröna tester ersätter
 inte visuell bedömning.
+
+## Slutkontroll och fel från full regression
+
+Balanskörningen för uppspelsändringen gav 2,953125 mål, 29,375 skott och
+58,140625 avslutsförsök per lag och 60 minuter i 96 perioder; räddningsprocent
+89,95. Befintliga gränser ändrades inte. De fyra presentationslägena gav samma
+2–3-resultat, statistik, energi och RNG vid samma starttillstånd.
+
+Full regression hittade att sex taktiska klipp med högst 30 bildrutor ändå
+kunde överskrida sparbudgetens 1,4 miljoner tecken. Inspelningen har därför
+en separat budget på 1,3 miljoner tecken och kastar hela äldre klipp.
+Bildrutornas storlek cachas; öppna reprisobjekt ändras inte. Ett nytt test
+belastar budgeten med stora spelaruppgifter och kontrollerar att den senaste
+observationen, alla spelare och redan öppnade klipp bevaras.
+
+Windows-testets räddningssökning begränsades tidigare till 450 sekunder och
+gick sedan tre steg förbi den hittade kontakten. Testet söker nu i återstående
+match och undersöker den verkliga kontaktbildrutan direkt, med diagnostik om
+ingen räddning hittas. Inga räddningar eller matchutfall tillverkas. Ny full
+regression och Windows-körning krävs för dessa sista korrigeringar.

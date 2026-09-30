@@ -72,6 +72,26 @@ test('clips retain real events, stay bounded and do not reveal an observation be
  assert.ok(R.replayAnalysis(clip.frames,f,clip).notes.some(n=>n.startsWith('Markerat: den genomförda')));
  for(let i=0;i<30;i++){m.time+=5;m.wall+=5;m.observeTactic('support',i%2,{players:[a.id]});}assert.ok(m.tacticalClips.length<=6);assert.ok(m.tacticalClips.every(c=>c.frames.length<=30));
 });
+test('large actor recordings retain complete recent clips within the save budget',()=>{
+ const {m,a}=setup();const present=m.presentationFrame.bind(m);
+ m.presentationFrame=()=>{const f=present();return {...f,actors:f.actors.map(a=>({...a,name:a.name.repeat(100)}))};};
+ m.history=[];
+ for(let i=0;i<44;i++){m.tick++;m.wall+=.1;m.capture();}
+ m.observeTactic('diagonal',0,{players:[a.id]});const held=m.tacticalClips.at(-1),original=JSON.stringify(held);
+ const kinds=['turnover','marking','pp-rotation','pk-press','diagonal'];
+ for(let i=0;i<12;i++){
+  m.time+=5;m.wall+=5;
+  for(let j=0;j<44;j++){m.tick++;m.wall+=.1;m.capture();}
+  m.observeTactic(kinds[i%kinds.length],i%2,{players:[a.id]});
+  for(let j=0;j<10;j++){m.tick+=2;m.wall+=.2;m.capture();}
+  assert.ok(JSON.stringify(m.tacticalClips).length<1400000);
+ }
+ assert.ok(m.tacticalClips.length<6,'payload budget evicts whole older clips');
+ assert.equal(JSON.stringify(held),original,'eviction leaves an open replay intact');
+ const latest=m.tacticalClips.at(-1);assert.equal(latest.id,m.observationSequence);
+ assert.ok(latest.frames.some(f=>Math.abs(f.wall-latest.wall)<.0002),'recorded observation frame remains in the clip');
+ assert.ok(latest.frames.every(f=>f.actors.length===m.actors.length));
+});
 test('career saves resume new physical/tactical state and real clips open through the coach without changing the match',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
  app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();for(let i=0;i<1100;i++){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}pauseMatch();save();");

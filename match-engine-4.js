@@ -339,6 +339,23 @@
   // Bounded, observational clips. Recording never draws randomness or changes
   // a decision. Each clip owns its frame list so an open replay stays immutable.
   const compactFrames=new WeakMap();
+  const frameSizes=new WeakMap();
+  function boundedClips(clips){
+    // Evict whole older recordings, never edit frames held by an open replay.
+    // Count cached serialized frames so this is independent of actor payloads
+    // without repeatedly serializing every frame in the render/match loop.
+    const size=clip=>{
+      const {frames,...metadata}=clip;
+      return JSON.stringify(metadata).length+12+frames.reduce((n,frame)=>{
+        if(!frameSizes.has(frame))frameSizes.set(frame,JSON.stringify(frame).length);
+        return n+frameSizes.get(frame)+1;
+      },0);
+    };
+    const retained=clips.slice(-6),sizes=retained.map(size);
+    let total=sizes.reduce((n,v)=>n+v,2);
+    while(total>1300000&&retained.length>1){total-=sizes.shift()+1;retained.shift();}
+    return retained;
+  }
   function clipFrame(frame){
     if(!compactFrames.has(frame)){
       // Quantize presentation coordinates to 0.1 mm; physics retains full
@@ -365,16 +382,16 @@
     const clip={...row,frames,until:this.wall+1};
     const peers=clips.filter(c=>c.kind===kind&&c.side===side&&c.situation===row.situation);
     const retained=peers.length>=2?clips.filter(c=>c!==peers[0]):clips;
-    this.tacticalClips=[...retained,clip].slice(-6);
+    this.tacticalClips=boundedClips([...retained,clip]);
   };
   const baseTacticalCapture=proto.capture,baseTacticalDecide=proto.decide;
   proto.capture=function(){
     baseTacticalCapture.call(this);if(this.tick%2!==0||!this.tacticalClips?.some(c=>this.wall<=c.until))return;
     const latest=this.history.at(-1);if(!latest)return;const frame=clipFrame(latest);
-    this.tacticalClips=this.tacticalClips.map(c=>{
+    this.tacticalClips=boundedClips(this.tacticalClips.map(c=>{
       if(this.wall>c.until||frame.phase==='faceoff'||frame.wall<=(c.frames.at(-1)?.wall??Infinity)+1e-7)return c;
       return {...c,frames:[...c.frames,frame].slice(-30)};
-    });
+    }));
   };
   proto.decide=function(){
     const a=this.actor(this.carrier);
