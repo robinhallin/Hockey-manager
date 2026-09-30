@@ -42,3 +42,12 @@ test('a physical save uses the rendered glove, and retours follow the contacted 
   assert.equal(Math.sign(lateral),style==='glove'?hand:-hand);assert.equal(m.stats[1-side].saves,0,'the helper cannot award an extra save');
  }
 });
+test('either team can reach a travelling rebound before its endpoint',()=>{
+ for(const side of [0,1]){
+  const m=new H.Match(rosters,{seed:89,scenario:'attack'});m.stoppage=0;m.time=m.wall=20;
+  for(const a of m.skaters(0).concat(m.skaters(1)))Object.assign(a,{x:30,y:4,vx:0,vy:0});
+  const receiver=m.skaters(side)[0];Object.assign(receiver,{x:48,y:15});m.puck={x:50,y:15,z:0};m.carrier=null;m.owner=0;
+  m.flight={kind:'rebound',contactVersion:1,side:0,start:{...m.puck},end:{x:45,y:15},elapsed:0,duration:1,vertical:{z:0,vz:0}};
+  m.random=()=>0;m.resolveFlight(.5);assert.equal(m.carrier,receiver.id);assert.equal(m.owner,side);assert.ok(m.puck.x>45,'contact precedes the planned endpoint');
+ }
+});

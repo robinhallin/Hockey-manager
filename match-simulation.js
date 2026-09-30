@@ -1117,7 +1117,8 @@ const StudioHockey = (() => {
       }
       const safe=this.random()<model.safe;
       const facing=goalie?.keeperState?.facing??Math.atan2(f.start.y-this.puck.y,f.start.x-this.puck.x),cs=Math.cos(facing),sn=Math.sin(facing);
-      const incomingX=(f.end.x-f.start.x)/f.duration,incomingY=(f.end.y-f.start.y)/f.duration,incomingL=-incomingX*sn+incomingY*cs;
+      const duration=Math.max(.1,f.duration||distance(f.start,this.puck)/25);
+      const incomingX=((f.end?.x??this.puck.x)-f.start.x)/duration,incomingY=((f.end?.y??this.puck.y)-f.start.y)/duration,incomingL=-incomingX*sn+incomingY*cs;
       const lateral=f.shot.keeperContact?.lateral||0,hand=goalie?.player.shoots==='R'?1:-1;
       const side=style==='glove'?hand:style==='blocker'?-hand:Math.abs(lateral)>.12?Math.sign(lateral):Math.abs(incomingL)>.1?Math.sign(incomingL):hand;
       // The contacted surface redirects the incoming velocity. Control chooses
@@ -1144,7 +1145,7 @@ const StudioHockey = (() => {
       if(surface)hits.push({...surface,elapsed:from+(to-from)*surface.t});
       for(const a of this.actors){
         if(a.role==='G'||a.id===(f.from||f.shot?.playerId)||a.status==='leaving'||f.touched?.includes(a.id))continue;
-        if(a.side===f.side&&a.id!==f.to)continue;
+        if(a.side===f.side&&a.id!==f.to&&f.kind!=='rebound')continue;
         const before=a.sweepStart?.at===this.time?a.sweepStart:a;
         const catching=a.id===f.to&&f.kind==='pass';
         const facing=Math.atan2(a.vy||0,(a.vx||0)||(a.side? -1:1)),sx=-Math.sin(facing)*.23,sy=Math.cos(facing)*.23;
