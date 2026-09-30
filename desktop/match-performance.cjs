@@ -3,6 +3,7 @@
 // CI hardware is recorded, not presented as the player's reference computer.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 module.exports=async function measureMatch(page,out,application){
+ await require('./record-match-flow.cjs')(page,out,application);
  const bounds=await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0],size=w.getContentSize();w.setContentSize(1920,1080);return size;});
  await page.waitForFunction(()=>innerWidth===1920&&innerHeight===1080);
  const settings=await page.evaluate(()=>{
