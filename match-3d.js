@@ -257,7 +257,10 @@ const Match3D = (() => {
   }
   const releaseAngle=release?Math.atan2(action.target.y-action.origin.y,action.target.x-action.origin.x):angle;
   const waiting=f?.kind==='pass'&&f.to===a.id&&f.side===a.side;
-  const prepare=waiting?clamp((3-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/2,0,1):0;
+  // Read the observed flight clock, so hands prepare before a fast pass is
+  // already on the blade. This has no render-clock state and seeks in replay.
+  const arrival=waiting&&Number.isFinite(f.duration)&&Number.isFinite(f.elapsed)?Math.max(0,f.duration-f.elapsed):null;
+  const prepare=waiting?(arrival===null?clamp((3-Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y))/2,0,1):smooth((.65-arrival)/.5)):0;
   const aim=release?releaseAngle:receiving?Math.atan2(action.target.y-a.y,action.target.x-a.x):engagement?Math.atan2(physical.spot.y-a.y,physical.spot.x-a.x):(contact||prepare)&&Math.hypot(frame.puck.x-a.x,frame.puck.y-a.y)>.08?puckAngle:angle;
   const twist=Number.isFinite(motion.upperHeading)?clamp(Math.atan2(Math.sin(motion.upperHeading-angle),Math.cos(motion.upperHeading-angle)),-.75,.75):clamp(Math.atan2(Math.sin(aim-angle),Math.cos(aim-angle)),-.65,.65)*(release||Math.max(contact*.5,prepare,receiving,engagement));
   const upper=typeof HockeyMotion!=='undefined'&&HockeyMotion.upper?HockeyMotion.upper(motion.phase??(a.travelled||0)/3.2,drive,Math.max(contact,prepare,receiving,release,preparing?1:0,engagement),backward):{yaw:0,shoulder:0,elbow:0,grip:0,stick:0};
