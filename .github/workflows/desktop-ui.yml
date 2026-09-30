@@ -12,6 +12,26 @@ on:
 permissions:
   contents: read
 jobs:
+  record-match:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --prefix desktop
+      - name: Record an ordinary minute at 1x
+        run: node desktop/record-match-window.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: current-match-minute
+          path: desktop/test-results/48-match-3d-live-minute.*
+          if-no-files-found: error
+          retention-days: 14
   desktop-ui:
     runs-on: windows-latest
     timeout-minutes: 35
