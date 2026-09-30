@@ -12,7 +12,11 @@ fs.mkdirSync(out,{recursive:true});
   await page.waitForFunction(()=>typeof state!=='undefined'&&typeof window.hockeyDesktop!=='undefined');
   // Only select the club and calendar start. Production players, decisions,
   // physics and outcomes remain authoritative for the entire recording.
-  await page.evaluate(()=>{startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();studioSetVisual('3d');render();});
+  await page.evaluate(()=>{
+   startCareerWithClub('HV71');preseasonConfigure(state.clubOffice.priority,'manager','strongest','assistant','assistant');
+   state.calendar.date=calendarTarget();const friendly=state.calendar.friendlies.find(f=>!f.played&&f.club===managerClub()&&f.date===state.calendar.date);
+   calendarPlayFriendly(friendly.id);startMatch();pauseMatch();studioSetVisual('3d');render();
+  });
   await require('./record-match-flow.cjs')(page,out,application);
  }finally{
   if(application)await application.close();
