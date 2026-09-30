@@ -13,6 +13,7 @@ const HockeyMotion=(()=>{
   slap:[[0,0],[.17,.91],[.34,1],[.58,.62],[1,0]],
   'one-timer':[[0,0],[.10,.90],[.25,1],[.62,.54],[1,0]],
   pass:[[0,0],[.20,.73],[.42,1],[.72,.44],[1,0]],
+  transfer:[[0,0],[.10,.86],[.20,1],[.46,.66],[.72,.20],[1,0]],
   windup:[[0,0],[.20,.30],[.48,1],[.68,.84],[.88,.20],[1,0]]
  };
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -59,6 +60,16 @@ const HockeyMotion=(()=>{
    curve:mix(previous?.curve||0,clamp(turn/1.6,-1,1)*moving*(1-brake),ease)};
  }
  function action(name,t){return at(clips[name]?name:'pass',t)[0];}
+ // The hips lead the shoulders through an observed release. All channels
+ // return to neutral at either end, including the windup/contact boundary.
+ // These offsets articulate the rig around its recorded root and skate plants.
+ function delivery(style,load=0,progress=1){
+  const strength=style==='slap'?1:style==='one-timer'?.85:style==='wrist'?.7:.3;
+  const hip=action('transfer',progress)*strength,follow=action(style,progress)*strength,coil=load*strength;
+  return {forward:.07*hip-.045*coil,lower:.035*coil-.022*hip,yaw:-.18*hip+.08*coil,
+   chest:.10*follow-.05*coil,pitch:.13*follow+.07*coil,roll:.055*follow,
+   shoulder:.055*follow,elbow:.09*follow,grip:.13*Math.max(follow,coil)};
+ }
  // Upper-body counter-swing follows the same distance clock as the legs.
  // Holding/receiving a puck suppresses the free swing, leaving hands on shaft.
  function upper(phase,drive,occupied=0,backward=0){
@@ -88,6 +99,6 @@ const HockeyMotion=(()=>{
   const pads=legs.map(l=>({center:l.knee.map((n,i)=>(n+l.ankle[i])/2),width:.19+drop*.18*spread,top:.61-drop*.12}));
   return {lower,torso,feet,legs,arms,...hands,blade:[.74,.065,-catchSide*.12],pads,bodyBottom:.50-drop*.27,bodyTop:1.48-drop*.40};
  }
- return {cycle,body,advance,action,upper,keeper,names:Object.freeze(Object.keys(clips))};
+ return {cycle,body,advance,action,delivery,upper,keeper,names:Object.freeze(Object.keys(clips))};
 })();
 if(typeof module!=='undefined')module.exports=HockeyMotion;
