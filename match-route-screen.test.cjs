@@ -51,3 +51,14 @@ test('an available rebound can be attacked after the passing route ends without 
   assert.deepEqual(pursuers[0].target,m.puck);assert.ok(![receiver,runner].some(a=>a.netFront?.kind==='screen'));
   m.time+=3;m.netFrontTargets();assert.ok(m.actors.every(a=>!a.netFront),'expired rebound does not leave a phantom tie-up');
 });
+test('a pass in flight keeps an unrelated screen and its physical marker while protecting the receiver',()=>{
+  const {m,receiver,runner,point}=setup(),guard=m.skaters(1)[0],back=m.skaters(0).find(a=>a.role==='LD');
+  Object.assign(receiver,point(47,15)); // Isolate continuity, not receiver/screen selection.
+  Object.assign(guard,point(52.7,18));guard.markedThreat=runner.id;m.netFrontTargets();
+  const started=runner.netFront.at;m.carrier=null;m.flight={kind:'pass',side:0,to:back.id};m.time=m.wall=20.1;
+  m.netFrontTargets();assert.equal(runner.netFront.kind,'screen');assert.equal(runner.netFront.at,started);
+  assert.equal(guard.netFront.opponent,runner.id);assert.equal(receiver.netFront,undefined);
+  m.time=m.wall=20.4;m.netFrontTargets();assert.equal(runner.netFront.kind,'screen');assert.equal(runner.netFront.at,started,'continuous screen is refreshed during the pass');
+  m.flight.to=runner.id;m.netFrontTargets();assert.equal(runner.netFront,undefined,'the incoming receiver must be free to receive');
+  assert.equal(guard.netFront,undefined,'its obsolete physical hold is released at the same tick');
+});

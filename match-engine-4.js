@@ -404,10 +404,10 @@
     for(const a of this.actors)if(a.netFront?.until<=this.time)delete a.netFront;
     const release=(screenId,guardId)=>{for(const a of this.actors)if(a.netFront&&a.id!==screenId&&a.id!==guardId)delete a.netFront;};
     if(this.stoppage||this.battle){release();return;}
-    const carrier=this.actor(this.carrier),shot=this.flight?.kind==='shot',rebound=this.rebound&&this.time-this.rebound.time<2.5;
-    const side=carrier?.side??(shot?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44){release();return;}
+    const carrier=this.actor(this.carrier),rebound=this.rebound&&this.time-this.rebound.time<2.5;
+    const side=carrier?.side??(this.flight?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44){release();return;}
     const goal={x:StudioHockey.progress(side,56.5),y:15},pp=this.hasPowerPlay(side);
-    const pattern=this.teams[side].attackPattern,route=carrier&&pattern?.until>this.time?pattern:null;
+    const pattern=this.teams[side].attackPattern,route=(carrier||this.flight?.kind==='pass')&&pattern?.until>this.time?pattern:null;
     const rotating=new Set((this.teams[side].specialPlay?.targets||[]).map(a=>a.id));
     // A low outlet or weak-side receiver must remain available. Screening is
     // the third forward's job, not a second order imposed on the receiver.

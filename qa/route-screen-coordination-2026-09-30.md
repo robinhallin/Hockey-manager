@@ -43,6 +43,8 @@ att en ny spelare tagit över, så två aktörer kunde samtidigt ha samma uppgif
 - Avsluta gamla skymnings- och boxout-uppgifter när de inte längre används,
   även vid spelstopp, närkamp, ny mottagningsuppgift och utgång ur anfallszonen.
 - Returer kan fortfarande attackeras när den aktiva passningsrutten har upphört.
+- Behåll en annan spelares skymning och markering medan passningen är i luften;
+  frigör bara mottagaren och hans eventuella gamla boxout-relation.
 
 Positionsgränser och fysisk närhet gäller fortsatt. Endast mål för rörelsen
 ändras; kroppar flyttas inte av planeringen. Befintlig tidsstyrning, puckkontakt,
@@ -61,14 +63,14 @@ ingen föreskriven passningsföljd eller målsituation används.
 
 | Mått | Före | Efter |
 | --- | ---: | ---: |
-| Steg med aktiv anfallsrutt | 664 | 568 |
+| Steg med aktiv anfallsrutt | 664 | 572 |
 | Mottagare samtidigt skymmare | 84 | 0 |
-| Steg med någon skymmare | 987 | 652 |
+| Steg med någon skymmare | 987 | 645 |
 | Steg med dubbla skymmare | 70 | 0 |
 | Boxout av annan än tilldelad motståndare, ej boxplay | 104 | 0 |
-| Fullbordade passningar | 262 | 269 |
-| Skott | 45 | 45 |
-| Mål | 8 | 10 |
+| Fullbordade passningar | 262 | 272 |
+| Skott | 45 | 48 |
+| Mål | 8 | 9 |
 | Största förflyttning per aktivt simuleringssteg | 0,485 m | 0,485 m |
 
 Steg är diagnosräkningar, inte antal separata hockeyhändelser. Förändrad rörelse
@@ -78,9 +80,10 @@ realismmått. Urvalet är avsiktligt smalt och säger inte hur vanlig situatione
 
 ## Tester och begränsningar
 
-29 riktade tester passerade i fyra testfiler. Fyra nya tester kontrollerar
+30 riktade tester passerade i fyra testfiler. Fem nya tester kontrollerar
 den verkliga målplansordningen, båda anfallsriktningarna, skyddad markering,
-kontinuitet, mottagning, spelstopp och retur. Tre av de fyra misslyckas mot
+kontinuitet även under en passning i luften, mottagning, spelstopp och retur.
+Fyra av de fem misslyckas mot
 a54f2cc och passerar efter ändringen. Det befintliga testet av fysisk boxout
 har fått en uttrycklig korrekt markeringsrelation i sitt utgångsläge.
 
