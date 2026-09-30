@@ -26,30 +26,59 @@ const Match3D = (() => {
  function camera(aspect,mode,puck,zoom){return cameraView(aspect,mode,puck,zoom).matrix;}
  function trackPuck(frame,prior){
   const clock=frame.wall??frame.time,dt=prior?clock-(prior.wall??prior.time):0,continuous=prior&&prior.reset===frame.reset&&dt>=0&&dt<=.5&&!(frame.phase==='faceoff'&&prior.phase!=='faceoff')&&Math.hypot(frame.puck.x-prior.x,frame.puck.y-prior.y)<18;
-  const t=continuous?1-Math.exp(-dt/.18):1;
-  return {time:frame.time,wall:clock,reset:frame.reset,phase:frame.phase,x:mix(prior?.x??frame.puck.x,frame.puck.x,t),y:mix(prior?.y??frame.puck.y,frame.puck.y,t)};
+  // A critically damped pan retains camera velocity through a rebound instead
+  // of reversing it in one frame. Use recorded time, including paused/replay
+  // clocks; camera state is never written into the match or its random stream.
+  const tracked={time:frame.time,wall:clock,reset:frame.reset,phase:frame.phase,x:frame.puck.x,y:frame.puck.y,vx:0,vy:0};
+  if(continuous)for(const [axis,velocity] of [['x','vx'],['y','vy']]){
+   if(dt===0){tracked[axis]=prior[axis];tracked[velocity]=prior[velocity]||0;continue;}
+   const error=prior[axis]-frame.puck[axis],v=prior[velocity]||0,omega=12,decay=Math.exp(-omega*dt),change=(v+omega*error)*dt;
+   tracked[axis]=frame.puck[axis]+(error+change)*decay;tracked[velocity]=(v-omega*change)*decay;
+  }
+  return tracked;
  }
  function cameraFrame(aspect,mode,frame,prior,zoom){
   let focus=frame.puck,important=[frame.puck];
+  // Apply the permitted pan range to the destination before damping. Clamping
+  // an already moving camera at the end made it hit an invisible stop behind
+  // the goal, then start abruptly again when the puck returned into the slot.
+  const panTarget=p=>({x:clamp(p.x,mode==='rinkside'?2:10,mode==='rinkside'?58:50),y:clamp(p.y,mode==='rinkside'?1:7,mode==='rinkside'?29:23)});
   if(mode==='auto'){
    important.push(...frame.actors.filter(a=>Math.hypot(a.x-frame.puck.x,a.y-frame.puck.y)<12));
    if(frame.flight){important.push(frame.flight.start,frame.flight.end);}
    const xs=important.map(p=>p.x),ys=important.map(p=>p.y);
    focus={x:(Math.min(...xs)+Math.max(...xs))/2,y:(Math.min(...ys)+Math.max(...ys))/2};
   }
-  let tracked=trackPuck({...frame,puck:focus},prior),view=cameraView(aspect,mode,tracked,zoom);
+  focus=panTarget(focus);
+  const requestedZoom=Number.isFinite(zoom)?clamp(zoom,.8,1.5):1;
+  let tracked=trackPuck({...frame,puck:focus},prior),fit=requestedZoom,view=cameraView(aspect,mode,tracked,fit);
   if(mode==='auto'){
-   let fit=zoom||1;
-   for(let i=0;i<8&&important.some(p=>{const q=project([p.x,p.id?1:.1+(p.z||0),p.y],view.matrix);return q.x<.06||q.x>.94||q.y<.06||q.y>.94;});i++){fit*=.92;view=cameraView(aspect,mode,tracked,fit);}
-   const dt=(frame.wall??frame.time)-(prior?.wall??prior?.time??-Infinity);
-   if(prior?.fit!=null&&prior.mode===mode&&prior.reset===frame.reset&&dt>=0&&dt<=.5&&fit>prior.fit)fit=prior.fit+(fit-prior.fit)*(1-Math.exp(-dt/.55));
-   tracked.fit=fit;tracked.mode=mode;view=cameraView(aspect,mode,tracked,fit);
+   for(let i=0;i<8&&fit>.8&&important.some(p=>{const q=project([p.x,p.id?1:.1+(p.z||0),p.y],view.matrix);return q.x<.06||q.x>.94||q.y<.06||q.y>.94;});i++){fit=Math.max(.8,fit*.92);view=cameraView(aspect,mode,tracked,fit);}
   }
+  const dt=(frame.wall??frame.time)-(prior?.wall??prior?.time??-Infinity);
+  if(prior?.fit!=null&&prior.mode===mode&&prior.requestedZoom===requestedZoom&&prior.reset===frame.reset&&dt>=0&&dt<=.5&&fit>prior.fit)fit=prior.fit+(fit-prior.fit)*(1-Math.exp(-dt/.55));
+  view=cameraView(aspect,mode,tracked,fit);
   const puck=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],view.matrix);
-  // A fast pass or shot must stay visible even while the tracking camera eases.
+  // Keep a fast puck inside a small screen margin. Move only far enough to
+  // recover that margin, not all the way to the puck: a full re-centre caused
+  // large cuts during shots and rebounds, especially at rinkside/close zoom.
   if((['follow','auto','rinkside'].includes(mode)||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
-   tracked=trackPuck(frame,null);view=cameraView(aspect,mode,tracked,zoom);
+   const origin=tracked,inside=v=>{const p=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],v.matrix);return p.x>=.06&&p.x<=.94&&p.y>=.06&&p.y<=.94;};
+   const centered=panTarget(frame.puck);
+   let lo=0,hi=1,corrected={...tracked,...centered},correctedView=cameraView(aspect,mode,corrected,fit);
+   // At close rinkside zoom a lifted puck can leave the top even when centred.
+   // Open the lens only as needed, then ease back to the user's zoom above.
+   while(!inside(correctedView)&&fit>.8){fit=Math.max(.8,fit*.92);correctedView=cameraView(aspect,mode,corrected,fit);}
+   if(inside(correctedView))for(let i=0;i<10;i++){
+    const amount=(lo+hi)/2,candidate={...origin,x:mix(origin.x,centered.x,amount),y:mix(origin.y,centered.y,amount)},candidateView=cameraView(aspect,mode,candidate,fit);
+    if(inside(candidateView)){hi=amount;corrected=candidate;correctedView=candidateView;}else lo=amount;
+   }
+   // Do not retain momentum pointing away from the correction. Preserve fit
+   // and replay clock metadata, so a second draw of this frame stays still.
+   for(const [axis,velocity] of [['x','vx'],['y','vy']])if((corrected[axis]-origin[axis])*corrected[velocity]<0)corrected[velocity]=0;
+   tracked=corrected;view=correctedView;
   }
+  tracked.fit=fit;tracked.mode=mode;tracked.requestedZoom=requestedZoom;
   return {...view,tracked};
  }
  function project(p,m){const q=[...p,1],v=[0,0,0,0];for(let r=0;r<4;r++)for(let k=0;k<4;k++)v[r]+=m[k*4+r]*q[k];return {x:(v[0]/v[3]+1)/2,y:(1-v[1]/v[3])/2};}
