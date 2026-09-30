@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 35
     env:
-      HM_MATCH_BEFORE_ROOT: ${{ runner.temp }}/hockey-match-before
+      HM_MATCH_BEFORE_ROOT: ${{ github.workspace }}/../hockey-match-before
     steps:
       - uses: actions/checkout@v4
         with:
