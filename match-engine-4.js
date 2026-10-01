@@ -303,6 +303,16 @@
       if(changed){plan.switchedAt=this.time;plan.reason=plan.risk>.3?'Byter fortsättning när passningsvägen stängs':'Läser en ny yta efter passningen';}
       const runner=actors.filter(a=>a!==carrier&&a.id!==route.receiver&&!a.role.endsWith('D')).sort((a,b)=>StudioHockey.distance(a,{x:StudioHockey.progress(team.side,53),y:15})-StudioHockey.distance(b,{x:StudioHockey.progress(team.side,53),y:15}))[0];
       Object.assign(plan,{kind:route.kind,receiver:route.receiver,target:route.target,risk:route.risk,lane:route.lane,runner:runner?.id,readAt:this.time+clamp(1.05-this.attribute(carrier,'decisions')*.025-this.attribute(carrier,'vision')*.01,.35,.9)});
+      if(runner){
+        const point=(x,y)=>({x:StudioHockey.progress(team.side,x),y});
+        const base=point(plan.kind==='low-high'?54:51,15+plan.lane*2.5);
+        const others=actors.filter(a=>a!==carrier&&a!==runner);
+        const separation=target=>Math.min(6,...others.map(a=>StudioHockey.distance(target,a.id===route.receiver?route.target:a.target)));
+        // Keep the net-front player's screen; the next runner supplies a
+        // distinct high-slot/weak-side option instead of joining that target.
+        plan.runnerTarget=separation(base)>=3.2?base:[point(51,15-plan.lane*4),point(50,15+plan.lane*6)]
+          .sort((a,b)=>(separation(b)-StudioHockey.distance(runner,b)*.025)-(separation(a)-StudioHockey.distance(runner,a)*.025))[0];
+      }else delete plan.runnerTarget;
     }
   };
   proto.patternTargets=function(){
@@ -314,7 +324,7 @@
       const target=plan.target||{x:StudioHockey.progress(carrier.side,49.5),y:15-plan.lane*8};
       this.assign(receiver,target,({'low-high':'Ger understöd för spel från hörnet till backen',cycle:'Erbjuder fortsatt spel bakom mål',diagonal:'Öppnar sig på bortre flanken','give-go':'Söker nästa yta i väggspelet'})[plan.kind]);
     }
-    if(!this.hasPowerPlay(carrier.side)&&runner&&runner.id!==carrier.id&&runner!==receiver&&!runner.role.endsWith('D'))this.assign(runner,{x:StudioHockey.progress(carrier.side,plan.kind==='low-high'?54:51),y:15+plan.lane*2.5},'Attackerar nästa yta medan medspelarna kombinerar');
+    if(!this.hasPowerPlay(carrier.side)&&runner&&runner.id!==carrier.id&&runner!==receiver&&!runner.role.endsWith('D'))this.assign(runner,plan.runnerTarget||{x:StudioHockey.progress(carrier.side,plan.kind==='low-high'?54:51),y:15+plan.lane*2.5},'Attackerar nästa yta medan medspelarna kombinerar');
   };
   proto.specialTeamsTargets=function(){
     const carrier=this.actor(this.carrier);
@@ -453,7 +463,7 @@
   proto.netFrontTargets=function(){
     for(const a of this.actors)if(a.netFront?.until<=this.time)delete a.netFront;
     const release=(screenId,guardId)=>{for(const a of this.actors)if(a.netFront&&a.id!==screenId&&a.id!==guardId)delete a.netFront;};
-    if(this.stoppage||this.battle){release();return;}
+    if(this.stoppage>0||this.battle){release();return;}
     const carrier=this.actor(this.carrier),rebound=this.rebound&&this.time-this.rebound.time<2.5;
     const side=carrier?.side??(this.flight?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44){release();return;}
     const goal={x:StudioHockey.progress(side,56.5),y:15},pp=this.hasPowerPlay(side);
@@ -464,6 +474,9 @@
     const candidates=this.skaters(side).filter(a=>a.status==='playing'&&a!==carrier&&!a.shotPreparation&&!a.role.endsWith('D')&&(!pp||a.role==='C')&&!rotating.has(a.id)&&a.id!==this.flight?.to&&a.id!==route?.receiver&&StudioHockey.progress(side,a.x)>49&&StudioHockey.distance(a,goal)<7);
     const cost=a=>StudioHockey.distance(a,goal)-(a.netFront?.kind==='screen'?1.4:0)-(a.id===route?.runner?1.6:0);
     const screen=candidates.sort((a,b)=>cost(a)-cost(b))[0];if(!screen){release();return;}
+    // A new screen task requires the player's normal read latency after a
+    // controlled touch. A continuing screen survives a quick side-to-side pass.
+    if(carrier&&!screen.netFront&&Number.isFinite(carrier.controlledAt)&&this.time-carrier.controlledAt<this.readDelay(screen)){release();return;}
     // Respect the shared marking plan: a defender cannot abandon the puck
     // carrier or another threat merely because the screen is nearby.
     const defenders=this.skaters(1-side).filter(d=>d.status==='playing'&&StudioHockey.distance(d,screen)<3.2&&(!carrier||StudioHockey.distance(d,carrier)>2.7)&&(pp||!d.markedThreat||d.markedThreat===screen.id));
@@ -473,6 +486,10 @@
     // Keep a screen on the observed sight line; after a real rebound attack
     // that puck. The defender must reach the inside position to tie a stick.
     this.assign(screen,p,loose?'Attackerar den faktiska returen':'Söker skymning och håller klubban spelbar framför mål');
+    if(!pp&&!loose&&carrier)for(const a of this.skaters(side)){
+      if(a===screen||a===carrier||a.role.endsWith('D')||a.status!=='playing'||a.shotPreparation||a.id===this.flight?.to||a.id===route?.receiver)continue;
+      if(StudioHockey.distance(a.target,p)<3.2)this.assign(a,{x:StudioHockey.progress(side,51),y:a.y<15?10:20},'Ger separat understöd i höga slottet bakom skymningen');
+    }
     const record=(a,kind,opponent)=>{const old=a.netFront;a.netFront={at:old?.kind===kind?old.at:this.wall,until:this.time+.35,kind,opponent:opponent?.id||null};};
     record(screen,loose?'rebound':'screen',guard);
     if(guard){
