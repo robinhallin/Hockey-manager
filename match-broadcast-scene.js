@@ -64,7 +64,8 @@ const HockeyBroadcast3D=(()=>{
   }
   function buildRink(c){
    const T=c.T,rows=core.sceneData.rink(),iceMaterial=new T.MeshLambertMaterial({color:'#e8f0f6',side:T.DoubleSide});
-   c.materials.add(iceMaterial);c.iceMaterial=iceMaterial;
+   const simpleIce=new T.MeshBasicMaterial({color:'#e8f0f6',side:T.DoubleSide,toneMapped:false});
+   c.materials.add(iceMaterial);c.materials.add(simpleIce);c.iceMaterial=iceMaterial;c.iceMaterials={normal:iceMaterial,low:simpleIce};
    c.reflectionUniforms={rinkReflection:{value:c.reflection.texture},rinkProjection:{value:new T.Matrix4()},rinkReflectivity:{value:0}};
    iceMaterial.onBeforeCompile=shader=>{
     shadowShader(c,shader);
@@ -72,7 +73,7 @@ const HockeyBroadcast3D=(()=>{
     shader.vertexShader='uniform mat4 rinkProjection;varying vec4 vRinkProjection;\n'+shader.vertexShader;
     shader.vertexShader=shader.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\nvRinkProjection=rinkProjection*modelMatrix*vec4(transformed,1.);');
     shader.fragmentShader='uniform sampler2D rinkReflection;uniform float rinkReflectivity;varying vec4 vRinkProjection;\n'+shader.fragmentShader;
-    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','vec2 rinkUV=vRinkProjection.xy/vRinkProjection.w;vec4 rinkRef=texture2D(rinkReflection,rinkUV);float rinkValid=step(0.,rinkUV.x)*step(rinkUV.x,1.)*step(0.,rinkUV.y)*step(rinkUV.y,1.);outgoingLight=mix(outgoingLight,rinkRef.rgb,rinkRef.a*rinkReflectivity*rinkValid);\n#include <opaque_fragment>');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','if(rinkReflectivity>0.){vec2 rinkUV=vRinkProjection.xy/vRinkProjection.w;vec4 rinkRef=texture2D(rinkReflection,rinkUV);float rinkValid=step(0.,rinkUV.x)*step(rinkUV.x,1.)*step(0.,rinkUV.y)*step(rinkUV.y,1.);outgoingLight=mix(outgoingLight,rinkRef.rgb,rinkRef.a*rinkReflectivity*rinkValid);}\n#include <opaque_fragment>');
    };
    const classify=(a,i)=>{
     if(a[i+6]<-1.5)return 'ribbon';if(a[i+6]<-.5)return 'boards';if(a[i+6]>1)return 'lamps';
@@ -88,7 +89,8 @@ const HockeyBroadcast3D=(()=>{
    }
    // Glass catches grazing highlights but stays transparent in the match view.
    const panes=core.sceneData.glass(),glassMaterial=new T.MeshPhysicalMaterial({color:'#a4c8df',roughness:.18,metalness:.05,transparent:true,opacity:.09,depthWrite:false,side:T.DoubleSide,envMapIntensity:.7});
-   c.materials.add(glassMaterial);c.glass=mesh(c,geometry(T,panes),glassMaterial,{receive:false});c.glass.renderOrder=8;c.glassVertices=panes.length/9;
+   const simpleGlass=new T.MeshBasicMaterial({color:'#a4c8df',transparent:true,opacity:.09,depthWrite:false,side:T.DoubleSide});
+   c.materials.add(glassMaterial);c.materials.add(simpleGlass);c.glassMaterials={normal:glassMaterial,low:simpleGlass};c.glass=mesh(c,geometry(T,panes),glassMaterial,{receive:false});c.glass.renderOrder=8;c.glassVertices=panes.length/9;
   }
   function arena(c){
    const g=core.sceneData.geometry(),rgb=hex=>new c.T.Color(hex).convertLinearToSRGB().toArray(),steel=rgb('#455769'),dark=rgb('#142230'),step=rgb('#344758');
@@ -231,7 +233,7 @@ const HockeyBroadcast3D=(()=>{
    if(key!==c.artKey){
     const art=core.sceneData.arenaTextures(options.teams,options.homeSide??0,options.arena);
     const replace=(owner,prop,canvas)=>{if(owner[prop]){owner[prop].dispose();c.textures.delete(owner[prop]);}owner[prop]=texture(c,canvas);};
-    replace(c,'iceTexture',art.ice);replace(c,'boardTexture',art.board);c.iceMaterial.map=c.iceTexture;c.iceMaterial.needsUpdate=true;
+    replace(c,'iceTexture',art.ice);replace(c,'boardTexture',art.board);for(const m of Object.values(c.iceMaterials)){m.map=c.iceTexture;m.needsUpdate=true;}
     for(const m of c.boardMaterials){m.map=c.boardTexture;m.needsUpdate=true;}c.artKey=key;c.textureBuilds++;
    }
    const scoreboardKey=JSON.stringify([f.score,Math.floor(f.time),options.teams,options.arena,options.homeSide]);if(c.scoreboardKey!==scoreboardKey){
@@ -289,6 +291,8 @@ const HockeyBroadcast3D=(()=>{
    const start=performance.now(),q=core.quality(options.quality),rect=canvas.getBoundingClientRect(),dpr=Math.min(q.dpr,globalThis.devicePixelRatio||1)*q.scale,w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));
    if(canvas.width!==w||canvas.height!==h)c.renderer.setSize(w,h,false);
    const level=['low','normal','high'].includes(options.quality)?options.quality:'normal',changedQuality=c.quality!==level;c.quality=level;
+   c.glass.material=c.glassMaterials[level==='low'?'low':'normal'];
+   c.ice.material=c.iceMaterials[level==='low'?'low':'normal'];
    if(c.shadowSize!==q.shadowSize){c.light.shadow.map?.dispose();c.light.shadow.map=null;c.light.shadow.mapSize.set(q.shadowSize||512,q.shadowSize||512);c.light.castShadow=Boolean(q.shadowSize);c.shadowSize=q.shadowSize;c.geometryKey=null;}
    const f=options.sampled||core.sample(frame,before,t);cameraView(c,f,options);clubArt(c,options,f);players(c,f,options);updateCrowd(c,f,options,q);bench(c,f,options);const changed=updateGeometry(c,f,options);
    const analysisKey=JSON.stringify(options.analysis||null);if(analysisKey!==c.analysisKey){if(c.analysis){c.scene.remove(c.analysis);c.analysis.geometry.dispose();c.geometries.delete(c.analysis.geometry);}c.analysisCount=0;c.analysis=null;if(options.analysis){const rows=core.analysisGeometry(options.analysis);c.analysisCount=rows.length/9;c.analysis=mesh(c,geometry(T,rows),c.equipmentMaterial,{receive:false});}c.analysisKey=analysisKey;}
@@ -315,7 +319,7 @@ const HockeyBroadcast3D=(()=>{
    }
    c.lastDraw=start;c.lastWall=f.wall;c.wasMoving=Boolean(options.moving);return true;
   }
-  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',gpu:gpuStats(c),programs:c.renderer.info.programs.length,detailLevel:c.detailLevel,quality:c.quality,shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,playerBatches:c.playerBatches.length,batchBuilds:c.batchBuilds,batchReuses:c.batchReuses,rigJoints:15,renderMS:c.renderMS,frameStats:c.frameStats?{...c.frameStats}:null,frameP99:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.99)]:null,frameSamples:c.frameTimes.length,frameMedian:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.5)]:null,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
+  function diagnostics(){if(!current)return core.diagnostics();const c=current;return {renderer:'three',gpu:gpuStats(c),programs:c.renderer.info.programs.length,detailLevel:c.detailLevel,quality:c.quality,iceLighting:c.ice.material.isMeshBasicMaterial?'unlit':'lambert',glassLighting:c.glass.material.isMeshBasicMaterial?'unlit':'physical',shadowSupported:true,shadowMode:c.shadowSize?'projected':'contact',shadowSize:c.shadowSize,shadowBuilds:c.shadowBuilds,reflectionBuilds:c.reflectionBuilds,textureBuilds:c.textureBuilds,arenaVertices:c.arenaVertices,shadowCasterVertices:c.shadowCasterVertices,glassVertices:c.glassVertices,motionFrames:c.motionFrames||0,motionAdvances:c.motionAdvances||0,width:c.canvas.width,height:c.canvas.height,frames:c.frames,actors:c.hits.length,vertices:c.dynamicCount+c.skinVertices,skinVertices:c.skinVertices,modelActors:c.players.size,playerBatches:c.playerBatches.length,batchBuilds:c.batchBuilds,batchReuses:c.batchReuses,rigJoints:15,renderMS:c.renderMS,frameStats:c.frameStats?{...c.frameStats}:null,frameP99:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.99)]:null,frameSamples:c.frameTimes.length,frameMedian:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.5)]:null,frameP95:c.frameTimes.length?[...c.frameTimes].sort((a,b)=>a-b)[Math.floor((c.frameTimes.length-1)*.95)]:null,crowdVertices:c.crowdVertices,crowdInstances:c.crowdCount,benchPlayers:c.benchPlayers||0,analysisVertices:c.analysisCount||0,geometryBuilds:c.geometryBuilds,buildMS:c.buildMS,gpuSkinning:true,sprayParticles:c.sprayCount||0,drawCalls:c.renderer.info.render.calls,error:c.renderer.getContext().getError()};}
   function pick(canvas,x,y){if(!current)return core.pick(canvas,x,y);if(current.canvas!==canvas)return null;const r=canvas.getBoundingClientRect();return current.hits.map(a=>({...a,d:Math.hypot(a.x*r.width-x,a.y*r.height-y)})).filter(a=>a.d<24).sort((a,b)=>a.d-b.d)[0]?.id??null;}
   return {...core,draw,dispose,pick,diagnostics};
  }
