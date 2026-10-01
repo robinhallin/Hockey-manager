@@ -34,6 +34,7 @@ function overviewSelectPlayer(id){
  else document.getElementById('overview-watch-'+previous)?.focus?.({preventScroll:true});
 }
 function overviewExpandDecisions(){overviewUI.decisions=!overviewUI.decisions;render();queueInterfaceSave();document.getElementById('overview-more-decisions')?.focus?.({preventScroll:true});}
+function overviewOpenAllDecisions(){officeUI.panel='followup';deskNavigate('staffReview');}
 function overviewSupport(panel){
  if(!['today','followup','club','staff','day'].includes(panel))return;
  officeUI.panel=officeUI.panel===panel?'today':panel;render();queueInterfaceSave();
@@ -59,7 +60,7 @@ function overviewDecisionsView(items){
  return `<section class="ov-panel ov-decisions" aria-label="Dagens prioriteringar"><header><h2>Beslut som väntar <span class="ov-count">${items.length}</span></h2><span class="ov-muted">${items.filter(x=>x.requiresDecision).length} kräver svar</span></header><div class="ov-decision-list">${visible.map(item=>{
  const action=managerOffice2Action(item),icon=item.action?.deal?'arrow':({training:'training',match:'team',medical:'training',contracts:'club',locker:'team'})[item.area]||'mail';
  return `<article class="ov-decision" data-level="${item.level}"><span class="ov-decision-icon">${deskIcon(icon)}</span><div class="ov-decision-copy"><strong>${trainingSafe(item.title)}</strong><p title="${trainingSafe(item.detail)}">${trainingSafe(item.detail)}</p></div><span class="ov-due">${trainingSafe(overviewDeadline(item))}</span>${action?overviewButton(label(item),action):''}</article>`;
- }).join('')||'<div class="ov-empty"><strong>Du är i fas.</strong><p>Inga prioriterade ärenden just nu. Planera veckan eller fortsätt till nästa dag.</p></div>'}</div>${items.length>3?`<p class="ov-more">${items.length-3} ytterligare ärenden finns i inkorgen. ${overviewButton('Öppna inkorgen',"trainingOpen('inbox')")}</p>`:''}</section>`;
+ }).join('')||'<div class="ov-empty"><strong>Du är i fas.</strong><p>Inga prioriterade ärenden just nu. Planera veckan eller fortsätt till nästa dag.</p></div>'}</div>${items.length>3?`<p class="ov-more">${items.length-3} ytterligare ärenden väntar. ${overviewButton('Visa alla ärenden','overviewOpenAllDecisions()')}</p>`:''}</section>`;
 }
 function overviewFixture(){
  const next=deskFixtures().upcoming[0],live=state.live&&!state.live.finished?state.live:null;

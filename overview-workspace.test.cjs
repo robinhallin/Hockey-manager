@@ -21,7 +21,7 @@ state.recruitment.incoming.push({id:997,name:'Väntande bud',buyer:'AIK',stage:'
 assert.equal(r("overviewDecisionItems().some(i=>i.action?.deal==='incoming:997')"),false);
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal)[0].action.deal"),'incoming:996');
 assert.equal(r("overviewDecisionItems().filter(i=>i.action?.deal).length"),7);
-assert.match(r('overviewWorkspaceView()'),/Öppna inkorgen/);
+assert.match(r('overviewWorkspaceView()'),/Visa alla ärenden/);
 assert.equal((r('overviewWorkspaceView()').match(/<article class=\"ov-decision\"/g)||[]).length,3,'overview keeps only three priority decision rows visible');
 r("officeOpenDeal('incoming:996')");assert.equal(r('recruitHub.deal'),'incoming:996');assert.equal(r('recruitHub.affairs'),'open');
 r("deskNavigate('home');state.recruitment.incoming=[];globalThis.p=managerRoster().find(p=>p.pos!=='MV');p.fatigue=61;overviewSelectPlayer(p.id)");
@@ -55,5 +55,8 @@ r("globalThis.devP=managerRoster()[0];globalThis.devHtml=developmentInspector(de
 assert.equal(r("developmentUI.player"),r("devP.id"));assert.equal(r("developmentUI.detail"),true);assert.match(r("developmentWorkspaceView()"),/individual-training/);
 r("developmentClosePlayer(false);deskNavigate('home')");
 r("globalThis.ovItems=overviewDecisionItems();globalThis.ovHtml=overviewDecisionsView(ovItems)");
-assert.ok(r("ovItems.length<=3||ovHtml.includes('Öppna inkorgen')"));assert.ok(r("(ovHtml.match(/class=\\\"ov-decision\\\"/g)||[]).length<=3"));
+assert.ok(r("ovItems.length<=3||ovHtml.includes('Visa alla ärenden')"));assert.ok(r("(ovHtml.match(/class=\\\"ov-decision\\\"/g)||[]).length<=3"));
+r("overviewOpenAllDecisions()");assert.equal(r('state.page'),'staffReview');
+r("deskNavigate('development');globalThis.mixedDev=managerRoster().find(p=>p.pos!=='MV');mixedDev.trainingBaseline={...mixedDev.attributes};globalThis.devKeys=Object.keys(mixedDev.attributes);mixedDev.attributes[devKeys[0]]+=1;mixedDev.attributes[devKeys[1]]-=1;developmentUI.period='baseline';globalThis.mixedRow=developmentRows(false).find(x=>x.p.id===mixedDev.id);globalThis.mixedHtml=developmentTable(false).table");
+assert.equal(r('mixedRow.change'),0);assert.equal(r('mixedRow.delta.up'),1);assert.equal(r('mixedRow.delta.down'),1);assert.match(r('mixedHtml'),/\+1 \/ −1/);
 console.log('PASS: compact read-only overview, seven calendar days, away venues and live scores, sorted offers and waiting stages, all decisions accessible, player selection/back, exact development/calendar destinations and reload.');
