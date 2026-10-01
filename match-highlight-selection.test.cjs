@@ -19,7 +19,11 @@ test('every observed goal and post matters; hidden outcomes and old results do n
 });
 test('a dangerous slot rebound counts; a safe rebound to the boards and ordinary save do not',()=>{
  probe();r("h.lastShot={quality:.025,outcome:'save',time:500,resolvedAt:20,context:{d:24}};h.rebound={side:0,time:500,spot:{x:57,y:28}}");assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
- r('h.rebound.spot={x:52,y:15}');assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Farlig retur');
+ for(const side of [0,1]){
+  r(`h.rebound.side=${side};h.rebound.spot={x:${side?3:57},y:15}`);assert.equal(r("MatchHighlights.select(h,'highlights')"),null,'behind the net is not a dangerous slot rebound');
+  r(`h.rebound.spot={x:${side?5:55},y:22}`);assert.equal(r("MatchHighlights.select(h,'highlights')"),null,'a sharp-angle rebound beside the net is not a slot chance');
+  r(`h.rebound.spot={x:${side?8:52},y:15}`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Farlig retur');
+ }
  for(const side of [0,1]){r(`h.rebound=null;h.lastShot=null;h.carrier='a';h.actor=()=>({id:'a',side:${side},x:${side?8:52},y:15});h.shotQuality=()=>.15;h.shotContext=()=>({d:4.5,angle:.2});`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Stor målchans');}
 });
 test('penalties and injury notices survive the event drain without displaying an entire powerplay',()=>{

@@ -18,8 +18,8 @@ const MatchHighlights=(()=>{
    // Sparse legacy flights lack chance data. Current flights include it.
    if(!f.shot||mode==='extended'||dangerous(f.shot))return signal('shot:'+(f.shot?.playerId||f.from||'legacy')+':'+(f.shot?.time??0),dangerous(f.shot)?'Stor målchans':'Avslut',4,3,dangerous(f.shot)?2:1);
   }
-  const rebound=e.rebound;
-  if(rebound?.spot&&Math.hypot(StudioHockey.progress(rebound.side,rebound.spot.x)-56.5,rebound.spot.y-15)<9&&e.time-rebound.time<2.5)return signal('rebound:'+rebound.side+':'+rebound.time,'Farlig retur',3,3,2);
+  const rebound=e.rebound,spot=rebound?.spot,depth=spot?56.5-StudioHockey.progress(rebound.side,spot.x):0;
+  if(spot&&depth>0&&Math.hypot(depth,spot.y-15)<9&&Math.atan2(Math.abs(spot.y-15),depth)<.9&&e.time-rebound.time<2.5)return signal('rebound:'+rebound.side+':'+rebound.time,'Farlig retur',3,3,2);
   const a=e.actor(e.carrier);if(!a||e.stoppage>0||e.phase==='faceoff')return null;
   const p=StudioHockey.progress(a.side,a.x);if(p<42||p>56.5)return null;
   const q=e.shotQuality(a),c=e.shotContext(a);if(c.behind)return null;
