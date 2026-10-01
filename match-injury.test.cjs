@@ -31,9 +31,11 @@ console.log('PASS: broadcast and legacy injury decisions, frozen clock, saved pe
 // Exercise injuries raised inside broadcast ice-time accounting, not just a
 // manually inserted incident between simulation steps.
 const live=boot();
-live.run(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();medicalRoll=()=>0;for(let i=0;i<100&&state.live.running;i++)studioStep();render()`);
+live.run(`startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();rinkMode('highlights');medicalRoll=()=>0;for(let i=0;i<100&&state.live.running;i++)studioStep();render()`);
 assert.equal(live.run('state.live.running'),false);
 assert.ok(live.run('state.live.medicalDecisions.length')>0);
 assert.equal(live.run('studioEngine().actors.filter(a=>a.side===0).every(a=>medicalAvailable(studioPlayer(0,a.player.id)))'),true);
 assert.ok(live.get('#medical-decision-root').innerHTML.includes('är skadad'));
-console.log('PASS: injury during broadcast accounting pauses safely and removes unavailable actors.');
+assert.ok(live.run("state.live.events.some(x=>x.type==='injury')"));
+assert.equal(live.run("studioHighlightWindow?.notice?.label==='Skadehändelse'"),false);
+console.log('PASS: exposure injury pauses safely for medical decisions without inventing a rink replay.');

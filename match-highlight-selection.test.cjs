@@ -26,9 +26,9 @@ test('a dangerous slot rebound counts; a safe rebound to the boards and ordinary
  }
  for(const side of [0,1]){r(`h.rebound=null;h.lastShot=null;h.carrier='a';h.actor=()=>({id:'a',side:${side},x:${side?8:52},y:15});h.shotQuality=()=>.15;h.shotContext=()=>({d:4.5,angle:.2});`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Stor målchans');}
 });
-test('penalties and injury notices survive the event drain without displaying an entire powerplay',()=>{
- probe();for(const type of ['penalty','injury']){r(`globalThis.notice=MatchHighlights.event(h,[{type:'icing',time:499},{type:'${type}',time:500,id:1}]);`);assert.ok(r("MatchHighlights.select(h,'highlights',notice)"));r('h.wall+=1');assert.equal(r("MatchHighlights.select(h,'highlights',notice)"),null);r('h.wall=20');}
- assert.equal(r("MatchHighlights.event(h,[{type:'offside'},{type:'icing'},{type:'entry'},{type:'clear'},{type:'turnover'}])"),null);
+test('penalties survive the event drain; medical injuries stay in the medical decision flow',()=>{
+ probe();r("globalThis.notice=MatchHighlights.event(h,[{type:'icing',time:499},{type:'penalty',time:500,id:1}]);");assert.equal(r("notice.label"),'Utvisning');assert.ok(r("MatchHighlights.select(h,'highlights',notice)"));r('h.wall+=1');assert.equal(r("MatchHighlights.select(h,'highlights',notice)"),null);
+ assert.equal(r("MatchHighlights.event(h,[{type:'offside'},{type:'icing'},{type:'entry'},{type:'clear'},{type:'turnover'},{type:'injury',time:500,id:1}])"),null);
 });
 test('a clear breakaway matters in either direction even with a modest shooter; a defender in the lane excludes it',()=>{
  for(const side of [0,1]){
