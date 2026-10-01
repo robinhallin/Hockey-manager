@@ -46,8 +46,8 @@ const MatchHighlights=(()=>{
   return null;
  }
  function event(e,events){
-  const row=events.findLast(x=>['goal','penalty','injury'].includes(x.type));if(!row)return null;
-  return {...signal('event:'+row.type+':'+row.time+':'+row.id,{goal:'Mål',penalty:'Utvisning',injury:'Skadehändelse'}[row.type],row.type==='goal'?5:3,row.type==='goal'?4:3,3),engine:e,wall:e.wall};
+  const row=events.findLast(x=>['goal','penalty'].includes(x.type));if(!row)return null;
+  return {...signal('event:'+row.type+':'+row.time+':'+row.id,{goal:'Mål',penalty:'Utvisning'}[row.type],row.type==='goal'?5:3,row.type==='goal'?4:3,3),engine:e,wall:e.wall};
  }
  function lead(e,seconds,after=-Infinity){
   const rows=e.history||[],latest=rows.at(-1);if(!latest)return null;
