@@ -144,6 +144,15 @@
         if(threat){covered.add(threat.id);b.markedThreat=threat.id;}
         this.assign(b,point(clamp(ownP-desired,6,47),clamp(lane*.78+15*.22,6,24)),b===strong?'Håller gap och skyddar insidan mot puckföraren':'Håller gap och täcker det bortre hotet');
       }
+      if(enemyP<30){
+        // Keep the existing forecheck movement, but refresh its ownership
+        // after the backs take their lanes: do not leave stale double marks.
+        for(const a of forwards){
+          const cost=t=>StudioHockey.distance(a,t)-(a.markedThreat===t.id?1.7:0);
+          const threat=attackers.filter(t=>!covered.has(t.id)).sort((a,b)=>cost(a)-cost(b))[0];
+          if(threat){a.markedThreat=threat.id;covered.add(threat.id);}else delete a.markedThreat;
+        }
+      }
       if(enemyP>=30){
         const team=this.teams[side],cost=a=>StudioHockey.distance(a,carrier)-(team.backcheckLead===a.id?1.7:0);
         const chaser=[...forwards].sort((a,b)=>cost(a)-cost(b))[0];team.backcheckLead=chaser?.id;

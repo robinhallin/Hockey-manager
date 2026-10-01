@@ -12,7 +12,7 @@ Improve neutral-zone support, continuation after a pass, and recovery assignment
 
 ## Verification
 
-- Five focused tests cover mirrored rush coverage, distinct late-threat assignments, support read latency and replacement, pass continuation with offside/pressure/special-team overrides, and identical continuation after save/reload.
+- Six focused tests cover mirrored rush coverage, distinct early/late-threat assignments, support read latency and replacement, pass continuation with offside/pressure/special-team overrides, and identical continuation after save/reload.
 - Existing breakout, backcheck, 3D, control integration, highlight playback and workspace checks pass locally. Workspace checks retain identical simulated match events across viewing modes.
 - Natural full-match browser playback at 1× reviewed before and after, for over one minute each, with no forced plays. After: 12 actors/models, rink lines and logos retained, no page/render errors or layout overflow. Whole-viewport recording used because goals may replace the canvas.
 - Desktop quality-switch test now checks actual ice/glass material types, as well as existing scene and state invariants.
@@ -23,15 +23,17 @@ Run `node scripts/check-transition-flow.cjs` for eight seeded natural 180-second
 
 | Observation | Before | After |
 | --- | ---: | ---: |
-| Qualifying wide-runner rush samples | 1577 | 1326 |
-| Back targets collapsed onto puck lane | 1546 (98.0%) | 158 (11.9%) |
-| No goal-side back in qualifying samples | 19 | 6 |
-| Near/wide support job swaps | 47 | 0 |
-| Observed pass-and-go seconds | 0 | 7 |
-| Passes / entries / shots / goals | 179 / 56 / 20 / 1 | 157 / 42 / 18 / 2 |
-| Open central attempts | 5 | 7 |
+| Qualifying wide-runner rush samples | 1577 | 1141 |
+| Back targets collapsed onto puck lane | 1546 (98.0%) | 128 (11.2%) |
+| No goal-side back in qualifying samples | 19 | 0 |
+| Near/wide support job swaps | 47 | 1 |
+| Observed pass-and-go seconds | 0 | 11.7 |
+| Passes / entries / shots / goals | 179 / 56 / 20 / 1 | 171 / 45 / 23 / 3 |
+| Open central attempts | 5 | 4 |
 
 These are small trajectory-dependent samples, not balance calibration. They establish reduced target collapse and support-role flipping, not fewer open chances or a generally improved scoring distribution. Controlled breakout checks also retain legal movement and entry behavior; first-pass choice remains unchanged in those cases.
+
+The first broad CI run exposed stale forward ownership after an early back-lane change. Fixed without changing existing forecheck movement and added a mirrored regression. The camera coverage test now checks four fixed contiguous seeds rather than requiring a rebound in one 90-second game; all shot/save/rebound coverage and immutable-frame assertions remain required. The corresponding 26 local checks pass. Browser film/performance captures precede this ownership-only correction; final metrics above include it.
 
 ## Performance limitation
 

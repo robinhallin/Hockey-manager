@@ -31,6 +31,13 @@ test('one backchecker provides inside pressure while others cover distinct late 
   const held=m.teams[1-side].backcheckLead;chaser.x+=side? .15:-.15;m.defenseTargets(1-side);assert.equal(m.teams[1-side].backcheckLead,held,'small geometry changes do not swap the chaser');
  }
 });
+test('early rush lane changes retain distinct forecheck ownership without relocating players',()=>{
+ for(const side of [0,1]){
+  const {m}=setup(side,24);m.targets();m.defenseTargets(1-side);
+  const marks=m.skaters(1-side).map(a=>a.markedThreat);
+  assert.ok(marks.every(id=>m.actor(id)?.side===side));assert.equal(new Set(marks).size,marks.length);
+ }
+});
 test('transition support retains separate jobs through read latency and rereads a substantially closer outlet',()=>{
  const {m,c,point}=setup(0,26);Object.assign(c,point(26,15));m.puck={x:c.x,y:c.y};
  const forwards=m.skaters(0).filter(a=>a!==c&&!a.role.endsWith('D'));
