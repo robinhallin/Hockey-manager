@@ -58,9 +58,9 @@ test('close zoom includes a lifted puck, restores gently and accepts a paused ma
 test('all tracking views retain a real shot, save and rebound sequence without altering it',()=>{
  const H=require('./scripts/current-match-engine.cjs'),seen=new Set();let checked=0;
  // Natural trajectories change with tactical decisions. Exercise a fixed
- // contiguous seed set, without requiring every short game to have a rebound.
+ // contiguous seed set over five minutes, without requiring every short game to have a rebound.
  for(const seed of [227,228,229,230]){
- const match=new H.Match(require('./match-lab-rosters'),{seed,scenario:'rush',duration:90}),cameras=new Map();
+ const match=new H.Match(require('./match-lab-rosters'),{seed,scenario:'rush',duration:300}),cameras=new Map();
  while(!match.finished){
   match.step();const f=match.presentationFrame(),saved=JSON.stringify(f);for(const e of f.effects||[])seen.add(e.kind);for(const a of f.actors)if(a.action)seen.add(a.action.kind);if(match.rebound)seen.add('rebound');
   for(const mode of ['follow','auto','rinkside'])for(const zoom of [1,1.5]){

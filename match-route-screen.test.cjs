@@ -48,7 +48,7 @@ test('an available rebound can be attacked after the passing route ends without 
   const {m,receiver,runner,point}=setup();m.targets();m.carrier=null;m.flight=null;
   m.rebound={side:0,time:m.time,spot:point(53,17)};m.puck={...m.rebound.spot};m.netFrontTargets();
   const pursuers=m.skaters(0).filter(a=>a.netFront?.kind==='rebound');assert.equal(pursuers.length,1);
-  assert.deepEqual(pursuers[0].target,m.puck);assert.ok(![receiver,runner].some(a=>a.netFront?.kind==='screen'));
+  assert.deepEqual(pursuers[0].target,m.puckChase(0).target);assert.ok(![receiver,runner].some(a=>a.netFront?.kind==='screen'));
   m.time+=3;m.netFrontTargets();assert.ok(m.actors.every(a=>!a.netFront),'expired rebound does not leave a phantom tie-up');
 });
 test('a pass in flight keeps an unrelated screen and its physical marker while protecting the receiver',()=>{

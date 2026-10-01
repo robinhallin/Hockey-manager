@@ -498,7 +498,7 @@
     const p=loose?{x:this.puck.x,y:this.puck.y}:{x:StudioHockey.progress(side,54.1),y:15+clamp((this.puck.y-15)*.16,-1.2,1.2)};
     // Keep a screen on the observed sight line; after a real rebound attack
     // that puck. The defender must reach the inside position to tie a stick.
-    this.assign(screen,p,loose?'Attackerar den faktiska returen':'Söker skymning och håller klubban spelbar framför mål');
+    this.assign(screen,loose?this.puckChase(side).target:p,loose?'Attackerar den faktiska returen':'Söker skymning och håller klubban spelbar framför mål');
     if(!pp&&!loose&&carrier)for(const a of this.skaters(side)){
       if(a===screen||a===carrier||a.role.endsWith('D')||a.status!=='playing'||a.shotPreparation||a.id===this.flight?.to||a.id===route?.receiver)continue;
       if(StudioHockey.distance(a.target,p)<3.2)this.assign(a,{x:StudioHockey.progress(side,51),y:a.y<15?10:20},'Ger separat understöd i höga slottet bakom skymningen');
@@ -507,7 +507,7 @@
     record(screen,loose?'rebound':'screen',guard);
     if(guard){
       const dx=goal.x-screen.x,dy=goal.y-screen.y,n=Math.hypot(dx,dy)||1;
-      this.assign(guard,{x:screen.x+dx/n*.72,y:screen.y+dy/n*.72},'Håller insidan och försöker kontrollera klubban framför mål');record(guard,'boxout',screen);
+      this.assign(guard,loose?this.puckChase(1-side).target:{x:screen.x+dx/n*.72,y:screen.y+dy/n*.72},loose?'Jagar den lösa pucken':'Håller insidan och försöker kontrollera klubban framför mål');record(guard,'boxout',screen);
     }
     release(screen.id,guard?.id);
   };

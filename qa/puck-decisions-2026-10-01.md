@@ -29,3 +29,11 @@ Ordered two-second frames from 150–174 seconds of the official LAK–COL conde
 No change to goal probabilities, calibration thresholds or highlight selection is included.
 
 The first candidate failed the unchanged 88% save floor (87.32%). Review identified competing loose-puck/rebound/screen assignments; the revised candidate shares the same pursuit selection and tests one pursuer per side plus exact target restoration through JSON reload. The failed candidate is not eligible for merge.
+
+The final candidate passed 87 focused motion/contact/decision/camera checks and a fresh all-mode parity run (3–5 in every mode). The natural camera sample retains seeds 227–230 and now covers 300 seconds each; its 90-second windows contained no observed rebound, so the longer sample exercises the same shot/save/rebound visibility and immutability assertions rather than removing them.
+
+A fresh ordinary HV71–Björklöven career sequence was recorded in Chromium at full match and 1× on-ice/simulation speeds for 67.8 seconds. It included board battles, two dumps and one shot attempt. Twelve actors, no page/render errors or layout overflow. Ordered two-second frames from this short sequence were inspected; it does not claim a full period or a live FPS measurement. The actual highlight playback UI also passed build-up visibility, normal pause/resume and scoreboard checks.
+
+The second balance candidate also failed (86.54%). The review then removed the loose-rebound box-out order that diverted the defensive pursuer from the predicted puck path, and scoped the shared base pursuit to available rebounds. Both teams now retain the same interception target through the net-front layer. No save threshold, shot probability or attribute calibration was changed.
+
+Final local production calibration: 96 natural periods, 3.328125 goals, 27.96875 shots and 54.65625 attempts per team per 60 minutes, 88.10% saves. All unchanged envelope assertions passed.

@@ -669,7 +669,7 @@ const StudioHockey = (() => {
       }
       if(!this.carrier&&!this.flight&&!this.battle){
         // One pursuer per side; the other eight skaters continue supporting and covering.
-        for(const side of [0,1]){const chase=this.puckChase(side);if(chase)this.assign(chase.a,chase.target,'Jagar den lösa pucken');}
+        for(const side of [0,1]){const chase=this.availableRebound()?this.puckChase(side):null,nearest=chase?.a||[...this.skaters(side)].filter(a=>a.status!=='leaving').sort((a,b)=>distance(a,this.puck)-distance(b,this.puck))[0];if(nearest)this.assign(nearest,chase?.target||this.puck,'Jagar den lösa pucken');}
       }
       for(const a of this.actors){
         if(a.role==='G'){

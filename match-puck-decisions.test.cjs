@@ -14,7 +14,7 @@ test('board support chooses an arriving forward without awarding a remote touch'
     assert.equal(m.startBattle(a,d),true);m.targets();
     assert.match(arriving.duty,/understöd/);assert.doesNotMatch(near.duty,/understöd/);
     assert.ok(m.skaters(side).filter(a=>a.role.endsWith('D')).every(a=>!/understöd.*närkampen/.test(a.duty)));
-    m.resolveBattle(.01);assert.equal(m.carrier,null);assert.ok(!m.battle.support.includes(arriving.id));
+    m.resolveBattle(.01);assert.equal(m.carrier,null);assert.ok(!m.battle.support.some(row=>row.id===arriving.id));
   }
 });
 test('dump placement responds to motion and the real tag-up distance in both directions',()=>{
