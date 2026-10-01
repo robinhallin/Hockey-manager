@@ -18,11 +18,11 @@ const MatchHighlights=(()=>{
    // Sparse legacy flights lack chance data. Current flights include it.
    if(!f.shot||mode==='extended'||dangerous(f.shot))return signal('shot:'+(f.shot?.playerId||f.from||'legacy')+':'+(f.shot?.time??0),dangerous(f.shot)?'Stor målchans':'Avslut',4,3,dangerous(f.shot)?2:1);
   }
-  if(f?.kind==='pass'&&f.start&&f.end&&[0,1].includes(f.side)&&e.delayedOffside!==f.side){
+  if(mode==='extended'&&f?.kind==='pass'&&f.start&&f.end&&[0,1].includes(f.side)&&e.delayedOffside!==f.side){
    const from=StudioHockey.progress(f.side,f.start.x),to=StudioHockey.progress(f.side,f.end.x),depth=56.5-to;
    const receiver=e.actor(f.to);
-   // A released cross-slot pass is important before a shot exists. Judge its
-   // observed route, not its stored success roll or the receiver's next choice.
+   // In extended mode, show a cross-slot pass from its observed route, without
+   // reading its stored success roll or the receiver's next choice.
    if(receiver?.status==='playing'&&from>43&&to>=48&&depth>0&&depth<9&&Math.abs(f.end.y-15)<5&&Math.abs(f.end.y-f.start.y)>=7)
     return signal('slot-pass:'+f.from+':'+f.to+':'+Math.round((e.time-(f.elapsed||0))*1000),'Passning genom slottet',4,3,2);
   }
@@ -33,7 +33,9 @@ const MatchHighlights=(()=>{
   const a=e.actor(e.carrier);if(!a||e.stoppage>0||e.phase==='faceoff')return null;
   const p=StudioHockey.progress(a.side,a.x);if(p<42||p>56.5)return null;
   const q=e.shotQuality(a),c=e.shotContext(a);if(c.behind)return null;
-  const openRun=q>=.03&&c.d<14&&c.angle<.65&&c.pressure<.35&&typeof e.skaters==='function'&&!e.skaters(1-a.side).some(b=>{
+  const defenders=typeof e.skaters==='function'?e.skaters(1-a.side).filter(b=>b.status==='playing'):[],
+   clearLead=defenders.length>0&&defenders.every(b=>p-StudioHockey.progress(a.side,b.x)>=2);
+  const openRun=q>=.03&&c.d<14&&c.angle<.65&&c.pressure<.35&&clearLead&&!defenders.some(b=>{
    const ahead=StudioHockey.progress(a.side,b.x),t=(ahead-p)/(56.5-p);
    return t>0&&t<1&&Math.abs(b.y-(a.y+(15-a.y)*t))<2.3;
   });
