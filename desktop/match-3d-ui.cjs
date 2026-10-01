@@ -272,6 +272,8 @@ module.exports=async function check3D(page,out,application){
  assert.ok(qualities.low.width<qualities.normal.width);assert.ok(qualities.low.crowdVertices<qualities.normal.crowdVertices);assert.equal(qualities.high.actors,qualities.low.actors);
  assert.equal(qualities.low.shadowSize,0);assert.equal(qualities.low.shadowMode,'contact');
  assert.equal(qualities.low.iceLighting,'unlit');assert.equal(qualities.low.glassLighting,'unlit');
+ assert.equal(qualities.low.antialias,false);
+ for(const q of ['normal','high'])assert.equal(qualities[q].antialias,true,'normal/high retain hardware antialiasing');
  for(const q of ['normal','high']){assert.equal(qualities[q].iceLighting,'lambert');assert.equal(qualities[q].glassLighting,'physical');}
  if(qualities.normal.shadowSupported){assert.ok(qualities.normal.shadowSize>0);assert.ok(qualities.high.shadowSize>qualities.normal.shadowSize);}
  require('node:fs').writeFileSync(path.join(out,'3d-quality-result.json'),JSON.stringify(qualities,null,2));

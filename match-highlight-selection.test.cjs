@@ -37,6 +37,29 @@ test('a clear breakaway matters in either direction even with a modest shooter; 
   r(`h.skaters=()=>[{x:${side?10:50},y:28}]`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Friläge');
  }
 });
+test('a released cross-slot pass matters before the next shot; ordinary, offside and behind-net passes do not',()=>{
+ for(const side of [0,1]){
+  probe();r(`h.actor=()=>({id:'receiver',status:'playing'});h.flight={kind:'pass',side:${side},from:'passer',to:'receiver',start:{x:${side?8:52},y:25},end:{x:${side?7:53},y:15},elapsed:.2,get success(){throw Error('hidden pass success')}};`);
+  assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Passning genom slottet');
+  const key=r("MatchHighlights.select(h,'highlights').key");r('h.time+=.1;h.flight.elapsed+=.1');assert.equal(r("MatchHighlights.select(h,'highlights').key"),key);
+  for(const change of [`h.flight.end.x=${side?2:58}`,`h.flight.start.x=${side?20:40}`,`h.delayedOffside=${side}`]){
+   const old=r('JSON.stringify([h.flight.start,h.flight.end])');r(change);assert.equal(r("MatchHighlights.select(h,'highlights')"),null);r(`delete h.delayedOffside;[h.flight.start,h.flight.end]=${old};`);
+  }
+  r('h.flight.end.y=24');assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
+ }
+});
+test('a recovered, cleared or unreachable old slot rebound is no longer a highlight',()=>{
+ probe();r("h.rebound={side:0,time:500,spot:{x:52,y:15}};h.puck={x:52,y:15};h.skaters=()=>[{status:'playing',x:50,y:16}]");
+ assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Farlig retur');
+ r("h.flight={kind:'clear'}");assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
+ r('h.flight=null;h.puck.x=45');assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
+ r('h.puck.x=52;h.skaters=()=>[{status:"playing",x:44,y:15}]');assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
+});
+test('a new controlled touch gets its own danger key without renewing a held chance every tick',()=>{
+ probe();r("h.carrier='a';h.actor=()=>({id:'a',side:0,x:52,y:15,controlledAt:490});h.shotQuality=()=>.16;h.shotContext=()=>({d:4.5,angle:.2})");
+ const first=r("MatchHighlights.select(h,'highlights').key");r('h.time++;h.wall++');assert.equal(r("MatchHighlights.select(h,'highlights').key"),first);
+ r("h.actor=()=>({id:'a',side:0,x:52,y:15,controlledAt:500})");assert.notEqual(r("MatchHighlights.select(h,'highlights').key"),first);
+});
 test('repeated danger does not continually renew a tail; a new shot extends the same sequence',()=>{
  probe();r("m.rink.mode='highlights';studioHighlightWindow=null;h.flight={kind:'shot',shot:{quality:.2,time:500,playerId:'0:a'}};studioTrackHighlight(h,m);globalThis.until=studioHighlightWindow.until;");
  for(let i=0;i<35;i++)r('h.wall+=.1;studioTrackHighlight(h,m)');assert.equal(r('studioHighlightWindow.until'),r('until'));assert.equal(r('studioShouldShow(h,m)'),false);
