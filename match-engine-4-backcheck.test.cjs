@@ -12,6 +12,7 @@ assert.ok(backs.every(a=>a.duty.includes('gap')),'defencemen retain gap responsi
 console.log('PASS: forwards backcheck through the middle while defencemen retain gap');
 // Test geometry, not just role labels: back targets stay between puck and own
 // goal, with the same gap in either direction throughout the neutral-zone rush.
+// A runner ahead of the puck is the weak-side back's deeper reference.
 for(const attackingSide of [0,1])for(const progress of [22,30,34,38,42]){
   const game=new StudioHockey.Match(rosters,{seed:4504}),puckCarrier=game.skaters(attackingSide)[0];
   game.owner=attackingSide;game.carrier=puckCarrier.id;
@@ -20,7 +21,8 @@ for(const attackingSide of [0,1])for(const progress of [22,30,34,38,42]){
   game.puck={x:puckCarrier.x,y:puckCarrier.y};
   game.defenseTargets(1-attackingSide);
   for(const back of game.skaters(1-attackingSide).filter(a=>a.role.endsWith('D'))){
-    const goalSideGap=StudioHockey.progress(attackingSide,back.target.x)-progress;
+    const threat=game.actor(back.markedThreat),depth=Math.max(progress,StudioHockey.progress(attackingSide,threat.x));
+    const goalSideGap=StudioHockey.progress(attackingSide,back.target.x)-depth;
     assert.ok(goalSideGap>=2.1&&goalSideGap<=5.5,`side ${attackingSide}, progress ${progress}: gap ${goalSideGap} must protect own goal`);
   }
 }

@@ -127,7 +127,10 @@
         const outlet=this.passingOptions(carrier).filter(row=>StudioHockey.distance(row.b,carrier)<20)
           .sort((a,b)=>(b.score-this.laneRisk(carrier,b.b)*.4)-(a.score-this.laneRisk(carrier,a.b)*.4))[0]?.b;
         const outletP=outlet?StudioHockey.progress(side,outlet.x):ownP-5;
-        this.assign(f2,point(clamp(Math.min(ownP-(passive?7:2),outletP-(aggressive?.3:1)),6,47),clamp(outlet?(outlet.y+carrier.y)/2:15,5,25)),'F2 stänger förstapasset och skyddar mitten');
+        const blend=aggressive?.65:.5;
+        const laneP=outlet&&!passive?ownP+(outletP-ownP)*blend-.8:Math.min(ownP-(passive?7:2),outletP-(aggressive?.3:1));
+        const laneY=outlet?carrier.y+(outlet.y-carrier.y)*(passive?.5:blend):15;
+        this.assign(f2,point(clamp(laneP,6,passive?47:56),clamp(laneY,5,25)),'F2 stänger förstapasset och skyddar mitten');
       }
       if(f3)this.assign(f3,point(clamp(ownP-8,12,42),15),'F3 ligger ovanför pucken och säkrar mitten');
     }
@@ -142,7 +145,10 @@
         const desired=clamp(5.7-Math.hypot(carrier.vx||0,carrier.vy||0)*.42-read*1.35,2.1,5.5);
         const threat=b===strong?carrier:threats.find(a=>!covered.has(a.id)),lane=threat?.y??(b.role==='LD'?11:19);
         if(threat){covered.add(threat.id);b.markedThreat=threat.id;}
-        this.assign(b,point(clamp(ownP-desired,6,47),clamp(lane*.78+15*.22,6,24)),b===strong?'Håller gap och skyddar insidan mot puckföraren':'Håller gap och täcker det bortre hotet');
+        // The weak-side back protects his runner's depth, not the puck
+        // carrier's line. Never step above a runner who is already ahead.
+        const depth=threat?Math.min(ownP,StudioHockey.progress(side,threat.x)):ownP;
+        this.assign(b,point(clamp(depth-desired,6,47),clamp(lane*.78+15*.22,6,24)),b===strong?'Håller gap och skyddar insidan mot puckföraren':'Håller gap och täcker det bortre hotet');
       }
       if(enemyP<30){
         // Keep the existing forecheck movement, but refresh its ownership
@@ -200,25 +206,29 @@
     }else if(p<32&&!pk&&mates.length>=2){
       const forwards=mates.filter(a=>!a.role.endsWith('D'));
       const old=team.transitionSupport,pool=[...forwards,...mates.filter(a=>a.role.endsWith('D'))];
-      const valid=old?.carrier===carrier.id&&old.players?.length===2&&old.players.every(id=>pool.some(a=>a.id===id));
+      const valid=old?.carrier===carrier.id&&old.players?.length===2&&old.players.every(id=>pool.some(a=>a.id===id))&&(!forwards.length||!this.actor(old.players[1])?.role.endsWith('D'));
       let support;
       if(valid&&old.until>this.time)support=old.players.map(id=>this.actor(id));
       else {
         support=[];
         for(let i=0;i<2&&pool.length;i++){
           const cost=a=>StudioHockey.distance(a,carrier)-(valid&&old.players[i]===a.id?1.7:0);
-          const a=[...pool].sort((a,b)=>cost(a)-cost(b))[0];support.push(a);pool.splice(pool.indexOf(a),1);
+          // Reserve the remaining forward for the next outlet, including
+          // four-on-four. A back may provide low support, not a second rush.
+          const remainingForwards=pool.filter(a=>!a.role.endsWith('D'));
+          const rolePool=i===1?remainingForwards:remainingForwards.length===1?pool.filter(a=>a.role.endsWith('D')):[];
+          const a=[...(rolePool.length?rolePool:pool)].sort((a,b)=>cost(a)-cost(b))[0];support.push(a);pool.splice(pool.indexOf(a),1);
         }
         team.transitionSupport={carrier:carrier.id,at:this.time,until:this.time+clamp(this.readDelay(carrier),.3,.8),players:support.map(a=>a.id)};
       }
       const span=team.attackStyle==='counter'||team.tactics.mentality==='direct'?8:5.5;
       support.forEach((a,i)=>{
         const lane=carrier.y<15?1:-1,offset=i?lane*span:-lane*3.5;
-        const target={x:StudioHockey.progress(side,clamp(p+(i?5:-2.5),5,37.5)),y:clamp(carrier.y+offset,3,27)};
+        const target={x:StudioHockey.progress(side,clamp(p+(a.role.endsWith('D')?-2.5:i?5:-2.5),5,37.5)),y:clamp(carrier.y+offset,3,27)};
         // Evaluate the two sides of the support triangle against actual lanes.
         const alternative={...target,y:clamp(30-target.y,3,27)};
         if(this.laneRisk(carrier,alternative)+.18<this.laneRisk(carrier,target))target.y=alternative.y;
-        this.assign(a,target,i?'Breddar understödet och öppnar nästa passning':'Ger nära understöd bakom pressen');
+        this.assign(a,target,i?(a.role.endsWith('D')?'Ger lågt backunderstöd bakom nästa passning':'Breddar understödet och öppnar nästa passning'):'Ger nära understöd bakom pressen');
       });
     }
     // A forward who just released a pass can keep his stride into an open
@@ -276,7 +286,8 @@
         const y=kind==='low-high'?15+lane*7:kind==='cycle'?15+lane*4:kind==='diagonal'?15-lane*8:15-lane*4;
         const target={x:StudioHockey.progress(side,x),y};
         const risk=this.laneRisk(carrier,a),future=this.laneRisk(carrier,target),space=1-this.pressureAt(a);
-        const score=space*.12-risk*(.26+reading*.2)-future*.13-StudioHockey.distance(a,target)*.009+(kind===preferred?.15:0)+(plan?.receiver===a.id&&plan.kind===kind?.06:0)+(plan?.previous===a.id&&kind==='give-go'?.04:0);
+        const destinationPressure=this.pressureAt({...target,side});
+        const score=space*.12-risk*(.26+reading*.2)-future*.13-destinationPressure*(.18+reading*.18)-StudioHockey.distance(a,target)*.009+(kind===preferred?.15:0)+(plan?.receiver===a.id&&plan.kind===kind?.06:0)+(plan?.previous===a.id&&kind==='give-go'?.04:0);
         options.push({kind,receiver:a.id,target,risk,score,lane});
       }
     }
