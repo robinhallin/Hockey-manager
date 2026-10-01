@@ -38,3 +38,16 @@ test('a controlled, passed or cleared rebound cannot override current assignment
   m.targets();assert.ok(m.actors.every(a=>!/Jagar returen|Kraschar|Boxar ut/.test(a.duty)));
   m.takePossession(a);assert.equal(m.battle,null);assert.equal(m.carrier,a.id);
 });
+test('the production target chain assigns one loose rebound pursuer per side and preserves it through reload',()=>{
+  for(const side of [0,1]){
+    const m=setup(side),p=x=>H.progress(side,x),a=m.skaters(side).find(a=>a.role==='C');
+    Object.assign(a,{x:p(53),y:15});m.carrier=null;m.flight=null;m.puck={x:p(54),y:15};m.puckVelocity={x:side?-2:2,y:1};
+    m.rebound={side,time:m.time,spot:{...m.puck}};m.targets();
+    for(const team of [0,1]){
+      const pursuers=m.skaters(team).filter(a=>/Jagar den lösa pucken|Läser puckbanan|Attackerar den faktiska returen|Håller insidan/.test(a.duty));
+      assert.equal(pursuers.length,1,'the screen and rebound layers cannot introduce another puck chaser');
+    }
+    const saved=Object.assign(Object.create(H.Match.prototype),JSON.parse(JSON.stringify(m)));
+    saved.targets();assert.deepEqual(saved.actors.map(a=>[a.id,a.target,a.duty]),m.actors.map(a=>[a.id,a.target,a.duty]));
+  }
+});

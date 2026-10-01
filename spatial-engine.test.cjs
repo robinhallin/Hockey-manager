@@ -26,7 +26,7 @@ function setup(){const m=new Match(rosters,{scenario:'attack',seed:89});const a=
  const {m,a}=setup();Object.assign(a,{x:52,y:15});const keeper=m.actors.find(b=>b.side===1&&b.role==='G');Object.assign(keeper,m.goalieTarget(1,a));
  const c=m.shotContext(a),ordinary=m.shotModel(a,{...c,lateralSpeed:0}).goalChance,lateral=m.shotModel(a,{...c,lateralSpeed:20}).goalChance;
  assert.ok(lateral>ordinary,'lateral delivery challenges the goalkeeper');
- m.rebound={side:0,time:m.time,spot:{x:52,y:15}};assert.equal(m.shotContext(a).rebound,true);a.y=27;assert.equal(m.shotContext(a).rebound,false,'a distant player cannot inherit a rebound bonus');
+ m.puck={x:52,y:15};a.controlledAt=m.time;m.rebound={side:0,time:m.time,spot:{x:52,y:15}};assert.equal(m.shotContext(a).rebound,true);a.y=27;assert.equal(m.shotContext(a).rebound,false,'a distant player cannot inherit a rebound bonus');
 }
 {
  const {m,a}=setup(),rng=m.rng;for(let i=0;i<5;i++)m.actionOptions(a);assert.equal(m.rng,rng,'inspecting alternatives does not consume random draws');

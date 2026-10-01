@@ -270,7 +270,7 @@
   proto.resolveFlight=function(dt){const f=this.flight,was=Boolean(f?.kind==='dump'&&f.matchEngine4Rim),side=f?.side,lane=f?.dumpLane;baseResolveFlight.call(this,dt);if(!was||this.flight||this.carrier||this.stoppage>0||!this.puckVelocity||!this.rimPath?.length)return;const low=lane==='low';this.rimPath=[{x:StudioHockey.progress(side,59),y:low?5.5:24.5},{x:StudioHockey.progress(side,58.7),y:low?24.5:5.5},{x:StudioHockey.progress(side,54),y:low?29:1},{x:StudioHockey.progress(side,47),y:low?28.7:1.3}];this.puckVelocity.x*=.82;this.puckVelocity.y*=.82;};
 
   // Loose-puck races now target where the puck is going, not only where it was.
-  proto.targets=function(){baseTargets.call(this);this.collectiveTargets();this.patternTargets();if(this.carrier||this.flight||this.battle){this.specialTeamsTargets();return;}const v=this.puckVelocity||{x:0,y:0},speed=Math.hypot(v.x,v.y),look=clamp(.35+speed*.035,.35,1.15),future={x:clamp(this.puck.x+v.x*look,1,59),y:clamp(this.puck.y+v.y*look,1,29)};for(const side of [0,1]){const candidates=this.skaters(side).filter(a=>a.status!=='leaving').map(a=>{const pace=3.1+this.attribute(a,'skating')*.09,read=(this.attribute(a,'positioning')*.45+this.attribute(a,'decisions')*.3+this.attribute(a,'workRate')*.25)/20,eta=StudioHockey.distance(a,future)/Math.max(1,pace)-read*.32;return {a,eta,read};}).sort((x,y)=>x.eta-y.eta);const first=candidates[0];if(first){const lead=clamp(first.read*.55,0,.55);this.assign(first.a,{x:clamp(future.x+v.x/Math.max(1,speed)*lead,1,59),y:clamp(future.y+v.y/Math.max(1,speed)*lead,1,29)},speed>1.2?'Läser puckbanan och attackerar nästa sargpunkt':'Jagar den lösa pucken');}}this.specialTeamsTargets();};
+  proto.targets=function(){baseTargets.call(this);this.collectiveTargets();this.patternTargets();if(this.carrier||this.flight||this.battle){this.specialTeamsTargets();return;}const v=this.puckVelocity||{x:0,y:0},speed=Math.hypot(v.x,v.y);for(const side of [0,1]){const first=this.puckChase(side);if(first)this.assign(first.a,first.target,speed>1.2?'Läser puckbanan och attackerar nästa sargpunkt':'Jagar den lösa pucken');}this.specialTeamsTargets();};
   // Retain the same attack, but reread actual coverage instead of prescribing
   // its next two touches. Skill governs read latency and attention to lane risk.
   proto.patternRoute=function(carrier,plan){
@@ -474,7 +474,7 @@
   proto.netFrontTargets=function(){
     for(const a of this.actors)if(a.netFront?.until<=this.time)delete a.netFront;
     const release=(screenId,guardId)=>{for(const a of this.actors)if(a.netFront&&a.id!==screenId&&a.id!==guardId)delete a.netFront;};
-    if(this.stoppage>0||this.battle){release();return;}
+    if(this.stoppage>0||this.battle||this.flight?.kind==='rebound'){release();return;}
     const carrier=this.actor(this.carrier),rebound=this.availableRebound()&&this.time-this.rebound.time<2.5;
     const side=carrier?.side??(this.flight?this.flight.side:rebound?this.rebound.side:null);if(side==null||this.isShortHanded(side)||StudioHockey.progress(side,this.puck.x)<44){release();return;}
     const goal={x:StudioHockey.progress(side,56.5),y:15},pp=this.hasPowerPlay(side);
@@ -484,15 +484,17 @@
     // the third forward's job, not a second order imposed on the receiver.
     const candidates=this.skaters(side).filter(a=>a.status==='playing'&&a!==carrier&&!a.shotPreparation&&!a.role.endsWith('D')&&(!pp||a.role==='C')&&!rotating.has(a.id)&&a.id!==this.flight?.to&&a.id!==route?.receiver&&StudioHockey.progress(side,a.x)>49&&StudioHockey.distance(a,goal)<7);
     const cost=a=>StudioHockey.distance(a,goal)-(a.netFront?.kind==='screen'?1.4:0)-(a.id===route?.runner?1.6:0);
-    const screen=candidates.sort((a,b)=>cost(a)-cost(b))[0];if(!screen){release();return;}
+    const loose=rebound&&!this.flight&&!carrier;
+    const pursuer=loose?this.puckChase(side)?.a:null;
+    const screen=loose?candidates.find(a=>a===pursuer):candidates.sort((a,b)=>cost(a)-cost(b))[0];if(!screen){release();return;}
     // A new screen task requires the player's normal read latency after a
     // controlled touch. A continuing screen survives a quick side-to-side pass.
     if(carrier&&!screen.netFront&&Number.isFinite(carrier.controlledAt)&&this.time-carrier.controlledAt<this.readDelay(screen)){release();return;}
     // Respect the shared marking plan: a defender cannot abandon the puck
     // carrier or another threat merely because the screen is nearby.
     const defenders=this.skaters(1-side).filter(d=>d.status==='playing'&&StudioHockey.distance(d,screen)<3.2&&(!carrier||StudioHockey.distance(d,carrier)>2.7)&&(pp||!d.markedThreat||d.markedThreat===screen.id));
-    const guard=defenders.sort((a,b)=>(StudioHockey.distance(a,screen)-(a.markedThreat===screen.id?1:0))-(StudioHockey.distance(b,screen)-(b.markedThreat===screen.id?1:0)))[0];
-    const loose=rebound&&!this.flight&&!carrier;
+    const availableDefenders=loose?defenders.filter(a=>a===this.puckChase(1-side)?.a):defenders;
+    const guard=availableDefenders.sort((a,b)=>(StudioHockey.distance(a,screen)-(a.markedThreat===screen.id?1:0))-(StudioHockey.distance(b,screen)-(b.markedThreat===screen.id?1:0)))[0];
     const p=loose?{x:this.puck.x,y:this.puck.y}:{x:StudioHockey.progress(side,54.1),y:15+clamp((this.puck.y-15)*.16,-1.2,1.2)};
     // Keep a screen on the observed sight line; after a real rebound attack
     // that puck. The defender must reach the inside position to tie a stick.
