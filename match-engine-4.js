@@ -132,14 +132,44 @@
       if(f3)this.assign(f3,point(clamp(ownP-8,12,42),15),'F3 ligger ovanför pucken och säkrar mitten');
     }
     if(enemyP>=22&&enemyP<43){
+      const attackers=this.skaters(carrier.side).filter(a=>a.status==='playing'&&a!==carrier);
+      const threats=attackers.filter(a=>StudioHockey.progress(carrier.side,a.x)>=enemyP-10)
+        .sort((a,b)=>(StudioHockey.progress(carrier.side,b.x)+(1-Math.abs(b.y-15)/15))-(StudioHockey.progress(carrier.side,a.x)+(1-Math.abs(a.y-15)/15)));
+      const strong=[...backs].sort((a,b)=>(StudioHockey.distance(a,carrier)-(a.markedThreat===carrier.id?1.7:0))-(StudioHockey.distance(b,carrier)-(b.markedThreat===carrier.id?1.7:0)))[0];
+      const covered=new Set([carrier.id]);
       for(const b of backs){
         const read=(this.attribute(b,'positioning')*.45+this.attribute(b,'decisions')*.35+this.attribute(b,'skating')*.2)/20;
         const desired=clamp(5.7-Math.hypot(carrier.vx||0,carrier.vy||0)*.42-read*1.35,2.1,5.5);
-        this.assign(b,point(clamp(ownP-desired,6,47),clamp(carrier.y*.58+(b.role==='LD'?11:19)*.42,6,24)),'Håller gap och skyddar insidan');
+        const threat=b===strong?carrier:threats.find(a=>!covered.has(a.id)),lane=threat?.y??(b.role==='LD'?11:19);
+        if(threat){covered.add(threat.id);b.markedThreat=threat.id;}
+        this.assign(b,point(clamp(ownP-desired,6,47),clamp(lane*.78+15*.22,6,24)),b===strong?'Håller gap och skyddar insidan mot puckföraren':'Håller gap och täcker det bortre hotet');
       }
-      if(enemyP>=30)for(const [i,a] of forwards.entries()){
-        const threat=this.actor(a.markedThreat),lane=threat?threat.y:11+i*4;
-        this.assign(a,point(clamp(ownP-2-i*1.2,8,40),clamp(lane*.7+15*.3,6,24)),i?'Backcheckar och plockar upp släpande spelare':'Backcheckar genom mitten och tar första sena hotet');
+      if(enemyP<30){
+        // Keep the existing forecheck movement, but refresh its ownership
+        // after the backs take their lanes: do not leave stale double marks.
+        for(const a of forwards){
+          const cost=t=>StudioHockey.distance(a,t)-(a.markedThreat===t.id?1.7:0);
+          const threat=attackers.filter(t=>!covered.has(t.id)).sort((a,b)=>cost(a)-cost(b))[0];
+          if(threat){a.markedThreat=threat.id;covered.add(threat.id);}else delete a.markedThreat;
+        }
+      }
+      if(enemyP>=30){
+        const team=this.teams[side],cost=a=>StudioHockey.distance(a,carrier)-(team.backcheckLead===a.id?1.7:0);
+        const chaser=[...forwards].sort((a,b)=>cost(a)-cost(b))[0];team.backcheckLead=chaser?.id;
+        if(chaser){chaser.markedThreat=carrier.id;this.assign(chaser,point(clamp(ownP-.65,6,40),clamp(carrier.y*.76+15*.24,6,24)),'Backcheckar genom mitten med press bakifrån');}
+        const available=forwards.filter(a=>a!==chaser);
+        let first=true;
+        for(const threat of threats.filter(a=>!covered.has(a.id))){
+          if(!available.length)break;
+          const cost=a=>StudioHockey.distance(a,threat)-(a.markedThreat===threat.id?1.7:0);
+          const a=[...available].sort((a,b)=>cost(a)-cost(b))[0];available.splice(available.indexOf(a),1);
+          a.markedThreat=threat.id;covered.add(threat.id);
+          const read=(this.attribute(a,'positioning')+this.attribute(a,'decisions'))/40;
+          const forwardSpeed=(carrier.side===0?1:-1)*(threat.vx||0);
+          const x=StudioHockey.progress(side,threat.x)-1.4-clamp(forwardSpeed,-3,3)*read*.15;
+          this.assign(a,point(clamp(x,6,40),clamp(threat.y*.76+15*.24,6,24)),first?'Backcheckar genom mitten och tar första sena hotet':'Backcheckar och plockar upp släpande spelare');first=false;
+        }
+        for(const a of available){delete a.markedThreat;this.assign(a,point(clamp(ownP-4,6,40),15),'Backcheckar och säkrar mitten bakom markeringarna');}
       }
     }
     // Once the rush is established in our zone, retain the base engine's
@@ -169,7 +199,18 @@
       }
     }else if(p<32&&!pk&&mates.length>=2){
       const forwards=mates.filter(a=>!a.role.endsWith('D'));
-      const support=[...forwards,...mates.filter(a=>a.role.endsWith('D'))].sort((a,b)=>StudioHockey.distance(a,carrier)-StudioHockey.distance(b,carrier)).slice(0,2);
+      const old=team.transitionSupport,pool=[...forwards,...mates.filter(a=>a.role.endsWith('D'))];
+      const valid=old?.carrier===carrier.id&&old.players?.length===2&&old.players.every(id=>pool.some(a=>a.id===id));
+      let support;
+      if(valid&&old.until>this.time)support=old.players.map(id=>this.actor(id));
+      else {
+        support=[];
+        for(let i=0;i<2&&pool.length;i++){
+          const cost=a=>StudioHockey.distance(a,carrier)-(valid&&old.players[i]===a.id?1.7:0);
+          const a=[...pool].sort((a,b)=>cost(a)-cost(b))[0];support.push(a);pool.splice(pool.indexOf(a),1);
+        }
+        team.transitionSupport={carrier:carrier.id,at:this.time,until:this.time+clamp(this.readDelay(carrier),.3,.8),players:support.map(a=>a.id)};
+      }
       const span=team.attackStyle==='counter'||team.tactics.mentality==='direct'?8:5.5;
       support.forEach((a,i)=>{
         const lane=carrier.y<15?1:-1,offset=i?lane*span:-lane*3.5;
@@ -179,6 +220,15 @@
         if(this.laneRisk(carrier,alternative)+.18<this.laneRisk(carrier,target))target.y=alternative.y;
         this.assign(a,target,i?'Breddar understödet och öppnar nästa passning':'Ger nära understöd bakom pressen');
       });
+    }
+    // A forward who just released a pass can keep his stride into an open
+    // support lane. Do not turn every passer into the new carrier's trailer.
+    // Back security, covered lanes and the blue-line/tag-up brake still win.
+    if(p>=20&&p<40&&!pp&&!pk&&!this.skaters(side).some(a=>StudioHockey.progress(side,a.x)>40.1))for(const a of forwards){
+      const pass=a.presentationAction,advance=(side===0?1:-1)*(a.vx||0);
+      if(pass?.kind!=='pass'||this.wall-pass.at<0||this.wall-pass.at>1.1||advance<.8||this.pressureAt(a)>.55||StudioHockey.distance(a,carrier)<3)continue;
+      const target={x:StudioHockey.progress(side,clamp(StudioHockey.progress(side,a.x)+advance*.9,5,37.5)),y:clamp(a.y+(a.y<carrier.y?-1:1)*1.3,3,27)};
+      if(this.laneRisk(carrier,target)<.45)this.assign(a,target,'Fortsätter åkningen efter passningen och öppnar nästa understöd');
     }
     if(pp&&this.phase==='attack'){
       // Move the weak-side flank with the puck; retain the selected PP shape,

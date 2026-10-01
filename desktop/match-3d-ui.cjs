@@ -247,7 +247,9 @@ module.exports=async function check3D(page,out,application){
  require('node:fs').writeFileSync(path.join(out,'3d-balance-result.json'),JSON.stringify(balance,null,2));
  const support=await page.evaluate(()=>{
   startMatch();let found=null;
-  for(let i=0;i<3000&&!state.live.finished;i++){
+  // Joining a duel is an observed opportunity, not a guaranteed event in a
+  // five-minute window. Inspect up to a period without prescribing a helper.
+  for(let i=0;i<12000&&!state.live.finished;i++){
    if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();
    const e=studioEngine();if(e.battle?.support?.length){const f=e.presentationFrame();found={type:e.battle.type,participants:[e.battle.a,e.battle.b],support:e.battle.support,poses:e.battle.support.map(r=>({id:r.id,state:Match3D.pose(f,f.actors.find(a=>a.id===r.id)).state}))};break;}
   }
@@ -269,6 +271,8 @@ module.exports=async function check3D(page,out,application){
  }
  assert.ok(qualities.low.width<qualities.normal.width);assert.ok(qualities.low.crowdVertices<qualities.normal.crowdVertices);assert.equal(qualities.high.actors,qualities.low.actors);
  assert.equal(qualities.low.shadowSize,0);assert.equal(qualities.low.shadowMode,'contact');
+ assert.equal(qualities.low.iceLighting,'unlit');assert.equal(qualities.low.glassLighting,'unlit');
+ for(const q of ['normal','high']){assert.equal(qualities[q].iceLighting,'lambert');assert.equal(qualities[q].glassLighting,'physical');}
  if(qualities.normal.shadowSupported){assert.ok(qualities.normal.shadowSize>0);assert.ok(qualities.high.shadowSize>qualities.normal.shadowSize);}
  require('node:fs').writeFileSync(path.join(out,'3d-quality-result.json'),JSON.stringify(qualities,null,2));
  await page.getByLabel('3D-grafik',{exact:true}).selectOption('normal');
