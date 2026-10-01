@@ -1442,7 +1442,7 @@ function startMatch(){
   lockTrainingForMatch();
   markSocialPeriodStarted();
   state.live.running=true;state.live.pauseReason='';delete state.live.autoPauseWanted;
-  if(studioActive())studioRestartClock();
+  if(studioActive())studioRestartClock(Boolean(studioHighlightWindow?.engine===studioEngine()&&studioHighlightWindow.lead&&!studioReplayState));
 
   save();
 

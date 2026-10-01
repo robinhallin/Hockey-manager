@@ -100,8 +100,9 @@ function matchStats(){
  faceoffs:[m.faceoffsHV,m.faceoffsOpp],pp:[`${m.ppGoalsHV}/${m.ppHV}`,`${m.ppGoalsOpp}/${m.ppOpp}`]};
 }
 function matchShiftLength(){return ({short:30,normal:45,long:60})[state.tacticalPlan?.shiftLength]||45;}
-function matchScoringView(){
- const goals=(state.live.analysis?.events||[]).filter(e=>e.type==='goal');
+function matchScoringView(visibleGoals=null){
+ const shown=visibleGoals??studioHighlightShownFrame()?.score?.reduce((n,v)=>n+v,0);
+ const goals=(state.live.analysis?.events||[]).filter(e=>e.type==='goal').slice(0,shown??Infinity);
  return `<section class="mc-scorers" aria-label="Målskyttar och assist">${goals.map(e=>`<span title="${!e.scorer?'Äldre mål: assistuppgift saknas':e.assists?.length?'Assist: '+e.assists.map(p=>trainingSafe(p.name)).join(', '):'Utan assist'}"><time>${e.period?'P'+e.period+' '+e.clock:analysisTime(e.time)}</time> <b>${matchVenueValues([e.own??'',e.against??'']).join('–')} ${e.scorerId!=null?playerReference(e.scorerId,e.scorer||'Målskytt'):trainingSafe(e.scorer||e.text)}</b>${e.assists?.length?' ('+e.assists.map(p=>playerReference(p.id,p.name)).join(', ')+')':''}</span>`).join(' · ')||'<span>Inga mål ännu</span>'}${state.live.analysisShootout?'<span title="Avgörandet räknas inte som ett spelarmål"> · Straffavgörande</span>':''}</section>`;
 }
 

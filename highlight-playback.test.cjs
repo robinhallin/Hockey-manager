@@ -8,17 +8,17 @@ for(const speed of [.5,1,1.5,2]){r(`setHighlightSpeed(${speed})`);assert.equal(r
 r('setHighlightSpeed(32)');assert.equal(r('m.onIceSpeed'),2);
 r('setHighlightSpeed(1);save()');assert.equal(boot(a.storage.value).run('state.live.onIceSpeed'),1);
 assert.match(r('matchPlaybackControls(m)'),/Tempo på isen/);assert.match(r('matchPlaybackControls(m)'),/1× = verklig spelfart/);assert.doesNotMatch(r('matchPlaybackControls(m)'),/setSpeed|90×/);
-// A short danger signal holds the visible sequence for six simulation seconds.
+// A short danger signal holds a bounded tail rather than continually extending it.
 r('studioTrackHighlight(e,m);e.flight=null;e.carrier=null;e.highlightUntil=0;globalThis.until=studioHighlightWindow.until;e.wall=until-1');
 assert.equal(r('studioShouldShow(e,m)'),true);
 r('globalThis.before=JSON.stringify(e);for(let i=0;i<20;i++){studioShouldShow(e,m);studioPlaybackRate(e,m)}');assert.equal(r('JSON.stringify(e)'),r('before'),'presentation reads do not alter engine or RNG');
 r('e.wall=until');assert.equal(r('studioShouldShow(e,m)'),false);assert.equal(r('studioPlaybackRate(e,m)'),360);
-r("m.rink.mode='extended';e.focus=true;studioTrackHighlight(e,m)");assert.equal(r('studioPlaybackRate(e,m)'),1);
+r("m.rink.mode='extended';e.focus=true;e.flight={kind:'shot',shot:{quality:.02,time:10}};studioTrackHighlight(e,m)");assert.equal(r('studioPlaybackRate(e,m)'),1);
 r("m.rink.mode='commentary'");assert.equal(r('studioShouldShow(e,m)'),false);assert.equal(r('studioPlaybackRate(e,m)'),360);
 r("m.rink.mode='full'");assert.equal(r('studioPlaybackRate(e,m)'),1,'normal full-match speed is also real time');
 // Each visible speed means the same thing in all three rink modes.
 for(const speed of [.5,1,1.5,2,4,8])for(const mode of ['full','extended','highlights']){
- r(`m.rink.mode='${mode}';e.flight={kind:'shot'};setOnIceSpeed(${speed})`);assert.equal(r('studioPlaybackRate(e,m)'),speed);assert.equal(r('m.speed'),4);
+ r(`studioHighlightWindow=null;m.rink.mode='${mode}';e.flight={kind:'shot'};setOnIceSpeed(${speed})`);assert.equal(r('studioPlaybackRate(e,m)'),speed);assert.equal(r('m.speed'),4);
 }
 r('setOnIceSpeed(NaN);setOnIceSpeed(360)');assert.equal(r('m.onIceSpeed'),8);
 // Legacy highlight preferences survive; the old full-match index is never mistaken for a visible multiplier.

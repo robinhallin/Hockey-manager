@@ -207,9 +207,7 @@ const MATCH_FAST_SPEEDS=[[1,'Snabb'],[2,'Snabbare'],[3,'Mycket snabb'],[4,'Maxim
 let studioHighlightWindow=null;
 function studioHighlightTrigger(e,m=state.live){
  const mode=m?.rink?.mode;if(mode==='full')return true;if(mode==='commentary')return false;
- if(mode==='extended')return e.focus;
- const carrier=e.actor(e.carrier);
- return e.flight?.kind==='shot'||e.flight?.kind==='rebound'||e.wall<(e.highlightUntil||0)||Boolean(carrier&&StudioHockey.progress(carrier.side,carrier.x)>44&&e.shotQuality(carrier)>.075);
+ return Boolean(MatchHighlights.select(e,mode,studioHighlightWindow?.notice));
 }
 function studioHighlightMode(m=state.live){return ['extended','highlights'].includes(m?.rink?.mode);}
 function studioOnIceRate(m=state.live){
@@ -221,10 +219,25 @@ function studioHighlightRate(m=state.live){return studioOnIceRate(m);}
 function studioReplayRate(replay=studioReplayState){return [replay?.rate,state.matchPlayback?.replaySpeed,1].find(value=>MATCH_ICE_SPEEDS.some(([v])=>v===value));}
 function studioTrackHighlight(e,m=state.live){
  if(!studioHighlightMode(m)){studioHighlightWindow=null;return;}
- if(studioHighlightTrigger(e,m))studioHighlightWindow={engine:e,until:e.wall+6};
+ if(studioHighlightWindow?.engine!==e||studioHighlightWindow.mode!==m.rink.mode)studioHighlightWindow={engine:e,mode:m.rink.mode,until:-Infinity,lastKey:null,lastShown:-Infinity};
+ const w=studioHighlightWindow,s=MatchHighlights.select(e,m.rink.mode,w.notice);
+ if(!s){w.lastKey=null;return;}
+ if(s.key===w.lastKey)return;w.lastKey=s.key;
+ const showing=e.wall<w.until||Boolean(w.lead);
+ if(!showing){w.start=e.wall;w.lead=m.running&&!m.finished&&!studioReplayState?MatchHighlights.lead(e,s.pre,w.lastShown):null;}
+ w.until=Math.max(showing?w.until:-Infinity,Math.min(e.wall+s.tail,s.priority===3?Infinity:w.start+18));
+ w.label=s.label;w.priority=s.priority;
+}
+function studioObserveHighlightEvents(e,events,m=state.live){
+ if(!studioHighlightMode(m))return;
+ if(studioHighlightWindow?.engine!==e||studioHighlightWindow.mode!==m.rink.mode)studioHighlightWindow={engine:e,mode:m.rink.mode,until:-Infinity,lastKey:null,lastShown:-Infinity};
+ const notice=MatchHighlights.event(e,events);if(notice)studioHighlightWindow.notice=notice;
 }
 function studioShouldShow(e,m=state.live){
- return Boolean(studioHighlightTrigger(e,m)||studioHighlightMode(m)&&studioHighlightWindow?.engine===e&&e.wall<studioHighlightWindow.until);
+ if(m?.rink?.mode==='full')return true;if(!studioHighlightMode(m))return false;
+ const w=studioHighlightWindow?.engine===e&&studioHighlightWindow.mode===m.rink.mode?studioHighlightWindow:null;
+ if(w&&(w.lead||e.wall<w.until))return true;
+ const s=MatchHighlights.select(e,m.rink.mode,w?.notice);return Boolean(s&&s.key!==w?.lastKey);
 }
 function studioPlaybackRate(e,m=state.live){
  if(!studioShouldShow(e,m))return ({1:90,2:150,3:240,4:360}[studioFastChoice(m)]);
@@ -247,13 +260,13 @@ function matchFastControl(label='Snabbspolning mellan höjdpunkter',id='match-fa
 function matchPlaybackControls(m=state.live){
  const replay=studioActive()&&Boolean(studioReplayState),commentary=m.rink.mode==='commentary'&&!replay;
  if(!studioActive())return matchFastControl('Matchtempo','match-legacy-speed');
- const hint=replay?'1× = verklig spelfart. Repristempot gäller bara reprisen.':commentary?'Matchen beräknas utan rinkbild. Pausa när du vill coacha.':studioHighlightMode(m)?'1× = verklig spelfart. Mellan höjdpunkter snabbspolar spelet.':'1× = verklig spelfart. Hela matchen visas utan snabbspolning.';
+ const hint=replay?'1× = verklig spelfart. Repristempot gäller bara reprisen.':commentary?'Matchen beräknas utan rinkbild. Pausa när du vill coacha.':studioHighlightMode(m)?(m.rink.mode==='highlights'?'Mål, stora chanser, farliga returer, stolp/ribba och utvisningar med uppbyggnad. 1× = verklig spelfart.':'Fler avslut och anfallslägen med uppbyggnad. 1× = verklig spelfart.'):'1× = verklig spelfart. Hela matchen visas utan snabbspolning.';
  const control=commentary?matchFastControl('Simuleringstempo'):`<label>${replay?'Repristempo':'Tempo på isen'}<select aria-label="${replay?'Repristempo':'Tempo på isen'}" aria-describedby="match-playback-hint" onchange="${replay?'setReplaySpeed':'setOnIceSpeed'}(this.value)">${MATCH_ICE_SPEEDS.map(([v,name])=>`<option value="${v}" ${(replay?studioReplayRate():studioOnIceRate(m))===v?'selected':''}>${name}</option>`).join('')}</select></label>`;
  return control+`<p id="match-playback-hint" class="mc-playback-hint">${hint}</p>`;
 }
 function matchPlaybackSettings(){
  if(!studioActive())return '';
- return `<section class="mc-playback-settings"><h3>Matchvisning och tempo</h3><p><b>Vad visas?</b> väljer hur mycket av matchen du ser. <b>Tempo på isen</b> styr spelarnas och puckens visningsfart. Normal, 1×, är verklig spelfart.</p>${matchFastControl('Snabbspolning mellan höjdpunkter','match-fast-setting')}<p>Påverkar bara väntan på nästa höjdpunkt och läget utan rinkbild. Hela matchen använder tempot på isen. Repriser har ett eget tempo som väljs när reprisen visas. Snabbspolningen begränsas av datorns kapacitet.</p><p>Dina val sparas och används i nästa match. Tempot ändrar inte lagets taktik eller hur matchen avgörs.</p></section>`;
+ return `<section class="mc-playback-settings"><h3>Matchvisning och tempo</h3><p><b>Vad visas?</b> väljer hur mycket av matchen du ser. <b>Tempo på isen</b> styr spelarnas och puckens visningsfart. Normal, 1×, är verklig spelfart.</p>${matchFastControl('Snabbspolning mellan höjdpunkter','match-fast-setting')}<p>Påverkar bara väntan på nästa höjdpunkt och läget utan rinkbild. Hela matchen använder tempot på isen. Repriser har ett eget tempo som väljs när reprisen visas. Snabbspolningen begränsas av datorns kapacitet.</p><p>Viktiga höjdpunkter visar mål, stora chanser, farliga returer, stolp/ribba och utvisningar. Fler höjdpunkter visar även andra avslut och tydliga anfallslägen. Vanliga passningar, rensningar och avblåsningar snabbspolas när de inte ingår i en viktig sekvens.</p><p>Dina val sparas och används i nästa match. Tempot ändrar inte lagets taktik eller hur matchen avgörs.</p></section>`;
 }
 function matchFullscreen(){if(typeof document==='undefined')return;const root=document.documentElement;if(document.fullscreenElement)document.exitFullscreen?.();else root?.requestFullscreen?.().catch(()=>{});}
 
