@@ -9,7 +9,7 @@ assert.equal(r("typeof matchEngine31ReboundClaim"),'function');
 r("g.engine31LastRead={x:45,y:5,time:e.time-.4};globalThis.t1=e.goalieTarget(1,{x:48,y:25});g.engine31LastRead={x:45,y:25,time:e.time-.4};globalThis.t2=e.goalieTarget(1,{x:48,y:25})");
 assert.ok(Math.abs(r('t1.y-t2.y'))>.02,'goalie target must retain lateral tracking lag after a cross-ice change');
 
-r("Object.assign(s,{x:47,y:15});Object.assign(f,{x:54,y:15});e.rebound={side:0,time:e.time,spot:{x:54,y:15}};globalThis.ac=matchEngine31ReboundClaim(e,0,e.rebound.spot);globalThis.dc=matchEngine31ReboundClaim(e,1,e.rebound.spot);e.targets()");
+r("Object.assign(s,{x:47,y:15});Object.assign(f,{x:54,y:15});e.carrier=null;e.flight=null;e.battle=null;e.stoppage=0;e.puck={x:54,y:15};e.rebound={side:0,time:e.time,spot:{x:54,y:15}};globalThis.ac=matchEngine31ReboundClaim(e,0,e.rebound.spot);globalThis.dc=matchEngine31ReboundClaim(e,1,e.rebound.spot);e.targets()");
 assert.ok(r('ac&&ac.a'),'attacking rebound claimant must exist');
 assert.ok(r('dc&&dc.a'),'defensive rebound claimant must exist');
 assert.ok(r("ac.a.duty.includes('retur')||ac.a.duty.includes('Kraschar')"),'attacker must actively hunt the rebound');
