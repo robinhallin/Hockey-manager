@@ -7,11 +7,11 @@ Previously, every shot and generic attack focus selected a highlight. Renewing t
 | Mode | Shown play |
 | --- | --- |
 | Whole match | All play at the selected on-ice speed |
-| Important highlights | Goals, major chances, clear breakaways, cross-slot passes, dangerous slot rebounds, posts/crossbar, late close-game/overtime chances and penalties |
-| More highlights | Important highlights plus ordinary attempts and credible attacking positions |
+| Important highlights | Goals, major chances, clear breakaways, dangerous slot rebounds, posts/crossbar, late close-game/overtime chances and penalties |
+| More highlights | Important highlights plus ordinary attempts, cross-slot passes and credible attacking positions |
 | Simulate without rink | The same simulation, with no rink presentation |
 
-Passes, puck transport, zone entries, safe rebounds, ordinary saves, offsides, icing and a powerplay by itself do not trigger important highlights. They remain visible when part of a selected sequence. Selection reads observed chance geometry and resolved contacts; it never reads an unresolved shot's hidden outcome or advances RNG. Sparse legacy shot flights keep their previous fallback.
+Passes on their own, puck transport, zone entries, safe rebounds, ordinary saves, offsides, icing and a powerplay by itself do not trigger important highlights. A cross-slot pass alone appears in “More highlights”; if it leads into a selected chance, it remains visible in that sequence's build-up. Other excluded actions remain visible when they fall inside a selected sequence. Selection reads observed chance geometry and resolved contacts; it never reads an unresolved shot's hidden outcome or advances RNG. Sparse legacy shot flights keep their previous fallback.
 
 ## Sequence playback
 

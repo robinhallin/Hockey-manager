@@ -8,8 +8,10 @@ for(const speed of [.5,1,1.5,2]){r(`setHighlightSpeed(${speed})`);assert.equal(r
 r('setHighlightSpeed(32)');assert.equal(r('m.onIceSpeed'),2);
 r('setHighlightSpeed(1);save()');assert.equal(boot(a.storage.value).run('state.live.onIceSpeed'),1);
 assert.match(r('matchPlaybackControls(m)'),/Tempo på isen/);assert.match(r('matchPlaybackControls(m)'),/1× = verklig spelfart/);assert.doesNotMatch(r('matchPlaybackControls(m)'),/setSpeed|90×/);
-for(const label of ['frilägen','passningar genom slottet','sena chanser','utvisningar'])assert.match(r('matchPlaybackControls(m)'),new RegExp(label));
-for(const label of ['stolp/ribba','Fler höjdpunkter','andra avslut','tydliga anfallslägen'])assert.match(r('matchPlaybackSettings()'),new RegExp(label));
+for(const label of ['frilägen','sena chanser','utvisningar'])assert.match(r('matchPlaybackControls(m)'),new RegExp(label));
+assert.doesNotMatch(r('matchPlaybackControls(m)'),/passningar genom slottet/);
+for(const label of ['stolp/ribba','Fler höjdpunkter','andra avslut','passningar genom slottet','tydliga anfallslägen'])assert.match(r('matchPlaybackSettings()'),new RegExp(label));
+r("m.rink.mode='extended'");assert.match(r('matchPlaybackControls(m)'),/passningar genom slottet/);
 // A short danger signal holds a bounded tail rather than continually extending it.
 r('studioTrackHighlight(e,m);e.flight=null;e.carrier=null;e.highlightUntil=0;globalThis.until=studioHighlightWindow.until;e.wall=until-1');
 assert.equal(r('studioShouldShow(e,m)'),true);

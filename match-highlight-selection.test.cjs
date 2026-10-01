@@ -30,22 +30,23 @@ test('penalties survive the event drain; medical injuries stay in the medical de
  probe();r("globalThis.notice=MatchHighlights.event(h,[{type:'icing',time:499},{type:'penalty',time:500,id:1}]);");assert.equal(r("notice.label"),'Utvisning');assert.ok(r("MatchHighlights.select(h,'highlights',notice)"));r('h.wall+=1');assert.equal(r("MatchHighlights.select(h,'highlights',notice)"),null);
  assert.equal(r("MatchHighlights.event(h,[{type:'offside'},{type:'icing'},{type:'entry'},{type:'clear'},{type:'turnover'},{type:'injury',time:500,id:1}])"),null);
 });
-test('a clear breakaway matters in either direction even with a modest shooter; a defender in the lane excludes it',()=>{
+test('a true breakaway matters in either direction; a defender ahead excludes it even outside the shot lane',()=>{
  for(const side of [0,1]){
-  probe();r(`h.carrier='a';h.actor=()=>({id:'a',side:${side},x:${side?15:45},y:15});h.shotQuality=()=>.04;h.shotContext=()=>({d:11.5,angle:.2,pressure:.1});h.skaters=()=>[{x:${side?10:50},y:15}];`);
-  assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
-  r(`h.skaters=()=>[{x:${side?10:50},y:28}]`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Friläge');
+  probe();r(`h.carrier='a';h.actor=()=>({id:'a',side:${side},x:${side?15:45},y:15});h.shotQuality=()=>.04;h.shotContext=()=>({d:11.5,angle:.2,pressure:.1});h.skaters=()=>[{status:'playing',x:${side?10:50},y:28}];`);
+  assert.equal(r("MatchHighlights.select(h,'highlights')"),null,'an undefended shooting lane alone is not a breakaway');
+  r(`h.skaters=()=>[{status:'playing',x:${side?20:40},y:28}]`);assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Friläge');
+  r(`h.skaters=()=>[{status:'playing',x:${side?10:50},y:15}]`);assert.equal(r("MatchHighlights.select(h,'highlights')"),null,'a defender ahead in the lane excludes the breakaway');
  }
 });
-test('a released cross-slot pass matters before the next shot; ordinary, offside and behind-net passes do not',()=>{
+test('a cross-slot pass alone belongs to extended highlights; ordinary, offside and behind-net passes do not',()=>{
  for(const side of [0,1]){
   probe();r(`h.actor=()=>({id:'receiver',status:'playing'});h.flight={kind:'pass',side:${side},from:'passer',to:'receiver',start:{x:${side?8:52},y:25},end:{x:${side?7:53},y:15},elapsed:.2,get success(){throw Error('hidden pass success')}};`);
-  assert.equal(r("MatchHighlights.select(h,'highlights').label"),'Passning genom slottet');
-  const key=r("MatchHighlights.select(h,'highlights').key");r('h.time+=.1;h.flight.elapsed+=.1');assert.equal(r("MatchHighlights.select(h,'highlights').key"),key);
+  assert.equal(r("MatchHighlights.select(h,'highlights')"),null);assert.equal(r("MatchHighlights.select(h,'extended').label"),'Passning genom slottet');
+  const key=r("MatchHighlights.select(h,'extended').key");r('h.time+=.1;h.flight.elapsed+=.1');assert.equal(r("MatchHighlights.select(h,'extended').key"),key);
   for(const change of [`h.flight.end.x=${side?2:58}`,`h.flight.start.x=${side?20:40}`,`h.delayedOffside=${side}`]){
-   const old=r('JSON.stringify([h.flight.start,h.flight.end])');r(change);assert.equal(r("MatchHighlights.select(h,'highlights')"),null);r(`delete h.delayedOffside;[h.flight.start,h.flight.end]=${old};`);
+   const old=r('JSON.stringify([h.flight.start,h.flight.end])');r(change);assert.equal(r("MatchHighlights.select(h,'extended')"),null);r(`delete h.delayedOffside;[h.flight.start,h.flight.end]=${old};`);
   }
-  r('h.flight.end.y=24');assert.equal(r("MatchHighlights.select(h,'highlights')"),null);
+  r('h.flight.end.y=24');assert.equal(r("MatchHighlights.select(h,'extended')"),null);
  }
 });
 test('a recovered, cleared or unreachable old slot rebound is no longer a highlight',()=>{
