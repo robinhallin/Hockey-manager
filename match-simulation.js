@@ -593,7 +593,17 @@ const StudioHockey = (() => {
         if(a.id!==this.carrier&&(p<=40||this.delayedOffside===side)&&progress(side,target.x)>37.5)target.x=point(side,37.5,0).x;
         this.assign(a,target,duty);
       }
-      if(!carrier&&this.flight?.kind==='pass'){const receiver=this.actor(this.flight.to);if(receiver)this.assign(receiver,this.flight.end,'Möter passningen');}
+      if(!carrier&&this.flight?.kind==='pass'){const receiver=this.actor(this.flight.to);if(receiver)this.assign(receiver,this.passReceiveTarget(receiver,this.flight),'Möter passningen med klubban spelbar och behåller åkriktningen');}
+    }
+    passReceiveTarget(a,f){
+      const speed=Math.hypot(a.vx,a.vy),dx=f.end.x-a.x,dy=f.end.y-a.y,d=Math.hypot(dx,dy);
+      // Keep skating through an attainable reception instead of treating the
+      // puck's destination as a stopping point. A pass behind or across the
+      // current skating direction still requires a real turn or braking.
+      const alignment=speed>.8&&d>.1?clamp((dx*a.vx+dy*a.vy)/(d*speed),0,1):0;
+      const remaining=Math.max(0,f.duration-f.elapsed),reachable=d<=speed*(remaining+.45)+1.1;
+      const glide=reachable?alignment*.45:0;
+      return rinkLimit({x:f.end.x+a.vx*glide,y:f.end.y+a.vy*glide},.4);
     }
     defenseTargets(side){
       const attackers=this.skaters(1-side),defenders=this.skaters(side),carrier=this.actor(this.carrier),pk=this.isShortHanded(side);
@@ -1020,7 +1030,12 @@ const StudioHockey = (() => {
     shotQuality(a){return this.shotModel(a).quality;}
     pass(a,b){
       this.rebound=null;
-      const end={x:b.x+b.vx*.25,y:b.y+b.vy*.25};end.x=clamp(end.x,1,59);end.y=clamp(end.y,1,29);
+      const velocity=15+this.attribute(a,'passing')*.22;
+      let lead=clamp(distance(this.puck,b)/velocity,.24,.9),end;
+      for(let i=0;i<3;i++){
+        end={x:clamp(b.x+b.vx*lead,1,59),y:clamp(b.y+b.vy*lead,1,29)};
+        lead=clamp(distance(this.puck,end)/velocity,.24,.9);
+      }
       if(progress(a.side,a.x)<40&&progress(a.side,end.x)>40&&this.skaters(a.side).some(p=>p.id!==a.id&&progress(a.side,p.x)>40.3))return false;
       // Planning estimates include the lane and receiver. Release accuracy
       // only concerns the passer: interceptions and control are now separate
