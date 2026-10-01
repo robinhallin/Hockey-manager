@@ -35,6 +35,8 @@ These are small trajectory-dependent samples, not balance calibration. They esta
 
 The first broad CI run exposed stale forward ownership after an early back-lane change. Fixed without changing existing forecheck movement and added a mirrored regression. The camera coverage test now checks four fixed contiguous seeds rather than requiring a rebound in one 90-second game; all shot/save/rebound coverage and immutable-frame assertions remain required. The corresponding 26 local checks pass. Browser film/performance captures precede this ownership-only correction; final metrics above include it.
 
+A subsequent 1× browser capture includes the ownership correction: 78.7 seconds of match wall advance, all 12 actors/models, zero page/render errors or overflow. Desktop's natural duel-support search is extended from 3000 to 12000 steps (up to a period); observed participation and animation assertions are retained, with no prescribed helper. Four natural lab sequences also produce joined duels; this is a coverage-window change, not a forced event.
+
 ## Performance limitation
 
 Same headless Chromium/SwiftShader software renderer, low graphics, 10-second warmup followed by 20 seconds of live profiling without video capture. Median main GPU pass cost: 141.345 ms before, 130.469 ms after (80/88 samples). Median frame interval remains approximately 150 ms in both runs; tails vary. This is a modest rendering-cost reduction, **not solved frame pacing**. Normal/high are not silently downgraded. Video-capture timing is not used as an isolated performance benchmark.
