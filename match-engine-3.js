@@ -149,8 +149,8 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
     // highlight selection and render calls must be observational.
     const source=this.flight?.kind==='shot'?this.flight.start:this.puck;
     for(const goalie of this.actors.filter(a=>a.role==='G'))goalie.engine31LastRead={x:source.x,y:source.y,time:this.time};
-    if(!this.rebound?.spot||this.time-this.rebound.time>3)return;
-    const attack=this.rebound.side,spot=this.rebound.spot,att=matchEngine31ReboundClaim(this,attack,spot),def=matchEngine31ReboundClaim(this,1-attack,spot);
+    if(!this.availableRebound()||!this.flight)return;
+    const attack=this.rebound.side,spot=this.flight?.kind==='rebound'?this.rebound.spot:this.puck,att=matchEngine31ReboundClaim(this,attack,spot),def=matchEngine31ReboundClaim(this,1-attack,spot);
     if(att?.a)this.assign(att.a,spot,matchEngine31RoleProfile(this,att.a)==='power-forward'?'Kraschar mot mål för returen':'Jagar returen framför mål');
     if(def?.a)this.assign(def.a,{x:spot.x+(def.a.side===0?-.45:.45),y:spot.y},'Boxar ut framför mål och skyddar returen');
   };
@@ -178,11 +178,10 @@ if(typeof StudioHockey!=="undefined"&&!StudioHockey.Match.prototype.matchEngine3
     }
   };
   StudioHockey.Match.prototype.takePossession=function(a,opts={}){
-    if(this.rebound?.spot&&this.time-this.rebound.time<3){
-      const attack=this.rebound.side,att=matchEngine31ReboundClaim(this,attack,this.rebound.spot),def=matchEngine31ReboundClaim(this,1-attack,this.rebound.spot);
-      if(att?.a&&def?.a&&StudioHockey.distance(att.a,this.rebound.spot)<1.7&&StudioHockey.distance(def.a,this.rebound.spot)<1.7&&att.a.id!==def.a.id&&!this.battle){
-        const started=this.startBattle(def.a,att.a);
-        if(started){this.say('net-front',att.a.player.name+' och '+def.a.player.name.split(' ').at(-1)+' slåss om returen framför mål.',attack,true);return;}
+    if(this.availableRebound()&&StudioHockey.distance(a,this.rebound.spot)<1.7){
+      const opponent=this.skaters(1-a.side).filter(b=>b.status==='playing'&&StudioHockey.distance(b,this.puck)<1.7).sort((x,y)=>StudioHockey.distance(x,this.puck)-StudioHockey.distance(y,this.puck))[0];
+      if(opponent&&StudioHockey.distance(a,this.puck)<1.7&&this.startBattle(a,opponent)){
+        this.say('net-front',a.player.name+' och '+opponent.player.name.split(' ').at(-1)+' slåss om returen framför mål.',this.rebound.side,true);return;
       }
     }
     return baseTakePossession31.call(this,a,opts);

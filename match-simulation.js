@@ -664,12 +664,12 @@ const StudioHockey = (() => {
     targets(){
       this.attackTargets(this.owner);this.defenseTargets(1-this.owner);
       if(this.battle)for(const side of [0,1]){
-        const b=this.battle,helper=this.skaters(side).filter(a=>a.id!==b.a&&a.id!==b.b&&a.status==='playing'&&!a.role.endsWith('D')&&distance(a,b.spot)<4.5).sort((a,b)=>distance(a,this.battle.spot)-distance(b,this.battle.spot))[0];
+        const b=this.battle,helper=this.skaters(side).filter(a=>a.id!==b.a&&a.id!==b.b&&a.status==='playing'&&!a.role.endsWith('D')&&distance(a,b.spot)<4.5).sort((a,b)=>this.puckArrival(a,this.battle.spot)-this.puckArrival(b,this.battle.spot))[0];
         if(helper){const d=Math.max(.1,distance(helper,b.spot));this.assign(helper,{x:b.spot.x+(helper.x-b.spot.x)/d*.95,y:b.spot.y+(helper.y-b.spot.y)/d*.95},'Ger understöd och söker pucken ur närkampen');}
       }
       if(!this.carrier&&!this.flight&&!this.battle){
         // One pursuer per side; the other eight skaters continue supporting and covering.
-        for(const side of [0,1]){const nearest=[...this.skaters(side)].filter(a=>a.status!=='leaving').sort((a,b)=>distance(a,this.puck)-distance(b,this.puck))[0];if(nearest)this.assign(nearest,this.puck,'Jagar den lösa pucken');}
+        for(const side of [0,1]){const chase=this.availableRebound()?this.puckChase(side):null,nearest=chase?.a||[...this.skaters(side)].filter(a=>a.status!=='leaving').sort((a,b)=>distance(a,this.puck)-distance(b,this.puck))[0];if(nearest)this.assign(nearest,chase?.target||this.puck,'Jagar den lösa pucken');}
       }
       for(const a of this.actors){
         if(a.role==='G'){
@@ -843,9 +843,33 @@ const StudioHockey = (() => {
       });
       return candidates.sort((x,y)=>y.value-x.value)[0].target;
     }
+    puckChase(side){
+      const v=this.puckVelocity||{x:0,y:0},speed=Math.hypot(v.x,v.y),look=clamp(.35+speed*.035,.35,1.15);
+      const future={x:clamp(this.puck.x+v.x*look,1,59),y:clamp(this.puck.y+v.y*look,1,29)};
+      const rows=this.skaters(side).filter(a=>a.status==='playing').map(a=>{
+        const pace=3.1+this.attribute(a,'skating')*.09,read=(this.attribute(a,'positioning')*.45+this.attribute(a,'decisions')*.3+this.attribute(a,'workRate')*.25)/20;
+        return {a,read,eta:distance(a,future)/Math.max(1,pace)-read*.32};
+      }).sort((a,b)=>a.eta-b.eta),first=rows[0];
+      if(!first)return null;
+      const lead=clamp(first.read*.55,0,.55);
+      return {...first,target:{x:clamp(future.x+v.x/Math.max(1,speed)*lead,1,59),y:clamp(future.y+v.y/Math.max(1,speed)*lead,1,29)}};
+    }
+    puckArrival(a,target){
+      const d=distance(a,target),pace=3.1+this.attribute(a,'skating')*.09;
+      const toward=d>.1?((a.vx||0)*(target.x-a.x)+(a.vy||0)*(target.y-a.y))/d:0;
+      // Read current motion; this estimates a race without moving a player or
+      // awarding possession. Turning and acceleration still happen on the ice.
+      return d/pace+clamp((pace-toward)/pace,0,2)*.35;
+    }
+    availableRebound(){
+      const r=this.rebound;
+      return Boolean(r?.spot&&this.time-r.time>=0&&this.time-r.time<3&&
+        this.stoppage<=0&&!this.carrier&&!this.battle&&
+        (this.flight?this.flight.kind==='rebound':distance(this.puck,r.spot)<6));
+    }
     dumpTarget(a){
       const active=side=>this.skaters(side).filter(b=>b.id!==a.id&&!['leaving','entering'].includes(b.status));
-      const arrival=(players,target)=>Math.min(20,...players.map(b=>distance(b,target)/(3.1+this.attribute(b,'skating')*.09)));
+      const arrival=(players,target)=>Math.min(20,...players.map(b=>this.puckArrival(b,target)+(b.side===a.side&&progress(a.side,b.x)>40?2*(progress(a.side,b.x)-39.5)/(3.1+this.attribute(b,'skating')*.09):0)));
       return [2,28].map(y=>{
         const target=point(a.side,59,y),ours=arrival(active(a.side),target),theirs=arrival(active(1-a.side),target);
         // Prefer the near boards when races are otherwise similar; switch only
@@ -905,7 +929,7 @@ const StudioHockey = (() => {
       const origin=this.carrier===a.id?this.puck:a,goal=point(a.side,56.5,15),d=distance(origin,goal),forward=56.5-progress(a.side,origin.x);
       const angle=Math.atan2(Math.abs(origin.y-15),Math.max(.1,forward));
       const last=a.receivedPass,oneTimer=Boolean(last&&this.time-last.time<.85&&Math.abs(last.y-a.y)>5);
-      const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3&&(!this.rebound.spot||distance(a,this.rebound.spot)<6));
+      const rebound=Boolean(this.rebound&&this.rebound.side===a.side&&this.time-this.rebound.time<3&&this.carrier===a.id&&this.time-(a.controlledAt??-Infinity)<.85&&this.rebound.spot&&distance(this.puck,this.rebound.spot)<4&&distance(a,this.rebound.spot)<4);
       const screen=this.actors.filter(b=>b.role!=='G'&&b.id!==a.id).reduce((sum,b)=>{
         const lane=segmentDistance(b,origin,goal);
         return sum+(lane.t>.5&&lane.t<.98&&distance(b,goal)<9?clamp(1-lane.d/.95,0,1)*(b.side===a.side?1:.55):0);
