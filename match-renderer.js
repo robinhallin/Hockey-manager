@@ -56,9 +56,6 @@ const MatchBroadcastRenderer = (() => {
       ctx.beginPath();ctx.arc(pp.x+(frame.carrier?actorRadius*.8:0),pp.y+(frame.carrier?actorRadius*.5:0),Math.max(5.7,2.8/displayScale),0,Math.PI*2);ctx.fillStyle='#071426';ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#fff';ctx.stroke();
     }
     ctx.textBaseline='alphabetic';ctx.textAlign='left';ctx.font='600 15px system-ui';ctx.fillStyle='#426174';ctx.fillText(teams[0].name+' anfaller åt höger',pad,H-8);
-    if(frame.phase==='stoppage'&&frame.eventType==='goal'){
-      ctx.fillStyle='#082443e8';ctx.beginPath();ctx.roundRect(W/2-125,H/2-56,250,100,10);ctx.fill();ctx.fillStyle='#f3d25d';ctx.textAlign='center';ctx.font='800 54px system-ui';ctx.fillText('MÅL',W/2,H/2+13);
-    }
   }
   return {draw};
 })();
