@@ -192,7 +192,7 @@ function deskRefreshShell(){
 
 function deskFixtures(){
   const club=managerClub(),phase=state.season.phase;
-  const games=state.schedule.filter(g=>g.home===club||g.away===club).map(g=>({date:g.date,played:g.played,opponent:g.home===club?g.away:g.home,venue:g.home===club?'Hemma':'Borta',own:g.home===club?g.homeGoals:g.awayGoals,against:g.home===club?g.awayGoals:g.homeGoals,type:g.stage?'Slutspel':leagueName(),round:g.round}));
+  const games=state.schedule.filter(g=>g.home===club||g.away===club).map(g=>({date:g.date||calRoundDate(g.round),played:g.played,opponent:g.home===club?g.away:g.home,venue:g.home===club?'Hemma':'Borta',own:g.home===club?g.homeGoals:g.awayGoals,against:g.home===club?g.awayGoals:g.homeGoals,type:g.stage?'Slutspel':leagueName(),round:g.round}));
   const friendlies=(state.calendar?.friendlies||[]).filter(f=>f.club===club).map(f=>({...f,type:'Träningsmatch',venue:'Träningsmatch'}));
   const all=[...games,...friendlies];
   return {

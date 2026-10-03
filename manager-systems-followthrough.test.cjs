@@ -39,6 +39,9 @@ test('overview and inbox expose all domain decisions; snoozing cannot hide a dea
  assert.ok(r("managerAgendaItems().some(i=>i.id==='contracts:expiring')"));
  r('state.recruitment.incoming[0].status="rejected";managerAgendaReconcile()');
  assert.ok(r("state.office2.agenda.history.some(i=>i.id==='decision:incoming:900')"));
+ r('for(const g of state.schedule.filter(g=>g.home===managerClub()).slice(0,2)){g.played=true;delete g.date;}globalThis.scheduleSnapshot=JSON.stringify(state.schedule)');
+ assert.doesNotThrow(()=>r('managerAgendaReconcile()'));
+ assert.equal(r('JSON.stringify(state.schedule)'),r('scheduleSnapshot'),'agenda can read fixtures before calendar normalization without changing them');
 });
 
 test('mandates agree with training controls and advice never applies an order',()=>{

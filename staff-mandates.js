@@ -24,7 +24,7 @@ function staffSetMode(area,mode){
  if(area==='training'||area==='juniors')assistantSetOwner(area==='training'?'senior':'junior',mode==='execute'?'assistant':'manager',false);
  if(area==='scouting'){const d=ensureScoutingOffice().delegation;d.enabled=mode==='execute';}
  // assistantSetOwner keeps the legacy controls in sync; retain advice as a distinct mode.
- o.mandates[area]=mode;staffRecord(area,`${def.name}: ${mode==='execute'?'staben genomför inom mandat':mode==='advise'?'staben föreslår':'du bestämmer'}.`);
+ o.mandates[area]=mode;o.delegation[area]=mode!=='manual';staffRecord(area,`${def.name}: ${mode==='execute'?'staben genomför inom mandat':mode==='advise'?'staben föreslår':'du bestämmer'}.`);
  save();render();return true;
 }
 function staffMandateDay(){
