@@ -56,21 +56,29 @@ function trainingPlanRecord(p,session,effect,before,key){
  const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
  p.trainingSessions=[{date:state.calendar?.date,type:session.type,before,after:p.fatigue,rest:effect.rest,injured:!medicalCanTrain(p),key,target:effect.rest?'Återhämtning':fields[key]},...(p.trainingSessions||[])].slice(0,56);
 }
-function developmentReviewStart(id){
+function developmentReviewMigrate(p){
+ const old=p.developmentReview;if(!old||old.version===2)return;
+ if(old.baseline&&!p.developmentRoleBaseline)p.developmentRoleBaseline={...old.baseline};
+ if(!old.attributes&&!old.baseline){delete p.developmentReview;return;}
+ p.developmentReview={...old,version:2,year:old.year||state.season.year,focus:old.focus||p.developmentFocus,
+  attributes:{...(old.attributes||old.baseline)},seen:old.seen||[],sessionsSeen:old.sessionsSeen||[],due:old.due||calAdd(old.date||state.calendar.date,28)};
+}
+function developmentReviewStart(id,persist=true){
  const p=managerRoster().find(p=>samePlayerId(p.id,id));
  if(!p||state.live&&!state.live.finished||p.developmentReview?.club===managerClub()&&calGap(p.developmentReview.date,state.calendar.date)<28)return false;
- p.developmentReview={club:managerClub(),year:state.season.year,date:state.calendar.date,focus:p.developmentFocus,attributes:{...p.attributes},seen:(state.analysis?.matches||[]).map(m=>m.id),sessionsSeen:(p.trainingSessions||[]).map(s=>s.date)};
- save();render();return true;
+ if(p.developmentReview){p.developmentReviews=[{...p.developmentReview,closed:state.calendar.date},...(p.developmentReviews||[])].slice(0,12);}
+ p.developmentReview={version:2,club:managerClub(),year:state.season.year,date:state.calendar.date,due:calAdd(state.calendar.date,28),focus:p.developmentFocus,rolePlan:p.developmentRolePlan||null,attributes:{...p.attributes},seen:(state.analysis?.matches||[]).map(m=>m.id),sessionsSeen:(p.trainingSessions||[]).map(s=>s.date)};
+ if(persist){save();render();}return true;
 }
 function developmentReviewEvidence(p){
  const plan=p.developmentReview;if(!plan||plan.club!==managerClub())return null;
- const sessions=(p.trainingSessions||[]).filter(s=>s.date>=plan.date&&!plan.sessionsSeen.includes(s.date));
+ const sessions=(p.trainingSessions||[]).filter(s=>s.date>=plan.date&&!(plan.sessionsSeen||[]).includes(s.date));
  const complete=analysisCompleteMatches(state.analysis?.matches||[]).filter(m=>m.club===plan.club&&m.date<=state.calendar.date);
- const matches=complete.filter(m=>m.date>=plan.date&&!plan.seen.includes(m.id));
- const baseline=complete.filter(m=>plan.seen.includes(m.id)&&m.year===plan.year&&m.date<=plan.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+ const matches=complete.filter(m=>m.date>=plan.date&&!(plan.seen||[]).includes(m.id));
+ const baseline=complete.filter(m=>(plan.seen||[]).includes(m.id)&&m.year===plan.year&&m.date<=plan.date).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
  const rows=matches.map(m=>(m.players||[]).find(q=>samePlayerId(q.id,p.id))).filter(Boolean);
  const fields=p.pos==='MV'?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES;
- const changes=Object.keys(plan.attributes).filter(k=>p.attributes[k]!==plan.attributes[k]).map(k=>`${fields[k]} ${p.attributes[k]-plan.attributes[k]>0?'+':''}${p.attributes[k]-plan.attributes[k]}`);
+ const snapshot=plan.attributes||plan.baseline||{},changes=Object.keys(snapshot).filter(k=>p.attributes[k]!==snapshot[k]).map(k=>`${fields[k]} ${p.attributes[k]-snapshot[k]>0?'+':''}${p.attributes[k]-snapshot[k]}`);
  return {plan,baseline,matches,days:calGap(plan.date,state.calendar.date),sessions,trained:sessions.filter(s=>!s.rest).length,rest:sessions.filter(s=>s.rest&&!s.injured).length,injured:sessions.filter(s=>s.injured).length,games:rows.filter(r=>r.seconds>0).length,seconds:rows.reduce((n,r)=>n+r.seconds,0),changes};
 }
 function developmentUsageView(p,e){

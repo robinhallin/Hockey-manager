@@ -142,25 +142,37 @@ function scoutAssessmentShift(p,previous){
 function scoutObserve(id,date,options={}){
  const p=findPlayerAnywhere(id),r=state.scoutReports[String(id)]||(state.scoutReports[String(id)]={visits:0});
  if(!p||isOwnPlayer(p)||(!options.force&&!scoutNeedsObservation(p,date))||r.lastObserved&&calGap(r.lastObserved,date)<7)return false;
+ const evidence=scoutingFreshEvidence(p,date);
+ if(!evidence.length){r.waitingForEvidence=true;return false;}
  const refresh=r.visits>=3;
  const previous=r.snapshot?{date:r.lastObserved||r.snapshotDate,observer:r.observer?.name||'Tidigare stab',estimated:{...playerAssessment(p).estimated},uncertainty:playerAssessment(p).uncertainty,quality:r.quality||1,role:playerAssessment(p).roles?.[0]?.name}:null;
  if(previous)(r.history??=[]).unshift(previous);
  if(r.history)r.history=r.history.slice(0,6);
  if(options.observer){r.observer={...options.observer};r.quality=options.quality;r.focus=options.focus;r.job=options.job;}
+ r.quality=Math.min(options.quality||1,evidence[0].type==='background'?.45:evidence[0].type==='training'?.8:1.2);
+ r.waitingForEvidence=false;r.evidenceKeys=[...(r.evidenceKeys||[]),...evidence.map(e=>e.key)].slice(-100);
+ r.observationSources=[...evidence.map(e=>({...e,observed:date})),...(r.observationSources||[])].slice(0,30);
  r.visits=Math.min(3,(r.visits||0)+1);r.lastObserved=date;r.snapshotDate=date;r.snapshot={...ensurePlayerAttributes(p)};r.potentialSnapshot=scoutPotentialSnapshot(p);r.origin='observation';delete r.dueRound;
  const profile=options.job?scoutingOffice()?.jobs.find(j=>j.id===options.job)?.profile:'ALL',shift=previous?scoutAssessmentShift(p,previous):null;r.latestShift=shift?{date,...shift}:null;
- managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,scoutingObservationText(p,profile||'ALL')+(shift?' Scouten har ändrat uppfattning: '+shift.text:'')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
+ managerMessage(`scout:${id}:${date}`,`${refresh?'Uppdaterad scoutrapport':'Scoutrapport'}: ${p.name}`,evidence.map(e=>e.label).join('. ')+'. '+scoutingObservationText(p,profile||'ALL')+(shift?' Scouten har ändrat uppfattning: '+shift.text:'')+' Öppna spelarens rapport för rollanalys och jämförelse med truppen.','Chefsscout',{link:'scouting',playerId:p.id});return true;
 }
 function scoutDay(){
  if(!state.calendar||!state.recruitment)return;scoutingDay();const date=state.calendar.date;
  for(const [id,r] of Object.entries(state.scoutReports)){
   if(r.dueRound&&!r.dueDate){r.dueDate=calAdd(date,7);delete r.dueRound;}
-  if(r.dueDate&&r.dueDate<=date){scoutObserve(id,date);delete r.dueDate;}
+  if(r.dueDate&&r.dueDate<=date){
+   if(scoutObserve(id,date)){delete r.dueDate;delete r.evidenceWaits;}
+   else if((r.evidenceWaits=(r.evidenceWaits||0)+1)>=3){delete r.dueDate;managerMessage(`scout-limited:${id}:${r.started}`,'Scoutuppdrag: nytt underlag saknas','Ingen ytterligare säkerhet kunde byggas. Tidigare bedömning finns kvar. Beställ nytt arbete när match- eller träningsunderlag finns.','Chefsscout',{playerId:id,link:'scouting'});}
+   else r.dueDate=calAdd(date,7);
+  }
  }
  for(const m of state.recruitment.missions.filter(m=>m.status==='active')){
   if(!m.nextDate)m.nextDate=calAdd(date,7);
   if(m.nextDate>date)continue;
-  m.players.forEach(id=>scoutObserve(id,date));m.observations++;m.nextDate=calAdd(date,7);
+  m.progress??=Object.fromEntries(m.players.map(id=>[id,m.observations||0]));
+  let observed=0;for(const id of m.players)if(m.progress[id]<3&&scoutObserve(id,date)){m.progress[id]++;observed++;}
+  m.observations=Math.min(...m.players.map(id=>m.progress[id]));m.nextDate=calAdd(date,7);
+  if(!observed&&(m.evidenceWaits=(m.evidenceWaits||0)+1)>=3){m.status='limited';m.completedDate=date;}else if(observed)m.evidenceWaits=0;
   if(m.observations>=3){m.status='completed';m.completedDate=date;}
  }
 }

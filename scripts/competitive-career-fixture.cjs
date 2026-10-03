@@ -9,6 +9,8 @@ startCareerWithClub=function(club){
  delete state.seasonCalendar;delete state.preseasonCoach;
  state.season.phase='regular';state.calendar.friendlies=[];state.calendar.active=null;
  state.calendar.date=state.rosterStartDate||calAdd(calRoundDate(1),-3);
+ // This fixture starts directly in September, with no simulated August ledger.
+ if(state.clubOffice?.cashflow){state.clubOffice.cashflow.started=state.calendar.date;state.clubOffice.cashflow.lastDate=state.calendar.date;}
  state.calendar.marketDay=calAdd(state.calendar.date,7);
  for(const g of state.schedule)g.date=calRoundDate(g.round,state.season.year);
  state.training.calendarKey=null;state.training.day=0;state.page='home';save();render();

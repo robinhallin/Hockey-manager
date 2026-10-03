@@ -133,9 +133,10 @@ function watchRemainingPlayoffs(){
 }
 function beginPreseason(){
  const s=state.season;if(s?.phase!=='review')return;
+ clubCashflowAccrue(`${s.year+1}-08-01`);clubCashflowFlush(`${s.year+1}-08-01`);
  juniorAnnualReview(s.year);
  nasOffseason();nhlOffseason();
- loansNewYear();s.phase='preseason';s.year++;ensureCalendar();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
+ loansNewYear();s.phase='preseason';s.year++;squadScenariosNewYear();ensureCalendar();scoutingPruneEvidence();s.departures=[];if(state.recruitment)state.recruitment.weeks=0;
  for(const [club,roster] of Object.entries(state.clubRosters))for(const p of roster){
   developmentBirthday(p);p.contractYears=Math.max(0,(p.contractYears||1)-1);
 

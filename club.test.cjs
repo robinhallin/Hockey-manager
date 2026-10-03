@@ -48,13 +48,13 @@ run('state.clubOffice.priority="first";state.clubOffice.projects??={};state.club
 run('state.clubOffice.priority="youth";state.clubOffice.projects.youth={maturity:100}');assert.equal(run('clubJuniorFactor()'),1.15);
 run('clubSetPolicy("ticket",160);var cheapAttendance=clubGate().attendance;clubSetPolicy("ticket",340)');assert.ok(run('clubGate().attendance')<run('cheapAttendance'));
 run('clubSetPolicy("ticket",-1)');assert.equal(run('state.clubOffice.ticket'),340);
-// Real entries: away fixtures have no gate, wages and income counted exactly once.
+// Matches charge only actual gates/travel. Monthly fixed costs are tested separately.
 run('var away=state.schedule.find(g=>g.away===managerClub());state.round=away.round;(state.calendar.date=calendarTarget(),createMatch());state.live.finished=true;var beforeAway=state.money;clubSettleMatch()');
 assert.equal(run('state.clubOffice.totals.tickets||0'),0);
-assert.equal(run('state.clubOffice.totals.players'),-Math.round(run('annualWageCost()/52')));
+assert.equal(run('state.clubOffice.totals.players||0'),0);
 const afterAway=run('state.money');run('clubSettleMatch()');assert.equal(run('state.money'),afterAway);
 run('var home=state.schedule.find(g=>g.home===managerClub());state.round=home.round;clubSettleMatch()');assert.ok(run('state.clubOffice.totals.tickets')>0);
-// Playoffs only incur matchday costs and gates, annual wages are already allocated.
+// Playoffs also leave the independent monthly payroll unchanged.
 run('var salaries=state.clubOffice.totals.players;state.round=100;state.schedule.push({round:100,home:managerClub(),away:"Rögle BK",seriesId:"test"});clubSettleMatch()');
 assert.equal(run('state.clubOffice.totals.players'),run('salaries'));
 assert.equal(run('Math.round(state.money-state.clubOffice.opening)'),run('Object.values(state.clubOffice.totals).reduce((n,x)=>n+x,0)'));

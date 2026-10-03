@@ -18,7 +18,8 @@ run('save();render();advanceScoutReports()');assert.equal(run('mission.observati
 run('requestScoutReport(mission.players[0]);for(let i=0;i<7;i++)calendarStep(true);advanceScoutReports()');
 assert.equal(run('state.scoutReports[String(mission.players[0])].visits'),1); // no double observation
 run('save()');const restored=boot(storage.value);assert.equal(restored.run('state.recruitment.missions[0].observations'),1);
-run('for(let i=0;i<14;i++)calendarStep(true);advanceScoutReports()');
+// Dated recorded training is new evidence; calendar time alone cannot complete a mission.
+run('for(let i=0;i<14;i++){for(const id of mission.players)findPlayerAnywhere(id).trainingSessions=[{date:calAdd(state.calendar.date,1),key:"recorded-workout",type:"skills"}];calendarStep(true);}advanceScoutReports()');
 assert.equal(run('mission.status'),'completed');
 assert.equal(run('mission.players.every(id=>state.scoutReports[String(id)].visits===3)'),true);
 // The same persistent identity drives locker reactions and market preferences.

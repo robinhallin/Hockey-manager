@@ -1,5 +1,5 @@
 function trainingAutoRest(p){return state.training?.recoveryOwner==='staff'&&trainingBaseLoad(p)==='normal'&&medicalCanTrain(p)&&p.fatigue>=55&&p.trainingManualDate!==state.calendar?.date;}
-function setRecoveryOwner(value){if(!['manager','staff'].includes(value))return;state.training.recoveryOwner=value;if(value==='manager')state.training.assistantOwner='manager';if(state.office2?.delegation)state.office2.delegation.training=value==='staff';save();render();}
+function setRecoveryOwner(value){if(!['manager','staff'].includes(value))return;state.training.recoveryOwner=value;if(state.office2?.mandates)state.office2.mandates.training=value==='staff'?'execute':'manual';if(value==='manager')state.training.assistantOwner='manager';if(state.office2?.delegation)state.office2.delegation.training=value==='staff';save();render();}
 function trainingDelegateRecovery(){
  for(const p of managerRoster().filter(trainingAutoRest)){
   p.trainingLoad='rest';p.trainingReturn={date:calAdd(state.calendar.date,1),club:managerClub(),load:'rest',start:state.calendar.date,before:p.fatigue,trained:0,rested:0,delegated:true};

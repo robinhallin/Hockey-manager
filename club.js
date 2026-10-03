@@ -75,6 +75,7 @@ function ensureClub(){
   state.staff.push({id:'physio',personId:'initial-physio',name:'Mikael Ek',ability:10,potential:10,specialty:'Tvåvägsforward',coaching:15,salary:420000,expires:clubYear()+2});
  }
  arenaMigrateOffice(state.clubOffice,managerClub());
+ clubCashflowEnsure();
  if(!state.clubOffice.priorityVersion){state.clubOffice.priorityVersion=1;state.clubOffice.priorityLockedYear=state.clubOffice.priority!=='balanced'?state.clubOffice.year:null;}
  for(const role of Object.keys(CLUB_ROLES))if(!state.staff.some(s=>s.id===role))state.staff.push(clubInterim(role));
  if(!state.clubOffice.market.length)clubMakeMarket();
@@ -87,10 +88,10 @@ function clubMakeMarket(){
   return {personId:`staff-${o.year}-${role}-${i}`,id:role,name:`${first[(r*2+i)%10]} ${last[(r+i+o.year)%10]}`,philosophy:Object.keys(STAFF_PHILOSOPHIES)[Math.floor(seed('philosophy')*Object.keys(STAFF_PHILOSOPHIES).length)],ability:Math.min(20,skill+Math.floor(seed('a')*3)),potential:Math.min(20,10+Math.floor(seed('p')*10)),coaching:Math.min(20,skill+Math.floor(seed('c')*3)),specialty:role==='goalie'?'Målvakt':['Tvåvägsforward','Spelfördelare','Målskytt','Defensiv back'][Math.floor(seed('s')*4)],salary:240000+i*220000+(role==='assistant'?120000:0),minYears:i===2?2:1};
  }));
 }
-function clubPost(category,amount,label){
+function clubPost(category,amount,label,date=state.calendar?.date){
  ensureClub();const o=state.clubOffice;if(!o||!Number.isFinite(amount))return;
  amount=Math.round(amount);state.money+=amount;o.totals[category]=(o.totals[category]||0)+amount;
- o.ledger.unshift({year:clubYear(),round:state.round,category,label,amount,balance:state.money});o.ledger=o.ledger.slice(0,240);
+ o.ledger.unshift({year:clubYear(),round:state.round,date,category,label,amount,balance:state.money});o.ledger=o.ledger.slice(0,240);
 }
 function clubStaffCost(){return (state.staff||[]).reduce((n,s)=>n+(s.salary||0),0);}
 function clubMissionLimit(){return 2+(state.staff.find(s=>s.id==='scout')?.ability>=16?1:0)+(state.clubOffice?.priority==='scouting'?1:clubPriorityValue('missions',0))+clubProjectEffect('missions',0);}
@@ -110,17 +111,11 @@ function clubSettleMatch(){
  const home=g.home===managerClub(),gate=clubGate(Boolean(g.seriesId));
  if(home)clubPost('tickets',gate.revenue,`${gate.attendance.toLocaleString('sv-SE')} åskådare × ${o.ticket} kr · ${g.away}`);
  clubPost('matchday',home?-150000:-90000,home?'Arena & matcharrangemang':'Bortaresa & logi');
- if(!g.seriesId){
-  clubPost('sponsor',o.sponsor*clubProjectFactor('sponsor')/52,'Sponsor & centrala avtal · 1/52');
-  clubPost('players',-annualWageCost()/52,'Spelarlöner · 1/52 av nuvarande årslön');
-  clubPost('staff',-clubStaffCost()/52,'Personallöner · 1/52');
-  if(managerSalary())clubPost('manager',-managerSalary()/52,'Huvudtränarens lön · 1/52');
-  clubPost('operations',-o.operations*clubProjectFactor('operations')/52,'Klubbdrift & ungdomsverksamhet · 1/52');
-  const p=CLUB_PRIORITIES[o.priority];if(p.cost)clubPost('priority',-p.cost/52,p.name+' · 1/52');
- }
+
  managerMessage(`finance:${key}`,'Ekonomirapport efter matchen',`${home?`Publikintäkt ${money(gate.revenue)}.`:'Bortamatch: ingen biljettintäkt.'} Kassa: ${money(state.money)}. ${state.money<0?'Kassan är negativ. Försäljningar och lägre kostnader behövs.':'Se återstående säsongsprognos och kostnader under Ekonomi.'}`,'Klubbekonomi',{link:'finance'});
 }
 function clubForecast(){
+ if(state.clubOffice.cashflow)return clubCalendarForecast();
  const o=state.clubOffice,remaining=state.schedule.filter(g=>!g.played&&!g.seriesId&&(g.home===managerClub()||g.away===managerClub())),home=remaining.filter(g=>g.home===managerClub()).length;
  // During preseason the old schedule remains; project the next 52-fixture season.
  const preseason=state.season.phase==='preseason',games=preseason?52:remaining.length,homes=preseason?26:home;

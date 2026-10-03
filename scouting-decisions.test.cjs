@@ -24,7 +24,7 @@ const publicInfo=r('scoutingObservationText(target,"Defensiv center")+scoutingCo
 r('for(const key of Object.keys(target.attributes))target.attributes[key]=1');
 assert.equal(r('scoutingObservationText(target,"Defensiv center")+scoutingComparison()'),publicInfo,'unobserved attributes cannot leak through a new report view or comparison');
 // A fresh, dated observation supplies new information and preserves old evidence.
-r('state.calendar.date=calAdd(state.calendar.date,7);scoutObserve(target.id,state.calendar.date)');
+r('state.calendar.date=calAdd(state.calendar.date,7);findPlayerAnywhere(target.id).roleGames=[{key:"fresh-report",club:getPlayerClub(target.id),date:state.calendar.date,seconds:900}];scoutObserve(target.id,state.calendar.date)');
 assert.match(r('scoutingObservationText(target,"Defensiv center")'),/Jämfört med/);
 assert.match(r('scoutingObservationText(target,"Defensiv center")'),/→/);
 assert.equal(r('state.scoutReports[target.id].history.length'),1);

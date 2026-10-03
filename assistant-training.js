@@ -5,6 +5,7 @@ function assistantSetOwner(group,value,persist=true){
  const players=group==='junior'?juniorPlayers().filter(p=>!isOwnPlayer(p)):managerRoster();
  for(const p of players)if(p.trainingFocusManual==null)p.trainingFocusManual=p.developmentFocus!=='Balanserad';
  data.assistantOwner=value;
+ if(state.office2){state.office2.mandates??={};state.office2.mandates[group==='senior'?'training':'juniors']=value==='assistant'?'execute':'manual';if(group==='junior')state.office2.delegation.juniors=value==='assistant';}
  if(group==='senior'){data.recoveryOwner=value==='assistant'?'staff':'manager';if(state.office2?.delegation)state.office2.delegation.training=value==='assistant';}
  if(persist){save();render();}
 }
@@ -24,6 +25,7 @@ function assistantTeamSession(date){
 }
 function assistantPrepareTraining(){
  assistantReportingEnsure();
+ const before=new Map([...managerRoster(),...juniorPlayers()].map(p=>[String(p.id),[p.developmentFocus,p.trainingLoad].join(':')]));
  const date=state.calendar.date,t=state.training;
  if(t.assistantOwner==='assistant'){
   if(!state.calendar.plans[date])t.plan[t.day]=assistantTeamSession(date);
@@ -38,6 +40,7 @@ function assistantPrepareTraining(){
    p.trainingLoad=!medicalCanTrain(p)||p.fatigue>=55?'rest':p.fatigue>=35?'light':'normal';p.juniorAutoLoad=true;
   }
  }
+ for(const p of [...managerRoster(),...juniorPlayers()])if(before.get(String(p.id))!==[p.developmentFocus,p.trainingLoad].join(':'))staffRecord(isOwnPlayer(p)?'training':'juniors',`${p.name}: ${p.developmentFocus}, ${{normal:'normal träning',light:'lätt träning',rest:'vila'}[p.trainingLoad]||p.trainingLoad}. Anpassat efter roll och ork.`);
 }
 function assistantTrainingView(group='senior'){
  const data=group==='junior'?state.juniors:state.training;

@@ -16,7 +16,7 @@ r('globalThis.target=state.playerWorld.freeAgents[0];globalThis.before=playerAss
 assert.equal(r('cash-state.money'),r('Math.round(clubMissionFee()/3)'));assert.equal(r('state.scoutReports[target.id].visits'),0);
 r('for(let i=0;i<6;i++)calendarStep(true)');assert.equal(r('state.scoutReports[target.id].visits'),0);
 r('calendarStep(true);scoutDay();scoutDay()');assert.equal(r('state.scoutReports[target.id].visits'),1);assert.ok(r('playerAssessment(target).uncertainty<before'));
-r('for(let visit=0;visit<2;visit++){requestScoutReport(target.id);for(let day=0;day<7;day++)calendarStep(true);}');assert.equal(r('state.scoutReports[target.id].visits'),3);assert.equal(r('playerAssessment(target).familiarity'),.9);
+r('for(let visit=0;visit<2;visit++){requestScoutReport(target.id);for(let day=0;day<7;day++){target.trainingSessions=[{date:calAdd(state.calendar.date,1),key:"recorded-workout",type:"skills"}];calendarStep(true);}}');assert.equal(r('state.scoutReports[target.id].visits'),3);assert.equal(r('playerAssessment(target).familiarity'),.9*.8);
 r('save()');let reload=boot(app.storage.value);assert.equal(reload.run('state.scoutReports[state.playerWorld.freeAgents[0].id]?.visits'),3);
 // No startup injection into existing worlds and no return of an already signed free agent.
 r('globalThis.free=state.playerWorld.freeAgents.find(p=>p.name==="Oula Palve");state.money=100000000;state.boardPlan.offer.wageLimit=100000000;transferRecruitPlayer(free,WORLD_FREE,managerClub(),0,free.salary,2,"Rotation");save()');

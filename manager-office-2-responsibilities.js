@@ -1,7 +1,7 @@
 "use strict";
 
 function managerOffice2MedicalStaffPlan(){
-  if(!managerOffice2Delegated('medical')||!state.careerStarted)return [];
+  if(staffMode('medical')!=='execute'||!state.careerStarted)return [];
   ensureMedical();
   const changed=[];
   for(const p of managerRoster()){
@@ -12,6 +12,7 @@ function managerOffice2MedicalStaffPlan(){
     if(injury.readiness>=75&&injury.readiness<100){
       p.health.clearance='limited';
       changed.push(p);
+      staffRecord('medical',`${p.name}: begränsad comeback vid ${Math.round(injury.readiness)} % beredskap. Full comeback är fortfarande ditt beslut.`);
       medicalReport(`${p.name}: staben väljer begränsad comeback`, `Matchberedskap ${Math.round(injury.readiness)} %. Högst ${p.pos==='MV'?30:10} minuter per match. Du kan ändra planen under Medicinskt team; dina egna val gäller tills rehabiliteringen är klar.`);
     }
   }
@@ -26,7 +27,7 @@ medicalDay=function(session=null,sessionEffects=null){
 };
 
 function managerOffice2JuniorStaffPlan(){
- if(!managerOffice2Delegated('juniors')||!state.juniors)return [];
+ if(staffMode('juniors')!=='execute'||!state.juniors)return [];
  const rows=[];for(const p of juniorPlayers()){
   if(p.juniorManualLoad||p.academy?.loan)continue;
   const advice=juniorAdvice(p);if((p.fatigue||0)>=65&&p.trainingLoad!=='light'){p.trainingLoad='light';p.juniorAutoLoad=true;rows.push(p);}
@@ -42,17 +43,17 @@ function managerOffice2LineupSuggestion(){
 }
 function managerOffice2ResponsibilitySummary(){
   return {
-    training:managerOffice2Delegated('training')
+    training:staffMode('training')==='advise'?'Assisterande föreslår pass och återhämtning. Du beslutar.':staffMode('training')==='execute'
       ?'Assisterande planerar lagpass, individuella fokus och återhämtning. Veckorapport varje söndag.'
       :'Du styr individuell återhämtning.',
-    medical:managerOffice2Delegated('medical')
+    medical:staffMode('medical')==='advise'?'Medicinska staben föreslår uppföljning. Du beslutar om comeback.':staffMode('medical')==='execute'
       ?'Medicinska staben håller spelaren i rehab och kan välja begränsad comeback när beredskapen är tillräcklig. Full comeback kräver dig.'
       :'Du bestämmer comebacknivå när rehabiliteringen når matchfas.',
-    scouting:managerOffice2Delegated('scouting')
+    scouting:staffMode('scouting')==='advise'?'Scouten föreslår kartläggning. Du godkänner uppdrag och kostnad.':staffMode('scouting')==='execute'
       ?'Scoutuppdrag fortsätter enligt plan och bara avvikelser behöver lyftas.'
       :'Du följer scoutuppdragen direkt.',
     contracts:managerOffice2Delegated('contracts')?'Staben bevakar utgående avtal, men ekonomiska åtaganden kräver fortfarande ditt beslut.':'Du bevakar utgående avtal själv.',
-    juniors:managerOffice2Delegated('juniors')?'Junioransvarig justerar endast försiktig träningsbelastning. Lån, uppflyttning och avslut kräver dig.':'Du styr juniorernas belastning.',
+    juniors:staffMode('juniors')==='advise'?'Junioransvarig föreslår anpassningar. Du beslutar.':staffMode('juniors')==='execute'?'Junioransvarig justerar endast försiktig träningsbelastning. Lån, uppflyttning och avslut kräver dig.':'Du styr juniorernas belastning.',
     lineup:managerOffice2Delegated('lineup')?'Assisterande kan ta fram ett lagförslag, men ändrar inte kedjor eller startmålvakt automatiskt.':'Du ansvarar för laguttagningen.'
   };
 }

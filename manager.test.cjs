@@ -31,7 +31,7 @@ assert.equal(run('state.managerCareer.interview.stage'),'rejected');
 run('var target=state.managerCareer.jobs.find(j=>j.min===5);managerInterview(target.id);managerInterviewAnswer("balanced")');
 assert.equal(run('state.managerCareer.interview.stage'),'offer');
 // Preview is read-only, resources must be re-reviewed after a budget change.
-const previousClub=run('managerClub()');run('var destination=target.club;var ids=state.clubRosters[destination].map(p=>p.id).join();var attrs=JSON.stringify(state.clubRosters[destination].map(p=>p.attributes));var academyIds=state.juniors.roster.map(p=>p.id).join();var oldCash=state.money;state.recruitment.ai[destination].cash+=1;managerAcceptJob()');
+const previousClub=run('managerClub()');run('var destination=target.club;var ids=state.clubRosters[destination].map(p=>p.id).join();var attrs=JSON.stringify(state.clubRosters[destination].map(p=>p.attributes));var academyIds=state.juniors.roster.map(p=>p.id).join();clubCashflowAccrue(state.calendar.date);clubCashflowFlush(state.calendar.date);var oldCash=state.money;state.recruitment.ai[destination].cash+=1;managerAcceptJob()');
 assert.equal(run('managerClub()'),previousClub);
 // Pending transfers block movement; acceptance moves no players or player attributes.
 run('state.recruitment.deals.push({status:"pending",fee:1});managerAcceptJob()');assert.equal(run('managerClub()'),previousClub);
@@ -66,6 +66,6 @@ run('preseasonConfigure("balanced","manager","rotation","manager","manager");for
 run('for(const p of managerRoster())p.contractYears=Math.max(1,p.contractYears);(state.calendar.date=state.season.year+"-09-07",launchSeason())');assert.equal(run('state.season.phase'),'regular');
 assert.equal(run('state.managerCareer.startGames'),0);
 run('(!state.live&&(state.calendar.date=calendarTarget()),startMatch());for(let i=0;i<1500&&!state.live.finished;i++){if(!state.live.running)(!state.live&&(state.calendar.date=calendarTarget()),startMatch());liveStep()}');assert.ok(run('state.live.finished'));
-assert.ok(run('state.clubOffice.totals.manager')<0);
+run('state.calendar.date=clubMonthEnd(state.calendar.date);clubCashflowAccrue(state.calendar.date)');assert.ok(run('state.clubOffice.totals.manager')<0,'manager salary is booked at the month boundary');
 assert.equal(run('state.analysis.matches[0].club'),'HV71');
 console.log('PASS: manager migration, check-ins, warnings/dismissal, unemployment guards, interviews, persistent world/club resources, return, renewal, save/reload and full match after job change.');
