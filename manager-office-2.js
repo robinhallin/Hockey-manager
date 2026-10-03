@@ -9,15 +9,11 @@ function managerOffice2Ensure(){
 }
 function managerOffice2Priority(level){return ({critical:100,high:75,medium:50,low:25})[level]||0;}
 function managerOffice2Delegated(area){
-  if(area==='training')return state.training?.recoveryOwner==='staff';
-  return Boolean(state.office2?.delegation?.[area]);
+  return Boolean(STAFF_MANDATES[area])&&staffMode(area)!=='manual';
 }
 function managerOffice2ToggleDelegation(area){
-  if(!['training','medical','scouting','contracts'].includes(area))return;
-  const office=managerOffice2Ensure(),next=!managerOffice2Delegated(area);
-  office.delegation[area]=next;
-  if(area==='training'&&state.training)assistantSetOwner('senior',next?'assistant':'manager',false);
-  save();render();
+  if(!STAFF_MANDATES[area])return;
+  return staffSetMode(area,staffMode(area)!=='manual'?'manual':STAFF_MANDATES[area].automatic?'execute':'advise');
 }
 function managerOffice2Items(){
   const items=[];
@@ -57,9 +53,10 @@ function managerOffice2Items(){
 }
 function managerOffice2VisibleItems(){
   const all=managerOffice2Items();
-  return all.filter(item=>item.requiresDecision||!managerOffice2Delegated(item.area)||['critical','high'].includes(item.level));
+  return all.filter(item=>item.requiresDecision||staffMode(item.area)!=='execute'||['critical','high'].includes(item.level));
 }
 function managerOffice2Action(item){
+  if(item.action?.developmentPlayer!==undefined)return `managerAgendaOpenDevelopment(${JSON.stringify(item.action.developmentPlayer)})`;
   if(item.id.startsWith('relationship:'))return `managerDecisionNavigate('locker','relationships')`;
   if(item.id.startsWith('formation:'))return `managerDecisionNavigate('statistics','trends')`;
   if(item.reportId!==undefined)return `matchesOpenReport(${JSON.stringify(item.reportId)})`;
@@ -73,11 +70,10 @@ function managerOfficeOpenPromise(playerId){
 }
 function managerOffice2Row(item,index){
   const action=managerOffice2Action(item),guidance=managerDecisionGuidance(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;
-  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p>${guidance?`<p><strong>Val & avvägning:</strong> ${trainingSafe(guidance)}</p>`:''}</div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?'<small>Staben hanterar rutinen</small>':''}</div></article>`;
+  return `<article class="office2-priority" data-level="${item.level}"><div class="office2-rank">${index+1}</div><div class="office2-copy"><div class="office2-meta"><span>${trainingSafe(item.tag)}</span><span>${trainingSafe(item.owner)}</span></div><strong>${trainingSafe(item.title)}</strong><p>${trainingSafe(item.detail)}</p>${guidance?`<p><strong>Val & avvägning:</strong> ${trainingSafe(guidance)}</p>`:''}</div><div class="office2-actions">${action?`<button type="button" class="desk-link" onclick="${trainingSafe(action)}">Öppna${deskIcon('arrow')}</button>`:''}${delegated?`<small>${staffMode(item.area)==='execute'?'Staben hanterar rutinen':'Staben föreslår – du beslutar'}</small>`:''}</div></article>`;
 }
 function managerOffice2DelegationView(){
-  const labels={training:'Träning',medical:'Medicinskt',scouting:'Scouting',contracts:'Kontrakt',juniors:'Juniorer',lineup:'Laguttagning'};
-  return `<div class="office2-delegation"><span>Staben bevakar · Ansvar & bevakning</span>${Object.entries(labels).map(([key,label])=>`<button type="button" aria-pressed="${managerOffice2Delegated(key)}" onclick="managerOffice2ToggleDelegation('${key}')">${label}</button>`).join('')}<small>Träning, medicinskt och juniorer kan utföra försiktiga rutinåtgärder. Scouting, kontrakt och laguttagning kan bevakas eller ge förslag. Beslut som kräver ditt svar och högprioriterade avvikelser visas alltid.</small></div>`;
+  return staffMandatesView();
 }
 function managerOffice2View(){
   const all=managerOffice2Items(),items=managerOffice2VisibleItems(),must=all.filter(i=>i.requiresDecision).length,primary=items.slice(0,Math.max(5,items.filter(i=>i.requiresDecision).length)),remaining=items.slice(primary.length);

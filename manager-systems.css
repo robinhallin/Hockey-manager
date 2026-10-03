@@ -1,0 +1,24 @@
+.manager-agenda,.staff-mandates,.squad-scenarios,.cashflow-panel{padding:20px;min-width:0}
+.agenda-item{border-bottom:1px solid var(--border,#35424d);padding:10px 0}
+.agenda-meta,.scenario-toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:8px 0 18px}
+.agenda-meta{padding-left:42px;font-size:.85rem;color:var(--muted,#a3aeb6)}
+.staff-mandate-grid,.scenario-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:16px 0}
+.staff-mandate-grid article,.scenario-compare article,.world-opportunity{padding:16px;border:1px solid var(--border,#35424d);border-radius:8px;background:var(--panel,#202b35)}
+.staff-mandate-grid label,.scenario-toolbar label,.world-watch-controls label{display:grid;gap:8px;font-weight:600}
+.staff-mandate-grid p,.scenario-compare p,.cashflow-panel p,.sc-evidence p{font-size:.88rem;line-height:1.5}
+.staff-mandates select,.squad-scenarios select,.squad-scenarios input,.world-watch-controls select{font:inherit;padding:8px;border:1px solid var(--border,#52616b);border-radius:5px;background:var(--surface,#18232d);color:inherit;max-width:100%}
+.scenario-compare dl{display:grid;grid-template-columns:1fr;gap:4px;margin:12px 0}
+.scenario-compare dd{margin:0 0 8px;font-weight:650}
+.scenario-table{overflow:auto;max-height:520px;margin:16px 0}
+.scenario-table table{width:100%;border-collapse:collapse;text-align:left;font-size:.88rem}
+.scenario-table th,.scenario-table td{padding:10px;border-bottom:1px solid var(--border,#35424d);vertical-align:top}
+.scenario-table thead{position:sticky;top:0;background:var(--panel,#202b35);z-index:1}
+.scenario-table input{min-width:130px;width:145px}
+.scenario-table small{display:block;font-weight:400;margin-top:5px;max-width:250px}
+.squad-scenarios .desk-link[aria-pressed=true]{border-bottom:2px solid var(--accent,#a7c7d8)}
+.world-watch-controls form{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:12px 0}
+.world-watch-controls details,.sc-evidence{padding:12px 0;border-bottom:1px solid var(--border,#35424d)}
+.world-opportunity{margin-top:12px}
+.cashflow-panel{margin:16px 0}
+.cashflow-panel .cd-warning{color:#efb1a0}
+@media(min-width:1200px){.staff-mandate-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.scenario-compare{grid-template-columns:repeat(3,minmax(0,1fr))}}

@@ -1,7 +1,7 @@
 "use strict";
 // The manager travels between clubs; club resources stay with their employer.
 const MANAGER_IDENTITIES={balanced:'Lagbyggare',youth:'Talangutvecklare',results:'Resultattränare'};
-const MANAGER_CLUB_FIELDS=['staff','clubOffice','juniors','locker','training','medical','scoutReports','matchSelection','lines','specialTeams','tactic','tacticalPlan','fans','morale'];
+const MANAGER_CLUB_FIELDS=['staff','clubOffice','office2','juniors','locker','training','medical','scoutReports','matchSelection','lines','specialTeams','tactic','tacticalPlan','fans','morale'];
 function ensureManager(){
  if(!state.careerStarted)return;
  if(!state.managerCareer)state.managerCareer={version:1,name:'Huvudtränaren',identity:'balanced',reputation:25,confidence:60,expires:clubYear()+2,salary:600000,status:'employed',badSeasons:0,reviews:[],history:[],jobs:[],interview:null,week:0,lastWeek:0,moveYear:null,bank:{},lastReview:null,seasonReviews:[],joined:clubYear(),startGames:team(managerClub())?.gp||0,message:'',renewal:null,decision:null};
@@ -104,6 +104,7 @@ function managerInterviewAnswer(answer){
 }
 function managerShowInterview(){document.querySelector('.manager-interview')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
 function managerStoreClub(){
+ clubCashflowAccrue(state.calendar.date);clubCashflowFlush(state.calendar.date);
  for(const j of scoutingOffice()?.jobs||[])if(j.status==='active')scoutingClose(j,'cancelled','Klubbuppdraget avslutades när tränaren lämnade klubben.');
  for(const p of state.training?.promises||[])if(!p.resolved){p.resolved=true;p.result='Tränaren lämnade klubben';}
  for(const p of managerRoster())if(p.recruitmentPromise&&!p.recruitmentPromise.resolved){p.recruitmentPromise.resolved=true;p.recruitmentPromise.result='Tränaren lämnade klubben';}
@@ -141,7 +142,7 @@ function managerAcceptJob(){
   state.juniors.year=clubYear();
  }
  if(saved?.staff)state.staff=state.staff.map(s=>s.salary&&s.expires<=clubYear()?clubInterim(s.id):s);
- if(state.clubOffice){state.clubOffice.opening=state.money;state.clubOffice.totals={};state.clubOffice.year=clubYear();state.clubOffice.offer=null;state.clubOffice.settled=[];state.clubOffice.market=[];state.clubOffice.taken=[];}
+ if(state.clubOffice){state.clubOffice.opening=state.money;delete state.clubOffice.cashflow;state.clubOffice.totals={};state.clubOffice.year=clubYear();state.clubOffice.offer=null;state.clubOffice.settled=[];state.clubOffice.market=[];state.clubOffice.taken=[];}
  syncManagerRoster();ensureManagementData();initializeBoardPlan(offer);ensureAssessmentData();ensureLocker();ensureMedical();ensureTrainingData();ensureJuniors();ensureClub();aiTakeClubFinance(j.club);
  // Resolve the old club only after ownership of its real academy has moved.
  worldAIContracts(old);worldFillClub(old);

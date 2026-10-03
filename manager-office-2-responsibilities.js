@@ -1,7 +1,7 @@
 "use strict";
 
 function managerOffice2MedicalStaffPlan(){
-  if(!managerOffice2Delegated('medical')||!state.careerStarted)return [];
+  if(staffMode('medical')!=='execute'||!state.careerStarted)return [];
   ensureMedical();
   const changed=[];
   for(const p of managerRoster()){
@@ -12,6 +12,7 @@ function managerOffice2MedicalStaffPlan(){
     if(injury.readiness>=75&&injury.readiness<100){
       p.health.clearance='limited';
       changed.push(p);
+      staffRecord('medical',`${p.name}: begränsad comeback vid ${Math.round(injury.readiness)} % beredskap. Full comeback är fortfarande ditt beslut.`);
       medicalReport(`${p.name}: staben väljer begränsad comeback`, `Matchberedskap ${Math.round(injury.readiness)} %. Högst ${p.pos==='MV'?30:10} minuter per match. Du kan ändra planen under Medicinskt team; dina egna val gäller tills rehabiliteringen är klar.`);
     }
   }

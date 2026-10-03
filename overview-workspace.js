@@ -40,14 +40,7 @@ function overviewSupport(panel){
  document.getElementById('overview-support-'+panel)?.focus?.({preventScroll:true});
 }
 function overviewDecisionItems(){
- const items=managerOffice2VisibleItems().filter(item=>(item.requiresDecision||['critical','high','medium'].includes(item.level))&&!(item.area==='match'&&state.live&&!state.live.finished));
- if(preseasonPlan()?.pending)items.unshift({id:'season:direction',title:'Välj säsongens riktning',detail:'Sätt mål och bestäm hur assisterande ska använda träningsmatcherna.',tag:'Säsong',requiresDecision:true,score:160,level:'critical',action:{page:'season'}});
- return items.map(item=>{
-  let due=null;
-  if(item.action?.deal?.startsWith('incoming:'))due=state.recruitment.incoming.find(o=>'incoming:'+o.id===item.action.deal)?.expiresDate;
-  if(item.area==='match')due=deskFixtures().upcoming[0]?.date;
-  return {...item,due};
- }).sort((a,b)=>Number(b.requiresDecision)-Number(a.requiresDecision)||(a.due||'9999').localeCompare(b.due||'9999')||b.score-a.score);
+ return managerAgendaItems();
 }
 function overviewDeadline(item){
  if(item.due){const days=calGap(state.calendar.date,item.due);return days<=0?'I dag':days===1?'I morgon':new Date(item.due+'T12:00:00Z').toLocaleDateString('sv-SE',{day:'numeric',month:'short',timeZone:'UTC'});}
@@ -59,7 +52,7 @@ function overviewDecisionsView(items){
  return `<section class="ov-panel ov-decisions" aria-label="Dagens prioriteringar"><header><h2>Beslut som väntar <span class="ov-count">${items.length}</span></h2><span class="ov-muted">${items.filter(x=>x.requiresDecision).length} kräver svar</span></header><div class="ov-decision-list">${visible.map(item=>{
  const action=managerOffice2Action(item),icon=item.action?.deal?'arrow':({training:'training',match:'team',medical:'training',contracts:'club',locker:'team'})[item.area]||'mail';
  return `<article class="ov-decision" data-level="${item.level}"><span class="ov-decision-icon">${deskIcon(icon)}</span><div class="ov-decision-copy"><strong>${trainingSafe(item.title)}</strong><p title="${trainingSafe(item.detail)}">${trainingSafe(item.detail)}</p></div><span class="ov-due">${trainingSafe(overviewDeadline(item))}</span>${action?overviewButton(label(item),action):''}</article>`;
- }).join('')||'<div class="ov-empty"><strong>Du är i fas.</strong><p>Inga prioriterade ärenden just nu. Planera veckan eller fortsätt till nästa dag.</p></div>'}</div>${items.length>3?`<p class="ov-more">${items.length-3} ytterligare ärenden finns i inkorgen. ${overviewButton('Öppna inkorgen',"trainingOpen('inbox')")}</p>`:''}</section>`;
+ }).join('')||'<div class="ov-empty"><strong>Du är i fas.</strong><p>Inga prioriterade ärenden just nu. Planera veckan eller fortsätt till nästa dag.</p></div>'}</div>${items.length>3?`<p class="ov-more">${items.length-3} ytterligare ärenden finns i inkorgen. ${overviewButton('Öppna inkorgen',"managerOpenAgenda()")}</p>`:''}</section>`;
 }
 function overviewFixture(){
  const next=deskFixtures().upcoming[0],live=state.live&&!state.live.finished?state.live:null;

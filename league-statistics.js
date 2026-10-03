@@ -66,6 +66,7 @@ function leagueCommitRows(game,rows,partial=false,live=false){
  if(!s||!game||game.statsRecorded||!game.played)return;
  const league=leagueOf(game.home),stage=game.seriesId?'playoffs':'regular';
  if(!Object.hasOwn(LEAGUE_NAMES,league))return;
+ scoutingRecordFixture(game,rows,partial);
  for(const row of rows){
   if(!row.seconds&&!row.goals&&!row.shots&&!row.pim&&!row.saves&&!row.against)continue;
   row.games=1;
