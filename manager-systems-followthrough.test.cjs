@@ -81,6 +81,13 @@ test('scouting records actual league appearances once, including opposing clubs'
  assert.equal(r('scoutingFreshEvidence(p).length'),0,'elapsed time never creates a new source');
  r('save()');const loaded=boot(app.storage.value,{production:true});
  assert.equal(loaded.run('findPlayerAnywhere('+JSON.stringify(r('p.id'))+').scoutingGames.length'),1);
+ r('globalThis.frozenReport=JSON.stringify(state.scoutReports[p.id]);state.calendar.date=calAdd(state.calendar.date,40);scoutingPruneEvidence();save()');
+ assert.equal(r('Boolean(p.scoutingGames)'),false,'expired raw appearances do not accumulate across seasons');
+ assert.equal(r('JSON.stringify(state.scoutReports[p.id])'),r('frozenReport'),'pruning the raw cache preserves delivered assessments and their sources');
+ const oldCache=JSON.parse(app.storage.value);oldCache.clubRosters[r('getPlayerClub(p.id)')].find(p=>p.id===r('p.id')).scoutingGames=[{key:'expired',date:r('game.date'),seconds:900,club:r('getPlayerClub(p.id)')}];
+ const migrated=boot(JSON.stringify(oldCache),{production:true});
+ assert.equal(migrated.run('Boolean(findPlayerAnywhere('+JSON.stringify(r('p.id'))+').scoutingGames)'),false);
+ assert.equal(migrated.run('JSON.stringify(state.scoutReports['+JSON.stringify(r('p.id'))+'])'),r('frozenReport'));
 });
 
 test('alternative squads remain hypothetical and retain binding wages outside the plan',()=>{

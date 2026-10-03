@@ -7,7 +7,7 @@ let scoutingUIOwner=null;
 function ensureScoutingOffice(){
  if(!state.recruitment)return null;
  const o=state.recruitment.scouting??={version:1,jobs:[],nextId:1,lists:{},contacts:{},reviews:[],coverage:{},delegation:{enabled:false,monthly:25000,spent:0,month:''},lastDay:null};
- if(scoutingUIOwner!==state){scoutingUIOwner=state;scoutDesk.compareNotice='';scoutDesk.draft=null;scoutDesk.list='all';scoutDesk.columns='standard';scoutDesk.horizon=0;o.compare=Array.isArray(o.compare)?o.compare.filter(id=>typeof id==='string'||typeof id==='number').slice(0,4):[];scoutDesk.compare=o.compare;if(o.compareProfile!=='ALL'&&!RECRUIT_PROFILES[o.compareProfile])o.compareProfile='ALL';}
+ if(scoutingUIOwner!==state){scoutingPruneEvidence();scoutingUIOwner=state;scoutDesk.compareNotice='';scoutDesk.draft=null;scoutDesk.list='all';scoutDesk.columns='standard';scoutDesk.horizon=0;o.compare=Array.isArray(o.compare)?o.compare.filter(id=>typeof id==='string'||typeof id==='number').slice(0,4):[];scoutDesk.compare=o.compare;if(o.compareProfile!=='ALL'&&!RECRUIT_PROFILES[o.compareProfile])o.compareProfile='ALL';}
  return o;
 }
 function scoutingOffice(){return state.recruitment?.scouting;}

@@ -1,4 +1,13 @@
 "use strict";
+function scoutingPruneEvidence(date=state.calendar?.date){
+ if(!date)return;
+ const cutoff=calAdd(date,-35),rosters=[...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.loans?.external||[],state.juniors?.roster||[],...Object.values(state.clubAI?.clubs||{}).map(c=>c.academy?.roster||[])];
+ for(const roster of rosters)for(const p of roster){
+  if(!Array.isArray(p.scoutingGames))continue;
+  const recent=p.scoutingGames.filter(g=>g.date>=cutoff).slice(-8);
+  if(!recent.length)delete p.scoutingGames;else if(recent.length!==p.scoutingGames.length)p.scoutingGames=recent;
+ }
+}
 // Save only the evidence produced by the statistics ledger. The simulation and
 // its results are unchanged; discarded box scores become a bounded scout source.
 function scoutingRecordFixture(game,rows,partial=false){
@@ -8,7 +17,10 @@ function scoutingRecordFixture(game,rows,partial=false){
   if(!(row.seconds>0))continue;
   const p=state.clubRosters[row.club]?.find(p=>samePlayerId(p.id,row.id));if(!p)continue;
   const games=p.scoutingGames||[];if(games.some(g=>g.key===key))continue;
-  p.scoutingGames=[...games,{key,date,club:row.club,seconds:row.seconds,opponent:row.club===game.home?game.away:game.home}].slice(-20);
+  // The scout context uses five recent appearances. Eight leave room between
+  // weekly visits without duplicating twenty box-score sources for every player.
+  // Delivered reports keep their own frozen source ledger and assessment.
+  p.scoutingGames=[...games,{key,date,club:row.club,seconds:row.seconds,opponent:row.club===game.home?game.away:game.home}].slice(-8);
  }
 }
 function scoutingRecordedGames(p,date=state.calendar.date){
