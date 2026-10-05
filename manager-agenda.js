@@ -54,7 +54,7 @@ function developmentReviewDay(){
   managerMessage(`development-review:${managerClub()}:${p.id}:${plan.date}`,p.name+': utvecklingsplanen ska följas upp',`${e.trained} träningspass, ${e.games} matcher med istid och ${Math.round(e.seconds/60)} minuter. ${e.changes.join(', ')||'Inga synliga attributsteg.'} Granska utfallet och välj fortsatt plan.`,'Spelarutveckling',{playerId:p.id,link:'training'});
  }
 }
-function managerSystemsDay(){scoutingPruneEvidence();developmentReviewDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
+function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
 
 function validateManagerSystemsSave(s){
  const object=v=>v&&typeof v==='object'&&!Array.isArray(v),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d)),array=(v,max)=>Array.isArray(v)&&v.length<=max;
