@@ -228,7 +228,7 @@ function submitFutureOffer(id,salary,years,role){
 }
 function calendarResolveFuture(d){
  if(!d||d.status!=='pending')return;
- const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null,termIssues=p?recruitmentTermsReview(p,d,d.buyer,w).issues:[];
+ const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null,termIssues=p?recruitPackageDecision(p,d.buyer,d,w).issues:[];
  if(p)d.rival=aiCompetitionFor(p,d.seller,'future')||(d.rival?.aiOfferId?null:d.rival);
  let reason=!p||naActive(p)||playerLoan(p)||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w?'Spelarens krav kan inte bedömas.':termIssues.length?termIssues.join(' '):calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
  if(reason){d.status='rejected';d.reason=reason;recruitmentRecord(d,'Avslag',reason);recruitReport(`Besked om ${d.name}`,reason);return;}

@@ -72,7 +72,9 @@ async function checkRecruitmentNegotiation(page,out){
  assert.equal(await inspector.getByRole('button',{name:'Acceptera motbud',exact:true}).count(),1);
  await page.screenshot({path:require('node:path').join(out,'recruitment-counter.png'),fullPage:true});
  await inspector.locator('.rh-counter-editor summary').click();
- const revised=inspector.locator('.rh-counter-editor form'),salary=Math.round(contact.salary*.98);
+ // The agent's counter includes compensation for existing role commitments.
+ // Improve that live quote rather than assuming the contact estimate guarantees acceptance.
+ const revised=inspector.locator('.rh-counter-editor form'),salary=await page.evaluate(id=>state.recruitment.deals.find(d=>d.id===id).counter.salary+10000,id);
  await revised.locator('input[name=salary]').fill(String(salary));
  await revised.locator('select[name=years]').selectOption('1');
  assert.equal(Number(await revised.locator('[data-finance=total]').getAttribute('data-value')),salary);

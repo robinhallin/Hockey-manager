@@ -6,7 +6,7 @@ function counter({paid=false,daily=false}={}){
  const app=boot(null,{production:daily}),r=app.run;
  r(`startCareerWithClub('HV71');${daily?'':'state.money=1e9;state.boardPlan.offer.wageLimit=1e9;'}
   globalThis.p=${paid?'state.clubRosters[RECRUIT_CLUBS[0][0]][5]':"state.playerWorld.freeAgents.find(p=>p.name==='Daniel Brodin')"};
-  ${paid?'p.transferListed=true;':''}globalThis.w=recruitPlayerWishes(p);globalThis.cash=state.money;
+  ${paid?'p.transferListed=true;':''}managerRoster().filter(q=>worldGroup(q)===worldGroup(p)).forEach(q=>q.promisedRole='Rotation');globalThis.w=recruitPlayerWishes(p);globalThis.cash=state.money;
   submitRecruitOffer(p.id,recruitFee(p),Math.round(w.salary*.8),Math.min(2,w.maxYears),w.role);
   globalThis.d=state.recruitment.deals[0];`);
  assert.equal(r('d.status'),'pending');

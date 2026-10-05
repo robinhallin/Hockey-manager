@@ -10,7 +10,7 @@ function recruitmentTermsReview(p,offer,club=managerClub(),w=recruitPlayerWishes
 }
 function recruitmentTermsView(p,offer,{renewal=false,club=managerClub()}={}){
  const w=renewal?renewalWishes(p):recruitPlayerWishes(p,club),r=recruitmentTermsReview(p,offer,club,w);
- return `<section class="sc-card"><h3>Spelarens prioriteringar</h3><p>${trainingSafe(r.priority)}. ${trainingSafe(r.ambition)}</p>${r.rows.map(x=>`<p><strong>${x.label} · ${x.met?'Motsvarar önskemålet':'Behöver diskuteras'}</strong><br>${trainingSafe(x.text)}</p>`).join('')}<p>Agenten kan kompromissa om helheten i ett motbud. Klubbens pris, finansiering och registrering bedöms separat. En uppfylld önskelista är ingen garanti mot konkurrerande bud.</p></section>`;
+ return `<section class="sc-card"><h3>Spelarens prioriteringar</h3><p>${trainingSafe(recruitPackageDecision(p,club,offer,w).explanation)}</p><p>${trainingSafe(r.priority)}. ${trainingSafe(r.ambition)}</p>${trainingSafe(recruitRoleCredibility(p,club,offer.role).text)}${r.rows.map(x=>`<p><strong>${x.label} · ${x.met?'Motsvarar önskemålet':'Behöver diskuteras'}</strong><br>${trainingSafe(x.text)}</p>`).join('')}<p>Agenten kan kompromissa om helheten i ett motbud. Klubbens pris, finansiering och registrering bedöms separat. En uppfylld önskelista är ingen garanti mot konkurrerande bud.</p></section>`;
 }
 function recruitmentRecord(d,event,text){
  const entry={date:state.calendar.date,event,text,terms:recruitDealTerms(d)};

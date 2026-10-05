@@ -64,7 +64,7 @@ function incomingClose(o,status,reason){
 }
 function marketPlayerDecision(p,club,o){
  const w=recruitPlayerWishes(p,club);
- const issues=recruitmentTermsReview(p,o,club,w).issues;if(issues.length)return 'Spelaren tackar nej: '+issues.join(' ');
+ const issues=recruitPackageDecision(p,club,o,w).issues;if(issues.length)return 'Spelaren tackar nej: '+issues.join(' ')+' '+recruitmentTermsReview(p,o,club,w).issues.join(' ');
  if(w.stretch&&o.role!=='Nyckelspelare'&&o.salary<w.salary*1.15)return 'Spelaren tackar nej: klubbens ambition och den erbjudna rollen motiverar inte flytten.';
  return '';
 }
