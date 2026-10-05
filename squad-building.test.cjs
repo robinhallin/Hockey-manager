@@ -43,3 +43,8 @@ test('AI price ceiling is tied to need and funding and generated terms satisfy p
  r(`globalThis.q=managerRoster().find(p=>p.pos==='C');globalThis.offer={salary:500000,years:2,role:'Ordinarie'};state.recruitment.ai[club].cash=100000;globalThis.limit=aiPurchasePlan(club,q,need,offer).maxFee`);
  assert.ok(r('limit>=0&&limit<=100000'));
 });
+
+test('an empty revised search retains the requested criteria but cannot start stale candidates',()=>{
+ const {run:r}=career();r(`globalThis.p=managerRoster().find(p=>p.pos==='C');scoutingReplace(p.id);globalThis.c=scoutDesk.draft.criteria;globalThis.person=scoutDesk.draft.person;scoutDesk.draft.players=[state.playerWorld.freeAgents[0].id];scoutingBrief(c.profile,c.placement,1,45,'next',person,'ALL',c.targetRole,'possible',p.id)`);
+ assert.equal(r('scoutDesk.draft.players.length'),0);assert.equal(r('scoutDesk.draft.criteria.maxSalary'),1);assert.equal(r('scoutDesk.draft.criteria.replacementId'),r('p.id'));assert.equal(r('scoutingStart()'),false);
+});

@@ -27,11 +27,10 @@ function scoutingBriefCandidates(c){
 function scoutingBrief(profile,placement,maxSalary,maxAge,horizon,person,league='ALL',targetRole='all',confidence='possible',replacementId=''){
  maxSalary=Number(maxSalary);maxAge=Number(maxAge);
  if(!RECRUIT_PROFILES[profile]||!SCOUT_PLACEMENTS[placement]||!SCOUT_TARGET_ROLES[targetRole]||!['possible','supported'].includes(confidence)||!Number.isFinite(maxSalary)||maxSalary<=0||!Number.isInteger(maxAge)||maxAge<18||maxAge>45||!SCOUT_LISTS[horizon]||!scoutingStaff().some(s=>scoutingPerson(s)===person))return;
- const previousDraft=scoutDesk.draft;
  const replacement=replacementId?scoutingReplacement(replacementId,profile):null;
  if(replacementId&&!replacement)return recruitMessage('Spelaren finns inte längre i din truppplan. Välj ett nytt uppdrag.');
  const criteria={...replacement,profile,placement,maxSalary,maxAge,horizon,league,targetRole,confidence},choices=scoutingBriefCandidates(criteria);
- if(!choices.length){scoutDesk.draft=previousDraft;return recruitMessage('Inga kandidater matchar hela uppdraget. Ändra liga, tänkt plats eller löneram, eller välj att även kartlägga osäkra möjligheter.');}
+ if(!choices.length){scoutDesk.draft={players:[],method:'detail',person,profile,horizon,criteria};return recruitMessage('Inga kandidater matchar hela uppdraget. Ändra liga, tänkt plats eller löneram, eller välj att även kartlägga osäkra möjligheter.');}
  scoutDesk.draft={players:choices.slice(0,3).map(p=>p.id),method:'detail',person,profile,horizon,criteria};
  state.recruitment.tab='missions';save();render();
 }
