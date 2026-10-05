@@ -38,6 +38,12 @@ assert.doesNotMatch(r('scoutingComparison()'),/NaN|undefined/);
 r('globalThis.contact=scoutingContactKnown(target);globalThis.cashBefore=state.money;globalThis.wageBefore=annualWageCost();submitRecruitOffer(target.id,contact.fee,contact.salary,contact.minYears,contact.role);globalThis.deal=state.recruitment.deals[0]');
 assert.equal(r('deal?.status'),'pending',r('state.recruitment.message'));
 nextDay();nextDay();
+// An overcrowded promised role can require compensation beyond the initial
+// contact estimate. Complete that real negotiation before checking registration.
+if(r('Boolean(deal.counter)')){
+ assert.equal(r('acceptRecruitCounter(deal.id)'),true);
+ nextDay();
+}
 assert.equal(r('deal.status'),'signed',r('deal.reason'));
 assert.equal(r('managerRoster().filter(p=>p.id===target.id).length'),1);
 assert.equal(r('cashBefore-state.money'),r('deal.fee'));
