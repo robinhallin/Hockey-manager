@@ -56,6 +56,7 @@ function managerOffice2VisibleItems(){
   return all.filter(item=>item.requiresDecision||staffMode(item.area)!=='execute'||['critical','high'].includes(item.level));
 }
 function managerOffice2Action(item){
+  if(item.action?.conversationPlayer!==undefined)return `playerFollowupOpen(${JSON.stringify(item.action.conversationPlayer)})`;
   if(item.action?.developmentPlayer!==undefined)return `managerAgendaOpenDevelopment(${JSON.stringify(item.action.developmentPlayer)})`;
   if(item.id.startsWith('relationship:'))return `managerDecisionNavigate('locker','relationships')`;
   if(item.id.startsWith('formation:'))return `managerDecisionNavigate('statistics','trends')`;

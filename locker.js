@@ -147,6 +147,7 @@ function socialTalk(id,topic){
  }
  if(typeof relationshipTalk==='function')({delta,text}=relationshipTalk(p,topic,delta,text));
  const before=s.trust;s.trust=trainingClamp(s.trust+delta);delta=s.trust-before;s.lastTalk=r.turn;s.lastResponse=text;
+ if(topic==='bench'||topic==='listen')playerFollowupStart(p,topic==='bench'?'Förklara uttagningen':'Stäm av situationen');
  socialRemember(p,({praise:'Beröm för utvecklingen',bench:'Samtal om petning',listen:'Tränaren lyssnar',challenge:'Utmanad av tränaren'})[topic],text,delta);
  socialLog(["Samtal med ",playerMention(p)],`${text} Förtroende ${delta>0?'+':''}${delta}.`);lockerNotice(`${p.name}: ${text}`);
 }

@@ -235,6 +235,7 @@ function answerPlayerConversation(id,answer){
     p.happiness=trainingClamp((p.happiness||70)+5,20,100);
     m.outcome='Du har lovat minst 15 minuter i två av de tre kommande matcherna. Löftet följs upp efter den tredje matchen.';
   }else{p.happiness=trainingClamp((p.happiness||70)-2,20,100);m.outcome='Du har förklarat att konkurrensen avgör laguttagningen. Spelaren är besviken, men du har inte lovat något du inte kan hålla.';}
+  playerFollowupStart(p,answer==='promise'?'Löfte om istid':'Ärligt besked om konkurrensen');
   save();render();
 }
 function afterTrainingMatch(){
