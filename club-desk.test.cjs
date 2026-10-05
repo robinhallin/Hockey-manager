@@ -20,7 +20,7 @@ assert.equal(r('state.clubOffice.offer'),null);assert.equal(r('state.money'),r('
 r("clubUI.staff='candidates';clubUI.role='scout';clubUI.query='';clubDeskStaffSort('coaching');globalThis.candidate=clubDeskStaffRows()[0];clubOpenOffer(candidate.personId)");
 assert.equal(r('state.money'),r('cash'));assert.match(r('clubDeskStaff()'),/Granska personalavtal/);
 r('clubDeskClose()');assert.equal(r('state.clubOffice.offer'),null);assert.equal(r('state.money'),r('cash'));
-r("clubOpenOffer(candidate.personId);globalThis.fee=clubBuyout(state.staff.find(s=>s.id===candidate.id));clubSign()");
+r("state.calendar.date=candidate.marketProfile.available;clubOpenOffer(candidate.personId);globalThis.fee=clubBuyout(state.staff.find(s=>s.id===candidate.id));clubSign()");
 assert.equal(r('state.money'),r('cash-fee'));assert.equal(r('clubUI.staff'),'team');assert.equal(r('clubUI.staffPerson'),r('candidate.personId'));
 r('clubSign()');assert.equal(r('state.money'),r('cash-fee'),'no duplicate severance');
 r("state.season.phase='regular';state.managerCareer.status='unemployed';clubUI.manager='jobs';managerCreateJobs();globalThis.current=JSON.stringify(state);managerView()");

@@ -184,7 +184,8 @@ function managerCommitmentForecastView(p,fee,salary,years,options={}){
 function recruitFinancePreview(form){
  const output=form.querySelector('.recruit-finance-preview');if(!output)return;
  const fee=form.elements.fee.value,salary=form.elements.salary.value,years=form.elements.years.value;
- output.innerHTML=managerCommitmentForecastView(findPlayerAnywhere(form.dataset.recruitPlayer),fee,salary,years,{title:form.dataset.forecastTitle});
+ const p=findPlayerAnywhere(form.dataset.recruitPlayer);
+ output.innerHTML=managerCommitmentForecastView(p,fee,salary,years,{title:form.dataset.forecastTitle})+squadDecisionImpactView(p,'arrival',form.elements.role?.value||'Rotation');
 }
 function managerCommitmentIssue(p,fee,salary,years,{renewal=false}={}){
  const b=managerCommitmentPreview(p,fee,salary,years,{renewal});

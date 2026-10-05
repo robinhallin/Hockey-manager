@@ -10,6 +10,7 @@ function managerAgendaItems(includeSnoozed=false){
   items.push({id:'development:'+p.id+':'+plan.date,title:p.name+': utvärdera utvecklingsplanen',detail:'Väg genomförd träning, faktisk istid och attributförändring mot målet. Starta nästa period när du har granskat utfallet.',tag:'Utveckling',area:'development',owner:'Du',level:'high',score:78,due,action:{developmentPlayer:p.id}});
  }
  items.push(...playerFollowupItems());
+ items.push(...managerLinkedDecisionItems());
  const snoozed=state.office2?.agenda?.club===managerClub()?state.office2.agenda.snoozed||{}:{};
  const unique=new Map();
  for(const item of items){
@@ -36,7 +37,7 @@ function managerAgendaSnooze(id,days=3){
 }
 function managerAgendaReconcile(){
  const a=managerAgendaStore(),items=managerAgendaItems(true),next=Object.fromEntries(items.map(i=>[i.id,{title:i.title,date:state.calendar.date}]));
- for(const [id,item] of Object.entries(a.active))if(!next[id]){a.history.unshift({id,title:item.title,date:state.calendar.date,outcome:'Ärendet är inte längre aktuellt enligt underlaget.'});delete a.snoozed[id];}
+ for(const [id,item] of Object.entries(a.active))if(!next[id]){a.history.unshift({id,title:item.title,date:state.calendar.date,outcome:managerLinkedDecisionOutcome(id)||'Ärendet är inte längre aktuellt enligt underlaget.'});delete a.snoozed[id];}
  a.active=next;a.history=a.history.slice(0,60);
  for(const [id,s] of Object.entries(a.snoozed))if(!next[id]||s.until<=state.calendar.date)delete a.snoozed[id];
 }
@@ -54,7 +55,7 @@ function developmentReviewDay(){
   managerMessage(`development-review:${managerClub()}:${p.id}:${plan.date}`,p.name+': utvecklingsplanen ska följas upp',`${e.trained} träningspass, ${e.games} matcher med istid och ${Math.round(e.seconds/60)} minuter. ${e.changes.join(', ')||'Inga synliga attributsteg.'} Granska utfallet och välj fortsatt plan.`,'Spelarutveckling',{playerId:p.id,link:'training'});
  }
 }
-function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
+function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();boardDialogueDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
 
 function validateManagerSystemsSave(s){
  const object=v=>v&&typeof v==='object'&&!Array.isArray(v),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d)),array=(v,max)=>Array.isArray(v)&&v.length<=max;
@@ -63,9 +64,25 @@ function validateManagerSystemsSave(s){
   if(!o)return;
   if(o.mandates&&(!object(o.mandates)||Object.entries(o.mandates).some(([area,mode])=>!STAFF_MANDATES[area]||!['manual','advise','execute'].includes(mode)||mode==='execute'&&!STAFF_MANDATES[area].automatic)))fail();
   if(o.activity&&!array(o.activity,80))fail();
+  if(o.boardDialogue)validateBoardDialogueSave(o.boardDialogue);
+  if(o.seasonActions&&(!array(o.seasonActions,100)||o.seasonActions.some(r=>!validDecisionRow(r)||!date(r.carried)||r.closed!==null&&!date(r.closed))))fail();
+  if(o.proposals){
+   if(!array(o.proposals,60))fail();
+   for(const p of o.proposals){
+    if(!object(p)||typeof p.id!=='string'||typeof p.club!=='string'||!STAFF_MANDATES[p.area]||typeof p.text!=='string'||typeof p.snapshot!=='string'||!date(p.date)||!date(p.target)||!['pending','accepted','declined','expired','replaced','followed'].includes(p.status))fail();
+    if(p.area==='training'&&(!TRAINING_SESSIONS[p.session?.type]||!['light','normal','hard'].includes(p.session?.intensity)))fail();
+    if(p.area==='juniors'){let rows;try{rows=JSON.parse(p.snapshot);}catch{fail();}if(!array(rows,100)||rows.some(r=>!Array.isArray(r)||r.length!==3||!['string','number'].includes(typeof r[0])||!['normal','light','rest'].includes(r[1])))fail();}
+   }
+  }
   if(o.agenda&&(!object(o.agenda.snoozed)||!object(o.agenda.active)||!array(o.agenda.history,60)))fail();
  };
+ const validDecisionRow=r=>object(r)&&['id','club','title','evidence','next'].every(k=>typeof r[k]==='string'&&r[k].length<12000)&&Number.isInteger(r.year)&&['transfers','juniors','staff','board'].includes(r.area)&&(r.playerId===null||['string','number'].includes(typeof r.playerId));
  const finance=o=>{
+  if(Array.isArray(o?.market))for(const p of o.market){const profile=p.marketProfile;if(profile&&(!object(profile)||!date(profile.available)||profile.project!==null&&!CLUB_PRIORITIES[profile.project]))fail();}
+  if(o?.decisionContracts){
+   if(!array(o.decisionContracts,8))fail();const ids=new Set();
+   for(const p of o.decisionContracts){if(!object(p)||!['string','number'].includes(typeof p.playerId)||ids.has(String(p.playerId))||typeof p.name!=='string'||!date(p.start)||!date(p.end)||p.end<=p.start||['salary','fee'].some(k=>!Number.isFinite(p[k])||p[k]<0||p[k]>1e9))fail();ids.add(String(p.playerId));}
+  }
   const f=o?.cashflow;if(!f)return;
   if(f.version!==1||!date(f.started)||!date(f.lastDate)||!object(f.accrued)||!array(f.months,36))fail();
   const totals=t=>object(t)&&Object.entries(t).every(([k,v])=>Object.hasOwn(CLUB_CATEGORIES,k)&&Number.isFinite(v));
@@ -82,7 +99,7 @@ function validateManagerSystemsSave(s){
    }
   }
  };
- for(const data of [s,...Object.values(s.managerCareer?.bank||{})]){office(data.office2);finance(data.clubOffice);scenarios(data.recruitment?.scouting?.scenarios);}
+ for(const data of [s,...Object.values(s.managerCareer?.bank||{})]){office(data.office2);finance(data.clubOffice);scenarios(data.recruitment?.scouting?.scenarios);for(const r of data.season?.archive||[])if(r.decisions&&(!array(r.decisions,100)||!r.decisions.every(validDecisionRow)))fail();}
  if(s.worldWatch){
   if(s.worldWatch.version!==1||!object(s.worldWatch.clubs))fail();
   for(const w of Object.values(s.worldWatch.clubs))if(!date(w.since)||!array(w.players,50)||!array(w.clubs,50)||!array(w.seen,300)||!array(w.events,100))fail();

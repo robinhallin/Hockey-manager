@@ -105,6 +105,7 @@ function seasonReviewPackage(record){
  return {awards:record.awards||[],expired:expired.map(p=>({id:p.id,name:p.name,pos:p.pos})),world,movement:record.movement,project:{name:CLUB_PRIORITIES[project.id]?.name||project.id,maturity:project.maturity||0,milestone:clubProjectChoice(project.id)?.name||null}};
 }
 function closeSeason(){
+ boardDialogueClose('Säsongen avslutades före fullständig uppföljning.');
  const s=state.season;if(s.phase==='review')return;s.phase='review';
  const promises=state.training?.promises||[];for(const p of promises.filter(p=>!p.resolved)){p.resolved=true;p.result='Säsongen avslutad – för få matcher för slutbedömning';}
  const playerStats=managerRoster().map(p=>({id:p.id,name:p.name,pos:p.pos,goals:p.goals||0,assists:p.assists||0,games:p.games||0,development:Object.keys(p.attributes||{}).reduce((n,k)=>n+Math.max(0,p.attributes[k]-(p.trainingBaseline?.[k]??p.attributes[k])),0)}));
@@ -115,6 +116,7 @@ function closeSeason(){
  if(goalLeaders[0])careerRecord('manager-season-goals','Flest mål under en säsong',goalLeaders[0].goals,goalLeaders[0].name,{club:managerClub(),playerId:goalLeaders[0].id});
  if(s.champion)careerHistoryEvent('champion',{club:s.champion,title:`${s.champion} blir mästare`,detail:`Vann mästerskapet ${seasonLabel()}.`});
  const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null,awards,records:JSON.parse(JSON.stringify(ensureCareerHistory().records))};
+ record.decisions=seasonDecisionRows();
  if(!s.archive.some(a=>a.year===s.year))s.archive.unshift(record);
  managerMessage(`review:${s.year}`,`${s.champion} är mästare ${seasonLabel()}`,`Säsongen är avslutad. Din placering i grundserien: ${record.position}. Styrelsens mål: ${record.goals.filter(g=>g.met).length} av ${record.goals.length} uppnådda. Öppna Säsong för utvärdering och nästa försäsong.`,'Säsongsutvärdering',{link:'season'});
  managerSeasonReview();

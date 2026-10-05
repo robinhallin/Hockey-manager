@@ -35,7 +35,7 @@ async function checkClub(page){
  await page.locator('.cd-search').getByRole('button',{name:'Sök',exact:true}).click();
  assert.equal(await page.locator('.cd-person-name').count(),1);
  await page.locator('.cd-person-name').click();
- const candidate=await page.evaluate(()=>{const c=clubDeskStaffRows()[0];return {id:c.personId,salary:c.salary,fee:clubBuyout(state.staff.find(s=>s.id===c.id))}});
+ const candidate=await page.evaluate(()=>{const c=clubDeskStaffRows()[0];return {id:c.personId,salary:clubStaffTerms(c).minimum,fee:clubBuyout(state.staff.find(s=>s.id===c.id))}});
  await page.getByRole('button',{name:'Granska anställning',exact:true}).click();
  await page.getByRole('spinbutton',{name:'Årslön i kronor',exact:true}).fill('1');
  await page.getByRole('spinbutton',{name:'Årslön i kronor',exact:true}).press('Tab');
@@ -51,6 +51,15 @@ async function checkClub(page){
  assert.equal(await page.evaluate(()=>clubUI.staff),'team');
  assert.equal(await page.locator('dialog[open]').count(),0);
  await page.locator('.desk-subnav').getByRole('button',{name:'Styrelse',exact:true}).click();
+ const boardCash=await page.evaluate(()=>state.money);
+ await page.getByRole('combobox',{name:'Resurs',exact:true}).selectOption('wages');
+ await page.getByRole('combobox',{name:'Motivering',exact:true}).selectOption('retention');
+ await page.getByRole('button',{name:'Skicka begäran · svar om två dagar',exact:true}).click();
+ assert.equal(await page.evaluate(()=>boardDialogueStore().requests[0].status),'pending');
+ assert.equal(await page.evaluate(()=>state.money),boardCash,'request never credits cash');
+ await page.getByRole('button',{name:'Återkalla begäran',exact:true}).click();
+ assert.equal(await page.evaluate(()=>boardDialogueStore().requests[0].status),'declined');
+ assert.equal(await page.evaluate(()=>state.money),boardCash,'withdrawal never changes cash');
  const goal=await page.evaluate(()=>boardProgress().find(g=>g.id==='youth').title);
  await page.locator('.cd-goals-table').getByRole('button',{name:goal,exact:true}).click();
  await page.getByRole('button',{name:'Planera laguttagningen →',exact:true}).click();

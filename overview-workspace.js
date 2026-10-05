@@ -9,7 +9,7 @@ function overviewWorkspaceView(){
  return managerDeskView()+`<div class="ov-community">${overviewUI.stories?`<section id="overview-stories" class="overview-section"><button class="btn secondary" onclick="overviewToggle('stories',false)">Stäng historier</button>${storiesView()}</section>`:''}${overviewUI.press?`<section id="overview-press" class="overview-section"><button class="btn secondary" onclick="overviewToggle('press',false)">Stäng pressrummet</button>${pressView()}</section>`:''}</div>`;
 }
 function staffFollowupView(){
- const f=ensureManagerFeedback(),items=managerOffice2Items().filter(x=>x.requiresDecision||['critical','high','medium'].includes(x.level));
+ const f=ensureManagerFeedback(),items=managerAgendaItems();
  const coverage=recruitmentCoverage(),arrivals=f.followups.filter(r=>r.club===managerClub()&&r.year===state.season.year),active=arrivals.filter(r=>r.status==='active'),closed=arrivals.filter(r=>r.status!=='active');
  const promises=lockerPromises().filter(({p,q})=>p&&!q.resolved&&(!q.club||q.club===managerClub()));
  const focus=coachFocus(),missions=officeScoutMissions();
