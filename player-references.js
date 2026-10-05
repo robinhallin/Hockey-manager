@@ -117,10 +117,19 @@ function playerLineupContext(id){
  if(type==='defense')lineupUI.pair=Math.floor(index/2);
  render();deskBrowserBefore();return true;
 }
+function playerProfileJump(key){
+ const section=document.getElementById('profile-section-'+key);
+ if(!section)return;
+ profileWorkspace.tab=key;section.open=true;
+ section.scrollIntoView({behavior:'smooth',block:'start'});
+ const summary=section.querySelector('summary');summary?.focus({preventScroll:true});
+ queueInterfaceSave();
+}
 function playerProfileTabs(p){
  const own=isOwnPlayer(p);
- const tabs=[['overview','Översikt'],['attributes','Attribut'],['report','Bedömning'],['performance','Prestation'],['development','Utveckling & hälsa'],['contract','Kontrakt & situation'],['history','Historik'],...(own?[['person','Person & relation']]:[])];
- return `<nav class="fm-tabs" aria-label="Spelarprofil">${tabs.map(([key,label])=>`<button aria-pressed="${profileWorkspace.tab===key}" onclick="profileWorkspace.tab='${key}';render();queueInterfaceSave()">${label}</button>`).join('')}</nav><div class="sc-actions"><button class="btn secondary" onclick="${trainingSafe('scoutingCompare('+JSON.stringify(p.id)+')')}">${scoutDesk.compare.some(id=>samePlayerId(id,p.id))?'Ta bort ur jämförelse':'Jämför spelaren'} (${scoutDesk.compare.length}/4)</button>${own?`<button class="btn secondary" onclick="${trainingSafe('playerLineupContext('+JSON.stringify(p.id)+')')}">Kedjeplats & alternativ</button><button class="btn secondary" onclick="profileWorkspace.tab='development';render()">Ändra individuell träning</button><button class="btn secondary" onclick="profileWorkspace.tab='contract';render()">Roll & kontrakt</button><button class="btn secondary" onclick="${trainingSafe('hubStartLoan('+JSON.stringify(p.id)+')')}">Pröva utlåning</button>`:''}</div>${scoutDesk.compare.length?`<details><summary>Granska jämförelsen (${scoutDesk.compare.length} spelare)</summary>${scoutingComparison()}</details>`:''}`;
+ if(!own){const legacy=[['overview','Översikt'],['attributes','Attribut'],['report','Bedömning'],['performance','Prestation'],['development','Utveckling & hälsa'],['contract','Kontrakt'],['history','Historik']];return `<nav class="fm-tabs" aria-label="Spelarprofil">${legacy.map(([key,label])=>`<button type="button" aria-pressed="${profileWorkspace.tab===key}" onclick="profileWorkspace.tab='${key}';render();queueInterfaceSave()">${label}</button>`).join('')}</nav>`;}
+ const tabs=[['overview','Översikt'],['attributes','Attribut'],['report','Bedömning'],['performance','Prestation & historik'],['development','Utveckling & hälsa'],['contract','Kontrakt'],...(own?[['person','Relation']]:[])];
+ return `<nav class="fm-tabs fm-profile-jumps" aria-label="Hoppa till del av spelarprofilen">${tabs.map(([key,label])=>`<button type="button" onclick="playerProfileJump('${key}')">${label}</button>`).join('')}</nav><div class="sc-actions"><button class="btn secondary" onclick="${trainingSafe('scoutingCompare('+JSON.stringify(p.id)+')')}">${scoutDesk.compare.some(id=>samePlayerId(id,p.id))?'Ta bort ur jämförelse':'Jämför spelaren'} (${scoutDesk.compare.length}/4)</button>${own?`<button class="btn secondary" onclick="${trainingSafe('playerLineupContext('+JSON.stringify(p.id)+')')}">Kedjeplats & alternativ</button><button class="btn secondary" onclick="playerProfileJump('development')">Ändra individuell träning</button><button class="btn secondary" onclick="playerProfileJump('contract')">Roll & kontrakt</button><button class="btn secondary" onclick="${trainingSafe('hubStartLoan('+JSON.stringify(p.id)+')')}">Pröva utlåning</button>`:''}</div>${scoutDesk.compare.length?`<details><summary>Granska jämförelsen (${scoutDesk.compare.length} spelare)</summary>${scoutingComparison()}</details>`:''}`;
 }
 function externalPlayerProfile(p){
  if(!samePlayerId(recruitHub.player,p.id)){recruitHub.player=p.id;recruitHub.panel=state.transferNegotiation&&samePlayerId(state.transferNegotiation.playerId,p.id)?'transfer':'report';}

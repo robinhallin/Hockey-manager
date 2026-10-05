@@ -30,6 +30,13 @@ test('player identity, profile context, retirement and knowledge boundaries',()=
  assert.equal(run('scoutDesk.compare.some(id=>samePlayerId(id,otherId))'),true);
  run('deskOpenPlayer(ownId);scoutingCompare(ownId);profileWorkspace.tab="attributes";render()');
  assert.match(get('#content').innerHTML,/Granska jämförelsen/);
+ const profileHtml=get('#content').innerHTML;
+ assert.match(profileHtml,/fm-profile-consolidated/);
+ for(const section of ['overview','attributes','report','performance','development','contract','person'])assert.match(profileHtml,new RegExp(`id="profile-section-${section}"`));
+ assert.match(profileHtml,/Hoppa till del av spelarprofilen/);
+ assert.doesNotMatch(profileHtml,/aria-label="Spelarprofil"/);
+ assert.match(profileHtml,/Registrerad historik/);
+ assert.match(profileHtml,/Förhandla kontrakt/);
  run('setIndividualLoad(ownId,"rest")');
  assert.equal(run('own.trainingLoad'),'rest');
  assert.notEqual(run('other.trainingLoad'),'rest');
