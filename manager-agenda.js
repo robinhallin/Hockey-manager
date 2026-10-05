@@ -9,7 +9,7 @@ function managerAgendaItems(includeSnoozed=false){
   const due=plan.due||calAdd(plan.date,28);if(due>state.calendar.date)continue;
   items.push({id:'development:'+p.id+':'+plan.date,title:p.name+': utvärdera utvecklingsplanen',detail:'Väg genomförd träning, faktisk istid och attributförändring mot målet. Starta nästa period när du har granskat utfallet.',tag:'Utveckling',area:'development',owner:'Du',level:'high',score:78,due,action:{developmentPlayer:p.id}});
  }
- items.push(...playerFollowupItems());
+ items.push(...playerFollowupItems(),...playerDialogueItems());
  items.push(...managerLinkedDecisionItems());
  const snoozed=state.office2?.agenda?.club===managerClub()?state.office2.agenda.snoozed||{}:{};
  const unique=new Map();
@@ -55,7 +55,7 @@ function developmentReviewDay(){
   managerMessage(`development-review:${managerClub()}:${p.id}:${plan.date}`,p.name+': utvecklingsplanen ska följas upp',`${e.trained} träningspass, ${e.games} matcher med istid och ${Math.round(e.seconds/60)} minuter. ${e.changes.join(', ')||'Inga synliga attributsteg.'} Granska utfallet och välj fortsatt plan.`,'Spelarutveckling',{playerId:p.id,link:'training'});
  }
 }
-function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();boardDialogueDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
+function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();boardDialogueDay();playerDialogueDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
 
 function validateManagerSystemsSave(s){
  const object=v=>v&&typeof v==='object'&&!Array.isArray(v),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d)),array=(v,max)=>Array.isArray(v)&&v.length<=max;
@@ -65,6 +65,7 @@ function validateManagerSystemsSave(s){
   if(o.mandates&&(!object(o.mandates)||Object.entries(o.mandates).some(([area,mode])=>!STAFF_MANDATES[area]||!['manual','advise','execute'].includes(mode)||mode==='execute'&&!STAFF_MANDATES[area].automatic)))fail();
   if(o.activity&&!array(o.activity,80))fail();
   if(o.boardDialogue)validateBoardDialogueSave(o.boardDialogue);
+  if(o.playerDialogue)validatePlayerDialogueSave(o.playerDialogue);
   if(o.seasonActions&&(!array(o.seasonActions,100)||o.seasonActions.some(r=>!validDecisionRow(r)||!date(r.carried)||r.closed!==null&&!date(r.closed))))fail();
   if(o.proposals){
    if(!array(o.proposals,60))fail();

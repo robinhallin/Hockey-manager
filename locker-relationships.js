@@ -5,6 +5,7 @@ function relationshipEvent(title,text){const b=state.relationships;b.events.unsh
 function relationshipClose(c,status,text){if(c.status==='closed')return;c.status='closed';c.outcome=text;c.closed=state.calendar?.date;c.resolution=status;const b=state.relationships;b.archive.unshift({...c});b.archive=b.archive.slice(0,40);b.cases=b.cases.filter(x=>x.id!==c.id);relationshipEvent(c.name+' · '+text,c.evidence);}
 function ensureRelationships(){
  if(!state.careerStarted||!state.locker||!state.season)return;
+ playerDialogueSeed();
  const ids=managerRoster().map(p=>String(p.id));
  if(!state.relationships)state.relationships={version:1,club:managerClub(),year:state.season.year,turn:0,seen:[],members:ids,profiles:{},cases:[],archive:[],mentors:[],events:[],pressSeen:[],nextId:1,recent:[]};
  const b=state.relationships;b.phase??=state.season.phase;

@@ -28,6 +28,7 @@ function lockerMood(p){const n=p.happiness??70;return {value:Math.round(n),text:
 function lockerPlayerPromises(p){return lockerPromises().filter(x=>x.p===p&&!x.q.resolved);}
 function lockerFactors(p){
  const items=[],requests=lockerRequests(p),conflict=state.relationships?.cases.find(c=>samePlayerId(c.playerId,p.id));
+ for(const r of playerDialogueStore()?.requests||[])if(samePlayerId(r.playerId,p.id)&&playerDialogueActive(r))items.push({kind:'Spelarsamtal',text:r.status==='pending'?'Vill prata om ett beslut':'Ett besked följs upp',detail:r.evidence,action:'talk',priority:r.status==='pending'?105:75});
  if(requests.length)items.push({kind:'Samtal',text:'Samtal väntar på ditt svar',detail:requests[0].title,action:'request',request:requests[0].id,priority:100});
  if(conflict)items.push({kind:'Rollkonflikt',text:conflict.status==='following'?'En plan för rollen följs upp':'Frågor om spelarens roll',detail:conflict.evidence,action:'relationships',priority:90+Math.min(9,Math.floor(conflict.tension/10))});
  for(const {q} of lockerPlayerPromises(p)){

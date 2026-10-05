@@ -7,6 +7,7 @@ function managerLinkedDecisionItems(){
  return [...proposals,...next,...boardDialogueItems()];
 }
 function managerLinkedDecisionOutcome(id){
+ if(id.startsWith('player-dialogue:'))return playerDialogueStore()?.requests.find(r=>'player-dialogue:'+r.id===id)?.outcome;
  if(id.startsWith('board-dialogue:'))return boardDialogueStore()?.requests.find(r=>'board-dialogue:'+r.id===id&&r.club===managerClub())?.outcome;
  const p=(state.office2?.proposals||[]).find(p=>'staff-proposal:'+p.id===id&&p.club===managerClub());
  if(p)return p.outcome||({accepted:'Godkänt. Staben följer upp genomförandet.',declined:'Avböjt av tränaren.',expired:'Förslaget har löpt ut.',replaced:'Ersatt av nyare förslag.',followed:'Uppföljt.'}[p.status]);
