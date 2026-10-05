@@ -104,6 +104,7 @@ function managerInterviewAnswer(answer){
 }
 function managerShowInterview(){document.querySelector('.manager-interview')?.scrollIntoView?.({behavior:'smooth',block:'start'});}
 function managerStoreClub(){
+ playerDialogueClose('Tränaren lämnade klubben. Samtalet avslutas utan ytterligare påföljd.');
  boardDialogueClose('Tränaren lämnade uppdraget. Redan beviljade resurser stannar i klubben.');
  clubCashflowAccrue(state.calendar.date);clubCashflowFlush(state.calendar.date);
  for(const j of scoutingOffice()?.jobs||[])if(j.status==='active')scoutingClose(j,'cancelled','Klubbuppdraget avslutades när tränaren lämnade klubben.');

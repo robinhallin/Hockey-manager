@@ -105,6 +105,7 @@ function seasonReviewPackage(record){
  return {awards:record.awards||[],expired:expired.map(p=>({id:p.id,name:p.name,pos:p.pos})),world,movement:record.movement,project:{name:CLUB_PRIORITIES[project.id]?.name||project.id,maturity:project.maturity||0,milestone:clubProjectChoice(project.id)?.name||null}};
 }
 function closeSeason(){
+ playerDialogueClose('Säsongen avslutades. Samtalet avslutas utan ytterligare påföljd.');
  boardDialogueClose('Säsongen avslutades före fullständig uppföljning.');
  const s=state.season;if(s.phase==='review')return;s.phase='review';
  const promises=state.training?.promises||[];for(const p of promises.filter(p=>!p.resolved)){p.resolved=true;p.result='Säsongen avslutad – för få matcher för slutbedömning';}

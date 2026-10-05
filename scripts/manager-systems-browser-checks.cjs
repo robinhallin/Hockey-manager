@@ -27,7 +27,19 @@ async function checkManagerSystems(page){
  await page.getByRole('button',{name:'Följ / sluta följa',exact:true}).click();
  await page.getByRole('button',{name:'Min bevakning',exact:true}).click();
  assert.ok(await page.evaluate(()=>worldWatchStore().clubs.includes('Färjestad BK')));
+ // A real captain action supplies the conversation; browser buttons answer/review it.
+ const conversationPlayer=await page.evaluate(()=>{
+  const old=state.locker.captainId,next=managerRoster().find(p=>!samePlayerId(p.id,old));
+  appointCaptain(next.id,'leadership');playerDialogueDay();playerFollowupOpen(old);return String(old);
+ });
+ await page.getByRole('button',{name:'Förklara fortsatt ansvar',exact:true}).click();
+ assert.equal(await page.evaluate(id=>playerDialogueStore().requests.find(r=>r.playerId===id&&r.kind==='captain').status,conversationPlayer),'following');
+ await page.evaluate(id=>{const r=playerDialogueStore().requests.find(r=>r.playerId===id&&r.kind==='captain');state.calendar.date=r.due;playerDialogueDay();render();},conversationPlayer);
+ await page.getByRole('button',{name:'Följ upp samtalet',exact:true}).click();
+ assert.equal(await page.evaluate(id=>playerDialogueStore().requests.find(r=>r.playerId===id&&r.kind==='captain').status,conversationPlayer),'reviewed');
+ await page.getByRole('button',{name:'Stäng dialogen',exact:true}).click();
  await page.evaluate(()=>save());await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
+ assert.equal(await page.evaluate(id=>playerDialogueStore().requests.find(r=>r.playerId===id&&r.kind==='captain').status,conversationPlayer),'reviewed');
  assert.equal(await page.evaluate(()=>squadScenarioStore().plans.length),3);
  assert.equal(await page.evaluate(()=>staffMode('training')),'advise');
  assert.ok(await page.evaluate(()=>worldWatchStore().clubs.includes('Färjestad BK')));
