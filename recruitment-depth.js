@@ -38,7 +38,7 @@ function recruitmentMonthDay(){
 }
 function recruitPersonalCounter(p,club,offer,w=recruitPlayerWishes(p,club)){
  const terms={fee:offer.fee,salary:Math.max(offer.salary,w.salary),years:Math.max(w.minYears,Math.min(w.maxYears,offer.years)),role:SQUAD_ROLES.indexOf(offer.role)<SQUAD_ROLES.indexOf(w.role)?w.role:offer.role};
- const result=recruitPackageDecision(p,club,terms,w),weight=(w.identity||playerPreferenceProfile(p,club)).salaryWeight;
+ const result=recruitPackageDecision(p,club,{...terms,kind:offer.kind},w),weight=(w.identity||playerPreferenceProfile(p,club)).salaryWeight;
  if(result.value< -1)terms.salary=Math.ceil((terms.salary+(-result.value)*w.salary/(40*weight))/10000)*10000;
  return terms;
 }

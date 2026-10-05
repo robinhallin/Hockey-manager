@@ -7,11 +7,11 @@ const SCOUT_PLACEMENTS={
  'Förstemålvakt':{group:'MV',rank:1},'Målvaktsersättare':{group:'MV',rank:2},'Tredjemålvakt':{group:'MV',rank:3},'Utvecklingsspelare':{rank:null}
 };
 const SCOUT_TARGET_ROLES={all:'Alla tänkta roller',key:'Nyckelspelare · topp två',regular:'Ordinarie · andra/tredje',depth:'Bredd · fjärde/reserv',young:'Utvecklingsspelare · högst 23 år'};
-function scoutingPlacementAssessment(p,profile,placement='Ordinarie',targetRole='all'){
+function scoutingPlacementAssessment(p,profile,placement='Ordinarie',targetRole='all',horizon='now'){
  const def=SCOUT_PLACEMENTS[placement];if(!def)return null;
  const group=p.pos==='MV'?'MV':p.pos==='B'?'B':'F';if(def.group&&def.group!==group||targetRole==='young'&&p.age>23||placement==='Utvecklingsspelare'&&p.age>23)return null;
  const fit=recruitRoleAssessment(p,profile),known=playerAssessment(p).known;if(!fit)return null;
- const peers=managerRoster().filter(q=>(q.pos==='MV'?'MV':q.pos==='B'?'B':'F')===group).map(q=>attributeWeighted(ensurePlayerAttributes(q),RECRUIT_PROFILES[profile].weights)).sort((a,b)=>b-a);
+ const peers=(horizon==='next'?squadNextSeason().rows.filter(r=>r.secured).map(r=>r.p):managerRoster()).filter(q=>(q.pos==='MV'?'MV':q.pos==='B'?'B':'F')===group).map(q=>attributeWeighted(ensurePlayerAttributes(q),RECRUIT_PROFILES[profile].weights)).sort((a,b)=>b-a);
  const roleRank=targetRole==='key'?({MV:1,B:4,F:6})[group]:targetRole==='regular'?({MV:2,B:6,F:9})[group]:null;
  const placeRank=def.group?def.rank:placement==='Nyckelspelare'?({MV:1,B:4,F:6})[group]:placement==='Ordinarie'?({MV:2,B:6,F:9})[group]:def.rank;
  const rank=roleRank&&placeRank?Math.min(roleRank,placeRank):roleRank||placeRank;
@@ -20,16 +20,18 @@ function scoutingPlacementAssessment(p,profile,placement='Ordinarie',targetRole=
 }
 function scoutingBriefCandidates(c){
  return getTransferMarketPlayers().filter(p=>{
-  if(!RECRUIT_PROFILES[c.profile]?.positions.includes(p.pos)||p.age>c.maxAge||scoutPending(p.id)||scoutingOffice()?.declined?.[p.id]||scoutingCost(p).low>c.maxSalary||c.horizon==='next'&&p.contractYears>1||c.league!=='ALL'&&scoutingLeague(p)!==c.league)return false;
-  const fit=scoutingPlacementAssessment(p,c.profile,c.placement,c.targetRole);return fit&&fit[c.confidence==='supported'?'supported':'possible'];
+  if(p.futureContract||!RECRUIT_PROFILES[c.profile]?.positions.includes(p.pos)||p.age>c.maxAge||scoutPending(p.id)||scoutingOffice()?.declined?.[p.id]||scoutingCost(p).low>c.maxSalary||c.horizon==='next'&&p.contractYears>1||c.league!=='ALL'&&scoutingLeague(p)!==c.league)return false;
+  const fit=scoutingReplacementFit(p,c);return fit&&fit[c.confidence==='supported'?'supported':'possible'];
  }).sort((a,b)=>Number(playerAssessment(b).known)-Number(playerAssessment(a).known)||recruitRoleValue(b,c.profile)-recruitRoleValue(a,c.profile)||String(a.id).localeCompare(String(b.id)));
 }
-function scoutingBrief(profile,placement,maxSalary,maxAge,horizon,person,league='ALL',targetRole='all',confidence='possible'){
+function scoutingBrief(profile,placement,maxSalary,maxAge,horizon,person,league='ALL',targetRole='all',confidence='possible',replacementId=''){
  maxSalary=Number(maxSalary);maxAge=Number(maxAge);
  if(!RECRUIT_PROFILES[profile]||!SCOUT_PLACEMENTS[placement]||!SCOUT_TARGET_ROLES[targetRole]||!['possible','supported'].includes(confidence)||!Number.isFinite(maxSalary)||maxSalary<=0||!Number.isInteger(maxAge)||maxAge<18||maxAge>45||!SCOUT_LISTS[horizon]||!scoutingStaff().some(s=>scoutingPerson(s)===person))return;
- scoutDesk.draft=null;
- const criteria={profile,placement,maxSalary,maxAge,horizon,league,targetRole,confidence},choices=scoutingBriefCandidates(criteria);
- if(!choices.length)return recruitMessage('Inga kandidater matchar hela uppdraget. Ändra liga, tänkt plats eller löneram, eller välj att även kartlägga osäkra möjligheter.');
+ const previousDraft=scoutDesk.draft;
+ const replacement=replacementId?scoutingReplacement(replacementId,profile):null;
+ if(replacementId&&!replacement)return recruitMessage('Spelaren finns inte längre i din truppplan. Välj ett nytt uppdrag.');
+ const criteria={...replacement,profile,placement,maxSalary,maxAge,horizon,league,targetRole,confidence},choices=scoutingBriefCandidates(criteria);
+ if(!choices.length){scoutDesk.draft=previousDraft;return recruitMessage('Inga kandidater matchar hela uppdraget. Ändra liga, tänkt plats eller löneram, eller välj att även kartlägga osäkra möjligheter.');}
  scoutDesk.draft={players:choices.slice(0,3).map(p=>p.id),method:'detail',person,profile,horizon,criteria};
  state.recruitment.tab='missions';save();render();
 }
@@ -37,7 +39,8 @@ function scoutingBriefView(){
  const c=scoutDesk.draft?.criteria||{profile:'Målskytt',league:leagueOf(),placement:'Ordinarie',targetRole:'all',confidence:'possible',maxSalary:1000000,maxAge:30,horizon:'now'};
  const person=scoutDesk.draft?.person||scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))||scoutingStaff()[0]);
  const leagues=[...new Set(getTransferMarketPlayers().map(scoutingLeague))].filter(Boolean).sort();
- return `<section class="sc-card"><h3>Ge scouten ett konkret uppdrag</h3><form class="sc-fields" onsubmit="event.preventDefault();scoutingBrief(this.elements.profile.value,this.elements.placement.value,this.elements.maxSalary.value,this.elements.maxAge.value,this.elements.horizon.value,this.elements.person.value,this.elements.league.value,this.elements.targetRole.value,this.elements.confidence.value)">
+ return `<section class="sc-card"><h3>Ge scouten ett konkret uppdrag</h3><form class="sc-fields" onsubmit="event.preventDefault();scoutingBrief(this.elements.profile.value,this.elements.placement.value,this.elements.maxSalary.value,this.elements.maxAge.value,this.elements.horizon.value,this.elements.person.value,this.elements.league.value,this.elements.targetRole.value,this.elements.confidence.value,this.elements.replacementId.value)">
+ <input type="hidden" name="replacementId" value="${haEscape(c.replacementId||'')}">${c.replacementName?`<p>Ersättare till ${trainingSafe(c.replacementName)} · ${trainingSafe(c.position)}. Jämför med ${Number(c.replacementLevel).toFixed(1)}/20 i den valda rollen.</p>`:''}
  <label>Spelartyp<select name="profile">${recruitOptions(Object.fromEntries(Object.keys(RECRUIT_PROFILES).map(k=>[k,k])),c.profile)}</select></label>
  <label>Liga<select name="league">${recruitOptions({ALL:'Alla ligor',...Object.fromEntries(leagues.map(k=>[k,k]))},c.league)}</select></label>
  <label>Tänkt plats<select name="placement">${recruitOptions(Object.fromEntries(Object.keys(SCOUT_PLACEMENTS).map(k=>[k,k])),c.placement)}</select></label>
@@ -49,10 +52,10 @@ function scoutingBriefView(){
  <label>Ansvarig scout<select name="person">${scoutingStaff().map(s=>`<option value="${scoutingPerson(s)}" ${scoutingPerson(s)===person?'selected':''}>${trainingSafe(s.name)}${scoutingBusy(s)?' · upptagen':''}</option>`).join('')}</select></label>
  <p>Alla villkor gäller samtidigt. Rollen bedöms mot konkurrensen i din egen trupp. En osäker möjlighet behöver observeras innan du lovar speltid. Granska upp till tre kandidater, kostnad och datum innan uppdraget startar.</p><button class="btn secondary">Ta fram uppdrag</button></form></section>`;
 }
-function scoutingBriefCriteriaText(c){return `${c.league||'Alla ligor'} · ${c.placement} · ${SCOUT_TARGET_ROLES[c.targetRole]||'Alla roller'} · ${c.confidence==='supported'?'observerad nivå krävs':'osäkra möjligheter ingår'}`;}
+function scoutingBriefCriteriaText(c){return `${c.replacementName?'Ersättare till '+c.replacementName+' · ':''}${c.league||'Alla ligor'} · ${c.placement} · ${SCOUT_TARGET_ROLES[c.targetRole]||'Alla roller'} · ${c.confidence==='supported'?'observerad nivå krävs':'osäkra möjligheter ingår'}`;}
 function scoutingBriefResult(p){
  const job=scoutingOffice()?.jobs.find(j=>j.criteria&&j.players.some(id=>samePlayerId(id,p.id)));if(!job)return '';
- const c=job.criteria,cost=scoutingCost(p),fit=scoutingPlacementAssessment(p,c.profile,c.placement,c.targetRole||'all'),over=cost.low>c.maxSalary;
+ const c=job.criteria,cost=scoutingCost(p),fit=scoutingReplacementFit(p,c),over=cost.low>c.maxSalary;
  return `<section class="sc-candidate-next"><h3>Uppdrag: ${trainingSafe(c.profile)}</h3><p>${trainingSafe(scoutingBriefCriteriaText(c))} · högst ${careerMoney(c.maxSalary)}/år · ${SCOUT_LISTS[c.horizon]}.</p><p>${over?'Kostnadsbedömningen ligger över din budget.':cost.high>c.maxSalary?'Löneintervallet överlappar budgetgränsen. Kontakta spelaren före bud.':'Kostnadsunderlaget ryms i löneramen.'} ${fit?`Bedömd rollpassning: ${fit.low}–${fit.high}/20. ${fit.supported&&fit.known?'Observerad nivå ger stöd för den tänkta platsen.':fit.possible?'Möjlig roll, men ytterligare observationer behövs.':'Senaste bedömningen når inte konkurrensen för den tänkta platsen.'}`:'Position eller ålder passar inte den tänkta platsen.'}</p></section>`;
 }
 function scoutingDecline(id,reconsider=false){
