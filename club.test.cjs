@@ -7,7 +7,7 @@ const {bootLegacy:boot}=require('./scripts/career-test-fixture.cjs');
 const {run,storage}=boot();
 run('beginCareerSelection();chooseCareerClub("HV71");careerReview();acceptCareer()');
 assert.equal(run('state.staff.length'),5);
-assert.equal(run('state.clubOffice.market.length'),15);
+assert.equal(run('state.clubOffice.market.length'),25);
 const originalCash=run('state.money');
 const snapshot=run('JSON.stringify(state.clubOffice)');
 run('clubFinanceView();clubStaffView();save();render()');
@@ -21,7 +21,7 @@ run('var candidate=state.clubOffice.market.find(c=>c.id==="assistant"&&c.minYear
 assert.equal(run('state.money'),originalCash);
 run('state.clubOffice.offer.salary=1;clubSign()');
 assert.equal(run('state.staff[0].personId'),'assistant');
-run('state.clubOffice.offer.salary=candidate.salary;state.clubOffice.offer.years=1;clubSign()');
+run('state.clubOffice.offer.salary=clubStaffTerms(candidate).minimum;state.clubOffice.offer.years=1;clubSign()');
 assert.equal(run('state.staff[0].personId'),'assistant');
 run('state.clubOffice.offer.years=2;var limit=state.clubOffice.staffLimit;state.clubOffice.staffLimit=1;clubSign()');
 assert.equal(run('state.staff[0].personId'),'assistant');
@@ -65,7 +65,7 @@ const migrated=boot(JSON.stringify(old));assert.equal(migrated.run('state.money'
 run('state.season.year+=3;var rolloverCash=state.money;clubNewYear();clubNewYear()');
 assert.equal(run('state.money'),run('rolloverCash'));assert.equal(run('state.clubOffice.archives.length'),1);
 assert.ok(run('state.staff.every(s=>s.salary===0)'));
-assert.equal(run('state.clubOffice.market.length'),15);
+assert.equal(run('state.clubOffice.market.length'),25);
 for(const club of run('Object.keys(CLUB_DATA)')){
  run(`beginCareerSelection();chooseCareerClub(${JSON.stringify(club)});careerReview();acceptCareer()`);
  assert.ok(!/undefined|NaN/.test(run('clubFinanceView()+clubStaffView()')));

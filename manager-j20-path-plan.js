@@ -6,7 +6,14 @@ const J20_PATH_PACES={
   fast:{label:'Snabb väg',formGames:3,formPpg:.6,aSessions:2,maxFatigue:72,seniorGames:2,seniorMinutes:5}
 };
 function managerJ20PathStore(){if(!state.juniors)return {};return state.juniors.pathPlans??={};}
-function managerJ20PathPlayer(id){return juniorById(id)||managerRoster().find(p=>samePlayerId(p.id,id)&&p.academy)||null;}
+function managerJ20PathPlayers(){return [...new Map([...juniorPlayers(),...managerRoster().filter(p=>p.academy),...(state.loans?.active||[]).filter(l=>l.owner===managerClub()).map(loanPlayer).filter(p=>p?.academy)].map(p=>[String(p.id),p])).values()];}
+let managerJ20PathSelected=null;
+function managerJ20PathPlayer(id){return managerJ20PathPlayers().find(p=>samePlayerId(p.id,id))||null;}
+function managerJ20PathSelect(id){managerJ20PathSelected=id;render();}
+function managerJ20PathLoan(player){
+ const real=playerLoan(player);if(real&&real.owner===managerClub())return {kind:'Klubblån',destination:real.borrower,games:real.games||0,seconds:real.seconds||0,until:real.until,review:loanDevelopmentReview(real)};
+ const loan=player.academy?.loan;return loan?{kind:'Utvecklingslån',destination:JUNIOR_LOANS[loan.destination]?.name||loan.destination,games:loan.games||0,seconds:loan.seconds||0,remaining:loan.remaining}:null;
+}
 function managerJ20PathSet(id,pace='balanced'){
   const player=managerJ20PathPlayer(id),config=J20_PATH_PACES[pace];if(!player||!config||juniorLocked())return false;
   const store=managerJ20PathStore(),old=store[String(player.id)]||{};
@@ -24,7 +31,7 @@ function managerJ20PathSeniorStats(player){
 }
 function managerJ20PathEvidence(player){
   const form=managerJ20RecentForm(player,5),training=state.juniors?.aTraining?.[String(player.id)]||null,senior=managerJ20PathSeniorStats(player),readiness=player.academy?.path==='senior'?null:managerJ20Readiness(player);
-  return {form,training,senior,readiness,fatigue:player.fatigue||0,path:player.academy?.path||'junior'};
+  return {form,training,senior,readiness,loan:managerJ20PathLoan(player),fatigue:player.fatigue||0,path:player.academy?.path||'junior'};
 }
 function managerJ20PathMatchEvidence(player,form,cfg){
   const minutes=form.games?form.seconds/60/form.games:0,goalie=player.pos==='MV',defender=player.pos==='B';
@@ -53,11 +60,15 @@ function managerJ20PathStatus(player,plan=managerJ20PathPlan(player)){
   else if(e.path==='senior'&&!milestones[2].done){next='Ge faktisk A-lagsistid';reason='Uppflyttningen behöver följas av riktiga seniorframträdanden.';}
   else if(e.path==='senior'&&!milestones[3].done){next='Bygg en hållbar seniorroll';reason='A-lagsprovet är genomfört, men istiden är ännu under etableringsmålet.';}
   else if(e.path==='senior'&&milestones[3].done){next='Etablerad enligt planen';reason='Samtliga planmål är uppnådda med faktisk senioristid.';}
-  return {player,plan,cfg,e,milestones,next,reason,complete:milestones.every(m=>m.done)};
+  const competition=managerRoster().filter(p=>!samePlayerId(p.id,player.id)&&loanGroup(p)===loanGroup(player)&&medicalReady(p)).length;
+  if(e.loan){next='Följ lånets faktiska istid';reason=`${e.loan.kind}: ${e.loan.destination}. ${e.loan.games} matcher · ${e.loan.games?(e.loan.seconds/60/e.loan.games).toFixed(1):'0.0'} min/match. ${e.loan.until?'Till '+calText(e.loan.until):e.loan.remaining+' matchomgångar kvar'}. Låneistid räknas inte som A-lagsprov i moderklubben.`;milestones.push({key:'loan',label:'Låneuppföljning',done:false,detail:e.loan.games?'Utvärdera roll och istid före återkomst':'Inget matchunderlag ännu'});}
+  else if(e.path==='senior'&&!milestones[3].done)reason+=` ${competition} tillgängliga spelare konkurrerar i samma positionsgrupp. Överväg lån om faktisk istid saknas.`;
+  if(e.loan?.review)reason+=' '+e.loan.review;
+  return {player,plan,cfg,e,milestones,next,reason,competition,complete:!e.loan&&milestones.every(m=>m.done)};
 }
 function managerJ20PathCandidate(){
   const training=managerJ20TrainingFollowup()?.player,senior=managerSeniorProspectFollowup()?.player,review=managerJ20Review()?.best;
-  return training||senior||review||null;
+  return managerJ20PathPlayer(managerJ20PathSelected)||training||senior||review||managerJ20PathPlayers()[0]||null;
 }
 function managerJ20PathMarkPromotion(player,plan){
   const store=state.juniors.managerDecisions??={},date=state.calendar?.date||null,key=`path-promote:${date}:${player.id}`,form=managerJ20RecentForm(player);
@@ -65,10 +76,10 @@ function managerJ20PathMarkPromotion(player,plan){
   plan.promotedDate=date;plan.updatedDate=date;
 }
 function managerJ20PathAction(id,action){
-  const player=managerJ20PathPlayer(id),status=managerJ20PathStatus(player);if(!player||!status||juniorLocked())return false;
+  const player=managerJ20PathPlayer(id),status=managerJ20PathStatus(player);if(!player||!status||juniorLocked()||status.e.loan)return false;
   if(action==='guest'&&player.academy?.path==='junior'){player.academy.path='guest';save();render();return true;}
   if(action==='junior'&&player.academy?.path==='guest'){player.academy.path='junior';save();render();return true;}
-  if(action==='light'){player.trainingLoad='light';save();render();return true;}
+  if(action==='light'){if(juniorById(id))juniorSet(id,'load','light');else setIndividualLoad(id,'light');return true;}
   if(action==='promote'&&player.academy?.path==='guest'){
     const plan=managerJ20PathPlan(player);juniorPromote(player.id);
     const promoted=managerRoster().find(p=>samePlayerId(p.id,id)&&p.academy?.path==='senior');
@@ -83,8 +94,10 @@ function managerJ20PathView(){
   const s=managerJ20PathStatus(player,plan),pace=J20_PATH_PACES[plan.pace]||J20_PATH_PACES.balanced;
   const milestones=s.milestones.map(m=>`<span class="${m.done?'done':'pending'}"><b>${m.done?'✓':'○'} ${trainingSafe(m.label)}</b><small>${trainingSafe(m.detail)}</small></span>`).join('');
   let action='';if(s.next==='Sänk belastningen'&&player.trainingLoad!=='light')action=`<button class="desk-link" onclick='managerJ20PathAction(${id},"light")'>Lättare belastning</button>`;else if(s.next==='Ge A-träning')action=`<button class="btn" onclick='managerJ20PathAction(${id},"guest")'>Starta A-träning</button>`;else if(s.next==='Åter till J20-fokus')action=`<button class="desk-link" onclick='managerJ20PathAction(${id},"junior")'>Till J20-fokus</button>`;else if(s.next==='Pröva A-laget')action=`<button class="btn" onclick='managerJ20PathAction(${id},"promote")'>Flytta upp</button>`;
+  if(s.e.loan)action+=`<button class="desk-link" onclick="deskNavigate('${s.e.loan.kind==='Klubblån'?'transfers':'juniors'}'${s.e.loan.kind==='Klubblån'?",'loans'":''})">Granska lånet</button>`;
+  else if(s.e.path==='senior'&&!s.complete)action+=`<button class="desk-link" onclick='loanOpen(${id})'>Jämför lånealternativ</button>`;
   return `<section class="manager-day-preview j20-review j20-path" aria-label="Utvecklingsväg junior"><div><span class="desk-kicker">UTVECKLINGSVÄG · ${trainingSafe(player.name)} · ${trainingSafe(pace.label)}</span><strong>${trainingSafe(s.next)}</strong><p>${trainingSafe(s.reason)}</p><div class="j20-path-milestones">${milestones}</div></div><div class="manager-life-actions j20-decision">${action}<button class="desk-link" onclick='managerJ20PathSet(${id},"careful")'>Försiktig</button><button class="desk-link" onclick='managerJ20PathSet(${id},"balanced")'>Balanserad</button><button class="desk-link" onclick='managerJ20PathSet(${id},"fast")'>Snabb</button></div></section>`;
 }
 
 const managerJ20PathMorningBase=managerLifeMorningView;
-managerLifeMorningView=function(){return managerJ20PathMorningBase()+managerJ20PathView();};
+managerLifeMorningView=function(){const selected=managerJ20PathCandidate();return managerJ20PathMorningBase()+`<label>Följ utvecklingsväg <select aria-label="Spelare i utvecklingsplan" onchange="managerJ20PathSelect(this.value)">${managerJ20PathPlayers().map(p=>`<option value="${trainingSafe(String(p.id))}" ${samePlayerId(p.id,selected?.id)?'selected':''}>${trainingSafe(p.name)}${managerJ20PathLoan(p)?' · utlånad':''}</option>`).join('')}</select></label>`+managerJ20PathView();};

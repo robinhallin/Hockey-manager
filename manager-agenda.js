@@ -63,9 +63,22 @@ function validateManagerSystemsSave(s){
   if(!o)return;
   if(o.mandates&&(!object(o.mandates)||Object.entries(o.mandates).some(([area,mode])=>!STAFF_MANDATES[area]||!['manual','advise','execute'].includes(mode)||mode==='execute'&&!STAFF_MANDATES[area].automatic)))fail();
   if(o.activity&&!array(o.activity,80))fail();
+  if(o.proposals){
+   if(!array(o.proposals,60))fail();
+   for(const p of o.proposals){
+    if(!object(p)||typeof p.id!=='string'||typeof p.club!=='string'||!STAFF_MANDATES[p.area]||typeof p.text!=='string'||typeof p.snapshot!=='string'||!date(p.date)||!date(p.target)||!['pending','accepted','declined','expired','replaced','followed'].includes(p.status))fail();
+    if(p.area==='training'&&(!TRAINING_SESSIONS[p.session?.type]||!['light','normal','hard'].includes(p.session?.intensity)))fail();
+    if(p.area==='juniors'){let rows;try{rows=JSON.parse(p.snapshot);}catch{fail();}if(!array(rows,100)||rows.some(r=>!Array.isArray(r)||r.length!==3||!['string','number'].includes(typeof r[0])||!['normal','light','rest'].includes(r[1])))fail();}
+   }
+  }
   if(o.agenda&&(!object(o.agenda.snoozed)||!object(o.agenda.active)||!array(o.agenda.history,60)))fail();
  };
  const finance=o=>{
+  if(Array.isArray(o?.market))for(const p of o.market){const profile=p.marketProfile;if(profile&&(!object(profile)||!date(profile.available)||profile.project!==null&&!CLUB_PRIORITIES[profile.project]))fail();}
+  if(o?.decisionContracts){
+   if(!array(o.decisionContracts,8))fail();const ids=new Set();
+   for(const p of o.decisionContracts){if(!object(p)||!['string','number'].includes(typeof p.playerId)||ids.has(String(p.playerId))||typeof p.name!=='string'||!date(p.start)||!date(p.end)||p.end<=p.start||['salary','fee'].some(k=>!Number.isFinite(p[k])||p[k]<0||p[k]>1e9))fail();ids.add(String(p.playerId));}
+  }
   const f=o?.cashflow;if(!f)return;
   if(f.version!==1||!date(f.started)||!date(f.lastDate)||!object(f.accrued)||!array(f.months,36))fail();
   const totals=t=>object(t)&&Object.entries(t).every(([k,v])=>Object.hasOwn(CLUB_CATEGORIES,k)&&Number.isFinite(v));

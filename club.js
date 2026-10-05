@@ -83,10 +83,22 @@ function ensureClub(){
 }
 function clubMakeMarket(){
  const o=state.clubOffice,first=['Elin','Oskar','Maria','Daniel','Emma','Viktor','Sofia','Anton','Karin','Fredrik'],last=['Sjöberg','Lund','Ekström','Björk','Nyberg','Strand','Wallin','Bergman','Holmström','Dahl'];
- o.market=Object.keys(CLUB_ROLES).flatMap((role,r)=>Array.from({length:3},(_,i)=>{
+ o.market=Object.keys(CLUB_ROLES).flatMap((role,r)=>Array.from({length:5},(_,i)=>{
   const seed=k=>attrSeed(`staff:${o.year}:${role}:${i}:${k}`),skill=10+i*3;
   return {personId:`staff-${o.year}-${role}-${i}`,id:role,name:`${first[(r*2+i)%10]} ${last[(r+i+o.year)%10]}`,philosophy:Object.keys(STAFF_PHILOSOPHIES)[Math.floor(seed('philosophy')*Object.keys(STAFF_PHILOSOPHIES).length)],ability:Math.min(20,skill+Math.floor(seed('a')*3)),potential:Math.min(20,10+Math.floor(seed('p')*10)),coaching:Math.min(20,skill+Math.floor(seed('c')*3)),specialty:role==='goalie'?'Målvakt':['Tvåvägsforward','Spelfördelare','Målskytt','Defensiv back'][Math.floor(seed('s')*4)],salary:240000+i*220000+(role==='assistant'?120000:0),minYears:i===2?2:1};
  }));
+ for(const c of o.market){
+  const i=Number(c.personId.split('-').at(-1)),profiles=[{ability:12,potential:12,coaching:13},{ability:11,potential:18,coaching:15},{ability:19,potential:14,coaching:11},{ability:14,potential:11,coaching:19},{ability:16,potential:17,coaching:14}],profile=profiles[i];
+  Object.assign(c,profile,{salary:[280000,510000,670000,690000,620000][i]+(c.id==='assistant'?120000:0),minYears:i===1||i===4?2:1,marketProfile:{available:calAdd(state.calendar.date,i<3?0:(i-2)*7),project:i===0?null:c.id==='scout'?'scouting':c.id==='junior'?'youth':c.id==='physio'?'recovery':c.id==='goalie'?'goalies':'first'}});
+ }
+}
+function clubStaffTerms(candidate){
+ const profile=candidate.marketProfile,aligned=!profile?.project||profile.project===state.clubOffice.priority,available=!profile?.available||state.calendar.date>=profile.available;
+ return {available,aligned,minimum:Math.round(candidate.salary*(aligned?1:1.1)),interest:!profile?.project?'Öppen för klubbens nuvarande projekt':aligned?'Projektet matchar önskemålet':`Föredrar ${CLUB_PRIORITIES[profile.project]?.name||profile.project}; kräver 10 % högre lön i nuvarande projekt`};
+}
+function clubStaffDossier(candidate){
+ const terms=clubStaffTerms(candidate),skills=[['träning / rehab',candidate.coaching],['förmågebedömning',candidate.ability],['potentialbedömning',candidate.potential]].sort((a,b)=>b[1]-a[1]);
+ return `Styrka: ${skills[0][0]} ${skills[0][1]}/20. Svagare sida: ${skills.at(-1)[0]} ${skills.at(-1)[1]}/20. ${staffPhilosophyText(candidate)} ${terms.interest}. ${terms.available?'Kan tillträda nu.':'Tillgänglig '+calText(candidate.marketProfile.available)+'.'} Lönekrav i ditt projekt: ${money(terms.minimum)}/år.`;
 }
 function clubPost(category,amount,label,date=state.calendar?.date){
  ensureClub();const o=state.clubOffice;if(!o||!Number.isFinite(amount))return;
@@ -147,7 +159,8 @@ function clubBuyout(s){
 }
 function clubOpenOffer(personId){
  ensureClub();const c=state.clubOffice.market.find(c=>c.personId===personId);if(!c||state.clubOffice.taken.includes(personId))return;
- state.clubOffice.offer={type:'hire',personId,salary:c.salary,years:c.minYears};clubUI.staff='candidates';clubUI.role=c.id;state.page='staff';save();render();clubShowOffer();
+ const terms=clubStaffTerms(c);
+ state.clubOffice.offer={type:'hire',personId,salary:terms.minimum,years:c.minYears};clubUI.staff='candidates';clubUI.role=c.id;state.page='staff';save();render();clubShowOffer();
 }
 function clubRenew(role){
  const s=state.staff.find(s=>s.id===role);if(!s?.salary)return;
@@ -173,11 +186,12 @@ function clubSign(){
  if(clubLocked())return clubNotice('Personalbyten görs mellan matcher.');
  const candidate=d.type==='hire'?o.market.find(c=>c.personId===d.personId):state.staff.find(s=>s.personId===d.personId);
  if(!candidate||d.type==='hire'&&o.taken.includes(d.personId))return clubNotice('Kandidaten är inte längre tillgänglig.');
+ if(d.type==='hire'&&!clubStaffTerms(candidate).available)return clubNotice('Kandidaten är ännu inte tillgänglig.');
  const old=state.staff.find(s=>s.id===candidate.id);if(!old)return;
  const buyout=d.type==='renew'?0:clubBuyout(old);
  if(d.type==='renew'&&(old.expires>clubYear()+1||clubYear()+d.years<=old.expires))return clubNotice('Förlängningen måste lägga till minst en säsong och göras under sista avtalsåret.');
  if(d.type!=='release'){
-  const minimum=d.type==='renew'?Math.round(old.salary*1.05/10000)*10000:candidate.salary;
+  const minimum=d.type==='renew'?Math.round(old.salary*1.05/10000)*10000:clubStaffTerms(candidate).minimum;
   if(!Number.isFinite(d.salary)||d.salary<minimum||!Number.isInteger(d.years)||d.years<(candidate.minYears||1)||d.years>3)return clubNotice('Personen accepterar inte villkoren. Uppfyll lönekravet och erbjud 1–3 säsonger.');
   if(clubStaffCost()-old.salary+d.salary>o.staffLimit)return clubNotice('Avtalet överskrider personalbudgeten. Välj en billigare kandidat eller minska andra personalkostnader.');
  }
