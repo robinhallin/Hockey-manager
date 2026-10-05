@@ -121,19 +121,20 @@ function aiOfferTerms(club,p,need,kind='transfer'){
  const stretch=need.missing>0&&c.director.risk>=14?1.04:1;
  const salary=aiRoundMoney(w.salary*stretch),years=p.age>=32?Math.min(2,w.maxYears):
   youth&&['develop','rebuild'].includes(c.project)?Math.min(4,w.maxYears):Math.min(3,w.maxYears);
- return {salary,years:Math.max(w.minYears,years),role:w.role,fee:kind==='future'?0:recruitFee(p)};
+ return recruitPersonalCounter(p,club,{kind,salary,years:Math.max(w.minYears,years),role:w.role,fee:kind==='future'?0:recruitSellerPosition(p,marketClub(p.id)).fee},w);
 }
 function aiSubmitMarket(club,p,need,kind,terms){
  const w=state.clubAI,c=clubAIState(club),seller=marketClub(p.id);
  if(!aiCanCommit(club,p,terms.fee||0,terms.salary,{future:kind==='future',years:terms.years})||marketCooldown(club,p,kind))return false;
  if(aiRoleOfferIssue(club,p,{...terms,kind}))return false;
+ if(kind==='transfer'&&terms.fee>aiPurchasePlan(club,p,need,terms).maxFee)return false;
  if(w.offers.some(o=>o.status==='pending'&&o.buyer===club&&samePlayerId(o.playerId,p.id)))return false;
  if(kind!=='future'&&seller===managerClub()){
   const created=incomingCreate(club,p,need,kind,terms);
   if(created){c.lastOffer=state.calendar.date;aiDecision(club,'market',`Lämnar ${kind==='loan'?'lånebud':'köpbud'} på ${p.name}: ${need.reason}`);}
   return created;
  }
- const offer={id:w.nextOffer++,playerId:p.id,name:p.name,buyer:club,seller,kind,...terms,decisionReason:need.reason,
+ const offer={id:w.nextOffer++,playerId:p.id,name:p.name,buyer:club,seller,kind,...terms,decisionReason:kind==='transfer'?aiPurchasePlan(club,p,need,terms).text:need.reason,
   availability:marketAvailability(p),needRole:need.role,date:state.calendar.date,due:calAdd(state.calendar.date,seller===managerClub()?7:2),status:'pending',reason:need.reason};
  w.offers.push(offer);
  aiDecision(club,'market',`${kind==='future'?'Erbjuder nästa avtal till':kind==='loan'?'Förhandlar om lån av':'Lämnar bud på'} ${p.name}: ${need.reason}`);
@@ -207,12 +208,12 @@ function aiValidateOffer(o){
  const need=aiSquadNeeds(o.buyer).find(n=>n.role===o.needRole);
  if(!need||(o.kind==='future'?need.futureNeed===0:need.missing===0&&!need.qualityGap))return 'Behovet är redan täckt.';
  if(o.kind!=='future'&&need.shortTerm)return 'Kort skadefrånvaro kan täckas av den befintliga truppen.';
- if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitFee(p)))return 'Säljaren accepterar inte villkoren.';
+ if(o.kind==='transfer'&&(!recruitWillingToSell(p,o.seller)||o.fee<recruitSellerPosition(p,o.seller).fee))return 'Säljaren accepterar inte villkoren.';
  if(!aiCanCommit(o.buyer,p,o.fee,o.salary,{future:o.kind==='future',years:o.years}))return 'Klubbens trupp- eller budgetutrymme räcker inte längre.';
  if(o.kind!=='loan'){
   const roleIssue=aiRoleOfferIssue(o.buyer,p,o);if(roleIssue)return roleIssue;
   const wishes=recruitPlayerWishes(p,o.buyer);
-  if(o.salary<wishes.salary||o.years<wishes.minYears||o.years>wishes.maxYears||SQUAD_ROLES.indexOf(o.role)<SQUAD_ROLES.indexOf(wishes.role))return 'Spelaren accepterar inte rollen eller avtalet.';
+  if(!recruitPackageDecision(p,o.buyer,o,wishes).accepted)return 'Spelaren accepterar inte rollen eller avtalet.';
  }
  return '';
 }

@@ -18,7 +18,12 @@ r('scoutingStart()');assert.equal(r('scoutingOffice().jobs[0].criteria.placement
 assert.match(r('scoutingBriefResult(candidate)'),/Observerad nivå/);
 assert.equal(r('scoutingPlacementAssessment(candidate,"Målskytt","Förstemålvakt","all")'),null);
 r(`scoutingBrief('Målskytt','Andra kedjan',1,18,'now',scoutingPerson(scoutingStaff()[0]),'SHL','key','supported')`);
-assert.equal(r('scoutDesk.draft'),null,'empty search never leaves an old payable draft');
+assert.equal(r('scoutDesk.draft.players.length'),0,'empty search clears every old candidate');
+assert.equal(r('scoutDesk.draft.criteria.maxSalary'),1,'the revised criteria remain editable');
+r('globalThis.emptySearchCash=state.money;globalThis.emptySearchJobs=scoutingOffice().jobs.length');
+assert.equal(r('scoutingStart()'),false,'an empty draft cannot start a payable assignment');
+assert.equal(r('state.money'),r('emptySearchCash'));
+assert.equal(r('scoutingOffice().jobs.length'),r('emptySearchJobs'));
 assert.match(r('scoutingBriefView()'),/Fjärde kedjan/);assert.match(r('scoutingBriefView()'),/Andra backparet/);assert.match(r('scoutingBriefView()'),/Tredjemålvakt/);
 // Both real venues, same manager-based engine accounting; no swapping player sides.
 for(const home of [true,false]){

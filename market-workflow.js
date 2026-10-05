@@ -50,8 +50,8 @@ function incomingCreate(club,p,need,kind,terms){
  const r=state.recruitment;if(marketCooldown(club,p,kind)||!aiCanCommit(club,p,terms.fee||0,terms.salary,{years:terms.years}))return false;
  const o={id:r.nextId++,playerId:p.id,name:p.name,buyer:club,seller:managerClub(),kind,...terms,
   stage:'offer',status:'pending',date:state.calendar.date,expiresDate:calAdd(state.calendar.date,7),expires:r.tick+2,
-  needRole:need.role,decisionReason:need.reason,reason:'Klubben har lämnat ett formellt bud. Du väljer nästa steg.',
-  availability:marketAvailability(p),maxFee:Math.round((terms.fee||0)*(need.missing>0?1.3:1.15)),rounds:0,log:[]};
+  needRole:need.role,decisionReason:kind==='transfer'?aiPurchasePlan(club,p,need,terms).text:need.reason,reason:'Klubben har lämnat ett formellt bud. Du väljer nästa steg.',
+  availability:marketAvailability(p),maxFee:kind==='transfer'?aiPurchasePlan(club,p,need,terms).maxFee:0,rounds:0,log:[]};
  o.log.push({date:o.date,by:club,action:'offer',terms:{...terms}});r.incoming.unshift(o);
  r.incoming=r.incoming.filter((x,i)=>x.status==='pending'||i<100);
  incomingNotice(o);return true;
