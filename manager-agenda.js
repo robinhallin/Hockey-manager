@@ -55,7 +55,7 @@ function developmentReviewDay(){
   managerMessage(`development-review:${managerClub()}:${p.id}:${plan.date}`,p.name+': utvecklingsplanen ska följas upp',`${e.trained} träningspass, ${e.games} matcher med istid och ${Math.round(e.seconds/60)} minuter. ${e.changes.join(', ')||'Inga synliga attributsteg.'} Granska utfallet och välj fortsatt plan.`,'Spelarutveckling',{playerId:p.id,link:'training'});
  }
 }
-function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
+function managerSystemsDay(){recruitmentMonthDay();scoutingPruneEvidence();developmentReviewDay();boardDialogueDay();managerAgendaReconcile();staffMandateDay();worldWatchDay();}
 
 function validateManagerSystemsSave(s){
  const object=v=>v&&typeof v==='object'&&!Array.isArray(v),date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d)),array=(v,max)=>Array.isArray(v)&&v.length<=max;
@@ -64,6 +64,7 @@ function validateManagerSystemsSave(s){
   if(!o)return;
   if(o.mandates&&(!object(o.mandates)||Object.entries(o.mandates).some(([area,mode])=>!STAFF_MANDATES[area]||!['manual','advise','execute'].includes(mode)||mode==='execute'&&!STAFF_MANDATES[area].automatic)))fail();
   if(o.activity&&!array(o.activity,80))fail();
+  if(o.boardDialogue)validateBoardDialogueSave(o.boardDialogue);
   if(o.seasonActions&&(!array(o.seasonActions,100)||o.seasonActions.some(r=>!validDecisionRow(r)||!date(r.carried)||r.closed!==null&&!date(r.closed))))fail();
   if(o.proposals){
    if(!array(o.proposals,60))fail();

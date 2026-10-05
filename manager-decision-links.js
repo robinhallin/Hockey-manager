@@ -4,9 +4,10 @@ function managerLinkedDecisionItems(){
  const date=state.calendar.date,club=managerClub();
  const proposals=(state.office2?.proposals||[]).filter(p=>p.club===club&&p.status==='pending'&&p.target>=date&&!(p.area==='training'&&p.target===date)).map(p=>({id:'staff-proposal:'+p.id,title:STAFF_MANDATES[p.area].name+': ta ställning',detail:p.text,due:p.target,owner:'Du',tag:'Stabsförslag',area:p.area,requiresDecision:true,level:p.target===date?'high':'medium',score:75,action:{page:'staffReview'}}));
  const next=(state.office2?.seasonActions||[]).filter(p=>p.club===club&&!p.closed).map(p=>({id:'season-action:'+p.id,title:p.title,detail:p.next,owner:'Du',tag:'Från säsongsutvärdering',area:p.area,level:'medium',score:60,action:{page:'season'}}));
- return [...proposals,...next];
+ return [...proposals,...next,...boardDialogueItems()];
 }
 function managerLinkedDecisionOutcome(id){
+ if(id.startsWith('board-dialogue:'))return boardDialogueStore()?.requests.find(r=>'board-dialogue:'+r.id===id&&r.club===managerClub())?.outcome;
  const p=(state.office2?.proposals||[]).find(p=>'staff-proposal:'+p.id===id&&p.club===managerClub());
  if(p)return p.outcome||({accepted:'Godkänt. Staben följer upp genomförandet.',declined:'Avböjt av tränaren.',expired:'Förslaget har löpt ut.',replaced:'Ersatt av nyare förslag.',followed:'Uppföljt.'}[p.status]);
  const a=(state.office2?.seasonActions||[]).find(p=>'season-action:'+p.id===id&&p.club===managerClub());return a?.closed?'Granskat av tränaren. Inga avtal eller truppändringar genomfördes automatiskt.':null;
@@ -58,6 +59,7 @@ function seasonDecisionRows(){
  for(const l of [...(state.loans?.active||[]),...(state.loans?.history||[])])if(l.owner===club&&(l.returned||l.until||'')>=`${year}-08-01`)add('loan:'+l.id,'Lån: '+l.name,`Avtalad roll: ${LOAN_ROLES[l.role]||'Äldre lån, roll saknas'}. ${l.developmentReview?.text||loanDevelopmentReview(l)}`,l.returned?'Bedöm rollen efter återkomsten.':'Följ istiden och planera återkomsten.','transfers',l.playerId);
  for(const s of state.staff||[])add('staff:'+s.personId,'Personal: '+s.name,`${CLUB_ROLES[s.id]} · ${money(s.salary||0)}/år. Träning ${s.coaching}/20, bedömning ${s.ability}/20. Individuellt effektmål saknas; resultat tillskrivs inte personen automatiskt.`,s.expires&&s.expires<=year+1?'Granska utgående personalavtal.':'','staff');
  const project=clubProjectState();add('project',CLUB_PRIORITIES[project.id]?.name||'Klubbprojekt',`Registrerad mognad: ${project.maturity||0} %. Ingen isolerad mätning av projektets resultat finns.`,'Välj nästa säsongs inriktning utifrån ekonomi och truppbehov.','board');
+ for(const r of boardDialogueStore()?.requests||[])if(r.club===club&&r.year===year)add('board:'+r.id,'Styrelsedialog: '+BOARD_REQUESTS[r.kind].name,`${r.evidence} ${r.outcome||'Ingen slutbedömning.'}`,['pending','offered','active'].includes(r.status)?'Granska styrelsens villkor och nästa avstämning.':'','board');
  return rows.slice(0,100);
 }
 function seasonDecisionCarry(year){
