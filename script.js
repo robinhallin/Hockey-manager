@@ -3449,8 +3449,8 @@ function submitContractRenewal(playerId,salary,years,role){
  if(p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date)return fail(`Diskussionen kan återupptas ${calText(p.renewalPausedUntil)}.`);
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return fail('Ange giltig årslön, kontraktslängd och roll.');
  const budgetIssue=managerCommitmentIssue(p,0,salary,years,{renewal:true});if(budgetIssue)return fail(budgetIssue);
- let reason=recruitPackageDecision(p,managerClub(),{salary,years,role},w).accepted?'':recruitPackageDecision(p,managerClub(),{salary,years,role},w).explanation+' '+recruitmentTermsReview(p,{salary,years,role},managerClub(),w).issues.join(' ');
- if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;n.years=Math.max(w.minYears,Math.min(w.maxYears,years));n.role=w.role;
+ let reason=salary<w.salary?`Motbud: ${money(w.salary)}/år.`:years<w.minYears||years>w.maxYears?`Spelaren vill ha ${w.minYears}–${w.maxYears} år, med hänsyn till sin ålder och trygghet.`:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?`Spelaren vill ha rollen ${w.role.toLowerCase()}.`:'';
+ if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;
   if(p.renewalAttempts>=3){p.renewalPausedUntil=calAdd(state.calendar.date,7);p.renewalAttempts=0;if(p.social)p.social.trust=trainingClamp(p.social.trust-2);reason+=` Tre avslag: agenten pausar till ${calText(p.renewalPausedUntil)}.`;}
   return fail(reason);
  }
@@ -3499,6 +3499,9 @@ function playerView(){
     `;
   }
 
+  return playerProfileConsolidated(player);
+}
+function playerProfileTabView(player,requestedTab='overview'){
   const points =
     (player.goals || 0) +
     (player.assists || 0);
@@ -3548,7 +3551,7 @@ function playerView(){
   const formatCurrency = value =>
     `${Math.round(value || 0).toLocaleString("sv-SE")} kr`;
 
-  const r=playerAssessment(player),tab=profileWorkspace.tab;
+  const r=playerAssessment(player),tab=requestedTab;
   if(['attributes','performance','history'].includes(tab))return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${playerProfileTabs(player)}${tab==='attributes'?desktopAttributes(player):tab==='performance'?playerPerformanceView(player.id)+playerHistoryView(player.id):playerHistoryView(player.id)}</article>`;
   return `<article class="fm-profile">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}
   ${playerProfileTabs(player)}
@@ -3683,9 +3686,29 @@ ${
 
 ${rolePromisePlayerView(player)}${loanPlayerPanel(player)}`:tab==='development'?`<div class="fm-profile-details">${trainingPlayerPanel(player)}${medicalPlayerPanel(player)}</div>`:tab==='person'?`<div class="player-person-workspace">${lockerPlayerPanel(player)}${socialJournalView(player)}</div>`:tab==='report'?`${assessmentPanel(player)}${storiesPlayerPanel(player)}`:`
   <div class="fm-profile-main"><section class="fm-panel fm-role-panel"><h2>Position & roll</h2><div class="fm-position-map"><span class="${['VF','F'].includes(player.pos)?'active':''}">VF</span><span class="${['C','F'].includes(player.pos)?'active':''}">C</span><span class="${['HF','F'].includes(player.pos)?'active':''}">HF</span><span class="${player.pos==='B'?'active':''}">VB</span><span class="${player.pos==='B'?'active':''}">HB</span><span class="${player.pos==='MV'?'active':''}">MV</span></div><p>${lineupPlayerPlace(player)}</p>${r.roles.map(x=>`<div class="fm-role-row"><b>${x.name}</b><span>${x.value>=14?'Styrka':x.value>=11?'Användbar':'Utvecklingsbehov'}</span></div>`).join('')}</section>
-  ${desktopAttributes(player)}<aside class="fm-panel fm-report-summary"><h2>Tränarens bedömning</h2><p>${trainingSafe(r.staff.name)}</p><strong>${r.roles[0].name}</strong><p>${medicalAvailable(player)?'Tillgänglig för uttagning':'Ej tillgänglig för uttagning'}</p><dl><dt>Startenergi</dt><dd>${Math.round(readinessCeiling(player.fatigue))}%</dd><dt>Slitage</dt><dd>${Math.round(player.fatigue||0)} / 100</dd><dt>Moral</dt><dd>${Math.round(player.morale??70)} / 100</dd><dt>Form</dt><dd>${player.form||0}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='report';render()">Fullständig rapport →</button></aside></div>
-  <div class="fm-profile-bottom"><section class="fm-panel"><h2>Kontrakt</h2><dl><dt>Årslön</dt><dd>${formatCurrency(player.salary)}</dd><dt>Återstår</dt><dd>${player.contractYears} år</dd><dt>Utlovad roll</dt><dd>${player.promisedRole}</dd><dt>Marknadsvärde</dt><dd>${formatCurrency(player.value)}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='contract';render()">Hantera kontrakt →</button></section><section class="fm-panel"><h2>Utveckling & välmående</h2><dl><dt>Träningsfokus</dt><dd>${trainingSafe(player.developmentFocus||'Individuell plan')}</dd><dt>Trivsel</dt><dd>${Math.round(player.happiness??70)}%</dd><dt>Roll i truppen</dt><dd>${role}</dd></dl><button class="fm-link" onclick="profileWorkspace.tab='development';render()">Träning & hälsa →</button></section><section class="fm-panel"><h2>Säsong ${seasonLabel()}</h2><table class="fm-stats"><thead><tr><th>Matcher</th><th>Mål</th><th>Assist</th><th>Poäng</th><th>Skott</th><th>Utv.</th></tr></thead><tbody><tr>${[player.games,player.goals,player.assists,points,player.shots,player.pim].map(n=>`<td>${n||0}</td>`).join('')}</tr></tbody></table></section></div>`}</article>`;
+  <aside class="fm-panel fm-report-summary"><h2>Tränarens bedömning</h2><p>${trainingSafe(r.staff.name)}</p><strong>${r.roles[0].name}</strong><p>${medicalAvailable(player)?'Tillgänglig för uttagning':'Ej tillgänglig för uttagning'}</p><dl><dt>Startenergi</dt><dd>${Math.round(readinessCeiling(player.fatigue))}%</dd><dt>Slitage</dt><dd>${Math.round(player.fatigue||0)} / 100</dd><dt>Moral</dt><dd>${Math.round(player.morale??70)} / 100</dd><dt>Form</dt><dd>${player.form||0}</dd></dl><button class="fm-link" onclick="playerProfileJump('report')">Fullständig rapport →</button></aside></div>
+  <div class="fm-profile-bottom"><section class="fm-panel"><h2>Kontrakt</h2><dl><dt>Årslön</dt><dd>${formatCurrency(player.salary)}</dd><dt>Återstår</dt><dd>${player.contractYears} år</dd><dt>Utlovad roll</dt><dd>${player.promisedRole}</dd><dt>Marknadsvärde</dt><dd>${formatCurrency(player.value)}</dd></dl><button class="fm-link" onclick="playerProfileJump('contract')">Hantera kontrakt →</button></section><section class="fm-panel"><h2>Utveckling & välmående</h2><dl><dt>Träningsfokus</dt><dd>${trainingSafe(player.developmentFocus||'Individuell plan')}</dd><dt>Trivsel</dt><dd>${Math.round(player.happiness??70)}%</dd><dt>Roll i truppen</dt><dd>${role}</dd></dl><button class="fm-link" onclick="playerProfileJump('development')">Träning & hälsa →</button></section><section class="fm-panel"><h2>Säsong ${seasonLabel()}</h2><table class="fm-stats"><thead><tr><th>Matcher</th><th>Mål</th><th>Assist</th><th>Poäng</th><th>Skott</th><th>Utv.</th></tr></thead><tbody><tr>${[player.games,player.goals,player.assists,points,player.shots,player.pim].map(n=>`<td>${n||0}</td>`).join('')}</tr></tbody></table></section></div>`}</article>`;
 }
+function playerProfileTabMarkup(player,tab){
+ const html=playerProfileTabView(player,tab);
+ return html.replace('<article class="fm-profile">','').replace('</article>','')
+   .replace(playerProfileHeader(player,managerClub()),'')
+   .replace(playerProfileTabs(player),'');
+}
+function playerProfileConsolidated(player){
+ const sections=[
+  ['overview','Översikt','Spelarens roll, nuläge och viktigaste siffror.'],
+  ['attributes','Attribut','Tekniska, mentala och fysiska egenskaper.'],
+  ['report','Tränarens bedömning','Styrkor, utvecklingsområden och aktuella berättelser.'],
+  ['performance','Prestation & historik','Matchrapporter och registrerad karriärhistorik.'],
+  ['development','Utveckling & hälsa','Träning, tillgänglighet och medicinsk status.'],
+  ['contract','Kontrakt & situation','Roll, avtal, marknad och förhandlingar.'],
+  ...(isOwnPlayer(player)?[['person','Person & relation','Förtroende, omklädningsrum och samtal.']]:[])
+ ];
+ const body=sections.map(([key,label,summary])=>`<details class="fm-profile-section" id="profile-section-${key}" ${key==='overview'||profileWorkspace.tab===key?'open':''}><summary><span><strong>${label}</strong><small>${summary}</small></span><span aria-hidden="true">⌄</span></summary><div class="fm-profile-section-content">${playerProfileTabMarkup(player,key)}</div></details>`).join('');
+ return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}<div class="fm-profile-sections">${body}</div></article>`;
+}
+
 /* =========================================================
    KEDJOR
    ========================================================= */
