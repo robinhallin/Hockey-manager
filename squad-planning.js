@@ -51,7 +51,7 @@ function squadDiscussRole(id,role){
  else p.social.trust=trainingClamp(p.social.trust-2);
  const text=accepts?`${p.name} accepterar ${role.toLowerCase()} efter samtalet. Lön och kontraktstid behålls.`:`${p.name} vill behålla rollen ${previous.toLowerCase()}. Ambition, förtroende och faktisk istid vägdes in. Förtroende −2.`;
  p.roleHistory=[{date:state.calendar.date,club:managerClub(),previous,proposed:role,accepted:accepts},...(p.roleHistory||[])].slice(0,16);
- p.social.lastResponse=text;socialLog('Samtal om rollen: '+p.name,text);lockerNotice(text);
+ playerFollowupStart(p,'Diskutera rollen');p.social.lastResponse=text;socialLog('Samtal om rollen: '+p.name,text);lockerNotice(text);
 }
 function squadRolePanel(p){
  const games=squadRoleGames(p),minutes=games.length?(games.reduce((n,g)=>n+g.seconds,0)/games.length/60).toFixed(1):null,block=squadRoleBlock(p);

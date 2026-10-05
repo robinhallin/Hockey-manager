@@ -9,6 +9,7 @@ function managerAgendaItems(includeSnoozed=false){
   const due=plan.due||calAdd(plan.date,28);if(due>state.calendar.date)continue;
   items.push({id:'development:'+p.id+':'+plan.date,title:p.name+': utvärdera utvecklingsplanen',detail:'Väg genomförd träning, faktisk istid och attributförändring mot målet. Starta nästa period när du har granskat utfallet.',tag:'Utveckling',area:'development',owner:'Du',level:'high',score:78,due,action:{developmentPlayer:p.id}});
  }
+ items.push(...playerFollowupItems());
  const snoozed=state.office2?.agenda?.club===managerClub()?state.office2.agenda.snoozed||{}:{};
  const unique=new Map();
  for(const item of items){
@@ -88,6 +89,7 @@ function validateManagerSystemsSave(s){
  }
  for(const p of [...Object.values(s.clubRosters||{}).flat(),...(s.juniors?.roster||[])]){
   if(p.scoutingGames&&(!array(p.scoutingGames,20)||p.scoutingGames.some(g=>!date(g.date)||!Number.isFinite(g.seconds)||g.seconds<=0)))fail();
+  const f=p.roleFollowup;if(f&&(!object(f)||typeof f.club!=='string'||!date(f.date)||!date(f.due)||typeof f.topic!=='string'||!Number.isFinite(f.trust)||f.closed&&!date(f.closed)))fail();
   const d=p.developmentReview;if(d?.version===2&&(!date(d.date)||!date(d.due)||!object(d.attributes)||!Array.isArray(d.seen)||!Array.isArray(d.sessionsSeen)))fail();
  }
 }

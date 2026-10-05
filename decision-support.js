@@ -48,6 +48,7 @@ function relationshipDiscussRole(id){
  if(!p||!managerEmployed()||state.season.phase==='review'||state.live&&!state.live.finished||c.roleDiscussion||c.role!==p.promisedRole)return;
  const offer=relationshipRoleOffer(c,p);if(offer.promise)return;
  const text=offer.accepts?`Vi är överens om rollen ${offer.role}. Lön och avtalstid ändras inte. Förtroendet behöver fortsatt handling.`:'Spelaren avböjer mindre ansvar. Den tidigare rollen gäller och förtroendet minskar med 1.';
+ playerFollowupStart(p,'Diskutera rollen');
  c.roleDiscussion={date:state.calendar.date,role:offer.role,accepted:offer.accepts,text};
  if(offer.accepts){
   p.promisedRole=offer.role;p.squadRole=offer.role;p.social.missed=0;delete p.social.roleConcern;
