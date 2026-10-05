@@ -223,19 +223,21 @@ function submitFutureOffer(id,salary,years,role){
  if(r.deals.some(d=>samePlayerId(d.playerId,id)&&['pending','future_signed'].includes(d.status)))return recruitMessage('Ett erbjudande eller framtida avtal finns redan.');
  if(salary>calendarFutureRoom())return recruitMessage('Nästa säsongs beräknade löneutrymme räcker inte.');
  r.deals.unshift({id:r.nextId++,kind:'future',rolePromiseVersion:2,playerId:p.id,name:p.name,buyer:managerClub(),seller,fee:0,salary,years,role,due:r.tick+1,dueDate:calAdd(state.calendar.date,2),joinYear:state.season.year+1,status:'pending',rival:aiCompetitionFor(p,seller,'future')});
+ recruitmentRecord(r.deals[0],'Förhandsbud','Erbjudande om anslutning vid nästa säsongsskifte.');
  r.tab='deals';state.page='transfers';recruitMessage('Erbjudandet gäller från nästa säsong. Spelaren stannar i nuvarande klubb tills dess. Besked om två kalenderdagar.');
 }
 function calendarResolveFuture(d){
  if(!d||d.status!=='pending')return;
- const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null;
+ const p=findPlayerAnywhere(d.playerId),w=p?recruitPlayerWishes(p,d.buyer):null,termIssues=p?recruitmentTermsReview(p,d,d.buyer,w).issues:[];
  if(p)d.rival=aiCompetitionFor(p,d.seller,'future')||(d.rival?.aiOfferId?null:d.rival);
- let reason=!p||naActive(p)||playerLoan(p)||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w||d.salary<w.salary||SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)||d.years<w.minYears||d.years>w.maxYears?'Lön, roll eller avtalslängd motsvarar inte spelarens krav.':calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
- if(reason){d.status='rejected';d.reason=reason;recruitReport(`Besked om ${d.name}`,reason);return;}
+ let reason=!p||naActive(p)||playerLoan(p)||getPlayerClub(d.playerId)!==d.seller||p.contractYears!==1?'Spelarens kontraktsläge har ändrats.':p.futureContract?'Spelaren har redan valt en klubb.':!w?'Spelarens krav kan inte bedömas.':termIssues.length?termIssues.join(' '):calendarFutureRoom(d.buyer)+d.salary<d.salary?'Löneutrymmet för nästa säsong räcker inte längre.':'';
+ if(reason){d.status='rejected';d.reason=reason;recruitmentRecord(d,'Avslag',reason);recruitReport(`Besked om ${d.name}`,reason);return;}
  let buyer=d.buyer,terms=d;
  if(d.rival&&aiCanCommit(d.rival.club,p,0,d.rival.salary,{future:true,years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,d.buyer,d)+1){buyer=d.rival.club;terms=d.rival;d.status='rejected';d.reason=`Spelaren väljer ${buyer} nästa säsong.`;}
  else {d.status='future_signed';d.reason=`Klart för ${d.joinYear}/${String(d.joinYear+1).slice(-2)}. Spelaren ansluter vid säsongsskiftet.`;}
  p.futureContract={buyer,seller:d.seller,joinYear:d.joinYear,salary:terms.salary,years:terms.years,role:terms.role,rolePromiseVersion:d.rolePromiseVersion};
  aiMarkMarketPlayer(p.id,buyer);marketCloseCompeting(p.id,'future');
+ recruitmentRecord(d,d.status==='future_signed'?'Framtida avtal':'Annan klubb',d.reason);
  recruitReport(`Framtidsbesked: ${p.name}`,d.reason);
 }
 function calendarActivateFuture(){

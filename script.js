@@ -3449,8 +3449,8 @@ function submitContractRenewal(playerId,salary,years,role){
  if(p.renewalPausedUntil&&p.renewalPausedUntil>state.calendar.date)return fail(`Diskussionen kan återupptas ${calText(p.renewalPausedUntil)}.`);
  if(!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return fail('Ange giltig årslön, kontraktslängd och roll.');
  const budgetIssue=managerCommitmentIssue(p,0,salary,years,{renewal:true});if(budgetIssue)return fail(budgetIssue);
- let reason=salary<w.salary?`Motbud: ${money(w.salary)}/år.`:years<w.minYears||years>w.maxYears?`Spelaren vill ha ${w.minYears}–${w.maxYears} år, med hänsyn till sin ålder och trygghet.`:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?`Spelaren vill ha rollen ${w.role.toLowerCase()}.`:'';
- if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;
+ let reason=recruitmentTermsReview(p,{salary,years,role},managerClub(),w).issues.join(' ');
+ if(reason){p.renewalAttempts=(p.renewalAttempts||0)+1;n.attempts=p.renewalAttempts;n.salaryDemand=w.salary;n.years=Math.max(w.minYears,Math.min(w.maxYears,years));n.role=w.role;
   if(p.renewalAttempts>=3){p.renewalPausedUntil=calAdd(state.calendar.date,7);p.renewalAttempts=0;if(p.social)p.social.trust=trainingClamp(p.social.trust-2);reason+=` Tre avslag: agenten pausar till ${calText(p.renewalPausedUntil)}.`;}
   return fail(reason);
  }

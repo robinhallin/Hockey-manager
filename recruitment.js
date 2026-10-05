@@ -219,9 +219,9 @@ function submitRecruitOffer(id,fee,salary,years,role){
  const previous=r.deals.find(d=>samePlayerId(d.playerId,id)&&d.status==='rejected'&&d.due>r.tick-2);
  if(previous)return recruitMessage('Spelaren och klubben vill avvakta två marknadsomgångar efter avslaget.');
  const deal={dueDate:state.calendar?calAdd(state.calendar.date,2):null,id:r.nextId++,playerId:p.id,name:p.name,buyer:managerClub(),seller,fee,salary,years,role,status:'pending',due:r.tick+1,rival:recruitRival(p,seller)};
- r.deals.unshift(deal);if(state.transferNegotiation&&samePlayerId(state.transferNegotiation.playerId,id))state.transferNegotiation=null;r.tab='deals';state.page='transfers';recruitHub.drawer=null;recruitHub.affairs='open';recruitHub.deal='transfer:'+deal.id;r.focusDeal=deal.id;recruitMessage('Budet är skickat. Klubben och spelaren svarar om två kalenderdagar.');
+ recruitmentRecord(deal,'Bud skickat','Klubben och spelaren bedömer erbjudandet.');r.deals.unshift(deal);if(state.transferNegotiation&&samePlayerId(state.transferNegotiation.playerId,id))state.transferNegotiation=null;r.tab='deals';state.page='transfers';recruitHub.drawer=null;recruitHub.affairs='open';recruitHub.deal='transfer:'+deal.id;r.focusDeal=deal.id;recruitMessage('Budet är skickat. Klubben och spelaren svarar om två kalenderdagar.');
 }
-function cancelRecruitOffer(id){const d=state.recruitment.deals.find(d=>d.id===id);if(d?.status==='pending'){d.status='cancelled';delete d.counter;d.reason='Budet återkallat. Det reserverade utrymmet är frigjort.';recruitMessage(d.reason);}}
+function cancelRecruitOffer(id){const d=state.recruitment.deals.find(d=>d.id===id);if(d?.status==='pending'){d.status='cancelled';delete d.counter;d.reason='Budet återkallat. Det reserverade utrymmet är frigjort.';recruitmentRecord(d,'Återkallat',d.reason);recruitMessage(d.reason);}}
 function recruitDealTerms(d){return {fee:d.fee,salary:d.salary,years:d.years,role:d.role};}
 function recruitDealAgreed(d){
  if(d.counter)return false;
@@ -240,13 +240,13 @@ function recruitRegistrationIssue(d,p){
  if(!recruitCanSell(p,d.seller)||!recruitDealAgreed(d)&&!recruitWillingToSell(p,d.seller))return 'Klubben vill behålla spelaren: nyckelspelare eller för liten trupp.';
  return managerCommitmentIssue(p,d.fee,d.salary,d.years);
 }
-function recruitCloseDeal(d,reason){d.status='rejected';d.reason=reason;delete d.counter;state.recruitment.message=reason;recruitReport(`Besked om ${d.name}`,reason,{dealId:d.id});}
+function recruitCloseDeal(d,reason){d.status='rejected';d.reason=reason;delete d.counter;state.recruitment.message=reason;recruitmentRecord(d,'Avslag',reason);recruitReport(`Besked om ${d.name}`,reason,{dealId:d.id});}
 function recruitAgreeCounter(d,terms,reason){
  Object.assign(d,recruitDealTerms(terms));delete d.counter;
  d.negotiationRounds=Math.max(1,d.negotiationRounds||0);
  d.buyer??=managerClub();d.agreement={version:1,date:state.calendar.date,playerId:d.playerId,buyer:d.buyer,seller:d.seller,terms:recruitDealTerms(d)};
  d.dueDate=calAdd(state.calendar.date,1);d.due=state.recruitment.tick+1;
- d.reason=reason+' Registrering i morgon om budget och spelarens tillgänglighet fortfarande tillåter det.';
+ d.reason=reason+' Registrering i morgon om budget och spelarens tillgänglighet fortfarande tillåter det.';recruitmentRecord(d,'Överenskommelse',d.reason);
 }
 function resolveRecruitDeal(d){
  if(!d||d.status!=='pending'||loanLocked())return;
@@ -257,20 +257,18 @@ function resolveRecruitDeal(d){
  if(issue){recruitCloseDeal(d,issue);return;}
  if(!agreed){
    d.rival=aiCompetitionFor(p,d.seller)||(d.rival?.aiOfferId?null:d.rival);
-   const w=recruitPlayerWishes(p);
+   const assessment=recruitmentTermsReview(p,d);
    if(d.fee<recruitFee(p))reason='Klubben avvisar övergångssumman.';
-   else if(d.salary<w.salary)reason=`Spelaren begär minst ${money(w.salary)} per år med tanke på klubbens nivå och sin nuvarande lön.`;
-   else if(SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role))reason=`Spelaren vill ha rollen ${w.role.toLowerCase()}.`;
-   else if(d.years<w.minYears||d.years>w.maxYears)reason=`Spelaren önskar ${w.minYears}–${w.maxYears} år.`;
+   else if(assessment.issues.length)reason='Spelarens besked: '+assessment.issues.join(' ');
    else if(d.rival&&aiCanCommit(d.rival.club,p,d.rival.fee,d.rival.salary,{years:d.rival.years})&&recruitOfferScore(p,d.rival.club,d.rival)>recruitOfferScore(p,managerClub(),d)+1){
      if(transferRecruitPlayer(p,d.seller,d.rival.club,d.rival.fee,d.rival.salary,d.rival.years,d.rival.role))reason=`Spelaren valde ${d.rival.club}: deras kombination av roll, lön och ambitioner vägde tyngre.`;
    }
  }
  if(reason&&p&&getPlayerClub(p.id)===d.seller&&recruitWillingToSell(p,d.seller)&&!d.negotiationRounds&&d.salary>=recruitPlayerWishes(p).salary*.65&&d.fee>=recruitFee(p)*.65&&!managerCommitmentIssue(p,d.fee,d.salary,d.years)){
-  const w=recruitPlayerWishes(p);d.original={fee:d.fee,salary:d.salary,years:d.years,role:d.role};d.counter={fee:Math.max(d.fee,recruitFee(p)),salary:Math.max(d.salary,w.salary),years:Math.max(w.minYears,Math.min(w.maxYears,d.years)),role:SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)?w.role:d.role};Object.assign(d,d.counter);d.dueDate=calAdd(state.calendar.date,7);d.reason=reason+' Klubben och agenten lämnar ett motbud som gäller i sju dagar.';state.recruitment.message=d.reason;recruitReport(`Motbud: ${d.name}`,d.reason,{dealId:d.id});return;
+  const w=recruitPlayerWishes(p);d.original={fee:d.fee,salary:d.salary,years:d.years,role:d.role};d.counter={fee:Math.max(d.fee,recruitFee(p)),salary:Math.max(d.salary,w.salary),years:Math.max(w.minYears,Math.min(w.maxYears,d.years)),role:SQUAD_ROLES.indexOf(d.role)<SQUAD_ROLES.indexOf(w.role)?w.role:d.role};Object.assign(d,d.counter);d.dueDate=calAdd(state.calendar.date,7);d.reason=reason+' Klubben och agenten lämnar ett motbud som gäller i sju dagar.';state.recruitment.message=d.reason;recruitmentRecord(d,'Motbud',d.reason);recruitReport(`Motbud: ${d.name}`,d.reason,{dealId:d.id});return;
  }
  if(reason){recruitCloseDeal(d,reason);return;}
- if(!transferRecruitPlayer(p,d.seller,managerClub(),d.fee,d.salary,d.years,d.role)){recruitCloseDeal(d,'Övergången kunde inte registreras. Spelarens situation eller budgeten har ändrats.');return;}d.status='signed';d.reason='Övergången är registrerad på de accepterade villkoren.';state.recruitment.message=`${d.name} är klar. ${d.reason}`;
+ if(!transferRecruitPlayer(p,d.seller,managerClub(),d.fee,d.salary,d.years,d.role)){recruitCloseDeal(d,'Övergången kunde inte registreras. Spelarens situation eller budgeten har ändrats.');return;}d.status='signed';d.reason='Övergången är registrerad på de accepterade villkoren.';recruitmentRecord(d,'Registrerad',d.reason);state.recruitment.message=`${d.name} är klar. ${d.reason}`;
  recruitReport(`${d.name} är klar`,`${d.name} ansluter från ${d.seller}. Avtal: ${d.years} år, ${money(d.salary)}/år, ${d.role.toLowerCase()}. Rollen följs upp av tränarteamet.`);
 }
 function recruitCounterDifferences(d){
@@ -285,8 +283,9 @@ function reviseRecruitCounter(id,salary,years,role){
  const w=recruitPlayerWishes(p),score=recruitOfferScore(p,managerClub(),{...d,salary,years,role}),target=recruitOfferScore(p,managerClub(),{...d,...d.counter});
  d.negotiationRounds=(d.negotiationRounds||0)+1;if(d.negotiationRounds>2){recruitCloseDeal(d,'Agenten avslutar förhandlingen efter flera rundor utan överenskommelse.');recruitMessage(d.reason);return true;}
  d.original=terms;
+ const proposal={...d,...terms};recruitmentRecord(proposal,'Reviderat bud','Du föreslår en ny kombination av lön, ansvar och avtalstid.');d.negotiationHistory=proposal.negotiationHistory;
  if(score>=target-2){recruitAgreeCounter(d,terms,'Agenten accepterar den reviderade helheten.');}
- else{d.counter={fee:d.fee,salary:Math.max(salary,Math.round((salary+w.salary)/2/10000)*10000),years:years<w.minYears?w.minYears:Math.min(w.maxYears,years),role:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?w.role:role};Object.assign(d,d.counter);d.dueDate=calAdd(state.calendar.date,4);d.reason='Agenten accepterar delar av upplägget men kontrar på de återstående villkoren.';}
+ else{d.counter={fee:d.fee,salary:Math.max(salary,Math.round((salary+w.salary)/2/10000)*10000),years:years<w.minYears?w.minYears:Math.min(w.maxYears,years),role:SQUAD_ROLES.indexOf(role)<SQUAD_ROLES.indexOf(w.role)?w.role:role};Object.assign(d,d.counter);d.dueDate=calAdd(state.calendar.date,4);d.reason='Agenten accepterar delar av upplägget men kontrar på de återstående villkoren. '+recruitCounterDifferences(d).map(x=>x.label+': '+x.from+' → '+x.to).join('. ');recruitmentRecord(d,'Nytt motbud',d.reason);}
  recruitMessage(d.reason);return true;
 }
 function acceptRecruitCounter(id){
