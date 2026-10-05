@@ -80,7 +80,7 @@ function staffProposalAnswer(id,action){
    for(const [id] of JSON.parse(p.snapshot)){const player=juniorById(id);if(player){player.trainingLoad=player.fatigue>=55?'rest':'light';player.juniorManualLoad=true;player.juniorAutoLoad=false;player.juniorManualLoadDate=state.calendar.date;}}
   }else return false;
  }
- p.status=action==='accept'?'accepted':'declined';p.decided=state.calendar.date;staffRecord(p.area,`${action==='accept'?'Godkänt':'Avböjt'}: ${p.text}`);save();render();return true;
+ p.status=action==='accept'?'accepted':'declined';p.decided=state.calendar.date;staffRecord(p.area,`${action==='accept'?'Godkänt':'Avböjt'}: ${p.text}`);managerAgendaReconcile();save();render();return true;
 }
 function staffProposalsView(){
  const rows=(state.office2?.proposals||[]).filter(p=>p.club===managerClub()).slice(0,12);

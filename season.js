@@ -115,6 +115,7 @@ function closeSeason(){
  if(goalLeaders[0])careerRecord('manager-season-goals','Flest mål under en säsong',goalLeaders[0].goals,goalLeaders[0].name,{club:managerClub(),playerId:goalLeaders[0].id});
  if(s.champion)careerHistoryEvent('champion',{club:s.champion,title:`${s.champion} blir mästare`,detail:`Vann mästerskapet ${seasonLabel()}.`});
  const record={year:s.year,champion:s.champion,club:managerClub(),position:seasonRank(managerClub()),standings:JSON.parse(JSON.stringify(s.standings)),series:JSON.parse(JSON.stringify(s.series)),players:playerStats,regularPlayers:s.regularStats,goals:s.boardResult,money:state.money,league:leagueOf(),movement:state.world?.movement?{...state.world.movement}:null,awards,records:JSON.parse(JSON.stringify(ensureCareerHistory().records))};
+ record.decisions=seasonDecisionRows();
  if(!s.archive.some(a=>a.year===s.year))s.archive.unshift(record);
  managerMessage(`review:${s.year}`,`${s.champion} är mästare ${seasonLabel()}`,`Säsongen är avslutad. Din placering i grundserien: ${record.position}. Styrelsens mål: ${record.goals.filter(g=>g.met).length} av ${record.goals.length} uppnådda. Öppna Säsong för utvärdering och nästa försäsong.`,'Säsongsutvärdering',{link:'season'});
  managerSeasonReview();
