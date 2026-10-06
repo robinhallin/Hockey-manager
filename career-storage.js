@@ -1,6 +1,7 @@
 "use strict";
 // Lossless, synchronous storage fallback. Exported files remain ordinary JSON.
-const CAREER_PACK_FORMAT='hockey-manager-lzw16-v3';
+const CAREER_PACK_FORMAT='hockey-manager-lzw16-v4';
+const CAREER_INTERN_PACK_FORMAT='hockey-manager-lzw16-v3';
 const CAREER_RESET_PACK_FORMAT='hockey-manager-lzw16-v2';
 const CAREER_LEGACY_PACK_FORMAT='hockey-manager-lzw16-v1';
 const careerPackedKeys=new Set();
@@ -38,19 +39,26 @@ function careerPack(original){
   else {codes.push(65535);dictionary.clear();next=256;}
   prefix=value;
  };
- for(let i=0;i<text.length;i++){const c=text.charCodeAt(i);byte(c&255);byte(c>>>8);}
+ // JSON text is well-formed Unicode. UTF-8 avoids storing a zero byte after
+ // every ASCII digit/key; no fields or historical records are discarded.
+ for(const char of text){const c=char.codePointAt(0);
+  if(c<128)byte(c);
+  else if(c<2048){byte(192|(c>>6));byte(128|(c&63));}
+  else if(c<65536){if(c>=55296&&c<=57343)throw Error('Ogiltig Unicode i spartext.');byte(224|(c>>12));byte(128|((c>>6)&63));byte(128|(c&63));}
+  else {byte(240|(c>>18));byte(128|((c>>12)&63));byte(128|((c>>6)&63));byte(128|(c&63));}
+ }
  if(prefix!==null)codes.push(prefix);
  const chunks=[];for(let i=0;i<codes.length;i+=8192)chunks.push(String.fromCharCode(...codes.slice(i,i+8192)));
  return JSON.stringify({format:CAREER_PACK_FORMAT,length:original.length,encodedLength:text.length,dictionary:interned.dictionary,hash:careerStorageHash(original),data:chunks.join('')});
 }
 function careerUnpack(value){
- const interned=value?.format===CAREER_PACK_FORMAT;
+ const utf8=value?.format===CAREER_PACK_FORMAT,interned=utf8||value?.format===CAREER_INTERN_PACK_FORMAT;
  const resettable=interned||value?.format===CAREER_RESET_PACK_FORMAT;
  if(!resettable&&value?.format!==CAREER_LEGACY_PACK_FORMAT)return value;
  if(!Number.isInteger(value.length)||value.length<0||value.length>32000000||typeof value.data!=='string')throw Error('Ogiltig komprimerad sparfil.');
  const encodedLength=interned?value.encodedLength:value.length;
  if(!Number.isInteger(encodedLength)||encodedLength<0||encodedLength>value.length*2)throw Error('Ogiltig textlängd i sparfilen.');
- const dictionary=Array.from({length:256},(_,i)=>String.fromCharCode(i));let previous='',next=256,bytes=0,low=null;const chunks=[];let chunk='';
+ const dictionary=Array.from({length:256},(_,i)=>String.fromCharCode(i));let previous='',next=256,bytes=0,low=null,remaining=0,point=0,minimum=0;const chunks=[];let chunk='';
  for(let i=0;i<value.data.length;i++){
   const code=value.data.charCodeAt(i);
   // Old saves can use 65535 as data. Only v2 and newer reserve it to reset a full
@@ -58,12 +66,22 @@ function careerUnpack(value){
   if(resettable&&code===65535){dictionary.length=256;previous='';next=256;continue;}
   const entry=dictionary[code]??(code===next&&previous?previous+previous[0]:null);
   if(entry===null||entry===undefined)throw Error('Skadad komprimerad sparfil.');
-  bytes+=entry.length;if(bytes>encodedLength*2)throw Error('Felaktig sparfilsstorlek.');
-  for(let j=0;j<entry.length;j++){const b=entry.charCodeAt(j);if(low===null)low=b;else{chunk+=String.fromCharCode(low|(b<<8));low=null;if(chunk.length>=8192){chunks.push(chunk);chunk='';}}}
+  bytes+=entry.length;if(bytes>encodedLength*(utf8?3:2))throw Error('Felaktig sparfilsstorlek.');
+  for(let j=0;j<entry.length;j++){const b=entry.charCodeAt(j);
+   if(utf8){
+    if(remaining){if(b<128||b>191)throw Error('Skadad UTF-8 i sparfilen.');point=(point<<6)|(b&63);if(--remaining===0){if(point<minimum||point>1114111||point>=55296&&point<=57343)throw Error('Ogiltigt UTF-8-tecken.');chunk+=String.fromCodePoint(point);}}
+    else if(b<128)chunk+=String.fromCharCode(b);
+    else if(b>=194&&b<=223){point=b&31;remaining=1;minimum=128;}
+    else if(b>=224&&b<=239){point=b&15;remaining=2;minimum=2048;}
+    else if(b>=240&&b<=244){point=b&7;remaining=3;minimum=65536;}
+    else throw Error('Ogiltig UTF-8-start.');
+   }else if(low===null)low=b;else{chunk+=String.fromCharCode(low|(b<<8));low=null;}
+   if(chunk.length>=8192){chunks.push(chunk);chunk='';}
+  }
   if(previous&&next<(resettable?65535:65536))dictionary[next++]=previous+entry[0];previous=entry;
  }
  chunks.push(chunk);const encoded=chunks.join('');
- if(low!==null||encoded.length!==encodedLength)throw Error('Sparfilens textlängd stämmer inte.');
+ if(low!==null||remaining||encoded.length!==encodedLength)throw Error('Sparfilens textlängd stämmer inte.');
  const text=interned?careerExpand(encoded,value.dictionary,value.length):encoded;
  if(text.length!==value.length||careerStorageHash(text)!==value.hash)throw Error('Sparfilens kontrollsumma stämmer inte.');
  return JSON.parse(text);

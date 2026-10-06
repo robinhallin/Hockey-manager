@@ -6,6 +6,11 @@ body .game-shell:has(.desk-page[data-area=recruitment]) .continue-button{backgro
 body .game-shell .desk-page[data-area=recruitment]>.desk-subnav{margin:0;padding:0 205px 0 0;min-height:32px}
 body .game-shell .desk-page[data-area=recruitment]>.entity-search{margin:-31px 0 0 auto;padding:4px 0 5px;width:190px;position:relative;z-index:2;border:0}
 body .game-shell .desk-page[data-area=recruitment]>.entity-search[open]{width:100%;margin:10px 0;padding:12px;border:1px solid var(--ui-border);background:var(--ui-panel)}
+body .game-shell .desk-page[data-area=recruitment] .na-market-desk{flex-shrink:0;margin:0 0 10px;border:1px solid #344953;border-radius:4px;background:#1e333f}
+body .game-shell .desk-page[data-area=recruitment] .na-market-desk summary{padding:10px 14px;cursor:pointer;color:#e0e9ef}
+body .game-shell .desk-page[data-area=recruitment] .na-market-desk>div{max-height:190px;overflow:auto;padding:0 14px 12px}
+body .game-shell .desk-page[data-area=recruitment] .na-market-desk p{padding:5px 0}
+body .game-shell .desk-page[data-area=recruitment] .na-market-desk small{display:block;margin-top:8px;color:#a7bac7}
 body .game-shell .desk-page[data-area=recruitment] .recruitment-desk{
  --rd-line:#344953;--rd-muted:#a7bac7;--rd-text:#e0e9ef;
  display:flex;flex-direction:column;gap:0;min-width:0;height:calc(100dvh - 118px);min-height:535px;max-width:1800px;margin:0 auto;font:12px/1.4 var(--ui-font);color:var(--rd-text);letter-spacing:normal;

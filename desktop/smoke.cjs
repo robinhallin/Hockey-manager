@@ -66,7 +66,7 @@ async function close(){
   await page.locator('.sw-table-help summary').click();
   assert.match(await page.locator('.squad-workspace').innerText(),/0,0–10,0/);
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Översikt',exact:true}).click();
-  assert.equal(await page.locator('.desk-subnav button').count(),3);
+  assert.deepEqual(await page.locator('.desk-subnav button').allTextContents(),['Tränarkontoret','Kalender']);
   await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Säsongens historier',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-stories .stories-page').waitFor();
   await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
@@ -74,7 +74,8 @@ async function close(){
   await page.locator('#overview-press').getByRole('button',{name:'Supporterpanelen',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-press .press-fans').waitFor();
   await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
-  await page.getByRole('button',{name:'Stab & uppföljning',exact:true}).click();
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Klubben',exact:true}).click();
+  await page.locator('.desk-subnav').getByRole('button',{name:'Stab & uppföljning',exact:true}).click();
   assert.match(await page.locator('.staff-coverage').innerText(),/3 spelklara av 3/);
   assert.equal(await page.locator('.staff-concrete .workspace-tabs').count(),0);
   const staffFont=await page.locator('.staff-concrete h1').evaluate(el=>getComputedStyle(el).fontFamily);
@@ -187,6 +188,7 @@ async function close(){
   await require('./swiss-ui.cjs')(page,out);
   await require('../scripts/manager-systems-browser-checks.cjs').checkManagerSystems(page);
   await require('../scripts/usability-browser-checks.cjs').checkUsability(page,out);
+  await require('../scripts/nhl-market-browser-checks.cjs').checkNHLMarket(page,out);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
   fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['3D live rendering, cameras, non-mutating view switch and GPU-loss fallback','Swiss club choice, 14 clubs, 52-round schedule, league workspace and disk reload','August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','all lines and back pairs, actual drag/keyboard/candidate swaps, undo, locks and assistant','PP/BP unit builder, role candidates, guarded swaps and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','real recruitment counter, exact live forecast, accepted revision, reload and registered affair','search advanced filters collapsed and no horizontal overflow','J20 season totals, frozen annual report and reload in development workspace','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','full match with frozen task grades and match-specific summary in desktop and archive','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));

@@ -20,7 +20,7 @@ function nhlEligible(p,year){
  // Older real-world draft status is absent from the source database: never silently redraft it.
  return !p.nhlDraft&&Number.isFinite(first)&&year>=first&&year<=first+2&&(p.fictional||first>2026);
 }
-function nhlRightsActive(p,date=state.calendar?.date){return Boolean(p?.nhlDraft&&date<=p.nhlDraft.expires);}
+function nhlRightsActive(p,date=state.calendar?.date){return Boolean(p?.nhlDraft&&!p.naRights&&!p.naHistory?.length&&date<=p.nhlDraft.expires);}
 function nhlOwned(p){return managerRoster().some(q=>samePlayerId(q.id,p.id))||state.juniors?.roster.some(q=>samePlayerId(q.id,p.id));}
 function nhlEvidence(p,year){
  const keys=Object.keys(p.attributes||{}),baseline=p.trainingBaseline||p.academy?.baseline||p.attributes||{};
@@ -125,12 +125,13 @@ function nhlPlanView(p){
 function nhlProfile(p){
  if(!state.nhl)return '';
  if(naActive(p))return naContractView(p);
+ if(p.naRights||p.naHistory?.length)return naStatusView(p);
  const d=p.nhlDraft;let text;
  if(d)text=`${d.year} · ${d.club} · runda ${d.round}, val ${d.overall}. ${nhlRightsActive(p)?`NHL-rättigheter till ${calText(d.expires)}`:'NHL-rättigheterna har löpt ut'}. Klubbavtalet är separat.`;
  else if(!p.fictional&&nhlFirstYear(p)<=2026)text='Tidigare NHL-draft och rättigheter är inte verifierade i startdatabasen. Spelaren draftas därför inte om av denna modell.';
  else if(nhlEligible(p,state.nhl.draft.year))text=`Bevakas inför draften ${state.nhl.draft.year}. Scoutprognosen är osäker.`;
  else return '';
- return `<section class="nhl-profile"><h3>NHL & draft</h3><p>${trainingSafe(text)}</p>${state.page==='nhl'?'':'<button class="desk-link" onclick="deskNavigate(\'nhl\')">Öppna draftbevakningen →</button>'}</section>`;
+ return `<section class="nhl-profile"><h3>NHL & draft</h3><p>${trainingSafe(text)}</p>${naReleaseView(p)}${state.page==='nhl'?'':'<button class="desk-link" onclick="deskNavigate(\'nhl\')">Öppna draftbevakningen →</button>'}</section>`;
 }
 function nhlCalendar(){const w=state.nhl;if(!w)return '';const own=internationalPlayers().filter(r=>nhlOwned(r.p)&&r.p.nhlPlan?.status==='active').length;return `<section class="mw-panel nhl-calendar"><h2>NHL & draft</h2><p>Draft ${calText(w.draft.date)} · ${own} pågående utvecklingslöften. Junidraften genomförs även när du går vidare till nästa försäsong.</p><button class="desk-link" onclick="deskNavigate('nhl')">Följ draftåret →</button><button class="desk-link" onclick="nasOpen()">NHL/AHL – matcher och tabeller →</button></section>`;}
 function nhlView(){return worldDeskNHL();}
