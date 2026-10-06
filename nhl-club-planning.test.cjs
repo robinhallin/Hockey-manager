@@ -11,7 +11,7 @@ test('contingency keeps candidates through reload, blocks early negotiation and 
  const a=game(),r=a.run;r('naSetClubPlan(p.id,"after");naPlanCandidate(p.id,candidate.id);globalThis.id=p.id;globalThis.cid=candidate.id;save()');
  const b=boot(a.storage.value,{production:true});assert.equal(b.run('naClubPlans()[0].candidates.length'),1);assert.equal(r('naPlanOpenCandidate(p.id,candidate.id)'),false);
  r('globalThis.o=naOffer(p,managerClub());naAnswer(o.id,"move");naClubPlanningDay()');assert.equal(r('naPlanStatus(naClubPlan(p.id))'),'Invänta klar avgång');
- r('state.calendar.date=o.dueDate;naDay()');assert.equal(r('o.status'),'signed');assert.equal(r('naPlanStatus(naClubPlan(id))'),'Avgång klar');assert.equal(r('naPlanOpenCandidate(id,cid)'),true);assert.equal(r('recruitHub.panel'),'transfer');
+ r('state.calendar.date=o.dueDate;naDay()');assert.equal(r('o.status'),'signed');assert.equal(r('naPlanStatus(naClubPlan(id))'),'Avgång klar');assert.equal(r('naPlanOpenCandidate(id,cid)'),true);assert.equal(r('recruitHub.panel'),'transfer');assert.equal(r('recruitHub.drawer'),'player');assert.match(r('recruitmentDeskView()'),/Skicka köpbud/);
  r('globalThis.before=JSON.stringify(state);naClubPlanningView();naClubPlanningDay()');assert.equal(r('JSON.stringify(state)'),r('before'));
 });
 test('registered loanback does not activate an immediate replacement purchase',()=>{

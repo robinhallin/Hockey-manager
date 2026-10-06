@@ -50,7 +50,7 @@ function naPlanCandidate(id,candidate){
 function naPlanOpenCandidate(id,candidate){
  const a=naClubPlan(id),p=naFind(candidate);if(!a||!p||naLocked()||!managerEmployed()||!a.candidates.some(x=>samePlayerId(x,p.id))||a.mode!=='after'||naPlanStatus(a)!=='Avgång klar')return false;
  if(naActive(p)||playerLoan(p)||getPlayerClub(p.id)===managerClub()||p.futureContract)return naNotice('Kandidatens avtalsläge har ändrats. Välj en annan ersättare.');
- hubPick(p.id);hubPanel('transfer');deskNavigate('transfers','search');return true;
+ deskNavigate('transfers','needs');hubPick(p.id);hubPanel('transfer');return true;
 }
 function naClubPlanningDay(){
  if(naLocked()||!managerEmployed())return;
