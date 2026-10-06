@@ -15,9 +15,9 @@ function recruitPackageDecision(p,club,offer,w=recruitPlayerWishes(p,club)){
  if(offer.years<w.minYears||offer.years>w.maxYears)issues.push(`Spelaren håller fast vid ${w.minYears}–${w.maxYears} år.`);
  if(roleGap>1||roleGap>0&&identity.ambition>=14)issues.push('Spelaren accepterar inte den minskningen av ansvar, även med högre lön.');
  const security=offer.years>=w.minYears&&offer.years<=w.maxYears?Math.min(6,Math.max(0,offer.years-w.minYears)*3)*identity.securityWeight:0;
- const value=(ratio-1)*40*identity.salaryWeight-roleGap*12*identity.roleWeight+security-credibility.excess*4;
+ const returning=naReturnPreference(p,club),value=(ratio-1)*40*identity.salaryWeight-roleGap*12*identity.roleWeight+security-credibility.excess*4+returning.score*.5;
  if(!issues.length&&value< -1)issues.push('Helheten kompenserar inte för lägre lön, mindre ansvar eller konkurrensen om rollen.');
- return {accepted:!issues.length,issues,value,credibility,explanation:issues.length?issues.join(' '):'Spelaren accepterar helheten av lön, ansvar och trygghet inom sina personliga gränser.'};
+ return {accepted:!issues.length,issues,value,credibility,explanation:(issues.length?issues.join(' '):'Spelaren accepterar helheten av lön, ansvar och trygghet inom sina personliga gränser.')+(returning.text?' '+returning.text:'')};
 }
 function recruitSellerPosition(p,seller){
  if(seller===WORLD_FREE)return {fee:0,text:'Kontraktslös: ingen övergångssumma eller säljande klubb.'};

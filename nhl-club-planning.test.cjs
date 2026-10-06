@@ -46,3 +46,9 @@ test('return preference reads only recorded home-club relationship and cannot ov
 test('planning renders player links without leaking or mutating hidden scouting knowledge',()=>{
  const a=game(),r=a.run;r('naSetClubPlan(p.id,"watch");naPlanCandidate(p.id,candidate.id);globalThis.before=JSON.stringify(state)');const html=r('naClubPlanningView()');assert.match(html,/data-player-id/);assert.doesNotMatch(html,/undefined|NaN/);assert.equal(r('JSON.stringify(state)'),r('before'));
 });
+test('a strained return relationship can reject a marginal package but cannot remove salary or role floors',()=>{
+ const a=game(),r=a.run;
+ r("p.naHistory=[{homeClub:managerClub(),homeRelation:{recorded:true,trust:24}}];state.clubRosters[managerClub()]=managerRoster().filter(q=>q!==p);worldRelease(p,managerClub(),'Controlled returnee');globalThis.w=recruitPlayerWishes(p);globalThis.offer={salary:w.salary,years:w.minYears,role:w.role};globalThis.result=recruitPackageDecision(p,managerClub(),offer)");
+ assert.equal(r('result.accepted'),false);assert.match(r('result.explanation'),/ansträngd/);
+ r('p.naHistory[0].homeRelation.trust=100');assert.equal(r('recruitPackageDecision(p,managerClub(),{...offer,salary:w.salary*.5}).accepted'),false);
+});
