@@ -28,7 +28,7 @@ function naReservations(team,exclude){
 }
 function naFunded(team,terms,exclude){
  const b=naBudget(team),r=naReservations(team,exclude);
- return b.contracts+r.contracts<NA_MARKET_RULES.contracts&&b.committed+r.wages+terms.nhlSalary<=NA_MARKET_RULES.wages&&b.fees+r.fees+terms.fee<=NA_MARKET_RULES.fees;
+ return b.contracts+r.contracts<NA_MARKET_RULES.contracts&&b.committed+r.wages+naRenewalReserved(team)+terms.nhlSalary<=NA_MARKET_RULES.wages&&b.fees+r.fees+terms.fee<=NA_MARKET_RULES.fees;
 }
 function naPlayerDecision(p,o,mode){
  const identity=playerPreferenceProfile(p,o.origin),ambition=identity.ambition??10,loyalty=identity.loyalty??10;
@@ -43,9 +43,9 @@ function naPlayerDecision(p,o,mode){
  return {accepted:score>=3,score,expected,reason:reasons.join(' ')};
 }
 function naApprove(o,mode){
- if(!o||o.status!=='pending'||o.stage==='player'||!['move','loanback'].includes(mode)||naLocked()||!naWindow()||state.calendar.date>o.expires)return false;
- const p=naFind(o.playerId);if(!p||!naInterested(p)||!naCanLeave(p,o.origin)||mode==='loanback'&&!o.loanback)return false;
- if(!nhlOwned(p)&&mode==='move'&&naDepartureRisk(p,o.origin))return false;
+ if(!o||o.status!=='pending'||o.stage==='player'||!['move','loanback'].includes(mode)||naLocked()||state.calendar.date>o.expires)return false;
+ const p=naFind(o.playerId);if(!p||!naOfferWindow(p,o)||!naInterested(p)||!naCanLeave(p,o.origin)||mode==='loanback'&&!o.loanback)return false;
+ if(!o.release?.automatic&&!nhlOwned(p)&&mode==='move'&&naDepartureRisk(p,o.origin))return false;
  const existingCost=(state.clubRosters[o.origin]||[]).includes(p)||p.academy?.seniorContract?p.salary:0;
  if(mode==='loanback'&&(!state.world.membership[o.origin]||!naLoanRoom(p,o.origin,o.share,existingCost)))return false;
  if(internationalPlayers().find(r=>samePlayerId(r.p.id,p.id))?.club!==o.origin)return false;
@@ -71,7 +71,7 @@ function naLoanDecision(p,club){
  const nhlReady=naAbility(p)>=14.5,covered=peers.some(q=>naAbility(q)>=naAbility(p));
  if(nhlReady&&!covered)return {accepted:false,reason:'NHL-klubben behöver spelaren som närmaste uppflyttningsalternativ.'};
  if(!loanFit(p,club).interested)return {accepted:false,reason:'Spelaren ser inte rätt roll eller utvecklingsmiljö hos klubben.'};
- return {accepted:true,reason:'NHL-klubben godkänner utvecklingsmiljön och spelaren accepterar rollen.'};
+ return {accepted:true,reason:c.development?.seekingEurope?'Spelaren önskar Europalån och NHL-klubben godkänner utvecklingsmiljön.':'NHL-klubben godkänner utvecklingsmiljön och spelaren accepterar rollen.'};
 }
 function naProcessLoans(date){
  if(naLocked())return;
@@ -97,17 +97,17 @@ function naCancelLoan(id){
 }
 function naRightsAtExpiry(p,c){
  // Deliberately a retained-rights game model, not an assertion of legal RFA eligibility.
- const retained=p.age<27&&naAbility(p)>=12;
+ const retained=c.renewal?c.renewal.status==='retained':p.age<27&&naAbility(p)>=12;
  p.naRights={team:retained?c.team:null,kind:retained?'retained':'free',until:`${state.season.year+1}-06-30`,reason:retained?'NHL-klubben behåller förhandlingsrätten i spelmodellen. Ett europeiskt avtal är tillåtet.':'NHL-klubben släpper rättigheterna i spelmodellen.'};
 }
 function naStatusView(p){
  const rights=naRights(p),c=p.naContract,origin=getPlayerClub(p.id),o=state.northAmerica?.offers.find(o=>samePlayerId(o.playerId,p.id)&&o.status==='pending');
  const blocked=c?'Köp blockerat av NHL-avtal. Pröva lån eller invänta kontraktsslut.':o?'Ett NHL-erbjudande pågår. Ingen flytt är klar.':rights.team?'NHL-rättigheten begränsar NHL-valet, inte ett europeiskt kontrakt.':'Ingen aktiv NHL-rättighet registrerad.';
- return `<section class="sc-card na-status"><h3>NHL · avtalsläge</h3><dl><dt>Registrerad hos</dt><dd>${trainingSafe(origin||'Ingen klubb')}</dd><dt>NHL-rättighet</dt><dd>${trainingSafe(rights.team||'Fri NHL-marknad')}${rights.until?' · till '+calText(rights.until):''}</dd><dt>Kontraktsägare</dt><dd>${trainingSafe(c?.team||origin||'Ingen')}</dd></dl><p>${blocked}</p>${c?`<p>${({'entry':'Entry-level','one-way':'Envägsavtal','two-way':'Tvåvägsavtal'})[c.contractType]||'Äldre utvecklingsavtal'} · ${trainingSafe(c.assignmentReason||'Placering bedöms efter avtal.')}</p>`:''}${o?`<p>${o.stage==='player'?'Spelaren och agenten lämnar besked '+calText(o.dueDate):'Klubbens beslut väntar'}.</p>`:''}<button class="rd-link" onclick="naOpen()">Granska NHL-affärer →</button></section>`;
+ return `<section class="sc-card na-status"><h3>NHL · avtalsläge</h3><dl><dt>Registrerad hos</dt><dd>${trainingSafe(origin||'Ingen klubb')}</dd><dt>NHL-rättighet</dt><dd>${trainingSafe(rights.team||'Fri NHL-marknad')}${rights.until?' · till '+calText(rights.until):''}</dd><dt>Kontraktsägare</dt><dd>${trainingSafe(c?.team||origin||'Ingen')}</dd></dl><p>${blocked}</p>${c?`<p>${({'entry':'Entry-level','one-way':'Envägsavtal','two-way':'Tvåvägsavtal'})[c.contractType]||'Äldre utvecklingsavtal'} · ${trainingSafe(c.assignmentReason||'Placering bedöms efter avtal.')}</p>`:''}${o?`<p>${o.stage==='player'?'Spelaren och agenten lämnar besked '+calText(o.dueDate):'Klubbens beslut väntar'}.</p>`:''}<button class="rd-link" onclick="naOpen()">Granska NHL-affärer →</button>${naReleaseView(p)}</section>`;
 }
 function naRecruitmentView(){
  const w=state.northAmerica;if(!w)return '';
  const offers=w.offers.filter(o=>o.origin===managerClub()&&o.status==='pending'),loans=(w.loanRequests||[]).filter(o=>o.borrower===managerClub()).slice(0,8);
  const returns=(state.playerWorld?.freeAgents||[]).filter(p=>p.naHistory?.length).slice(0,8);
- return `<details class="sc-card na-market-desk"><summary>NHL · ${offers.length} pågående affärer · ${loans.filter(o=>o.status==='pending').length} låneförfrågningar · ${returns.length} återvändare</summary><div><p>${offers.length} pågående utlandsaffärer. Klubbeslut, spelarbeslut och registrering är separata steg.</p>${offers.map(o=>`<p>${playerReference(o.playerId,o.name)} · ${trainingSafe(o.team)} · ${o.stage==='player'?'Spelarbesked '+calText(o.dueDate):'Ditt beslut senast '+calText(o.expires)} · ${careerMoney(o.fee)} i möjlig ersättning</p>`).join('')}${loans.map(o=>`<p>${playerReference(o.playerId,o.name)} · låneförfrågan: ${o.status==='pending'?'besked '+calText(o.dueDate):o.status==='signed'?'registrerat lån':trainingSafe(o.reason)}${o.status==='pending'?` <button class="rd-link" onclick="naCancelLoan(${o.id})">Dra tillbaka</button>`:''}</p>`).join('')}<button class="rd-link" onclick="naOpen()">Hantera NHL-affärer och lån →</button>${returns.length?`<h3>Återvändare utan klubbavtal</h3>${returns.map(p=>`<p>${playerReference(p.id,p.name)} · ${trainingSafe(naRights(p).team?'NHL-rättigheter hos '+naRights(p).team:'Fri NHL-marknad')} · <button class="rd-link" onclick="recruitOpen('${haEscape(p.id)}')">Scouting och kontraktsförhandling →</button></p>`).join('')}`:''}<small>Rättigheter och ekonomiska ramar följer den dokumenterade spelmodellen, inte hela NHL:s kollektivavtal.</small></div></details>`;
+ return `<details class="sc-card na-market-desk"><summary>NHL · ${offers.length} pågående affärer · ${loans.filter(o=>o.status==='pending').length} låneförfrågningar · ${returns.length} återvändare</summary><div><p>${offers.length} pågående utlandsaffärer. Klubbeslut, spelarbeslut och registrering är separata steg.</p>${offers.map(o=>`<p>${playerReference(o.playerId,o.name)} · ${trainingSafe(o.team)} · ${o.stage==='player'?'Spelarbesked '+calText(o.dueDate):'Ditt beslut senast '+calText(o.expires)} · ${careerMoney(o.fee)} i möjlig ersättning</p>`).join('')}${loans.map(o=>`<p>${playerReference(o.playerId,o.name)} · låneförfrågan: ${o.status==='pending'?'besked '+calText(o.dueDate):o.status==='signed'?'registrerat lån':trainingSafe(o.reason)}${o.status==='pending'?` <button class="rd-link" onclick="naCancelLoan(${o.id})">Dra tillbaka</button>`:''}</p>`).join('')}<button class="rd-link" onclick="naOpen()">Hantera NHL-affärer och lån →</button>${returns.length?`<h3>Återvändare utan klubbavtal</h3>${returns.map(p=>`<p>${playerReference(p.id,p.name)} · ${(state.clubAI?.offers||[]).filter(o=>o.status==='pending'&&samePlayerId(o.playerId,p.id)).length} konkurrerande bud · ${trainingSafe(naRights(p).team?'NHL-rättigheter hos '+naRights(p).team:'Fri NHL-marknad')} · <button class="rd-link" onclick="recruitOpen('${haEscape(p.id)}')">Scouting och kontraktsförhandling →</button></p>`).join('')}`:''}<small>Rättigheter och ekonomiska ramar följer den dokumenterade spelmodellen, inte hela NHL:s kollektivavtal.</small></div></details>`;
 }

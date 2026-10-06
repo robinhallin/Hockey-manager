@@ -9,6 +9,7 @@ assert.equal(run('RECRUIT_CLUBS.length'),6);
 assert.equal(run('RECRUIT_CLUBS.reduce((n,[c])=>n+state.clubRosters[c].length,0)'),156);
 assert.equal(run('new Set(Object.values(state.clubRosters).flat().map(p=>String(p.id))).size'),run('Object.values(state.clubRosters).flat().length'));
 const allPlayers=run('Object.values(state.clubRosters).flat().length+state.loans.external.length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length');
+run('globalThis.originalRecruitIds=new Set([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers()].map(p=>String(p.id)))');
 run('ensureRecruitment();save();render()');assert.equal(run('Object.values(state.clubRosters).flat().length+state.loans.external.length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length'),allPlayers);
 // Scouting spends once, follows filters, advances with actual time and survives reload.
 run('state.recruitment.filters={country:"FIN",profile:"Defensiv center",maxAge:40,maxFee:50000000,query:""};globalThis.cashBefore=state.money;createScoutMission();globalThis.mission=state.recruitment.missions[0]');
@@ -31,7 +32,7 @@ assert.equal(run('identityWishes.identity.ambition'),run('identityTarget.social.
 run("globalThis.ownIdentity=managerRoster()[0];playerSocialIdentity(ownIdentity);ownIdentity.social.loyalty=18;ownIdentity.social.trust=85;socialRemember(ownIdentity,'Istidslöftet brutet','Den utlovade speltiden infriades inte.',-8);globalThis.ownPref=playerPreferenceProfile(ownIdentity)");
 assert.ok(run('ownPref.continuity')<12,'broken commitments temper the continuity benefit even for a loyal player');
 // Contract process waits for time, enforces terms and transfers a single player atomically.
-run('globalThis.target=state.clubRosters[RECRUIT_CLUBS[0][0]][5];target.transferListed=true;globalThis.source=getPlayerClub(target.id);globalThis.fee=recruitFee(target);globalThis.salary=recruitPlayerWishes(target).salary*2;globalThis.beforeCash=state.money;globalThis.beforeSellerCash=state.recruitment.ai[source].cash;submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');
+run('globalThis.target=state.clubRosters[RECRUIT_CLUBS[0][0]].find(p=>recruitCanSell(p,RECRUIT_CLUBS[0][0])&&p.pos!==\"MV\");target.transferListed=true;globalThis.source=getPlayerClub(target.id);globalThis.fee=recruitFee(target);globalThis.salary=recruitPlayerWishes(target).salary*2;globalThis.beforeCash=state.money;globalThis.beforeSellerCash=state.recruitment.ai[source].cash;submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals[0].status'),'pending');assert.equal(run('getPlayerClub(target.id)'),run('source'));
 run('submitRecruitOffer(target.id,fee,salary,2,"Nyckelspelare")');assert.equal(run('state.recruitment.deals.filter(d=>d.status==="pending").length'),1);
 run('state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()');
@@ -82,7 +83,7 @@ run('answerIncomingOffer(incoming.id,true);incomingDay()');assert.equal(run('sta
 // Autonomous transfers conserve player ownership and respect minimum roster sizes.
 run('globalThis.historyBefore=state.recruitment.history.length;for(let i=0;i<30;i++){state.round++;calendarStep(true);calendarStep(true);advanceScoutReports()}');
 assert.ok(run('state.recruitment.history.length>historyBefore'));
-assert.equal(run('new Set([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers()].map(p=>String(p.id))).size'),allPlayers);
+assert.equal(run('(()=>{const ids=[...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers(),...(state.northAmerica?.abroad||[])].map(p=>String(p.id)).filter(id=>originalRecruitIds.has(id));return ids.length===originalRecruitIds.size&&new Set(ids).size===ids.length})()'),true,'every original identity still exists once, including NHL departures');
 assert.equal(run('Object.values(state.clubRosters).every(ps=>ps.filter(p=>p.pos==="MV").length>=2&&ps.filter(p=>p.pos==="B").length>=6&&ps.filter(p=>!["MV","B"].includes(p.pos)).length>=12)'),true);
 // Offseason weeks advance work and bids; ordinary pages never advance time.
 run('state.season.phase="preseason";state.calendar.date="2026-08-01";state.calendar.marketDay="2026-08-08";state.training.messages.forEach(m=>m.resolved=true);state.season.nextWageLimit=1000000000;globalThis.tick=state.recruitment.tick;Array.from({length:7},()=>recruitmentWeek())');
@@ -98,7 +99,7 @@ legacy.transferNegotiation={playerId:legacyPlayer.id,transferFee:1500000,salaryD
 legacy.selectedMarketPlayer=legacyPlayer.id;
 const migrated=boot(JSON.stringify(legacy));
 assert.equal(migrated.run('state.recruitment.history[0].fee'),1200000);
-assert.equal(migrated.run('Object.values(state.clubRosters).flat().length+state.loans.external.length+(state.playerWorld?.freeAgents||[]).length+aiAcademyPlayers().length'),allPlayers);
+assert.equal(migrated.run('JSON.stringify([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers(),...(state.northAmerica?.abroad||[])].map(p=>String(p.id)).sort())'),run('JSON.stringify([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers(),...(state.northAmerica?.abroad||[])].map(p=>String(p.id)).sort())'));
 assert.ok(migrated.run('recruitDealsView().includes("Fortsätt diskussionen")'));
 assert.ok(migrated.run('recruitmentPlayerView().includes("1500000")'));
 // Pending offers reserve room; cancellation releases it and season launch waits for decisions.

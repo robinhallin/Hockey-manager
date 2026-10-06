@@ -57,7 +57,7 @@ test('v1 pending offers migrate without changing agreed wages, duration or cash'
  assert.equal(r('state.northAmerica.version'),2);assert.equal(r('o.stage'),'club');assert.equal(r('JSON.stringify([o.nhlSalary,o.ahlSalary,o.end,state.money])'),r('terms'));assert.equal(r('naSign(o)'),false);
 });
 test('window closure and live matches prevent settlement or duplicate mutation',()=>{
- const a=game(),r=a.run;r("state.calendar.date='2026-09-30';o.expires=state.calendar.date;naAnswer(o.id,'move');globalThis.before=JSON.stringify(state);state.live={finished:false};naProcessOffers(o.dueDate);naProcessLoans(o.dueDate)");assert.equal(r('o.status'),'pending');
+ const a=game(),r=a.run;r("state.calendar.date='2026-08-15';o.expires=state.calendar.date;naAnswer(o.id,'move');globalThis.before=JSON.stringify(state);state.live={finished:false};naProcessOffers(o.dueDate);naProcessLoans(o.dueDate)");assert.equal(r('o.status'),'pending');
  r('state.live=null;state.calendar.date=o.dueDate;naProcessOffers(state.calendar.date)');assert.equal(r('o.status'),'expired');assert.equal(r('naActive(p)'),false);
 });
 test('a player rejection closes the case without a transfer or a fee',()=>{
