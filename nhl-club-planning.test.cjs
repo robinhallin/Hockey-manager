@@ -52,3 +52,8 @@ test('a strained return relationship can reject a marginal package but cannot re
  assert.equal(r('result.accepted'),false);assert.match(r('result.explanation'),/ansträngd/);
  r('p.naHistory[0].homeRelation.trust=100');assert.equal(r('recruitPackageDecision(p,managerClub(),{...offer,salary:w.salary*.5}).accepted'),false);
 });
+test('a junior senior contract counts hypothetical wages without inventing a senior lineup vacancy',()=>{
+ const a=game(),r=a.run;
+ r("globalThis.j=state.juniors.roster.find(q=>q.pos==='B');j.age=19;j.nhlDraft={year:2026,club:'Seattle Kraken',expires:'2030-06-30'};for(const k of Object.keys(j.attributes))j.attributes[k]=13;j.academy.seniorContract=true;j.salary=450000;globalThis.risk=naClubRisk(j)");
+ assert.equal(r('risk.senior'),false);assert.equal(r('risk.missing'),0);assert.equal(r('risk.possibleWage'),450000);assert.match(r('naClubPlanningView()'),/från senioravtalet/);
+});
