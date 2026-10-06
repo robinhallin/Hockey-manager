@@ -80,7 +80,7 @@ function naSign(o,mode='move'){
  naDetach(p);delete p.nhlRelease;delete p.freeSince;delete p.futureContract;delete p.recruitmentPromise;delete p.loanId;p.transferListed=false;p.askingPrice=null;
  for(const d of state.recruitment.deals)if(samePlayerId(d.playerId,p.id)&&d.status==='pending'){d.status='rejected';d.reason='Spelaren har skrivit ett NHL-avtal.';}
  for(const d of state.recruitment.incoming)if(samePlayerId(d.playerId,p.id)&&d.status==='pending')d.status='expired';
- p.naContract={team:o.team,status:'active',start:state.calendar.date,end:o.end,contractType:o.contractType||'legacy',nhlSalary:o.nhlSalary,ahlSalary:o.ahlSalary,homeClub:o.origin,homeSalary:beforeSalary,previousYears:years,assignment:'pending',events:[],trainingDays:0,lastReport:state.calendar.date};delete p.naRights;
+ p.naContract={team:o.team,status:'active',start:state.calendar.date,end:o.end,contractType:o.contractType||'legacy',nhlSalary:o.nhlSalary,ahlSalary:o.ahlSalary,homeClub:o.origin,homeRelation:naDepartureRelation(p,o.origin),homeSalary:beforeSalary,previousYears:years,assignment:'pending',events:[],trainingDays:0,lastReport:state.calendar.date};delete p.naRights;
  p.contractYears=Number(o.end.slice(0,4))-state.season.year;
  if(p.academy){p.academy.path='senior';p.academy.seniorContract=false;}
  w.signings[`${state.season.year}:${o.team}`]=p.id;w.fees[`${state.season.year}:${o.team}`]=budget.fees+o.fee;o.status='signed';o.mode=mode;o.signed=state.calendar.date;w.offers=w.offers.filter(q=>q.status==='pending').concat(w.offers.filter(q=>q.status!=='pending').slice(0,96));
@@ -94,7 +94,7 @@ function naSign(o,mode='move'){
 function naAnswer(id,choice){
  const w=ensureNorthAmerica(),o=w?.offers.find(o=>o.id===Number(id)),p=o&&naFind(o.playerId);
  if(!o||!p||!nhlOwned(p)||!managerEmployed()||naLocked()||o.status!=='pending'||o.stage==='player')return false;
- if(choice==='reject'){o.status='rejected';o.reason='Klubben avböjde.';return naNotice(`${p.name}: erbjudandet avböjdes. Det nuvarande avtalet gäller.`);}
+ if(choice==='reject'){naCareerDecision(p,o,choice);o.status='rejected';o.reason='Klubben avböjde.';return naNotice(`${p.name}: erbjudandet avböjdes. Det nuvarande avtalet gäller.`);}
  if(!naApprove(o,choice))return naNotice('Erbjudandet kan inte godkännas. Kontrollera giltighetstid, truppbemanning, löneutrymme och spelarens avtal.');
  return naNotice(`${p.name}: klubben har godkänt villkoren. Spelaren och agenten lämnar besked ${calText(o.dueDate)}. Ingen övergång har registrerats ännu.`,true);
 }
@@ -130,7 +130,7 @@ function naDay(){
  const w=ensureNorthAmerica(),date=state.calendar?.date;if(!w||naLocked()||w.lastDay===date)return;w.lastDay=date;naNewYear();
  for(const p of [...naPlayers()]){naReviewContract(p,date);if(p.naContract.end<date)naExpire(p);else naReviewDevelopment(p,date);}
  for(const o of w.offers.filter(o=>o.status==='pending')){const p=naFind(o.playerId);if(date>o.expires||!p||naActive(p)||p.futureContract||internationalPlayers().find(r=>samePlayerId(r.p.id,o.playerId))?.club!==o.origin){o.status='expired';o.reason='Giltighetstiden eller spelarens avtalsläge ändrades.';}}
- naProcessOffers(date);naProcessLoans(date);naReturnMarketDay(date);
+ naProcessOffers(date);naProcessLoans(date);naReturnMarketDay(date);naClubPlanningDay();
  for(const p of w.abroad){
   if(internationalAway(p,date))continue;const c=p.naContract;
   p.health??={load:0,injury:null,clearance:'rest'};p.fatigue=Math.max(0,(p.fatigue||0)-6);p.health.load=Math.max(0,(p.health.load||0)-4);
