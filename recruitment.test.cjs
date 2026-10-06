@@ -101,7 +101,7 @@ const migrated=boot(JSON.stringify(legacy));
 assert.equal(migrated.run('state.recruitment.history[0].fee'),1200000);
 assert.equal(migrated.run('JSON.stringify([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers(),...(state.northAmerica?.abroad||[])].map(p=>String(p.id)).sort())'),run('JSON.stringify([...Object.values(state.clubRosters).flat(),...state.loans.external,...(state.playerWorld?.freeAgents||[]),...aiAcademyPlayers(),...(state.northAmerica?.abroad||[])].map(p=>String(p.id)).sort())'));
 assert.ok(migrated.run('recruitDealsView().includes("Fortsätt diskussionen")'));
-assert.ok(migrated.run('recruitmentPlayerView().includes("1500000")'));
+assert.ok(migrated.run('hubTransferForm(findPlayerAnywhere(state.selectedMarketPlayer)).includes(\'value="1500000"\')'));
 // Pending offers reserve room; cancellation releases it and season launch waits for decisions.
 run('globalThis.reserveTarget=state.clubRosters[RECRUIT_CLUBS[4][0]][5];reserveTarget.transferListed=true;state.money=recruitFee(reserveTarget)+1000;state.season.nextWageLimit=1000000000;submitRecruitOffer(reserveTarget.id,recruitFee(reserveTarget),recruitPlayerWishes(reserveTarget).salary,2,"Nyckelspelare");globalThis.pendingCount=state.recruitment.deals.length;globalThis.reserveOther=state.clubRosters[RECRUIT_CLUBS[5][0]][5];submitRecruitOffer(reserveOther.id,1001,1000000,2,"Nyckelspelare")');
 assert.equal(run('state.recruitment.deals.length'),run('pendingCount'));

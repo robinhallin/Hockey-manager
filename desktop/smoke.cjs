@@ -74,7 +74,8 @@ async function close(){
   await page.locator('#overview-press').getByRole('button',{name:'Supporterpanelen',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-press .press-fans').waitFor();
   await page.getByRole('button',{name:'Stäng pressrummet',exact:true}).click();
-  await page.getByRole('button',{name:'Stab & uppföljning',exact:true}).click();
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Klubben',exact:true}).click();
+  await page.locator('.desk-subnav').getByRole('button',{name:'Stab & uppföljning',exact:true}).click();
   assert.match(await page.locator('.staff-coverage').innerText(),/3 spelklara av 3/);
   assert.equal(await page.locator('.staff-concrete .workspace-tabs').count(),0);
   const staffFont=await page.locator('.staff-concrete h1').evaluate(el=>getComputedStyle(el).fontFamily);
