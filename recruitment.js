@@ -171,7 +171,7 @@ function recruitCanAfford(club,p,fee,salary){
 // Current offers in older saves have no buyer field: they belong to this manager.
 function managerRecruitmentBudget(excludePlayerId=null){
  const pending=(state.recruitment?.deals||[]).filter(d=>d.status==='pending'&&d.kind!=='future'&&(!d.buyer||d.buyer===managerClub())&&(excludePlayerId===null||!samePlayerId(d.playerId,excludePlayerId)));
- const fees=pending.reduce((n,d)=>n+(d.fee||0),0),salaryReserved=pending.reduce((n,d)=>n+d.salary,0)+loanReserved(managerClub());
+ const fees=pending.reduce((n,d)=>n+(d.fee||0),0),salaryReserved=pending.reduce((n,d)=>n+d.salary,0)+loanReserved(managerClub())+naLoanReserved(managerClub());
  return {fees,salaryReserved,availableCash:state.money-fees,wageRoom:wageBudget()-annualWageCost()-salaryReserved,futureRoom:calendarFutureRoom(managerClub(),excludePlayerId)};
 }
 function managerCommitmentForecastView(p,fee,salary,years,options={}){

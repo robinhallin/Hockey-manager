@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
 function game(){const a=boot();a.run("startCareerWithClub('HV71')");return a;}
-function prospect(a){a.run("state.calendar.date='2026-09-13';globalThis.p=state.juniors.roster.find(p=>p.pos==='B');p.age=19;p.nhlDraft={year:2026,club:'Seattle Kraken',round:2,overall:42,expires:'2030-06-30'};for(const k of Object.keys(p.attributes))p.attributes[k]=14;p.health={load:0,injury:null,clearance:'rest'};p.fatigue=0;naSign(naOffer(p,managerClub()));globalThis.l=state.naLeagues.season.leagues.AHL;globalThis.g=l.games.find(g=>g.home===naLocation(p)||g.away===naLocation(p))");}
+function prospect(a){a.run("state.calendar.date='2026-09-13';globalThis.p=state.juniors.roster.find(p=>p.pos==='B');p.age=19;p.nhlDraft={year:2026,club:'Seattle Kraken',round:2,overall:42,expires:'2030-06-30'};for(const k of Object.keys(p.attributes))p.attributes[k]=14;p.health={load:0,injury:null,clearance:'rest'};p.fatigue=0;globalThis.offer=naOffer(p,managerClub());naApprove(offer,'move');state.calendar.date=offer.dueDate;naProcessOffers(state.calendar.date);globalThis.l=state.naLeagues.season.leagues.AHL;globalThis.g=l.games.find(g=>g.home===naLocation(p)||g.away===naLocation(p))");}
 test('balanced full schedules, real divisions, deterministic dates and no same-day double bookings',()=>{
  const a=game(),r=a.run;
  for(const [league,count] of [['NHL',84],['AHL',72]]){
@@ -36,7 +36,7 @@ test('JVM duty, injury, Swedish loans and arrival date exclude foreign appearanc
  for(const condition of ["p.internationalDuty={from:g.date,until:calAdd(g.date,5),returned:false}","p.health.injury={remaining:4}","p.naAvailableFrom=calAdd(g.date,1)","p.naContract.assignment='Sweden'"]){const a=game(),r=a.run;prospect(a);r(condition+';nasPlay(l,g,"AHL",2026)');assert.equal(r('g.players.some(q=>q.id===p.id)'),false);assert.equal(r('(p.naSeasons||[]).length'),0);}
 });
 test('goalkeeper saves plus goals against equal opposition shots; overtime ice budgets conserve',()=>{
- const a=game(),r=a.run;r("globalThis.p=state.juniors.roster.find(p=>p.pos==='MV');p.age=19;p.nhlDraft={year:2026,club:'Boston Bruins',round:1,overall:4,expires:'2030-06-30'};for(const k of Object.keys(p.attributes))p.attributes[k]=18;p.health={load:0,injury:null,clearance:'rest'};state.calendar.date='2026-09-13';naSign(naOffer(p,managerClub()));globalThis.l=state.naLeagues.season.leagues.NHL;globalThis.g=l.games.find(g=>[g.home,g.away].includes('Boston Bruins'));globalThis.result=nasSimulate(g,'NHL',2026)");
+ const a=game(),r=a.run;r("globalThis.p=state.juniors.roster.find(p=>p.pos==='MV');p.age=19;p.nhlDraft={year:2026,club:'Boston Bruins',round:1,overall:4,expires:'2030-06-30'};for(const k of Object.keys(p.attributes))p.attributes[k]=18;p.health={load:0,injury:null,clearance:'rest'};state.calendar.date='2026-09-13';globalThis.offer=naOffer(p,managerClub());naApprove(offer,'move');state.calendar.date=offer.dueDate;naProcessOffers(state.calendar.date);globalThis.l=state.naLeagues.season.leagues.NHL;globalThis.g=l.games.find(g=>[g.home,g.away].includes('Boston Bruins'));globalThis.result=nasSimulate(g,'NHL',2026)");
  assert.equal(r('result.sides.flatMap(s=>s.rows).find(q=>q.p===p).seconds'),r('result.duration'));
  assert.equal(r('result.sides.every((s,i)=>s.keeper.saves+s.keeper.against===result.shots[1-i])'),true);
  assert.equal(r('result.sides.every(s=>s.skaters.reduce((n,q)=>n+q.seconds,0)===18000+(result.duration-3600)*3)'),true);
