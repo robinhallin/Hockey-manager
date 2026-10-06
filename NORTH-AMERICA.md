@@ -37,6 +37,16 @@ On expiry, the same player enters the ordinary free-agent market. The game can r
 
 ## User interface
 
+### European club planning
+
+Recruitment → squad planning includes an NHL contingency section, not another main tab. It distinguishes an actual pending offer, a valid dated release clause and a draft-rights watch. None is a completed departure or a probability forecast. The explanation uses current lineup/special-team references, healthy available positional alternatives and a hypothetical annual wage change. It does not change the real squad, projected signed contracts or available budget.
+
+Managers can save a watch-only plan or a plan to negotiate after a confirmed departure, prepare a linked scouting brief and select up to eight candidates from scouting/watch lists. Scouting retains its normal cost and uncertainty. Editing the brief preserves its plan link. The plan opens an ordinary offer form only after a registered NHL departure; approval alone, a failed offer or a loanback does not activate it. Managers still review terms and submit the offer themselves. Plans are scoped to the employing club and survive saves; daily status notifications are deduplicated. Closing a plan does not cancel independently purchased scouting work.
+
+Adult owned players can discuss NHL ambitions without receiving a bonus for simply talking. A promise to approve a viable NHL move, or request an available viable loanback, is evaluated against the club's actual decision. Honouring it gives +2 trust, deliberately breaking it −6; a viable refusal without a promise can cost an ambitious player −2. Medical, financial, rights or window blockers do not break the promise. Player refusal and expiry without a viable club decision do not cause penalties. Active promises cannot be overwritten, and new talks have a 28-day cooldown. Existing clause rights and match-based development promises remain separate.
+
+At departure the game records the known home-club relationship. On European return, recorded club-specific history contributes a bounded −12 to +12 to the shared offer score used by AI and manager competition. Missing legacy evidence receives no invented homecoming bonus. Salary, agent, role credibility, contract length and ordinary financial checks still apply. Other clubs do not inherit the manager's trust score. The ordinary offer form explains this context and shows the number of competing offers, not hidden rival terms.
+
 Players abroad can be watched for a European return, and actual scout reports can be requested from the contract panel. Weekly returnee processing notifies watchers and invites up to two interested AI clubs through the ordinary recruitment system, using its squad needs, funding, offers and player decisions. Pending competition is visible in the existing recruitment overview.
 
 The existing recruitment overview, negotiations and loans screens share a compact expandable NHL summary. It contains pending outgoing cases, loan requests with withdrawal controls and available returnees. Player contract dialogs distinguish current registration, contract owner and NHL rights. Existing World → NHL controls handle approvals and detailed history; no new main navigation tab is added.
@@ -63,6 +73,8 @@ Checked October 6, 2026:
 The indexed MOU/CBA provisions were retrievable; full PDF downloads through the research tool exceeded its size limit. No claim of a complete CBA audit is made. Actual birth-date age definitions, other international transfer deadlines and compensation allocation require further source-backed implementation. The general July–September window, negotiated clauses and fees, tracked budgets and retained-rights formula remain disclosed game assumptions.
 
 ## Verification
+
+`nhl-club-planning.test.cjs` covers risk without fictional income, conditional activation, loanback exclusion, saved candidates and linked scouting, promise consequences and idempotence, live-match guards, club-specific return preferences, bounded salary tradeoffs and read-only views. `scripts/nhl-club-planning-browser-checks.cjs` exercises the new planning controls, dialogue and candidate-to-offer navigation inside the existing desktop smoke suite.
 
 `nhl-career-market.test.cjs` covers inclusive draft-window boundaries, automatic clause approval, exact-once compensation, invalid clauses, renewal timing, released veterans, actual-minute development reviews and AI competition for watched returnees.
 

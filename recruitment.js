@@ -204,7 +204,7 @@ function recruitRival(p,seller){
 function recruitOfferScore(p,club,offer){
  const w=recruitPlayerWishes(p,club),rank=SQUAD_ROLES.indexOf(offer.role);
  const pref=w.identity||playerPreferenceProfile(p,club),agent=w.agent||agentPreference(p,club),salaryScore=offer.salary/w.salary*40*pref.salaryWeight*agent.salary,roleScore=(rank-SQUAD_ROLES.indexOf(w.role))*12*pref.roleWeight*agent.role,termScore=(offer.years>=w.minYears&&offer.years<=w.maxYears?10:-25)*pref.securityWeight*agent.years;
- return salaryScore+roleScore+(w.stretch?-15:5)+termScore+pref.continuity+agent.continuity;
+ return salaryScore+roleScore+(w.stretch?-15:5)+termScore+pref.continuity+agent.continuity+naReturnPreference(p,club).score;
 }
 function submitRecruitOffer(id,fee,salary,years,role){
  if(!managerCanPlay())return;

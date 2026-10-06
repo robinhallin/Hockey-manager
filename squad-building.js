@@ -77,5 +77,5 @@ function aiPurchasePlan(club,p,need,terms){
  const value=recruitSellerPosition(p,marketClub(p.id)).fee;
  const premium=need.missing>0?1.3:need.qualityGap>0?1.15:1;
  const maxFee=Math.max(0,Math.floor(Math.min(value*premium,b.cash-reserved.fee,forecast.cash+(aiMarketReserved(club).fee-reserved.fee)-terms.salary*forecast.remaining/52)));
- return {maxFee,text:`${need.reason} ${need.missing>0?'Prioriterar aktuell bemanning.':need.qualityGap>0?'Söker en kvalitetsförstärkning.':'Planerar för kommande avtalsavgångar.'} ${terms.years||0} avtalsår · ${terms.role}. Budet prövas mot kassa, löneutrymme och befintliga rollöften. ${p.age<=23?'Spelarens ålder passar ett långsiktigt lagbygge.':''}`};
+ return {maxFee,text:`${need.reason} ${need.missing>0?'Prioriterar aktuell bemanning.':need.qualityGap>0?'Söker en kvalitetsförstärkning.':'Planerar för kommande avtalsavgångar.'} ${terms.years||0} avtalsår · ${terms.role}. Budet prövas mot kassa, löneutrymme och befintliga rollöften. ${p.age<=23?'Spelarens ålder passar ett långsiktigt lagbygge.':''} ${naReturnPreference(p,club).text}`};
 }

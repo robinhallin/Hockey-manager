@@ -50,7 +50,7 @@ function naApprove(o,mode){
  if(mode==='loanback'&&(!state.world.membership[o.origin]||!naLoanRoom(p,o.origin,o.share,existingCost)))return false;
  if(internationalPlayers().find(r=>samePlayerId(r.p.id,p.id))?.club!==o.origin)return false;
  const rights=naRights(p);if(rights.team&&rights.team!==o.team||!naFunded(o.team,o,o.id))return false;
- o.stage='player';o.mode=mode;o.dueDate=calAdd(state.calendar.date,NA_MARKET_RULES.decisionDays);
+ naCareerDecision(p,o,mode);o.stage='player';o.mode=mode;o.dueDate=calAdd(state.calendar.date,NA_MARKET_RULES.decisionDays);
  o.expires=o.expires<o.dueDate?o.dueDate:o.expires;
  naLog(p,'club-agreed',`${o.team}: klubben har godkänt ${mode==='loanback'?'återlån':'flytt'}. Spelaren och agenten tar ställning ${calText(o.dueDate)}.`);
  return true;
@@ -103,7 +103,7 @@ function naRightsAtExpiry(p,c){
 function naStatusView(p){
  const rights=naRights(p),c=p.naContract,origin=getPlayerClub(p.id),o=state.northAmerica?.offers.find(o=>samePlayerId(o.playerId,p.id)&&o.status==='pending');
  const blocked=c?'Köp blockerat av NHL-avtal. Pröva lån eller invänta kontraktsslut.':o?'Ett NHL-erbjudande pågår. Ingen flytt är klar.':rights.team?'NHL-rättigheten begränsar NHL-valet, inte ett europeiskt kontrakt.':'Ingen aktiv NHL-rättighet registrerad.';
- return `<section class="sc-card na-status"><h3>NHL · avtalsläge</h3><dl><dt>Registrerad hos</dt><dd>${trainingSafe(origin||'Ingen klubb')}</dd><dt>NHL-rättighet</dt><dd>${trainingSafe(rights.team||'Fri NHL-marknad')}${rights.until?' · till '+calText(rights.until):''}</dd><dt>Kontraktsägare</dt><dd>${trainingSafe(c?.team||origin||'Ingen')}</dd></dl><p>${blocked}</p>${c?`<p>${({'entry':'Entry-level','one-way':'Envägsavtal','two-way':'Tvåvägsavtal'})[c.contractType]||'Äldre utvecklingsavtal'} · ${trainingSafe(c.assignmentReason||'Placering bedöms efter avtal.')}</p>`:''}${o?`<p>${o.stage==='player'?'Spelaren och agenten lämnar besked '+calText(o.dueDate):'Klubbens beslut väntar'}.</p>`:''}<button class="rd-link" onclick="naOpen()">Granska NHL-affärer →</button>${naReleaseView(p)}</section>`;
+ return `<section class="sc-card na-status"><h3>NHL · avtalsläge</h3><dl><dt>Registrerad hos</dt><dd>${trainingSafe(origin||'Ingen klubb')}</dd><dt>NHL-rättighet</dt><dd>${trainingSafe(rights.team||'Fri NHL-marknad')}${rights.until?' · till '+calText(rights.until):''}</dd><dt>Kontraktsägare</dt><dd>${trainingSafe(c?.team||origin||'Ingen')}</dd></dl><p>${blocked}</p>${c?`<p>${({'entry':'Entry-level','one-way':'Envägsavtal','two-way':'Tvåvägsavtal'})[c.contractType]||'Äldre utvecklingsavtal'} · ${trainingSafe(c.assignmentReason||'Placering bedöms efter avtal.')}</p>`:''}${o?`<p>${o.stage==='player'?'Spelaren och agenten lämnar besked '+calText(o.dueDate):'Klubbens beslut väntar'}.</p>`:''}<button class="rd-link" onclick="naOpen()">Granska NHL-affärer →</button>${naReleaseView(p)}${naCareerTalkView(p)}${naReturnChoiceView(p)}</section>`;
 }
 function naRecruitmentView(){
  const w=state.northAmerica;if(!w)return '';
