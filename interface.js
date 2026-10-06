@@ -3,13 +3,12 @@
 // Presentation only: routes share the existing career state and game actions.
 const deskFolds = {iceTime:false,contracts:false};
 const DESK_AREAS = [
-  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['calendar','Kalender'],['staffReview','Stab & uppföljning']],details:{stories:'home',press:'home',schedule:'calendar',round:'calendar',opponents:'home',match:'home'}},
+  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['calendar','Kalender']],details:{stories:'home',press:'home',schedule:'calendar',round:'calendar',opponents:'home',match:'home'}},
   {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Taktik & laguttagning'],['locker','Omklädningsrum']],details:{player:'squad',specialTeams:'lines',tactics:'lines',statistics:'lines'}},
   {id:'training',label:'Utveckling',icon:'training',pages:[['training','Spelarutveckling'],['juniors','Juniorer'],['medical','Medicinskt team']]},
   {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Rekrytering']],details:{marketPlayer:'transfers',scouting:'transfers'}},
-  {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['manager','Min karriär']]},
-  {id:'leagues',label:'Ligorna',icon:'trophy',pages:[['leagues','Ligavärlden'],['news','Liganyheter'],['table','Tabell'],['leagueStats','Spelarstatistik'],['season','Säsong & historik']],details:{clubDetail:'leagues'}},
-  {id:'world',label:'Världen',icon:'globe',pages:[['world','Översikt'],['international','Landslag & JVM'],['nhl','NHL & draft']]}
+  {id:'club',label:'Klubben',icon:'club',pages:[['finance','Ekonomi'],['board','Styrelse'],['staff','Personal'],['staffReview','Stab & uppföljning'],['manager','Min karriär']]},
+  {id:'world',label:'Världen',icon:'globe',pages:[['world','Nyheter & bevakning'],['leagues','Ligor & resultat'],['international','Landslag & JVM'],['nhl','NHL & draft'],['season','Säsong & historik']],details:{news:'world',table:'leagues',leagueStats:'leagues',clubDetail:'leagues'}}
 ];
 const DESK_RECRUIT_TABS = [['overview','Översikt'],['needs','Truppplanering'],['search','Spelarsök & scouting'],['deals','Bud & avtal']];
 const DESK_RECRUIT_MORE = [['missions','Scouting'],['shortlist','Bevakning'],['loans','Lånecentralen'],['history','Övergångar'],['world','Spelarvärlden']];
@@ -81,6 +80,7 @@ if(typeof window!=='undefined'){
 }
 function deskSnapshot(){return {overviewUI:{...overviewUI},workspace:deskWorkspaceContext(),officePanel:officeUI.panel||'today',officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
+ if(record)navigationUI.searchOpen=false;
  const overviewSection=['stories','press'].includes(page)?page:null;
  if(overviewSection){overviewUI[overviewSection]=true;page='home';}
  deskHistorySync();deskActionNotice='';const previousPage=state.page,previousTab=state.recruitment?.tab;let nextLineup,nextAvailability;
@@ -121,6 +121,7 @@ function deskBack(fallback='home'){
  deskRestore(previous);
 }
 function deskOpenPlayer(id,market=false){
+ navigationUI.searchOpen=false;
  deskHistorySync();
  const old=deskSnapshot();deskBrowserBefore(old);if(market)state.selectedMarketPlayer=id;else state.selectedPlayer=id;
  // Capture the previous profile tab before selecting a new identity.
@@ -143,14 +144,14 @@ function deskSubnav(){
     const active=['loans','history'].includes(tab)?'deals':['world','free','missions','shortlist'].includes(tab)?'search':tab;
     return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
   }
-  const pages=area?.pages||(['inbox','news'].includes(page)?[['inbox','Inkorg'],['news','Nyheter']]:[]);
+  const pages=area?.pages||[];
   if(pages.length<2)return '';
   return `<nav class="desk-subnav" aria-label="${area?.label||'Meddelanden'}">${pages.map(([id,label])=>`<button ${page===id?'aria-current="page"':''} onclick="deskNavigate('${id}')">${label}</button>`).join('')}</nav>`;
 }
 function deskClearWorkspaceNotices(){
  for(const key of ['clubOffice','recruitment','loans','juniors','medical'])if(state[key])state[key].message='';
 }
-function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${state.page}">${deskSubnav()}${playerSearchView()}${html}</div>`;}
+function deskFrame(html){return careerScreen||state.page==='clubSelect'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${state.page}">${state.page==='match'?deskSubnav()+playerSearchView():`<div class="desk-tools">${deskSubnav()}${playerSearchView()}</div>`}${deskLeagueNavigation()}${html}</div>`;}
 function deskCloseMenu(restoreFocus=false){
   document.querySelector('.game-shell')?.classList.toggle('mobile-nav-open',false);
   document.getElementById('mobileMenu')?.setAttribute?.('aria-expanded','false');
@@ -183,7 +184,7 @@ function deskRefreshShell(){
   const date=document.querySelector('.season-info strong');if(date)date.textContent=state.calendar?calText(state.calendar.date):seasonLabel();
   const season=document.querySelector('.season-info span');if(season)season.textContent=seasonLabel();
   const section=document.querySelector('.current-section');
-  const area=deskArea();if(section)section.innerHTML=`<span>${area?.label||({inbox:'Inkorg',news:'Nyheter',settings:'Sparfiler & inställningar'}[state.page]||'Hockey Manager')}</span>${state.calendar?`<small>${calText(state.calendar.date)}</small>`:''}`;
+  const area=deskArea();if(section)section.innerHTML=deskLocationView(area);
   const unread=state.training?.messages.filter(m=>!m.read).length||0,mail=document.getElementById('deskInbox');
   if(mail){mail.innerHTML=`${deskIcon('mail')}<span class="desk-inbox-label">Inkorg</span>${unread?`<span class="desk-count">${unread>99?'99+':unread}</span>`:''}`;mail.setAttribute?.('aria-label',`Inkorg, ${unread} olästa meddelanden`);mail.setAttribute?.('aria-current',state.page==='inbox'?'page':'false');}
   const menu=document.getElementById('mobileMenu');if(menu)menu.innerHTML=deskIcon('menu')+'<span>Meny</span>';

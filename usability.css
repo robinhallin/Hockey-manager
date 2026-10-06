@@ -1,0 +1,51 @@
+/* Shared desk finish. Match presentation and simulation are deliberately excluded. */
+body .game-shell:has(.desk-page:not([data-page=match])){
+ --ui-accent:#a9c9e2;--desk-accent:#a9c9e2;--ui-border:#354b59;
+ --ui-panel:#182833;--ui-raised:#203440;--ui-muted:#bdcbd5;--ui-radius:8px;
+}
+body .game-shell:has(.desk-page:not([data-page=match])) .sidebar{background:linear-gradient(180deg,#13212b,#101a23)}
+body .game-shell:has(.desk-page:not([data-page=match])) .nav-item{min-height:44px;border-radius:7px;margin-block:3px;font-weight:550}
+body .game-shell:has(.desk-page:not([data-page=match])) .nav-item.active{background:#263e4e;color:#e0eef7;box-shadow:inset 3px 0 #a9c9e2}
+body .game-shell:has(.desk-page:not([data-page=match])) .current-section{display:flex;gap:10px;align-items:center;min-width:0}
+.desk-location{display:flex;flex-direction:column;min-width:0;gap:2px}
+.desk-location>small{color:#9eb5c6;font-size:10px;letter-spacing:.07em;text-transform:uppercase}
+.desk-location>span{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body .game-shell .desk-return{border:1px solid #405a6b;background:#1b2e3b;color:#e4edf3;border-radius:7px;min-width:32px;min-height:32px;padding:0;cursor:pointer}
+body .game-shell .desk-page:not([data-page=match])>.desk-tools{display:flex;align-items:start;position:relative;z-index:6;min-height:32px;margin:0 0 6px;padding-right:148px;gap:12px}
+body .game-shell .desk-tools>.desk-subnav{display:flex;flex-wrap:wrap;min-width:0;gap:4px;padding:0;margin:0;border:0}
+body .game-shell .desk-tools>.desk-subnav button{min-height:32px;margin:0;border:1px solid transparent;border-radius:6px;padding:5px 10px;background:transparent;color:#b9cbd7;font-size:12px;white-space:nowrap}
+body .game-shell .desk-tools>.desk-subnav button[aria-current=page]{border-color:#4c6c80;background:#243e50;color:#eff7fc;box-shadow:none}
+body .game-shell .desk-tools>.desk-subnav button:hover{background:#263d4b;color:#fff}
+body .game-shell .desk-tools>.entity-search{position:absolute;right:0;top:0;width:138px;margin:0;padding:0;border:1px solid transparent;border-radius:8px;background:transparent;max-width:100%}
+body .game-shell .desk-tools>.entity-search>summary{min-height:32px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:5px 8px;font-size:12px;color:#c3d9e9;list-style:none}
+.desk-tools>.entity-search>summary::-webkit-details-marker{display:none}
+.desk-tools kbd{font:10px var(--ui-font);padding:1px 4px;border:1px solid #496170;border-radius:3px;color:#adbdc8}
+body .game-shell .desk-tools>.entity-search[open]{width:min(720px,100%);background:#182a36;border-color:#526f81;box-shadow:0 14px 38px #0008}
+body .game-shell .desk-tools>.entity-search[open]>summary{border-bottom:1px solid #3b5363}
+.desk-search-body{padding:16px;max-height:min(68dvh,650px);overflow:auto;overscroll-behavior:contain}
+body .game-shell .desk-search-body form{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:14px}
+body .game-shell .desk-search-body label{flex:1 1 100%;display:grid;gap:6px;font-size:12px;color:#c2d1db}
+body .game-shell .desk-search-body input{width:100%;min-height:38px;background:#10212d;border:1px solid #58758a;border-radius:6px;padding:8px 12px;color:#edf4f9}
+body .game-shell .desk-search-body h3{font-size:12px;color:#b0c7d7;margin:15px 0 8px}
+body .game-shell .desk-search-body p,body .game-shell .desk-search-body>small{font-size:12px;line-height:1.6;color:#b8cad6}
+body .game-shell .desk-search-body ul{list-style:none;padding:0;margin:0 0 12px}
+body .game-shell .desk-destinations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body .game-shell .desk-destinations button{display:grid;gap:5px;width:100%;height:100%;min-height:64px;padding:10px 12px;text-align:left;background:#203744;border:1px solid #3c596b;border-radius:6px;color:#edf3f7;cursor:pointer}
+body .game-shell .desk-destinations button:hover{background:#2b4659;border-color:#a9c9e2}
+.desk-destinations small{font-size:11px;line-height:1.45;color:#b7c9d6;font-weight:400}
+.desk-entity-results li{padding:9px 0;border-bottom:1px solid #354b59}
+.desk-entity-results small{display:block;font-size:11px;color:#b6c9d5;margin-top:3px}
+body .game-shell .desk-context-nav{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 16px;padding:8px 0;border-bottom:1px solid #354b59}
+body .game-shell .desk-context-nav button{background:transparent;color:#b8cedd;border:1px solid transparent;border-radius:5px;padding:6px 10px;font-size:12px;cursor:pointer}
+body .game-shell .desk-context-nav button[aria-current=page]{background:#243e50;border-color:#52738a;color:#fff}
+/* A consistent keyboard target and table rhythm across every management workspace. */
+body .game-shell .desk-page:not([data-page=match]) :is(button,a,input,select,summary,textarea):focus-visible{outline:2px solid #b7ddf8;outline-offset:3px;scroll-margin:18px}
+body .game-shell .desk-page:not([data-page=match]) :is(.ld-scroll,.cd-scroll,.rd-table-scroll,.dv-scroll,.wd-scroll,.sw-table-wrap,.rh-table-scroll){scrollbar-width:thin;scrollbar-color:#536e80 #162a36;overscroll-behavior:contain}
+body .game-shell .desk-page:not([data-page=match]) table tbody tr:hover{background-color:#a3c8e30b}
+body .game-shell .desk-page:not([data-page=match]) dialog{border-color:#58758a;border-radius:10px;box-shadow:0 24px 80px #0009;max-width:calc(100vw - 28px)}
+body .game-shell .desk-page:not([data-page=match]) dialog::backdrop{background:#07121bbc;backdrop-filter:blur(3px)}
+body .game-shell .desk-page:not([data-page=match]) button:disabled{cursor:not-allowed}
+@media(min-width:1100px){body .game-shell .desk-page:not([data-page=match]) :is(.club-desk,.world-desk,.recruitment-desk,.locker-desk,.development-desk){height:calc(100dvh - 124px)}}
+@media(max-width:1099px){body .game-shell .desk-page:not([data-page=match])>.desk-tools{padding-right:0;padding-top:37px}.desk-tools>.entity-search{z-index:2}body .game-shell .desk-tools>.entity-search[open]{width:100%}}
+@media(max-width:600px){body .game-shell .desk-destinations{grid-template-columns:1fr}.desk-location>span{max-width:150px;font-size:12px}.desk-tools kbd{display:none}body .game-shell .desk-search-body{padding:12px}body .game-shell .desk-tools>.desk-subnav{gap:2px}body .game-shell .desk-tools>.desk-subnav button{white-space:normal;padding:6px 8px}}
+@media(prefers-reduced-motion:reduce){body .game-shell .desk-page:not([data-page=match]) *{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
