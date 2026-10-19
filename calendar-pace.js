@@ -41,9 +41,9 @@ function calendarPaceBoundary(){
 function calendarPaceStart(review=false){
  if(calendarPaceRun||dayTransition||careerScreen||!state.careerStarted)return false;
  const settings=calendarPaceStore();
- if(review&&settings.last?.stop&&!settings.last.stop.urgent){settings.reviewed=[...new Set([...settings.reviewed,settings.last.stop.key])].slice(-240);}
+ if(review&&settings.last?.club===managerClub()&&settings.last.stop&&!settings.last.stop.urgent){settings.reviewed=[...new Set([...settings.reviewed,settings.last.stop.key])].slice(-240);}
  const stop=calendarPaceBoundary();
- if(stop){settings.last={start:state.calendar.date,end:state.calendar.date,days:0,total:0,messages:[],stop};save();render();return false;}
+ if(stop){settings.last={club:managerClub(),start:state.calendar.date,end:state.calendar.date,days:0,total:0,messages:[],stop};save();render();return false;}
  const shell=document.querySelector('.game-shell'),tx={state,club:managerClub(),start:state.calendar.date,date:state.calendar.date,page:state.page,days:0,before:new Set(state.training.messages.map(m=>m.id)),messages:[],cancelled:false,shell,inert:Boolean(shell?.inert)};
  calendarPaceRun=tx;if(shell)shell.inert=true;calendarPaceRender();setTimeout(()=>calendarPaceTick(tx),0);return true;
 }
@@ -69,7 +69,7 @@ function calendarPaceTick(tx){
 }
 function calendarPaceFinish(tx,stop,persist=true){
  if(calendarPaceRun!==tx)return;
- calendarPaceStore().last={start:tx.start,end:state.calendar.date,days:tx.days,total:tx.messages.length,messages:tx.messages.slice(-12),stop};
+ calendarPaceStore().last={club:tx.club,start:tx.start,end:state.calendar.date,days:tx.days,total:tx.messages.length,messages:tx.messages.slice(-12),stop};
  calendarPaceDispose();if(persist)save();render();
 }
 function calendarPaceCancel(){if(calendarPaceRun){calendarPaceRun.cancelled=true;calendarPaceTick(calendarPaceRun);}}
@@ -80,7 +80,7 @@ function calendarPaceRender(){
  const next=document.getElementById('continueGame');if(next)next.disabled=true;
 }
 function calendarPaceOpen(){
- const action=calendarPaceSettings().last?.stop?.action;if(!action)return;
+ const last=calendarPaceSettings().last,action=last?.club===managerClub()?last.stop?.action:null;if(!action)return;
  if(action.message!==undefined)openManagerMessage(action.message);
  else if(action.deal)officeOpenDeal(action.deal);
  else if(action.story)storiesOpen(action.story);
@@ -88,7 +88,7 @@ function calendarPaceOpen(){
  else deskNavigate(action.page);
 }
 function calendarPaceView(){
- const settings=calendarPaceSettings(),last=settings.last;
+ const settings=calendarPaceSettings(),last=settings.last?.club===managerClub()?settings.last:null;
  return `<section class="calendar-pace"><div class="calendar-pace-main"><div><strong>Spela fram till nästa vägval</strong><small>Kalendern sköter vardagen. Du tar över vid dina valda stopp.</small></div><button type="button" class="btn secondary" onclick="calendarPaceStart()" ${calendarPaceRun||dayTransition||!managerEmployed()?'disabled':''}>Till nästa relevanta händelse →</button></div>${last?`<div class="pace-result" role="status"><strong>${trainingSafe(last.stop.title)}</strong><span>${last.days} dagar · ${last.total} nya rapporter · ${calText(last.end)}</span><button type="button" class="desk-link" onclick="calendarPaceOpen()">Öppna underlaget →</button>${!last.stop.urgent&&!['pause','error'].includes(last.stop.kind)?'<button type="button" class="desk-link" onclick="calendarPaceStart(true)">Granskat – fortsätt vidare →</button>':''}${last.messages.length?`<details><summary>Samlad rapport · senaste ${last.messages.length}</summary>${last.messages.map(m=>`<p><small>${calText(m.date)} · ${trainingSafe(m.category)}</small><button type="button" class="desk-link" onclick="openManagerMessage(${Number(m.id)})">${trainingSafe(m.title)}</button></p>`).join('')}</details>`:''}</div>`:''}<details class="pace-preferences"><summary>Välj när kalendern ska stanna</summary><label>Inför matcher<select onchange="calendarPaceSet('match',this.value)"><option value="eve" ${settings.match==='eve'?'selected':''}>Dagen före – förbered laget</option><option value="day" ${settings.match==='day'?'selected':''}>På matchdagen</option></select></label><div>${Object.entries(CALENDAR_PACE_STOPS).map(([key,label])=>`<label><input type="checkbox" ${settings.stops[key]?'checked':''} onchange="calendarPaceSet('${key}',this.checked)">${label}</label>`).join('')}</div><p>Obligatoriska svar, sista svarsdagar, pågående matcher och säsongsslut stoppar alltid. Högst 14 dagar per framflyttning. Rapporterna finns kvar i inkorgen. Knappen Fortsätt flyttar fortfarande en dag i taget.</p></details></section>`;
 }
 function validateCalendarPace(s){
@@ -96,7 +96,7 @@ function validateCalendarPace(s){
  const fail=()=>{throw Error('Ogiltiga kalenderinställningar i sparfilen.');};
  if(p.version!==1||!['eve','day'].includes(p.match)||!p.stops||Object.keys(p.stops).length!==Object.keys(CALENDAR_PACE_STOPS).length||Object.keys(CALENDAR_PACE_STOPS).some(k=>typeof p.stops[k]!=='boolean')||!Array.isArray(p.reviewed)||p.reviewed.length>240||p.reviewed.some(k=>!str(k)))fail();
  const r=p.last;if(!r)return;
- if(!date(r.start)||!date(r.end)||r.end<r.start||!Number.isInteger(r.days)||r.days<0||r.days>14||!Number.isInteger(r.total)||r.total<0||!Array.isArray(r.messages)||r.messages.length>12||r.messages.length>r.total||!r.stop||!str(r.stop.key)||!str(r.stop.title)||!['decision','match','season','affairs','stories','projects','injuries','report','pause','error'].includes(r.stop.kind)||r.stop.urgent!==undefined&&typeof r.stop.urgent!=='boolean')fail();
+ if(!str(r.club)||!date(r.start)||!date(r.end)||r.end<r.start||!Number.isInteger(r.days)||r.days<0||r.days>14||!Number.isInteger(r.total)||r.total<0||!Array.isArray(r.messages)||r.messages.length>12||r.messages.length>r.total||!r.stop||!str(r.stop.key)||!str(r.stop.title)||!['decision','match','season','affairs','stories','projects','injuries','report','pause','error'].includes(r.stop.kind)||r.stop.urgent!==undefined&&typeof r.stop.urgent!=='boolean')fail();
  if(!r.stop.action||typeof r.stop.action!=='object'||Array.isArray(r.stop.action)||Object.keys(r.stop.action).some(k=>!['page','message','deal','story','medicalPlayer'].includes(k))||Object.values(r.stop.action).some(v=>!['number','string'].includes(typeof v)))fail();
  for(const m of r.messages)if(!Number.isInteger(m.id)||!str(m.title)||!str(m.category)||!date(m.date))fail();
 }

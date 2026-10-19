@@ -37,5 +37,6 @@ test('cancellation, replaced careers and a failing day never replay or start a m
 });
 test('settings and summary reads do not advance time; malformed persisted settings are rejected',()=>{
  const a=start(),r=a.run;r('save()');const before=r('JSON.stringify(state)');r('calendarPaceView();calendarPaceSignals()');assert.equal(r('JSON.stringify(state)'),before);
+ r(`managerMessage('club-summary','HV71:s samtal','Beslut','Spelare',{decisionType:'role'});calendarPaceStart();state.managerClub='AIK';globalThis.page=state.page;calendarPaceOpen()`);assert.equal(r('state.page'),r('page'));assert.doesNotMatch(r('calendarPaceView()'),/HV71:s samtal/);
  r(`config.stops.projects='yes'`);assert.throws(()=>r('validateSaveText(saveExportText())'),/Ogiltiga kalenderinställningar/);
 });
