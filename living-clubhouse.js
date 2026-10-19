@@ -71,7 +71,7 @@ function clubhousePanel(m){
 function clubhouseOpenPlayer(id){const p=clubhousePlayer(id);if(!p)return false;deskOpenPlayer(p.id);return true;}
 function clubhouseWorkView(){clubhouseMode(false);}
 function clubhouseReturn(){clubhouseGo(clubhouseUI.room);}
-function clubhouseStrip(){return `<nav class="ch-return" aria-label="Klubbhusets arbetsvy"><button onclick="clubhouseReturn()">← Tillbaka till ${CLUBHOUSE_ROOMS[clubhouseUI.room]?.name.toLowerCase()||'kontoret'}</button><span>KLUBBHUSET / ARBETSVY</span><button onclick="clubhouseGo('office')">Tränarkontoret</button></nav>`;}
+function clubhouseStrip(){const label='← Tillbaka till '+(CLUBHOUSE_ROOMS[clubhouseUI.room]?.name.toLowerCase()||'kontoret');return `<nav class="ch-return" aria-label="Klubbhusets arbetsvy"><button aria-label="${trainingSafe(label)}" onclick="clubhouseReturn()">${trainingSafe(label)}</button><span>KLUBBHUSET / ARBETSVY</span><button onclick="clubhouseGo('office')">Tränarkontoret</button></nav>`;}
 function clubhouseHotspot(id,label,action,detail,kind='object'){return `<button type="button" class="ch-hotspot ch-${kind}" data-ch-anchor="${id}" onclick="${trainingSafe(action)}"><span class="ch-dot" aria-hidden="true"></span><span><strong>${trainingSafe(label)}</strong>${detail?`<small>${trainingSafe(detail)}</small>`:''}</span></button>`;}
 function clubhouseView(){
  if(clubhouseUI.lastClub!==managerClub()){clubhouseUI.player=null;clubhouseUI.lastClub=managerClub();}

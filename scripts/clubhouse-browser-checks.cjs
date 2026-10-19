@@ -23,6 +23,7 @@ async function checkClubhouse(page,out){
  await page.locator('#clubhouse-canvas[data-room="ice"][data-ready="true"]').waitFor();
  await page.screenshot({path:path.join(out,'72-traningshallen.png'),fullPage:true});
  await page.getByRole('button',{name:/^Planera träningen/}).click();assert.equal(await page.evaluate(()=>state.page),'training');
+ const work=await page.locator('.development-desk').boundingBox();assert.ok(work.y+work.height<=await page.evaluate(()=>innerHeight)+2,'room return fits in the existing toolbar');
  await page.getByRole('button',{name:'← Tillbaka till träningshallen',exact:true}).click();
  assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])])),original);
  await page.evaluate(()=>clubhouseGo('office'));await page.getByRole('button',{name:'Din tränare',exact:true}).click();
