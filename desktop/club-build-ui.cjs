@@ -11,6 +11,7 @@ fs.mkdirSync(out,{recursive:true});
   app=await _electron.launch({executablePath:require('electron'),args:[__dirname],env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
   page=await app.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',e=>errors.push(e.message));
   await page.waitForFunction(()=>typeof state!=='undefined'&&typeof startCareerWithClub==='function');
+  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];if(!w.isVisible())return new Promise(resolve=>w.once('show',resolve));});
   await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1440,1000);});
   await require('../scripts/club-build-browser-checks.cjs').checkClubBuild(page,out);
   await require('../scripts/transfer-week-browser-checks.cjs').checkTransferWeek(page,out);
