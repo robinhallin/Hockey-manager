@@ -17,7 +17,7 @@ function officeDecisions(){
   const add=(key,title,detail)=>tasks.push({key,title,detail,tag:'Affär'});
   (state.loans?.offers||[]).filter(o=>o.status==='counter').forEach(o=>add('loan:'+o.id,o.name||'Låneförhandling','Motbud om lån · granska nya villkor'));
   r.deals.filter(d=>d.status==='pending'&&d.counter).forEach(d=>add('transfer:'+d.id,d.name||'Värvning','Agentens motbud · granska nya villkor'));
-  r.incoming.filter(o=>incomingOfferOpen(o)&&!['counter_wait','club_agreed'].includes(o.stage)).forEach(d=>add('incoming:'+d.id,d.name||'Inkommande bud',`${d.buyer} · ${d.kind==='loan'?'Lånebud':careerMoney(d.fee||0)} · ${incomingStage(d)}`));
+  r.incoming.filter(o=>incomingOfferOpen(o)&&!['counter_wait','club_agreed','replacement_wait'].includes(o.stage)).forEach(d=>add('incoming:'+d.id,d.name||'Inkommande bud',`${d.buyer} · ${d.kind==='loan'?'Lånebud':careerMoney(d.fee||0)} · ${incomingStage(d)}`));
   return tasks;
 }
 function officeScoutMissions(){
@@ -30,6 +30,7 @@ function officeWaiting(){
   const deals=(r.deals||[]).filter(d=>d.status==='pending'&&!d.counter);
   for(const d of deals)waiting.push({date:d.dueDate,value:'Värvningssvar',detail:'Agent- eller klubbsvar är utestående.',tab:'deals'});
   for(const o of (r.incoming||[]).filter(o=>incomingOfferOpen(o)&&['counter_wait','club_agreed'].includes(o.stage)))waiting.push({date:o.dueDate,value:o.stage==='club_agreed'?'Spelarens besked':'Klubbens svar på motbud',detail:`${o.name} · ${o.buyer}`,deal:'incoming:'+o.id,tab:'deals'});
+  for(const o of (r.incoming||[]).filter(o=>incomingOfferOpen(o)&&o.stage==='replacement_wait'))waiting.push({date:o.expiresDate,value:'Ersättare före försäljning',detail:`${o.name} · köparens sista svarsdag`,deal:'incoming:'+o.id,tab:'deals'});
   const next=waiting.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'))[0];
   if(next)return {label:'Väntar på',value:next.value,detail:(next.date?`Planerat besked ${calText(next.date)}. `:'Datum saknas. ')+next.detail,action:next.deal?{deal:next.deal}:next.playerId?{contactId:next.playerId}:{page:'transfers',tab:next.tab},button:next.tab==='missions'?'Öppna scouting':'Öppna underlaget',tone:'blue'};
   const rehab=managerRoster().filter(p=>!medicalReady(p)&&p.health?.injury);

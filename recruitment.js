@@ -299,6 +299,7 @@ function acceptRecruitCounter(id){
 function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role,incomingId=null){
  if(role==='Truppspelare')role='Breddspelare';
  if(seller===managerClub()&&!state.recruitment.incoming.some(o=>o.id===incomingId&&o.approved&&o.stage==='club_agreed'&&incomingOfferOpen(o)&&samePlayerId(o.playerId,p?.id)&&o.buyer===buyer))return false;
+ if(seller===managerClub()){const o=state.recruitment.incoming.find(o=>o.id===incomingId);if(transferLinkRegistrationIssue(o))return false;}
  if(!p||!Number.isFinite(fee)||fee<0||!Number.isFinite(salary)||salary<=0||!Number.isInteger(years)||years<1||years>5||!SQUAD_ROLES.includes(role))return false;
  if(!calendarWindowOpen()||p.futureContract||naActive(p)||p.lastTransferDate===state.calendar.date)return false;
  if(buyer!==managerClub()&&aiRoleOfferIssue(buyer,p,{kind:'transfer',years,role}))return false;
@@ -306,6 +307,7 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role,incomingId=n
  const r=state.recruitment;if(playerLoan(p)||marketClub(p.id)!==seller||seller===buyer||!state.clubRosters[buyer]||!recruitCanAfford(buyer,p,fee,salary))return false;
  if(buyer!==managerClub()&&!aiCanCommit(buyer,p,fee,salary,{years}))return false;
  if(buyer===managerClub())scoutingArrival(p,fee,salary,years,role);
+ const transferContext=transferWeekBefore(p,seller,buyer,role);
  const feedbackPlan=feedbackBeforeArrival(p,buyer);
  if(seller===managerClub())state.scoutReports[String(p.id)]=scoutRemember(p);
  if(seller===WORLD_FREE){worldRemoveFree(p.id);}else {
@@ -322,12 +324,13 @@ function transferRecruitPlayer(p,seller,buyer,fee,salary,years,role,incomingId=n
  marketCloseCompeting(p.id,'transfer',incomingId);
  delete p.aiListed;delete p.aiRoleReview;aiMarkMarketPlayer(p.id,buyer);
  if(buyer===managerClub())rolePromiseAssign(p,role);else delete p.recruitmentPromise;
- r.history.unshift({id:r.nextId++,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
+ r.history.unshift({id:r.nextId++,date:state.calendar.date,year:recruitmentYear(),tick:r.tick,name:p.name,playerId:p.id,seller,buyer,fee});
  careerHistoryEvent('transfer',{player:p,club:buyer,title:`Klar för ${buyer}`,detail:`${seller} → ${buyer} · ${careerMoney(fee)}.`,value:fee});
  rivalryTransfer(p,seller,buyer);
  careerRecord('largest-transfer','Största övergång',fee,p.name,{playerId:p.id,from:seller,to:buyer});
  if(seller===managerClub()||buyer===managerClub()){syncManagerRoster();repairMedicalLines();ensureSpecialTeams();depthSelection();}
  feedbackArrival(p,feedbackPlan,'transfer');
+ transferWeekAfter(p,seller,buyer,transferContext);
  feedbackNews('transfer:'+r.history[0].id,buyer,'transfer',playerHeadline(p,' klar för '+buyer),seller+' → '+buyer+'. Övergångssumma: '+careerMoney(fee)+'.');
  // Rebuild team strength so background results respond to roster changes too.
  for(const club of [seller,buyer]){const t=team(club);if(t)t.strength=Math.round(state.clubRosters[club].reduce((n,q)=>n+matchAttributeRating(q),0)/state.clubRosters[club].length);}
