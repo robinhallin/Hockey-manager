@@ -213,6 +213,7 @@ function depthLock(){
  if(!state.live||state.live.finished||state.live.matchSquad)return;
  const s=depthSelection(),elapsed=(state.live.period-1)*1200+(state.live.minute||0)*60+(state.live.second||0);
  // A match already under way in an older save keeps its historical eligibility.
+ if(elapsed===0)state.live.personalMatch=personalMatchCapture(state.live.opponent);
  state.live.legacySquad=elapsed>0;
  const ids=elapsed>0?managerRoster().map(p=>p.id):[...state.lines.forwards,...state.lines.defense,...s.extras,state.lines.goalie,s.backup];
  state.live.matchSquad=[...new Set(ids.filter(id=>id!=null).map(String))];ensureSpecialTeams();
