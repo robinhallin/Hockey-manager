@@ -1064,6 +1064,7 @@ function normalizeCareerState(){
   ensureRink();
   ensureClub();
   ensureManager();
+  ensurePlayerJourneys();
 
   for(const roster of [...Object.values(state.clubRosters||{}),state.playerWorld?.freeAgents||[],state.juniors?.roster||[]])for(const p of roster)ensureDevelopment(p);
 
@@ -3456,6 +3457,7 @@ function submitContractRenewal(playerId,salary,years,role){
  }
  Object.assign(p,{salary,contractYears:years,promisedRole:role,squadRole:role,renewalAttempts:0,renewalPausedUntil:null,happiness:trainingClamp(p.happiness+5),morale:trainingClamp((p.morale||70)+3)});
  rolePromiseAssign(p,role);delete p.renewalDraft;
+ journeyEvent(p,`renewal:${managerClub()}:${state.calendar.date}:${salary}:${years}:${role}`,'decision','Ni valde en framtid tillsammans',`${years} år · ${money(salary)}/år · ${role}. Avtalet är undertecknat och rollen följs upp i laget.`);
  state.news.unshift(`${p.name} har förlängt med ${managerClub()} i ${years} år.`);managerMessage(`renewal:${p.id}:${state.calendar.date}`,playerHeadline(p,' förlänger'),`${years} år · ${money(salary)}/år · ${role}. Den utlovade rollen följs upp mot laguttagningen.`,'Sportchef',{playerId:p.id,link:'player'});
  state.contractNegotiation=null;save();render();
 }
@@ -3706,7 +3708,7 @@ function playerProfileConsolidated(player){
   ...(isOwnPlayer(player)?[['person','Person & relation','Förtroende, omklädningsrum och samtal.']]:[])
  ];
  const body=sections.map(([key,label,summary])=>`<details class="fm-profile-section" id="profile-section-${key}" ${key==='overview'||profileWorkspace.tab===key?'open':''}><summary><span><strong>${label}</strong><small>${summary}</small></span><span aria-hidden="true">⌄</span></summary><div class="fm-profile-section-content">${playerProfileTabMarkup(player,key)}</div></details>`).join('');
- return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}<div class="fm-profile-sections">${body}</div></article>`;
+ return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}${journeyPlayerView(player)}<div class="fm-profile-sections">${body}</div></article>`;
 }
 
 /* =========================================================
@@ -4180,6 +4182,7 @@ function startCareerWithClub(clubName){
 
   syncManagerRoster();
   ensureManagementData();
+  ensurePlayerJourneys();
   render();
   preseasonStart(true);
   save();
@@ -4238,7 +4241,7 @@ function placeholderView(title){
 
 }
 
-function continueGame(){dayTransitionStart();}
+function continueGame(){if(!calendarPaceRun)dayTransitionStart();}
 
 function render(){
   const perfStart=performanceNow();
@@ -4267,6 +4270,7 @@ function render(){
   ensureNHL();
   ensureNorthAmerica();
   ensureNASeasons();
+  ensurePlayerJourneys();
   if(!managerEmployed()&&!careerScreen)state.page="manager";
   applyCareerShell();
 

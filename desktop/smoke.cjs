@@ -187,6 +187,7 @@ async function close(){
   assert.equal(await page.evaluate(()=>careerSaveError),false);
   await require('./swiss-ui.cjs')(page,out);
   await require('../scripts/manager-systems-browser-checks.cjs').checkManagerSystems(page);
+  await require('../scripts/club-build-browser-checks.cjs').checkClubBuild(page,out);
   await require('../scripts/usability-browser-checks.cjs').checkUsability(page,out);
   await require('../scripts/nhl-market-browser-checks.cjs').checkNHLMarket(page,out);
   await require('../scripts/nhl-club-planning-browser-checks.cjs').checkNHLClubPlanning(page,out);

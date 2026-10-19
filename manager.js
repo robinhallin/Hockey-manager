@@ -23,8 +23,8 @@ function managerEvaluation(final=false){
  const youthScore=youth?Math.min(1,progress(youth)/(final?1:elapsed)):1;
  const result=final?(league?.met?1:progress(league)*.5):progress(league);
  const cash=finance?.met?1:progress(finance)*.65;
- const score=Math.round(100*(.5*result+.2*youthScore+.3*cash));
- return {score,goals,explanation:goals.map(g=>`${g.title}: ${g.status}. ${g.detail}.`).join('\n')};
+ const base=Math.round(100*(.5*result+.2*youthScore+.3*cash)),project=clubVisionEvaluation(final,base);
+ return {score:project.score,goals,explanation:goals.map(g=>`${g.title}: ${g.status}. ${g.detail}.`).concat(project.text?[project.text]:[]).join('\n')};
 }
 function managerCheckIn(){
  ensureManager();const c=state.managerCareer;if(!managerEmployed()||state.season.phase!=='regular')return;

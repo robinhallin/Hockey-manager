@@ -62,7 +62,7 @@ function calendarStep(recovered=false){
  const financeRates=clubAnnualRates();
  internationalProcess(c.date);nasDay(c.date);
  if(!recovered){medicalDay();managerRoster().filter(p=>!internationalAway(p)).forEach(p=>p.fatigue=Math.max(0,p.fatigue-8));}
- c.date=calAdd(c.date,1);clubCashflowAccrue(c.date,financeRates);trainingReturnDay();for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();internationalPrepare();nhlDay();naDay();managerSystemsDay();
+ c.date=calAdd(c.date,1);clubCashflowAccrue(c.date,financeRates);trainingReturnDay();for(const date of Object.keys(c.plans||{}))if(date<calAdd(c.date,-90))delete c.plans[date];loansDay();rivalsDay();aiWorldDay();calendarMarketDay();feedbackDay();internationalPrepare();nhlDay();naDay();managerSystemsDay();journeyDay();clubVisionDay();
 }
 function calendarToMatch(){
  ensureCalendar();if(state.calendar.active)return true;
