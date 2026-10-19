@@ -13,6 +13,7 @@ function ensureLocker(){
 // Journal entries are observed game events, not invented biography.
 function socialRemember(p,title,body,change=0){
  const s=p.social;if(!s)return;
+ if(state.calendar)journeyConversation(p,title,body);
  s.journal??=[];
  s.journal.unshift({date:state.calendar?.date||'',year:state.season?.year||2026,club:managerClub(),title,body,change:Math.round(change*10)/10});
 
