@@ -1,0 +1,50 @@
+'use strict';
+const assert=require('node:assert/strict'),path=require('node:path');
+async function checkClubhouse(page,out){
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');clubhouseGo('office');});
+ await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
+ await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.frames>2);
+ const original=await page.evaluate(()=>{ensureLines();return JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])]);});
+ await page.screenshot({path:path.join(out,'70-levande-tranarkontor.png'),fullPage:true});
+ await page.getByRole('button',{name:'Taktiktavlan Kedjor & matchplan',exact:true}).click();
+ assert.equal(await page.evaluate(()=>state.page),'lines');assert.ok(await page.getByRole('navigation',{name:'Klubbhusets arbetsvy'}).isVisible());
+ await page.getByRole('button',{name:'← Tillbaka till tränarkontoret',exact:true}).click();
+ await page.getByRole('button',{name:'In till laget Omklädningsrummet',exact:true}).click();
+ await page.locator('#clubhouse-canvas[data-room="locker"][data-ready="true"]').waitFor();
+ const player=await page.evaluate(()=>{const p=managerRoster().find(p=>clubhousePresence(p).present);return {id:String(p.id),name:p.name,trust:p.social.trust};});
+ await page.locator('[data-clubhouse-player]').filter({has:page.locator('strong')}).count().then(n=>assert.ok(n>20));
+ await page.locator(`[data-clubhouse-player="${player.id}"]`).click();
+ await page.getByRole('button',{name:'Hur har du det? Lyssna utan att lova mer istid.',exact:true}).click();
+ assert.ok(await page.evaluate(id=>clubhousePlayer(id).social.trust,player.id)>player.trust);
+ assert.ok(await page.locator('.ch-response').isVisible());
+ await page.getByRole('button',{name:/^Hur har du det/}).isDisabled().then(x=>assert.equal(x,true));
+ await page.screenshot({path:path.join(out,'71-omkladningsrum-samtal.png'),fullPage:true});
+ await page.getByRole('navigation',{name:'Rum i klubbhuset'}).getByRole('button',{name:/03 Träningshallen/}).click();
+ await page.locator('#clubhouse-canvas[data-room="ice"][data-ready="true"]').waitFor();
+ await page.screenshot({path:path.join(out,'72-traningshallen.png'),fullPage:true});
+ await page.getByRole('button',{name:/^Planera träningen/}).click();assert.equal(await page.evaluate(()=>state.page),'training');
+ const work=await page.locator('.development-desk').boundingBox();assert.ok(work.y+work.height<=await page.evaluate(()=>innerHeight)+2,'room return fits in the existing toolbar');
+ await page.getByRole('button',{name:'← Tillbaka till träningshallen',exact:true}).click();
+ assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])])),original);
+ await page.evaluate(()=>clubhouseGo('office'));await page.getByRole('button',{name:'Din tränare',exact:true}).click();
+ await page.getByRole('button',{name:'Träningsoverall',exact:true}).click();assert.equal(await page.evaluate(()=>clubhouseAppearanceData().outfit),'tracksuit');
+ await page.getByRole('button',{name:'Arbetsvy ↗',exact:true}).click();assert.ok(await page.locator('.ov-dashboard').isVisible());
+ await page.getByRole('button',{name:'← Tillbaka till tränarkontoret',exact:true}).click();
+ await page.evaluate(()=>save());await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
+ await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
+ assert.equal(await page.evaluate(id=>clubhousePlayer(id).social.lastResponse.length>0,player.id),true);
+ assert.equal(await page.evaluate(()=>clubhouseAppearanceData().outfit),'tracksuit');
+ for(const [width,height] of [[1366,768],[1920,1080],[390,844]]){
+  await page.setViewportSize({width,height});await page.evaluate(()=>clubhouseGo('locker'));await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.frames>1);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
+  const buttons=await page.locator('[data-clubhouse-player]').evaluateAll(bs=>bs.map(b=>{const r=b.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};}));
+  assert.ok(buttons.every(b=>b.left>=0&&b.right<=width+2),'player labels stay in the viewport');
+  await page.screenshot({path:path.join(out,`73-klubbhus-${width}.png`),fullPage:true});
+ }
+ await page.setViewportSize({width:1440,height:1000});
+ await page.evaluate(()=>{globalThis.chOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:chOriginalContext.call(this,type,...args);};clubhouseGo('office');});
+ assert.ok(await page.locator('.ch-fallback').isVisible());
+ await page.getByRole('button',{name:'Taktiktavlan Kedjor & matchplan',exact:true}).click();assert.equal(await page.evaluate(()=>state.page),'lines');
+ await page.evaluate(()=>{HTMLCanvasElement.prototype.getContext=chOriginalContext;delete globalThis.chOriginalContext;clubhouseGo('office');clubhouseMode(false);});
+}
+module.exports={checkClubhouse};
