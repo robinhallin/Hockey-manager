@@ -150,7 +150,8 @@ const ClubhouseScene=(()=>{
  }
  function locker(c){
   shell(c);planeLabel(c,c.model.club.toUpperCase()+' · TILLSAMMANS',6.7,.44,'#e7d9a7','#425c62',-.9,3.13,-4.14,c.scene,54);
-  c.anchors={board:[-5.5,2.9,-2.7],door:[0,3,-3.5],coach:[3.7,2.3,3.3]};
+  board(c,-2.2,1.6,2.68,1.55,.88);for(const x of [-2.8,-1.6])box(c,.045,1.1,.045,x,.63,2.65,0x8b9b94);
+  c.anchors={board:[-2.2,2.25,2.78],door:[0,3,-3.5],coach:[3.7,2.3,3.3]};
   c.model.players.forEach((p,i)=>lockerSeat(c,p,i));
   const crest=planeLabel(c,c.model.club.toUpperCase(),5.4,2.8,'#c8b888','#244651',0,.09,0,c.scene,100);crest.rotation.x=-Math.PI/2;
   const coach=actor(c,{coach:true});coach.position.set(3.7,0,3.1);coach.rotation.y=-1;c.coach=coach;
@@ -177,9 +178,9 @@ const ClubhouseScene=(()=>{
  }
  function recruit(c){
   shell(c);door(c,4.9,-4.08,'TILL KLUBBHUSET');
-  frame(c,'SCOUTING · '+c.model.club.toUpperCase(),'MARKNAD · RAPPORTER · SPELARE',-.7,2.5,-4.12,6.9,1.4);
+  frame(c,'SCOUTING · '+c.model.club.toUpperCase(),'MARKNAD · RAPPORTER · SPELARE',.2,2.5,-4.12,5.8,1.4);
   for(let i=0;i<3;i++){const x=-4.2+i*3.2;box(c,2.5,.14,1.3,x,1.12,-1.5,0xaf9673);for(const s of [-1,1])box(c,.1,1.05,1.1,x+s*1.1,.55,-1.5,0x354b53);laptop(c,x,1.22,-1.6,['SPELARRAPPORTER','REKRYTERING','BEVAKNING'][i]);books(c,x-.9,1.2,-1.8,3);chair(c,x,.1,Math.PI);}
-  board(c,-3.8,2.55,-4.03,2.5,1.2);plant(c,5.1,2.4,1.4);lamp(c,-5.4,2.7);books(c,2.3,.14,2,8);
+  board(c,-4.1,2.55,-4.03,2.5,1.2);plant(c,5.1,2.4,1.4);lamp(c,-5.4,2.7);box(c,1.7,.84,.65,3,.44,2.5,0x8d765c);books(c,2.4,.9,2.5,8);
   const coach=actor(c,{coach:true});coach.position.set(1.8,0,2.4);c.coach=coach;
   c.anchors={board:[-3.8,2.55,-3.8],desk:[-4.2,1.7,-1.1],scout:[-.8,1.7,-1.1],cabinet:[2.1,1.7,-1.1],door:[4.9,2,-3.6],coach:[1.8,2.5,2.4]};
  }
@@ -214,7 +215,7 @@ const ClubhouseScene=(()=>{
  function project(c){
   const rect=c.canvas.getBoundingClientRect();c.camera.aspect=rect.width/Math.max(1,rect.height);c.camera.updateProjectionMatrix();
   const portrait=c.camera.aspect<1,wide=typeof clubhouseUI!=='undefined'&&clubhouseUI.camera==='overview',lockerRoom=c.model.room==='locker';
-  c.camera.fov=portrait?49:32;c.camera.position.set(portrait?3:lockerRoom?1:8,portrait?18:lockerRoom?7.8:6.7,portrait?29:lockerRoom?12.8:10.5);if(wide)c.camera.position.multiplyScalar(1.18);c.camera.lookAt(0,1,-.1);c.camera.updateProjectionMatrix();c.camera.updateMatrixWorld();
+  c.camera.fov=portrait?49:32;c.camera.position.set(portrait?0:lockerRoom?1:8,portrait?24:lockerRoom?7.8:6.7,portrait?14:lockerRoom?12.8:10.5);if(wide)c.camera.position.multiplyScalar(1.18);c.camera.lookAt(0,1,-.1);c.camera.updateProjectionMatrix();c.camera.updateMatrixWorld();
   c.renderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);
   for(const b of document.querySelectorAll('[data-ch-anchor]')){const pos=c.anchors[b.dataset.chAnchor];if(!pos)continue;const v=new c.T.Vector3(...pos).project(c.camera),pad=Math.min(24,Math.max(5,b.offsetWidth/Math.max(1,rect.width)*50));b.style.left=Math.max(pad,Math.min(100-pad,50+v.x*50))+'%';b.style.top=Math.max(16,Math.min(86,50-v.y*50))+'%';}
  }

@@ -102,7 +102,7 @@ function clubhouseRender(content,html){
 }
 function clubhouseSceneKey(m,a){return JSON.stringify([m.club,m.room,m.date,a,state.lines||null,m.players.map(p=>[p.id,p.number,p.presence.present,p.attention,p.captain])]);}
 const clubhouseOriginalSelect=clubhouseSelect;
-clubhouseSelect=function(id){const ok=clubhouseOriginalSelect(id);if(ok){const panel=document.getElementById('clubhouse-panel');if(panel){panel.hidden=false;panel.innerHTML=`<button class="ch-panel-close" aria-label="Stäng spelarens panel" onclick="clubhouseUI.player=null;render()">×</button>`+panel.innerHTML;}document.getElementById('ch-world')?.classList?.toggle('ch-has-panel',true);}return ok;};
+clubhouseSelect=function(id){const ok=clubhouseOriginalSelect(id);if(ok){const panel=document.getElementById('clubhouse-panel');if(panel){panel.hidden=false;panel.innerHTML=`<button class="ch-panel-close" aria-label="Stäng spelarens panel" onclick="clubhouseUI.player=null;render()">×</button>`+panel.innerHTML;}document.getElementById('ch-world')?.classList?.toggle('ch-has-panel',true);document.getElementById('clubhouse-person-heading')?.focus?.({preventScroll:true});}return ok;};
 document.addEventListener?.('keydown',event=>{
  const work=document.querySelector?.('.ch-work-dialog');if(!work||!clubhouseEnabled()||!clubhouseAvailable()||document.querySelector('dialog[open]'))return;
  if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation?.();clubhouseReturn();}
