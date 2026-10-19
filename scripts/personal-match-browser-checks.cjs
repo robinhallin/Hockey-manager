@@ -21,7 +21,7 @@ async function checkPersonalMatch(page,out){
  await page.evaluate(()=>save());await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
  assert.equal(await page.evaluate(()=>state.clubOffice.personalMatch.choice.choice),'rotate');
  await page.evaluate(()=>{
-  const f=state.calendar.friendlies.filter(f=>f.club===managerClub()&&!f.played).sort((a,b)=>a.date.localeCompare(b.date))[0];state.calendar.date=f.date;calendarStartFriendly(f.id);
+  const f=state.calendar.friendlies.filter(f=>f.club===managerClub()&&!f.played).sort((a,b)=>a.date.localeCompare(b.date))[0];state.calendar.date=f.date;calendarPlayFriendly(f.id);
   let steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}
   if(!state.live.finished)throw Error('Friendly did not finish');render();
  });
