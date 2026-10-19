@@ -9,7 +9,7 @@ function transferLinkRegistrationIssue(o){
 function transferLinkDeal(o){return state.recruitment?.deals.find(d=>d.id===o.replacement?.dealId);}
 function transferLinkCandidates(o){
  const outgoing=marketPlayer(o.playerId);if(!outgoing)return [];
- return state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future'&&d.buyer===managerClub()&&worldGroup(findPlayerAnywhere(d.playerId)||{})===worldGroup(outgoing)&&!state.recruitment.incoming.some(q=>q!==o&&q.status==='pending'&&q.replacement?.status==='waiting'&&(q.replacement.dealId===d.id||samePlayerId(q.playerId,o.playerId))));
+ return state.recruitment.deals.filter(d=>d.status==='pending'&&d.kind!=='future'&&d.buyer===managerClub()&&worldGroup(findPlayerAnywhere(d.playerId)||{})===worldGroup(outgoing)&&!state.recruitment.incoming.some(q=>q!==o&&q.status==='pending'&&['waiting','secured'].includes(q.replacement?.status)&&(q.replacement.dealId===d.id||samePlayerId(q.playerId,o.playerId))));
 }
 function transferLinkOffer(id,dealId){
  if(!managerCanPlay()||loanLocked())return false;
@@ -104,14 +104,14 @@ function transferWeekAfter(p,seller,buyer,context){
  for(const r of context){
   if(b.reactions.some(q=>q.transaction===transaction&&q.playerId===r.playerId))continue;
   const q=marketPlayer(r.playerId);if(!q)continue;playerSocialIdentity(q);journeyTrack(q);
-  const body=r.kind==='competition'?`${p.name} har värvats i din positionsgrupp. ${r.prior} Du vill veta hur det beskedet ska rymmas i den nya konkurrensen. Löftet är ännu inte bedömt som brutet.`:r.kind==='opening'?`${p.name} har lämnat för ${buyer}. ${r.prior} Det finns en öppning, men speltiden är ännu inte fördelad.`:`Du har sålt spelaren till ${buyer}. ${r.prior} Den gemensamma provperioden kan inte fortsätta i din trupp; den bedöms inte som missad istid.`;
+  const body=r.kind==='competition'?`${p.name} har värvats i din positionsgrupp. ${r.prior} ${q.name} vill veta hur det beskedet ska rymmas i den nya konkurrensen. Löftet är ännu inte bedömt som brutet.`:r.kind==='opening'?`${p.name} har lämnat för ${buyer}. ${r.prior} Det finns en öppning, men speltiden är ännu inte fördelad.`:`Du har sålt spelaren till ${buyer}. ${r.prior} Den tidigare uppföljningen kan inte fortsätta i din trupp; den bedöms inte som missad istid.`;
   const row={id:b.nextId++,transaction,club,playerId:r.playerId,name:q.name,otherId:String(p.id),other:p.name,kind:r.kind,prior:r.prior,trial:r.trial,date:state.calendar.date,body,status:r.kind==='departure'?'closed':'open',response:null};
   b.reactions.push(row);
   relationshipChange(q,r.kind==='competition'?-1:0,r.kind==='competition'?'Ny konkurrens väcker frågor':r.kind==='opening'?'En plats öppnas i laget':'En övergång efter ditt tidigare besked',body);
   managerMessage(`transfer-reaction:${club}:${transaction}:${r.playerId}`,`${q.name}: ${r.kind==='competition'?'hur blir det med mitt besked?':r.kind==='opening'?'är det min tur nu?':'vår gemensamma väg ändras'}`,body,'Omklädningsrum',{link:'transfers',playerId:q.id});
  }
  // Retain at most 60 desk questions; full player journals retain the memories.
- while(b.reactions.length>60){const i=b.reactions.findIndex(r=>r.status==='closed');if(i<0){b.reactions.shift();break;}b.reactions.splice(i,1);}
+ while(b.reactions.length>60){const i=b.reactions.findIndex(r=>r.status==='closed');if(i<0){b.reactions.shift();continue;}b.reactions.splice(i,1);}
 }
 function transferReactionCommitment(r){const p=marketPlayer(r.playerId),c=p&&transferCommitment(p);return c?.text===r.prior;}
 function transferReactionAnswer(id,choice){
@@ -119,7 +119,7 @@ function transferReactionAnswer(id,choice){
  const r=state.clubOffice.transferWeek?.reactions.find(r=>r.id===Number(id)&&r.club===managerClub()&&r.status==='open'),p=r&&managerRoster().find(p=>samePlayerId(p.id,r.playerId));if(!r||!p)return false;
  if(choice==='commitment'&&!transferReactionCommitment(r))return false;
  r.status='closed';r.response=choice;
- const text=choice==='commitment'?`Du står fast vid det tidigare beskedet och granskar uttagningen. ${r.prior} Befintlig uppföljning fortsätter; inga nya löften eller extra förtroendepoäng delas ut.`:'Du förklarar att konkurrensen är öppen och att en ledig plats måste förtjänas. Befintliga avtal och löften gäller fortfarande och följs mot faktisk istid.';
+ const text=choice==='commitment'?`Du står fast vid det tidigare beskedet. Granska uttagningen inför nästa match. ${r.prior} Befintlig uppföljning fortsätter; inga nya löften eller extra förtroendepoäng delas ut.`:'Du förklarar att konkurrensen är öppen och att en ledig plats måste förtjänas. Befintliga avtal och löften gäller fortfarande och följs mot faktisk istid.';
  socialRemember(p,'Samtal efter transferbeslutet',text);save();render();return true;
 }
 function transferReactionsView(){
