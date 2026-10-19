@@ -4426,7 +4426,7 @@ careerScreen === "files" ? saveSettingsView()
   clubDeskCapture();
   worldDeskCapture();
   matchDeskCapture();
-  content.innerHTML=deskFrame(pageHTML);
+  content.innerHTML=deskFrame(clubhouseWrap(pageHTML));
   deskEnhanceButtons(content);
   if(state.page==='transfers'||state.page==='scouting')recruitmentRestoreView();
   if(['finance','board','staff','manager'].includes(state.page))clubDeskRestore();
@@ -4435,6 +4435,7 @@ careerScreen === "files" ? saveSettingsView()
   if(state.page==='squad')squadRestoreView();
   if(state.page==='locker')lockerRestoreView();
   if(['training','juniors','medical'].includes(state.page))developmentRestoreView();
+  clubhouseMount();
 
   const clubName = managerClub();
   const club = getClub(clubName);
