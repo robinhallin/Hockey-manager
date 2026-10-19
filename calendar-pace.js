@@ -18,9 +18,11 @@ function calendarPaceSignals(){
  }
  for(const row of hubAffairRows()){
   const d=row.d,kind=row.key.split(':')[0],decision=kind==='incoming'?d.status==='pending'&&(!d.stage||d.stage==='offer'):kind==='transfer'?d.status==='pending'&&Boolean(d.counter):kind==='loan'?d.status==='counter':false;
+  if(kind==='incoming'&&d.status==='pending'&&d.stage==='replacement_wait'&&d.expiresDate&&calGap(date,d.expiresDate)<=1){rows.push({key:`linked-deadline:${d.id}:${d.expiresDate}`,kind:'affairs',title:'Villkorad försäljning: sista svarsdag för '+row.name,action:{deal:row.key},urgent:true});}
   if(!decision)continue;const due=kind==='incoming'?d.expiresDate:kind==='loan'?d.expires:d.dueDate,urgent=Boolean(due&&calGap(date,due)<=1);
   if(settings.stops.affairs||urgent)rows.push({key:`affair:${row.key}:${d.stage||d.status}:${d.negotiationRounds||d.rounds||0}:${due||''}`,kind:'affairs',title:urgent?'Sista svarsdag närmar sig: '+row.name:'Ett bud behöver bedömas: '+row.name,action:{deal:row.key},urgent});
  }
+ for(const o of transferRivalRows()){const d=state.recruitment.deals.find(d=>d.status==='pending'&&d.buyer===managerClub()&&samePlayerId(d.playerId,o.playerId));if(d&&!recruitDealAgreed(d)&&calGap(date,transferRivalDeadline(o))<=1)rows.push({key:`rival-deadline:${o.id}`,kind:'affairs',title:'Rivalen kan snart få besked om '+o.name,action:{deal:'transfer:'+d.id},urgent:true});}
  if(settings.stops.stories)for(const s of state.stories?.active||[])if(s.club===managerClub()&&s.status==='decision')rows.push({key:`story:${s.id}:${s.stage}:${s.decisionAt}`,kind:'stories',title:s.title,action:{story:s.id}});
  if(settings.stops.projects)for(const a of clubVision()?.alerts||[])if(!a.acknowledged)rows.push({key:'project:'+a.key,kind:'projects',title:a.title,action:{page:'board'}});
  if(settings.stops.injuries)for(const p of managerRoster())if(!medicalReady(p)&&p.health?.injury)rows.push({key:`injury:${p.id}:${p.health.injury.started||p.health.injury.date||''}:${p.health.injury.name||''}:${p.health.injury.initial||0}`,kind:'injuries',title:p.name+': ny skadebedömning',action:{medicalPlayer:p.id}});

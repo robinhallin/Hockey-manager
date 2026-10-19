@@ -23,6 +23,7 @@ function recruitmentNextStep(row){
  const d=row.d,kind=row.key.split(':')[0];
  if(!['pending','counter','active'].includes(row.status))return 'Affären är avslutad. Läs utfallet och kontrollera truppplanen innan nästa beslut.';
  if(kind==='active')return 'Följ faktisk istid och utveckling hos låneklubben. Kontrollera återkomstdatum och återkallelsevillkor.';
+ if(kind==='incoming'&&d.stage==='replacement_wait')return 'Försäljningen är villkorad av en registrerad, spelklar ersättare. Köparens ursprungliga svarstid gäller; inga pengar är mottagna.';
  if(kind==='incoming')return d.stage==='club_agreed'?'Klubbarna är överens. Spelarens beslut och slutlig finansiering återstår; ingen övergång är klar ännu.':d.stage==='counter_wait'?'Ditt motbud är skickat. Vänta på köparens svar.':'Bedöm tappad truppbredd och lönebesparing innan du godkänner, kontrar eller avvisar.';
  if(kind==='loan')return d.status==='counter'?'Jämför löneandel, ansvar, längd och återkallelse med ditt förslag. Acceptera eller avböj före sista svarsdag.':'Klubb och spelare bedömer lånet. En skickad förfrågan flyttar inte spelaren.';
  if(d.counter)return 'Jämför agentens krav med din budget och tänkta laguttagning. Acceptera, revidera eller återkalla före sista svarsdag.';

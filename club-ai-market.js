@@ -240,9 +240,10 @@ function aiResolveMarket(){
  for(const id of players){
   const offers=w.offers.filter(o=>o.status==='pending'&&samePlayerId(o.playerId,id));
   // User negotiations receive their promised response before the shared auction settles.
-  if(state.recruitment.deals.some(d=>samePlayerId(d.playerId,id)&&d.status==='pending'))continue;
+  const managerDeal=state.recruitment.deals.find(d=>samePlayerId(d.playerId,id)&&d.status==='pending'&&(!d.buyer||d.buyer===managerClub()));
+  if(managerDeal&&(managerDeal.kind==='future'||recruitDealAgreed(managerDeal)||!managerDeal.counter&&managerDeal.dueDate>=state.calendar.date||!offers.some(o=>o.kind==='transfer'&&transferRivalDeadline(o)<=state.calendar.date)))continue;
   const valid=[];
-  for(const o of offers){const reason=aiValidateOffer(o);if(reason){o.status='rejected';o.reason=reason;}else valid.push(o);}
+  for(const o of offers){if(managerDeal&&o.due>state.calendar.date)continue;const reason=aiValidateOffer(o);if(reason){o.status='rejected';o.reason=reason;aiDecision(o.buyer,'market',`${o.name}: ${reason} Klubben söker ett annat alternativ.`);const c=clubAIState(o.buyer);if(c)c.lastMarket=null;}else valid.push(o);}
   const p=marketPlayer(id);if(!p||!valid.length)continue;
   valid.sort((a,b)=>{
    const score=o=>o.kind==='loan'?50+loanFit(p,o.buyer).rank*-2:recruitOfferScore(p,o.buyer,o);
@@ -258,6 +259,7 @@ function aiResolveMarket(){
   }else signed=transferRecruitPlayer(p,o.seller,o.buyer,o.fee,o.salary,o.years,o.role);
   if(!signed){o.status='rejected';o.reason='Affären klarade inte den slutliga kontrollen.';continue;}
   aiMarkMarketPlayer(p.id,o.buyer);marketCloseCompeting(p.id,o.kind);
+  if(managerDeal)transferRivalSettled(managerDeal,o);
   const text=`${o.kind==='future'?'Säkrar nästa säsong med':o.kind==='loan'?'Lånar':'Värvar'} ${p.name} från ${o.seller}. ${o.decisionReason}`;
   if(o.kind==='future')feedbackNews('future-sign:'+o.id,o.buyer,'transfer',playerHeadline(p,' skriver förhandsavtal'),text);
   aiDecision(o.buyer,'market',text);rivalEvent(o.buyer,'transfer',[o.buyer+': ',playerMention(p)],text);

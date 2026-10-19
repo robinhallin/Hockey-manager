@@ -42,7 +42,7 @@ function marketInterest(club,p,need,kind){
   if(old?.noticeStage!==stage){c.interests[key].noticeStage=stage;managerMessage(`market-interest:${club}:${p.id}:${stage}`,stage==='serious'?`${club} intensifierar intresset för ${p.name}`:`${club} följer ${p.name}`,stage==='serious'?`${club} har följt spelaren vid flera tillfällen för rollen ${need.role}. Ett formellt bud är inte garanterat. ${need.reason}`:`${club} har lagt ${p.name} under bevakning för rollen ${need.role}. ${need.reason}`,'Sportchefen',{link:'transfers',playerId:p.id});}
  }
 }
-function incomingStage(o){return ({offer:'Ditt beslut',counter_wait:'Inväntar andra klubbens svar',club_agreed:'Inväntar spelarens beslut'})[o.stage||'offer']||'Ditt beslut';}
+function incomingStage(o){return ({offer:'Ditt beslut',counter_wait:'Inväntar andra klubbens svar',club_agreed:'Inväntar spelarens beslut',replacement_wait:'Inväntar registrerad ersättare'})[o.stage||'offer']||'Ditt beslut';}
 function incomingNotice(o,title){
  recruitReport(title||`Nytt ${o.kind==='loan'?'lånebud':'köpbud'}: ${o.name}`,`${o.buyer}. ${o.reason||o.decisionReason||''} ${o.status==='pending'?incomingStage(o)+'. Svar senast '+calText(o.expiresDate):''}`,{incomingId:o.id});
 }
@@ -58,6 +58,7 @@ function incomingCreate(club,p,need,kind,terms){
 }
 function incomingClose(o,status,reason){
  o.kind??='transfer';o.expiresDate??=state.calendar.date;
+ if(o.replacement?.status==='waiting')o.replacement.status='ended';
  o.status=status;o.reason=reason;o.closedDate=state.calendar.date;o.stage='closed';
  o.log??=[];o.log.push({date:o.closedDate,by:'system',action:status,reason});
  const c=clubAIState(o.buyer);if(c?.interests?.[o.playerId])c.interests[o.playerId].status=status;
@@ -70,6 +71,7 @@ function marketPlayerDecision(p,club,o){
 }
 function incomingIssue(o,{player=false}={}){
  const p=marketPlayer(o.playerId);
+ if(o.stage==='club_agreed'){const linkIssue=transferLinkRegistrationIssue(o);if(linkIssue)return linkIssue;}
  if(!p||marketClub(p.id)!==(o.seller||managerClub())||p.futureContract||playerLoan(p)||naActive(p))return 'Spelarens klubbtillhörighet eller avtal har ändrats.';
  if(!calendarWindowOpen()||p.lastTransferDate===state.calendar.date)return 'Övergången kan inte registreras denna dag.';
  if(!medicalReady(p))return 'Spelaren är inte tillgänglig för det aktuella behovet.';
@@ -120,6 +122,7 @@ function incomingDay(){
   o.seller??=managerClub();o.kind??='transfer';o.stage??='offer';
   o.expiresDate??=calAdd(state.calendar.date,Math.max(0,(o.expires-state.recruitment.tick)*7));
   if(!incomingOfferOpen(o)||!calendarWindowOpen()){incomingClose(o,'expired','Svarstiden eller övergångsfönstret löpte ut.');continue;}
+  if(o.stage==='replacement_wait'){transferLinkAdvance(o);continue;}
   if(!o.dueDate||o.dueDate>state.calendar.date)continue;
   if(o.stage==='counter_wait'){
    const p=marketPlayer(o.playerId);let issue='';
@@ -166,7 +169,7 @@ function incomingDealView(o){
  const counter=loan?`<label>Mottagarens löneandel<select name="amount">${recruitOptions({0:'0 %',.25:'25 %',.5:'50 %',.75:'75 %',1:'100 %'},o.share)}</select></label><label>Period<select name="days">${recruitOptions({28:'28 dagar',56:'56 dagar',0:'Till deadline'},o.days)}</select></label><label>Roll<select name="role">${recruitOptions(LOAN_ROLES,o.loanRole)}</select></label><label>Återkallelse<select name="recall">${recruitOptions({day28:'Efter 28 dagar',anytime:'Inom fönstret'},o.recall)}</select></label>`:`<label>Ersättning (kr)<input name="amount" type="number" min="0" step="10000" value="${Math.round(o.fee*1.1/10000)*10000}" required></label>`;
  return `<small>${loan?'Inkommande lånebud':'Inkommande köpbud'} · ${active?incomingStage(o):HUB_STATUS[o.status]||o.status}</small><h2>${playerReference(o.playerId,o.name)}</h2><h3>${trainingSafe(o.buyer)}</h3><p><b>Sportsligt motiv:</b> ${trainingSafe(o.decisionReason||'Klubben söker förstärkning till sin trupp.')}</p><p><strong>Nästa steg:</strong> ${trainingSafe(recruitmentNextStep({key:'incoming:'+o.id,status:o.status,d:o}))}</p><dl>${terms}<dt>Bonusar</dt><dd>Inga avtalade</dd></dl><p>${trainingSafe(o.reason||'Klubben väntar på ditt beslut.')}</p>${active?`<p><b>Svar senast:</b> ${o.expiresDate?calText(o.expiresDate):o.expires-state.recruitment.tick+' marknadsomgångar'}${o.dueDate?' · Nästa besked '+calText(o.dueDate):''}</p>`:''}
  ${decision?`<button class="btn" onclick="answerIncomingOffer(${o.id},true)">Godkänn klubböverenskommelsen</button><button class="btn secondary" onclick="answerIncomingOffer(${o.id},false)">Avvisa</button><details><summary>Lämna motbud</summary><form class="sc-fields" onsubmit="event.preventDefault();counterIncomingOffer(${o.id},this.elements.amount.value,${loan?'this.elements.days.value,this.elements.role.value,this.elements.recall.value':"0,'',''"})">${counter}<button class="btn secondary">Skicka motbud</button></form></details>`:''}
- ${loan?'<p>Spelaren förblir kontrakterad hos dig. Matcher, belastning och utveckling följs hos mottagaren.</p>':''}<details><summary>Förhandlingshistorik</summary>${(o.log||[]).map(x=>`<p>${calText(x.date)} · ${trainingSafe(x.by)} · ${trainingSafe(({offer:'Bud',counter:'Motbud',response:'Svar',club_agreed:'Klubböverenskommelse',accepted:'Genomförd',rejected:'Avvisad',lost:'Annan affär',expired:'Utgången'})[x.action]||x.action)}${x.fee!==undefined?' · '+marketMoney(x.fee):''}${x.share!==undefined?' · '+x.share*100+' % lön':''}</p>`).join('')}</details>`;
+ ${loan?'<p>Spelaren förblir kontrakterad hos dig. Matcher, belastning och utveckling följs hos mottagaren.</p>':''}<details><summary>Förhandlingshistorik</summary>${(o.log||[]).map(x=>`<p>${calText(x.date)} · ${trainingSafe(x.by)} · ${trainingSafe(({offer:'Bud',counter:'Motbud',response:'Svar',club_agreed:'Klubböverenskommelse',accepted:'Genomförd',rejected:'Avvisad',lost:'Annan affär',expired:'Utgången',replacement_wait:'Villkorat godkännande',replacement_secured:'Ersättaren registrerad',link_failed:'Ersättarens affär föll',link_cancelled:'Villkoret återkallat'})[x.action]||x.action)}${x.fee!==undefined?' · '+marketMoney(x.fee):''}${x.share!==undefined?' · '+x.share*100+' % lön':''}</p>`).join('')}</details>`;
 }
 function marketInterestView(){
  const rows=Object.entries(state.clubAI?.clubs||{}).flatMap(([club,c])=>Object.values(c.interests||{}).filter(i=>i.seller===managerClub()&&calGap(i.last,state.calendar.date)<=30&&marketClub(i.playerId)===managerClub()&&!state.recruitment.incoming.some(o=>incomingOfferOpen(o)&&o.buyer===club&&samePlayerId(o.playerId,i.playerId))).map(i=>({...i,club})));
@@ -182,7 +185,7 @@ function validateMarketSave(s){
  }
  for(const o of r.incoming||[]){
   if(!o.stage)continue; // Legacy records acquire stages only when the market advances.
-  if(!Number.isInteger(o.id)||ids.has(o.id)||!['offer','counter_wait','club_agreed','closed'].includes(o.stage)||!['pending','accepted','rejected','expired','lost','cancelled'].includes(o.status)||!date(o.expiresDate)||!Number.isFinite(o.fee)||o.fee<0||!Number.isFinite(o.salary)||o.salary<0||!s.clubRosters[o.buyer]||o.stage==='club_agreed'&&!o.approved||['counter_wait','club_agreed'].includes(o.stage)&&!date(o.dueDate))throw Error('Ett inkommande bud innehåller ogiltiga villkor eller saknar godkännande.');
+  if(!Number.isInteger(o.id)||ids.has(o.id)||!['offer','counter_wait','club_agreed','replacement_wait','closed'].includes(o.stage)||!['pending','accepted','rejected','expired','lost','cancelled'].includes(o.status)||!date(o.expiresDate)||!Number.isFinite(o.fee)||o.fee<0||!Number.isFinite(o.salary)||o.salary<0||!s.clubRosters[o.buyer]||['club_agreed','replacement_wait'].includes(o.stage)&&!o.approved||['counter_wait','club_agreed'].includes(o.stage)&&!date(o.dueDate))throw Error('Ett inkommande bud innehåller ogiltiga villkor eller saknar godkännande.');
   if(o.kind==='loan'&&(![0,.25,.5,.75,1].includes(o.share)||![0,28,56].includes(o.days)||!LOAN_ROLES[o.loanRole]||!['day28','anytime'].includes(o.recall)))throw Error('Det inkommande lånebudet är felaktigt.');
   ids.add(o.id);
  }

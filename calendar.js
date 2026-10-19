@@ -51,6 +51,7 @@ function calendarNotify(message){state.calendar.notice=message;save();render();}
 function calendarMarketDay(){
  const c=state.calendar,r=state.recruitment;scoutDay();incomingDay();
  for(const d of r.deals.filter(d=>d.status==='pending'&&d.dueDate&&d.dueDate<=c.date))resolveRecruitDeal(d);
+ incomingDay();transferWeekDay();
  if(c.date>=c.marketDay){
   advanceRecruitment();c.marketDay=calAdd(c.date,7);
 
