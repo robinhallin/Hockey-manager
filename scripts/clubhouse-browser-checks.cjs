@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
 async function checkClubhouse(page,out){
- await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');clubhouseGo('office');});
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();clubhouseGo('office');});
  await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
  await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.frames>2);
  const scene=await page.evaluate(()=>{globalThis.chFirstCanvas=document.getElementById('clubhouse-canvas');return ClubhouseScene.diagnostics().build;});
