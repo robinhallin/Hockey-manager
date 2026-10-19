@@ -72,3 +72,9 @@ test('a tired goalkeeper can be replaced through the ordinary goalie selection, 
  const {run:r}=setup();r(`storiesClose(story,'Avslutad','Kontrollerat slut');for(const p of managerRoster())p.fatigue=5;`);assert.equal(r('personalMatchDilemma()'),null);
  r(`globalThis.keeper=playerById(state.lines.goalie);keeper.fatigue=75;d=personalMatchDilemma();globalThis.candidate=d.candidate.id;personalMatchChoose('rotate',d.signature)`);assert.equal(r('d.slot.type'),'goalie');assert.equal(r('state.lines.goalie'),r('candidate'));assert.equal(r('state.matchSelection.backup'),r('keeper.id'));assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
 });
+
+test('a first match with a legacy role promise can start before any lineup exists',()=>{
+ const {run:r}=boot();r(`startCareerWithClub('HV71');globalThis.p=managerRoster()[0];p.recruitmentPromise={minutes:12,games:2,qualified:1,resolved:false};globalThis.before=JSON.stringify(state.lines);state.calendar.date=calendarTarget();`);
+ assert.equal(r('state.lines'),undefined);assert.equal(r('personalMatchCapture(personalMatchFixture().opponent)'),null);assert.equal(r('JSON.stringify(state.lines)'),r('before'));assert.doesNotMatch(r('personalMatchPreviewView()'),/undefined/);
+ r('startMatch()');assert.ok(r('state.live'));assert.ok(r('state.live.matchSquad'));assert.ok(r('state.live.personalMatch'));assert.equal(r('state.live.personalMatch.focus.playerId'),r('String(p.id)'));assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
+});

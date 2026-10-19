@@ -17,7 +17,7 @@ function personalMatchCandidates(g=personalMatchFixture()){
  for(const p of managerRoster()){
   const absent=journeyPlayer(p.id)?.clubs[club]?.absent;
   if(absent&&medicalReady(p)&&calGap(absent,date)>=7)add(p,'comeback','Vägen tillbaka till isen',`${p.name} har haft registrerad frånvaro sedan ${calText(absent)}. ${medicalStatus(p)}; medicinska begränsningar gäller.`,80);
-  const q=p.recruitmentPromise;if(q&&!q.resolved&&(!q.club||q.club===club))add(p,'promise','Ett tidigare besked följer med',`${p.name}: ${q.role}, ${rolePromiseTarget(q)}. Det befintliga löftet följs i tävlingsmatcherna.`,60);
+  const q=p.recruitmentPromise;if(q&&!q.resolved&&(!q.club||q.club===club))add(p,'promise','Ett tidigare besked följer med',`${p.name}: ${q.role||p.promisedRole||'Rotation'}, ${rolePromiseTarget(q)}. Det befintliga löftet följs i tävlingsmatcherna.`,60);
  }
  for(const h of state.recruitment?.history||[]){if(h.seller!==club||h.buyer!==g.opponent||getPlayerClub(h.playerId)!==g.opponent)continue;add(findPlayerAnywhere(h.playerId),'reunion','Ett återseende på andra sidan',`${h.name} tillhör nu ${g.opponent}. Ni möts som motståndare; hans uttagning är ännu inte bekräftad.`,70);}
  return rows.sort((a,b)=>b.priority-a.priority||a.playerId.localeCompare(b.playerId)).slice(0,8);
@@ -69,7 +69,7 @@ function personalMatchChoose(choice,signature){
  save();render();return true;
 }
 function personalMatchCapture(opponent){
- const g=personalMatchFixture();if(!g||g.date!==state.calendar.date||g.opponent!==opponent)return null;
+ const g=personalMatchFixture();if(!g||!state.lines||g.date!==state.calendar.date||g.opponent!==opponent)return null;
  const focus=personalMatchFocus(g),c=personalMatchConfig(g);if(!focus&&!c?.choice)return null;
  const ids=[...(focus?.own?[focus.playerId]:[]),...(c?.choice?[c.choice.starterId,c.choice.candidateId]:[])],subjects=[];
  for(const id of [...new Set(ids)]){
