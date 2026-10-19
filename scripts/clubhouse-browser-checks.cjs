@@ -19,7 +19,7 @@ async function checkClubhouse(page,out){
  assert.ok(await page.locator('.ch-response').isVisible());
  await page.getByRole('button',{name:/^Hur har du det/}).isDisabled().then(x=>assert.equal(x,true));
  await page.screenshot({path:path.join(out,'71-omkladningsrum-samtal.png'),fullPage:true});
- await page.getByRole('button',{name:'03 Träningshallen →',exact:true}).click();
+ await page.getByRole('navigation',{name:'Rum i klubbhuset'}).getByRole('button',{name:/03 Träningshallen/}).click();
  await page.locator('#clubhouse-canvas[data-room="ice"][data-ready="true"]').waitFor();
  await page.screenshot({path:path.join(out,'72-traningshallen.png'),fullPage:true});
  await page.getByRole('button',{name:/^Planera träningen/}).click();assert.equal(await page.evaluate(()=>state.page),'training');
@@ -40,6 +40,10 @@ async function checkClubhouse(page,out){
   assert.ok(buttons.every(b=>b.left>=0&&b.right<=width+2),'player labels stay in the viewport');
   await page.screenshot({path:path.join(out,`73-klubbhus-${width}.png`),fullPage:true});
  }
- await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{clubhouseGo('office');clubhouseMode(false);});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.evaluate(()=>{globalThis.chOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:chOriginalContext.call(this,type,...args);};clubhouseGo('office');});
+ assert.ok(await page.locator('.ch-fallback').isVisible());
+ await page.getByRole('button',{name:'Taktiktavlan Kedjor & matchplan',exact:true}).click();assert.equal(await page.evaluate(()=>state.page),'lines');
+ await page.evaluate(()=>{HTMLCanvasElement.prototype.getContext=chOriginalContext;delete globalThis.chOriginalContext;clubhouseGo('office');clubhouseMode(false);});
 }
 module.exports={checkClubhouse};

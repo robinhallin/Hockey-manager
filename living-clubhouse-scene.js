@@ -141,7 +141,7 @@ const ClubhouseScene=(()=>{
   for(const p of c.model.players){
    const button=document.createElement('button');button.type='button';button.className='ch-hotspot ch-player'+(!p.presence.present?' ch-absent':'')+(p.attention?' ch-needs-attention':'');button.dataset.chAnchor='player-'+p.id;button.dataset.clubhousePlayer=p.id;
    button.setAttribute('aria-label',p.name+' · '+(p.presence.present?p.attention||p.mood.text:p.presence.label));button.setAttribute('aria-pressed',String(samePlayerId(p.id,clubhouseUI.player)));
-   const name=document.createElement('strong');name.textContent=p.name.split(' ').at(-1);const small=document.createElement('small');small.textContent=p.presence.present?(p.captain?'C · ':'')+p.pos:p.presence.label;
+   const name=document.createElement('strong');name.textContent=String(p.number);const small=document.createElement('small');small.textContent=p.name+' · '+(p.presence.present?(p.captain?'C · ':'')+p.pos:p.presence.label);
    const span=document.createElement('span');span.append(name,small);const dot=document.createElement('span');dot.className='ch-dot';dot.setAttribute('aria-hidden','true');button.append(dot,span);button.addEventListener('click',()=>clubhouseSelect(p.id));root?.append(button);
   }
  }
@@ -178,7 +178,7 @@ const ClubhouseScene=(()=>{
   try{
    const T=HockeyThree;c={T,canvas,model,appearance,scene:new T.Scene(),camera:new T.PerspectiveCamera(38,1,.1,80),materials:new Map(),geometries:new Set(),textures:new Set(),actors:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
    c.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});c.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));c.renderer.outputColorSpace=T.SRGBColorSpace;c.renderer.toneMapping=T.ACESFilmicToneMapping;c.renderer.toneMappingExposure=1.05;c.renderer.shadowMap.enabled=true;c.renderer.shadowMap.type=T.PCFSoftShadowMap;c.renderer.shadowMap.autoUpdate=false;c.renderer.shadowMap.needsUpdate=true;
-   c.camera.position.set(model.room==='locker'?11.8:12.3,model.room==='locker'?11:10.2,model.room==='locker'?16.5:16);c.camera.lookAt(0,1,-.1);
+   c.camera.position.set(model.room==='locker'?2.7:11.2,model.room==='locker'?11:9.4,model.room==='locker'?18.5:14.9);c.camera.lookAt(0,1,-.1);
    (model.room==='locker'?locker:model.room==='ice'?ice:office)(c);playerButtons(c);
    c.scene.updateMatrixWorld(true);c.camera.updateMatrixWorld();project(c);c.resize=new ResizeObserver(()=>project(c));c.resize.observe(canvas);
    c.visibility=()=>{if(!document.hidden&&!c.frame&&active===c){c.last=0;c.frame=requestAnimationFrame(t=>loop(c,t));}};document.addEventListener('visibilitychange',c.visibility);

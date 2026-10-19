@@ -24,7 +24,8 @@ function clubhouseModel(){
 function clubhouseGo(room){
  if(!Object.hasOwn(CLUBHOUSE_ROOMS,room)||!clubhouseAvailable())return false;
  clubhouseUI.room=room;clubhouseUI.player=null;clubhouseUI.notice='';clubhouseUI.section='today';clubhouseUI.wardrobe=false;
- overviewUI.stories=false;overviewUI.press=false;clubhouseRemember('mode','living');deskNavigate(room==='locker'?'locker':'home');return true;
+ overviewUI.stories=false;overviewUI.press=false;clubhouseRemember('mode','living');
+ clubhouseUI.navigating=true;try{deskNavigate(room==='locker'?'locker':'home');}finally{clubhouseUI.navigating=false;}return true;
 }
 function clubhouseOpen(page,tab){
  if(!clubhouseAvailable())return false;
@@ -74,7 +75,7 @@ function clubhouseStrip(){return `<nav class="ch-return" aria-label="Klubbhusets
 function clubhouseHotspot(id,label,action,detail,kind='object'){return `<button type="button" class="ch-hotspot ch-${kind}" data-ch-anchor="${id}" onclick="${trainingSafe(action)}"><span class="ch-dot" aria-hidden="true"></span><span><strong>${trainingSafe(label)}</strong>${detail?`<small>${trainingSafe(detail)}</small>`:''}</span></button>`;}
 function clubhouseView(){
  if(clubhouseUI.lastClub!==managerClub()){clubhouseUI.player=null;clubhouseUI.lastClub=managerClub();}
- const m=clubhouseModel(),room=CLUBHOUSE_ROOMS[m.room];
+ const m=clubhouseModel(),room=CLUBHOUSE_ROOMS[m.room];clubhouseUI.room=m.room;
  const objects=m.room==='office'?[
   ['board','Taktiktavlan',"clubhouseOpen('lines')",'Kedjor & matchplan'],['desk','Skrivbordet',"clubhouseOpen('inbox')",`${m.tasks.length} beslutsärenden`],['scout','Scoutinghörnan',"clubhouseOpen('transfers')",'Bygg nästa lag'],['cabinet','Klubbledningen',"clubhouseOpen('board')",'Ekonomi & långsiktig riktning'],['door','In till laget',"clubhouseGo('locker')",'Omklädningsrummet'],['coach','Din tränarfigur','clubhouseWardrobe()','Utseende & karriär']
  ]:m.room==='locker'?[
@@ -90,6 +91,6 @@ function clubhouseWrap(html){
 function clubhouseMount(){
  if(typeof window==='undefined'||typeof ClubhouseScene==='undefined')return;
  const canvas=document.getElementById('clubhouse-canvas');
- if(!canvas){ClubhouseScene.dispose();return;}
+ if(!canvas||typeof canvas.getContext!=='function'){ClubhouseScene.dispose();return;}
  ClubhouseScene.mount(canvas,clubhouseModel(),clubhouseAppearanceData());
 }
