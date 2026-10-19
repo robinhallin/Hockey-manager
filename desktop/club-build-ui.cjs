@@ -11,11 +11,13 @@ fs.mkdirSync(out,{recursive:true});
   app=await _electron.launch({executablePath:require('electron'),args:[__dirname],env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
   page=await app.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',e=>errors.push(e.message));
   await page.waitForFunction(()=>typeof state!=='undefined'&&typeof startCareerWithClub==='function');
+  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];if(!w.isVisible())return new Promise(resolve=>w.once('show',resolve));});
   await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1440,1000);});
   await require('../scripts/club-build-browser-checks.cjs').checkClubBuild(page,out);
   await require('../scripts/transfer-week-browser-checks.cjs').checkTransferWeek(page,out);
+  await require('../scripts/personal-match-browser-checks.cjs').checkPersonalMatch(page,out);
   assert.deepEqual(errors,[]);
-  fs.writeFileSync(path.join(out,'club-build-result.json'),JSON.stringify({passed:true,checks:['project selection and consequence view','preseason trial with real responsibility choice','player memory','five real calendar days with grouped reports','match boundary and unchanged lineup role','disk save and reload','conditional sale through actual UI and calendar','registered replacement before sale','player reaction and persisted conversation'],errors},null,2));
+  fs.writeFileSync(path.join(out,'club-build-result.json'),JSON.stringify({passed:true,checks:['project selection and consequence view','preseason trial with real responsibility choice','player memory','five real calendar days with grouped reports','match boundary and unchanged lineup role','disk save and reload','conditional sale through actual UI and calendar','registered replacement before sale','player reaction and persisted conversation','personal match preview and both actual lineup choices','a complete actual friendly and frozen outcome','player memory after disk reload'],errors},null,2));
   console.log('PASS: club project, player journey, paced calendar, linked transfers, player reactions and disk reload in the actual Electron app.');
  }catch(error){if(page)try{await page.screenshot({path:path.join(out,'club-build-failure.png'),fullPage:true});}catch{}throw error;}
  finally{if(app)try{await app.evaluate(({app})=>app.exit(0));}catch{}}

@@ -12,6 +12,8 @@ async function launch(){
  application=await electron.launch({executablePath:executable,args,env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
  page=await application.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',error=>errors.push(error.message));
  await page.waitForFunction(()=>typeof state!=='undefined' && typeof window.hockeyDesktop!=='undefined');
+ // ready-to-show maximizes the window; wait for it before setting test bounds.
+ await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];if(!w.isVisible())return new Promise(resolve=>w.once('show',resolve));});
  await page.evaluate(()=>{window.hmDragEvents=[];for(const name of ['dragstart','drop','dragend'])document.addEventListener(name,e=>window.hmDragEvents.push({name,target:e.target.closest('[data-lineup-slot],[data-special-slot]')?.outerHTML.slice(0,180),data:e.dataTransfer?.getData('text/plain')}));});
  await page.locator('.career-menu').waitFor();
  savePath=path.join(await application.evaluate(({app})=>app.getPath('userData')),'saves','career.json');
