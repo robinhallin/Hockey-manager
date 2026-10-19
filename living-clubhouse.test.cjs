@@ -37,3 +37,16 @@ test('classic mode, expanded press/stories and navigation retain all existing sc
 test('appearance changes are cosmetic, validate choices and survive on this device',()=>{
  const {run:r}=setup();r('globalThis.before=JSON.stringify(state)');assert.equal(r('clubhouseAppearance("skin","dark")'),true);assert.equal(r('clubhouseAppearanceData().skin'),'dark');assert.equal(r('clubhouseAppearance("outfit","tracksuit")'),true);assert.equal(r('clubhouseAppearance("skin","invalid")'),false);assert.equal(r('JSON.stringify(state)'),r('before'));
 });
+test('six permanent rooms and all work routes retain the same career and a way home',()=>{
+ const {run:r}=setup();r('ensureLines();globalThis.before=JSON.stringify([state.calendar,state.money,state.lines,state.training.promises]);');
+ for(const [room,page] of [['office','squad'],['locker','lines'],['ice','training'],['recruit','transfers'],['boardroom','finance'],['world','leagues']]){
+  r(`clubhouseGo('${room}');clubhouseOpen('${page}')`);assert.equal(r('clubhouseRoomForPage()'),room);assert.match(r('clubhouseWrap("REAL-WORK")'),/ch-work-dialog[\s\S]*REAL-WORK/);assert.equal(r('clubhouseEnabled()'),true);
+  r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),room);assert.equal(r('clubhouseIsRoom()'),true);assert.doesNotMatch(r('clubhouseWrap("WORK")'),/ch-work-dialog/);
+ }
+ assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,state.training.promises])'),r('before'));
+ r('clubhouseGo("office");clubhouseAreas()');const menu=r('clubhouseWrap("WORK")');for(const text of ['Alla områden','Sparfiler & inställningar','Huvudmeny','Byt till tabelläge'])assert.ok(menu.includes(text));
+});
+test('work overlay preserves the selected locker player and classic mode remains explicit',()=>{
+ const {run:r}=setup();r('clubhouseGo("locker");globalThis.id=managerRoster()[0].id;clubhouseSelect(id);clubhouseWorkView()');assert.equal(r('clubhouseIsRoom()'),false);assert.equal(r('clubhouseEnabled()'),true);assert.match(r('clubhouseWrap("RELATIONS")'),/RELATIONS/);
+ r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'locker');assert.equal(r('String(clubhouseUI.player)'),r('String(id)'));r('clubhouseTableMode()');assert.equal(r('clubhouseEnabled()'),false);assert.doesNotMatch(r('clubhouseWrap("TABLES")'),/id="ch-world"/);
+});

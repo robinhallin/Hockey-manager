@@ -1,8 +1,11 @@
 # Det levande klubbhuset
 
-Klubbhuset är den nya standardpresentationen när en anställd tränare öppnar
-kontoret eller omklädningsrummet. Det är en lokal, offline-renderad 3D-miljö
+Klubbhuset är den genomgående standardpresentationen för en anställd tränare.
+Rummet fyller skärmen utan den gamla sidomenyn. Det är en lokal, offline-renderad 3D-miljö
 ovanpå den befintliga karriären. Ingen separat simulering eller ny matchmotor.
+Arbetsytor öppnas som en breddningsbar panel ovanpå miljön. Rummets canvas och
+grafikresurser bevaras när samma rum ligger bakom arbetsytan. Stäng med Escape
+eller Till rummet. Matchen har kvar sin egen fullständiga bildyta.
 
 ## Rum och handlingar
 
@@ -16,6 +19,16 @@ ovanpå den befintliga karriären. Ingen separat simulering eller ny matchmotor.
 - **Träningshallen:** en visuell väg till träningsplan, kedjor, juniorer,
   medicinskt team och assistentens uppföljning. Figurerna hämtas från tillgängliga
   spelare i truppen. Deras animation är miljögestaltning; träning följer kalendern.
+- **Scoutkontoret:** analysstationer, rapporter, truppplanering, spelarsök och avtal.
+- **Klubbledningen:** mötesbord, klubbens riktning, ekonomi, personal och tränarkarriär.
+- **Medierummet:** presspodium och kameror med vägar till hockeyvärlden, ligor,
+  landslag och NHL. Inga fiktiva nyheter eller scoutresultat skapas av miljön.
+
+Alla sex rum nås från samma rumsnavigation. Alla områden öppnar hela spelets
+navigation, inklusive huvudmeny, sparfiler och ett uttryckligt klassiskt tabelläge.
+Kamera växlar mellan närbild och överblick. Figurer har ansiktsdetaljer, kläder,
+andningsrörelse och gånganimation; rummen har rundade möbler, utrustning och belysning.
+Omklädningsrummets stationer följer väggarna i en U-form runt en öppen mittgång.
 
 Klicka på fri golvyta för att flytta tränarfiguren. I omklädningsrummet hålls
 tränaren i gångutrymmet framför platserna. En spelarmarkering flyttar tränaren
@@ -49,8 +62,9 @@ behåller en väg tillbaka till klubbhuset.
 WebGL-fel ger ett textbaserat alternativ med samma objekt och handlingar.
 Renderingen pausas i bakgrunden, begränsas till 30 bilder/s och respekterar
 reducerad rörelse. GPU-resurser och händelselyssnare släpps vid varje rumsbyte
-och när en annan sida öppnas. CSS anpassar bild och interaktionspanel till
-smalare skärmar. Detaljerade arbetsytor och matchen behåller sin egen rendering.
+och när klubbhuset lämnas. Samma rum återanvänder geometrin och sitt grafiksammanhang
+över arbetsytor. CSS anpassar bild och interaktionspanel till smalare skärmar.
+Arbetsytor har begränsad höjd, egen rullning och tangentbordsfokus inom panelen.
 
 Figurens hudton, hår, klädsel och valet mellan rum/arbetsvy sparas lokalt på
 enheten. Karriärnamn, relationer, samtal och alla spelbeslut sparas i den vanliga
@@ -60,12 +74,12 @@ spelare är tillfällig presentation och följer inte med exporterade sparfiler.
 ## Verifiering
 
 `node --test living-clubhouse.test.cjs` kontrollerar verklig trupp, skrivskyddad
-visning, tre rum, bevarade beslut, samtal, väntetid, frånvaro, ogiltiga/stale
+visning, sex rum, bevarade beslut, samtal, väntetid, frånvaro, ogiltiga/stale
 handlingar, gamla arbetsytor, kosmetik och sparning/omladdning.
 
 `scripts/clubhouse-browser-checks.cjs` körs sist i Windows/Electron-flödet
 `desktop/club-build-ui.cjs`. Det kontrollerar riktig WebGL-rendering, taktiktavla,
 rumsdörr, spelarmarkering, faktiskt samtal och svar, träningshall, återvägar,
-utseende, arbetsvy, diskreload och responsiva bildytor. Skärmbilder 70–73 sparas
+utseende, bibehållen canvas, arbetsvy, diskreload och responsiva bildytor. Skärmbilder 70–75 sparas
 som CI-artefakter för visuell granskning. Den tidigare långa skrivbordsregressionen
 kör uttryckligen i arbetsvy för fortsatt täckning av spelets analytiska skärmar.
