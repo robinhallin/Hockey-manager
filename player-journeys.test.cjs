@@ -36,6 +36,7 @@ test('old saves migrate quietly, views escape text, invalid memories are rejecte
 test('real conversations and a signed renewal join the same player history',()=>{
  const a=start(),r=a.run;r(`journeyTrack(p);socialTalk(p.id,'listen');globalThis.count=journeyPlayer(p.id).events.length;socialTalk(p.id,'listen')`);
  assert.equal(r('journeyPlayer(p.id).events.length'),r('count'));assert.ok(r(`journeyPlayer(p.id).events.some(e=>e.title==='Tränaren lyssnar')`));
+ r(`globalThis.contractStory=storiesCreate('contract',[p.id],'Framtiden','Ett samtal om framtiden');storiesChoose(contractStory.id,'commit')`);assert.equal(r('contractStory.status'),'closed');
  r(`p.contractYears=1;state.money=1e9;state.boardPlan.offer.wageLimit=1e9;state.season.nextWageLimit=1e9;openContractNegotiation(p.id);globalThis.w=renewalWishes(p);submitContractRenewal(p.id,w.salary,Math.max(w.minYears,2),w.role)`);
  assert.equal(r('state.contractNegotiation'),null);assert.ok(r(`journeyPlayer(p.id).events.some(e=>e.title==='Ni valde en framtid tillsammans')`));assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
 });
