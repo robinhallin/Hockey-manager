@@ -85,6 +85,9 @@ function clubhouseView(){
 }
 function clubhouseWrap(html){
  if(!clubhouseAvailable())return html;
+ // The match owns the complete viewport, including the finished-match report.
+ // Its existing back navigation already returns to the manager's office.
+ if(state.page==='match')return html;
  if(clubhouseIsRoom())return clubhouseView();
  return `${clubhouseStrip()}${html}`;
 }

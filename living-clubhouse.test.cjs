@@ -31,6 +31,7 @@ test('classic mode, expanded press/stories and navigation retain all existing sc
  const {run:r}=setup();r('clubhouseMode(false)');assert.equal(r('clubhouseEnabled()'),false);assert.match(r('clubhouseWrap("ORIGINAL")'),/ORIGINAL/);assert.match(r('clubhouseWrap("ORIGINAL")'),/Tillbaka/);
  r('clubhouseGo("office");overviewUI.press=true');assert.equal(r('clubhouseIsRoom()'),false);assert.match(r('clubhouseWrap("PRESS")'),/PRESS/);r('overviewUI.press=false');assert.equal(r('clubhouseIsRoom()'),true);
  r('clubhouseGo("ice");deskNavigate("home")');assert.equal(r('clubhouseRoomForPage()'),'office');
+ r('state.page="match"');assert.equal(r('clubhouseWrap("FULL-MATCH")'),'FULL-MATCH');
  r('careerScreen="menu"');assert.equal(r('clubhouseWrap("MENU")'),'MENU');
 });
 test('appearance changes are cosmetic, validate choices and survive on this device',()=>{
