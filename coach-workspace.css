@@ -1,9 +1,9 @@
 /* The coach workspace owns the career chrome; domain workspaces own their tools. */
-body .game-shell:has(#coach-workspace){display:block;background:#101b22;min-height:100dvh}
+body:has(#coach-workspace){overflow:auto}body .game-shell:has(#coach-workspace){display:block;width:100%;height:auto;background:#101b22;min-height:100dvh}
 body .game-shell:has(#coach-workspace)>.sidebar,body .game-shell:has(#coach-workspace) .topbar,body .game-shell:has(#coach-workspace)>.desk-menu-backdrop{display:none!important}
-body .game-shell:has(#coach-workspace) .game-area{margin:0;width:100%;min-width:0}
+body .game-shell:has(#coach-workspace) .game-area{display:block;margin:0;width:100%;min-width:0}
 body .game-shell:has(#coach-workspace) .game-content{padding:0;max-width:none;width:100%;margin:0;background:#101b22;overflow:visible}
-#coach-workspace{--cw-bg:#101b22;--cw-panel:#17262e;--cw-line:#30434a;--cw-muted:#adc0c5;--cw-ink:#f2f1e8;--cw-accent:#b1dcc6;color:var(--cw-ink);font-family:Inter,system-ui,sans-serif;min-height:100dvh}
+#coach-workspace{--cw-bg:#101b22;--cw-panel:#17262e;--cw-line:#30434a;--cw-muted:#adc0c5;--cw-ink:#f2f1e8;--cw-accent:#b1dcc6;color:var(--cw-ink);font-family:Inter,system-ui,sans-serif;min-height:100dvh;max-width:none}
 #coach-workspace *{box-sizing:border-box}
 .coach-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:21px clamp(18px,3vw,56px);border-bottom:1px solid var(--cw-line);background:#122028}
 .coach-brand{display:flex;align-items:center;gap:13px;text-align:left;border:0;background:none;color:var(--cw-ink);padding:0;cursor:pointer}
@@ -47,3 +47,9 @@ body .game-shell:has(#coach-workspace) .game-content{padding:0;max-width:none;wi
 @media(prefers-reduced-motion:reduce){#coach-workspace *,#coach-workspace *:before{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 .coach-day-program{border-top:1px solid var(--cw-line);padding:19px 0 0}.coach-plan-controls{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;margin:17px 0 8px}.coach-plan-controls label{display:grid;gap:7px;font-size:10px;color:var(--cw-muted)}#coach-workspace .coach-plan-controls select{width:100%;padding:10px 12px;border:1px solid #425b63;background:#112028;color:var(--cw-ink);border-radius:6px;font-size:12px;min-height:40px}.coach-training-evidence{border-block:1px solid var(--cw-line);padding:13px 0;margin:14px 0 7px}.coach-training-evidence>summary{font-size:11px;color:var(--cw-accent);cursor:pointer}.coach-training-evidence .training-decision{background:transparent;border:0;padding:12px 0;max-width:100%}.coach-training-evidence .training-decision-scroll{overflow-x:auto;max-width:100%}.coach-plan-note{font-size:10px!important}
 @media(max-width:520px){.coach-plan-controls{grid-template-columns:minmax(0,1fr)}}
+
+#coach-workspace .coach-header{position:relative}#coach-workspace .entity-search{padding:0;margin:0;border:0;position:relative;font-size:11px;color:var(--cw-muted)}#coach-workspace .entity-search summary{padding:8px;white-space:nowrap}#coach-workspace .entity-search kbd{font-size:9px;opacity:.6;margin-left:4px}#coach-workspace .desk-search-body{position:absolute;right:0;top:40px;z-index:100;width:min(600px,85vw);padding:22px;border:1px solid #536d67;border-radius:8px;background:#192b32;box-shadow:0 18px 60px #0008;max-height:70dvh;overflow:auto}#coach-workspace .desk-search-body form{flex-wrap:wrap}#coach-workspace .desk-search-body label{flex:1 1 100%}#coach-workspace .desk-search-body input{width:100%;margin-top:8px}#coach-workspace .desk-search-body h3{font-size:14px}
+@media(max-width:800px){#coach-workspace .entity-search kbd{display:none}}
+@media(max-width:520px){.coach-header-actions{flex-wrap:wrap}.coach-header .coach-continue{flex:1 1 150px}#coach-workspace .entity-search{position:static}#coach-workspace .desk-search-body{top:100%;left:12px;right:12px;width:auto}}
+
+#coach-workspace .coach-page>.desk-page{max-width:none;width:100%}#coach-workspace{--ui-panel:var(--cw-panel);--ui-border:var(--cw-line);--ui-muted:var(--cw-muted);--ui-text:var(--cw-ink)}

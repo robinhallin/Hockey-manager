@@ -16,7 +16,7 @@ Spelets huvudloop är att bedöma laget, fatta ett beslut, genomföra arbete och
 
 ## Samla presentationen
 
-`coachWorkspaceWrap` är ett alternativ direkt i den befintliga renderaren. Det nya läget monterar inte den gamla sidomenyn, skrivbordsramen eller klubbhusets arbetsdialog ovanpå varandra. Sex huvudytor har en konsekvent placering. Den befintliga routningen, historiken och domänvyerna används fortsatt.
+`coachWorkspaceWrap` är ett alternativ direkt i den befintliga renderaren. Det nya läget monterar inte den gamla sidomenyn, skrivbordsramen eller klubbhusets arbetsdialog ovanpå varandra. Sex huvudytor har en konsekvent placering. Den globala sökningen och Ctrl K finns kvar i huvudet. Den befintliga routningen, historiken och domänvyerna används fortsatt.
 
 Hemmet ersätter hela den tidigare staplingen av kontorspaneler. Det innehåller veckoplanen, en samlad aktuell ärendelista och ett smalt sammanhang för nästa match och uppföljning. Spelarhistorier och press öppnas som egna vyer, inte ytterligare en hel skärm under den gamla startsidan. Kalenderns snabbspolning finns kvar i hela kalendern.
 

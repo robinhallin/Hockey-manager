@@ -5,8 +5,9 @@ test('the coherent home replaces old layers, while all existing domain workspace
  const a=setup(),r=a.run;
  assert.equal(r('coachWorkspaceEnabled()'),true);assert.equal(r('clubhouseEnabled()'),false);
  const home=r('overviewWorkspaceView()');assert.match(home,/Din tränarvecka/);assert.doesNotMatch(home,/office2-priority|ov-community|ch-world/);
- const html=r('coachWorkspaceWrap(overviewWorkspaceView())');assert.equal((html.match(/aria-label="Spelets arbetsytor"/g)||[]).length,1);assert.doesNotMatch(html,/desk-subnav|ch-work-dialog|desk-tools/);
+ const html=r('coachWorkspaceWrap(overviewWorkspaceView())');assert.equal((html.match(/aria-label="Spelets arbetsytor"/g)||[]).length,1);assert.doesNotMatch(html,/desk-subnav|ch-work-dialog|desk-tools/);assert.match(html,/Sök spelare, klubbar och funktioner/);
  r('COACH_WORKSPACES.flatMap(a=>a.pages).forEach(([p])=>{deskNavigate(p);if(state.page!==p)throw Error("Unreachable "+p);if(!coachWorkspaceEnabled())throw Error("Lost workspace "+p);});');
+ r("deskNavigate('squad')");assert.match(r('coachWorkspaceWrap("TEAM")'),/class="desk-page" data-area="team"/);
  r("deskNavigate('home');deskNavigate('stories')");assert.match(r('overviewWorkspaceView()'),/Till tränaröversikten/);assert.doesNotMatch(r('overviewWorkspaceView()'),/coach-home-grid/);
  r("coachHome();clubhouseGo('locker')");assert.equal(r('clubhouseEnabled()'),true);assert.equal(r('coachWorkspaceEnabled()'),false);r('coachWorkspaceEnter()');assert.equal(r('state.page'),'home');assert.equal(r('coachWorkspaceEnabled()'),true);
 });
@@ -42,4 +43,11 @@ test('a real week reaches the actual friendly without advancing through the fixt
 test('new careers and stale queued steps cannot carry a selected day or advance another club',()=>{
  const {run:r}=setup();r('coachSelectDay(calAdd(state.calendar.date,4));coachAgendaFilter("later");coachContinue();globalThis.tx=dayTransition;startCareerWithClub("HV71");preseasonConfigure("balanced","manager","rotation","assistant","assistant");coachWorkspaceEnter();globalThis.before=JSON.stringify(state);dayTransitionRun(tx);coachWorkspaceSync()');
  assert.equal(r('JSON.stringify(state)'),r('before'));assert.equal(r('coachWorkspaceUI.date'),r('state.calendar.date'));assert.equal(r('coachWorkspaceUI.filter'),'now');assert.equal(r('dayTransition'),null);
+});
+
+test('a dated player conversation waits in Later without hiding the actual promise or resolving it',()=>{
+ const {run:r}=setup();r("globalThis.p=managerRoster().find(p=>p.pos!=='MV');playerFollowupStart(p,'Rollen i laget');globalThis.due=p.roleFollowup.due;globalThis.before=JSON.stringify(p.roleFollowup);coachHomeView();");
+ assert.equal(r('coachAgendaGroups().find(g=>g.items.some(i=>i.action?.conversationPlayer===p.id)).future'),true);
+ r("coachAgendaFilter('later')");assert.ok(r('coachAgendaView()').includes(r('p.name')));assert.equal(r('JSON.stringify(p.roleFollowup)'),r('before'));
+ r("state.calendar.date=due;coachWorkspaceSync()");assert.equal(r('coachAgendaGroups().find(g=>g.items.some(i=>i.action?.conversationPlayer===p.id)).future'),false);assert.equal(r('p.roleFollowup.closed'),undefined);
 });

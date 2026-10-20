@@ -13,6 +13,11 @@ async function checkCoachWorkspace(page,out){
   await page.screenshot({path:path.join(out,`90-tranaroversikt-${width}.png`),fullPage:true});
  }
  await page.setViewportSize({width:1440,height:1000});
+ await page.keyboard.press('Control+k');
+ await page.getByRole('searchbox',{name:'Spelare, klubb eller funktion'}).fill('budget');
+ await page.locator('.desk-search-body').getByRole('button',{name:'Sök',exact:true}).click();
+ assert.ok(await page.locator('.desk-search-body').isVisible());
+ await page.getByRole('button',{name:'Stäng sökningen',exact:true}).click();
  const before=await page.evaluate(()=>JSON.stringify(state));
  const future=await page.evaluate(()=>calAdd(state.calendar.date,3));
  await page.locator(`.coach-days [data-date="${future}"]`).click();
