@@ -36,13 +36,12 @@ async function checkCoachWorkspace(page,out){
  await page.locator('#coach-room #clubhouse-canvas[data-room="locker"][data-ready="true"]').waitFor();
  await page.getByRole('combobox',{name:'Välj spelare i rummet'}).selectOption(people.young);
  assert.ok(await page.locator('.player-case').isVisible());
- const trust=await page.evaluate(id=>playerById(id).social.trust,people.young);
+ const portrait=await page.locator('.player-case-heading .player-avatar').boundingBox();assert.ok(portrait.width<=72&&portrait.height<=90,'the portrait stays inside its own header cell');
  await page.getByRole('button',{name:'Lova en konkret chans',exact:true}).click();
  assert.ok(await page.evaluate(id=>playerCaseModel(id).promises.length>0,people.young));
  assert.ok(await page.evaluate(id=>Boolean(playerById(id).roleFollowup),people.young));
  assert.equal(await page.evaluate(id=>playerById(id).recruitmentPromise.games,people.young),0);
  await page.screenshot({path:path.join(out,'97-samlat-spelarerende.png'),fullPage:true});
- const promiseBefore=await page.evaluate(id=>JSON.stringify(playerById(id).recruitmentPromise),people.young);
  await page.getByRole('button',{name:'Stäng arbetsytan i rummet',exact:true}).click();
  await page.getByRole('navigation',{name:'Rum i klubben'}).getByRole('button',{name:'Kontoret',exact:true}).click();
  assert.equal(await page.evaluate(()=>clubhousePreference('mode')),'coach','the room never changes presentation mode');
