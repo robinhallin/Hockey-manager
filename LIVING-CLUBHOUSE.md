@@ -39,6 +39,22 @@ spelaren saknar registrerat tröjnummer.
 
 ## Beslut och konsekvenser
 
+Kontoret kan nu ta emot en faktisk spelare när ett svar väntar, en daterad
+avstämning är här eller assistentens underlag motiverar ett samtal. Tillgänglighet,
+aktuellt klubbägarskap och samtalens väntetid gäller. En vald gäst stannar under
+samtalet; efteråt visar återkopplingen den faktiska förtroendeförändringen.
+Samtalsjournal och uppföljning använder karriärens befintliga sparade historik.
+Ett informellt samtal besvarar aldrig ett separat obligatoriskt beslutsärende.
+
+Dagens runda samlar aktuella ärenden och räknar dem per rum. Underlagen hämtas
+från befintlig agenda och försvinner enligt sina ordinarie regler. Nästa händelse
+använder kalenderns befintliga stopp före matcher, sista svarsdagar och beslut.
+Att läsa rundan flyttar ingen tid. Datumavstämningar avslutar inte istidslöften.
+
+Träningshallens spelare rör sig i avgränsade övningsytor. Återhämtningsdagar och
+reducerad rörelse stänger av skridskoövningen. Gester, hållning och ljus följer
+dagens läge; animationen delar aldrig ut träningseffekt eller driver matchmotorn.
+
 Samtalsknapparna anropar ordinarie `socialTalk`, inklusive förtroendeeffekt,
 relationsmodell, historik, uppföljning, sparning och tre matchers väntetid.
 Inga extra bonusar, nya löften eller egna sociala poäng delas ut av rummet.

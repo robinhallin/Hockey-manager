@@ -75,7 +75,8 @@ const ClubhouseScene=(()=>{
   for(const s of [-1,1]){box(c,.075,.013,.022,s*.083,.063,.208,headHair,head);sphere(c,.009,s*.079,.02,.218,0xe4e5dd,head);}
   if(suit){for(const s of [-1,1]){const lapel=box(c,.095,.43,.035,s*.13,1.29,.19,0x465d69,body);lapel.rotation.z=s*-.27;}for(let i=0;i<2;i++)sphere(c,.014,.06,1.05-i*.12,.185,0xc7b28a,body);}
   else if(!coach){for(const s of [-1,1])box(c,.16,.055,.36,s*.25,1.42,0,0xe7d6a6,body);box(c,.65,.045,.36,0,.91,0,0xe7d6a6,body);}
-  g.userData={id,body,head,arms,legs,seed,sitting,absent,torso,mouth};c.actors.push(g);c.scene.add(g);return g;
+  const player=c.model.players.find(p=>p.id===String(id));
+  g.userData={id,body,head,arms,legs,seed,sitting,absent,torso,mouth,fatigue:player?.fatigue||0,trust:player?.trust??60};c.actors.push(g);c.scene.add(g);return g;
  }
  function shell(c){
   c.scene.background=new c.T.Color(0x182932);c.scene.fog=new c.T.Fog(0x182932,24,43);
@@ -87,7 +88,7 @@ const ClubhouseScene=(()=>{
   for(let i=0;i<32;i++)box(c,.055,1.04,.05,-6+i*.38,.67,-4.14,0x6e7970);
   box(c,12.1,.025,.04,0,1.24,-4.12,0xc4af80);box(c,12,.025,.04,0,3.42,-4.1,0xe0d4a8);
   const ambient=new c.T.HemisphereLight(0xe2f2ef,0x675544,2.2);c.scene.add(ambient);
-  const sun=new c.T.DirectionalLight(0xffe4bc,3.1);sun.position.set(-3,9,5);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;sun.shadow.normalBias=.035;c.scene.add(sun);
+  const sun=new c.T.DirectionalLight(c.model.life?.phase==='after'?0xffd3a5:0xffe4bc,c.model.life?.phase==='after'?2.5:3.1);sun.position.set(-3,9,5);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;sun.shadow.normalBias=.035;c.scene.add(sun);
   const rim=new c.T.DirectionalLight(0x97d5e4,1.2);rim.position.set(5,4,-4);c.scene.add(rim);
  }
  function door(c,x,z,label){
@@ -115,7 +116,7 @@ const ClubhouseScene=(()=>{
   box(c,3.4,.16,1.45,-2.4,1.15,.75,0xb49a73);box(c,.16,1.08,1.25,-3.94,.55,.75,0x394b50);box(c,.16,1.08,1.25,-.86,.55,.75,0x394b50);
   for(let i=0;i<4;i++){const paper=box(c,.46,.013,.57,-3.3+i*.07,1.25+i*.014,.97,0xe8dfc5);paper.rotation.y=-.15+i*.06;}
   cylinder(c,.09,.07,.2,-1.3,1.34,1.02,0xc2b598);cylinder(c,.065,.065,.01,-1.3,1.445,1.02,0x55453d);
-  chair(c,-2.4,-.8,Math.PI);chair(c,-3.5,2.25,.15);chair(c,-1.8,2.35,-.15);
+  chair(c,-2.4,-.8,0);chair(c,-3.5,2.25,Math.PI+.15);chair(c,-1.8,2.35,Math.PI-.15);
   // Scout's station: folders, pinned reports, a second seat.
   box(c,2.15,1.15,.7,-4.8,.61,-3.65,0x9a805e);box(c,2.35,.1,.88,-4.8,1.22,-3.64,0xb8a17e);
   for(let i=0;i<7;i++)box(c,.12,.44,.36,-5.5+i*.2,1.49,-3.68,[0x647e72,0x344c62,0xb08b5a][i%3]);
@@ -133,6 +134,8 @@ const ClubhouseScene=(()=>{
   const phone=box(c,.18,.035,.33,-1.65,1.26,1,0x24343e);phone.rotation.y=.22;
   const coach=actor(c,{coach:true});coach.position.set(.8,0,1.1);coach.rotation.y=-.2;c.coach=coach;
   c.anchors={board:[1,2,-3.55],desk:[-2.4,1.35,1.3],scout:[-4.8,1.7,-3.5],cabinet:[4.8,1.5,1.5],door:[4.75,1.65,-3.4],coach:[.8,2.45,1.1]};
+  const v=c.model.life?.visitor,p=v&&c.model.players.find(p=>p.id===v.playerId&&p.presence.present);
+  if(p){const visitor=actor(c,{id:p.id,sitting:true,color:0x254c69,number:p.number});visitor.position.set(-1.8,0,2.35);visitor.rotation.y=Math.PI-.15;c.playerActors.set(p.id,visitor);c.visitor=p.id;c.anchors.visitor=[-1.8,1,2.5];}
  }
  function lockerSeat(c,p,index){
   const back=Math.min(10,c.model.players.length),side=Math.ceil((c.model.players.length-back)/2),left=index>=back&&index<back+side;
@@ -163,7 +166,7 @@ const ClubhouseScene=(()=>{
   for(const x of [-1.8,1.8])box(c,.06,.025,5.7,x,.09,.15,0x7da2c2);box(c,.045,.025,5.7,0,.1,.15,0xbc736a);
   const ring=mesh(c,new c.T.CylinderGeometry(.65,.65,.015,40),0xc9dcda);ring.position.set(0,.095,.15);
   cylinder(c,.06,.06,.018,0,.115,.15,0xb97772);board(c,-2.8,2.35,-4.08,3.6,1.65);door(c,4.7,-4.08,'VÄGEN TILL LAGET');
-  c.model.players.filter(p=>p.presence.present).slice(0,6).forEach((p,i)=>{const x=-3.2+i*1.25,z=i%2?1.4:-.75;const a=actor(c,{id:p.id,color:0x38576e,number:p.number});a.scale.setScalar(.7);a.position.set(x,.12,z);a.rotation.y=i%2?-.8:.5;});
+  c.model.players.filter(p=>p.presence.present).slice(0,6).forEach((p,i)=>{const x=-3.2+(i%3)*1.5,z=i<3?-.8:1.25;const a=actor(c,{id:p.id,color:0x38576e,number:p.number});a.scale.setScalar(.7);a.position.set(x,.12,z);a.rotation.y=i%2?-.8:.5;a.userData.drill={x,z,phase:i*1.9};c.skaters.push(a);});
   for(let i=0;i<5;i++)cylinder(c,.015,.11,.25,-3+i*1.4,.23,2.6,0xc58651);
   const coach=actor(c,{coach:true});coach.position.set(4.2,.1,2.4);coach.rotation.y=-1.2;c.coach=coach;
   c.anchors={board:[-2.8,2.6,-3.7],door:[4.7,2.3,-3.45],coach:[4.2,2.7,2.4]};
@@ -195,7 +198,7 @@ const ClubhouseScene=(()=>{
  function world(c){
   shell(c);door(c,4.9,-4.08,'TILL KLUBBHUSET');
   frame(c,c.model.club.toUpperCase(),'PRESS · RESULTAT · HOCKEYVÄRLDEN',-.8,2.45,-4.06,7.4,1.6);
-  for(let row=0;row<2;row++)for(let col=0;col<6;col++)planeLabel(c,c.model.club.toUpperCase(),.95,.22,'#b8c6ba','#304d59',-3.8+col*1.2,2.05+row*.75,-3.99,c.scene,62);
+  for(let row=0;row<2;row++)for(let col=0;col<6;col++)planeLabel(c,c.model.club.toUpperCase(),.95,.22,'#b8c6ba','#304d59',-3.8+col*1.2,row?3.05:1.76,-3.99,c.scene,62);
   box(c,6.4,.15,1.15,-.8,1.08,-2.2,0xa68c68);for(const x of [-2.7,1.1])box(c,.14,1,1,x,.53,-2.2,0x374b54);chair(c,-.8,-3.15,0);
   for(const x of [-2,-.8,.4]){cylinder(c,.13,.13,.025,x,1.18,-1.97,0x263943);const mic=cylinder(c,.022,.022,.3,x,1.33,-1.97,0x899997);mic.rotation.x=.3;sphere(c,.065,x,1.49,-2.01,0x273b44);}
   for(const x of [-3,2.6]){const camera=box(c,.5,.3,.35,x,1.7,1.6,0x273840);cylinder(c,.07,.12,1.4,x,.8,1.6,0x657b7e);for(const s of [-1,1]){const leg=box(c,.055,1.4,.055,x+s*.22,.68,1.6,0x546b70);leg.rotation.z=s*-.3;}cylinder(c,.13,.13,.2,x,1.7,1.35,0x718b8c).rotation.x=Math.PI/2;}
@@ -226,10 +229,16 @@ const ClubhouseScene=(()=>{
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   if(now-c.drawn>(reduced?250:1000/30)){
    const dt=Math.min(.1,(now-(c.drawn||now))/1000),time=now/1000;
-   for(const a of c.actors){const d=a.userData;if(!reduced){d.body.rotation.z=Math.sin(time*1.2+d.seed)*.012;d.head.rotation.y=Math.sin(time*.5+d.seed)*.09;d.arms[0].rotation.x=(d.sitting?-.65:0)+Math.sin(time+d.seed)*.025;}}
+   for(const a of c.actors){const d=a.userData;
+    d.body.rotation.x=d.sitting&&d.fatigue>=35?.09:0;d.head.rotation.x=d.fatigue>=50?.08:0;
+    if(!reduced){d.body.rotation.z=Math.sin(time*1.2+d.seed)*.012;d.head.rotation.y=Math.sin(time*.5+d.seed)*.09;d.arms[0].rotation.x=(d.sitting?-.65:0)+Math.sin(time+d.seed)*.025;
+     if(d.gesture){const elapsed=(now-d.gesture.start)/1000;if(elapsed>2.2){delete d.gesture;d.arms[1].rotation.x=d.sitting?-.65:0;}else{d.head.rotation.x+=Math.sin(elapsed*8)*(d.gesture.delta>=0?.11:.045);d.head.rotation.y+=d.gesture.delta<0?Math.sin(elapsed*6)*.12:0;d.arms[1].rotation.x=(d.sitting?-.65:0)-Math.sin(elapsed/2.2*Math.PI)*.4;}}
+     if(d.drill&&c.model.life?.session!=='recovery'&&!['after','live'].includes(c.model.life?.phase)){const phase=time*.5+d.drill.phase;a.position.x=d.drill.x+Math.cos(phase)*.55;a.position.z=d.drill.z+Math.sin(phase)*.45;a.rotation.y=Math.atan2(-Math.sin(phase)*.55,Math.cos(phase)*.45);d.body.rotation.x=.14;d.body.rotation.z=Math.cos(phase)*.06;d.legs.forEach((leg,i)=>leg.rotation.z=Math.sin(time*2.6+i*Math.PI)*.14);c.moving=true;}
+    }
+   }
    if(c.target){const d=c.target.clone().sub(c.coach.position),distance=d.length();if(distance>.06){const step=Math.min(distance,dt*2.1);c.coach.position.add(d.normalize().multiplyScalar(step));c.coach.rotation.y=Math.atan2(d.x,d.z);if(!reduced){c.coach.userData.body.position.y=Math.sin(time*13)*.025;c.coach.userData.arms.forEach((a,i)=>a.rotation.x=Math.sin(time*9+i*Math.PI)*.3);c.coach.userData.legs.forEach((a,i)=>a.rotation.x=Math.sin(time*9+i*Math.PI)*-.35);}}else{c.target=c.waypoints?.shift()||null;c.coach.userData.body.position.y=0;c.coach.userData.legs.forEach(a=>a.rotation.x=0);c.coach.userData.arms.forEach(a=>a.rotation.x=0);}}
    const coachButton=document.querySelector('[data-ch-anchor="coach"]');if(coachButton&&c.coach){const v=c.coach.position.clone();v.y+=2.5;v.project(c.camera);coachButton.style.left=(50+v.x*50)+'%';coachButton.style.top=(50-v.y*50)+'%';}
-   if(c.target&&c.frames%4===0)c.renderer.shadowMap.needsUpdate=true;
+   if((c.target||c.moving)&&c.frames%8===0)c.renderer.shadowMap.needsUpdate=true;
    c.renderer.render(c.scene,c.camera);c.drawn=now;c.canvas.dataset.frames=String(++c.frames);
   }
   c.frame=requestAnimationFrame(t=>loop(c,t));
@@ -242,11 +251,11 @@ const ClubhouseScene=(()=>{
  }
  function mount(canvas,model,appearance){
   const key=typeof clubhouseSceneKey==='function'?clubhouseSceneKey(model,appearance):null;
-  if(active?.canvas===canvas&&key&&active.key===key){active.model=model;project(active);return;}
+  if(active?.canvas===canvas&&key&&active.key===key){active.model=model;for(const actor of active.actors){const p=model.players.find(p=>p.id===String(actor.userData.id));if(p){actor.userData.fatigue=p.fatigue;actor.userData.trust=p.trust;}}project(active);return;}
   dispose();if(typeof HockeyThree==='undefined'){fallback();return;}
   let c;
   try{
-   const T=HockeyThree;c={T,canvas,model,appearance,key,build:++builds,scene:new T.Scene(),camera:new T.PerspectiveCamera(36,1,.1,80),materials:new Map(),shapes:new Map(),geometries:new Set(),textures:new Set(),actors:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
+   const T=HockeyThree;c={T,canvas,model,appearance,key,build:++builds,scene:new T.Scene(),camera:new T.PerspectiveCamera(36,1,.1,80),materials:new Map(),shapes:new Map(),geometries:new Set(),textures:new Set(),actors:[],skaters:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
    c.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});c.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));c.renderer.outputColorSpace=T.SRGBColorSpace;c.renderer.toneMapping=T.ACESFilmicToneMapping;c.renderer.toneMappingExposure=1.05;c.renderer.shadowMap.enabled=true;c.renderer.shadowMap.type=T.PCFSoftShadowMap;c.renderer.shadowMap.autoUpdate=false;c.renderer.shadowMap.needsUpdate=true;
    c.camera.position.set(model.room==='locker'?2.7:11.2,model.room==='locker'?11:9.4,model.room==='locker'?18.5:14.9);c.camera.lookAt(0,1,-.1);
    ({locker,ice,recruit,boardroom,world}[model.room]||office)(c);playerButtons(c);
@@ -264,8 +273,9 @@ const ClubhouseScene=(()=>{
    const status=document.getElementById('clubhouse-render-status');if(status)status.hidden=true;canvas.dataset.ready='true';canvas.dataset.room=model.room;c.frame=requestAnimationFrame(t=>loop(c,t));
   }catch(error){dispose();fallback(error);}
  }
- function select(id){const c=active;if(!c)return;const actor=c.playerActors.get(id);if(actor){for(const p of c.playerActors.values())p.userData.torso.material=material(c,p===actor?0x537f86:0x254c69);const pos=actor.getWorldPosition(new c.T.Vector3());c.waypoints=[];c.target=new c.T.Vector3(Math.max(-3.8,Math.min(3.8,pos.x)),0,Math.max(-1.8,Math.min(2.8,pos.z+1.1)));}}
+ function select(id){const c=active;if(!c)return;const actor=c.playerActors.get(id);if(actor){for(const p of c.playerActors.values())p.userData.torso.material=material(c,p===actor?0x537f86:0x254c69);const pos=actor.getWorldPosition(new c.T.Vector3());c.waypoints=[];c.target=new c.T.Vector3(Math.max(-3.8,Math.min(3.8,pos.x)),0,Math.max(-1.8,Math.min(2.8,pos.z+1.1)));if(c.model.room==='office'){c.waypoints=[new c.T.Vector3(-.6,0,3.15)];c.target=new c.T.Vector3(.25,0,2.8);}}}
+ function react(id,delta){const a=active?.playerActors.get(String(id));if(a)a.userData.gesture={start:performance.now(),delta};}
  function reframe(){if(active){project(active);active.renderer.render(active.scene,active.camera);}}
- function diagnostics(){return active?{room:active.model.room,build:active.build,actors:active.actors.length,players:active.playerActors.size,frames:active.frames,geometries:active.geometries.size,materials:active.materials.size,drawCalls:active.renderer.info.render.calls}:null;}
- return {mount,dispose,select,reframe,diagnostics};
+ function diagnostics(){return active?{room:active.model.room,build:active.build,actors:active.actors.length,players:active.playerActors.size,visitor:active.visitor||null,phase:active.model.life?.phase,skaters:active.skaters.map(a=>({id:a.userData.id,x:a.position.x,z:a.position.z})),frames:active.frames,geometries:active.geometries.size,materials:active.materials.size,drawCalls:active.renderer.info.render.calls}:null;}
+ return {mount,dispose,select,react,reframe,diagnostics};
 })();
