@@ -57,4 +57,35 @@ async function checkClubhouse(page,out){
  await page.getByRole('button',{name:'Taktiktavlan Kedjor & matchplan',exact:true}).click();assert.equal(await page.evaluate(()=>state.page),'lines');
  await page.evaluate(()=>{HTMLCanvasElement.prototype.getContext=chOriginalContext;delete globalThis.chOriginalContext;clubhouseGo('office');clubhouseMode(false);});
 }
-module.exports={checkClubhouse};
+async function checkClubhouseLife(page,out){
+ await page.setViewportSize({width:1440,height:1000});
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();globalThis.chGuest=managerRoster().find(p=>clubhousePresence(p).present&&!playerLoan(p));chGuest.social.trust=43;clubhouseGo('office');});
+ await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
+ const guest=await page.evaluate(()=>({id:String(chGuest.id),name:chGuest.name,trust:chGuest.social.trust}));
+ assert.equal(await page.evaluate(()=>ClubhouseScene.diagnostics().visitor),guest.id);
+ await page.screenshot({path:path.join(out,'76-kontoret-far-besok.png'),fullPage:true});
+ await page.locator('.ch-visitor-invite').click();
+ assert.ok(await page.getByText('På ditt kontor',{exact:true}).isVisible());
+ await page.getByRole('button',{name:'Hur har du det? Lyssna utan att lova mer istid.',exact:true}).click();
+ assert.ok(await page.getByRole('status',{name:'Samtalets återkoppling'}).isVisible());assert.ok(await page.evaluate(()=>chGuest.social.trust)>guest.trust);
+ await page.screenshot({path:path.join(out,'77-samtal-och-konsekvens.png'),fullPage:true});
+ await page.getByRole('button',{name:'Stäng spelarens eller rummets panel',exact:true}).click();
+ assert.equal(await page.evaluate(()=>clubhouseLifeVisitor()?.playerId===String(chGuest.id)),false);
+ await page.getByRole('button',{name:'Stäng återkopplingen',exact:true}).click();
+ await page.locator('#ch-day-round').click();const first=await page.evaluate(()=>clubhouseModel().life.agenda[0].title);assert.ok(await page.getByRole('heading',{name:first,exact:true}).isVisible());
+ await page.screenshot({path:path.join(out,'78-dagens-runda.png'),fullPage:true});
+ await page.getByRole('button',{name:'Stäng spelarens eller rummets panel',exact:true}).click();
+ await page.evaluate(()=>{clubhouseGo('ice');calendarSetSession(state.calendar.date,'type','skills');});
+ await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.skaters.length>0);
+ const before=await page.evaluate(()=>ClubhouseScene.diagnostics().skaters[0]);
+ await page.waitForFunction(before=>{const p=ClubhouseScene.diagnostics()?.skaters[0];return p&&Math.hypot(p.x-before.x,p.z-before.z)>.08;},before);
+ const snapshots=await page.evaluate(()=>ClubhouseScene.diagnostics().skaters);assert.ok(snapshots.every(p=>p.x>=-4.5&&p.x<2&&p.z>-2&&p.z<2.8));
+ await page.emulateMedia({reducedMotion:'reduce'});await page.evaluate(()=>{clubhouseGo('office');clubhouseGo('ice');});await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.frames>1);
+ const still=await page.evaluate(()=>ClubhouseScene.diagnostics().skaters);await page.waitForFunction(()=>ClubhouseScene.diagnostics().frames>4);assert.deepEqual(await page.evaluate(()=>ClubhouseScene.diagnostics().skaters),still);await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.evaluate(()=>{clubhouseGo('office');for(const key of Object.keys(calendarPaceStore().stops))calendarPaceStore().stops[key]=false;});
+ await page.getByRole('button',{name:'Nästa händelse →',exact:true}).click();await page.waitForFunction(()=>!calendarPaceRun&&state.calendar.date==='2026-08-06');
+ assert.equal(await page.evaluate(()=>state.live),null);assert.ok(await page.locator('.ch-life-pace').isVisible());
+ await page.screenshot({path:path.join(out,'79-nasta-handelser-i-klubbhuset.png'),fullPage:true});
+ await page.evaluate(()=>{save();clubhouseMode(false);});
+}
+module.exports={checkClubhouse,checkClubhouseLife};

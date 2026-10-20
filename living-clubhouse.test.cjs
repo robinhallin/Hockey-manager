@@ -50,3 +50,36 @@ test('work overlay preserves the selected locker player and classic mode remains
  const {run:r}=setup();r('clubhouseGo("locker");globalThis.id=managerRoster()[0].id;clubhouseSelect(id);clubhouseWorkView()');assert.equal(r('clubhouseIsRoom()'),false);assert.equal(r('clubhouseEnabled()'),true);assert.match(r('clubhouseWrap("RELATIONS")'),/RELATIONS/);
  r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'locker');assert.equal(r('String(clubhouseUI.player)'),r('String(id)'));r('clubhouseTableMode()');assert.equal(r('clubhouseEnabled()'),false);assert.doesNotMatch(r('clubhouseWrap("TABLES")'),/id="ch-world"/);
 });
+test('daily initiatives reflect actual career evidence without changing or completing it',()=>{
+ const {run:r}=setup();r('globalThis.p=managerRoster()[0];p.social.trust=42;globalThis.before=JSON.stringify(state);globalThis.life=clubhouseModel().life;clubhouseWorldView("ORIGINAL");clubhouseLifeBriefing(clubhouseModel())');
+ assert.equal(r('JSON.stringify(state)'),r('before'));assert.equal(r('life.visitor.playerId'),r('String(p.id)'));assert.equal(r('life.visitor.label'),'Assistentens samtalsförslag');assert.ok(r('life.agenda.some(i=>i.action?.conversationPlayer===p.id)'));
+ r('p.health.injury={name:"Skada",remaining:4}');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));r('delete p.health.injury;p.social.lastTalk=state.locker.turn');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));
+ assert.equal(r('clubhouseLifeOpen("stale-or-foreign-item")'),false);
+});
+test('a real office visitor has one guarded conversation, feedback and persisted memory',()=>{
+ const a=setup(),r=a.run;r('globalThis.p=managerRoster()[0];p.social.trust=43;globalThis.trust=p.social.trust;globalThis.before=JSON.stringify([state.calendar,state.money,state.lines,p.promisedRole]);');
+ assert.equal(r('clubhouseAcceptVisitor("not-the-visitor")'),false);assert.equal(r('clubhouseAcceptVisitor(p.id)'),true);assert.match(r('clubhousePanel(clubhouseModel())'),/På ditt kontor/);
+ assert.equal(r('clubhouseTalk(p.id,"listen")'),true);assert.equal(r('clubhouseUI.feedback.delta'),r('Math.round((p.social.trust-trust)*10)/10'));assert.match(r('clubhouseLifeFeedback(clubhouseModel())'),/Samtalets återkoppling/);assert.equal(r('clubhouseTalk(p.id,"listen")'),false);
+ assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,p.promisedRole])'),r('before'));assert.equal(r('clubhouseLifeVisitor().playerId'),r('String(p.id)'));
+ r('clubhouseOpen("player");clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('String(clubhouseUI.player)'),r('String(p.id)'));
+ r('save()');const q=boot(a.storage.value).run;assert.equal(q('managerRoster()[0].social.lastResponse'),r('p.social.lastResponse'));assert.ok(q('managerRoster()[0].social.journal.length')>0);
+ r('clubhouseCloseMeeting()');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));
+});
+test('an office conversation cannot silently answer a mandatory player request',()=>{
+ const {run:r}=setup();r(`globalThis.p=managerRoster()[0];managerMessage('clubhouse-request','Spelaren vill ha ett rollbesked','Ett faktiskt beslut','Spelarsamtal',{playerId:p.id,decisionType:'minutes'});globalThis.message=pendingManagerDecision();`);
+ assert.equal(r('clubhouseLifeVisitor().kind'),'request');assert.equal(r('clubhouseAcceptVisitor(p.id)'),true);assert.match(r('clubhousePanel(clubhouseModel())'),/Svara på Spelaren vill ha ett rollbesked/);assert.equal(r('clubhouseTalk(p.id,"listen")'),true);assert.equal(r('Boolean(message.resolved)'),false);
+ r('globalThis.date=state.calendar.date');assert.equal(r('clubhouseNextEvent()'),false);assert.equal(r('state.calendar.date'),r('date'));assert.equal(r('Boolean(message.resolved)'),false);
+ assert.match(r('clubhouseLifePace(clubhouseModel())'),/Spelaren vill ha ett rollbesked/);r('message.resolved=true');assert.equal(r('clubhouseLifePace(clubhouseModel())'),'');
+});
+test('dated office followup preserves match-based promises and returns from their work surface',()=>{
+ const {run:r}=setup();r('globalThis.p=managerRoster().find(p=>p.pos!=="MV"&&!playerLoan(p));playerChance(p.id);state.calendar.date=calAdd(state.calendar.date,14);clubhouseGo("office");');
+ assert.equal(r('clubhouseLifeVisitor().kind'),'followup');assert.equal(r('clubhouseAcceptVisitor(p.id)'),true);assert.equal(r('clubhouseReviewPromises()'),true);assert.equal(r('clubhouseUI.work'),true);assert.equal(r('lockerUI.tab'),'promises');r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('String(clubhouseUI.player)'),r('String(p.id)'));
+ assert.equal(r('clubhouseReviewConversation(p.id)'),true);assert.equal(r('p.recruitmentPromise.resolved'),false);assert.equal(r('clubhouseReviewConversation(p.id)'),false);
+ r('clubhouseCloseMeeting()');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
+});
+test('room event progression uses the existing calendar and stops before the actual match',()=>{
+ const a=boot(undefined,{production:true}),r=a.run;r(`startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};clubhouseGo('office');for(const key of Object.keys(calendarPaceStore().stops))calendarPaceStore().stops[key]=false;globalThis.before=state.calendar.date;`);
+ assert.equal(r('clubhouseNextEvent()'),true);r('globalThis.n=0;while(calendarPaceRun&&n++<20)calendarPaceTick(calendarPaceRun)');assert.equal(r('state.calendar.date'),'2026-08-06');assert.equal(r('state.live'),null);assert.equal(r('calendarPaceSettings().last.days'),5);
+ assert.match(r('clubhouseLifePace(clubhouseModel())'),/5 dagar senare/);assert.equal(r('clubhouseNextEvent()'),false);assert.equal(r('state.calendar.date'),'2026-08-06');
+ r('clubhouseGo("ice");calendarSetSession(state.calendar.date,"type","recovery")');assert.equal(r('clubhouseModel().life.session'),'recovery');assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
+});

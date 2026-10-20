@@ -16,7 +16,7 @@ function clubhouseNavigation(page){
  if(page==='home'){clubhouseUI.room='office';clubhouseUI.work=false;clubhouseUI.origin=null;}
  else if(page==='locker'){clubhouseUI.room='locker';clubhouseUI.work=false;clubhouseUI.origin=null;}
  else if(!['match','clubSelect'].includes(page)){
-  if(!clubhouseUI.origin)clubhouseUI.origin={room:clubhouseUI.room,player:clubhouseUI.player};
+  if(!clubhouseUI.origin)clubhouseUI.origin={room:clubhouseUI.room,player:clubhouseUI.player,guest:clubhouseUI.officeGuest};
   const room=clubhouseDestinationRoom(page);if(room)clubhouseUI.room=room;
  }
  clubhouseUI.areas=false;
@@ -38,15 +38,15 @@ clubhouseGo=function(room){
 };
 clubhouseWorkView=function(){
  if(!clubhouseAvailable())return;
- clubhouseUI.origin={room:clubhouseUI.room,player:clubhouseUI.player};clubhouseUI.work=true;
+ clubhouseUI.origin={room:clubhouseUI.room,player:clubhouseUI.player,guest:clubhouseUI.officeGuest};clubhouseUI.work=true;
  render();queueInterfaceSave();document.getElementById('ch-work-content')?.focus?.({preventScroll:true});
 };
 clubhouseReturn=function(){
  const origin=clubhouseUI.origin||{room:clubhouseUI.room,player:clubhouseUI.player};
- clubhouseGo(origin.room);if(origin.room==='locker'&&origin.player!=null)clubhouseSelect(origin.player);
+ clubhouseGo(origin.room);if(origin.guest){clubhouseUI.officeGuest=origin.guest;clubhouseUI.player=origin.player;}if(['locker','office'].includes(origin.room)&&origin.player!=null&&!clubhouseSelect(origin.player))clubhouseUI.player=null;
  document.getElementById('ch-workspace-toggle')?.focus?.({preventScroll:true});
 };
-function clubhouseBriefing(){clubhouseUI.briefing=!clubhouseUI.briefing;clubhouseUI.wardrobe=false;render();}
+function clubhouseBriefing(){clubhouseUI.briefing=!clubhouseUI.briefing;clubhouseUI.wardrobe=false;clubhouseUI.player=null;clubhouseUI.officeGuest=null;render();}
 function clubhouseAreas(){clubhouseUI.areas=!clubhouseUI.areas;render();}
 function clubhouseCamera(){clubhouseUI.camera=clubhouseUI.camera==='close'?'overview':'close';if(typeof ClubhouseScene!=='undefined')ClubhouseScene.reframe?.();const b=document.getElementById('ch-camera');if(b)b.setAttribute('aria-pressed',String(clubhouseUI.camera==='close'));}
 function clubhouseTableMode(){clubhouseUI.work=false;clubhouseMode(false);}
@@ -72,19 +72,20 @@ function clubhouseContextLinks(room){
 }
 function clubhouseWorldView(html){
  if(clubhouseUI.lastClub!==managerClub()){clubhouseUI.player=null;clubhouseUI.lastClub=managerClub();}
- const m=clubhouseModel(),room=CLUBHOUSE_ROOMS[m.room],work=!clubhouseIsRoom(),panel=!work&&(clubhouseUI.briefing||clubhouseUI.wardrobe||m.room==='locker'&&clubhousePlayer());
+ const m=clubhouseModel(),room=CLUBHOUSE_ROOMS[m.room],work=!clubhouseIsRoom(),panel=!work&&(clubhouseUI.briefing||clubhouseUI.wardrobe||['locker','office'].includes(m.room)&&clubhousePlayer());
  const title=DESK_AREAS.flatMap(a=>a.pages).find(d=>d[0]===state.page)?.[1]||DESK_DESTINATIONS.find(d=>d[3]===state.page)?.[1]||room.name;
  const safe=trainingSafe;
- return `<section class="ch-world ${work?'ch-has-work':''} ${panel?'ch-has-panel':''}" id="ch-world" data-room="${m.room}" style="--ch-club:${m.color}" aria-label="Levande klubbhus">
+ return `<section class="ch-world ${work?'ch-has-work':''} ${panel?'ch-has-panel':''}" id="ch-world" data-room="${m.room}" data-day-phase="${m.life.phase}" style="--ch-club:${m.color}" aria-label="Levande klubbhus">
  <div class="ch-environment" ${work?'inert':''}><div class="ch-stage" id="clubhouse-stage" aria-label="${room.name} i 3D"><canvas id="clubhouse-canvas" aria-hidden="true"></canvas><p id="clubhouse-render-status" class="ch-render-status" role="status">Öppnar klubbhuset…</p><div class="ch-hotspots" id="clubhouse-hotspots">${clubhouseObjects(m.room,m).map(o=>clubhouseHotspot(...o)).join('')}</div></div></div>
  <header class="ch-world-heading" ${work?'inert':''}><span class="ch-world-location">${safe(m.club)} <i></i> ${calText(m.date)}</span><h1>${room.name}</h1><p>${room.subtitle}</p></header>
  <nav class="ch-world-tools" aria-label="Klubbhusets verktyg" ${work?'inert':''}><button id="ch-camera" aria-pressed="${clubhouseUI.camera==='close'}" onclick="clubhouseCamera()">${deskIcon('search')}<span>Kamera</span></button><button aria-expanded="${Boolean(panel)}" onclick="clubhouseBriefing()">${deskIcon('mail')}<span>Dagens läge</span>${m.tasks.length?`<b>${m.tasks.length}</b>`:''}</button><button onclick="clubhouseWardrobe()">${deskIcon('team')}<span>Din tränare</span></button><button id="ch-workspace-toggle" onclick="clubhouseWorkView()">${deskIcon('menu')}<span>Arbetsvy</span></button><button aria-expanded="${clubhouseUI.areas}" onclick="clubhouseAreas()">${deskIcon('globe')}<span>Alla områden</span></button></nav>
- ${!work&&m.room==='office'&&m.fixture?`<button class="ch-next-match" onclick="clubhouseOpen('calendar')"><small>NÄSTA MATCH · ${calText(m.fixture.date)}</small><strong>${safe(m.club)} <em>–</em> ${safe(m.fixture.opponent)}</strong><span>${safe(m.fixture.type)} ↗</span></button>`:''}
+ ${!work&&m.room==='office'?clubhouseLifeCard(m):''}
  ${!work&&m.room==='locker'?`<div class="ch-world-player-search"><label for="clubhouse-player-select">Välj spelare</label><select id="clubhouse-player-select" onchange="clubhouseSelect(this.value)"><option value="">Hitta i hela truppen</option>${m.players.map(p=>`<option value="${safe(p.id)}" ${samePlayerId(p.id,clubhouseUI.player)?'selected':''}>${safe(p.name)} · ${p.pos}${p.presence.present?'':' · '+p.presence.label}</option>`).join('')}</select><span>${m.players.filter(p=>p.presence.present).length} på plats / ${m.players.length}</span></div>`:''}
- <aside class="ch-panel ch-world-panel" id="clubhouse-panel" aria-label="Interaktion i klubbhuset" ${panel?'':'hidden'}><button class="ch-panel-close" aria-label="Stäng spelarens eller rummets panel" onclick="clubhouseUI.briefing=false;clubhouseUI.wardrobe=false;clubhouseUI.player=null;render()">×</button>${clubhousePanel(m)}</aside>
+ <aside class="ch-panel ch-world-panel" id="clubhouse-panel" aria-label="Interaktion i klubbhuset" ${panel?'':'hidden'}><button class="ch-panel-close" aria-label="Stäng spelarens eller rummets panel" onclick="clubhouseCloseMeeting()">×</button>${clubhousePanel(m)}</aside>
  ${clubhouseUI.areas&&!work?`<nav class="ch-all-areas" aria-label="Klubbhusets områden">${DESK_AREAS.map(a=>`<section><h2>${a.label}</h2>${a.pages.map(([page,label])=>`<button onclick="clubhouseOpen('${page}')">${label} ↗</button>`).join('')}</section>`).join('')}<footer><button onclick="clubhouseOpen('settings')">Sparfiler & inställningar</button><button onclick="showCareerMenu()">Huvudmeny</button><button onclick="clubhouseTableMode()">Byt till tabelläge</button></footer></nav>`:''}
  ${work?`<section class="ch-work-dialog" role="dialog" aria-modal="true" aria-labelledby="ch-work-title"><header class="ch-work-heading"><div><small>${room.name}</small><h2 id="ch-work-title">${safe(title)}</h2></div><nav aria-label="Klubbhusets arbetsvy"><button aria-label="← Tillbaka till ${room.name.toLowerCase()}" onclick="clubhouseReturn()">← Till rummet</button><button class="ch-work-expand" aria-pressed="false" onclick="this.closest('.ch-work-dialog').classList.toggle('ch-work-wide');this.setAttribute('aria-pressed',this.closest('.ch-work-dialog').classList.contains('ch-work-wide'))">Bredda</button><button aria-label="Stäng arbetsytan" onclick="clubhouseReturn()">×</button></nav></header><div class="ch-work-content" id="ch-work-content" tabindex="-1">${deskFrame(html)}</div></section>`:''}
- <footer class="ch-world-bottom" ${work?'inert':''}><div class="ch-context-actions">${clubhouseContextLinks(m.room)}<span>Klicka på golvet för att flytta tränaren</span></div><nav class="ch-room-nav" aria-label="Rum i klubbhuset">${Object.entries(CLUBHOUSE_ROOMS).map(([key,r])=>`<button onclick="clubhouseGo('${key}')" aria-current="${key===m.room?'location':'false'}"><small>${r.number}</small><span>${r.name}</span><b aria-hidden="true">${key===m.room?'●':'→'}</b></button>`).join('')}</nav></footer>
+ <footer class="ch-world-bottom" ${work?'inert':''}><div class="ch-context-actions">${clubhouseContextLinks(m.room)}<button class="ch-next-event" onclick="clubhouseNextEvent()">Nästa händelse →</button><span>Klicka på golvet för att flytta tränaren</span></div><nav class="ch-room-nav" aria-label="Rum i klubbhuset">${Object.entries(CLUBHOUSE_ROOMS).map(([key,r])=>`<button onclick="clubhouseGo('${key}')" aria-current="${key===m.room?'location':'false'}"><small>${r.number}</small><span>${r.name}</span>${m.life.counts[key]?`<em class="ch-room-count" aria-label="${m.life.counts[key]} aktuella ärenden">${m.life.counts[key]}</em>`:''}<b aria-hidden="true">${key===m.room?'●':'→'}</b></button>`).join('')}</nav></footer>
+ ${!work?clubhouseLifeFeedback(m):''}
  ${!work&&m.room==='office'&&typeof mediaPromptView==='function'?`<div class="ch-world-media">${mediaPromptView()}</div>`:''}
  </section>`;
 }
@@ -100,9 +101,9 @@ function clubhouseRender(content,html){
  if(preserve&&next)next.replaceWith(oldStage);
  if(next&&!preserve&&next.dataset)next.dataset.sceneKey=key;
 }
-function clubhouseSceneKey(m,a){return JSON.stringify([m.club,m.room,m.date,a,state.lines||null,m.players.map(p=>[p.id,p.number,p.presence.present,p.attention,p.captain])]);}
+function clubhouseSceneKey(m,a){return JSON.stringify([m.club,m.room,m.date,a,state.lines||null,m.room==='office'?m.life?.visitor?.playerId:null,m.life?.phase,m.life?.session,m.players.map(p=>[p.id,p.number,p.presence.present,p.attention,p.captain])]);}
 const clubhouseOriginalSelect=clubhouseSelect;
-clubhouseSelect=function(id){const ok=clubhouseOriginalSelect(id);if(ok){const panel=document.getElementById('clubhouse-panel');if(panel){panel.hidden=false;panel.innerHTML=`<button class="ch-panel-close" aria-label="Stäng spelarens panel" onclick="clubhouseUI.player=null;render()">×</button>`+panel.innerHTML;}document.getElementById('ch-world')?.classList?.toggle('ch-has-panel',true);document.getElementById('clubhouse-person-heading')?.focus?.({preventScroll:true});}return ok;};
+clubhouseSelect=function(id){const ok=clubhouseOriginalSelect(id);if(ok){const panel=document.getElementById('clubhouse-panel');if(panel){panel.hidden=false;panel.innerHTML=`<button class="ch-panel-close" aria-label="Stäng spelarens panel" onclick="clubhouseCloseMeeting()">×</button>`+panel.innerHTML;}document.getElementById('ch-world')?.classList?.toggle('ch-has-panel',true);document.getElementById('clubhouse-person-heading')?.focus?.({preventScroll:true});}return ok;};
 document.addEventListener?.('keydown',event=>{
  const work=document.querySelector?.('.ch-work-dialog');if(!work||!clubhouseEnabled()||!clubhouseAvailable()||document.querySelector('dialog[open]'))return;
  if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation?.();clubhouseReturn();}
