@@ -21,6 +21,7 @@ fs.mkdirSync(out,{recursive:true});
   await require('../scripts/personal-match-browser-checks.cjs').checkPersonalMatch(page,out);
   await require('../scripts/clubhouse-browser-checks.cjs').checkClubhouse(page,out);
   await require('../scripts/clubhouse-browser-checks.cjs').checkClubhouseLife(page,out);
+  await require('../scripts/coach-journey-browser-checks.cjs').checkCoachJourney(page,out);
   assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(out,'club-build-result.json'),JSON.stringify({passed:true,checks:['project selection and consequence view','preseason trial with real responsibility choice','player memory','five real calendar days with grouped reports','match boundary and unchanged lineup role','disk save and reload','conditional sale through actual UI and calendar','registered replacement before sale','player reaction and persisted conversation','personal match preview and both actual lineup choices','a complete actual friendly and frozen outcome','player memory after disk reload'],errors},null,2));
   console.log('PASS: club project, player journey, paced calendar, linked transfers, player reactions and disk reload in the actual Electron app.');
