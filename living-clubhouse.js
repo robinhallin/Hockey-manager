@@ -4,7 +4,7 @@ const clubhouseUI={room:'office',player:null,section:'today',wardrobe:false,noti
 const CLUBHOUSE_ROOMS={office:{name:'Tränarkontoret',subtitle:'Din plats. Ditt lag. Dina beslut.',number:'01'},locker:{name:'Omklädningsrummet',subtitle:'Människorna bakom matchtröjorna.',number:'02'},ice:{name:'Träningshallen',subtitle:'Här tar nästa match form.',number:'03'}};
 function clubhousePreference(key,fallback){try{return localStorage.getItem('hm-clubhouse-'+key)||fallback;}catch{return fallback;}}
 function clubhouseRemember(key,value){try{localStorage.setItem('hm-clubhouse-'+key,value);}catch{/* A private browser can still play. */}}
-function clubhouseEnabled(){return typeof window!=='undefined'&&clubhousePreference('mode','living')!=='classic';}
+function clubhouseEnabled(){return typeof window!=='undefined'&&clubhousePreference('mode','coach')==='living';}
 function clubhouseAvailable(){return state.careerStarted&&managerEmployed()&&!careerScreen&&!['clubSelect','clubDetail'].includes(state.page);}
 function clubhouseMode(living){clubhouseRemember('mode',living?'living':'classic');clubhouseUI.notice='';render();}
 function clubhouseRoomForPage(){return state.page==='locker'?'locker':clubhouseUI.room==='ice'?'ice':'office';}

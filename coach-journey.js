@@ -2,7 +2,7 @@
 // A spatial interface over the career's existing decisions and match snapshots.
 // No separate clock, rewards, invented conflicts or second match simulation.
 const coachJourneyUI={owner:null,club:null,date:null,live:null,slot:null,stage:null,story:null,player:null,benchSet:false};
-function coachJourneyEnabled(){return clubhouseAvailable()&&clubhouseEnabled();}
+function coachJourneyEnabled(){return clubhouseAvailable()&&(clubhouseEnabled()||typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled());}
 function coachJourneyCurrent(){return coachJourneyUI.owner===state&&coachJourneyUI.club===managerClub()&&coachJourneyUI.date===state.calendar?.date;}
 function coachJourneySync(){
  const u=coachJourneyUI,m=state.live;
