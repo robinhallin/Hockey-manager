@@ -4426,7 +4426,7 @@ careerScreen === "files" ? saveSettingsView()
   clubDeskCapture();
   worldDeskCapture();
   matchDeskCapture();
-  content.innerHTML=deskFrame(clubhouseWrap(pageHTML));
+  clubhouseRender(content,pageHTML);
   deskEnhanceButtons(content);
   if(state.page==='transfers'||state.page==='scouting')recruitmentRestoreView();
   if(['finance','board','staff','manager'].includes(state.page))clubDeskRestore();

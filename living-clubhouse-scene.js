@@ -2,7 +2,7 @@
 // Offline, cosmetic room renderer. It reads a snapshot; animation never advances
 // the calendar, alters attributes, or calls the match engine.
 const ClubhouseScene=(()=>{
- let active=null;
+ let active=null,builds=0;
  const skin={light:0xe6b995,medium:0xb97d56,dark:0x704735},hair={brown:0x49372d,blond:0xcda968,black:0x272329,silver:0x9a9f9e};
  const hash=s=>Array.from(String(s)).reduce((h,c)=>(Math.imul(h,31)+c.charCodeAt(0))>>>0,17);
  function dispose(){
@@ -13,9 +13,13 @@ const ClubhouseScene=(()=>{
  }
  function material(c,color,roughness=.78){const key=String(color)+':'+roughness;if(!c.materials.has(key))c.materials.set(key,new c.T.MeshStandardMaterial({color,roughness}));return c.materials.get(key);}
  function mesh(c,geo,color,parent=c.scene){c.geometries.add(geo);const m=new c.T.Mesh(geo,material(c,color));m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
- function box(c,w,h,d,x,y,z,color,parent){const m=mesh(c,new c.T.BoxGeometry(w,h,d),color,parent);m.position.set(x,y,z);return m;}
- function sphere(c,r,x,y,z,color,parent,sx=1,sy=1,sz=1){const m=mesh(c,new c.T.SphereGeometry(r,12,10),color,parent);m.position.set(x,y,z);m.scale.set(sx,sy,sz);return m;}
- function cylinder(c,top,bottom,h,x,y,z,color,parent){const m=mesh(c,new c.T.CylinderGeometry(top,bottom,h,12),color,parent);m.position.set(x,y,z);return m;}
+ function shape(c,key,make){if(!c.shapes.has(key))c.shapes.set(key,make());return c.shapes.get(key);}
+ function box(c,w,h,d,x,y,z,color,parent){
+  const geo=shape(c,`b:${w}:${h}:${d}`,()=>{const g=new c.T.BoxGeometry(w,h,d,2,2,2),p=g.attributes.position,r=Math.min(w,h,d)*.12,v=new c.T.Vector3();for(let i=0;i<p.count;i++){const px=p.getX(i),py=p.getY(i),pz=p.getZ(i),cx=Math.max(-w/2+r,Math.min(w/2-r,px)),cy=Math.max(-h/2+r,Math.min(h/2-r,py)),cz=Math.max(-d/2+r,Math.min(d/2-r,pz));v.set(px-cx,py-cy,pz-cz).normalize().multiplyScalar(r);p.setXYZ(i,cx+v.x,cy+v.y,cz+v.z);}g.computeVertexNormals();return g;});
+  const m=mesh(c,geo,color,parent);m.position.set(x,y,z);return m;
+ }
+ function sphere(c,r,x,y,z,color,parent,sx=1,sy=1,sz=1){const m=mesh(c,shape(c,'s:'+r,()=>new c.T.SphereGeometry(r,20,14)),color,parent);m.position.set(x,y,z);m.scale.set(sx,sy,sz);return m;}
+ function cylinder(c,top,bottom,h,x,y,z,color,parent){const m=mesh(c,shape(c,`c:${top}:${bottom}:${h}`,()=>new c.T.CylinderGeometry(top,bottom,h,16)),color,parent);m.position.set(x,y,z);return m;}
  function planeLabel(c,text,w,h,color,bg,x,y,z,parent=c.scene,size=42){
   const canvas=document.createElement('canvas');canvas.width=768;canvas.height=Math.round(768*h/w);const ctx=canvas.getContext('2d');
   ctx.fillStyle=bg;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle=color;ctx.font=`600 ${size}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,384,canvas.height/2,720);
@@ -61,14 +65,17 @@ const ClubhouseScene=(()=>{
   for(const s of [-1,1]){sphere(c,.049,s*.21,-.01,0,complexion,head,.5,1,.7);sphere(c,.022,s*.083,.015,.205,0x263037,head,.85,1,.5);}
   sphere(c,.045,0,-.044,.215,complexion,head,.55,.7,.8);const mouth=box(c,.066,.013,.018,0,-.115,.19,0x875f50,head);
   if(seed%3===0&&!coach)sphere(c,.21,0,-.105,-.005,headHair,head,.88,.35,.97);
-  const arms=[];for(const s of [-1,1]){
+  const arms=[],legs=[];for(const s of [-1,1]){
    const arm=new c.T.Group();arm.position.set(s*.39,1.45,0);body.add(arm);cylinder(c,.11,.095,.55,0,-.24,0,shirt,arm);sphere(c,.09,0,-.54,0,complexion,arm);arm.rotation.z=s*.12;arms.push(arm);
-   const leg=new c.T.Group();leg.position.set(s*.17,.76,0);body.add(leg);
+   const leg=new c.T.Group();leg.position.set(s*.17,.76,0);body.add(leg);legs.push(leg);
    if(sitting){const thigh=cylinder(c,.115,.105,.4,0,-.05,.17,0x253947,leg);thigh.rotation.x=-Math.PI/2;cylinder(c,.105,.075,.5,0,-.3,.35,0x253947,leg);box(c,.22,.13,.39,0,-.57,.43,0x222d33,leg);}
    else{cylinder(c,.115,.085,.69,0,-.33,0,0x253947,leg);box(c,.22,.13,.37,0,-.7,.07,0x222d33,leg);}
   }
   if(sitting){body.position.y=-.04;arms.forEach((a,i)=>{a.rotation.x=-.65;a.rotation.z=i?.1:-.1;});}
-  g.userData={id,body,head,arms,seed,sitting,absent,torso,mouth};c.actors.push(g);c.scene.add(g);return g;
+  for(const s of [-1,1]){box(c,.075,.013,.022,s*.083,.063,.208,headHair,head);sphere(c,.009,s*.079,.02,.218,0xe4e5dd,head);}
+  if(suit){for(const s of [-1,1]){const lapel=box(c,.095,.43,.035,s*.13,1.29,.19,0x465d69,body);lapel.rotation.z=s*-.27;}for(let i=0;i<2;i++)sphere(c,.014,.06,1.05-i*.12,.185,0xc7b28a,body);}
+  else if(!coach){for(const s of [-1,1])box(c,.16,.055,.36,s*.25,1.42,0,0xe7d6a6,body);box(c,.65,.045,.36,0,.91,0,0xe7d6a6,body);}
+  g.userData={id,body,head,arms,legs,seed,sitting,absent,torso,mouth};c.actors.push(g);c.scene.add(g);return g;
  }
  function shell(c){
   c.scene.background=new c.T.Color(0x182932);c.scene.fog=new c.T.Fog(0x182932,24,43);
@@ -77,21 +84,35 @@ const ClubhouseScene=(()=>{
   box(c,12.4,3.6,.17,0,1.8,-4.25,0x425c62);box(c,.17,3.6,8.6,-6.2,1.8,0,0x354f56);
   box(c,12.4,.18,.26,0,.1,-4.13,0x263d45);box(c,.27,.18,8.6,-6.08,.1,0,0x263d45);
   box(c,12.6,.11,.3,0,3.63,-4.2,0xb8b096);box(c,.3,.11,8.7,-6.16,3.63,0,0xb8b096);
+  for(let i=0;i<32;i++)box(c,.055,1.04,.05,-6+i*.38,.67,-4.14,0x6e7970);
+  box(c,12.1,.025,.04,0,1.24,-4.12,0xc4af80);box(c,12,.025,.04,0,3.42,-4.1,0xe0d4a8);
   const ambient=new c.T.HemisphereLight(0xe2f2ef,0x675544,2.2);c.scene.add(ambient);
-  const sun=new c.T.DirectionalLight(0xffe4bc,3.1);sun.position.set(-3,9,5);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;sun.shadow.normalBias=.035;c.scene.add(sun);
+  const sun=new c.T.DirectionalLight(0xffe4bc,3.1);sun.position.set(-3,9,5);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-9;sun.shadow.camera.right=9;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;sun.shadow.normalBias=.035;c.scene.add(sun);
   const rim=new c.T.DirectionalLight(0x97d5e4,1.2);rim.position.set(5,4,-4);c.scene.add(rim);
  }
  function door(c,x,z,label){
   box(c,1.48,2.73,.18,x,1.36,z,0xb39d7b);box(c,1.28,2.58,.2,x,1.29,z+.025,0x263e47);box(c,1.04,1.32,.04,x,1.76,z+.14,0x6d8d92);box(c,.07,.25,.08,x+.4,1.05,z+.17,0xc4b899);
   planeLabel(c,label,1.18,.25,'#e1ddc5','#263e47',x,2.82,z+.12,c.scene,75);
  }
+ function laptop(c,x,y,z,label){
+  box(c,.92,.045,.6,x,y,z,0x303f49);const screen=box(c,.92,.61,.045,x,y+.3,z-.26,0x253844);screen.rotation.x=-.13;
+  planeLabel(c,label,.8,.46,'#b9e2d7','#172e3b',x,y+.32,z-.21,c.scene,50);
+  for(let row=0;row<3;row++)for(let col=0;col<8;col++)box(c,.065,.01,.045,x-.3+col*.085,y+.028,z-.08+row*.075,0x718188);
+ }
+ function frame(c,title,subtitle,x,y,z,w=1.7,h=1.1){
+  box(c,w+.12,h+.12,.09,x,y,z,0xbaa580);planeLabel(c,title,w,h,'#d5d6b8','#24414c',x,y,z+.05,c.scene,65);
+  if(subtitle)planeLabel(c,subtitle,w*.9,.18,'#e8dec5','#24414c',x,y-h*.3,z+.056,c.scene,42);
+ }
+ function lamp(c,x,z){cylinder(c,.23,.23,.04,x,.09,z,0x354750);cylinder(c,.025,.025,2.32,x,1.25,z,0xb9a176);cylinder(c,.27,.4,.42,x,2.45,z,0xd9c99f);cylinder(c,.25,.25,.012,x,2.23,z,0xffedbb);}
+ function books(c,x,y,z,count=6){for(let i=0;i<count;i++){const h=.26+(i%3)*.055;box(c,.095,h,.29,x+i*.115,y+h/2,z,[0x426b68,0xb18c5f,0x3c526e,0x986c60][i%4]);box(c,.07,.012,.01,x+i*.115,y+h*.76,z+.15,0xd8ccb0);}}
+ function puck(c,x,z){cylinder(c,.065,.065,.035,x,.13,z,0x26333b);}
+ function stick(c,x,y,z,rotation=0,parent){const g=new c.T.Group();g.position.set(x,y,z);g.rotation.y=rotation;(parent||c.scene).add(g);const shaft=box(c,.035,1.25,.035,0,.65,0,0x3a444a,g);shaft.rotation.z=-.25;box(c,.28,.065,.045,-.05,.055,0,0xd5bd83,g);box(c,.042,.2,.044,.13,1.16,0,0xe1d4b6,g);return g;}
  function office(c){
   shell(c);board(c,.9,2.02,-4.08,4.6,2.45);door(c,4.73,-4.08,'OMKLÄDNINGSRUM');
   // Window light and a city silhouette on the side wall.
   for(let z=-2.8;z<=-.7;z+=2.05){const w=box(c,.09,2,1.75,-6.07,2.08,z,0x8bb4b7);box(c,.13,.06,1.8,-6,2.06,z,0xe0d9bc);box(c,.13,2.05,.055,-6,2.08,z,0xe0d9bc);}
   box(c,4,.11,2.1,-2.4,.09,1.05,0x526b6b);for(let i=0;i<9;i++)box(c,3.9,.012,.025,-2.4,.15,.1+i*.23,0x6e8380);
   box(c,3.4,.16,1.45,-2.4,1.15,.75,0xb49a73);box(c,.16,1.08,1.25,-3.94,.55,.75,0x394b50);box(c,.16,1.08,1.25,-.86,.55,.75,0x394b50);
-  box(c,.8,.7,.09,-2.4,1.61,.51,0x253946);box(c,.72,.58,.02,-2.4,1.63,.565,0x8ab8bb);box(c,.54,.035,.21,-2.4,1.25,.56,0x263d45);box(c,.75,.03,.24,-2.4,1.26,.98,0x405354);
   for(let i=0;i<4;i++){const paper=box(c,.46,.013,.57,-3.3+i*.07,1.25+i*.014,.97,0xe8dfc5);paper.rotation.y=-.15+i*.06;}
   cylinder(c,.09,.07,.2,-1.3,1.34,1.02,0xc2b598);cylinder(c,.065,.065,.01,-1.3,1.445,1.02,0x55453d);
   chair(c,-2.4,-.8,Math.PI);chair(c,-3.5,2.25,.15);chair(c,-1.8,2.35,-.15);
@@ -103,24 +124,36 @@ const ClubhouseScene=(()=>{
   box(c,1.8,1.02,.7,4.8,.52,1.4,0x8d765c);box(c,1.95,.09,.83,4.8,1.08,1.4,0xb8a07b);
   for(let i=0;i<3;i++){cylinder(c,.13,.07,.35,4.3+i*.45,1.3,1.4,0xc7ab65);cylinder(c,.17,.17,.05,4.3+i*.45,1.12,1.4,0x34454c);}
   plant(c,-5.55,2.9,1.3);plant(c,5.4,-2.6,.9);
+  // Small usable objects make this a working office, not an empty showroom.
+  laptop(c,-2.45,1.27,.45,'MATCHPLAN · '+c.model.club.toUpperCase());
+  books(c,-5.6,1.28,-3.6,8);lamp(c,-.6,-3.2);frame(c,c.model.club.toUpperCase(),'VÅR IDENTITET',-3.1,2.55,-4.12,1.55,1.05);
+  frame(c,String(c.model.date),'TRÄNARENS KALENDER',-4.9,3.1,-4.12,1.6,.55);
+  for(let i=0;i<5;i++){box(c,.012,.012,.38,-3.43+i*.055,1.32,1,0x9eaa9f);}
+  for(let z=-2.8;z<=-.7;z+=2.05)for(let i=0;i<9;i++)box(c,.14,.022,1.75,-5.98,1.35+i*.18,z,0xa3b5b0);
+  const phone=box(c,.18,.035,.33,-1.65,1.26,1,0x24343e);phone.rotation.y=.22;
   const coach=actor(c,{coach:true});coach.position.set(.8,0,1.1);coach.rotation.y=-.2;c.coach=coach;
   c.anchors={board:[1,2,-3.55],desk:[-2.4,1.35,1.3],scout:[-4.8,1.7,-3.5],cabinet:[4.8,1.5,1.5],door:[4.75,1.65,-3.4],coach:[.8,2.45,1.1]};
  }
- function lockerSeat(c,p,index,cols,rows){
-  const row=Math.floor(index/cols),column=index%cols,x=-5.25+column*(10.5/Math.max(1,cols-1)),z=-3.45+row*2.45;
+ function lockerSeat(c,p,index){
+  const back=Math.min(10,c.model.players.length),side=Math.ceil((c.model.players.length-back)/2),left=index>=back&&index<back+side;
+  const x=index<back?-4.75+index*(9.5/Math.max(1,back-1)):left?-5.55:5.55,z=index<back?-3.62:-2.65+(index-back-(left?0:side))*(5.8/Math.max(1,side-1)),rotation=index<back?0:left?Math.PI/2:-Math.PI/2;
+  const station=new c.T.Group();station.position.set(x,0,z);station.rotation.y=rotation;c.scene.add(station);
   // Each member has a fixed, numbered station. Absent members keep an empty seat.
-  box(c,.9,1.65,.38,x,.86,z-.22,0x38535b);box(c,.79,1.45,.04,x,.9,z+.005,0x46636a);box(c,.92,.13,.7,x,.48,z+.32,0xa78d67);
-  box(c,.04,.39,.5,x-.35,.23,z+.31,0x263d45);box(c,.04,.39,.5,x+.35,.23,z+.31,0x263d45);
-  planeLabel(c,String(p.number),.6,.25,'#ebdfb5','#314b55',x,1.7,z+.021,c.scene,130);
-  if(p.presence.present){const a=actor(c,{id:p.id,sitting:true,color:0x254c69,number:p.number});a.position.set(x,0,z+.45);a.scale.setScalar(.78);c.playerActors.set(p.id,a);}
-  else {box(c,.35,.46,.08,x,1.12,z+.06,0x778c8d);}
-  c.anchors['player-'+p.id]=[x,1.85,z+.65];
+  box(c,.92,2.3,.38,0,1.18,-.22,0x344e59,station);box(c,.8,1.95,.04,0,1.15,.005,0x46636a,station);box(c,.92,.13,.7,0,.48,.32,0xa78d67,station);
+  for(const s of [-1,1]){box(c,.055,2.34,.5,s*.45,1.18,-.1,0x7b8c87,station);box(c,.04,.39,.5,s*.35,.23,.31,0x263d45,station);}
+  box(c,.84,.035,.4,0,1.93,-.13,0xc4ac7f,station);sphere(c,.16,0,2.09,-.09,0x243e54,station,1,.72,1);box(c,.13,.035,.15,0,2.06,.09,0xb4c3bc,station);
+  planeLabel(c,String(p.number)+' · '+p.name.split(' ').at(-1).toUpperCase(),.8,.22,'#ebdfb5','#263e4a',0,2.36,.04,station,70);
+  box(c,.3,.055,.4,.22,.58,.35,0xd6d4c2,station);stick(c,-.35,.05,.08,.1,station);
+  if(p.presence.present){const a=actor(c,{id:p.id,sitting:true,color:0x254c69,number:p.number});station.add(a);a.position.set(0,0,.45);a.scale.setScalar(.86);c.playerActors.set(p.id,a);}
+  else {box(c,.35,.46,.08,0,1.12,.06,0x778c8d,station);planeLabel(c,p.presence.label,.72,.17,'#c4cecc','#46636a',0,.83,.09,station,50);}
+  c.anchors['player-'+p.id]=[x+Math.sin(rotation)*.7,1.86,z+Math.cos(rotation)*.7];
  }
  function locker(c){
   shell(c);planeLabel(c,c.model.club.toUpperCase()+' · TILLSAMMANS',6.7,.44,'#e7d9a7','#425c62',-.9,3.13,-4.14,c.scene,54);
-  door(c,5.1,-4.08,'TILL ISEN');c.anchors={board:[-5.5,2.9,-2.7],door:[5.15,2.3,-3.5],coach:[3.7,2.3,3.3]};
-  const cols=Math.max(8,Math.ceil(c.model.players.length/3)),rows=Math.ceil(c.model.players.length/cols);
-  c.model.players.forEach((p,i)=>lockerSeat(c,p,i,cols,rows));
+  board(c,-2.2,1.6,2.68,1.55,.88);for(const x of [-2.8,-1.6])box(c,.045,1.1,.045,x,.63,2.65,0x8b9b94);
+  c.anchors={board:[-2.2,2.25,2.78],door:[0,3,-3.5],coach:[3.7,2.3,3.3]};
+  c.model.players.forEach((p,i)=>lockerSeat(c,p,i));
+  const crest=planeLabel(c,c.model.club.toUpperCase(),5.4,2.8,'#c8b888','#244651',0,.09,0,c.scene,100);crest.rotation.x=-Math.PI/2;
   const coach=actor(c,{coach:true});coach.position.set(3.7,0,3.1);coach.rotation.y=-1;c.coach=coach;
   box(c,2.7,.09,.9,-1.3,.85,3,0xa58c68);box(c,.12,.8,.7,-2.4,.4,3,0x354c53);box(c,.12,.8,.7,-.2,.4,3,0x354c53);
   for(let i=0;i<4;i++){cylinder(c,.065,.065,.3,-2+i*.4,1.05,3,0xa2bbb7);cylinder(c,.042,.042,.07,-2+i*.4,1.23,3,0xd4dfc8);}
@@ -134,6 +167,40 @@ const ClubhouseScene=(()=>{
   for(let i=0;i<5;i++)cylinder(c,.015,.11,.25,-3+i*1.4,.23,2.6,0xc58651);
   const coach=actor(c,{coach:true});coach.position.set(4.2,.1,2.4);coach.rotation.y=-1.2;c.coach=coach;
   c.anchors={board:[-2.8,2.6,-3.7],door:[4.7,2.3,-3.45],coach:[4.2,2.7,2.4]};
+  for(let i=0;i<7;i++){box(c,.045,1.2,.045,-5+i*1.6,1.15,-2.9,0x7b9396);box(c,1.53,.85,.022,-4.2+i*1.6,1.2,-2.9,0xabc3c2);}
+  // Goal frame and individual net cords, rubber walkway and rink-side equipment.
+  for(const s of [-1,1]){box(c,.065,.95,.065,3.9,.6,s*.68,0xbd5e52);box(c,.8,.055,.055,4.3,.14,s*.68,0xbd5e52);}
+  box(c,.065,.065,1.42,3.9,1.08,0,0xbd5e52);box(c,.065,.065,1.42,4.7,.18,0,0xbd5e52);
+  for(let i=0;i<12;i++)box(c,.012,.83,.012,4.68,.58,-.65+i*.12,0xd3dfd7);
+  for(let i=0;i<7;i++)box(c,.012,.012,1.4,4.68,.2+i*.13,0,0xd3dfd7);
+  box(c,10.2,.03,.7,0,.09,3.65,0x354a50);for(let i=0;i<7;i++)puck(c,-1.4+i*.12,2.2+(i%2)*.16);
+  c.actors.filter(a=>a!==c.coach).forEach(a=>{stick(c,.25,0,.15,-.5,a);a.userData.body.rotation.x=.1;});
+ }
+ function recruit(c){
+  shell(c);door(c,4.9,-4.08,'TILL KLUBBHUSET');
+  frame(c,'SCOUTING · '+c.model.club.toUpperCase(),'MARKNAD · RAPPORTER · SPELARE',.2,2.5,-4.12,5.8,1.4);
+  for(let i=0;i<3;i++){const x=-4.2+i*3.2;box(c,2.5,.14,1.3,x,1.12,-1.5,0xaf9673);for(const s of [-1,1])box(c,.1,1.05,1.1,x+s*1.1,.55,-1.5,0x354b53);laptop(c,x,1.22,-1.6,['SPELARRAPPORTER','REKRYTERING','BEVAKNING'][i]);books(c,x-.9,1.2,-1.8,3);chair(c,x,.1,Math.PI);}
+  board(c,-4.1,2.55,-4.03,2.5,1.2);plant(c,5.1,2.4,1.4);lamp(c,-5.4,2.7);box(c,1.7,.84,.65,3,.44,2.5,0x8d765c);books(c,2.4,.9,2.5,8);
+  const coach=actor(c,{coach:true});coach.position.set(1.8,0,2.4);c.coach=coach;
+  c.anchors={board:[-3.8,2.55,-3.8],desk:[-4.2,1.7,-1.1],scout:[-.8,1.7,-1.1],cabinet:[2.1,1.7,-1.1],door:[4.9,2,-3.6],coach:[1.8,2.5,2.4]};
+ }
+ function boardroom(c){
+  shell(c);door(c,4.9,-4.08,'TILL KLUBBHUSET');frame(c,c.model.club.toUpperCase(),'KLUBBLEDNING · VÅR GEMENSAMMA RIKTNING',-.6,2.6,-4.12,6.6,1.2);
+  box(c,7.5,.19,2.2,0,1.05,-.1,0x987950);for(const x of [-2.7,2.7])box(c,.3,1,1.3,x,.52,-.1,0x34474c);
+  for(let i=0;i<4;i++){chair(c,-2.7+i*1.8,1.8,0);chair(c,-2.7+i*1.8,-2,Math.PI);cylinder(c,.07,.07,.19,-2.8+i*1.8,1.23,.3,0xd6cdb1);box(c,.45,.014,.5,-2.5+i*1.8,1.16,.1,0xe6dfc6);}
+  laptop(c,0,1.17,-.4,'KLUBBENS ÖVERSIKT');plant(c,5,2.5,1.4);plant(c,-5.4,-3.2,1.2);lamp(c,-5.4,2.4);
+  const coach=actor(c,{coach:true});coach.position.set(4.3,0,1.9);c.coach=coach;
+  c.anchors={desk:[-2.5,1.6,.2],board:[0,2.5,-3.8],scout:[2.4,1.6,.2],cabinet:[4.3,2.5,1.9],door:[4.9,2,-3.6],coach:[4.3,2.5,1.9]};
+ }
+ function world(c){
+  shell(c);door(c,4.9,-4.08,'TILL KLUBBHUSET');
+  frame(c,c.model.club.toUpperCase(),'PRESS · RESULTAT · HOCKEYVÄRLDEN',-.8,2.45,-4.06,7.4,1.6);
+  for(let row=0;row<2;row++)for(let col=0;col<6;col++)planeLabel(c,c.model.club.toUpperCase(),.95,.22,'#b8c6ba','#304d59',-3.8+col*1.2,2.05+row*.75,-3.99,c.scene,62);
+  box(c,6.4,.15,1.15,-.8,1.08,-2.2,0xa68c68);for(const x of [-2.7,1.1])box(c,.14,1,1,x,.53,-2.2,0x374b54);chair(c,-.8,-3.15,0);
+  for(const x of [-2,-.8,.4]){cylinder(c,.13,.13,.025,x,1.18,-1.97,0x263943);const mic=cylinder(c,.022,.022,.3,x,1.33,-1.97,0x899997);mic.rotation.x=.3;sphere(c,.065,x,1.49,-2.01,0x273b44);}
+  for(const x of [-3,2.6]){const camera=box(c,.5,.3,.35,x,1.7,1.6,0x273840);cylinder(c,.07,.12,1.4,x,.8,1.6,0x657b7e);for(const s of [-1,1]){const leg=box(c,.055,1.4,.055,x+s*.22,.68,1.6,0x546b70);leg.rotation.z=s*-.3;}cylinder(c,.13,.13,.2,x,1.7,1.35,0x718b8c).rotation.x=Math.PI/2;}
+  const coach=actor(c,{coach:true});coach.position.set(.5,0,.1);c.coach=coach;plant(c,5.3,2.5,1.3);
+  c.anchors={board:[-.8,2.8,-3.8],desk:[-.8,1.8,-1.9],scout:[-3,2,1.6],cabinet:[2.6,2,1.6],door:[4.9,2,-3.6],coach:[.5,2.5,.1]};
  }
  function playerButtons(c){
   if(c.model.room!=='locker')return;
@@ -147,19 +214,20 @@ const ClubhouseScene=(()=>{
  }
  function project(c){
   const rect=c.canvas.getBoundingClientRect();c.camera.aspect=rect.width/Math.max(1,rect.height);c.camera.updateProjectionMatrix();
+  const portrait=c.camera.aspect<1,wide=typeof clubhouseUI!=='undefined'&&clubhouseUI.camera==='overview',lockerRoom=c.model.room==='locker';
+  c.camera.fov=portrait?49:32;c.camera.position.set(portrait?0:lockerRoom?1:8,portrait?24:lockerRoom?7.8:6.7,portrait?14:lockerRoom?12.8:10.5);if(wide)c.camera.position.multiplyScalar(1.18);c.camera.lookAt(0,1,-.1);c.camera.updateProjectionMatrix();c.camera.updateMatrixWorld();
   c.renderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);
-  for(const b of document.querySelectorAll('[data-ch-anchor]')){const pos=c.anchors[b.dataset.chAnchor];if(!pos)continue;const v=new c.T.Vector3(...pos).project(c.camera);b.style.left=(50+v.x*50)+'%';b.style.top=(50-v.y*50)+'%';}
+  for(const b of document.querySelectorAll('[data-ch-anchor]')){const pos=c.anchors[b.dataset.chAnchor];if(!pos)continue;const v=new c.T.Vector3(...pos).project(c.camera),pad=Math.min(24,Math.max(5,b.offsetWidth/Math.max(1,rect.width)*50));b.style.left=Math.max(pad,Math.min(100-pad,50+v.x*50))+'%';b.style.top=Math.max(16,Math.min(86,50-v.y*50))+'%';}
  }
  function loop(c,now){
   if(active!==c)return;
   if(!c.canvas.isConnected){dispose();return;}
   if(document.hidden){c.frame=0;return;}
   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const dt=Math.min(.05,(now-(c.last||now))/1000);c.last=now;
   if(now-c.drawn>(reduced?250:1000/30)){
-   const time=now/1000;
+   const dt=Math.min(.1,(now-(c.drawn||now))/1000),time=now/1000;
    for(const a of c.actors){const d=a.userData;if(!reduced){d.body.rotation.z=Math.sin(time*1.2+d.seed)*.012;d.head.rotation.y=Math.sin(time*.5+d.seed)*.09;d.arms[0].rotation.x=(d.sitting?-.65:0)+Math.sin(time+d.seed)*.025;}}
-   if(c.target){const d=c.target.clone().sub(c.coach.position),distance=d.length();if(distance>.06){const step=Math.min(distance,dt*2.8);c.coach.position.add(d.normalize().multiplyScalar(step));c.coach.rotation.y=Math.atan2(d.x,d.z);if(!reduced){c.coach.userData.body.position.y=Math.sin(time*13)*.035;c.coach.userData.arms.forEach((a,i)=>a.rotation.x=Math.sin(time*9+i*Math.PI)*.3);}}else{c.target=null;c.coach.userData.body.position.y=0;}}
+   if(c.target){const d=c.target.clone().sub(c.coach.position),distance=d.length();if(distance>.06){const step=Math.min(distance,dt*2.1);c.coach.position.add(d.normalize().multiplyScalar(step));c.coach.rotation.y=Math.atan2(d.x,d.z);if(!reduced){c.coach.userData.body.position.y=Math.sin(time*13)*.025;c.coach.userData.arms.forEach((a,i)=>a.rotation.x=Math.sin(time*9+i*Math.PI)*.3);c.coach.userData.legs.forEach((a,i)=>a.rotation.x=Math.sin(time*9+i*Math.PI)*-.35);}}else{c.target=c.waypoints?.shift()||null;c.coach.userData.body.position.y=0;c.coach.userData.legs.forEach(a=>a.rotation.x=0);c.coach.userData.arms.forEach(a=>a.rotation.x=0);}}
    const coachButton=document.querySelector('[data-ch-anchor="coach"]');if(coachButton&&c.coach){const v=c.coach.position.clone();v.y+=2.5;v.project(c.camera);coachButton.style.left=(50+v.x*50)+'%';coachButton.style.top=(50-v.y*50)+'%';}
    if(c.target&&c.frames%4===0)c.renderer.shadowMap.needsUpdate=true;
    c.renderer.render(c.scene,c.camera);c.drawn=now;c.canvas.dataset.frames=String(++c.frames);
@@ -173,26 +241,31 @@ const ClubhouseScene=(()=>{
   if(error)console.warn('Klubbhusets 3D kunde inte startas:',error.message);
  }
  function mount(canvas,model,appearance){
+  const key=typeof clubhouseSceneKey==='function'?clubhouseSceneKey(model,appearance):null;
+  if(active?.canvas===canvas&&key&&active.key===key){active.model=model;project(active);return;}
   dispose();if(typeof HockeyThree==='undefined'){fallback();return;}
   let c;
   try{
-   const T=HockeyThree;c={T,canvas,model,appearance,scene:new T.Scene(),camera:new T.PerspectiveCamera(38,1,.1,80),materials:new Map(),geometries:new Set(),textures:new Set(),actors:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
+   const T=HockeyThree;c={T,canvas,model,appearance,key,build:++builds,scene:new T.Scene(),camera:new T.PerspectiveCamera(36,1,.1,80),materials:new Map(),shapes:new Map(),geometries:new Set(),textures:new Set(),actors:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
    c.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});c.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));c.renderer.outputColorSpace=T.SRGBColorSpace;c.renderer.toneMapping=T.ACESFilmicToneMapping;c.renderer.toneMappingExposure=1.05;c.renderer.shadowMap.enabled=true;c.renderer.shadowMap.type=T.PCFSoftShadowMap;c.renderer.shadowMap.autoUpdate=false;c.renderer.shadowMap.needsUpdate=true;
    c.camera.position.set(model.room==='locker'?2.7:11.2,model.room==='locker'?11:9.4,model.room==='locker'?18.5:14.9);c.camera.lookAt(0,1,-.1);
-   (model.room==='locker'?locker:model.room==='ice'?ice:office)(c);playerButtons(c);
+   ({locker,ice,recruit,boardroom,world}[model.room]||office)(c);playerButtons(c);
    c.scene.updateMatrixWorld(true);c.camera.updateMatrixWorld();project(c);c.resize=new ResizeObserver(()=>project(c));c.resize.observe(canvas);
    c.visibility=()=>{if(!document.hidden&&!c.frame&&active===c){c.last=0;c.frame=requestAnimationFrame(t=>loop(c,t));}};document.addEventListener('visibilitychange',c.visibility);
    // Click on free floor to move your actual coach figure. Objects remain buttons.
    c.walk=e=>{const r=canvas.getBoundingClientRect(),nx=(e.clientX-r.left)/r.width*2-1,ny=-(e.clientY-r.top)/r.height*2+1;
     const a=new T.Vector3(nx,ny,.5).unproject(c.camera),d=a.sub(c.camera.position).normalize(),distance=-c.camera.position.y/d.y,point=c.camera.position.clone().add(d.multiplyScalar(distance));
-    point.x=Math.max(-4.9,Math.min(5,point.x));point.z=Math.max(model.room==='locker'?2.6:-2.5,Math.min(3.5,point.z));
+    point.x=Math.max(model.room==='locker'?-3.8:-4.9,Math.min(model.room==='locker'?3.8:5,point.x));point.z=Math.max(model.room==='locker'?-1.8:-2.5,Math.min(3.5,point.z));
     if(model.room==='office'&&point.x<-.5&&point.z>-.3&&point.z<2.4)point.x=-.35;
-    point.y=model.room==='ice'?.1:0;c.target=point;
+    if(model.room==='boardroom'&&Math.abs(point.x)<3.9&&point.z> -1.7&&point.z<1.4)point.z=1.65;
+    if(model.room==='recruit'&&point.z<-.5)point.z=.5;
+    point.y=model.room==='ice'?.1:0;c.waypoints=[];c.target=point;
    };canvas.addEventListener('click',c.walk);
    const status=document.getElementById('clubhouse-render-status');if(status)status.hidden=true;canvas.dataset.ready='true';canvas.dataset.room=model.room;c.frame=requestAnimationFrame(t=>loop(c,t));
   }catch(error){dispose();fallback(error);}
  }
- function select(id){const c=active;if(!c)return;const actor=c.playerActors.get(id);if(actor){for(const p of c.playerActors.values())p.userData.torso.material=material(c,p===actor?0x537f86:0x254c69);c.target=new c.T.Vector3(Math.max(-4.8,Math.min(4.8,actor.position.x)),0,Math.max(2.7,actor.position.z+1.1));}}
- function diagnostics(){return active?{room:active.model.room,actors:active.actors.length,players:active.playerActors.size,frames:active.frames,geometries:active.geometries.size,materials:active.materials.size,drawCalls:active.renderer.info.render.calls}:null;}
- return {mount,dispose,select,diagnostics};
+ function select(id){const c=active;if(!c)return;const actor=c.playerActors.get(id);if(actor){for(const p of c.playerActors.values())p.userData.torso.material=material(c,p===actor?0x537f86:0x254c69);const pos=actor.getWorldPosition(new c.T.Vector3());c.waypoints=[];c.target=new c.T.Vector3(Math.max(-3.8,Math.min(3.8,pos.x)),0,Math.max(-1.8,Math.min(2.8,pos.z+1.1)));}}
+ function reframe(){if(active){project(active);active.renderer.render(active.scene,active.camera);}}
+ function diagnostics(){return active?{room:active.model.room,build:active.build,actors:active.actors.length,players:active.playerActors.size,frames:active.frames,geometries:active.geometries.size,materials:active.materials.size,drawCalls:active.renderer.info.render.calls}:null;}
+ return {mount,dispose,select,reframe,diagnostics};
 })();
