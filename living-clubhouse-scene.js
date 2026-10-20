@@ -135,7 +135,7 @@ const ClubhouseScene=(()=>{
   const coach=actor(c,{coach:true});coach.position.set(.8,0,1.1);coach.rotation.y=-.2;c.coach=coach;
   c.anchors={board:[1,2,-3.55],desk:[-2.4,1.35,1.3],scout:[-4.8,1.7,-3.5],cabinet:[4.8,1.5,1.5],door:[4.75,1.65,-3.4],coach:[.8,2.45,1.1]};
   const v=c.model.life?.visitor,p=v&&c.model.players.find(p=>p.id===v.playerId&&p.presence.present);
-  if(p){const visitor=actor(c,{id:p.id,sitting:true,color:0x254c69,number:p.number});visitor.position.set(-1.8,0,2.35);visitor.rotation.y=Math.PI-.15;c.playerActors.set(p.id,visitor);c.visitor=p.id;c.anchors.visitor=[-1.8,2.15,2.5];}
+  if(p){const visitor=actor(c,{id:p.id,sitting:true,color:0x254c69,number:p.number});visitor.position.set(-1.8,0,2.35);visitor.rotation.y=Math.PI-.15;c.playerActors.set(p.id,visitor);c.visitor=p.id;c.anchors.visitor=[-1.8,1,2.5];}
  }
  function lockerSeat(c,p,index){
   const back=Math.min(10,c.model.players.length),side=Math.ceil((c.model.players.length-back)/2),left=index>=back&&index<back+side;

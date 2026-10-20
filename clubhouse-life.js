@@ -2,8 +2,10 @@
 // The room reflects career evidence. The calendar and existing decisions own
 // every consequence; reading an initiative never completes it.
 Object.assign(clubhouseUI,{officeGuest:null,feedback:null});
+let clubhouseLifeOwner=null,clubhousePaceOrigin=null,clubhousePaceFinishBase=null;
 
 function clubhouseLifeSync(){
+ if(clubhouseLifeOwner!==state){clubhouseLifeOwner=state;clubhousePaceOrigin=null;clubhouseUI.officeGuest=null;clubhouseUI.feedback=null;if(clubhouseRoomForPage()==='office')clubhouseUI.player=null;}
  const guest=clubhouseUI.officeGuest,p=guest&&clubhousePlayer(guest.playerId);
  if(guest&&(guest.club!==managerClub()||guest.date!==state.calendar.date||!p||!clubhousePresence(p).present)){
   if(clubhouseRoomForPage()==='office'&&samePlayerId(clubhouseUI.player,guest.playerId))clubhouseUI.player=null;
@@ -21,7 +23,7 @@ function clubhouseLifeRoom(item){
 }
 function clubhouseLifeVisitor(){
  const club=managerClub(),date=state.calendar.date,held=clubhouseUI.officeGuest;
- if(held?.club===club&&held.date===date&&samePlayerId(held.playerId,clubhouseUI.player)){
+ if(clubhouseLifeOwner===state&&held?.club===club&&held.date===date&&samePlayerId(held.playerId,clubhouseUI.player)){
   const p=clubhousePlayer(held.playerId);if(p&&clubhousePresence(p).present)return {...held,name:p.name};
  }
  const candidates=[];
@@ -124,19 +126,31 @@ function clubhouseLifeFeedback(m){
  const f=clubhouseUI.feedback;if(!f||f.club!==m.club||f.date!==m.date)return '';
  return `<aside class="ch-life-feedback" role="status" aria-label="Samtalets återkoppling"><button aria-label="Stäng återkopplingen" onclick="clubhouseUI.feedback=null;render()">×</button><small>EFTER DITT SAMTAL</small><strong>${trainingSafe(f.name)} <b data-tone="${f.delta>0?'good':f.delta<0?'warning':'neutral'}">Förtroende ${f.delta>0?'+':''}${f.delta}</b></strong><p>${trainingSafe(f.text)}</p><span>${lockerPlayerPromises(clubhousePlayer(f.playerId)||{}).length?'Aktiva löften följs fortfarande mot matcherna.':'Dina handlingar följs vidare i karriären.'}</span></aside>`;
 }
-function clubhouseNextEvent(){
+function clubhouseLifeInstallPace(){
+ if(clubhousePaceFinishBase)return;
+ clubhousePaceFinishBase=calendarPaceFinish;
+ calendarPaceFinish=function(tx,stop,persist=true){
+  const origin=clubhousePaceOrigin?.tx===tx?clubhousePaceOrigin:null,finishing=calendarPaceRun===tx;
+  if(origin)clubhousePaceOrigin=null;
+  clubhousePaceFinishBase(tx,stop,persist);
+  if(origin&&finishing&&persist&&origin.state===state&&origin.club===managerClub()&&clubhouseAvailable()&&clubhouseEnabled())clubhouseGo(origin.room);
+ };
+}
+function clubhouseNextEvent(review=false){
  if(!clubhouseAvailable()||!clubhouseEnabled()||!clubhouseIsRoom())return false;
- clubhouseUI.feedback=null;clubhouseUI.player=null;clubhouseUI.officeGuest=null;const oldDate=state.calendar.date,started=calendarPaceStart();
+ clubhouseLifeInstallPace();
+ const room=clubhouseRoomForPage();clubhouseUI.feedback=null;clubhouseUI.player=null;clubhouseUI.officeGuest=null;const oldDate=state.calendar.date,started=calendarPaceStart(review===true);
+ if(started)clubhousePaceOrigin={tx:calendarPaceRun,state,club:managerClub(),room};
  if(!started&&state.calendar.date===oldDate&&state.calendar.pace?.last?.club===managerClub())clubhouseUI.briefing=true;
  render();return started;
 }
 function clubhouseLifePace(m){
  const last=m.life.last;if(!last||last.end!==m.date||!['pause','error'].includes(last.stop.kind)&&calendarPaceBoundary()?.key!==last.stop.key)return '';
- return `<section class="ch-life-pace" aria-label="Kalenderns senaste stopp"><small>${last.days?last.days+' dagar senare':'Kalendern stannar här'}</small><strong>${trainingSafe(last.stop.title)}</strong><button onclick="calendarPaceOpen()">Öppna händelsen ↗</button>${!last.stop.urgent&&!['pause','error'].includes(last.stop.kind)?'<button onclick="calendarPaceStart(true)">Granskat – fortsätt vidare →</button>':''}</section>`;
+ return `<section class="ch-life-pace" aria-label="Kalenderns senaste stopp"><small>${last.days?last.days+' dagar senare':'Kalendern stannar här'}</small><strong>${trainingSafe(last.stop.title)}</strong><button onclick="calendarPaceOpen()">Öppna händelsen ↗</button>${!last.stop.urgent&&!['pause','error'].includes(last.stop.kind)?'<button onclick="clubhouseNextEvent(true)">Granskat – fortsätt vidare →</button>':''}</section>`;
 }
 const clubhouseLifeObjects=clubhouseObjects;
 clubhouseObjects=function(room,m){
  const objects=clubhouseLifeObjects(room,m);
- if(room==='office'&&m.life.visitor)objects.push(['visitor',m.life.visitor.name,`clubhouseAcceptVisitor(${JSON.stringify(m.life.visitor.playerId)})`,m.life.visitor.label]);
+ if(room==='office'&&m.life.visitor)objects.push(['visitor',m.life.visitor.name,`clubhouseAcceptVisitor(${JSON.stringify(m.life.visitor.playerId)})`,'Enskilt samtal']);
  return objects;
 };

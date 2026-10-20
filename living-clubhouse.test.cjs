@@ -75,6 +75,7 @@ test('an office meeting cannot carry its actor or feedback into a new day or an 
  const {run:r}=setup();r('globalThis.p=managerRoster()[0];p.social.trust=42;clubhouseAcceptVisitor(p.id);clubhouseTalk(p.id,"listen");state.calendar.date=calAdd(state.calendar.date,1);clubhouseLifeSync()');
  assert.equal(r('clubhouseUI.officeGuest'),null);assert.equal(r('clubhouseUI.feedback'),null);assert.equal(r('clubhouseUI.player'),null);
  r('p.social.lastTalk=-10;clubhouseAcceptVisitor(p.id);p.health.injury={name:"Skada",remaining:4};clubhouseLifeSync()');assert.equal(r('clubhouseUI.officeGuest'),null);assert.equal(r('clubhouseUI.player'),null);assert.equal(r('clubhouseTalk(p.id,"listen")'),false);
+ r('delete p.health.injury;p.social.lastTalk=-10;clubhouseAcceptVisitor(p.id);clubhouseTalk(p.id,"listen");startCareerWithClub("HV71");clubhouseGo("office")');assert.equal(r('clubhouseUI.officeGuest'),null);assert.equal(r('clubhouseUI.feedback'),null);assert.equal(r('clubhouseUI.player'),null);
 });
 test('dated office followup preserves match-based promises and returns from their work surface',()=>{
  const {run:r}=setup();r('globalThis.p=managerRoster().find(p=>p.pos!=="MV"&&!playerLoan(p));playerChance(p.id);state.calendar.date=calAdd(state.calendar.date,14);clubhouseGo("office");');
@@ -84,7 +85,7 @@ test('dated office followup preserves match-based promises and returns from thei
 });
 test('room event progression uses the existing calendar and stops before the actual match',()=>{
  const a=boot(undefined,{production:true}),r=a.run;r(`startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};clubhouseGo('office');for(const key of Object.keys(calendarPaceStore().stops))calendarPaceStore().stops[key]=false;globalThis.before=state.calendar.date;`);
- assert.equal(r('clubhouseNextEvent()'),true);r('globalThis.n=0;while(calendarPaceRun&&n++<20)calendarPaceTick(calendarPaceRun)');assert.equal(r('state.calendar.date'),'2026-08-06');assert.equal(r('state.live'),null);assert.equal(r('calendarPaceSettings().last.days'),5);
+ assert.equal(r('clubhouseNextEvent()'),true);r('globalThis.n=0;while(calendarPaceRun&&n++<20)calendarPaceTick(calendarPaceRun)');assert.equal(r('state.calendar.date'),'2026-08-06');assert.equal(r('state.live'),null);assert.equal(r('calendarPaceSettings().last.days'),5);assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('clubhouseIsRoom()'),true);
  assert.match(r('clubhouseLifePace(clubhouseModel())'),/5 dagar senare/);assert.equal(r('clubhouseNextEvent()'),false);assert.equal(r('state.calendar.date'),'2026-08-06');
  r('clubhouseGo("ice");calendarSetSession(state.calendar.date,"type","recovery")');assert.equal(r('clubhouseModel().life.session'),'recovery');assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
 });
