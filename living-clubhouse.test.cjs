@@ -71,6 +71,11 @@ test('an office conversation cannot silently answer a mandatory player request',
  r('globalThis.date=state.calendar.date');assert.equal(r('clubhouseNextEvent()'),false);assert.equal(r('state.calendar.date'),r('date'));assert.equal(r('Boolean(message.resolved)'),false);
  assert.match(r('clubhouseLifePace(clubhouseModel())'),/Spelaren vill ha ett rollbesked/);r('message.resolved=true');assert.equal(r('clubhouseLifePace(clubhouseModel())'),'');
 });
+test('an office meeting cannot carry its actor or feedback into a new day or an injury',()=>{
+ const {run:r}=setup();r('globalThis.p=managerRoster()[0];p.social.trust=42;clubhouseAcceptVisitor(p.id);clubhouseTalk(p.id,"listen");state.calendar.date=calAdd(state.calendar.date,1);clubhouseLifeSync()');
+ assert.equal(r('clubhouseUI.officeGuest'),null);assert.equal(r('clubhouseUI.feedback'),null);assert.equal(r('clubhouseUI.player'),null);
+ r('p.social.lastTalk=-10;clubhouseAcceptVisitor(p.id);p.health.injury={name:"Skada",remaining:4};clubhouseLifeSync()');assert.equal(r('clubhouseUI.officeGuest'),null);assert.equal(r('clubhouseUI.player'),null);assert.equal(r('clubhouseTalk(p.id,"listen")'),false);
+});
 test('dated office followup preserves match-based promises and returns from their work surface',()=>{
  const {run:r}=setup();r('globalThis.p=managerRoster().find(p=>p.pos!=="MV"&&!playerLoan(p));playerChance(p.id);state.calendar.date=calAdd(state.calendar.date,14);clubhouseGo("office");');
  assert.equal(r('clubhouseLifeVisitor().kind'),'followup');assert.equal(r('clubhouseAcceptVisitor(p.id)'),true);assert.equal(r('clubhouseReviewPromises()'),true);assert.equal(r('clubhouseUI.work'),true);assert.equal(r('lockerUI.tab'),'promises');r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('String(clubhouseUI.player)'),r('String(p.id)'));

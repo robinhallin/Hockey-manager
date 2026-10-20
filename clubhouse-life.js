@@ -3,6 +3,15 @@
 // every consequence; reading an initiative never completes it.
 Object.assign(clubhouseUI,{officeGuest:null,feedback:null});
 
+function clubhouseLifeSync(){
+ const guest=clubhouseUI.officeGuest,p=guest&&clubhousePlayer(guest.playerId);
+ if(guest&&(guest.club!==managerClub()||guest.date!==state.calendar.date||!p||!clubhousePresence(p).present)){
+  if(clubhouseRoomForPage()==='office'&&samePlayerId(clubhouseUI.player,guest.playerId))clubhouseUI.player=null;
+  clubhouseUI.officeGuest=null;
+ }
+ const feedback=clubhouseUI.feedback;if(feedback&&(feedback.club!==managerClub()||feedback.date!==state.calendar.date))clubhouseUI.feedback=null;
+}
+
 function clubhouseLifeRoom(item){
  const a=item.action||{};
  if(a.conversationPlayer!==undefined||a.promisePlayer!==undefined||item.area==='locker'||item.id?.startsWith('relationship:'))return 'locker';

@@ -71,6 +71,7 @@ function clubhouseContextLinks(room){
  return (sets[room]||sets.office).map(([name,page,tab])=>`<button onclick="${page==='lockerWork'?'clubhouseWorkView()':`clubhouseOpen('${page}'${tab?`,'${tab}'`:''})`}">${name}</button>`).join('');
 }
 function clubhouseWorldView(html){
+ clubhouseLifeSync();
  if(clubhouseUI.lastClub!==managerClub()){clubhouseUI.player=null;clubhouseUI.lastClub=managerClub();}
  const m=clubhouseModel(),room=CLUBHOUSE_ROOMS[m.room],work=!clubhouseIsRoom(),panel=!work&&(clubhouseUI.briefing||clubhouseUI.wardrobe||['locker','office'].includes(m.room)&&clubhousePlayer());
  const title=DESK_AREAS.flatMap(a=>a.pages).find(d=>d[0]===state.page)?.[1]||DESK_DESTINATIONS.find(d=>d[3]===state.page)?.[1]||room.name;
