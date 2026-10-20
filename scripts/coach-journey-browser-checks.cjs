@@ -31,7 +31,7 @@ async function checkCoachJourney(page,out){
  await page.getByRole('button',{name:/^Samla matchlaget/}).click();
  assert.equal(await page.evaluate(()=>state.live.friendly),true);
  await page.locator('#cj-match-room[data-stage="locker"] #clubhouse-canvas[data-ready="true"]').waitFor();
- const room=await page.locator('#cj-match-room').boundingBox();assert.ok(room.width>=await page.evaluate(()=>innerWidth)*.98&&room.height>=await page.evaluate(()=>innerHeight)*.98,'matchday room fills the viewport');
+ for(const [width,height] of [[1920,1080],[1440,1000]]){await page.setViewportSize({width,height});const room=await page.locator('#cj-match-room').boundingBox();assert.ok(room.width>=width*.98&&room.height>=height*.98,'matchday room fills the viewport');}
  assert.equal(await page.locator('.sidebar').isVisible(),false,'legacy menu does not reduce the matchday room');
  const original=await page.evaluate(()=>JSON.stringify([state.calendar.date,state.live.broadcast,state.lines]));
  await page.getByRole('button',{name:'Ge stöd',exact:true}).click();
@@ -49,7 +49,7 @@ async function checkCoachJourney(page,out){
  assert.ok(await page.locator('.cj-bench #career-ice-3d').isVisible());
  assert.equal(await page.getByRole('combobox',{name:'3D-kamera'}).inputValue(),'bench');
  await page.waitForFunction(()=>Match3D.diagnostics()?.frames>2);
- for(const [width,height] of [[1440,1000],[1366,768]]){
+ for(const [width,height] of [[1920,1080],[1440,1000],[1366,768]]){
   await page.setViewportSize({width,height});
   const boxes=await page.locator('#career-ice-3d, #match-play, .mc-result').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}));
   assert.ok(boxes.every(r=>r.width>0&&r.height>0&&r.x>=0&&r.right<=width+2&&r.y>=0&&r.bottom<=height+2),'rink, score and playback stay inside the viewport');
