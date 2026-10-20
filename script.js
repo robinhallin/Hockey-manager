@@ -3709,7 +3709,7 @@ function playerProfileConsolidated(player){
   ...(isOwnPlayer(player)?[['person','Person & relation','Förtroende, omklädningsrum och samtal.']]:[])
  ];
  const body=sections.map(([key,label,summary])=>`<details class="fm-profile-section" id="profile-section-${key}" ${key==='overview'||profileWorkspace.tab===key?'open':''}><summary><span><strong>${label}</strong><small>${summary}</small></span><span aria-hidden="true">⌄</span></summary><div class="fm-profile-section-content">${playerProfileTabMarkup(player,key)}</div></details>`).join('');
- return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}${journeyPlayerView(player)}<div class="fm-profile-sections">${body}</div></article>`;
+ return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}<button class="btn secondary" onclick="playerCaseOpen(${trainingSafe(JSON.stringify(player.id))})">Samlat spelarärende</button>${journeyPlayerView(player)}<div class="fm-profile-sections">${body}</div></article>`;
 }
 
 /* =========================================================

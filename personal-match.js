@@ -9,6 +9,7 @@ function personalMatchCandidates(g=personalMatchFixture()){
  for(const s of state.stories?.active||[])if(s.club===club&&s.type==='breakthrough'&&s.status==='following'){
   const p=playerById(s.ids[0]);if(p)add(p,'trial','Din satsning får nästa kapitel',`${p.name}: ${s.expectation?.detail||'Din provperiod följs mot faktisk tävlingsistid.'}`,100);
  }
+ if(g.kind==='Träningsmatch'&&typeof preseasonTrials==='function')for(const t of preseasonTrials().filter(t=>t.status==='active'))for(const id of t.ids){const p=playerById(id);if(p)add(p,'preseason','Ditt försäsongstest möter matchen',`${p.name}: följ faktisk istid och prestation i försöket med ${t.names.join(' och ')}. Tävlingslöften räknas separat.`,110);}
  for(const h of state.recruitment?.history||[]){
   if(h.buyer!==club||!h.date||h.date>date||calGap(h.date,date)>30)continue;const p=playerById(h.playerId);if(!p)continue;
   const played=(state.analysis?.matches||[]).some(m=>m.club===club&&m.date>=h.date&&!m.friendly&&m.finished&&!m.partial&&!m.abandoned&&m.players?.some(q=>samePlayerId(q.id,p.id)&&q.seconds>0));
@@ -125,7 +126,7 @@ function validatePersonalMatch(s){
  for(const m of [s.live,...(s.analysis?.matches||[])].filter(Boolean)){
   const p=m.personalMatch;if(!p){if(m.personalOutcome)fail();continue;}
   if(!object(p)||p.version!==1||!str(p.key)||!str(p.club)||!str(p.opponent)||!Number.isInteger(p.year)||!date(p.date)||!Array.isArray(p.subjects)||p.subjects.length>3)fail();
-  if(p.focus&&(!object(p.focus)||['playerId','name','title','detail'].some(k=>!str(p.focus[k]))||!['trial','arrival','comeback','promise','reunion'].includes(p.focus.kind)||typeof p.focus.own!=='boolean'))fail();
+  if(p.focus&&(!object(p.focus)||['playerId','name','title','detail'].some(k=>!str(p.focus[k]))||!['trial','arrival','comeback','promise','reunion','preseason'].includes(p.focus.kind)||typeof p.focus.own!=='boolean'))fail();
   if(p.choice){choice(p.choice);if(typeof p.choice.changed!=='boolean')fail();}
   const ids=new Set();for(const r of p.subjects){if(!object(r)||['id','name','pos','place'].some(k=>!str(r[k]))||ids.has(r.id)||!Number.isFinite(r.energy)||r.energy<0||r.energy>100||!Number.isFinite(r.fatigue)||r.fatigue<0||r.fatigue>100||typeof r.firstGoal!=='boolean'||r.trialSeconds!==null&&(!Number.isFinite(r.trialSeconds)||r.trialSeconds<=0||r.trialSeconds>3600))fail();ids.add(r.id);}
   const o=m.personalOutcome;if(o&&(!object(o)||o.version!==1||!str(o.title)||!str(o.detail)||o.note!==undefined&&!str(o.note)||!Array.isArray(o.rows)||o.rows.length>3||o.rows.some(r=>!object(r)||['playerId','name','text'].some(k=>!str(r[k])))))fail();

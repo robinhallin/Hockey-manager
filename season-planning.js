@@ -46,7 +46,7 @@ function preseasonPlanningView(){
 }
 function preseasonResponsibilityFields(p){return `<fieldset><legend>Träningsmatcherna</legend><label>Matchansvar<select name="owner"><option value="manager" ${p.owner==='manager'?'selected':''}>Jag coachar matcherna</option><option value="assistant" ${p.owner==='assistant'?'selected':''}>Assisterande sköter matcherna utan matchvisning</option></select></label><label>Inriktning<select name="approach">${Object.entries(PRESEASON_APPROACHES).map(([k,v])=>`<option value="${k}" ${p.approach===k?'selected':''}>${v.name}</option>`).join('')}</select></label>${Object.values(PRESEASON_APPROACHES).map(v=>`<p><strong>${v.name}:</strong> ${v.text}</p>`).join('')}</fieldset>`;}
 function preseasonFixtureList(fixtures){return `<ul class="preseason-fixtures">${fixtures.map(f=>`<li><time>${calText(f.date)}</time><strong>${trainingSafe(f.opponent)}</strong><span>${f.home===false?'Borta':'Hemma'} · ${f.played?`${f.own}–${f.against}`:'Träningsmatch'}</span></li>`).join('')}</ul>`;}
-function preseasonDeskView(){const p=preseasonPlan();if(!p||p.hasPreseason===false)return '';return `<section class="season-planning"><h2>Assisterandens försäsong</h2>${p.report?`<div class="assistant-report">${trainingSafe(p.report).replace(/\n/g,'<br>')}</div>`:`<p>${p.matches.length} av ${state.calendar.friendlies.filter(f=>f.club===managerClub()).length} matcher genomförda. Samlad spelar- och målvaktsrapport kommer efter sista matchen.</p>`}<form onsubmit="event.preventDefault();preseasonSettings(this.elements.owner.value,this.elements.approach.value)">${preseasonResponsibilityFields(p)}<button class="btn secondary">Spara matchansvaret</button></form>${preseasonFixtureList(state.calendar.friendlies.filter(f=>f.club===managerClub()))}</section>`;}
+function preseasonDeskView(){const p=preseasonPlan();if(!p||p.hasPreseason===false)return '';return `<section class="season-planning"><h2>Assisterandens försäsong</h2>${p.report?`<div class="assistant-report">${trainingSafe(p.report).replace(/\n/g,'<br>')}</div>`:`<p>${p.matches.length} av ${state.calendar.friendlies.filter(f=>f.club===managerClub()).length} matcher genomförda. Samlad spelar- och målvaktsrapport kommer efter sista matchen.</p>`}<form onsubmit="event.preventDefault();preseasonSettings(this.elements.owner.value,this.elements.approach.value)">${preseasonResponsibilityFields(p)}<button class="btn secondary">Spara matchansvaret</button></form>${preseasonFixtureList(state.calendar.friendlies.filter(f=>f.club===managerClub()))}</section>${!p.pending&&typeof preseasonExperimentsView==='function'?preseasonExperimentsView():''}`;}
 function preseasonUsage(id){return (preseasonPlan()?.matches||[]).reduce((n,m)=>n+(m.players.find(r=>samePlayerId(r.id,id))?.seconds||0),0);}
 function preseasonSelectTeam(){
  const plan=preseasonPlan();if(!plan)return;
@@ -57,7 +57,7 @@ function preseasonSelectTeam(){
   state.lines.forwards=choose(Array(4).fill(['LW','C','RW']).flat(),available.filter(p=>!['MV','B'].includes(p.pos)));
   state.lines.defense=choose(Array(3).fill(['LD','RD']).flat(),available.filter(p=>p.pos==='B'));
  }
- const keepers=available.filter(p=>p.pos==='MV').sort((a,b)=>['rotation','goalies','youth'].includes(plan.approach)?preseasonUsage(a.id)-preseasonUsage(b.id)||quality(b)-quality(a):quality(b)-quality(a));
+ const keepers=(typeof preseasonTrialGoalies==='function'?preseasonTrialGoalies(available):available.filter(p=>p.pos==='MV')).sort((a,b)=>['rotation','goalies','youth'].includes(plan.approach)?preseasonUsage(a.id)-preseasonUsage(b.id)||quality(b)-quality(a):quality(b)-quality(a));
  if(plan.approach!=='chemistry'&&keepers.length)state.lines.goalie=keepers[0].id;
  repairMedicalLines();state.specialTeams=null;ensureSpecialTeams();
  state.tacticalPlan.lineUsage=plan.approach==='strongest'?'topHeavy':'rollFour';
@@ -91,6 +91,7 @@ function preseasonRecordMatch(f,m){
  const p=preseasonPlan();if(!p||p.matches.some(r=>r.id===f.id))return;
  const players=(m.performance?.rows||[]).filter(r=>r.club===managerClub()&&r.seconds>0).map(r=>({id:r.id,name:r.name,pos:r.pos,age:findPlayerAnywhere(r.id)?.age,seconds:r.seconds,goals:r.goals||0,assists:r.assists||0,saves:r.saves||0,against:r.against||0,score:performanceScore(r)}));
  p.matches.push({id:f.id,date:f.date,opponent:f.opponent,own:f.own,against:f.against,players});
+ if(typeof preseasonTrialRecord==='function')preseasonTrialRecord(f,m);
  preseasonBuildReport();
 }
 function preseasonBuildReport(){

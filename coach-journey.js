@@ -141,6 +141,7 @@ const coachJourneyMatchView=matchDeskView;
 matchDeskView=function(){const stage=coachJourneyStage();if(stage&&stage!=='bench')return coachJourneyRoomView(stage);const html=coachJourneyMatchView();return stage?html.replace('mc-page md-workspace','mc-page md-workspace cj-bench').replace('<nav class="mc-utility"',coachJourneyRoute('bench')+'<nav class="mc-utility"'):html;};
 const coachJourneyMount=clubhouseMount;
 clubhouseMount=function(){
+ if(typeof coachRoomMount==='function'&&coachRoomMount())return;
  const stage=coachJourneyStage(),canvas=document.getElementById('clubhouse-canvas');
  if(['locker','tunnel'].includes(stage)&&canvas&&typeof canvas.getContext==='function'){ClubhouseScene.mount(canvas,coachJourneyMatchModel(),clubhouseAppearanceData());return;}
  coachJourneyMount();

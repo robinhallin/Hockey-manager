@@ -4,7 +4,7 @@ function managerLinkedDecisionItems(){
  const date=state.calendar.date,club=managerClub();
  const proposals=(state.office2?.proposals||[]).filter(p=>p.club===club&&p.status==='pending'&&p.target>=date&&!(p.area==='training'&&p.target===date)).map(p=>({id:'staff-proposal:'+p.id,title:STAFF_MANDATES[p.area].name+': ta ställning',detail:p.text,due:p.target,owner:'Du',tag:'Stabsförslag',area:p.area,requiresDecision:true,level:p.target===date?'high':'medium',score:75,action:{page:'staffReview'}}));
  const next=(state.office2?.seasonActions||[]).filter(p=>p.club===club&&!p.closed).map(p=>({id:'season-action:'+p.id,title:p.title,detail:p.next,owner:'Du',tag:'Från säsongsutvärdering',area:p.area,level:'medium',score:60,action:{page:'season'}}));
- return [...proposals,...next,...boardDialogueItems()];
+ return [...proposals,...next,...boardDialogueItems(),...(typeof careerProjectAgendaItems==='function'?careerProjectAgendaItems():[])];
 }
 function managerLinkedDecisionOutcome(id){
  if(id.startsWith('board-dialogue:'))return boardDialogueStore()?.requests.find(r=>'board-dialogue:'+r.id===id&&r.club===managerClub())?.outcome;

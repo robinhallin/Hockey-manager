@@ -26,6 +26,7 @@ function calendarPaceSignals(){
  if(settings.stops.stories)for(const s of state.stories?.active||[])if(s.club===managerClub()&&s.status==='decision')rows.push({key:`story:${s.id}:${s.stage}:${s.decisionAt}`,kind:'stories',title:s.title,action:{story:s.id}});
  if(settings.stops.projects)for(const a of clubVision()?.alerts||[])if(!a.acknowledged)rows.push({key:'project:'+a.key,kind:'projects',title:a.title,action:{page:'board'}});
  if(settings.stops.injuries)for(const p of managerRoster())if(!medicalReady(p)&&p.health?.injury)rows.push({key:`injury:${p.id}:${p.health.injury.started||p.health.injury.date||''}:${p.health.injury.name||''}:${p.health.injury.initial||0}`,kind:'injuries',title:p.name+': ny skadebedömning',action:{medicalPlayer:p.id}});
+ if(typeof careerProjectSignals==='function')rows.push(...careerProjectSignals(settings.stops.projects));
  return rows.filter(r=>r.urgent||!settings.reviewed.includes(r.key));
 }
 function calendarPaceBoundary(){
@@ -46,7 +47,7 @@ function calendarPaceStart(review=false){
  if(review&&settings.last?.club===managerClub()&&settings.last.stop&&!settings.last.stop.urgent){settings.reviewed=[...new Set([...settings.reviewed,settings.last.stop.key])].slice(-240);}
  const stop=calendarPaceBoundary();
  if(stop){settings.last={club:managerClub(),start:state.calendar.date,end:state.calendar.date,days:0,total:0,messages:[],stop};save();render();return false;}
- const shell=document.querySelector('.game-shell'),tx={state,club:managerClub(),start:state.calendar.date,date:state.calendar.date,page:state.page,days:0,before:new Set(state.training.messages.map(m=>m.id)),messages:[],cancelled:false,shell,inert:Boolean(shell?.inert)};
+ const shell=document.querySelector('.game-shell'),tx={state,club:managerClub(),start:state.calendar.date,date:state.calendar.date,page:state.page,days:0,coachHome:typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()&&state.page==='home',before:new Set(state.training.messages.map(m=>m.id)),messages:[],cancelled:false,shell,inert:Boolean(shell?.inert)};
  calendarPaceRun=tx;if(shell)shell.inert=true;calendarPaceRender();setTimeout(()=>calendarPaceTick(tx),0);return true;
 }
 function calendarPaceTick(tx){
@@ -72,6 +73,7 @@ function calendarPaceTick(tx){
 function calendarPaceFinish(tx,stop,persist=true){
  if(calendarPaceRun!==tx)return;
  calendarPaceStore().last={club:tx.club,start:tx.start,end:state.calendar.date,days:tx.days,total:tx.messages.length,messages:tx.messages.slice(-12),stop};
+ if(persist&&tx.coachHome&&typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()){state.page='home';overviewUI.stories=false;overviewUI.press=false;}
  calendarPaceDispose();if(persist)save();render();
 }
 function calendarPaceCancel(){if(calendarPaceRun){calendarPaceRun.cancelled=true;calendarPaceTick(calendarPaceRun);}}
