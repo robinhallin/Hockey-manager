@@ -63,7 +63,10 @@ function preseasonTrialRecord(f,m){
 function preseasonTrialDecide(id,kind){
  const t=preseasonTrials().find(t=>t.id===id&&t.status==='active');if(!preseasonTrialEditable()||!t||!['keep','revise','end'].includes(kind)||!t.samples.length)return false;
  if(kind==='keep'&&!t.samples.some(s=>s.players.some(p=>p.seconds>=300)))return false;
+ if(t.decisions.at(-1)?.kind===kind&&t.decisions.at(-1)?.date===state.calendar.date)return false;
  t.decisions.push({kind,date:state.calendar.date});t.decisions=t.decisions.slice(-16);if(kind==='end')t.status='closed';
+ const label={keep:'Du vill bygga vidare på försäsongsförsöket',revise:'Du vill pröva en annan användning',end:'Försäsongsförsöket avslutades'}[kind];
+ for(const playerId of t.ids){const p=preseasonTrialPlayer(playerId);if(p)journeyEvent(p,`preseason-review:${managerClub()}:${t.id}:${state.calendar.date}:${kind}`,'decision',label,'Beslutet bygger på registrerat matchunderlag. Uttagning och faktisk istid avgör nästa försök; inga tävlingsroller eller avtal ändras.');}
  save();render();if(kind==='revise')deskNavigate('lines');return true;
 }
 function preseasonTrialView(t){
