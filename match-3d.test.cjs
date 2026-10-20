@@ -130,7 +130,7 @@ test('tracking eases in simulation time, freezes at pause and resets at disconti
  assert.equal(renderer.trackPuck({...next,phase:'faceoff'},tracked).x,34,'faceoff resets camera');
 });
 test('zoom and tracking keep the actual puck visible through fast changes and at every board',()=>{
- for(const mode of ['tv','overhead','follow','rinkside'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
+ for(const mode of ['tv','overhead','follow','rinkside','bench'])for(const zoom of [.8,1,1.2,1.5])for(const ratio of [1.3,1.8,2.4,3.2]){
   let prior=null,time=0;
   for(const x of [0,15,60,45,30,3.5,56.5])for(const y of [0,15,30,7,23]){
    const frame={time:time+=.1,phase:'attack',puck:{x,y}},view=renderer.cameraFrame(ratio,mode,frame,prior,zoom);prior=view.tracked;

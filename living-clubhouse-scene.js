@@ -155,11 +155,24 @@ const ClubhouseScene=(()=>{
   shell(c);planeLabel(c,c.model.club.toUpperCase()+' · TILLSAMMANS',6.7,.44,'#e7d9a7','#425c62',-.9,3.13,-4.14,c.scene,54);
   board(c,-2.2,1.6,2.68,1.55,.88);for(const x of [-2.8,-1.6])box(c,.045,1.1,.045,x,.63,2.65,0x8b9b94);
   c.anchors={board:[-2.2,2.25,2.78],door:[0,3,-3.5],coach:[3.7,2.3,3.3]};
-  c.model.players.forEach((p,i)=>lockerSeat(c,p,i));
+  // Stable seats survive lineup swaps and roster sorting.
+  c.model.players.slice().sort((a,b)=>a.id.localeCompare(b.id)).forEach((p,i)=>lockerSeat(c,p,i));
   const crest=planeLabel(c,c.model.club.toUpperCase(),5.4,2.8,'#c8b888','#244651',0,.09,0,c.scene,100);crest.rotation.x=-Math.PI/2;
   const coach=actor(c,{coach:true});coach.position.set(3.7,0,3.1);coach.rotation.y=-1;c.coach=coach;
   box(c,2.7,.09,.9,-1.3,.85,3,0xa58c68);box(c,.12,.8,.7,-2.4,.4,3,0x354c53);box(c,.12,.8,.7,-.2,.4,3,0x354c53);
   for(let i=0;i<4;i++){cylinder(c,.065,.065,.3,-2+i*.4,1.05,3,0xa2bbb7);cylinder(c,.042,.042,.07,-2+i*.4,1.23,3,0xd4dfc8);}
+ }
+ function tunnel(c){
+  shell(c);
+  box(c,12,.05,8,0,.06,0,0x293f43);
+  for(const x of [-2.6,2.6]){box(c,.22,3.7,8,x,1.85,0,0x37565a);box(c,.08,.16,7.8,x+(x<0?.14:-.14),1.05,0,0xb8a67c);for(let z=-3;z<4;z+=1.4)box(c,.035,.09,.55,x+(x<0?.14:-.14),3.1,z,0xcadcd2);}
+  box(c,5.1,.2,8,0,3.7,0,0x263e45);
+  planeLabel(c,'VÅRT LAG. VÅR MATCH.',4.6,.5,'#e8dfb5','#25444a',0,3.1,-3.9,c.scene,65);
+  box(c,4.8,2.7,.08,0,1.4,-4,0xb9dad7);box(c,4.8,.1,1.5,0,.06,-3.4,0xe1ebe1);
+  const light=new c.T.PointLight(0xc6f4ef,28,18);light.position.set(0,2,-3.5);c.scene.add(light);
+  const ids=new Set(c.model.matchPlayers||[]);
+  c.model.players.filter(p=>p.presence.present&&ids.has(p.id)).slice(0,10).forEach((p,i)=>{const a=actor(c,{id:p.id,color:0x254c69,number:p.number});a.position.set(i%2?1.1:-1.1,0,2.9-Math.floor(i/2)*1.25);a.rotation.y=Math.PI;c.playerActors.set(p.id,a);});
+  const coach=actor(c,{coach:true});coach.position.set(0,0,3.2);coach.rotation.y=Math.PI;c.coach=coach;c.anchors={};
  }
  function ice(c){
   shell(c);box(c,10.3,.02,6,0,.07,.2,0xd0e6e4);box(c,10.6,.6,.16,0,.35,-2.9,0xe2e6d5);box(c,.16,.6,6,-5.25,.35,.15,0xe2e6d5);
@@ -212,13 +225,18 @@ const ClubhouseScene=(()=>{
    const button=document.createElement('button');button.type='button';button.className='ch-hotspot ch-player'+(!p.presence.present?' ch-absent':'')+(p.attention?' ch-needs-attention':'');button.dataset.chAnchor='player-'+p.id;button.dataset.clubhousePlayer=p.id;
    button.setAttribute('aria-label',p.name+' · '+(p.presence.present?p.attention||p.mood.text:p.presence.label));button.setAttribute('aria-pressed',String(samePlayerId(p.id,clubhouseUI.player)));
    const name=document.createElement('strong');name.textContent=String(p.number);const small=document.createElement('small');small.textContent=p.name+' · '+(p.presence.present?(p.captain?'C · ':'')+p.pos:p.presence.label);
-   const span=document.createElement('span');span.append(name,small);const dot=document.createElement('span');dot.className='ch-dot';dot.setAttribute('aria-hidden','true');button.append(dot,span);button.addEventListener('click',()=>clubhouseSelect(p.id));root?.append(button);
+   const reaction=c.model.reactions?.find(r=>samePlayerId(r.id,p.id));if(reaction)small.textContent=p.name+' · '+(reaction.effect>0?'Tog till sig orden':reaction.effect<0?'Tveksam reaktion':'Lyssnar');
+   const span=document.createElement('span');span.append(name,small);const dot=document.createElement('span');dot.className='ch-dot';dot.setAttribute('aria-hidden','true');button.append(dot,span);button.addEventListener('click',()=>c.model.matchRoom?coachJourneySelect(p.id):clubhouseSelect(p.id));root?.append(button);
   }
  }
  function project(c){
   const rect=c.canvas.getBoundingClientRect();c.camera.aspect=rect.width/Math.max(1,rect.height);c.camera.updateProjectionMatrix();
   const portrait=c.camera.aspect<1,wide=typeof clubhouseUI!=='undefined'&&clubhouseUI.camera==='overview',lockerRoom=c.model.room==='locker';
-  c.camera.fov=portrait?49:32;c.camera.position.set(portrait?0:lockerRoom?1:8,portrait?24:lockerRoom?7.8:6.7,portrait?14:lockerRoom?12.8:10.5);if(wide)c.camera.position.multiplyScalar(1.18);c.camera.lookAt(0,1,-.1);c.camera.updateProjectionMatrix();c.camera.updateMatrixWorld();
+  c.camera.fov=portrait?49:32;c.camera.position.set(portrait?0:lockerRoom?1:8,portrait?24:lockerRoom?7.8:6.7,portrait?14:lockerRoom?12.8:10.5);if(wide)c.camera.position.multiplyScalar(1.18);c.camera.lookAt(0,1,-.1);
+  if(c.model.room==='tunnel'){c.camera.fov=48;c.camera.position.set(0,3.2,9);c.camera.lookAt(0,1.5,-2);}
+  const focused=c.focus&&c.playerActors.get(c.focus);
+  if(focused&&!portrait&&!wide){const p=focused.getWorldPosition(new c.T.Vector3());c.camera.position.set(p.x*.5+2,4.6,p.z+7.5);c.camera.lookAt(p.x+1.4,1.25,p.z);}
+  c.camera.updateProjectionMatrix();c.camera.updateMatrixWorld();
   c.renderer.setSize(Math.max(1,rect.width),Math.max(1,rect.height),false);
   for(const b of document.querySelectorAll('[data-ch-anchor]')){const pos=c.anchors[b.dataset.chAnchor];if(!pos)continue;const v=new c.T.Vector3(...pos).project(c.camera),pad=Math.min(24,Math.max(5,b.offsetWidth/Math.max(1,rect.width)*50));b.style.left=Math.max(pad,Math.min(100-pad,50+v.x*50))+'%';b.style.top=Math.max(16,Math.min(86,50-v.y*50))+'%';}
  }
@@ -232,6 +250,10 @@ const ClubhouseScene=(()=>{
    for(const a of c.actors){const d=a.userData;
     d.body.rotation.x=d.sitting&&d.fatigue>=35?.09:0;d.head.rotation.x=d.fatigue>=50?.08:0;
     if(!reduced){d.body.rotation.z=Math.sin(time*1.2+d.seed)*.012;d.head.rotation.y=Math.sin(time*.5+d.seed)*.09;d.arms[0].rotation.x=(d.sitting?-.65:0)+Math.sin(time+d.seed)*.025;
+     const reaction=c.model.reactions?.find(r=>samePlayerId(r.id,d.id));
+     if(reaction){d.head.rotation.x+=reaction.effect>0?Math.sin(time*1.8+d.seed)*.055:reaction.effect<0?.13:0;d.body.rotation.x+=reaction.effect<0?.04:0;}
+     else if(c.model.cases?.includes(String(d.id))){d.head.rotation.x+=.09;d.arms[1].rotation.x=-.4;}
+     else if(c.model.groups?.some(g=>g.ids.includes(String(d.id)))){d.head.rotation.y+=Math.sin(time*.7+d.seed)*.18;d.arms[1].rotation.x=(d.sitting?-.65:0)-Math.max(0,Math.sin(time*.9+d.seed))*.12;}
      if(d.gesture){const elapsed=(now-d.gesture.start)/1000;if(elapsed>2.2){delete d.gesture;d.arms[1].rotation.x=d.sitting?-.65:0;}else{d.head.rotation.x+=Math.sin(elapsed*8)*(d.gesture.delta>=0?.11:.045);d.head.rotation.y+=d.gesture.delta<0?Math.sin(elapsed*6)*.12:0;d.arms[1].rotation.x=(d.sitting?-.65:0)-Math.sin(elapsed/2.2*Math.PI)*.4;}}
      if(d.drill&&c.model.life?.session!=='recovery'&&!['after','live'].includes(c.model.life?.phase)){const phase=time*.5+d.drill.phase;a.position.x=d.drill.x+Math.cos(phase)*.55;a.position.z=d.drill.z+Math.sin(phase)*.45;a.rotation.y=Math.atan2(-Math.sin(phase)*.55,Math.cos(phase)*.45);d.body.rotation.x=.14;d.body.rotation.z=Math.cos(phase)*.06;d.legs.forEach((leg,i)=>leg.rotation.z=Math.sin(time*2.6+i*Math.PI)*.14);c.moving=true;}
     }
@@ -258,7 +280,7 @@ const ClubhouseScene=(()=>{
    const T=HockeyThree;c={T,canvas,model,appearance,key,build:++builds,scene:new T.Scene(),camera:new T.PerspectiveCamera(36,1,.1,80),materials:new Map(),shapes:new Map(),geometries:new Set(),textures:new Set(),actors:[],skaters:[],anchors:{},playerActors:new Map(),frame:0,frames:0,drawn:0};active=c;
    c.renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});c.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));c.renderer.outputColorSpace=T.SRGBColorSpace;c.renderer.toneMapping=T.ACESFilmicToneMapping;c.renderer.toneMappingExposure=1.05;c.renderer.shadowMap.enabled=true;c.renderer.shadowMap.type=T.PCFSoftShadowMap;c.renderer.shadowMap.autoUpdate=false;c.renderer.shadowMap.needsUpdate=true;
    c.camera.position.set(model.room==='locker'?2.7:11.2,model.room==='locker'?11:9.4,model.room==='locker'?18.5:14.9);c.camera.lookAt(0,1,-.1);
-   ({locker,ice,recruit,boardroom,world}[model.room]||office)(c);playerButtons(c);
+   ({locker,ice,recruit,boardroom,world,tunnel}[model.room]||office)(c);playerButtons(c);
    c.scene.updateMatrixWorld(true);c.camera.updateMatrixWorld();project(c);c.resize=new ResizeObserver(()=>project(c));c.resize.observe(canvas);
    c.visibility=()=>{if(!document.hidden&&!c.frame&&active===c){c.last=0;c.frame=requestAnimationFrame(t=>loop(c,t));}};document.addEventListener('visibilitychange',c.visibility);
    // Click on free floor to move your actual coach figure. Objects remain buttons.
@@ -275,7 +297,8 @@ const ClubhouseScene=(()=>{
  }
  function select(id){const c=active;if(!c)return;const actor=c.playerActors.get(id);if(actor){for(const p of c.playerActors.values())p.userData.torso.material=material(c,p===actor?0x537f86:0x254c69);const pos=actor.getWorldPosition(new c.T.Vector3());c.waypoints=[];c.target=new c.T.Vector3(Math.max(-3.8,Math.min(3.8,pos.x)),0,Math.max(-1.8,Math.min(2.8,pos.z+1.1)));if(c.model.room==='office'){c.waypoints=[new c.T.Vector3(-.6,0,3.15)];c.target=new c.T.Vector3(.25,0,2.8);}}}
  function react(id,delta){const a=active?.playerActors.get(String(id));if(a)a.userData.gesture={start:performance.now(),delta};}
+ function focus(id){if(active){active.focus=id?String(id):null;project(active);active.renderer.render(active.scene,active.camera);}}
  function reframe(){if(active){project(active);active.renderer.render(active.scene,active.camera);}}
  function diagnostics(){return active?{room:active.model.room,build:active.build,actors:active.actors.length,players:active.playerActors.size,visitor:active.visitor||null,phase:active.model.life?.phase,skaters:active.skaters.map(a=>({id:a.userData.id,x:a.position.x,z:a.position.z})),frames:active.frames,geometries:active.geometries.size,materials:active.materials.size,drawCalls:active.renderer.info.render.calls}:null;}
- return {mount,dispose,select,react,reframe,diagnostics};
+ return {mount,dispose,select,react,focus,reframe,diagnostics};
 })();

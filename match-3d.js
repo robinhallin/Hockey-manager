@@ -14,9 +14,11 @@ const Match3D = (() => {
  const turn=(a,b,t)=>a+Math.atan2(Math.sin(b-a),Math.cos(b-a))*t;
  function cameraView(aspect,mode,puck={x:30,y:15},zoom=1){
   zoom=Number.isFinite(zoom)?clamp(zoom,.8,1.5):1;
-  const tracking=['follow','auto','rinkside'].includes(mode)?1:clamp((zoom-1)*2,0,1);
+  const tracking=['follow','auto','rinkside','bench'].includes(mode)?1:clamp((zoom-1)*2,0,1);
   const target=[mix(30,clamp(puck.x,mode==='rinkside'?2:10,mode==='rinkside'?58:50),tracking),mode==='rinkside'?.8:mode==='tv'?2:mode==='overhead'?0:1.2,mix(15,clamp(puck.y,mode==='rinkside'?1:7,mode==='rinkside'?29:23),tracking)];
-  const eye=mode==='rinkside'?[target[0]+3,5.4,target[2]+11]:['follow','auto'].includes(mode)?[target[0],19,target[2]+32]:mode==='overhead'?[target[0],65,target[2]+18]:[target[0],32,target[2]+43];
+  // A raised position beside the bench keeps puck, support and both passing
+  // lanes visible. Only the camera moves; recorded hockey remains identical.
+  const eye=mode==='bench'?[mix(30,target[0],.35),11,43]:mode==='rinkside'?[target[0]+3,5.4,target[2]+11]:['follow','auto'].includes(mode)?[target[0],19,target[2]+32]:mode==='overhead'?[target[0],65,target[2]+18]:[target[0],32,target[2]+43];
   const z=unit(sub(eye,target)),x=unit(cross([0,1,0],z)),y=cross(z,x);
   const view=[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   // Fit the whole rink even when the coach panels reduce the viewport width.
@@ -62,7 +64,7 @@ const Match3D = (() => {
   // Keep a fast puck inside a small screen margin. Move only far enough to
   // recover that margin, not all the way to the puck: a full re-centre caused
   // large cuts during shots and rebounds, especially at rinkside/close zoom.
-  if((['follow','auto','rinkside'].includes(mode)||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
+  if((['follow','auto','rinkside','bench'].includes(mode)||zoom>1)&&(puck.x<.04||puck.x>.96||puck.y<.04||puck.y>.96)){
    const origin=tracked,inside=v=>{const p=project([frame.puck.x,.1+(frame.puck.z||0),frame.puck.y],v.matrix);return p.x>=.06&&p.x<=.94&&p.y>=.06&&p.y<=.94;};
    const centered=panTarget(frame.puck);
    let lo=0,hi=1,corrected={...tracked,...centered},correctedView=cameraView(aspect,mode,corrected,fit);
@@ -852,10 +854,10 @@ precision mediump float;
 let studioVisualMode='2d',studioCamera3D='auto',studioExpanded3D=false,studioZoom3D=1,studioPuckMarker3D=true;
 function studioSetVisual(mode){if(!['2d','3d'].includes(mode))return;Match3D.dispose();studioVisualMode=mode;render();}
 function studioToggleRink(){if(studioVisualMode!=='3d')return;studioExpanded3D=!studioExpanded3D;render();}
-function studioSetCamera(mode){if(['tv','overhead','follow','auto','rinkside'].includes(mode))studioCamera3D=mode;}
+function studioSetCamera(mode){if(['tv','overhead','follow','auto','rinkside','bench'].includes(mode))studioCamera3D=mode;}
 function studioSetZoom(value){const n=Number(value);if(!Number.isFinite(n))return;studioZoom3D=Math.max(.8,Math.min(1.5,Math.round(n*10)/10));const label=document.getElementById('match-3d-zoom');if(label)label.textContent=Math.round(studioZoom3D*100)+'%';}
 function studioTogglePuck(){studioPuckMarker3D=!studioPuckMarker3D;document.getElementById('match-3d-puck-toggle')?.setAttribute('aria-pressed',String(studioPuckMarker3D));}
-function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D</option></select></label>${studioAudioControl()}${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="auto" ${studioCamera3D==='auto'?'selected':''}>Matchkamera</option><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option><option value="rinkside" ${studioCamera3D==='rinkside'?'selected':''}>Isnivå</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}
+function studio3DControls(){return `<div class="match-3d-controls"><label>Matchvy <select aria-label="Matchvy" onchange="studioSetVisual(this.value)"><option value="2d" ${studioVisualMode==='2d'?'selected':''}>2D</option><option value="3d" ${studioVisualMode==='3d'?'selected':''}>3D</option></select></label>${studioAudioControl()}${studioVisualMode==='3d'?`<label>Kamera <select aria-label="3D-kamera" onchange="studioSetCamera(this.value)"><option value="auto" ${studioCamera3D==='auto'?'selected':''}>Matchkamera</option><option value="bench" ${studioCamera3D==='bench'?'selected':''}>Från tränarbåset</option><option value="tv" ${studioCamera3D==='tv'?'selected':''}>TV</option><option value="overhead" ${studioCamera3D==='overhead'?'selected':''}>Överblick</option><option value="follow" ${studioCamera3D==='follow'?'selected':''}>Följ pucken</option><option value="rinkside" ${studioCamera3D==='rinkside'?'selected':''}>Isnivå</option></select></label><div class="match-3d-zoom" role="group" aria-label="Kamerazoom"><button type="button" onclick="studioSetZoom(studioZoom3D-.1)" aria-label="Zooma ut">−</button><button type="button" id="match-3d-zoom" onclick="studioSetZoom(1)" aria-label="Återställ zoom">${Math.round(studioZoom3D*100)}%</button><button type="button" onclick="studioSetZoom(studioZoom3D+.1)" aria-label="Zooma in">+</button></div><button type="button" id="match-3d-puck-toggle" onclick="studioTogglePuck()" aria-pressed="${studioPuckMarker3D}">Markera puck</button><button type="button" class="match-3d-expand" onclick="studioToggleRink()" aria-pressed="${studioExpanded3D}">${studioExpanded3D?'Visa coachbänken':'Stor rink'}</button>`:''}</div>`;}
 
 function studioGraphicsQuality(){return ['low','normal','high'].includes(matchPreferences().graphics3d)?matchPreferences().graphics3d:'normal';}
 function studioSetGraphics(value){if(!['low','normal','high'].includes(value))return;matchPreferences().graphics3d=value;save();render();}

@@ -7,6 +7,44 @@ Arbetsytor öppnas som en breddningsbar panel ovanpå miljön. Rummets canvas oc
 grafikresurser bevaras när samma rum ligger bakom arbetsytan. Stäng med Escape
 eller Till rummet. Matchen har kvar sin egen fullständiga bildyta.
 
+## Tränarvardag och matchdag
+
+`coach-journey.js` binder ihop rummen med relationer, spelarresor och den riktiga
+matchen. Öppna rollkonflikter kan ta plats på kontorets besöksstol. I samtalet
+kan tränaren erkänna problemet, sätta den befintliga tre-matchersplanen eller be
+en faktiskt betrodd ledare medla. Åtgärderna går genom `relationshipAction` och
+har samma väntetider, uppföljning och sparning som i arbetsvyn.
+
+Spelarhistorier kan läsas och besvaras i rummets panel. En provperiod startas
+uttryckligen av tränaren; historien går genom `journeyStart` och `storiesChoose`.
+Att visa panelen ger inga framsteg. Besked följs fortfarande mot verklig istid,
+och träningsmatcher uppfyller inte tävlingslöften. Gruppkort och figurgester
+bygger på registrerat samspel, aktiva fadderuppdrag och verkliga rollärenden.
+Spelarnas stationer sorteras på stabilt ID och flyttas inte när kedjor ändras.
+Markering ger en närmare kameravy; stäng panelen för rummets vanliga kamera.
+
+Taktiktavlans arbetsyta använder samma kedjor, medicinska begränsningar,
+magnetbyten, PP/BP, spelarinstruktioner, lås, ångring och sparning som tidigare.
+Trä, kritfärger och magnetkort knyter den till rummet.
+
+På riktig matchdag samlas matchtruppen i omklädningsrummet. Träningsmatcher går
+genom `calendarPlayFriendly` och respekterar delegeringen; ligamatcher går genom
+`createMatch`. Lagsnacket använder `teamTalk` och dess individuella reaktioner.
+Tränaren kan även gå vidare utan budskap. Tunnelns uppställda spelare hämtas
+från matchtruppen. Tunneln och båset flyttar varken kalender eller matchklocka.
+Nedsläpp är fortfarande ett uttryckligt val i matchvyn.
+
+Matchen använder samma hockeymotor, slumpström, uppställning och rapporter i
+alla visningslägen. Den nya båskameran är en upphöjd sidovy som följer pucken;
+kameravalet påverkar bara projektionen. 2D, andra 3D-kameror, repris, taktik,
+byten och spelarbesked finns kvar. Rumsnavigation under spel pausar matchen.
+Nytt periodsnack och eftersnack visas i omklädningsrummet, med direkt väg till
+den faktiska matchrapporten. Ett avslutat lagsnack kan inte upprepas.
+
+Presentationsval för rum och matchfas återställs vid ny karriär, klubb, dag,
+match eller period. Historier, relationer och reaktioner sparas i sina befintliga
+system. Klassisk presentation följer det tidigare matchflödet.
+
 ## Rum och handlingar
 
 - **Tränarkontoret:** animerad tränarfigur, taktiktavla med aktuella spelarnamn
