@@ -31,11 +31,14 @@ async function checkCoachJourney(page,out){
  await page.getByRole('button',{name:/^Samla matchlaget/}).click();
  assert.equal(await page.evaluate(()=>state.live.friendly),true);
  await page.locator('#cj-match-room[data-stage="locker"] #clubhouse-canvas[data-ready="true"]').waitFor();
+ const room=await page.locator('#cj-match-room').boundingBox();assert.ok(room.width>=await page.evaluate(()=>innerWidth)*.98&&room.height>=await page.evaluate(()=>innerHeight)*.98,'matchday room fills the viewport');
+ assert.equal(await page.locator('.sidebar').isVisible(),false,'legacy menu does not reduce the matchday room');
  const original=await page.evaluate(()=>JSON.stringify([state.calendar.date,state.live.broadcast,state.lines]));
  await page.getByRole('button',{name:'Ge stöd',exact:true}).click();
  assert.ok(await page.evaluate(()=>state.live.socialTalks.p1.reactions.length)>15);
  await page.getByRole('combobox',{name:'Följ en spelares reaktion'}).selectOption(p.id);
  assert.ok(await page.locator('.cj-selected-reaction').isVisible());
+ const portrait=await page.locator('.cj-selected-reaction .sw-portrait').boundingBox();assert.ok(portrait.width<=80&&portrait.height<=90,'portrait stays inside the reaction instead of covering the room controls');
  await page.screenshot({path:path.join(out,'82-lagsnack-och-individuella-reaktioner.png'),fullPage:true});
  await page.getByRole('button',{name:/^Gå mot isen/}).click();
  await page.locator('#clubhouse-canvas[data-room="tunnel"][data-ready="true"]').waitFor();

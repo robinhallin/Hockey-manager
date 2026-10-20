@@ -90,7 +90,11 @@ clubhouseModel=function(){const m=coachJourneyModel();m.groups=coachJourneyGroup
 // The actual board remains responsible for IDs, swaps, medical restrictions,
 // special teams, saving and undo. The room changes its presentation only.
 const coachJourneyTactics=tacticsWorkspaceView;
-tacticsWorkspaceView=function(){const html=coachJourneyTactics();return coachJourneyEnabled()?`<section class="cj-tactic-board" aria-label="Tränarens taktiktavla"><div class="cj-board-caption"><span>DIN TAKTIKTAVLA</span><p>Flytta magneterna · välj roller · följ samspel och ork</p></div>${html}</section>`:html;};
+tacticsWorkspaceView=function(){
+ const dilemma=personalMatchDilemmaView(),html=coachJourneyTactics();if(!coachJourneyEnabled())return html;
+ const board=dilemma&&html.startsWith(dilemma)?html.slice(dilemma.length):html;
+ return `<section class="cj-tactic-board" aria-label="Tränarens taktiktavla"><div class="cj-board-caption"><span>DIN TAKTIKTAVLA</span><p>Flytta magneterna · välj roller · följ samspel och ork</p></div>${board}${dilemma&&board!==html?`<details class="cj-board-dilemma"><summary>Assistentens uttagningsförslag</summary>${dilemma}</details>`:''}</section>`;
+};
 
 function coachJourneyPrepare(){
  if(!coachJourneyEnabled())return false;

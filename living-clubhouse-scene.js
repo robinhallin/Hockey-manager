@@ -290,6 +290,7 @@ const ClubhouseScene=(()=>{
     if(model.room==='office'&&point.x<-.5&&point.z>-.3&&point.z<2.4)point.x=-.35;
     if(model.room==='boardroom'&&Math.abs(point.x)<3.9&&point.z> -1.7&&point.z<1.4)point.z=1.65;
     if(model.room==='recruit'&&point.z<-.5)point.z=.5;
+    if(model.room==='tunnel')point.x=Math.max(-.55,Math.min(.55,point.x));
     point.y=model.room==='ice'?.1:0;c.waypoints=[];c.target=point;
    };canvas.addEventListener('click',c.walk);
    const status=document.getElementById('clubhouse-render-status');if(status)status.hidden=true;canvas.dataset.ready='true';canvas.dataset.room=model.room;c.frame=requestAnimationFrame(t=>loop(c,t));
