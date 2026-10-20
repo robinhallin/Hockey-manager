@@ -169,7 +169,7 @@ const ClubhouseScene=(()=>{
   box(c,5.1,.2,8,0,3.7,0,0x263e45);
   planeLabel(c,'VÅRT LAG. VÅR MATCH.',4.6,.5,'#e8dfb5','#25444a',0,3.1,-3.9,c.scene,65);
   box(c,4.8,2.7,.08,0,1.4,-4,0xb9dad7);box(c,4.8,.1,1.5,0,.06,-3.4,0xe1ebe1);
-  const light=new c.T.PointLight(0xc6f4ef,28,18);light.position.set(0,2,-3.5);c.scene.add(light);
+  const light=new c.T.DirectionalLight(0xc6f4ef,2.2);light.position.set(0,3,-3.5);light.target.position.set(0,1,2);c.scene.add(light,light.target);
   const ids=new Set(c.model.matchPlayers||[]);
   c.model.players.filter(p=>p.presence.present&&ids.has(p.id)).slice(0,10).forEach((p,i)=>{const a=actor(c,{id:p.id,color:0x254c69,number:p.number});a.position.set(i%2?1.1:-1.1,0,2.9-Math.floor(i/2)*1.25);a.rotation.y=Math.PI;c.playerActors.set(p.id,a);});
   const coach=actor(c,{coach:true});coach.position.set(0,0,3.2);coach.rotation.y=Math.PI;c.coach=coach;c.anchors={};

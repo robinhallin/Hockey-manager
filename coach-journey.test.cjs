@@ -1,5 +1,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{boot}=require('./scripts/career-test-fixture.cjs');
+test('every clubhouse scene constructor exists in the bundled offline 3D runtime',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),c=vm.createContext({console});
+ vm.runInContext(fs.readFileSync('assets/vendor/hockey-three.js','utf8'),c);
+ const names=[...fs.readFileSync('living-clubhouse-scene.js','utf8').matchAll(/new (?:c\.)?T\.([A-Za-z0-9_]+)/g)].map(m=>m[1]);
+ for(const name of new Set(names))assert.equal(vm.runInContext('typeof HockeyThree.'+name,c),'function',name+' must be available offline');
+});
 function setup(){const a=boot(),r=a.run;r(`startCareerWithClub('HV71');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};clubhouseGo('office');`);return a;}
 function match(r){r(`state.calendar.date=calendarTarget();createMatch();deskNavigate('match');`);}
 test('room histories, groups and the board read the career without writing it',()=>{
