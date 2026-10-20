@@ -24,6 +24,7 @@ function preseasonTrialPlace(id){
  if(state.live?.finished)return careerProjectMessage('Avsluta matchdagen innan du placerar spelare till nästa försök. Matchrapporten och eftersnacket ligger kvar tills dess.');
  const ps=t.ids.map(preseasonTrialPlayer);if(ps.some(p=>!p||!medicalAvailable(p)||internationalAway(p)))return false;
  if(t.kind==='goalies'){
+  if(state.tacticsLocks?.club===managerClub()&&Object.keys(state.tacticsLocks.slots||{}).length)return careerProjectMessage('Lås upp uppställningen innan du överlåter uttagningen till assistenten. En målvaktsjämförelse ska inte flytta dina låsta platser.');
   preseasonPlan().goaliesTrial=t.id;preseasonSettings('assistant','goalies');return true;
  }
  ensureLines();const slots=t.kind==='pair'?[['defense',2],['defense',3]]:[[ps[0].pos==='B'?'defense':'forwards',ps[0].pos==='B'?2:ps[0].pos==='C'?4:ps[0].pos==='HF'?5:3]];
