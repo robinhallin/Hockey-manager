@@ -6,6 +6,7 @@ function overviewToggle(section,open){
  document.getElementById('overview-'+section)?.scrollIntoView?.({block:'start',behavior:'smooth'});
 }
 function overviewWorkspaceView(){
+ if(typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled())return coachHomeView();
  return managerDeskView()+`<div class="ov-community">${overviewUI.stories?`<section id="overview-stories" class="overview-section"><button class="btn secondary" onclick="overviewToggle('stories',false)">Stäng historier</button>${storiesView()}</section>`:''}${overviewUI.press?`<section id="overview-press" class="overview-section"><button class="btn secondary" onclick="overviewToggle('press',false)">Stäng pressrummet</button>${pressView()}</section>`:''}</div>`;
 }
 function staffFollowupView(){

@@ -31,7 +31,7 @@ function dayTransitionStart(){
   }
  }
  const shell=document.querySelector('.game-shell');
- const tx={state,date:state.calendar.date,club:managerClub(),before:dayTransitionSnapshot(),phase:'working',rows:[],shell,inert:Boolean(shell?.inert)};
+ const tx={state,date:state.calendar.date,club:managerClub(),before:dayTransitionSnapshot(),phase:'working',rows:[],shell,inert:Boolean(shell?.inert),coachHome:typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()&&state.page==='home'};
  dayTransition=tx;if(shell)shell.inert=true;
  dayTransitionRender();
  // Yield a paint before running the authoritative synchronous calendar step.
@@ -48,6 +48,7 @@ function dayTransitionRun(tx){
   if(state.calendar.date===tx.date){dayTransitionDispose();return;}
   tx.rows=dayTransitionSummary(tx.before);tx.phase='ready';
   state.calendar.lastDaySummary={date:tx.date,currentDate:state.calendar.date,club:tx.club,rows:tx.rows.slice(0,12),total:tx.rows.length};
+  if(tx.coachHome&&coachWorkspaceEnabled()){state.page='home';overviewUI.stories=false;overviewUI.press=false;}
   save();
   completed=true;
   if(!pendingManagerDecision()){dayTransitionDispose();render();document.getElementById('continueGame')?.focus?.();return;}
