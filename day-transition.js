@@ -51,7 +51,7 @@ function dayTransitionRun(tx){
   if(tx.coachHome&&coachWorkspaceEnabled()){state.page='home';overviewUI.stories=false;overviewUI.press=false;}
   save();
   completed=true;
-  if(!pendingManagerDecision()){dayTransitionDispose();render();document.getElementById('continueGame')?.focus?.();return;}
+  if(!pendingManagerDecision()){dayTransitionDispose();render();document.getElementById(tx.coachHome?'coach-continue':'continueGame')?.focus?.();return;}
  }catch(error){
   // A callback is never retried: a failure may occur after some work is saved.
   completed=false;tx.phase='error';console.error('Day transition failed',error);
