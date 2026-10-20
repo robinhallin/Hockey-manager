@@ -71,6 +71,7 @@ async function checkClubhouseLife(page,out){
  await page.screenshot({path:path.join(out,'77-samtal-och-konsekvens.png'),fullPage:true});
  await page.getByRole('button',{name:'Stäng spelarens eller rummets panel',exact:true}).click();
  assert.equal(await page.evaluate(()=>clubhouseLifeVisitor()?.playerId===String(chGuest.id)),false);
+ assert.equal(await page.evaluate(()=>clubhouseModel().life.agenda.some(i=>samePlayerId(i.action?.conversationPlayer,chGuest.id))),false);
  await page.getByRole('button',{name:'Stäng återkopplingen',exact:true}).click();
  await page.locator('#ch-day-round').click();const first=await page.evaluate(()=>clubhouseModel().life.agenda[0].title);assert.ok(await page.getByRole('heading',{name:first,exact:true}).isVisible());
  await page.screenshot({path:path.join(out,'78-dagens-runda.png'),fullPage:true});

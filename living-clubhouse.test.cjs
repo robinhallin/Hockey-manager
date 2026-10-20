@@ -61,6 +61,7 @@ test('a real office visitor has one guarded conversation, feedback and persisted
  assert.equal(r('clubhouseAcceptVisitor("not-the-visitor")'),false);assert.equal(r('clubhouseAcceptVisitor(p.id)'),true);assert.match(r('clubhousePanel(clubhouseModel())'),/På ditt kontor/);
  assert.equal(r('clubhouseTalk(p.id,"listen")'),true);assert.equal(r('clubhouseUI.feedback.delta'),r('Math.round((p.social.trust-trust)*10)/10'));assert.match(r('clubhouseLifeFeedback(clubhouseModel())'),/Samtalets återkoppling/);assert.equal(r('clubhouseTalk(p.id,"listen")'),false);
  assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,p.promisedRole])'),r('before'));assert.equal(r('clubhouseLifeVisitor().playerId'),r('String(p.id)'));
+ assert.equal(r('clubhouseModel().life.agenda.some(i=>samePlayerId(i.action?.conversationPlayer,p.id))'),false,'a review fourteen days away does not request a second meeting today');
  r('clubhouseOpen("player");clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('String(clubhouseUI.player)'),r('String(p.id)'));
  r('save()');const q=boot(a.storage.value).run;assert.equal(q('managerRoster()[0].social.lastResponse'),r('p.social.lastResponse'));assert.ok(q('managerRoster()[0].social.journal.length')>0);
  r('clubhouseCloseMeeting()');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));

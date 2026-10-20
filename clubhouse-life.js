@@ -43,7 +43,13 @@ function clubhouseLifeModel(m){
  const today=calendarFixtures().find(f=>f.date===m.date),finished=state.calendar.completedMatchDate===m.date;
  const phase=active?'live':finished?'after':today?'match':session.type==='recovery'?'recovery':'training';
  const title={live:'Matchen pågår',after:'Efter slutsignalen',match:'Matchdag',recovery:'En dag för återhämtning',training:pass.name}[phase];
- const agenda=managerAgendaItems().map(item=>({...item,room:clubhouseLifeRoom(item)}));
+ const agenda=managerAgendaItems().filter(item=>{
+  const id=item.action?.conversationPlayer;if(id===undefined||item.requiresDecision)return true;
+  // A completed conversation gets time to breathe. Future reviews stay in the
+  // full agenda, but do not immediately ask for another meeting in today's room.
+  if(item.due&&item.due>m.date)return false;
+  const p=clubhousePlayer(id);return Boolean(p)&&(Boolean(item.due)||state.locker.turn-p.social.lastTalk>=3);
+ }).map(item=>({...item,room:clubhouseLifeRoom(item)}));
  const counts=Object.fromEntries(Object.keys(CLUBHOUSE_ROOMS).map(room=>[room,agenda.filter(i=>i.room===room).length]));
  const visitor=phase==='live'?null:clubhouseLifeVisitor();
  const last=state.calendar.pace?.last?.club===m.club?state.calendar.pace.last:null;
