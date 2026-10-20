@@ -20,7 +20,7 @@ function coachWorkspaceEnter(){
  clubhouseRemember('mode','coach');clubhouseUI.work=false;clubhouseUI.areas=false;clubhouseUI.player=null;
  overviewUI.stories=false;overviewUI.press=false;deskNavigate('home');return true;
 }
-function coachHome(){overviewUI.stories=false;overviewUI.press=false;deskNavigate('home');}
+function coachHome(){if(typeof coachRoomHome==='function')coachRoomHome();overviewUI.stories=false;overviewUI.press=false;deskNavigate('home');}
 function coachSelectDay(date){
  if(!coachWorkspaceEnabled()||!managerWeekDays().some(d=>d.date===date))return false;
  coachWorkspaceSync();coachWorkspaceUI.date=date;render();return true;
@@ -31,7 +31,7 @@ function coachAgendaGroups(){
  const groups=new Map(),today=state.calendar.date;
  for(const item of managerAgendaItems(true)){
   // These reports have dedicated context in the match and week panels.
-  if(item.area==='match')continue;
+  if(item.id.startsWith('match:'))continue;
   const action=item.action||{},future=item.deferred||action.conversationPlayer!==undefined&&item.due>today;
   // Only identical entity actions are grouped. Different promises, deadlines
   // and all individual source rows remain available inside their group.
@@ -68,9 +68,14 @@ function coachContinue(){
  }
  coachHome();return dayTransitionStart();
 }
+function coachAgendaAction(item){
+ const id=item.action?.conversationPlayer??item.action?.promisePlayer;if(id!==undefined)return `playerCaseOpen(${JSON.stringify(String(id))})`;
+ if(item.id.startsWith('relationship:')){const c=state.relationships?.cases.find(c=>'relationship:'+c.id===item.id);if(c)return `playerCaseOpen(${JSON.stringify(c.playerId)})`;}
+ return managerOffice2Action(item);
+}
 function coachAgendaRow(item){
- const action=managerOffice2Action(item),safe=trainingSafe;
- return `<article class="coach-agenda-row" data-agenda-id="${safe(item.id)}"><div><span class="coach-meta">${safe(item.tag||'Att följa')} · ${safe(item.owner||'Du')}${item.due?' · '+safe(calText(item.due)):''}${item.deferred?' · uppskjutet till '+safe(calText(item.snoozedUntil)):''}</span><h3>${safe(item.title)}</h3><p>${safe(item.detail||'')}</p></div>${action?`<button type="button" class="coach-link" onclick="${safe(action)}">Granska →</button>`:''}</article>`;
+ const action=coachAgendaAction(item),safe=trainingSafe;
+ return `<article class="coach-agenda-row" data-agenda-id="${safe(item.id)}"><div><span class="coach-meta">${safe(item.tag||'Att följa')} · ${safe(item.owner||'Du')}${item.due?' · '+safe(calText(item.due)):''}${item.deferred?' · uppskjutet till '+safe(calText(item.snoozedUntil)):''}</span><h3>${safe(item.title)}</h3><p>${safe(item.detail||'')}</p></div>${action?`<button type="button" class="coach-link" onclick="${safe(action)}">Granska →</button>`:''}${!item.requiresDecision&&item.level!=='critical'&&(!item.due||item.due>calAdd(state.calendar.date,7))&&!item.deferred?`<button type="button" class="coach-link coach-snooze" onclick="managerAgendaSnooze(${safe(JSON.stringify(item.id))},7)">Påminn om 7 dagar</button>`:''}</article>`;
 }
 function coachAgendaView(){
  const u=coachWorkspaceUI,groups=coachAgendaGroups(),now=groups.filter(g=>!g.future).length,later=groups.length-now;
@@ -94,6 +99,7 @@ function coachFocusView(){
  return `<span class="coach-meta">STABENS FÖRSLAG · ${suggestion.count} MATCHER</span><h2>${safe(COACH_FOCUSES[suggestion.key].name)}</h2><p>${safe(suggestion.detail)}</p><button type="button" class="coach-link" onclick="${safe(`managerWeekAdopt(${JSON.stringify(suggestion.key)},${JSON.stringify(suggestion.evidenceId)})`)}">Välj och följ detta fokus →</button>`;
 }
 function coachHomeView(){
+ if(typeof coachConnectedHomeView==='function')return coachConnectedHomeView();
  coachWorkspaceSync();const safe=trainingSafe;
  if(overviewUI.stories||overviewUI.press)return `<button type="button" class="coach-link" onclick="coachHome()">← Till tränaröversikten</button>${overviewUI.stories?storiesView():pressView()}`;
  const blocker=coachBlocker(),next=deskNextMatch(deskFixtures().upcoming[0]),roster=managerRoster(),ready=roster.filter(medicalReady).length,tired=roster.filter(p=>medicalReady(p)&&p.fatigue>=35).length;
@@ -102,11 +108,15 @@ function coachHomeView(){
  const hero=blocker||{title:post?'Ta med dig lärdomarna.':live?'Laget väntar vid isen.':'Ge laget en riktning.',detail:post?'Granska matchen och följ upp dina beslut innan du avslutar matchdagen.':live?next.detail:'Välj vad ni ska arbeta med idag. Tiden går vidare när du avslutar dagen.'};
  return `<div class="coach-home"><section class="coach-hero"><div><span class="coach-meta">TRÄNARKONTORET · ${safe(calText(state.calendar.date))}</span><h1>${safe(hero.title)}</h1><p>${safe(hero.detail)}</p><div class="coach-hero-actions"><button type="button" class="btn" onclick="coachContinue()">${safe(coachContinueLabel())} →</button><button type="button" class="coach-link" onclick="clubhouseGo('office')">Besök klubbhuset ↗</button></div></div><div class="coach-rink-mark" aria-hidden="true"><i></i><b></b><em>VECKANS ARBETE<br>FORMAR NÄSTA MATCH</em></div></section>${daySummaryView()}<div class="coach-home-grid"><div class="coach-main-column">${coachDayPlanView()}${coachAgendaView()}</div><aside class="coach-side-column" aria-label="Laget och uppföljningen"><section class="coach-card coach-next"><span class="coach-meta">${safe(next.eyebrow)}</span><h2>${safe(next.title)}</h2>${next.score?`<strong class="coach-score">${safe(next.score)}</strong>`:''}<p>${safe(next.detail)}</p><div class="coach-readiness"><span><b>${ready}/${roster.length}</b> matchklara</span><span><b>${tired}</b> högt belastade</span></div><div class="coach-shortcuts"><button type="button" class="coach-link" onclick="deskNavigate('lines')">Taktiktavlan →</button><button type="button" class="coach-link" onclick="clubhouseGo('locker')">Omklädningsrummet ↗</button></div></section><section class="coach-card coach-focus">${coachFocusView()}</section>${report?`<section class="coach-card"><span class="coach-meta">SENASTE MATCHENS UNDERLAG</span><h2>${safe(report.opponent)}</h2><p>${safe(calText(report.date))}${report.friendly?' · Träningsmatch':''}</p><button type="button" class="coach-link" onclick="${safe(`matchesOpenReport(${JSON.stringify(report.id)})`)}">Granska matchrapporten →</button></section>`:''}${waiting?`<section class="coach-card coach-waiting"><span class="coach-meta">PÅGÅENDE ARBETE</span><h2>${safe(waiting.label)}</h2><p><strong>${safe(waiting.value)}</strong></p><p>${safe(waiting.detail)}</p>${waiting.action?`<button type="button" class="coach-link" onclick="${safe(deskAction(waiting.action))}">${safe(waiting.button||'Öppna')} →</button>`:''}</section>`:''}<section class="coach-card coach-archive"><span class="coach-meta">KLUBBENS MINNE</span><button type="button" class="coach-link" onclick="deskNavigate('stories')">Spelarhistorier →</button><button type="button" class="coach-link" onclick="deskNavigate('press')">Press & supportrar →</button><button type="button" class="coach-link" onclick="deskNavigate('staffReview')">Stabens uppföljning →</button></section></aside></div></div>`;
 }
+function coachRecruitNavigation(){
+ const tab=state.page==='marketPlayer'?'search':state.recruitment.tab,active=['loans','history'].includes(tab)?'deals':['world','free','missions','shortlist'].includes(tab)?'search':tab;
+ return `<nav class="coach-secondary" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button type="button" ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
+}
 function coachWorkspaceWrap(html){
  if(state.page==='match')return `<div class="desk-page" data-area="overview" data-page="match">${html}</div>`;
  const group=COACH_WORKSPACES.find(a=>a.pages.some(([p])=>p===state.page))||(['player','marketPlayer','specialTeams','tactics'].includes(state.page)?COACH_WORKSPACES[state.page==='player'?1:state.page==='marketPlayer'?3:2]:['news','table','leagueStats','clubDetail'].includes(state.page)?COACH_WORKSPACES[5]:null);
- const unread=(state.training?.messages||[]).filter(m=>!m.read&&!m.dismissed).length,safe=trainingSafe;
- return `<section id="coach-workspace" data-workspace="${group?.id||state.page}"><header class="coach-header"><button type="button" class="coach-brand" onclick="coachHome()" aria-label="Till tränaröversikten"><span class="coach-monogram">HM</span><span><strong>${safe(managerClub())}</strong><small>HOCKEY MANAGER · ${seasonLabel()}</small></span></button><div class="coach-header-actions"><time datetime="${state.calendar.date}">${safe(calText(state.calendar.date))}</time>${playerSearchView()}<button type="button" class="coach-inbox" onclick="deskNavigate('inbox')">Inkorg${unread?` <b>${unread}</b>`:''}</button><button type="button" class="coach-link coach-settings" aria-label="Sparfiler och inställningar" onclick="deskNavigate('settings')">${deskIcon('settings')}</button><button type="button" id="coach-continue" class="btn coach-continue" onclick="coachContinue()">${safe(coachContinueLabel())} →</button></div></header><nav class="coach-primary" aria-label="Spelets arbetsytor">${COACH_WORKSPACES.map(a=>`<button type="button" ${a===group?'aria-current="page"':''} onclick="${a.id==='today'?'coachHome()':`deskNavigate('${a.page}')`}">${a.label}</button>`).join('')}</nav>${group&&state.page!=='home'?`<nav class="coach-secondary" aria-label="${group.label}">${group.pages.map(([p,label])=>`<button type="button" ${state.page===p?'aria-current="page"':''} onclick="deskNavigate('${p}')">${label}</button>`).join('')}</nav>`:''}<div class="coach-page" data-page="${safe(state.page)}">${state.page==='home'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${safe(state.page)}">${html}</div>`}</div></section>`;
+ const unread=(state.training?.messages||[]).filter(m=>!m.read&&!m.dismissed).length,safe=trainingSafe,groups=typeof coachReportGroups==='function'?coachReportGroups():[],required=groups.reduce((n,g)=>n+g.required,0),inboxLabel=required?required+' svar':groups.filter(g=>g.unread).length+' ämnen';
+ return `<section id="coach-workspace" data-workspace="${group?.id||state.page}"><header class="coach-header"><button type="button" class="coach-brand" onclick="coachHome()" aria-label="Till tränaröversikten"><span class="coach-monogram">HM</span><span><strong>${safe(managerClub())}</strong><small>HOCKEY MANAGER · ${seasonLabel()}</small></span></button><div class="coach-header-actions"><time datetime="${state.calendar.date}">${safe(calText(state.calendar.date))}</time>${playerSearchView()}<button type="button" class="coach-inbox" onclick="coachOfficeOpen('reports')" title="${unread} olästa rapporter, samlade efter ämne">Inkorg${unread?` <b>${safe(inboxLabel)}</b>`:''}</button><button type="button" class="coach-link coach-settings" aria-label="Sparfiler och inställningar" onclick="deskNavigate('settings')">${deskIcon('settings')}</button><button type="button" id="coach-continue" class="btn coach-continue" onclick="coachContinue()">${safe(coachContinueLabel())} →</button></div></header><nav class="coach-primary" aria-label="Spelets arbetsytor">${COACH_WORKSPACES.map(a=>`<button type="button" ${a===group?'aria-current="page"':''} onclick="${a.id==='today'?'coachHome()':`deskNavigate('${a.page}')`}">${a.label}</button>`).join('')}</nav>${group?.id==='recruit'?coachRecruitNavigation():group&&state.page!=='home'?`<nav class="coach-secondary" aria-label="${group.label}">${group.pages.map(([p,label])=>`<button type="button" ${state.page===p?'aria-current="page"':''} onclick="deskNavigate('${p}')">${label}</button>`).join('')}</nav>`:''}<div class="coach-page" data-page="${safe(state.page)}">${state.page==='home'?html:`<div class="desk-page" data-area="${deskArea()?.id||'other'}" data-page="${safe(state.page)}">${html}</div>`}</div></section>`;
 }
 // Upgrade the default once. Subsequent explicit room/classic selections persist.
 if(typeof window!=='undefined'&&clubhousePreference('coach-workspace-version','')!=='1'){

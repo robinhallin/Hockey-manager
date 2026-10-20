@@ -2,88 +2,105 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 async function checkCoachWorkspace(page,out){
  await page.setViewportSize({width:1440,height:1000});
- await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');coachWorkspaceEnter();});
- await page.getByRole('heading',{name:'Din tränarvecka',exact:true}).waitFor();
+ const people=await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');coachWorkspaceEnter();return {young:String(managerRoster().find(p=>p.age<=23&&p.pos==='C'&&medicalReady(p)&&!playerLoan(p)).id),backs:managerRoster().filter(p=>p.pos==='B'&&medicalReady(p)).slice(0,2).map(p=>String(p.id)),goalies:managerRoster().filter(p=>p.pos==='MV'&&medicalReady(p)).slice(0,2).map(p=>String(p.id))};});
+ await page.getByRole('heading',{name:'Tränarkontoret',exact:true}).waitFor();
+ await page.locator('#coach-room #clubhouse-canvas[data-ready="true"]').waitFor();
  assert.equal(await page.locator('.sidebar').isVisible(),false);
  assert.equal(await page.getByRole('navigation',{name:'Spelets arbetsytor'}).count(),1);
  assert.equal(await page.locator('.desk-subnav,.ch-work-dialog,#ch-world').count(),0);
  for(const [width,height] of [[1920,1080],[1440,1000],[1366,768],[390,844]]){
   await page.setViewportSize({width,height});
-  assert.ok(await page.locator('#coach-workspace').evaluate(el=>document.documentElement.scrollWidth<=window.innerWidth+2),'the workspace fits '+width);
-  await page.screenshot({path:path.join(out,`90-tranaroversikt-${width}.png`),fullPage:true});
+  const room=await page.locator('#coach-room').boundingBox();
+  assert.ok(room.width>=width*.97&&room.height>height*.55&&room.y>=0&&room.y+room.height<=height+2,'room fills the available viewport at '+width);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),'no page overflow at '+width);
+  await page.screenshot({path:path.join(out,`90-tranarkontoret-${width}.png`),fullPage:true});
  }
  await page.setViewportSize({width:1440,height:1000});
- await page.keyboard.press('Control+k');
- await page.getByRole('searchbox',{name:'Spelare, klubb eller funktion'}).fill('budget');
- await page.locator('.desk-search-body').getByRole('button',{name:'Sök',exact:true}).click();
- assert.ok(await page.locator('.desk-search-body').isVisible());
- await page.getByRole('button',{name:'Stäng sökningen',exact:true}).click();
- const before=await page.evaluate(()=>JSON.stringify(state));
- const future=await page.evaluate(()=>calAdd(state.calendar.date,3));
- await page.locator(`.coach-days [data-date="${future}"]`).click();
- assert.equal(await page.evaluate(()=>JSON.stringify(state)),before,'selecting a future day is read only');
- await page.locator('.coach-day-detail').getByRole('combobox',{name:'Dagens träningspass'}).selectOption('powerplay');
- assert.equal(await page.evaluate(d=>state.calendar.plans[d].type,future),'powerplay');
- assert.equal(await page.evaluate(d=>state.training.history.some(h=>h.date===d),future),false);
- await page.screenshot({path:path.join(out,'91-planera-veckan.png'),fullPage:true});
- // Exercise all main surfaces through the same visible navigation, not the old shell.
- for(const [label,pageName] of [['Truppen','squad'],['Taktik','lines'],['Rekrytering','transfers'],['Klubben','board'],['Världen','world'],['Idag','home']]){
-  await page.getByRole('navigation',{name:'Spelets arbetsytor'}).getByRole('button',{name:label,exact:true}).click();
-  assert.equal(await page.evaluate(()=>state.page),pageName);
-  assert.equal(await page.locator('#coach-workspace').count(),1);
-  assert.equal(await page.locator('.sidebar').isVisible(),false);
-  if(pageName==='lines')await page.screenshot({path:path.join(out,'92-taktik-i-samma-spel.png'),fullPage:true});
- }
- // The six actual preseason days stop at the registered fixture.
- const start=await page.evaluate(()=>state.calendar.date);
- for(let i=0;i<6;i++){
-  const date=await page.evaluate(()=>state.calendar.date);
-  await page.locator('.coach-header .coach-continue').click();
-  await page.waitForFunction(d=>!dayTransition&&state.calendar.date!==d,date,{timeout:60000});
-  assert.equal(await page.evaluate(()=>state.page),'home');
-  assert.equal(await page.evaluate(d=>state.calendar.date===calAdd(d,1),date),true);
- }
- assert.equal(await page.evaluate(()=>state.calendar.date),'2026-08-07');
- assert.equal(await page.evaluate(d=>state.training.history.filter(h=>h.date>=d&&h.date<state.calendar.date).length,start),6);
- assert.equal(await page.evaluate(d=>state.training.history.find(h=>h.date===d).type,future),'powerplay');
- await page.screenshot({path:path.join(out,'93-riktigt-genomford-vecka.png'),fullPage:true});
- await page.locator('.coach-header .coach-continue').click();
- await page.locator('#cj-match-room[data-stage="locker"] #clubhouse-canvas[data-ready="true"]').waitFor();
- assert.equal(await page.evaluate(()=>state.live.friendly),true);
- const matchDate=await page.evaluate(()=>state.calendar.date);
- await page.getByRole('button',{name:'Ge stöd',exact:true}).click();
- await page.getByRole('button',{name:/^Gå mot isen/}).click();
- await page.getByRole('button',{name:/^Ta plats i båset/}).click();
- assert.ok(await page.locator('#career-ice-3d').isVisible());
- await page.screenshot({path:path.join(out,'94-fran-vecka-till-match.png'),fullPage:true});
- // Finish through the authoritative engine, including its real medical stops.
- await page.evaluate(()=>{let steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}if(!state.live.finished)throw Error('Friendly did not finish');render();});
- assert.equal(await page.evaluate(()=>state.calendar.date),matchDate);
- assert.equal(await page.evaluate(()=>state.calendar.completedMatchDate),matchDate);
- await page.evaluate(()=>coachHome());
- assert.ok(await page.getByRole('button',{name:'Granska matchrapporten →',exact:true}).isVisible());
- await page.screenshot({path:path.join(out,'95-uppfoljning-pa-kontoret.png'),fullPage:true});
- await page.getByRole('button',{name:'Granska matchrapporten →',exact:true}).click();
- assert.equal(await page.evaluate(()=>state.page),'statistics');
+ await page.keyboard.press('Control+k');await page.getByRole('searchbox',{name:'Spelare, klubb eller funktion'}).fill('budget');await page.locator('.desk-search-body').getByRole('button',{name:'Sök',exact:true}).click();await page.getByRole('button',{name:'Stäng sökningen',exact:true}).click();
+ await page.getByRole('navigation',{name:'Arbetet i klubben'}).getByRole('button',{name:'Försäsongstester',exact:true}).click();
+ const playerForm=page.locator('.trial-forms form').filter({has:page.getByRole('button',{name:'Planera spelarens test',exact:true})});
+ await playerForm.locator('[name="player"]').selectOption(people.young);await playerForm.getByRole('button',{name:'Planera spelarens test',exact:true}).click();
+ const trialId=await page.evaluate(()=>preseasonTrials().find(t=>t.kind==='player').id);
+ const playerTrial=page.locator(`[data-preseason-trial="${trialId}"]`);
+ await playerTrial.getByRole('button',{name:'Placera i testformationen · jag coachar',exact:true}).click();
+ assert.equal(await page.evaluate(id=>String(state.lines.forwards[4])===id,people.young),true);
+ const pairForm=page.locator('.trial-forms form').filter({has:page.getByRole('button',{name:'Planera backparets test',exact:true})});
+ await pairForm.locator('[name="first"]').selectOption(people.backs[0]);await pairForm.locator('[name="second"]').selectOption(people.backs[1]);await pairForm.getByRole('button',{name:'Planera backparets test',exact:true}).click();
+ const pairId=await page.evaluate(()=>preseasonTrials().find(t=>t.kind==='pair').id);await page.locator(`[data-preseason-trial="${pairId}"]`).getByRole('button',{name:'Placera i testformationen · jag coachar',exact:true}).click();
+ const goalieForm=page.locator('.trial-forms form').filter({has:page.getByRole('button',{name:'Planera målvaktstestet',exact:true})});
+ await goalieForm.locator('[name="first"]').selectOption(people.goalies[0]);await goalieForm.locator('[name="second"]').selectOption(people.goalies[1]);await goalieForm.getByRole('button',{name:'Planera målvaktstestet',exact:true}).click();
+ assert.equal(await page.evaluate(()=>preseasonTrials().every(t=>t.samples.length===0)),true);
+ await page.screenshot({path:path.join(out,'96-planerade-forsasongstester.png'),fullPage:true});
+ await page.getByRole('button',{name:'Stäng arbetsytan i rummet',exact:true}).click();
+ await page.getByRole('navigation',{name:'Rum i klubben'}).getByRole('button',{name:'Laget',exact:true}).click();
+ await page.locator('#coach-room #clubhouse-canvas[data-room="locker"][data-ready="true"]').waitFor();
+ await page.getByRole('combobox',{name:'Välj spelare i rummet'}).selectOption(people.young);
+ assert.ok(await page.locator('.player-case').isVisible());
+ const portrait=await page.locator('.player-case-heading .player-avatar').boundingBox();assert.ok(portrait.width<=72&&portrait.height<=90,'the portrait stays inside its own header cell');
+ await page.getByRole('button',{name:'Lova en konkret chans',exact:true}).click();
+ assert.ok(await page.evaluate(id=>playerCaseModel(id).promises.length>0,people.young));
+ assert.ok(await page.evaluate(id=>Boolean(playerById(id).roleFollowup),people.young));
+ assert.equal(await page.evaluate(id=>playerById(id).recruitmentPromise.games,people.young),0);
+ await page.screenshot({path:path.join(out,'97-samlat-spelarerende.png'),fullPage:true});
+ await page.getByRole('button',{name:'Stäng arbetsytan i rummet',exact:true}).click();
+ await page.getByRole('navigation',{name:'Rum i klubben'}).getByRole('button',{name:'Kontoret',exact:true}).click();
+ assert.equal(await page.evaluate(()=>clubhousePreference('mode')),'coach','the room never changes presentation mode');
+ // All four recruitment stages are visible in the shared navigation.
+ await page.getByRole('navigation',{name:'Spelets arbetsytor'}).getByRole('button',{name:'Rekrytering',exact:true}).click();
+ const recruitment=page.getByRole('navigation',{name:'Rekrytering',exact:true});
+ for(const [label,tab] of [['Översikt','overview'],['Truppplanering','needs'],['Spelarsök & scouting','search'],['Bud & avtal','deals']]){await recruitment.getByRole('button',{name:label,exact:true}).click();assert.equal(await page.evaluate(()=>state.recruitment.tab),tab);}
+ await recruitment.getByRole('button',{name:'Truppplanering',exact:true}).click();
+ const projectProfile=await page.evaluate(()=>Object.keys(RECRUIT_PROFILES).find(k=>RECRUIT_PROFILES[k].positions.includes('C')));
+ const projectForm=page.locator('.project-create form');
+ await projectForm.locator('[name="profile"]').selectOption(projectProfile);await projectForm.locator('[name="replacement"]').selectOption(people.young);await projectForm.locator('[name="salary"]').fill('5000000');await projectForm.locator('[name="fee"]').fill('20000000');await projectForm.getByRole('button',{name:'Skapa lagets uppdrag',exact:true}).click();
+ const projectId=await page.evaluate(()=>recruitProjectStore().items[0].id),money=await page.evaluate(()=>state.money);
+ const project=page.locator(`[data-recruit-project="${projectId}"]`),scout=await page.evaluate(()=>scoutingPerson(scoutingStaff().find(s=>!scoutingBusy(s))));
+ await project.locator('[name="scout"]').selectOption(scout);await project.getByRole('button',{name:'Förbered ett riktigt scoutuppdrag',exact:true}).click();
+ assert.equal(await page.evaluate(()=>state.money),money,'a scout draft never silently pays');
+ await page.getByRole('button',{name:/^Starta uppdrag ·/}).click();
+ assert.ok(await page.evaluate(()=>state.money)<money);
+ assert.equal(await page.evaluate(id=>recruitProjectProgress(recruitProject(id)).jobs.length,projectId),1);
+ await recruitment.getByRole('button',{name:'Truppplanering',exact:true}).click();
+ await page.screenshot({path:path.join(out,'98-lagbyggets-riktiga-scoutuppdrag.png'),fullPage:true});
  await page.getByRole('navigation',{name:'Spelets arbetsytor'}).getByRole('button',{name:'Idag',exact:true}).click();
- await page.locator('.coach-header .coach-continue').click();
- await page.waitForFunction(d=>!dayTransition&&state.calendar.date!==d,matchDate,{timeout:60000});
- assert.equal(await page.evaluate(()=>state.page),'home');
- const saved=await page.evaluate(()=>{save();return {date:state.calendar.date,history:state.training.history.length,matches:state.analysis.matches.length};});
- await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
- assert.deepEqual(await page.evaluate(()=>({date:state.calendar.date,history:state.training.history.length,matches:state.analysis.matches.length})),saved);
- assert.equal(await page.locator('#coach-workspace').count(),1);
- await page.getByRole('button',{name:'Besök klubbhuset ↗',exact:true}).click();
- await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
- await page.getByRole('navigation',{name:'Klubbhusets verktyg'}).getByRole('button',{name:'Tränaröversikten',exact:true}).click();
- assert.equal(await page.evaluate(()=>state.page),'home');assert.equal(await page.locator('#coach-workspace').count(),1);
- // Required answers route to the same source message and never consume a day.
- const pending=await page.evaluate(()=>{managerMessage('coach-browser-required','Ditt verkliga svar','Du måste svara.','Spelare',{decisionType:'role'});render();return {id:pendingManagerDecision().id,date:state.calendar.date};});
- await page.locator('.coach-header .coach-continue').click();
- assert.equal(await page.evaluate(()=>pendingManagerDecision().id),pending.id);
- assert.equal(await page.evaluate(()=>state.calendar.date),pending.date);
- assert.equal(await page.evaluate(()=>state.training.selectedMessage),pending.id);
- assert.equal(await page.evaluate(()=>dayTransition),null);
- console.log('PASS: coherent workspace, six actual days, planned training, complete friendly, real report, saved reload, optional rooms and mandatory answers.');
+ await page.getByRole('navigation',{name:'Arbetet i klubben'}).getByRole('button',{name:'Veckoplan',exact:true}).click();
+ const before=await page.evaluate(()=>JSON.stringify(state)),future=await page.evaluate(()=>calAdd(state.calendar.date,3));
+ await page.locator(`.coach-days [data-date="${future}"]`).click();assert.equal(await page.evaluate(()=>JSON.stringify(state)),before);
+ await page.locator('.coach-day-detail').getByRole('combobox',{name:'Dagens träningspass'}).selectOption('powerplay');
+ await page.screenshot({path:path.join(out,'91-planera-veckan-i-kontoret.png'),fullPage:true});
+ await page.getByRole('button',{name:'Stäng arbetsytan i rummet',exact:true}).click();
+ for(const [label,pageName] of [['Truppen','squad'],['Taktik','lines'],['Klubben','board'],['Världen','world'],['Idag','home']]){await page.getByRole('navigation',{name:'Spelets arbetsytor'}).getByRole('button',{name:label,exact:true}).click();assert.equal(await page.evaluate(()=>state.page),pageName);assert.equal(await page.locator('.sidebar').isVisible(),false);if(pageName==='lines')await page.screenshot({path:path.join(out,'92-taktik-i-samma-spel.png'),fullPage:true});}
+ const start=await page.evaluate(()=>state.calendar.date);
+ for(let i=0;i<6;i++){const date=await page.evaluate(()=>state.calendar.date);await page.locator('.coach-header .coach-continue').click();await page.waitForFunction(d=>!dayTransition&&state.calendar.date!==d,date,{timeout:60000});assert.equal(await page.evaluate(()=>state.page),'home');assert.equal(await page.evaluate(d=>state.calendar.date===calAdd(d,1),date),true);}
+ assert.equal(await page.evaluate(()=>state.calendar.date),'2026-08-07');assert.equal(await page.evaluate(d=>state.training.history.filter(h=>h.date>=d&&h.date<state.calendar.date).length,start),6);assert.equal(await page.evaluate(d=>state.training.history.find(h=>h.date===d).type,future),'powerplay');
+ await page.screenshot({path:path.join(out,'93-riktigt-genomford-vecka.png'),fullPage:true});
+ await page.locator('.coach-header .coach-continue').click();await page.locator('#cj-match-room[data-stage="locker"] #clubhouse-canvas[data-ready="true"]').waitFor();
+ assert.equal(await page.evaluate(()=>state.live.friendly),true);assert.equal(await page.evaluate(()=>state.live.personalMatch.focus.kind),'preseason');const matchDate=await page.evaluate(()=>state.calendar.date);
+ await page.getByRole('button',{name:'Ge stöd',exact:true}).click();await page.getByRole('button',{name:/^Gå mot isen/}).click();await page.getByRole('button',{name:/^Ta plats i båset/}).click();
+ assert.ok(await page.locator('#career-ice-3d').isVisible());assert.equal(await page.getByRole('navigation',{name:'Coachval',exact:true}).getByRole('button').count(),3);
+ await page.locator('.connected-match-more>summary').click();await page.getByRole('button',{name:'Statistik',exact:true}).click();assert.equal(await page.evaluate(()=>matchDesk.tab),'stats');await page.getByRole('button',{name:'Överblick',exact:true}).click();
+ await page.screenshot({path:path.join(out,'94-tre-coachval-samma-matchmotor.png'),fullPage:true});
+ await page.evaluate(()=>{let steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}if(!state.live.finished)throw Error('Friendly did not finish');render();});
+ assert.equal(await page.evaluate(()=>state.calendar.date),matchDate);assert.equal(await page.evaluate(()=>preseasonTrials().every(t=>t.samples.length===1)),true);assert.ok(await page.evaluate(()=>preseasonTrials().find(t=>t.kind==='pair').samples[0].together.seconds)>0);
+ assert.equal(await page.evaluate(id=>playerById(id).recruitmentPromise.games,people.young),0,'friendly minutes never fulfill a competitive promise');
+ await page.evaluate(()=>coachHome());await page.getByRole('button',{name:'Följ upp matchen →',exact:true}).click();
+ assert.ok(await page.getByRole('button',{name:'Granska matchrapporten',exact:true}).isVisible());await page.screenshot({path:path.join(out,'95-beslut-och-matchutfall-pa-kontoret.png'),fullPage:true});
+ await page.getByRole('button',{name:'Granska matchrapporten',exact:true}).click();assert.equal(await page.evaluate(()=>state.page),'statistics');
+ await page.getByRole('navigation',{name:'Spelets arbetsytor'}).getByRole('button',{name:'Idag',exact:true}).click();await page.getByRole('navigation',{name:'Arbetet i klubben'}).getByRole('button',{name:'Försäsongstester',exact:true}).click();
+ await page.locator(`[data-preseason-trial="${trialId}"]`).getByRole('button',{name:'Bygg vidare på försöket',exact:true}).click();assert.equal(await page.evaluate(id=>preseasonTrials().find(t=>t.id===id).decisions.at(-1).kind,trialId),'keep');
+ await page.screenshot({path:path.join(out,'99-testernas-verkliga-underlag.png'),fullPage:true});
+ await page.locator('.coach-header .coach-continue').click();await page.waitForFunction(d=>!dayTransition&&state.calendar.date!==d,matchDate,{timeout:60000});
+ const saved=await page.evaluate(()=>{save();return {date:state.calendar.date,history:state.training.history.length,matches:state.analysis.matches.length,trials:JSON.stringify(preseasonTrials()),projects:JSON.stringify(recruitProjectStore())};});
+ await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();assert.deepEqual(await page.evaluate(()=>({date:state.calendar.date,history:state.training.history.length,matches:state.analysis.matches.length,trials:JSON.stringify(preseasonTrials()),projects:JSON.stringify(recruitProjectStore())})),saved);
+ await page.locator('#coach-room #clubhouse-canvas[data-ready="true"]').waitFor();
+ // A fresh paced week uses the same native calendar and stops before the fixture.
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');coachWorkspaceEnter();for(const key of Object.keys(CALENDAR_PACE_STOPS))calendarPaceSet(key,false);});
+ await page.getByRole('button',{name:'Till nästa vägval →',exact:true}).click();await page.waitForFunction(()=>!calendarPaceRun&&state.calendar.date==='2026-08-06',{},{timeout:60000});assert.equal(await page.evaluate(()=>state.page),'home');assert.equal(await page.evaluate(()=>clubhousePreference('mode')),'coach');
+ const pending=await page.evaluate(()=>{managerMessage('coach-browser-info','En rutinrapport','Registrerat arbete.','Kontroll');managerMessage('coach-browser-required','Ditt verkliga svar','Du måste svara.','Kontroll',{decisionType:'role'});render();return {id:pendingManagerDecision().id,date:state.calendar.date};});
+ await page.locator('.coach-inbox').click();const reportGroup=page.locator('.report-group').filter({has:page.locator('summary').filter({hasText:/^Kontroll ·/})});
+ await reportGroup.getByRole('button',{name:'Markera gruppens rutininfo som läst',exact:true}).click();assert.equal(await page.evaluate(()=>pendingManagerDecision().read),false);assert.equal(await page.evaluate(()=>state.training.messages.find(m=>m.key==='coach-browser-info').read),true);
+ await page.getByRole('button',{name:'Stäng arbetsytan i rummet',exact:true}).click();await page.getByRole('button',{name:'Till nästa vägval →',exact:true}).click();
+ assert.equal(await page.evaluate(()=>pendingManagerDecision().id),pending.id);assert.equal(await page.evaluate(()=>state.calendar.date),pending.date);assert.equal(await page.evaluate(()=>state.training.selectedMessage),pending.id);
+ console.log('PASS: one physical office and shared shell, real preseason experiments, unified player obligations, priced scout project, actual week and full friendly, three coach controls, saved evidence, paced stops and required answers.');
 }
 module.exports={checkCoachWorkspace};

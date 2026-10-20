@@ -1,0 +1,23 @@
+# Ett sammanhängande tränarspel
+
+Detta genomför de sju prioriteringarna efter granskningen av den första tränarveckan.
+
+1. Rekryteringens fyra huvudsteg är åter synliga i den gemensamma navigationen. Hemmets ärendelista döljer bara själva matchpåminnelsen, inte matchlärdomar eller formationsvarningar. Klubbbygge och personlig matchuppföljning har en fast plats i kontorets arbete.
+2. Standardläget använder ett levande kontor med den befintliga animerade tränaren, interaktiva objekt och rum. Omklädningsrum, träningshall och scoutkontor använder samma karriärmeny. En enda kontextpanel visar veckoplan, ärenden, tester, spelarärende eller klubbprojekt; analytiska arbetsytor öppnas med hela skärmens bredd. De gamla presentationslägena finns kvar för uttryckliga val och sparkompatibilitet.
+3. Försäsongens spelar-, backpars- och målvaktstester följer verklig istid och prestation efter varje träningsmatch. Testformationer placeras bara genom ett uttryckligt val, skyddar låsta platser och tar inte över en pågående match. En namngiven målvaktsjämförelse kan överlåtas till assistenten med den befintliga rotationslogiken. Spelar- och backparstester kan förberedas för egen coachning. Ett test garanterar inga minuter, ändrar inga avtal och uppfyller inga tävlingslöften. Registrerade observationer och beslut följer med i spelarjournalen. Försäsongens ordinarie slutrapport finns kvar.
+4. Ett spelarärende samlar avtalad roll, faktiska tävlingsmatcher, aktiva löften, relationskonflikter, berättelser, samtalsdatum och utvecklingsplan. Befintliga domänhandlingar äger alla följder. Inga löften eller konflikter slås bort och ingen ny förtroendepoäng skapas vid läsning. Åtgärder kontrollerar aktuell karriär, klubb, datum och spelare.
+5. Ett rekryteringsuppdrag sparar profil, eventuell ersättare, tidshorisont, kostnadsram och bedömningsdatum. Samma uppdrag länkar intern väg, kandidater och riktiga scoutjobb; bud och registrering läses från de befintliga förhandlingarna och spelarregistret. Förberedelse betalar inte någon scoutavgift eller skickar något bud. Scoutingens vanliga bekräftelse, budget, kapacitet och osäkerhet gäller. Planerad intern lösning är inte en uppflyttning eller ett kontrakt. Aktuella uppdrag och obesvarade datum syns i den ordinarie agendan.
+6. Matchbänken visar tre huvudval och samlar återstående verktyg i en utvecklingsbar del. Aktuella order och senaste beslut visas tillsammans med befintliga observationer och spelarbudskap. Samtliga tidigare verktyg, pausregler, återkoppling, kameror och den gemensamma matchmotorn finns kvar.
+7. Kontoret kan gå till nästa verkliga vägval eller en dag i taget. Kalenderns befintliga stopp, medicinska gränser, matchdatum och obligatoriska svar gäller. Efter framflyttning återkommer spelaren till samma karriärs kontor med stopporsaken. Rapporter samlas efter ämne, obligatoriska svar visas först och rutininfo kan uttryckligen markeras läst utan att något beslut besvaras. En rutinuppgift kan senareläggas med den befintliga agendan utan att slutföras.
+
+## Auktoriteter och sparning
+
+`career-projects.js` lagrar endast planeringsmetadata och frysta utdrag ur faktiskt avslutade matchrapporter. Matchmotorn, kalendern, scoutjobben och förhandlingarna är fortsatt auktoriteter. `player-cases.js` är en läsmodell och kontrollerade ingångar till befintliga sociala handlingar. `coach-rooms.js` äger presentation, kontextpanel och läsning av rapportgrupper.
+
+Nya uppgifter är valfria i äldre sparfiler. `validateCareerProjects` kontrollerar aktuella och bankade karriäruppgifter, inklusive identiteter, datum, dubbletter, numeriskt matchunderlag och gränser för historik. Träningsmatchens personliga fokus har en uttrycklig typ i den befintliga matchberättelsens validering. Projektarkiv är begränsade; spelarnas befintliga journal bevarar beslut över säsongsbyten.
+
+## Verifiering
+
+`connected-career.test.cjs` kontrollerar återställd åtkomst, read-only-vyer, faktisk användning och låsta platser, en fullständig träningsmatch för alla tre testtyper, bibehållna tävlingslöften, prissatt scoutjobb, verklig förhandling och registrering, spelarbeslut exakt en gång, rapportkvittens, kalenderstopp, sparning och felaktiga data.
+
+Den utökade Electron-kontrollen följer samma första vecka genom de verkliga knapparna: kontor, spelare, testplaner, ett betalt scoutuppdrag, individuellt samtalslöfte, planerad träning, full match, frysta testresultat, återkoppling och omstart. Både stora desktopfönster och mobil bredd kontrolleras. Matchmotor- och karriärregressionerna körs som tidigare. Ingen ny Windows-installationsfil byggs för denna uppdatering.

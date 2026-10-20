@@ -226,7 +226,7 @@ const ClubhouseScene=(()=>{
    button.setAttribute('aria-label',p.name+' · '+(p.presence.present?p.attention||p.mood.text:p.presence.label));button.setAttribute('aria-pressed',String(samePlayerId(p.id,clubhouseUI.player)));
    const name=document.createElement('strong');name.textContent=String(p.number);const small=document.createElement('small');small.textContent=p.name+' · '+(p.presence.present?(p.captain?'C · ':'')+p.pos:p.presence.label);
    const reaction=c.model.reactions?.find(r=>samePlayerId(r.id,p.id));if(reaction)small.textContent=p.name+' · '+(reaction.effect>0?'Tog till sig orden':reaction.effect<0?'Tveksam reaktion':'Lyssnar');
-   const span=document.createElement('span');span.append(name,small);const dot=document.createElement('span');dot.className='ch-dot';dot.setAttribute('aria-hidden','true');button.append(dot,span);button.addEventListener('click',()=>c.model.matchRoom?coachJourneySelect(p.id):clubhouseSelect(p.id));root?.append(button);
+   const span=document.createElement('span');span.append(name,small);const dot=document.createElement('span');dot.className='ch-dot';dot.setAttribute('aria-hidden','true');button.append(dot,span);button.addEventListener('click',()=>c.model.matchRoom?coachJourneySelect(p.id):c.model.coachRoom?coachRoomSelect(p.id):clubhouseSelect(p.id));root?.append(button);
   }
  }
  function project(c){
@@ -268,7 +268,7 @@ const ClubhouseScene=(()=>{
  function fallback(error){
   const status=document.getElementById('clubhouse-render-status');if(status){status.textContent='3D stöds inte här. Alla rum och handlingar går fortfarande att använda.';status.classList.add('ch-fallback-message');}
   document.getElementById('clubhouse-stage')?.classList.add('ch-fallback');
-  const root=document.getElementById('clubhouse-hotspots');if(clubhouseRoomForPage()==='locker'&&root){for(const p of managerRoster()){const b=document.createElement('button');b.className='ch-hotspot';b.textContent=p.name;b.addEventListener('click',()=>clubhouseSelect(p.id));root.append(b);}}
+  const root=document.getElementById('clubhouse-hotspots');if(clubhouseRoomForPage()==='locker'&&root){for(const p of managerRoster()){const b=document.createElement('button');b.className='ch-hotspot';b.textContent=p.name;b.addEventListener('click',()=>typeof coachRoomEnabled==='function'&&coachRoomEnabled()?coachRoomSelect(p.id):clubhouseSelect(p.id));root.append(b);}}
   if(error)console.warn('Klubbhusets 3D kunde inte startas:',error.message);
  }
  function mount(canvas,model,appearance){

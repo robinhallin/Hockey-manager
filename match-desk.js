@@ -14,16 +14,16 @@ function matchDeskContent(){
  if(tab==='events')return matchDeskEvents();
  if(tab==='analysis')return matchDeskAnalysis();
  if(m.finished)return matchFeedbackView();
- if(m.running&&!matchReadOnlyTab())return `<div class="mc-follow">${matchEvidenceView()}<p class="mc-note">Öppna ett coachval för att pausa och ändra. Statistik, istid, händelser och avslut kan följas under spel.</p></div>`;
+ if(m.running&&!matchReadOnlyTab()&&!(typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()&&tab==='feedback'))return `<div class="mc-follow">${matchEvidenceView()}<p class="mc-note">Öppna ett coachval för att pausa och ändra. Statistik, istid, händelser och avslut kan följas under spel.</p></div>`;
  if(tab==='settings')return matchPreferencesView();
  if(tab==='tactics')return matchOrdersView();
  if(tab==='lineup')return lineupBoardView()+tacticalReviewView(tacticalReviewSnapshot());
  if(tab==='changes')return matchChangesView()+tacticalReviewView(tacticalReviewSnapshot());
- return matchFeedbackView();
+ return typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()?connectedMatchOverview():matchFeedbackView();
 }
 function matchDeskCoachView(){
  const m=state.live,tabs=matchDeskTabs();if(!tabs.some(([key])=>key===matchDesk.tab))matchDesk.tab='feedback';
- return `<aside class="mc-coach" aria-label="Coachbänken"><header><div><span class="career-eyebrow">${trainingSafe(managerClub())} · COACHBÄNKEN</span><h2>${m.finished?'Efter slutsignalen':m.running?'Följ matchen':'Ditt nästa beslut'}</h2></div><span class="md-coach-state">${m.finished?'Avslutad':m.running?'Spelet pågår':'Matchen pausad'}</span></header><nav class="mc-tabs" aria-label="Coachval">${tabs.map(([key,label])=>`<button id="match-tab-${key}" onclick="matchTab('${key}')" aria-pressed="${matchDesk.tab===key}">${label}</button>`).join('')}</nav><div class="mc-coach-content" data-scroll-key="match-coach" data-match-panel="${matchDesk.tab}" tabindex="0" aria-label="${tabs.find(([key])=>key===matchDesk.tab)[1]}">${matchDesk.notice?`<p class="mc-response" role="status">${trainingSafe(matchDesk.notice)}</p>`:''}${matchDeskContent()}</div><footer>${m.finished?'Matchrapporten samlar lagets prestation och matchens utfall.':'Coachbeslut pausar matchen. Fortsätt med knappen överst.'}</footer></aside>`;
+ return `<aside class="mc-coach" aria-label="Coachbänken"><header><div><span class="career-eyebrow">${trainingSafe(managerClub())} · COACHBÄNKEN</span><h2>${m.finished?'Efter slutsignalen':m.running?'Följ matchen':'Ditt nästa beslut'}</h2></div><span class="md-coach-state">${m.finished?'Avslutad':m.running?'Spelet pågår':'Matchen pausad'}</span></header>${typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()?connectedMatchTabs(tabs):`<nav class="mc-tabs" aria-label="Coachval">${tabs.map(([key,label])=>`<button id="match-tab-${key}" onclick="matchTab('${key}')" aria-pressed="${matchDesk.tab===key}">${label}</button>`).join('')}</nav>`}<div class="mc-coach-content" data-scroll-key="match-coach" data-match-panel="${matchDesk.tab}" tabindex="0" aria-label="${tabs.find(([key])=>key===matchDesk.tab)[1]}">${matchDesk.notice?`<p class="mc-response" role="status">${trainingSafe(matchDesk.notice)}</p>`:''}${matchDeskContent()}</div><footer>${m.finished?'Matchrapporten samlar lagets prestation och matchens utfall.':'Coachbeslut pausar matchen. Fortsätt med knappen överst.'}</footer></aside>`;
 }
 function matchDeskIceHeading(){
  const m=state.live,e=studioActive()?studioEngine():null,t=e?.teams[0];

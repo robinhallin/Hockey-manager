@@ -93,7 +93,7 @@ function clubhouseWorldView(html){
 const clubhouseClassicWrap=clubhouseWrap;
 clubhouseWrap=function(html){return clubhouseAvailable()&&clubhouseEnabled()&&state.page!=='match'?clubhouseWorldView(html):clubhouseClassicWrap(html);};
 function clubhouseRender(content,html){
- if(typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()){content.innerHTML=coachWorkspaceWrap(html);return;}
+ if(typeof coachWorkspaceEnabled==='function'&&coachWorkspaceEnabled()){const old=document.getElementById('clubhouse-stage');content.innerHTML=coachWorkspaceWrap(html);const next=document.getElementById('clubhouse-stage');if(old?.dataset?.sceneKey&&old.dataset.sceneKey===next?.dataset?.sceneKey&&typeof next.replaceWith==='function')next.replaceWith(old);return;}
  const immersive=clubhouseAvailable()&&clubhouseEnabled()&&state.page!=='match';
  const oldStage=typeof window!=='undefined'?document.getElementById('clubhouse-stage'):null;
  const key=immersive?clubhouseSceneKey(clubhouseModel(),clubhouseAppearanceData()):null;
