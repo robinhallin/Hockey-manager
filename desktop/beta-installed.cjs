@@ -5,7 +5,7 @@ assert.equal(process.env.CI,'true','Only disposable CI runners may use this test
 assert.ok(process.env.HM_TEST_EXE,'An installed executable is required');
 const phase=process.argv[2],out=path.join(__dirname,'test-results');
 assert.ok(['clean','baseline','upgrade'].includes(phase));fs.mkdirSync(out,{recursive:true});
-const fingerprint=()=>({club:managerClub(),date:state.calendar.date,money:state.money,round:state.round,roster:managerRoster().map(p=>[String(p.id),p.salary,p.contractYears]),lines:state.lines});
+const fingerprint=()=>({club:managerClub(),date:state.calendar.date,money:state.money,round:state.round,roster:managerRoster().map(p=>[String(p.id),p.salary,p.contractYears]),lines:state.lines||null});
 (async()=>{
  let app,page;const errors=[];
  try{
@@ -14,7 +14,8 @@ const fingerprint=()=>({club:managerClub(),date:state.calendar.date,money:state.
   await page.waitForFunction(()=>typeof state!=='undefined'&&!!window.hockeyDesktop);
   if(phase==='baseline'){
    assert.equal(await page.evaluate(()=>window.hockeyDesktop.version),'0.1.0-beta.7');
-   await page.evaluate(()=>{startCareerWithClub('HV71');state.money+=123;save();});
+   await page.evaluate(()=>{startCareerWithClub('HV71');ensureLines();state.money+=123;save();});
+   assert.ok((await page.evaluate(fingerprint)).lines,'baseline must include a real lineup');
    fs.writeFileSync(path.join(out,'upgrade-baseline.json'),JSON.stringify(await page.evaluate(fingerprint)));
   }else{
    assert.equal(await page.evaluate(()=>window.hockeyDesktop.version),require('./package.json').version);
@@ -32,6 +33,8 @@ const fingerprint=()=>({club:managerClub(),date:state.calendar.date,money:state.
     await page.evaluate(()=>{preseasonConfigure('balanced','manager','rotation','assistant','assistant');clubhouseGo('office');});
     await page.getByRole('button',{name:/Kom igång: din första vecka/}).click();
     await page.getByRole('region',{name:'Kom igång med din första vecka'}).waitFor();
+    assert.equal(await page.evaluate(()=>clubhousePreference('mode','living')),'living','introduction stays in the room theme');
+    await page.screenshot({path:path.join(out,'beta-first-week.png'),fullPage:true});
     await page.getByRole('button',{name:'1. Kontrollera kedjor & matchplan →',exact:true}).click();
     await page.evaluate(()=>deskNavigate('settings'));
     await page.getByText('Rapportera ett problem',{exact:true}).click();

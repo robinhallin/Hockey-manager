@@ -15,7 +15,7 @@ Betan saknar kodsignering och automatisk uppdatering. Vid en Windows-varning: no
 
 ## Din första spelvecka
 
-Spelet öppnas i klubbhuset. **Kom igång: din första vecka** på kontoret öppnar introduktionen i Tränaröversikten, som också nås via **Alla områden**. **Besök klubbhuset** tar dig tillbaka till rummen: kontor, trupp, taktik, utveckling, rekrytering, klubb och värld. Klicka på en station för att arbeta där. Att besöka ett rum gör inte jobbet automatiskt: träning och utveckling sker när kalendern går vidare.
+Spelet öppnas i klubbhuset. **Kom igång: din första vecka** på kontoret öppnar introduktionen i rummets hjälpvy. Därifrån går du direkt till rätt arbete utan att byta gränssnitt. Klubbhusets rum är: kontor, trupp, taktik, utveckling, rekrytering, klubb och värld. Klicka på en station för att arbeta där. Att besöka ett rum gör inte jobbet automatiskt: träning och utveckling sker när kalendern går vidare.
 
 1. **Taktik → Kedjor & matchplan:** kontrollera spelklara spelare, målvakt, kedjor och special teams.
 2. **Truppen → Träning:** planera belastning och återhämtning. Kalendern visar när nästa match spelas.

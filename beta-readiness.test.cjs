@@ -1,10 +1,10 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {boot}=require('./scripts/career-test-fixture.cjs');
-test('all-areas menu remains available while working and offers a route back to coach view',()=>{
+test('all-areas menu remains available while working without restoring retired view-switch controls',()=>{
  const r=boot(null,{production:true}).run;r("startCareerWithClub('HV71');clubhouseUI.areas=true;state.page='squad'");
  assert.match(r("roomWorkSurface('test',clubhouseModel())"),/aria-label="Klubbhusets områden"/);
- assert.match(r('clubhouseThemeAreas()'),/coachWorkspaceEnter/);
+ assert.doesNotMatch(r('clubhouseThemeAreas()'),/coachWorkspaceEnter/);
 });
 test('production contract summary excludes loans and blocks renewals without changing a contract',()=>{
  const r=boot(null,{production:true}).run;r("startCareerWithClub('HV71')");
@@ -28,6 +28,11 @@ test('first-week guide is optional, read-only and does not pretend work has been
  const before=r('JSON.stringify(state)');
  assert.match(r('betaFirstWeekView()'),/Kontrollera kedjor/);assert.equal(r('JSON.stringify(state)'),before);
  r('betaFirstWeekDismiss()');assert.equal(r('betaFirstWeekView()'),'');assert.equal(r('JSON.stringify(state)'),before);
+});
+test('first-week entry stays inside the living room presentation',()=>{
+ const r=boot(null,{production:true}).run;r("startCareerWithClub('HV71');globalThis.window={};clubhouseGo('office');betaFirstWeekOpen()");
+ assert.equal(r("clubhousePreference('mode','')"),'living');assert.equal(r('state.page'),'settings');
+ assert.equal(r('state.calendar.date'),'2026-08-01');assert.match(r('betaSupportView()'),/Kom igång med din första vecka/);
 });
 test('release identity and guide use one beta version and current 2D scope',()=>{
  const version=require('./desktop/package.json').version,r=boot().run;
