@@ -35,3 +35,8 @@ test('tactical explanations expose strengths and weaknesses without changing eng
 test('malformed plan and history data are rejected on exported save import',()=>{
  const {run:r}=setup();r("clubPlanSet(p.id,'retain',clubDecisionContext());clubDecisionStore().plans[0].baseline.salary=-1");assert.throws(()=>r('validateSaveText(saveExportText())'),/truppplan|ärendehistorik/);
 });
+test('a postponed planning case remains actionable and can be restored from waiting',()=>{
+ const {run:r}=setup();r("globalThis.item=managerAgendaItems().find(i=>!i.requiresDecision&&i.level!=='critical');globalThis.id=item.id;managerAgendaSnooze(id,3);clubDecisionFilter('waiting')");
+ assert.match(r('clubDecisionDailyView()'),/Visa nu/);assert.ok(r('clubDecisionCases().find(c=>c.items.some(i=>i.id===id)).items.some(i=>i.deferred)'));
+ r('managerAgendaSnooze(id,0)');assert.equal(r('managerAgendaItems().find(i=>i.id===id).deferred'),false);
+});

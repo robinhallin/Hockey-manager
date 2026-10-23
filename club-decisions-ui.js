@@ -3,6 +3,7 @@
 
 const clubDepthAgendaView=managerAgendaView;
 managerAgendaView=function(){return clubDecisionDailyView();};
+managerOpenAgenda=clubDecisionOpen;
 const clubDepthOverview=overviewWorkspaceView;
 overviewWorkspaceView=function(){return clubhouseEnabled()&&overviewUI.stories&&!overviewUI.press?storiesView():clubDepthOverview();};
 const clubDepthSystemsDay=managerSystemsDay;

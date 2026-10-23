@@ -7,9 +7,10 @@ async function checkManagerSystems(page){
  await page.getByRole('combobox',{name:'Ansvar för Juniorernas träning',exact:true}).selectOption('execute');
  assert.equal(await page.evaluate(()=>state.juniors.assistantOwner),'assistant');
  await page.evaluate(()=>managerOpenAgenda());
- await page.getByRole('heading',{name:'Din beslutslista',exact:true}).waitFor();
+ await page.getByRole('heading',{name:'Ditt arbete i klubben',exact:true}).waitFor();
+ await page.getByRole('button',{name:/^Planera [0-9]/}).click();
  const reminder=page.getByRole('button',{name:'Påminn om tre dagar',exact:true}).first();
- if(await reminder.count()){await reminder.click();await page.getByRole('button',{name:'Visa nu',exact:true}).first().click();}
+ if(await reminder.count()){await reminder.click();await page.getByRole('button',{name:/^Väntar på [0-9]/}).click();await page.getByRole('button',{name:'Visa nu',exact:true}).first().click();}
  await page.evaluate(()=>{const p=managerRoster().find(p=>p.pos==='C');setDevelopmentRolePlan(p.id,'creator');developmentOpenPlan(p.id)});
  assert.equal(await page.evaluate(()=>managerRoster().find(p=>p.pos==='C').developmentReview.version),2);
  await page.evaluate(()=>deskNavigate('transfers','needs'));
