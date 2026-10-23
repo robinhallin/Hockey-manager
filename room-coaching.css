@@ -1,0 +1,58 @@
+/* Interactive work stays inside the oak / navy clubhouse shell. */
+.rc-person-call{position:absolute;left:22px;top:82px;z-index:2;display:flex;align-items:center;gap:12px;max-width:min(330px,calc(100% - 44px));padding:12px 15px;border:1px solid #af9659;border-radius:4px;background:#102334f2;color:#f0d17d;text-align:left;font:inherit;cursor:pointer;box-shadow:0 8px 25px #0005}
+.rc-person-call .ct-icon{width:22px;height:22px}.rc-person-call strong{display:block;font-size:12px}.rc-person-call small{display:block;font-size:10px;line-height:1.5;color:#becdd9;margin-top:4px}
+.rc-person-call:focus-visible,.rc-route button:focus-visible{outline:3px solid #f0d17d;outline-offset:3px}
+.rc-work-header{position:absolute;inset:16px 18px auto;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:11px 14px;background:#0a1d2ef0;border:1px solid #a18c52;border-radius:4px;color:#e6c15f;font-size:10px;letter-spacing:.06em}
+.rc-work-header>span{display:flex;align-items:center;gap:10px}.rc-work-header .ct-icon{width:17px;height:17px}.rc-work-header>button{font:inherit;font-size:11px;color:#dce7ef;background:#183044;border:1px solid #647684;border-radius:3px;padding:8px 12px;cursor:pointer;letter-spacing:0}
+.rc-work-surface{position:absolute;inset:83px 18px 18px;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#50697b #102334;background:#102334f7;border:1px solid #796c4e;border-radius:4px;padding:0 20px 22px;box-shadow:0 8px 35px #0006}
+.rc-scene .cr-environment{filter:brightness(.7)}
+.rc-route{display:flex;gap:3px;align-items:stretch;border-bottom:1px solid #43586a;padding:10px 0;margin-bottom:12px;min-width:0}
+.rc-route button{flex:1;min-width:0;background:none;border:0;border-bottom:2px solid transparent;padding:10px 3px;color:#b8cbd9;font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+.rc-route button[aria-current=step]{color:#f0d17d;border-color:#e6c15f}.rc-route button:disabled{opacity:.4;cursor:default}
+body .game-shell .rc-brief h1,body .game-shell .rc-analysis h1{font-size:28px;line-height:1.25;color:#f3f5f5;letter-spacing:-.03em;margin:14px 0 18px}
+.rc-brief>p,.rc-analysis>p{font-size:12px;line-height:1.8;color:#bacbd9;margin:12px 0}.rc-brief-options{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:22px 0}
+.rc-brief-options article{padding:20px;border:1px solid #40596d;border-radius:4px;background:#183044;display:flex;flex-direction:column;gap:12px}.rc-brief-options article.selected{border-color:#e6c15f;background:#2b3b42}
+body .game-shell .rc-brief-options h2{font-size:16px;line-height:1.4;color:#eef2f5;margin:0}.rc-brief-options p{font-size:12px;line-height:1.8;color:#bacbd9;margin:0 0 8px;flex:1}.rc-brief-options .cr-action{margin:0}
+.rc-match-card{border-bottom:1px solid #34495b;padding-bottom:12px;margin-bottom:20px}
+.rc-initiatives{margin:22px 0}body .game-shell .rc-initiatives>h2,body .game-shell .rc-changes>h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#d4bd8c;margin:0 0 14px}
+.rc-meeting>p,.rc-changes p,.rc-followups p{font-size:12px;line-height:1.8;color:#b8cbd9;margin:12px 0 18px}.rc-meeting>h2{font-size:22px;color:#eef3f5;line-height:1.3;margin:16px 0}.rc-meeting .rc-due{color:#e6c15f;font-size:11px}
+.rc-followups{border-top:1px solid #34495b;margin:20px 0;padding-top:16px}.rc-followups summary{font-size:11px;color:#c9d6df;cursor:pointer}.rc-followups article{padding:15px 0;border-bottom:1px solid #34495b}.rc-followups small{display:block;font-size:9px;color:#9cb5c8}.rc-followups strong{display:block;font-size:12px;color:#ecf1f5;margin-top:6px}.rc-followups p{font-size:11px;margin:7px 0}
+.rc-changes{margin:0 0 22px}.rc-changes article{padding:12px 0;border-bottom:1px solid #34495b}.rc-changes article strong{font-size:10px;color:#e6c15f;display:block}.rc-changes article span{font-size:11px;line-height:1.7;color:#dce7ef;display:block;margin-top:6px}
+.rc-work-aside .personal-match-dilemma{padding:0;border:0;background:none}.rc-work-aside .pm-options{display:block}.rc-work-aside .pm-options article{margin-top:14px;padding:14px}.rc-work-aside .personal-match-dilemma h3{font-size:15px}.rc-work-aside .personal-match-dilemma p{font-size:11px;line-height:1.8}.rc-work-aside .pm-options button{max-width:100%;white-space:normal}.rc-work-aside .star-rating{font-size:13px}
+/* Existing tactical controls keep their command handlers and undo history. */
+body .game-shell .rc-work-surface .cj-board-caption{display:none}
+body .game-shell .rc-work-surface .tactics-workspace{--tw-accent:#e6c15f;max-width:none;background:none}
+body .game-shell .rc-work-surface .tactics-workspace .tw-heading{flex-wrap:wrap;gap:10px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-heading h1{font-size:25px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-heading label{font-size:10px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-heading select{min-width:170px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-navigation{flex-wrap:wrap}
+body .game-shell .rc-work-surface .tactics-workspace .tw-navigation nav{flex-wrap:wrap;gap:0}
+body .game-shell .rc-work-surface .tactics-workspace .tw-navigation nav button{padding:11px 13px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-toolbar{flex-wrap:wrap}
+body .game-shell .rc-work-surface .tactics-workspace .tw-toolbar p{flex-basis:100%}
+body .game-shell .rc-work-surface .tactics-workspace .tw-board{grid-template-columns:1fr}
+body .game-shell .rc-work-surface .tactics-workspace .tw-defense{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-defense .tw-section-title{grid-column:1/-1}
+body .game-shell .rc-work-surface .tactics-workspace .tw-line{grid-template-columns:28px repeat(3,minmax(0,1fr)) 110px;gap:8px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-card{height:82px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-pick strong{font-size:12px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-inspector{grid-template-columns:1fr 1fr;gap:16px;padding:15px;min-width:0}
+body .game-shell .rc-work-surface .tactics-workspace .tw-advice{grid-column:1/-1}
+body .game-shell .rc-work-surface .tactics-workspace .tw-attributes{padding-left:16px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-builder{grid-template-columns:110px minmax(0,1fr);height:auto}
+body .game-shell .rc-work-surface .tactics-workspace .tw-builder .tw-candidates{grid-column:1/-1;height:330px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-rink-panel{min-height:390px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-special-card .tw-pick strong{font-size:11px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-special-card .tw-card-top>span{font-size:8px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-drawer{position:sticky;top:0;width:100%;height:400px;margin:12px 0}
+.rc-analysis{color:#dce7ef}.rc-analysis .mw-panel,.rc-analysis .personal-match-result{background:#183044;border:1px solid #40596d;border-radius:4px;padding:18px;margin:18px 0;font-size:12px;line-height:1.8}.rc-analysis .analysis-scroll{max-width:100%;overflow:auto}.rc-analysis table{min-width:650px}.rc-analysis>details{margin:24px 0}
+@media(max-width:800px){.rc-scene{height:calc(100vh - 145px);min-height:620px}.rc-work-header{inset:10px 10px auto;padding:9px}.rc-work-header>span{font-size:9px}.rc-work-header>button{font-size:10px;padding:8px}.rc-work-surface{inset:70px 10px 10px;padding:0 12px 16px}.rc-person-call{left:15px;top:70px;padding:10px;max-width:calc(100% - 30px)}.rc-person-call strong{font-size:11px}.rc-person-call small{font-size:9px}.rc-brief-options{grid-template-columns:1fr}.rc-route button{font-size:9px}.rc-brief-options article{padding:15px}body .game-shell .rc-work-surface .tactics-workspace .tw-heading select{min-width:0;max-width:180px}body .game-shell .rc-work-surface .tactics-workspace .tw-line{grid-template-columns:20px repeat(3,minmax(0,1fr));gap:4px}body .game-shell .rc-work-surface .tactics-workspace .tw-chemistry{grid-column:2/-1}body .game-shell .rc-work-surface .tactics-workspace .tw-defense{grid-template-columns:1fr}body .game-shell .rc-work-surface .tactics-workspace .tw-pick strong{font-size:10px}body .game-shell .rc-work-surface .tactics-workspace .tw-inspector{grid-template-columns:1fr}body .game-shell .rc-work-surface .tactics-workspace .tw-builder{grid-template-columns:1fr}body .game-shell .rc-work-surface .tactics-workspace .tw-rink-panel{min-height:380px}}
+
+body .game-shell .rc-work-surface .tactics-workspace .tw-chemistry{gap:8px;min-width:0}
+body .game-shell .rc-work-surface .tactics-workspace .tw-chemistry .chemistry{min-width:38px;max-width:64px;text-align:center}
+body .game-shell .rc-work-surface .tactics-workspace .tw-chemistry small{font-size:8px;white-space:normal}
+body .game-shell .rc-work-surface .tactics-workspace .tw-unit{display:block;padding:10px 8px}
+body .game-shell .rc-work-surface .tactics-workspace .tw-unit strong{display:block;white-space:nowrap}
+body .game-shell .rc-work-surface .tactics-workspace .tw-unit span{display:block;font-size:9px;margin:4px 0}
+@media(max-width:800px){.rc-person-call{top:15px;left:auto;right:15px;width:175px;max-width:calc(100% - 165px);min-height:42px;gap:7px;padding:9px}.rc-person-call .ct-icon{width:15px;height:15px;flex:none}.rc-person-call>span{min-width:0}.rc-person-call strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rc-person-call small{display:none}}

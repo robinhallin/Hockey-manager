@@ -28,5 +28,5 @@ test('retired live rooms cannot return; actual conversations keep their cooldown
 });
 test('the theme match button uses the real fixture and existing match-day route',()=>{
  const {run:r}=setup();r("state.calendar.date=calendarTarget();globalThis.date=state.calendar.date;");
- assert.equal(r('clubhouseThemeContinue()'),true);assert.equal(r('state.live.friendly'),true);assert.equal(r('state.page'),'match');assert.equal(r('coachJourneyStage()'),'locker');assert.equal(r('state.calendar.date'),r('date'));
+ assert.equal(r('clubhouseThemeContinue()'),true);assert.equal(r('roomCoachUI.step'),'brief');assert.equal(r('state.live'),null);r("roomCoachMatchStep('lineup');roomCoachMatchStep('locker')");assert.equal(r('state.live.friendly'),true);assert.equal(r('state.page'),'match');assert.equal(r('coachJourneyStage()'),'locker');assert.equal(r('state.calendar.date'),r('date'));
 });
