@@ -98,6 +98,23 @@ clubhouseReturn=function(){
  if(target&&clubhouseIsRoom()&&clubhouseRoomsKey()===target.room)document.getElementById('room-station-'+target.room+'-'+target.station)?.focus?.({preventScroll:true});
  return result;
 };
+// A profile opened from the magnets also returns to that exact board through
+// the profile's own Back button and browser history, including its comparison.
+const roomWorkSnapshot=deskSnapshot;
+deskSnapshot=function(){
+ const view=roomWorkSnapshot();
+ if(clubhouseIsRoom()&&roomCoachUI.owner===state&&(roomCoachUI.board||roomCoachUI.step))view.roomWork={club:managerClub(),date:state.calendar.date,room:clubhouseUI.room,hub:clubhouseRoomsUI.hub,station:clubhouseRoomsUI.station,coaching:{board:roomCoachUI.board,step:roomCoachUI.step,before:roomCoachUI.before,report:roomCoachUI.report}};
+ return view;
+};
+const roomWorkRestore=deskRestore;
+deskRestore=function(view){
+ const result=roomWorkRestore(view),saved=view?.roomWork;
+ if(saved&&saved.club===managerClub()&&saved.date===state.calendar.date&&clubhouseAvailable()&&['home','locker'].includes(state.page)){
+  Object.assign(clubhouseUI,{room:saved.room,work:false,player:null,origin:null});clubhouseRoomsSync();
+  Object.assign(clubhouseRoomsUI,{hub:saved.hub,station:saved.station});roomCoachSync();Object.assign(roomCoachUI,saved.coaching);render();
+ }
+ return result;
+};
 // Keep the outer work scroll while filters, selections and confirmations rerender.
 const roomWorkRender=render;
 render=function(){

@@ -22,6 +22,12 @@ module.exports=async function checkUnifiedWorkspaces(page,out){
   }
  }
  assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.live,state.training.history,state.lines,state.specialTeams])),before,'opening all 21 tools never advances the career');
+ await nav().getByRole('button',{name:'Taktik',exact:true}).click();await page.locator('#room-station-tactics-board').click();
+ const board=await page.evaluate(()=>JSON.stringify(roomCoachUI.before));
+ await page.getByRole('button',{name:'Öppna spelarprofil',exact:true}).click();
+ await page.getByRole('button',{name:'Till arbetet',exact:true}).click();
+ await page.waitForFunction(()=>clubhouseIsRoom()&&roomCoachUI.board);
+ assert.equal(await page.evaluate(()=>JSON.stringify(roomCoachUI.before)),board);
  // Exercise retained sorting and filters in the new shell, with a real profile return.
  await nav().getByRole('button',{name:'Truppen',exact:true}).click();await page.locator('#room-station-locker-team').click();
  const roster=await page.locator('#squad-table-scroll').boundingBox();assert.ok(roster.height>=240);

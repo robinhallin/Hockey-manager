@@ -35,3 +35,8 @@ test('club following keeps the chosen club and names the action before it change
  assert.equal(r("worldWatchToggle('club','Färjestad BK')"),true);assert.match(r('worldWatchNewsView()'),/Sluta följa klubben/);assert.match(r('worldWatchNewsView()'),/value="Färjestad BK" selected/);
  const loaded=boot(a.storage.value,{production:true});assert.equal(loaded.run("worldWatchStore().clubs.includes('Färjestad BK')"),true);
 });
+test('profile and browser history restore the in-room magnets and their actual comparison',()=>{
+ const {run:r}=setup();r("clubhouseRoomsVisit('tactics');roomWorkStation('board',clubhouseRoomsUI.token);tacticsPick('forwards',0);tacticsPick('forwards',3);globalThis.before=JSON.stringify(roomCoachUI.before);globalThis.view=deskSnapshot();deskOpenPlayer(state.lines.forwards[0]);deskBack('squad')");
+ assert.equal(r('state.page'),'home');assert.equal(r('clubhouseRoomsKey()'),'tactics');assert.equal(r('roomCoachUI.board'),true);assert.equal(r('JSON.stringify(roomCoachUI.before)'),r('before'));assert.match(r('roomCoachChanges()'),/2 platser ändrade/);
+ r("deskOpenPlayer(state.lines.forwards[0]);deskRestore(view)");assert.equal(r('roomCoachUI.board'),true);assert.equal(r('JSON.stringify(roomCoachUI.before)'),r('before'));
+});
