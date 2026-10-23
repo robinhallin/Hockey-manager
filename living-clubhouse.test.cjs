@@ -8,7 +8,7 @@ test('the default clubhouse uses the actual club and full roster without simulat
 });
 test('walking between three rooms and opening workspaces preserves time, cash, selection and promises',()=>{
  const {run:r}=setup();r('ensureLines();globalThis.before=JSON.stringify([state.calendar,state.money,state.lines,state.locker,state.training.promises]);clubhouseGo("locker");clubhouseGo("ice");clubhouseOpen("lines");');
- assert.equal(r('state.page'),'lines');assert.match(r('clubhouseWrap("TACTICS")'),/Tillbaka till träningshallen/);r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'ice');
+ assert.equal(r('state.page'),'lines');assert.match(r('clubhouseWrap("TACTICS")'),/Tillbaka till utvecklingscentret/);assert.equal(r('clubhouseUI.origin.room'),'ice');r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),'ice');
  assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,state.locker,state.training.promises])'),r('before'));assert.equal(r('clubhouseGo("unknown")'),false);
 });
 test('selecting a real player is read-only and names/concerns/absence use career evidence',()=>{
@@ -37,10 +37,10 @@ test('classic mode, expanded press/stories and navigation retain all existing sc
 test('appearance changes are cosmetic, validate choices and survive on this device',()=>{
  const {run:r}=setup();r('globalThis.before=JSON.stringify(state)');assert.equal(r('clubhouseAppearance("skin","dark")'),true);assert.equal(r('clubhouseAppearanceData().skin'),'dark');assert.equal(r('clubhouseAppearance("outfit","tracksuit")'),true);assert.equal(r('clubhouseAppearance("skin","invalid")'),false);assert.equal(r('JSON.stringify(state)'),r('before'));
 });
-test('six permanent rooms and all work routes retain the same career and a way home',()=>{
+test('work tools use their mapped rooms and return to the originating room without changing the career',()=>{
  const {run:r}=setup();r('ensureLines();globalThis.before=JSON.stringify([state.calendar,state.money,state.lines,state.training.promises]);');
- for(const [room,page] of [['office','squad'],['locker','lines'],['ice','training'],['recruit','transfers'],['boardroom','finance'],['world','leagues']]){
-  r(`clubhouseGo('${room}');clubhouseOpen('${page}')`);assert.equal(r('clubhouseRoomForPage()'),room);assert.match(r('clubhouseWrap("REAL-WORK")'),/ch-work-dialog[\s\S]*REAL-WORK/);assert.equal(r('clubhouseEnabled()'),true);
+ for(const [room,page,workroom] of [['office','squad','locker'],['locker','lines','tactics'],['ice','training','ice'],['recruit','transfers','recruit'],['boardroom','finance','boardroom'],['world','leagues','world']]){
+  r(`clubhouseGo('${room}');clubhouseOpen('${page}')`);assert.equal(r('clubhouseRoomForPage()'),workroom);assert.equal(r('clubhouseUI.origin.room'),room);assert.match(r('clubhouseWrap("REAL-WORK")'),/ch-work-dialog[\s\S]*REAL-WORK/);assert.equal(r('clubhouseEnabled()'),true);
   r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),room);assert.equal(r('clubhouseIsRoom()'),true);assert.doesNotMatch(r('clubhouseWrap("WORK")'),/ch-work-dialog/);
  }
  assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,state.training.promises])'),r('before'));
