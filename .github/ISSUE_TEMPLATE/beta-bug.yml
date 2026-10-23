@@ -1,0 +1,43 @@
+name: Betafel
+description: Rapportera ett reproducerbart fel i Hockey Manager.
+title: "[Beta] "
+body:
+  - type: markdown
+    attributes:
+      value: "Tack för hjälpen! Rapporten är offentlig. Undvik personuppgifter. Bifoga gärna exporterad felrapport; dela en sparfil bara om du själv vill. Inga filer skickas från spelet automatiskt."
+  - type: input
+    id: version
+    attributes:
+      label: Version och bygge
+      description: Kopiera från Sparfiler & inställningar (F1).
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steg för att återskapa
+      placeholder: "1. Öppna …\n2. Klicka …"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Förväntat resultat
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Faktiskt resultat
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Dator och skärm
+      description: Windows-version, skärmupplösning och skalning, eller webbläsare.
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Felrapport och skärmbild (frivilligt)
+      description: Bifoga exporterad felrapport här. Ingen sparfil krävs.

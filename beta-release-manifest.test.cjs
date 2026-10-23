@@ -5,12 +5,14 @@ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'hm-release-'));
 try{
  const version='0.1.0-beta.4',file=`Hockey-Manager-${version}-Windows-x64-Setup.exe`;
  fs.writeFileSync(path.join(dir,file),'test fixture bytes');
- const args={directory:dir,version,revision:'a'.repeat(40),sourceRevision:'b'.repeat(40),tree:'c'.repeat(40),smoke:{version,installed:true,platform:'win32',checks:['save and reload'],errors:[]}};
+ const args={directory:dir,version,revision:'a'.repeat(40),sourceRevision:'b'.repeat(40),tree:'c'.repeat(40),readiness:Object.fromEntries(['clean','rooms','upgrade'].map(key=>[key,{passed:true,version,build:'a'.repeat(40),installed:true,offline:true,errors:[]}])),smoke:{version,build:'a'.repeat(40),installed:true,platform:'win32',checks:['save and reload'],errors:[]}};
  const result=manifest(args);assert.equal(result.bytes,18);assert.match(result.sha256,/^[a-f0-9]{64}$/);assert.equal(result.sourceRevision,args.sourceRevision);
  assert.throws(()=>manifest({...args,smoke:{...args.smoke,installed:false}}),/installer test/);
  assert.throws(()=>manifest({...args,smoke:{...args.smoke,errors:['failure']}}),/errors/);
  assert.throws(()=>manifest({...args,smoke:{...args.smoke,version:'0.1.0-beta.3'}}),/version/);
  assert.throws(()=>manifest({...args,sourceRevision:'main'}),/provenance/);
+ assert.throws(()=>manifest({...args,readiness:undefined}),/evidence/);
+ assert.throws(()=>manifest({...args,smoke:{...args.smoke,build:'b'.repeat(40)}}),/revision/);
  fs.writeFileSync(path.join(dir,'old-Setup.exe'),'old');assert.throws(()=>manifest(args),/Exactly one/);
 }finally{fs.rmSync(dir,{recursive:true,force:true});}
 console.log('PASS: installed Windows evidence, exact version, one installer, source revision and checksum gate');

@@ -80,6 +80,7 @@ if(typeof window!=='undefined'){
 }
 function deskSnapshot(){return {overviewUI:{...overviewUI},workspace:deskWorkspaceContext(),officePanel:officeUI.panel||'today',officeFixtures:officeUI.fixtures,staffReviewTab:staffReviewUI.tab,leagueWorkspaceUI:{...leagueWorkspaceUI},rivalsSelected,clubUI:{...clubUI},matchesUI:{...matchesUI},developmentUI:{...developmentUI},lockerUI:{...lockerUI},squadUI:{...squadUI},recruitHub:{...recruitHub},lineupUI:{...lineupUI,slot:lineupUI.slot?{...lineupUI.slot}:null},specialUI:{...specialUI},profileTab:profileWorkspace.tab,loanPlayer:state.loans?.selected,juniorPlayer:state.juniors?.selected,leagueStats:{...leagueStatsUI},focusDeal:state.recruitment?.focusDeal,feedbackBrief:state.managerFeedback?.selectedBrief,feedbackFilter:state.managerFeedback?.filter,page:state.page,tab:state.recruitment?.tab,player:state.selectedPlayer,market:state.selectedMarketPlayer,lineup:lineupWorkspace,filters:state.recruitment?{...state.recruitment.filters}:null,scroll:document.getElementById('content')?.scrollTop||0,windowScroll:typeof window!=='undefined'?window.scrollY:0,inboxDetail:inboxUI.detail};}
 function deskNavigate(page,tab,record=true){
+ if(page==='settings'&&typeof betaCaptureContext==='function')betaCaptureContext();
  if(typeof clubhouseNavigation==='function')clubhouseNavigation(page);
  if(record)navigationUI.searchOpen=false;
  const overviewSection=['stories','press'].includes(page)?page:null;

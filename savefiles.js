@@ -7,7 +7,7 @@ function downloadUnreadableCareer(){
   a.href=url;a.download='hockey-manager-ursprunglig-sparning.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
  }catch{saveFileNotice='Kunde inte ladda ner originalet. Det ligger kvar i webbläsaren.';render();}
 }
-function showSaveFiles(){if(state.live?.running)pauseMatch();careerScreen='files';render();}
+function showSaveFiles(){betaCaptureContext();if(state.live?.running)pauseMatch();careerScreen='files';render();}
 function saveExportText(){
  if(state.live?.running)pauseMatch();
  return JSON.stringify({format:'hockey-manager-career',formatVersion:1,exportedAt:new Date().toISOString(),career:state},null,0);
