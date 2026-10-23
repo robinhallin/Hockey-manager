@@ -1,0 +1,98 @@
+/* One material and interaction system, from the room to the deepest tool. */
+body .game-shell:has(.ct-world),body .game-shell:has(.cj-match-room),body .game-shell:has(.match-desk){
+ --ui-bg:#091b2a;--ui-panel:#102638;--ui-raised:#173247;--ui-hover:#203c50;--ui-border:#344c5e;
+ --ui-text:#edf2f5;--ui-muted:#b4c5d1;--ui-faint:#96aebe;--ui-link:#ead08b;--ui-accent:#e6c15f;
+ --desk-accent:#e6c15f;--sw-accent:#e6c15f;--accent:#e6c15f;--gold:#e6c15f;--panel:#102638;--bg:#091b2a;--text:#edf2f5;--muted:#b4c5d1;
+}
+body .game-shell #ch-world.rw-world{--rw-line:#3b5263;--rw-gold:#e6c15f;--rw-ink:#edf2f5;--rw-muted:#b4c5d1}
+body .game-shell #ch-world .rw-main{display:block;position:relative;min-height:0;overflow:hidden;padding:18px 22px;background:#0b2030}
+.rw-environment{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.65);pointer-events:none}
+body .game-shell #ch-world .rw-workbench.ct-work{position:relative;inset:auto;margin:0;width:100%;height:100%;max-width:none;max-height:none;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:#0b2030f7;border:1px solid #8e7a4e;border-radius:5px;box-shadow:0 12px 38px #0005;backdrop-filter:blur(12px)}
+.rw-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;flex:none;padding:15px 24px;background:#0a1e2ee6;border-bottom:1px solid var(--rw-line)}
+.rw-eyebrow{display:block;font-size:10px;letter-spacing:.07em;color:#d2bd89}.rw-eyebrow>span{color:#71889a;padding:0 8px}
+body .game-shell .rw-heading h2{font-size:18px;line-height:1.25;color:#eff3f5;margin:5px 0 0;letter-spacing:-.02em}
+.rw-heading h2:focus{outline:none}.rw-heading>nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.rw-heading>nav button{display:flex;align-items:center;gap:9px;min-height:36px;border:1px solid #53697a;background:#183044;color:#e0e9ef;padding:7px 12px;border-radius:3px;font:inherit;font-size:11px;cursor:pointer}.rw-heading .ct-icon{width:15px;height:15px}
+.rw-stations{display:flex;align-items:stretch;gap:0;padding:0 24px;border-bottom:1px solid var(--rw-line);background:#10283a;flex:none}
+.rw-stations>button{display:flex;gap:10px;align-items:center;justify-content:center;border:0;border-bottom:2px solid transparent;background:transparent;color:#b9cbd8;padding:11px 22px;min-height:46px;font:inherit;font-size:12px;cursor:pointer}
+.rw-stations>button[aria-current=page]{border-bottom-color:var(--rw-gold);color:#f2d992;background:#ffffff05}.rw-stations .ct-icon{width:18px;height:18px}
+.rw-tools{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:0 24px;background:#0c2131;border-bottom:1px solid #344c5e;flex:none;min-width:0}
+.rw-feature-tabs{display:flex;gap:20px;align-items:stretch;flex-wrap:wrap;min-width:0}
+.rw-feature-tabs>button{border:0;border-bottom:2px solid transparent;background:none;color:#adbfcc;font:inherit;font-size:11px;padding:12px 0 10px;cursor:pointer;white-space:nowrap}
+.rw-feature-tabs>button[aria-current=page]{color:#ecd08b;border-bottom-color:#b9a16a}
+.rw-search{flex:none;max-width:250px;position:relative;font-size:11px}.rw-search .entity-search{margin:0;border:0;padding:0}.rw-search .entity-search>summary{padding:9px 0;color:#b9cbd8;font-size:11px}
+.rw-search .entity-search[open]{position:absolute;z-index:12;right:0;top:-17px;width:min(680px,calc(100vw - 80px));max-height:60vh;overflow:auto;background:#102b3e;border:1px solid #6f7d7e;padding:16px;box-shadow:0 12px 35px #0007;border-radius:4px}
+body .game-shell #ch-world .rw-workbench .rw-content{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:22px 26px 30px;background:transparent;scrollbar-width:thin;scrollbar-color:#536d7f #102638;color:#edf2f5}
+body .game-shell #ch-world .rw-content>.desk-page{min-width:0;max-width:1800px;margin:0 auto;padding:0;background:transparent}
+.rw-status{display:flex;justify-content:space-between;gap:15px;flex:none;padding:8px 24px;border-top:1px solid #344c5e;background:#0b2030;color:#92aabb;font-size:10px;line-height:1.5}
+.rw-station-bar{display:flex;align-items:stretch;justify-content:space-between;flex:none;border-bottom:1px solid #344c5e;min-width:0;background:#10283a;flex-wrap:wrap}
+.rw-station-bar .rw-stations{border:0;padding-right:0}.rw-station-bar .rw-tools{border:0;background:transparent;padding-left:12px;min-height:46px}.rw-station-bar:has(.rw-recruit-tools) .rw-stations{width:100%}.rw-station-bar .rw-recruit-tools{width:100%;border-top:1px solid #344c5e;padding-left:24px}
+body .game-shell #ch-world .rw-search .entity-search{min-height:0;margin:0;padding:0}.rw-search .entity-search>summary{min-height:0;line-height:1.4;white-space:nowrap}
+body .game-shell #ch-world .rw-content .rd-tabs{display:none}
+/* Reclaim space from duplicate frames and decorative dashboard silhouettes. */
+body .game-shell #ch-world .rw-content :is(.dd-heading-mark,.rd-rink,.ld-rink,.wd-globe,.cd-arena,.cd-mark,.cj-board-caption){display:none}
+body .game-shell #ch-world .rw-content :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading,.lw-heading,.ow-heading){padding:2px 0 17px;margin:0 0 4px;background:transparent;border-bottom:1px solid #344c5e;min-height:0}
+body .game-shell #ch-world .rw-content :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading) h1{font-size:27px;line-height:1.25;font-weight:650;letter-spacing:-.035em;color:#f0f3f5;margin:5px 0 8px}
+body .game-shell #ch-world .rw-content :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading) p{font-size:12px;line-height:1.7;color:#b4c5d1;max-width:900px}
+/* Tools use natural document height. Tables get usable space of their own. */
+body .game-shell #ch-world .rw-content .desk-page :is(.squad-workspace,.development-desk,.recruitment-desk,.locker-desk,.club-desk,.world-desk){height:auto!important;min-height:0!important;max-height:none;max-width:none;margin:0;flex:none;background:transparent;--sw-accent:#e6c15f;--tw-accent:#e6c15f;--sw-line:#344c5e;--dd-line:#344c5e;--rd-line:#344c5e;--ld-line:#344c5e;--cd-line:#344c5e;--wd-line:#344c5e;--sw-muted:#b4c5d1;--dd-muted:#b4c5d1;--rd-muted:#b4c5d1;--ld-muted:#b4c5d1;--cd-muted:#b4c5d1;--wd-muted:#b4c5d1}
+body .game-shell #ch-world .rw-content :is(.dd-main,.rd-main,.ld-main,.cd-main,.wd-main,.sw-main){flex:none;min-height:340px;height:auto;align-items:stretch}
+body .game-shell #ch-world .rw-content :is(.dd-scroll,.rd-scroll,.cd-scroll,.wd-scroll,.ld-scroll,.sw-table-scroll,.sw-table-wrap){min-height:270px;max-height:55vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#516a7b #102638}
+body .game-shell #ch-world .rw-content :is(.rd-agenda>div,.cd-aside>div,.dd-aside>div,.wd-aside>div,.ld-attention){max-height:none;overflow:visible}
+body .game-shell #ch-world .rw-content :is(.dd-roster,.rd-roster,.cd-panel,.wd-panel,.ld-roster,.sw-table-panel,.cd-aside,.wd-aside,.dd-aside,.rd-agenda,.ld-attention){border:1px solid #344c5e;border-radius:4px;background:#112b3de3;box-shadow:none}
+body .game-shell #ch-world .rw-content :is(.dd-inspector,.cd-inspector,.wd-inspector,.ld-inspector,.sw-player-detail){background:#173247;border:1px solid #425a6c;border-top:2px solid #ab9259;border-radius:4px;box-shadow:none;margin-top:16px}
+body .game-shell #ch-world .rw-content :is(.sw-summary,.dd-summary,.rd-budget,.ld-summary,.wd-metrics,.cd-metrics){border-color:#344c5e;color:#b4c5d1;gap:20px;padding-block:10px;line-height:1.6}
+body .game-shell #ch-world .rw-content :is(.dd-table,.rd-table,.cd-table,.wd-table,.ld-table,.sw-table) :is(td,th){padding-top:12px;padding-bottom:12px;border-bottom-color:#304b5f}
+body .game-shell #ch-world .rw-content table thead{background:#173448;color:#b9cbd8}
+body .game-shell #ch-world .rw-content table tbody tr:hover{background:#ffffff05}
+/* Shared controls, panels and confirmation dialogs across every feature. */
+body .game-shell .ct-world :is(.desk-page,.rc-work-surface),body .game-shell :is(.dd-dialog,.rd-dialog,.cd-dialog,.wd-dialog,.ld-dialog){--sw-accent:#e6c15f;--ui-accent:#e6c15f;--desk-accent:#e6c15f;--ui-panel:#102638;--ui-border:#3c5567;--ui-muted:#b4c5d1;--ui-link:#ead08b;--text:#edf2f5;--muted:#b4c5d1}
+body .game-shell #ch-world :is(.rw-content,.rc-work-surface) :is(button,input,select,textarea){font-family:inherit;box-shadow:none}
+body .game-shell #ch-world .rw-content :is(input:not([type=checkbox]):not([type=radio]),select,textarea){min-height:36px;border:1px solid #4b6577;border-radius:3px;background:#0e2638;color:#edf2f5;padding:8px 10px;max-width:100%}
+body .game-shell #ch-world .rw-content :is(input[type=checkbox],input[type=radio]){accent-color:#e6c15f}
+body .game-shell #ch-world .rw-content :is(button.btn,button.secondary,.dd-tab,.ld-tabs button,.cw-tabs button,.wd-tabs button,.sw-view-tabs button,.mw-tabs button,.rd-outline,.cd-outline,.dd-outline,.wd-outline,.ld-outline){background:#193549;border:1px solid #4b6577;border-radius:3px;color:#d4e0e8;min-height:36px;padding:8px 12px;box-shadow:none;white-space:normal}
+body .game-shell #ch-world .rw-content :is(.dd-active,[aria-pressed=true].dd-tab,.ld-tabs [aria-pressed=true],.cw-tabs [aria-pressed=true],.wd-tabs [aria-pressed=true],.mw-tabs [aria-pressed=true]){border-color:#8c7c51;border-bottom:2px solid #e6c15f;background:#253b45;color:#f0d58e}
+body .game-shell #ch-world .rw-content :is(.dd-primary,.cd-primary,.wd-primary,.ld-primary,.sw-primary,.btn:not(.secondary):not(.danger)){background:#e6c15f;border:1px solid #e6c15f;color:#142536;font-weight:600;min-height:36px;padding:8px 12px;border-radius:3px}
+body .game-shell #ch-world .rw-content :is(.dd-link,.cd-link,.wd-link,.ld-link,.rd-link,.desk-link,.rh-link){background:transparent;border:0;color:#ead08b;box-shadow:none}
+body .game-shell #ch-world .rw-content :is(button,a,input,select,textarea,summary):focus-visible,.rw-heading button:focus-visible,.rw-stations button:focus-visible,.rw-feature-tabs button:focus-visible{outline:3px solid #efcf7d;outline-offset:3px}
+body .game-shell #ch-world .rw-content button:disabled{opacity:.45;cursor:not-allowed}
+body .game-shell #ch-world .rw-content :is(.mw-panel,.card,.panel,.player-card,.pws-card,.staff-mandates,.staff-mandate-grid>article,.squad-scenarios,.recruitment-needs article,.budget-card,.dv-panel,.training-card,.calendar-card){background:#112b3de8;border:1px solid #3c5567;border-radius:4px;box-shadow:none;color:#e4edf3}
+body .game-shell #ch-world .rw-content :is(.sc-card,.sc-coverage>article,.staff-section,.staff-followup,.staff-coverage>article,.cal-month,.cal-agenda,.profile-panel,.profile-card,.profile-hero){background:#112b3de8;border:1px solid #3c5567;border-radius:4px;box-shadow:none;color:#e4edf3}
+body .game-shell #ch-world .rw-content :is(.staff-section,.sc-card){padding:18px 20px;margin-block:16px}
+body .game-shell #ch-world .rw-content :is(.staff-section,.sc-card,.cal-agenda) p{line-height:1.75;color:#b4c5d1;font-size:12px}
+body .game-shell #ch-world .rw-content .cal-day{border-radius:3px;background:#173247;border:1px solid #324e61}.rw-content .cal-day.fixture{border-top:3px solid #c3a35b!important;background:#263b43!important}body .game-shell #ch-world .rw-content .cal-day.selected{border-color:#e6c15f;box-shadow:inset 0 0 0 1px #e6c15f}body .game-shell #ch-world .rw-content .cal-day :is(b,time){color:#e6cd8c}
+body .game-shell #ch-world .rw-content .rw-advanced{background:transparent;border:0;border-top:1px solid #344c5e;padding:18px 0}.rw-advanced>summary{color:#d4bf8c;font-size:12px;cursor:pointer}
+body .game-shell #ch-world .rw-content :is(h1,h2,h3){color:#eef3f6;letter-spacing:-.02em}
+body .game-shell #ch-world .rw-content :is(.muted,.hint,.dv-note,.mw-note,.eyebrow){color:#b4c5d1}
+body .game-shell #ch-world .rw-content :is(.staff-mandates,.staff-proposals){margin-top:22px;padding:20px}
+body .game-shell #ch-world .rw-content .staff-mandate-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+body .game-shell #ch-world .rw-content .staff-mandate-grid>article{padding:16px;line-height:1.7}.staff-mandate-grid label{display:grid;gap:10px}
+body .game-shell :is(.dd-dialog,.rd-dialog,.cd-dialog,.wd-dialog,.ld-dialog){color:#edf2f5;background:#102b3e;border:1px solid #9b8757;border-radius:5px;box-shadow:0 25px 80px #0009}
+body .game-shell :is(.dd-dialog,.rd-dialog,.cd-dialog,.wd-dialog,.ld-dialog)::backdrop{background:#03111cbb;backdrop-filter:blur(4px)}
+/* Long-form legacy tools inherit the same readable type and quiet surfaces. */
+body .game-shell #ch-world .rw-content :is(.training-page,.calendar,.season-page,.inbox-page,.profile-workspace,.pw-workspace,.player-workspace,.league-workspace){max-width:none;background:transparent;color:#edf2f5}
+body .game-shell #ch-world .rw-content :is(.calendar-card,.training-card,.mw-panel,.dv-panel)>header{background:transparent;border-bottom-color:#3c5567}
+body .game-shell #ch-world .rw-content .tactics-workspace{--tw-accent:#e6c15f}
+body .game-shell #ch-world .rw-content :is(.fm-profile,.fm-profile-header,.fm-panel,.fm-profile-section,.fm-profile-section-content,.fm-profile-bottom>section){background:#112b3de8;border-color:#3c5567;border-radius:4px;box-shadow:none;color:#e5edf3}
+body .game-shell #ch-world .rw-content .fm-profile-section>summary{background:#153044;color:#edf2f5;border-bottom-color:#3c5567;padding:17px 20px}
+body .game-shell #ch-world .rw-content .fm-profile-section>summary small{color:#b4c5d1}.rw-content .fm-link{color:#ead08b!important}
+body .game-shell #ch-world .rw-content :is(.fm-attr,.fm-attribute,.fm-tabs button){background:#153044;border-color:#3c5567}
+body .game-shell #ch-world .rw-content .fm-tabs [aria-pressed=true]{color:#e6c15f;border-bottom-color:#e6c15f}
+@media(min-width:1800px){body .game-shell #ch-world .rw-main{padding:24px 32px}.rw-heading{padding:18px 30px}.rw-stations,.rw-tools{padding-inline:30px}body .game-shell #ch-world .rw-workbench .rw-content{padding:28px 32px 36px}}
+@media(max-width:1100px){.rw-tools{align-items:flex-start}.rw-feature-tabs{gap:15px}.rw-search{max-width:150px}.rw-stations>button{padding-inline:16px}body .game-shell #ch-world .rw-content .staff-mandate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){
+ body .game-shell #ch-world .rw-main{height:100%;padding:8px;overflow:hidden}
+ body .game-shell #ch-world .rw-workbench.ct-work{position:relative;inset:auto;height:100%;min-height:0}
+ .rw-heading{padding:12px;gap:10px}.rw-eyebrow{font-size:8px}.rw-heading>nav{gap:5px}.rw-heading>nav button{font-size:10px;padding:7px 8px;gap:5px}body .game-shell .rw-heading h2{font-size:16px}
+ .rw-stations{padding:0 8px}.rw-stations>button{flex:1;padding:10px 6px;font-size:10px;gap:6px;min-width:0;white-space:normal}.rw-stations .ct-icon{width:15px;height:15px;flex:none}
+ .rw-station-bar{display:block}.rw-station-bar .rw-stations{padding:0 8px}.rw-station-bar .rw-tools{min-height:0;padding:0 12px}.rw-station-bar .rw-tools:has(.rw-feature-tabs:empty){display:none}.rw-station-bar .rw-recruit-tools{border-top:1px solid #344c5e}
+ .rw-tools{padding:0 12px;gap:8px;align-items:center}.rw-feature-tabs{gap:14px;flex-wrap:nowrap;overflow:auto;scrollbar-width:thin}.rw-feature-tabs>button{font-size:10px;padding:11px 0;flex:none}.rw-search{display:none}
+ body .game-shell #ch-world .rw-workbench .rw-content{padding:18px 12px 25px}.rw-status{font-size:8px;padding:7px 12px}
+ body .game-shell #ch-world .rw-content :is(.dd-main,.rd-main,.ld-main,.cd-main,.wd-main,.sw-main){min-height:280px;grid-template-columns:minmax(0,1fr)}
+ body .game-shell #ch-world .rw-content :is(.dd-scroll,.rd-scroll,.cd-scroll,.wd-scroll,.ld-scroll,.sw-table-scroll,.sw-table-wrap){min-height:270px;max-height:60vh}
+ body .game-shell #ch-world .rw-content .staff-mandate-grid{grid-template-columns:1fr}
+ body .game-shell #ch-world .rw-content :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading) h1{font-size:24px}
+ body .game-shell #ch-world .rw-content :is(.dd-inspector,.cd-inspector,.wd-inspector,.ld-inspector,.sw-player-detail){grid-template-columns:minmax(0,1fr);padding:16px}
+ body .game-shell #ch-world .rw-content :is(.dd-summary,.rd-budget,.ld-summary,.wd-metrics,.cd-metrics){flex-wrap:wrap;gap:10px}
+}
+@media(prefers-reduced-motion:reduce){.rw-world *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

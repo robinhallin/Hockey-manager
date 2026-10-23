@@ -50,7 +50,7 @@ async function checkClubhouseTheme(page,out){
  await page.screenshot({path:path.join(out,'95-klubbhustema.png'),fullPage:true});
  await nav(page).getByRole('button',{name:'Rekrytering',exact:true}).click();
  await page.getByRole('button',{name:/^Hitta kandidater/}).click();
- await page.getByRole('navigation',{name:'Rekryteringsarbetet'}).getByRole('button',{name:'Spelarsök',exact:true}).click();
+ await page.getByRole('navigation',{name:'Verktyg i scoutkontoret'}).getByRole('button',{name:'Spelarsök & scouting',exact:true}).click();
  const candidates=await page.locator('.rd-scroll').boundingBox();assert.ok(candidates.height>=240,'candidate list keeps usable height');
  assert.ok(await page.locator('.rd-scroll tbody tr').count()>0);
  await page.screenshot({path:path.join(out,'96-rekrytering-i-klubbhuset.png'),fullPage:true});
