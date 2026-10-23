@@ -3,20 +3,25 @@ const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async function checkWorkrooms(page,out){
  const nav=()=>page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true});
  await page.setViewportSize({width:1440,height:1000});
- await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();clubhouseGo('office');});
- const before=await page.evaluate(()=>JSON.stringify([state.calendar,state.money,state.lines,state.training,state.recruitment,managerRoster()]));
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();depthSelection();ensureSpecialTeams();tacticsWorkspaceView();clubhouseGo('office');});
+ const facts=()=>JSON.stringify([state.calendar.date,state.money,state.lines,state.training.history,state.recruitment.deals,managerRoster().map(p=>[p.id,p.attributes,p.goals,p.assists,p.salary,p.contractYears,p.promisedRole])]);
+ const before=await page.evaluate(facts);
  for(const [label,key] of [['Kontoret','office'],['Truppen','locker'],['Taktik','tactics'],['Utveckling','ice'],['Rekrytering','recruit'],['Klubben','boardroom'],['Världen','world']]){
   await nav().getByRole('button',{name:label,exact:true}).click();
   assert.equal(await page.evaluate(()=>clubhouseRoomsKey()),key);
   await page.waitForFunction(()=>{const i=document.querySelector('.cr-environment');return i?.complete&&i.naturalWidth>0;});
   assert.equal(await nav().getByRole('button',{name:label,exact:true}).getAttribute('aria-current'),'page');
   const choices=await page.locator('.cr-side-tabs button').allTextContents();
-  for(const name of choices){await page.locator('.cr-side-tabs').getByRole('button',{name:name.trim(),exact:true}).click();assert.ok(await page.locator('.cr-side-body').isVisible());}
-  await page.locator('.cr-side-tabs button').first().click();
+  for(const name of choices){
+   await page.locator('.cr-side-tabs').getByRole('button',{name:name.trim(),exact:true}).click();
+   assert.ok(await page.locator('.rw-workbench,.rc-work-surface').isVisible());
+   if(await page.locator('.rw-workbench').count())await page.getByRole('button',{name:/^← Tillbaka till /}).click();
+   else await page.getByRole('button',{name:'Lämna arbetsbordet',exact:true}).click();
+  }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
   await page.screenshot({path:path.join(out,'room-'+key+'-1440.png'),fullPage:true});
  }
- assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar,state.money,state.lines,state.training,state.recruitment,managerRoster()])),before,'room visits and workstations never simulate or award progress');
+ assert.equal(await page.evaluate(facts),before,'room visits and workstations never simulate or award progress');
  await nav().getByRole('button',{name:'Utveckling',exact:true}).click();
  const plan=await page.evaluate(()=>({date:state.calendar.date,next:calAdd(state.calendar.date,1),history:state.training.history.length}));
  await page.getByRole('navigation',{name:'Välj träningsdag'}).getByRole('button').nth(1).click();
@@ -27,7 +32,8 @@ module.exports=async function checkWorkrooms(page,out){
  await nav().getByRole('button',{name:'Världen',exact:true}).click();
  await page.locator('.cr-side-tabs').getByRole('button',{name:'Bevakningsbordet',exact:true}).click();
  const opponent=await page.evaluate(()=>deskFixtures().upcoming[0].opponent);
- await page.getByRole('button',{name:new RegExp('^Följ '+opponent)}).click();
+ await page.getByRole('combobox',{name:'Följ klubb',exact:true}).selectOption(opponent);
+ await page.getByRole('button',{name:'Följ klubben',exact:true}).click();
  assert.equal(await page.evaluate(club=>worldWatchStore().clubs.includes(club),opponent),true);
  await nav().getByRole('button',{name:'Taktik',exact:true}).click();
  await page.getByRole('navigation',{name:'Enheter på taktiktavlan'}).getByRole('button',{name:'Powerplay',exact:true}).click();

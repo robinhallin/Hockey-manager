@@ -31,8 +31,7 @@ module.exports=async function checkRoomCoaching(page,out){
  await page.setViewportSize({width:1440,height:1000});
  await page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true}).getByRole('button',{name:'Klubben',exact:true}).click();
  await page.locator('.cr-side-tabs').getByRole('button',{name:'Stabsmötet',exact:true}).click();
- await page.getByText('Ansvar & initiativ från staben',{exact:true}).click();
- await page.getByLabel('Stabsansvar för A-lagets träning',{exact:true}).selectOption('advise');
+ await page.getByLabel('Ansvar för A-lagets träning',{exact:true}).selectOption('advise');
  assert.equal(await page.evaluate(()=>staffMode('training')),'advise');
  await page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true}).getByRole('button',{name:'Kontoret',exact:true}).click();
  await page.locator('.ct-continue').click();await page.waitForFunction(date=>state.calendar.date!==date&&!dayTransition,before.date);
