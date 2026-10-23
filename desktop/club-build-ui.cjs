@@ -25,6 +25,7 @@ fs.mkdirSync(out,{recursive:true});
   await require('../scripts/room-browser-checks.cjs')(page,out);
   await require('../scripts/room-coaching-browser-checks.cjs')(page,out);
   await require('../scripts/room-workspaces-browser-checks.cjs')(page,out);
+  await require('../scripts/club-decisions-browser-checks.cjs')(page,out);
   await require('../scripts/coach-journey-browser-checks.cjs').checkCoachJourney(page,out);
   await require('../scripts/coach-workspace-browser-checks.cjs').checkCoachWorkspace(page,out);
   assert.deepEqual(errors,[]);

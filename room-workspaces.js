@@ -51,6 +51,7 @@ function roomWorkStart(room,station){
  if(page==='world')worldWatchUI.filter=tab==='following'?'following':'all';
  if(page==='squad'){squadUI.tab=station==='roles'?'contracts':'status';squadUI.status='all';}
  const ok=clubhouseRoomsOpen(page,page==='transfers'?tab:undefined);
+ if(ok&&room==='office'&&station==='desk'&&typeof clubDecisionOpen==='function'){clubDecisionOpen();}
  if(ok){document.getElementById('rw-work-heading')?.focus?.({preventScroll:true});queueInterfaceSave();}
  return ok;
 }
@@ -72,10 +73,12 @@ function roomWorkPage(page,tab,token){
  if(page==='transfers'&&tab&&!DESK_RECRUIT_TABS.concat(DESK_RECRUIT_MORE).some(([t])=>t===tab))return false;
  clubhouseUI.room=room;return clubhouseRoomsOpen(page,tab);
 }
+function stationRecruitTabs(station){return station==='deals'?['deals','loans','history']:station==='reports'?['search','missions','shortlist','world']:['overview','needs'];}
 function roomWorkTabs(location){
  const token=roomWorkUI.token,{room}=location;
  const covered=Object.values(ROOM_WORK_ROUTES[room]).map(route=>route[0]);
- const routes=room==='recruit'?DESK_RECRUIT_TABS.concat(DESK_RECRUIT_MORE).map(([tab,label])=>['transfers',label,tab]):ROOM_WORK_PAGES[room].filter(([page])=>!covered.includes(page)&&page!=='settings');
+ const recruitTabs=stationRecruitTabs(location.station);
+ const routes=room==='recruit'?DESK_RECRUIT_TABS.concat(DESK_RECRUIT_MORE).filter(([tab])=>recruitTabs.includes(tab)).map(([tab,label])=>['transfers',label,tab]):ROOM_WORK_PAGES[room].filter(([page])=>!covered.includes(page)&&page!=='settings');
  return `<nav class="rw-feature-tabs" aria-label="Verktyg i ${trainingSafe(CLUBHOUSE_WORKROOMS[room].title.toLowerCase())}">${routes.map(([page,label,tab])=>`<button ${state.page===page&&(!tab||state.recruitment.tab===tab)?'aria-current="page"':''} onclick="${roomCoachCode('roomWorkPage',page,tab??null,token)}">${trainingSafe(label)}</button>`).join('')}</nav>`;
 }
 function roomWorkSurface(html,m){
