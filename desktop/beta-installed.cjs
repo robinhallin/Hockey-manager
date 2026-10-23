@@ -24,12 +24,13 @@ const fingerprint=()=>({club:managerClub(),date:state.calendar.date,money:state.
     assert.equal(await page.evaluate(()=>careerLoadIssue),null);
    }else{
     assert.equal(await page.evaluate(()=>state.careerStarted),false,'clean installation must not reuse a career');
-    assert.equal(await page.evaluate(()=>clubhousePreference('mode','coach')),'coach','the current coach view is the default');
+    assert.equal(await page.evaluate(()=>clubhousePreference('mode','coach')),'living','the living room view is the default');
     await page.getByRole('button',{name:/Starta ny karriär/}).click();
     await page.locator('.career-club-card').filter({hasText:'HV71'}).click();
     await page.getByRole('button',{name:/Möt styrelsen i HV71/}).click();
     await page.getByRole('button',{name:/Acceptera uppdraget/}).click();
-    await page.evaluate(()=>{preseasonConfigure('balanced','manager','rotation','assistant','assistant');deskNavigate('home');});
+    await page.evaluate(()=>{preseasonConfigure('balanced','manager','rotation','assistant','assistant');clubhouseGo('office');});
+    await page.getByRole('button',{name:/Kom igång: din första vecka/}).click();
     await page.getByRole('region',{name:'Kom igång med din första vecka'}).waitFor();
     await page.getByRole('button',{name:'1. Kontrollera kedjor & matchplan →',exact:true}).click();
     await page.evaluate(()=>deskNavigate('settings'));

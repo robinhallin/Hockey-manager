@@ -1,6 +1,11 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {boot}=require('./scripts/career-test-fixture.cjs');
+test('all-areas menu remains available while working and offers a route back to coach view',()=>{
+ const r=boot(null,{production:true}).run;r("startCareerWithClub('HV71');clubhouseUI.areas=true;state.page='squad'");
+ assert.match(r("roomWorkSurface('test',clubhouseModel())"),/aria-label="Klubbhusets områden"/);
+ assert.match(r('clubhouseThemeAreas()'),/coachWorkspaceEnter/);
+});
 test('production contract summary excludes loans and blocks renewals without changing a contract',()=>{
  const r=boot(null,{production:true}).run;r("startCareerWithClub('HV71')");
  const count=r('managerRoster().filter(contractNeedsDecision).length');
