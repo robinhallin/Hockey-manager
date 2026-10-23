@@ -106,6 +106,7 @@ function storiesDetect(sample){
 }
 function storiesBaseChoices(s){
  if(s.type==='contract')return [{id:'commit',label:'Visa en tydlig framtidsplan',detail:'Signalera att spelaren ingår i planen. Inget automatiskt kontrakt skapas.'},{id:'wait',label:'Avvakta',detail:'Lova inget innan truppplanen är klar.'}];
+ if(s.type==='breakthrough'&&storiesPlayer(s.ids[0])?.pos==='MV')return [{id:'promote',label:'Ge en målvaktsperiod',detail:'Minst 30 minuter i tre av sex tillgängliga tävlingsmatcher. Den andra målvaktens avtal och löften gäller samtidigt.',seconds:1800,needed:3,matches:6},{id:'patient',label:'Fortsätt utvecklingsvägen',detail:'Behåll nuvarande roll utan ett nytt istidslöfte.'}];
  if(s.type==='breakthrough')return [{id:'promote',label:'Öka ansvaret',detail:'Minst 8 minuter i tre av de nästa fyra tillgängliga tävlingsmatcherna. Du fördelar istiden; befintliga rollöften gäller samtidigt.',seconds:480,needed:3,matches:4},{id:'patient',label:'Fortsätt utvecklingsvägen',detail:'Behåll nuvarande roll utan ett nytt istidslöfte.'}];
  if(s.type==='market')return [{id:'keep',label:'Han ska helst stanna',detail:'Sätt marknadsstatus till helst behålla.'},{id:'listen',label:'Lyssna på marknaden',detail:'Behåll möjligheten att ta emot faktiska bud.'}];
  if(s.type==='coach')return rivalStoryChoices();

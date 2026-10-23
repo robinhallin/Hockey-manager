@@ -115,7 +115,7 @@ function lineTacticalFit(ids,type='forwards',club=managerClub()){
   if(profiles.every(x=>x.creator>=14&&x.defender<12.5)){score-=7;warnings.push('båda backarna prioriterar spel med puck framför defensiv säkerhet');}
  }
  score=Math.max(20,Math.min(95,Math.round(score)));
- return {value:score,label:score>=78?'Kompletterar varandra':score>=64?'Fungerande balans':score>=50?'Blandad passform':'Tydliga rollhål',strengths,warnings,profiles};
+ return {value:score,label:warnings.length>=3?'Roller behöver ses över':score>=78?'Kompletterar varandra':score>=64?'Fungerande balans':score>=50?'Blandad passform':'Tydliga rollhål',strengths,warnings,profiles};
 }
 function tacticalFitFactor(fit,key,type='forwards'){
  const v=(fit?.value??50)-50;
@@ -124,7 +124,7 @@ function tacticalFitFactor(fit,key,type='forwards'){
 }
 function tacticalFitView(ids,type='forwards',club=managerClub()){
  const f=lineTacticalFit(ids,type,club),detail=[f.strengths.length?'Styrkor: '+f.strengths.join(', '):'',f.warnings.length?'Att bevaka: '+f.warnings.join(', '):''].filter(Boolean).join('. ');
- return `<span class="chemistry tactical-fit" title="${trainingSafe(detail)}">Passform <b>${f.value} %</b><meter min="0" max="100" value="${f.value}" aria-label="Taktisk passform ${f.value} procent"></meter><small>${trainingSafe(f.label)}</small></span>`;
+ return `<span class="chemistry tactical-fit" title="${trainingSafe(detail)}">Passform <b>${f.value} %</b><meter min="0" max="100" value="${f.value}" aria-label="Taktisk passform ${f.value} procent"></meter><small>${trainingSafe(f.label)}</small><details class="cw-fit"><summary>Varför?</summary><p><strong>Styrkor:</strong> ${trainingSafe(f.strengths.join(', ')||'Ingen tydlig styrka i bedömningen')}.</p><p><strong>Att bevaka:</strong> ${trainingSafe(f.warnings.join(', ')||'Inga tydliga rollhål')}.</p><p>Passform bedömer egenskaperna i kombinationen. Kemi byggs av gemensam träning och matchtid. Ingen av dem garanterar resultat.</p></details></span>`;
 }
 function dynamicsTrain(club,units,session,date=state.calendar?.date){
  if(!date||!['tactics','matchprep','powerplay','penaltykill','skills'].includes(session))return;
