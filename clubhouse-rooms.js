@@ -46,6 +46,12 @@ function clubhouseRoomsVisit(room){
  clubhouseRoomsUI.opening=true;
  try{return clubhouseGo(room);}finally{clubhouseRoomsUI.opening=false;}
 }
+const clubhouseRoomsBaseNavigation=clubhouseNavigation;
+clubhouseNavigation=function(page){
+ const origin=!clubhouseUI.navigating&&clubhouseIsRoom()?{hub:clubhouseRoomsUI.hub,station:clubhouseRoomsUI.station}:null;
+ clubhouseRoomsBaseNavigation(page);
+ if(origin&&clubhouseUI.origin)Object.assign(clubhouseUI.origin,origin);
+};
 const clubhouseRoomsBaseReturn=clubhouseReturn;
 clubhouseReturn=function(){
  const origin=clubhouseUI.origin,hub=origin?.hub;
@@ -154,7 +160,7 @@ function clubhouseRoomsPanel(m){
   const budget=managerRecruitmentBudget(),jobs=(scoutingOffice()?.jobs||[]).filter(j=>j.status==='active'),deals=hubAffairRows().filter(r=>['pending','counter'].includes(r.status));
   body=clubhouseRoomsStats([['Löneutrymme',careerMoney(budget.wageRoom)],['Scoutuppdrag',jobs.length]]);
   if(station[0]==='deals')body+=clubhouseRoomsSection('På förhandlingsbordet',deals.slice(0,4).map(r=>clubhouseRoomsButton(r.name,clubhouseRoomsCode('officeOpenDeal',r.key),r.d.dueDate?'Besked '+calText(r.d.dueDate):'Granska status, villkor och nästa steg')).join('')||clubhouseRoomsEmpty('Inga pågående affärer. Ett bud skapas först när du själv går vidare med en kandidat.'))+open('Bud, avtal & inkommande förfrågningar','transfers','deals','Granska konsekvenserna före ditt besked',true);
-  else if(station[0]==='reports')body+=clubhouseRoomsSection('Scouting som pågår',jobs.slice(0,3).map(j=>`<article class="cr-note"><strong>${trainingSafe(j.label||j.name||'Scoutuppdrag')}</strong><p>${trainingSafe(j.profile||j.purpose||'Se uppdragets observationer och återrapportering på scoutkontoret.')}</p></article>`).join('')||clubhouseRoomsEmpty('Inga aktiva scoutuppdrag. Utgå från ett truppbehov innan du beställer observationer.'))+open('Planera scoutuppdrag','transfers','missions','Se kostnad, omfattning och ansvarig scout',true)+open('Bevakade kandidater & rapporter','transfers','shortlist','Bedöm underlaget innan du förhandlar');
+  else if(station[0]==='reports')body+=clubhouseRoomsSection('Scouting som pågår',jobs.slice(0,3).map(j=>`<article class="cr-note"><strong>${trainingSafe(SCOUT_METHODS[j.method]?.name||'Scoutuppdrag')}</strong><small>${trainingSafe(j.observer?.name||'Ansvarig scout')} · nästa observation ${trainingSafe(calText(j.next))}</small><p>${trainingSafe(j.players.map(id=>findPlayerAnywhere(id)?.name||'Spelare').join(' · '))}</p></article>`).join('')||clubhouseRoomsEmpty('Inga aktiva scoutuppdrag. Utgå från ett truppbehov innan du beställer observationer.'))+open('Planera scoutuppdrag','transfers','missions','Se kostnad, omfattning och ansvarig scout',true)+open('Bevakade kandidater & rapporter','transfers','shortlist','Bedöm underlaget innan du förhandlar');
   else body+=clubhouseRoomsSection('Behoven först',recruitmentPriorities().map(n=>`<article class="cr-note"><strong>${trainingSafe(n.label||n.name)}</strong><small>${trainingSafe(n.name)}</small><p>${n.need?n.count+' spelklara, riktmärke '+n.target+'. Pröva de interna alternativen.':n.futureNeed?n.secure+' säkrade till nästa säsong, riktmärke '+n.target+'. Se över förlängningar.':'Granska kvalitet och rollpassning före en förstärkning.'}</p></article>`).join('')||clubhouseRoomsEmpty('Inget prioriterat truppbehov just nu.'))+open('Truppplanering & interna alternativ','transfers','needs','Avtal, rollbehov och möjliga ersättare',true)+open('Hitta kandidater','transfers','search','Sök i den verkliga spelardatabasen');
  }
  if(key==='boardroom'){

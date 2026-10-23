@@ -52,3 +52,8 @@ test('each work surface returns to its room and the selected station; special te
  }
  r("clubhouseRoomsVisit('tactics');globalThis.before=JSON.stringify([state.lines,state.specialTeams,state.calendar.date]);");assert.equal(r("clubhouseRoomsLine('pp',1,clubhouseRoomsUI.token)"),true);assert.equal(r('specialUI.unit'),'pp2');assert.equal(r('JSON.stringify([state.lines,state.specialTeams,state.calendar.date])'),r('before'));
 });
+
+test('canonical deal navigation also retains the originating room and workstation',()=>{
+ const {run:r}=setup();r("clubhouseRoomsVisit('recruit');clubhouseRoomsStation('deals',clubhouseRoomsUI.token);officeOpenDeal('transfer:missing')");
+ assert.equal(r('state.page'),'transfers');r('clubhouseReturn()');assert.equal(r('clubhouseRoomsKey()'),'recruit');assert.equal(r('clubhouseRoomsUI.station'),'deals');
+});

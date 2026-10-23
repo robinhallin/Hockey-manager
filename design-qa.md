@@ -31,7 +31,7 @@ Asset loading required a loaded-image capture; an early unloaded office screensh
 
 ## Interaction evidence
 
-45 targeted regression tests pass, including read-only world/room visits and existing clubhouse, coach and match presentation behavior. Final rerun of 13 directly affected tests passes after the accessibility/copy fixes.
+45 targeted regression tests pass, including read-only world/room visits and existing clubhouse, coach and match presentation behavior. Final rerun of 14 directly affected tests passes after the accessibility/copy fixes.
 
 Browser interactions verified: all seven room landings; PP2 opens the selected real special-teams unit and returns to the tactics room; next-opponent following persists through reload; next-day recovery persists and locks intensity to light without advancing the day; a roster conversation raises trust from 60 to 61, applies the existing three-match cooldown, and persists through reload. No application console errors in the final build session.
 
