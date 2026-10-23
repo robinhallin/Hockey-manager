@@ -29,7 +29,15 @@ module.exports=async function checkRoomCoaching(page,out){
  }
  assert.equal(await page.evaluate(()=>state.calendar.date),before.date);assert.equal(await page.evaluate(()=>state.money),before.money);
  await page.setViewportSize({width:1440,height:1000});
- const proposal=await page.evaluate(()=>{staffProposalCreate('training','Planera nästa lagpass med hänsyn till återhämtningen.');clubhouseRoomsVisit('ice');const p=state.office2.proposals[0];return {id:p.id,target:p.target,session:JSON.stringify(p.session)};});
+ await page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true}).getByRole('button',{name:'Klubben',exact:true}).click();
+ await page.locator('.cr-side-tabs').getByRole('button',{name:'Stabsmötet',exact:true}).click();
+ await page.getByText('Ansvar & initiativ från staben',{exact:true}).click();
+ await page.getByLabel('Stabsansvar för A-lagets träning',{exact:true}).selectOption('advise');
+ assert.equal(await page.evaluate(()=>staffMode('training')),'advise');
+ await page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true}).getByRole('button',{name:'Kontoret',exact:true}).click();
+ await page.locator('.ct-continue').click();await page.waitForFunction(date=>state.calendar.date!==date&&!dayTransition,before.date);
+ const proposal=await page.evaluate(()=>{const p=state.office2.proposals.find(p=>p.area==='training'&&p.status==='pending');return {id:p.id,target:p.target,session:JSON.stringify(p.session)};});
+ await page.getByRole('navigation',{name:'Spelets huvudnavigation',exact:true}).getByRole('button',{name:'Utveckling',exact:true}).click();
  await page.locator('.rc-initiatives').getByRole('button').filter({hasText:'A-lagets träning'}).click();
  assert.equal(await page.evaluate(()=>state.office2.proposals[0].status),'pending');
  await page.getByRole('button',{name:'Godkänn förslaget',exact:true}).click();assert.equal(await page.evaluate(()=>state.office2.proposals[0].status),'accepted');

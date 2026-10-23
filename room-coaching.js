@@ -156,7 +156,7 @@ clubhouseRoomsPanel=function(m){
  if(selected||working)return `<aside class="cr-side-panel rc-work-aside" aria-label="Stöd vid arbetsbordet"><header><span class="ct-eyebrow">DITT BESLUT. DITT LAG.</span><h2>${selected?'Ett möte i rummet':roomCoachUI.board?'Vid taktiktavlan':roomCoachUI.step==='brief'?'Inför nästa nedsläpp':'Från match till nästa steg'}</h2><p>${selected?'Rådet utgår från det aktuella underlaget.':'Väg ork, roller och samspel inför nästa match.'}</p></header><div class="cr-side-body">${selected?'':roomCoachMatchCard()}${roomCoachUI.board?roomCoachChanges():''}${roomCoachInitiativesView()}${working?roomCoachButton('Samla matchlaget','roomCoachMatchStep',['locker',roomCoachUI.token],state.live&&!state.live.finished?'Återvänd till matchen':matchBriefFixture()?.date===state.calendar.date?'Lagsnack och 2D-match':'Tillgängligt på matchdagen',true,!(state.live&&!state.live.finished||state.live?.finished&&state.calendar.completedMatchDate===state.calendar.date||matchBriefFixture()?.date===state.calendar.date)):''}</div></aside>`;
  let html=roomCoachBasePanel(m);
  if(clubhouseRoomsKey()==='hub')return html;
- return html.replace('<div class="cr-side-body">','<div class="cr-side-body">'+roomCoachMatchCard()+roomCoachInitiativesView());
+ return html.replace('<div class="cr-side-body">','<div class="cr-side-body">'+roomCoachMatchCard()+roomCoachInitiativesView()+(clubhouseRoomsKey()==='boardroom'&&clubhouseRoomsUI.station==='staff'?roomCoachMandatesView():''));
 };
 const roomCoachContinue=clubhouseThemeContinue;
 clubhouseThemeContinue=function(){
@@ -187,3 +187,12 @@ clubhouseReturn=function(){
  if(working&&clubhouseIsRoom()&&clubhouseRoomsKey()==='tactics'){roomCoachSync();Object.assign(roomCoachUI,working);render();}
  return result;
 };
+
+function roomCoachMandatesView(){
+ const token=roomCoachUI.token,active=Boolean(state.live&&!state.live.finished);
+ return `<details class="rc-followups rc-mandates"><summary>Ansvar & initiativ från staben</summary><p>Välj om du vill ha råd eller delegera genomförandet. Ett råd ändrar inget förrän du själv tar ställning.</p>${Object.entries(STAFF_MANDATES).map(([area,d])=>`<label class="cr-field">${trainingSafe(d.name)}<select aria-label="Stabsansvar för ${trainingSafe(d.name)}" onchange="${roomCoachCode('roomCoachMandate',area,'MODE',staffMode(area),token).replace('&quot;MODE&quot;','this.value')}" ${active?'disabled':''}>${[['manual','Jag bestämmer'],['advise','Staben föreslår'],...(d.automatic?[['execute','Staben genomför inom mandat']]:[])].map(([value,label])=>`<option value="${value}" ${staffMode(area)===value?'selected':''}>${label}</option>`).join('')}</select><small>${trainingSafe(d.detail)}</small></label>`).join('')}</details>`;
+}
+function roomCoachMandate(area,mode,previous,token){
+ if(!roomCoachGuard(token)||!clubhouseIsRoom()||clubhouseRoomsKey()!=='boardroom'||clubhouseRoomsUI.station!=='staff'||!STAFF_MANDATES[area]||staffMode(area)!==previous)return false;
+ return staffSetMode(area,mode);
+}

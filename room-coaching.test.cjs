@@ -51,3 +51,9 @@ test('player deep links return to the same in-room board and its comparison',()=
 test('moving back from selection to briefing closes the magnets without changing the lineup',()=>{
  const {run:r}=setup();r("roomCoachBoardOpen();globalThis.before=JSON.stringify(state.lines)");assert.equal(r("roomCoachMatchStep('brief')"),true);assert.equal(r('roomCoachUI.board'),false);assert.equal(r('roomCoachUI.step'),'brief');assert.match(r('clubhouseWorldView("HOME")'),/Motståndarbrief i rummet/);assert.equal(r('JSON.stringify(state.lines)'),r('before'));
 });
+
+test('staff meeting exposes canonical advice mandates without silently changing ownership',()=>{
+ const a=setup(),r=a.run;r("clubhouseRoomsVisit('boardroom');clubhouseRoomsStation('staff',clubhouseRoomsUI.token);roomCoachSync();globalThis.before=JSON.stringify(state);globalThis.token=roomCoachUI.token");
+ assert.match(r('roomCoachMandatesView()'),/Stabsansvar för A-lagets träning/);assert.equal(r('JSON.stringify(state)'),r('before'));assert.equal(r("roomCoachMandate('training','advise','manual',token)"),true);assert.equal(r("staffMode('training')"),'advise');assert.equal(r('state.training.assistantOwner'),'manager');assert.equal(r("roomCoachMandate('training','execute','manual',token)"),false);
+ const loaded=boot(a.storage.value,{production:true});assert.equal(loaded.run("staffMode('training')"),'advise');
+});
