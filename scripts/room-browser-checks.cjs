@@ -32,8 +32,8 @@ module.exports=async function checkWorkrooms(page,out){
  await nav().getByRole('button',{name:'Världen',exact:true}).click();
  await page.locator('.cr-side-tabs').getByRole('button',{name:'Bevakningsbordet',exact:true}).click();
  const opponent=await page.evaluate(()=>deskFixtures().upcoming[0].opponent);
- await page.getByLabel('Följ klubb',{exact:true}).selectOption(opponent);
- await page.getByRole('button',{name:'Följ / sluta följa',exact:true}).click();
+ await page.getByRole('combobox',{name:'Följ klubb',exact:true}).selectOption(opponent);
+ await page.getByRole('button',{name:'Följ klubben',exact:true}).click();
  assert.equal(await page.evaluate(club=>worldWatchStore().clubs.includes(club),opponent),true);
  await nav().getByRole('button',{name:'Taktik',exact:true}).click();
  await page.getByRole('navigation',{name:'Enheter på taktiktavlan'}).getByRole('button',{name:'Powerplay',exact:true}).click();

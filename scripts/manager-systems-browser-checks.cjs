@@ -13,6 +13,7 @@ async function checkManagerSystems(page){
  await page.evaluate(()=>{const p=managerRoster().find(p=>p.pos==='C');setDevelopmentRolePlan(p.id,'creator');developmentOpenPlan(p.id)});
  assert.equal(await page.evaluate(()=>managerRoster().find(p=>p.pos==='C').developmentReview.version),2);
  await page.evaluate(()=>deskNavigate('transfers','needs'));
+ await page.getByText('Jämför alternativa lagbyggen',{exact:true}).click();
  const cash=await page.evaluate(()=>state.money);
  for(const name of ['+ Behåll stommen','+ Satsa på juniorerna','+ Värva spets'])await page.getByRole('button',{name,exact:true}).click();
  const salary=page.getByRole('spinbutton',{name:/Antagen årslön för/}).first();await salary.fill('1234567');await salary.press('Tab');
@@ -24,7 +25,7 @@ async function checkManagerSystems(page){
  assert.equal(await page.locator('.cashflow-panel table').first().locator('tbody tr').count(),12);
  await page.evaluate(()=>deskNavigate('world'));
  await page.getByRole('combobox',{name:'Följ klubb',exact:true}).selectOption('Färjestad BK');
- await page.getByRole('button',{name:'Följ / sluta följa',exact:true}).click();
+ await page.getByRole('button',{name:'Följ klubben',exact:true}).click();
  await page.getByRole('button',{name:'Min bevakning',exact:true}).click();
  assert.ok(await page.evaluate(()=>worldWatchStore().clubs.includes('Färjestad BK')));
  await page.evaluate(()=>save());await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();

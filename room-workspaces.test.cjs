@@ -29,3 +29,9 @@ test('world watch and contract stations open the correct working filter without 
  r("clubhouseRoomsVisit('locker');roomWorkStation('roles',clubhouseRoomsUI.token)");assert.equal(r('squadUI.tab'),'contracts');assert.equal(r('squadUI.status'),'all');
  r("clubhouseRoomsVisit('boardroom');roomWorkStation('staff',clubhouseRoomsUI.token)");assert.equal(r('state.page'),'staffReview');assert.match(r('clubhouseWorldView(staffReviewView())'),/Ansvar & mandat/);
 });
+test('club following keeps the chosen club and names the action before it changes the career',()=>{
+ const a=setup(),r=a.run;r("clubhouseRoomsVisit('world');roomWorkStation('watch',clubhouseRoomsUI.token);worldWatchUI.club='Färjestad BK';globalThis.before=JSON.stringify(state.worldWatch)");
+ assert.match(r('worldWatchNewsView()'),/aria-label="Följ klubb"/);assert.match(r('worldWatchNewsView()'),/Följ klubben/);assert.equal(r('JSON.stringify(state.worldWatch)'),r('before'));
+ assert.equal(r("worldWatchToggle('club','Färjestad BK')"),true);assert.match(r('worldWatchNewsView()'),/Sluta följa klubben/);assert.match(r('worldWatchNewsView()'),/value="Färjestad BK" selected/);
+ const loaded=boot(a.storage.value,{production:true});assert.equal(loaded.run("worldWatchStore().clubs.includes('Färjestad BK')"),true);
+});
