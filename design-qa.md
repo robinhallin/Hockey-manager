@@ -1,105 +1,46 @@
-# Clubhouse theme / direction 3
+# Clubhouse workrooms QA
 
 final result: passed
 
-## Visual truth and evidence
+Scope: seven illustrated room landings and their workstations, extending the approved clubhouse direction. Desktop visual review completed in Chrome at 1363 × 936 CSS pixels (1× captures). Automated responsive checks at 1920 × 1080, 1366 × 768 and 390 × 844 are included in the Windows UI suite; their CI result is reported separately on the PR.
 
-- Selected source: `docs/clubhouse-theme/reference.jpg`, the third displayed
-  Product Design image, originally 1487 × 1058 pixels (nominal desktop brief
-  1440 × 1024).
-- Browser-rendered implementation: `docs/clubhouse-theme/overview.jpg`, 1363 × 936
-  pixels at a 1363 × 936 CSS viewport, density 1.
-- Additional browser evidence: `docs/clubhouse-theme/recruitment.jpg` (candidate
-  rows after scrolling) and `docs/clubhouse-theme/player-dialog.jpg` (Herman Liv).
-- Full-view combined comparison: `/workspace/scratch/ddeb630f154b/clubhouse-comparison.jpg`.
-- Focused agenda combined comparison: `/workspace/scratch/ddeb630f154b/agenda-comparison.jpg`.
-- Normalization: source fitted proportionally into a 1363 × 936 canvas without
-  stretching, alongside the actual 1363 × 936 browser capture. The source's
-  slightly taller aspect ratio is acknowledged; it was not treated as layout
-  drift. Focused crops retain native text size for typography review.
-- State: employed HV71 coach, illustrated office overview. Implementation shows
-  the actual 1 August 2026 career, current contract priority, training and next
-  friendly. The source's 23 October example date, junior conversation and 11:00
-  appointment are mock data, intentionally not fabricated in the real career.
+## Comparison evidence
+
+Source: `docs/clubhouse-theme/overview.jpg` and `assets/clubhouse/interior.webp`. Implementation: `docs/rooms/office.jpg`, `locker.jpg`, `tactics.jpg`, `ice.jpg`, `recruit.jpg`, `boardroom.jpg`, `world.jpg`.
+
+`docs/rooms/comparison.jpg` puts the approved overview and rendered tactics room in the same comparison image, normalized to equal width. `navigation-comparison.jpg` compares focused navigation/material regions. `all-rooms.jpg` permits a single-input comparison across all seven rooms. The reference represents the overview on August 1; implementation represents actual workroom states on August 2. New room subjects, wider working panel, station controls, and permanent seven-area navigation are intentional changes, not pixel-match claims.
+
+## Findings and fixes
+
+No outstanding P0/P1/P2 issue in the reviewed desktop views.
+
+- Resolved functional P1 during implementation: locker room rendering referenced a nonexistent portrait helper. Reused the existing `playerAvatar` renderer; the post-fix locker capture shows the actual roster and avatars.
+- Resolved responsive P2 by inspection: stations near the scene edge could escape a narrow scene. Horizontal positions now clamp to the scene bounds, with smaller mobile controls. Windows UI checks assert station and footer bounds at each target width.
+- Resolved state integrity issue: the world news reader initialized feedback state during a visit. It now reads the optional collection without writes. Whole-career and room-tour regressions pass.
+- Resolved accessibility P2: the roster selector now has an explicit accessible name, verified with `getByLabel` in the rendered UI.
+
+Asset loading required a loaded-image capture; an early unloaded office screenshot was discarded and recaptured. Browser caching and preview reloads are tooling observations, not design iterations.
 
 ## Required fidelity surfaces
 
-- Typography: locally bundled HM Inter is loaded. Strong white brand/title,
-  restrained secondary labels and clear action weights reproduce the hierarchy.
-  Real agenda descriptions use a compact 12–14px scale to accommodate evidence;
-  existing analytical tables retain their established compact scale.
-- Spacing/layout: full-screen artwork, approximately 76/24 scene/agenda split,
-  top identity/time/action strip and bottom coach/room navigation preserve the
-  source composition. Main desktop controls remain visible without page scroll.
-  Six existing room destinations replace the source's single footer caption.
-  This is deliberate access to the user's whole existing game.
-- Colors/tokens: navy `#081827` / `#091a2b`, muted blue-gray text, warm gold
-  `#e6c15f`, warm timber and cool practice ice follow the selected direction.
-  Medical and gameplay status meanings remain owned by existing workspaces.
-- Images/assets: a separately generated team-neutral clubhouse environment
-  reproduces office lower left, locker room center and ice upper right. The
-  approximately 184KB WebP preserves detail without baking controls into the
-  image. The coach portrait is a generated fictional character; real player
-  portraits and actual club crests are reused. New UI icons are vendored
-  Bootstrap assets with license, not handmade replacements.
-- Copy/content: actual career date, club, agenda, training and fixture replace
-  example data. No fictional appointment or automatic junior promise is added.
-  Locker instructions correctly direct the player to the real roster list.
+- Typography: retains the game's font stack and condensed heading treatment; 25px side headings, 12px primary actions, 10–12px supporting copy. No room name truncation or heading overflow in the reviewed viewport. Dense controls use the established navigation hierarchy.
+- Spacing/layout: original top bar and permanent bottom navigation retained. Room image takes the left scene; work occupies a 340–450px right panel with its own scroll. Three station controls match focal objects. Captions stay inside the scene. Full-room comparisons show consistent panel and caption rhythm.
+- Colors/tokens: dark navy surfaces, oak/amber imagery and gold selected/primary controls match the reference. Selected stations, side tabs and footer area agree. Focus outlines are explicit and reduced motion is respected.
+- Images: all seven room assets are distinct 1536 × 1024 WebP illustrations in the approved architectural style. Full-size captures show consistent warm lighting, navy furnishing, ice views and sharp subjects. Decorative text is not embedded as interaction labels. Existing avatars/logos are retained; added icons come from Bootstrap Icons.
+- Copy/content: Swedish labels name concrete work. Needs, injuries, contracts, line assignments, cash, news and schedules come from the active career. Empty states make no claims of completed work. Training explains that the session runs when the day ends. Office count is labeled “Svar som krävs” to distinguish decisions from advisory agenda items.
 
-## Comparison history and fixes
+## Interaction evidence
 
-1. Initial browser inspection found duplicated workspace navigation and a
-   conversation focus path that could leave duplicate player-heading IDs.
-   Removed redundant subnavigation, retained global search, rendered a single
-   meeting panel, focused its heading, made background regions inert and added
-   Escape/Tab behavior. Final player dialog has only its conversation controls
-   in the native accessibility tree, and Escape returns to the roster selector.
-2. Browser navigation exposed stale/incomplete preview asset responses. After
-   completing asset packaging and restarting the preview, reloaded and repeated
-   office → squad → recruitment navigation. Every current theme image/icon has
-   a positive natural width. Final recruitment capture shows loaded imagery.
-3. Recruitment's inherited flex layout squeezed `.rd-scroll` to zero height
-   under the new dialog header. Added a minimum readable candidate region and
-   scrolling work surface. Repeated browser inspection measured a 1040px table
-   body containing the real candidates, accessible by scrolling; the dialog
-   header and close control remain visible. Added a Windows browser assertion
-   that this region stays at least 240px high.
-4. Reopened and compared the final full-view and focused agenda evidence against
-   the source. No actionable P0/P1/P2 findings remain for the themed desktop
-   overview and inspected work/dialog states.
+45 targeted regression tests pass, including read-only world/room visits and existing clubhouse, coach and match presentation behavior. Final rerun of 13 directly affected tests passes after the accessibility/copy fixes.
 
-## Functional verification
-
-- 43 relevant Node checks passed across theme, clubhouse, coach workspace,
-  coach journey, browser history, recruitment, squad, tactics, development,
-  interface and world suites. Five theme-specific tests also passed after the
-  final presentation edits.
-- Browser: new local test career/onboarding; actual agenda opens contracts;
-  recruitment opens with real candidates and scrolls; room navigation; real
-  player selection; guarded conversation updates trust and shows cooldown;
-  reloading retains career; Escape closes work and conversation; native focus
-  lands in the selected player's heading; no desktop horizontal overflow.
-- No application errors returned by the console query scoped to terminal.local.
-  Extension metadata warnings are outside the game.
-- The existing 3D route and return control were exercised. This cloud browser
-  reports no WebGL support, so the existing accessible fallback was observed;
-  hardware-rendered animation is not claimed verified locally.
-- Narrow viewport and Windows/Electron regression checks have been added to the
-  existing CI runner; they have not been executed in this local cloud browser.
-  Full match rendering and every deep interaction are outside this visual pass.
-
-## Follow-up polish
-
-- The overview's environment is illustrated. Personalized movement and a live
-  roster cast remain in the existing animated rooms; a future unified scene can
-  bring them to this art direction without replacing the simulation.
-- Additional camera-close room artwork can enrich the existing room panels.
+Browser interactions verified: all seven room landings; PP2 opens the selected real special-teams unit and returns to the tactics room; next-opponent following persists through reload; next-day recovery persists and locks intensity to light without advancing the day; a roster conversation raises trust from 60 to 61, applies the existing three-match cooldown, and persists through reload. No application console errors in the final build session.
 
 ## Implementation checklist
 
-- [x] Selected visual direction implemented around the existing career.
-- [x] Real assets and career-backed controls in place.
-- [x] Main and focused visual comparisons inspected.
-- [x] Identified navigation, focus, asset and candidate-height issues corrected.
-- [x] Relevant automated checks and desktop browser interactions passed.
-- [x] Local overview left open for inspection.
+- [x] Distinct scenes and three contextual workstations in each room.
+- [x] Existing career commands and consequences used for changes.
+- [x] Room navigation does not simulate or grant progress.
+- [x] Detail surfaces preserve their originating room and station.
+- [x] Source and implementation viewed together, including focused regions.
+- [x] Desktop primary interactions and reload persistence verified.
+- [x] Responsive interaction/bounds checks added to Windows CI.
