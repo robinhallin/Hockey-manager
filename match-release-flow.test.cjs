@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const ctx=vm.createContext({});for(const file of ['match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
+const ctx=vm.createContext({});for(const file of ['match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),distance=(a,b)=>Math.hypot(...a.map((n,i)=>n-b[i]));
 const near=(a,b,tolerance=1e-6)=>assert.ok(distance(a,b)<tolerance,`${a} differs from ${b}`);
 function fixture(style='wrist',shoots='R',angle=0){

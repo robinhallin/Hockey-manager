@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters'),Motion=require('./match-broadcast-motion');
-const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);const R=vm.runInContext('Match3D',ctx);
+const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);const R=vm.runInContext('Match3D',ctx);
 const dist=(a,b)=>Math.hypot(...a.map((n,i)=>n-b[i])),near=(a,b)=>assert.ok(dist(a,b)<1e-7,`${a} differs from ${b}`);
 test('upper-body orientation is recorded with an angular speed limit and cannot rotate the skates',()=>{
  const m=new H.Match(rosters,{seed:33,scenario:'rush'}),a=m.skaters(0)[0];Object.assign(a,{x:25,y:15,vx:3,vy:0,travelled:2,motion:{heading:0,travel:0,upperHeading:0,gazeHeading:0,distance:2}});m.puck={x:25,y:25};m.carrier=a.id;

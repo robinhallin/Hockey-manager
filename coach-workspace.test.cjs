@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),{boot}=require('./scripts/career-test-fixture.cjs');
-function setup(){const a=boot(undefined,{production:true});a.run("startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};coachWorkspaceEnter();");return a;}
+function setup(){const a=boot(undefined,{production:true});a.run("startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};coachWorkspaceEnter();");return a;}
 test('the coherent home replaces old layers, while all existing domain workspaces remain reachable',()=>{
  const a=setup(),r=a.run;
  assert.equal(r('coachWorkspaceEnabled()'),true);assert.equal(r('clubhouseEnabled()'),false);

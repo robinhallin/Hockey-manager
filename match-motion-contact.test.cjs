@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters'),Motion=require('./match-broadcast-motion');
 const context=vm.createContext({});
-for(const file of ['match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const R=vm.runInContext('Match3D',context);
 
 test('a board bounce is visible at its actual contact time, not the chord between ticks',()=>{

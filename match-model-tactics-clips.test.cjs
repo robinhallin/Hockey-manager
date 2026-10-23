@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const context=vm.createContext({});for(const name of ['match-player-asset.js','match-player-model.js','match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
+const context=vm.createContext({});for(const name of ['archive/retired-3d/match-player-asset.js','archive/retired-3d/match-player-model.js','match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
 const Model=vm.runInContext('HockeyPlayerModel',context),R=vm.runInContext('Match3D',context);
 function setup(side=0){
  const m=new H.Match(rosters,{seed:912,scenario:'attack'});m.time=m.wall=20;m.stoppage=0;m.owner=side;m.battle=null;m.flight=null;
@@ -11,7 +11,7 @@ function setup(side=0){
  return {m,a};
 }
 test('all equipped models share valid weights and include a complete, articulated goalkeeper for either hand',()=>{
- const source=JSON.parse(fs.readFileSync('assets/models/hockey-uniform.gltf','utf8'));
+ const source=JSON.parse(fs.readFileSync('archive/retired-3d/assets/models/hockey-uniform.gltf','utf8'));
  assert.equal(source.meshes.length,3);assert.equal(source.scenes.length,3);
  for(const kind of ['skater','goalie','goalieR']){
   const asset=Model.model(kind);assert.equal(asset.joints.length,15);assert.ok(asset.vertices<2400);
@@ -100,7 +100,7 @@ test('career saves resume new physical/tactical state and real clips open throug
  const restored=boot(app.storage.value),sequence="globalThis.e=studioEngine();for(let i=0;i<12;i++)e.step();JSON.stringify([e.time,e.rng,e.puck,e.carrier,e.score,e.teams.map(t=>[t.attackPattern,t.specialPlay]),e.actors.map(a=>a.balanceState)])";
  assert.equal(restored.run(sequence),app.run(sequence));
  app.run('pauseMatch();globalThis.before=JSON.stringify(state.live);globalThis.clip=studioEngine().tacticalClips.at(-1);studioObservationClip(clip.id);studioReplayMoment();studioSeekReplay(999);studioPauseReplay();studioReplayFrame(1000);studioReplayFrame(1500);');
- assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(app.run('studioVisualMode'),'3d');assert.ok(app.run("studioView().includes('Till observationen')"));
+ assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.ok(app.run("studioView().includes('career-ice')"));assert.ok(app.run("studioView().includes('Till observationen')"));assert.equal(app.run("studioView().includes('career-ice-3d')"),false);
  app.run('studioExitReplay()');assert.equal(app.run('studioReplayState'),null);
  assert.throws(()=>app.run('globalThis.bad=JSON.parse(localStorage.getItem("hockey_manager_alpha02"));bad.live.broadcast.tacticalClips[0].frames[0].puck.x=999;validateSaveText(JSON.stringify(bad))'));
 });

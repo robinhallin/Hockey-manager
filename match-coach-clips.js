@@ -27,10 +27,9 @@ function matchClipAdvice(e){
 }
 function studioObservationClip(id){
  const clip=studioEngine()?.tacticalClips?.find(c=>c.id===Number(id));if(!clip?.frames.length)return;
- const returnView=studioReplayState?.returnView||{visual:studioVisualMode,camera:studioCamera3D,expanded:studioExpanded3D};
- pauseMatch();studioVisualMode='3d';studioCamera3D='auto';studioExpanded3D=false;
- studioReplayState={frames:clip.frames,clip,elapsed:0,lastNow:null,rate:studioReplayRate(null),paused:false,analysis:true,returnView};
- render();matchFocus('career-ice-3d');
+ pauseMatch();
+ studioReplayState={frames:clip.frames,clip,elapsed:0,lastNow:null,rate:studioReplayRate(null),paused:false,analysis:true};
+ render();matchFocus('career-ice');
 }
 function studioReplayDuration(r=studioReplayState){if(!r?.frames?.length)return 0;const first=r.frames[0],last=r.frames.at(-1);return Math.max(0,Number(((last.wall??last.time)-(first.wall??first.time)).toFixed(6)));}
 function matchClipFollowup(row){

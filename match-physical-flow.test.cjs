@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const ctx=vm.createContext({});for(const file of ['match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
+const ctx=vm.createContext({});for(const file of ['archive/retired-3d/match-player-asset.js','archive/retired-3d/match-player-model.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),Model=vm.runInContext('HockeyPlayerModel',ctx);
 function setup(side=0){const m=new H.Match(rosters,{seed:621,scenario:'attack'});m.time=m.wall=20;m.stoppage=0;m.flight=m.battle=null;m.owner=side;for(const a of m.actors){a.vx=a.vy=0;if(a.role!=='G')Object.assign(a,{x:25,y:3+m.skaters(a.side).indexOf(a)*5});}const a=m.skaters(side)[0];Object.assign(a,{x:H.progress(side,48),y:15,target:{x:H.progress(side,54),y:15}});m.carrier=a.id;m.puck={x:a.x,y:a.y};return {m,a};}
 

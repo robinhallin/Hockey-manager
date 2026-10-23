@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
+const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),recorded=require('./test-fixtures/shot-followthrough.json');
 const distance=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
 function checkGrip(p){

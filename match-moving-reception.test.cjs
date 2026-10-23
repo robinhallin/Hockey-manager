@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const context=vm.createContext({});for(const file of ['match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+const context=vm.createContext({});for(const file of ['match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const R=vm.runInContext('Match3D',context);
 function setup(side=0,speed=4){
   const m=new H.Match(rosters,{seed:12}),point=(p,y)=>({x:H.progress(side,p),y});m.time=m.wall=20;m.stoppage=0;m.phase='attack';m.owner=side;

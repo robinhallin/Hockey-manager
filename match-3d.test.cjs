@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('archive/retired-3d/match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
 test('3D interpolation follows actual player IDs and leaves snapshots unchanged',()=>{
  const previous={time:10,puck:{x:5,y:7},actors:[{id:'a',x:4,y:6},{id:'b',x:20,y:21}]};
  const frame={time:10.2,carrier:'b',puck:{x:9,y:11},actors:[{id:'b',x:22,y:23},{id:'c',x:40,y:15},{id:'a',x:6,y:8}]};
@@ -12,13 +12,13 @@ test('both perspective cameras keep the playable rink inside common desktop surf
   const s=renderer.project(p,renderer.camera(ratio,mode));assert.ok(s.x>=0&&s.x<=1&&s.y>=0&&s.y<=1,`${mode} ${ratio} ${p}: ${JSON.stringify(s)}`);
  }
 });
-test('selecting camera and presentation preserves match engine and career save',()=>{
+test('reading the 2D presentation preserves match engine and career save',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
  app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();state.page='match';for(let i=0;i<40;i++)studioStep();pauseMatch();");
  const before=app.run('JSON.stringify(state.live)');
- app.run("studioSetVisual('3d');studioSetCamera('overhead');studioSetVisual('2d');");
+ app.run('studioView();matchDeskView();matchPreferencesView();');
  assert.equal(app.run('JSON.stringify(state.live)'),before);
- assert.ok(app.run("studioView().includes('>3D</option>')"));
+ assert.ok(app.run("studioView().includes('2D · Överblick över hela isen')"));assert.equal(app.run('typeof studioSetVisual'),'undefined');assert.equal(app.run('typeof studioSetCamera'),'undefined');
 });
 
 test('skating uses real travelled distance; paused/stationary poses do not pedal',()=>{
@@ -113,12 +113,12 @@ test('contrast kits retain the actual club identity used on jerseys and arena ar
  assert.equal(kits[1].name,'Leksands IF');assert.equal(kits[1].code,'LIF');assert.notDeepEqual(kits[0].jersey,kits[1].jersey);assert.equal(JSON.stringify(teams),saved);
  assert.equal(renderer.quality('low').shadowSize,0);assert.ok(renderer.quality('high').shadowSize>renderer.quality('normal').shadowSize);
 });
-test('large-rink mode keeps match state untouched and is limited to active 3D presentation',()=>{
- const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.page='match';studioSetVisual('3d');");
- const stateBefore=app.run('JSON.stringify(state.live)');app.run('studioToggleRink();');
- assert.ok(app.run("matchDeskView().includes('md-rink-focus')"));assert.ok(app.run("studio3DControls().includes('Visa coachbänken')"));
+test('the integrated 2D match keeps match state untouched and exposes the coach controls',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();state.page='match';");
+ const stateBefore=app.run('JSON.stringify(state.live)');
+ assert.ok(app.run("matchDeskView().includes('ct-match')"));assert.ok(app.run("matchDeskView().includes('match-play')"));assert.ok(app.run("studioView().includes('career-ice')"));
+ assert.equal(app.run("matchDeskView().includes('md-rink-focus')"),false);assert.equal(app.run('typeof studioToggleRink'),'undefined');
  assert.equal(app.run('JSON.stringify(state.live)'),stateBefore);
- app.run("studioSetVisual('2d');");assert.equal(app.run("matchDeskView().includes('md-rink-focus')"),false);
 });
 test('tracking eases in simulation time, freezes at pause and resets at discontinuities',()=>{
  const first={time:10,phase:'attack',puck:{x:30,y:15}},prior=renderer.trackPuck(first,null);
@@ -138,14 +138,13 @@ test('zoom and tracking keep the actual puck visible through fast changes and at
   }
  }
 });
-test('zoom and puck visibility controls preserve live and replay state',()=>{
+test('redrawing the 2D rink and replay controls preserves live and replay state',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();
- app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();studioSetVisual('3d');studioReplayState={frames:[studioFrame(studioEngine())],elapsed:0,lastNow:null};");
+ app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();studioReplayState={frames:[studioFrame(studioEngine())],elapsed:0,lastNow:null};");
  const before=app.run('JSON.stringify([state.live,studioReplayState])');
- app.run('studioSetZoom(9);studioTogglePuck();');assert.equal(app.run('studioZoom3D'),1.5);assert.equal(app.run('studioPuckMarker3D'),false);
- app.run('studioSetZoom(NaN);');assert.equal(app.run('studioZoom3D'),1.5);
- app.run('studioSetZoom(-5);');assert.equal(app.run('studioZoom3D'),.8);
- app.run('studioSetZoom(1);studioTogglePuck();');assert.equal(app.run('JSON.stringify([state.live,studioReplayState])'),before);
+ for(let i=0;i<3;i++){assert.ok(app.run("studioView().includes('Repriskontroller')"));app.run('matchDeskView();studioReplayControls();');}
+ assert.equal(app.run('typeof studioSetZoom'),'undefined');assert.equal(app.run('typeof studioTogglePuck'),'undefined');
+ assert.equal(app.run('JSON.stringify([state.live,studioReplayState])'),before);
 });
 
 const separation=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));

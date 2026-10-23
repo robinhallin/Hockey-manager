@@ -14,7 +14,7 @@ fs.mkdirSync(out,{recursive:true});
   await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];if(!w.isVisible())return new Promise(resolve=>w.once('show',resolve));});
   await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.unmaximize();w.setContentSize(1440,1000);});
   // Keep the established analytical-workspace coverage explicit, then exercise
-  // the new default 3D experience through its own real buttons below.
+  // the integrated clubhouse and 2D match experience through its own real buttons below.
   await page.evaluate(()=>clubhouseRemember('mode','classic'));
   await require('../scripts/club-build-browser-checks.cjs').checkClubBuild(page,out);
   await require('../scripts/transfer-week-browser-checks.cjs').checkTransferWeek(page,out);

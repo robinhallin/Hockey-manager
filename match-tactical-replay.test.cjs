@@ -1,6 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const R=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('archive/retired-3d/match-3d.js','utf8'),context);const R=vm.runInContext('Match3D',context);
 function scene(wall=10){return {time:wall,wall,phase:'attack',owner:0,carrier:null,puck:{x:49,y:15},actors:[
  {id:'s',name:'Skytt',side:0,role:'LW',x:46,y:15,vx:0,vy:0},
  {id:'screen',name:'Skymmande spelare',side:0,role:'C',x:52,y:15,vx:0,vy:0},

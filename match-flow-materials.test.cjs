@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
 const Motion=require('./match-broadcast-motion');
-const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
+const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','archive/retired-3d/match-player-asset.js','archive/retired-3d/match-player-model.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),Model=vm.runInContext('HockeyPlayerModel',ctx);
 function setup(side=0){const m=new H.Match(rosters,{seed:381,scenario:'attack',duration:100});m.time=m.wall=20;m.stoppage=0;m.owner=side;for(const a of m.actors)if(a.role!=='G')Object.assign(a,{x:30,y:3+m.skaters(a.side).indexOf(a)*5,vx:0,vy:0});const a=m.skaters(side)[0],d=m.skaters(1-side)[0],g=m.actors.find(a=>a.role==='G'&&a.side!==side);Object.assign(a,{x:H.progress(side,50),y:15});m.carrier=a.id;m.puck={x:a.x,y:a.y};Object.assign(g,m.goalieTarget(1-side,a));return {m,a,d,g};}
 
@@ -81,9 +81,10 @@ test('equipment surfaces distinguish cloth, shell and steel independently of kit
  const before=JSON.stringify(f),normal=R.crowd(f,[],0,1),low=R.crowd(f,[],0,2);assert.ok(low.length<normal.length*.65);assert.equal(JSON.stringify(f),before);
 });
 
-test('graphics settings persist without touching live simulation, with normal quality for older saves',()=>{
- const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.before=JSON.stringify(state.live);studioSetGraphics('low');");assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(app.run('studioGraphicsQuality()'),'low');
- const loaded=boot(app.storage.value);assert.equal(loaded.run('studioGraphicsQuality()'),'low');loaded.run("delete state.matchPreferences.graphics3d;studioSetGraphics('bogus')");assert.equal(loaded.run('studioGraphicsQuality()'),'normal');assert.ok(loaded.run("matchPreferencesView().includes('3D-grafik')"));
+test('older saves with retired graphics preferences resume in 2D without changing the simulation',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();matchPreferences().graphics3d='low';save();globalThis.before=JSON.stringify(state.live);matchPreferencesView();");assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));
+ const loaded=boot(app.storage.value);assert.equal(loaded.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(loaded.run('typeof studioSetGraphics'),'undefined');assert.equal(loaded.run("matchPreferencesView().includes('3D-grafik')"),false);assert.ok(loaded.run("studioView().includes('career-ice')"));
+ const step="globalThis.e=studioEngine();for(let i=0;i<12;i++)e.step();JSON.stringify([e.rng,e.time,e.puck,e.score])";assert.equal(loaded.run(step),app.run(step));
 });
 
 test('saving with a joined duel, keeper posture and marking plan resumes exactly and rejects invalid physical values',()=>{
