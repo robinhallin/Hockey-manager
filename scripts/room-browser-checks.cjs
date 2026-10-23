@@ -33,7 +33,7 @@ module.exports=async function checkWorkrooms(page,out){
  await page.getByRole('navigation',{name:'Enheter på taktiktavlan'}).getByRole('button',{name:'Powerplay',exact:true}).click();
  await page.getByRole('button',{name:/^Powerplay 2/}).click();
  assert.equal(await page.evaluate(()=>specialUI.unit),'pp2');
- await page.getByRole('button',{name:'Stäng arbetsytan',exact:true}).click();assert.equal(await page.evaluate(()=>clubhouseRoomsKey()),'tactics');
+ assert.equal(await page.evaluate(()=>state.page),'home');await page.getByRole('button',{name:'Lämna arbetsbordet',exact:true}).click();assert.equal(await page.evaluate(()=>clubhouseRoomsKey()),'tactics');
  await nav().getByRole('button',{name:'Truppen',exact:true}).click();
  const player=await page.evaluate(()=>{const p=managerRoster().find(p=>clubhousePresence(p).present);return {id:String(p.id),trust:p.social.trust};});
  await page.getByLabel('Vem vill du träffa?',{exact:true}).selectOption(player.id);

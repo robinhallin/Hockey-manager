@@ -28,6 +28,9 @@ async function checkCoachJourney(page,out){
  await page.getByRole('button',{name:'← Tillbaka till tränarkontoret',exact:true}).click();
  await page.evaluate(()=>{state.calendar.date=calendarTarget();clubhouseGo('office');});
  await page.locator('.ct-continue').click();
+ assert.equal(await page.evaluate(()=>state.live),null);
+ await page.getByRole('button',{name:/^Till laguttagningen/}).click();
+ await page.getByRole('button',{name:/^Samla matchlaget/}).click();
  assert.equal(await page.evaluate(()=>state.live.friendly),true);
  await page.locator('#cj-match-room[data-stage="locker"] .ct-matchroom-art').waitFor();
  for(const [width,height] of [[1920,1080],[1440,1000]]){await page.setViewportSize({width,height});const room=await page.locator('#cj-match-room').boundingBox();assert.ok(room.width>=width*.98&&room.height>=height*.98,'matchday room fills the viewport');}
@@ -65,6 +68,10 @@ async function checkCoachJourney(page,out){
  await page.getByRole('button',{name:'Beröm insatsen',exact:true}).click();
  await page.screenshot({path:path.join(out,'85-eftersnack-i-omkladningsrummet.png'),fullPage:true});
  await page.getByRole('button',{name:/^Öppna matchrapporten/}).click();assert.equal(await page.evaluate(()=>matchDesk.tab),'report');
+ await page.getByRole('navigation',{name:'Matchdagens väg'}).getByRole('button',{name:'Analysbordet',exact:true}).click();
+ assert.equal(await page.evaluate(()=>roomCoachUI.step),'analysis');
+ assert.ok(await page.getByRole('region',{name:'Efteranalys i rummet',exact:true}).isVisible());
+ await page.screenshot({path:path.join(out,'room-coaching-after-match.png'),fullPage:true});
  const saved=await page.evaluate(()=>{save();return {opponent:state.live.opponent,talk:state.live.socialTalks.post.kind,story:state.stories.active.find(s=>s.ids.includes(String(coachJourneyUI.player)))?.id};});
  await page.reload();await page.getByRole('button',{name:/FORTSÄTT KARRIÄR/}).click();
  assert.equal(await page.evaluate(()=>state.live.socialTalks.post.kind),saved.talk);
