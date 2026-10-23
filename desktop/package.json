@@ -1,7 +1,7 @@
 {
   "name": "hockey-manager-desktop",
   "productName": "Hockey Manager",
-  "version": "0.1.0-beta.7",
+  "version": "0.1.0-beta.8",
   "description": "Hockey Manager – svensk desktopbeta",
   "author": "Robin Hallin",
   "private": true,
@@ -13,7 +13,7 @@
     "test:ui": "node smoke.cjs"
   },
   "devDependencies": {
-    "electron": "44.4.5",
+    "electron": "44.9.3",
     "electron-builder": "26.15.3",
     "playwright": "1.58.2"
   },

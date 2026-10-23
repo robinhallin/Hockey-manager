@@ -7,11 +7,12 @@ const out=path.join(__dirname,'test-results');fs.mkdirSync(out,{recursive:true})
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'hm-beta-ui-'));
 const executable=process.env.HM_TEST_EXE || require('electron');
 const args=process.env.HM_TEST_EXE?[]:[__dirname];
-let application,page;const errors=[];let savePath;
+let application,page;const errors=[];let savePath;let build;
 async function launch(){
  application=await electron.launch({executablePath:executable,args,env:{...process.env,HM_TEST_USER_DATA:profile},timeout:60000});
  page=await application.firstWindow();page.setDefaultTimeout(30000);page.on('pageerror',error=>errors.push(error.message));
  await page.waitForFunction(()=>typeof state!=='undefined' && typeof window.hockeyDesktop!=='undefined');
+ build=await page.evaluate(()=>betaBuild().revision);
  await page.evaluate(()=>clubhouseRemember('mode','classic'));
  // ready-to-show maximizes the window; wait for it before setting test bounds.
  await application.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];if(!w.isVisible())return new Promise(resolve=>w.once('show',resolve));});
@@ -138,6 +139,7 @@ async function close(){
   for(const [name,rect] of Object.entries({rink:layout.rink,controls:layout.controls})){
    assert.ok(rect.width>0 && rect.height>0 && rect.x>=0 && rect.y>=0 && rect.right<=layout.viewport.width+1 && rect.bottom<=layout.viewport.height+1,name+' fits the desktop viewport');
   }
+  await require('./match-performance.cjs')(page,out,application);
   await require('./match-2d-ui.cjs')(page,out,application);
   const writeOrder=await page.evaluate(async()=>{
     pauseMatch();const first=JSON.stringify(state),second=JSON.stringify({...state,money:state.money+1});
@@ -196,7 +198,7 @@ async function close(){
   await require('../scripts/nhl-club-planning-browser-checks.cjs').checkNHLClubPlanning(page,out);
   await close();
   assert.deepEqual(errors,[],'renderer errors');
-  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['2D live rendering, non-mutating replay, scoreboard and coach controls','Swiss club choice, 14 clubs, 52-round schedule, league workspace and disk reload','August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','all lines and back pairs, actual drag/keyboard/candidate swaps, undo, locks and assistant','PP/BP unit builder, role candidates, guarded swaps and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','real recruitment counter, exact live forecast, accepted revision, reload and registered affair','search advanced filters collapsed and no horizontal overflow','J20 season totals, frozen annual report and reload in development workspace','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','full match with frozen task grades and match-specific summary in desktop and archive','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
+  fs.writeFileSync(path.join(out,'smoke-result.json'),JSON.stringify({version:require('./package.json').version,build,installed:!!process.env.HM_TEST_EXE,platform:process.platform,checks:['2D live rendering, non-mutating replay, scoreboard and coach controls','Swiss club choice, 14 clubs, 52-round schedule, league workspace and disk reload','August 1 onboarding and five booked friendlies','assistant responsibilities saved','specific SHL scorer/key-player scouting brief','home team first and actual ice crest loaded','overview embeds stories and press','concrete staff follow-up and consistent font','all lines and back pairs, actual drag/keyboard/candidate swaps, undo, locks and assistant','PP/BP unit builder, role candidates, guarded swaps and no card overlap for any scheme','numeric average-rating squad view','HV71: three ready goalies and no headcount shortage','recruitment depth explains named players and contracts','scouting request and exact charge via installed controls','real recruitment counter, exact live forecast, accepted revision, reload and registered affair','search advanced filters collapsed and no horizontal overflow','J20 season totals, frozen annual report and reload in development workspace','native sandbox','new career','filtered squad → profile → same filter','daily continue control to match','match clock advances and pause/resume works','full match with frozen task grades and match-specific summary in desktop and archive','fullscreen entry/exit','rink and controls visible at 1366x768','running match → close → disk → restart paused with identical match state','native save export','file import','backup preview and recovery','guide and diagnostic report'],errors},null,2));
   fs.rmSync(exported,{force:true}); // Do not publish test careers in build artifacts.
   console.log('PASS: real Electron UI, disk save/restart, import/export and backup recovery.');
  }catch(error){if(page)try{fs.writeFileSync(path.join(out,'drag-debug.json'),JSON.stringify(await page.evaluate(()=>({events:window.hmDragEvents,lines:state.lines,specialTeams:state.specialTeams})),null,2));await page.screenshot({path:path.join(out,'failure.png'),fullPage:true});}catch{}throw error;}

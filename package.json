@@ -29,6 +29,6 @@
     "bootstrap-icons": "^1.13.2",
     "esbuild": "0.28.2",
     "three": "0.186.1",
-    "vite": "8.0.13"
+    "vite": "8.3.5"
   }
 }
