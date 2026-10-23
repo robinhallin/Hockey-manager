@@ -17,8 +17,8 @@ Betan saknar kodsignering och automatisk uppdatering. Vid en Windows-varning: no
 
 Spelet öppnas i klubbhuset. **Kom igång: din första vecka** på kontoret öppnar introduktionen i rummets hjälpvy. Därifrån går du direkt till rätt arbete utan att byta gränssnitt. Klubbhusets rum är: kontor, trupp, taktik, utveckling, rekrytering, klubb och värld. Klicka på en station för att arbeta där. Att besöka ett rum gör inte jobbet automatiskt: träning och utveckling sker när kalendern går vidare.
 
-1. **Taktik → Kedjor & matchplan:** kontrollera spelklara spelare, målvakt, kedjor och special teams.
-2. **Truppen → Träning:** planera belastning och återhämtning. Kalendern visar när nästa match spelas.
+1. **Taktik → Taktiktavlan:** kontrollera spelklara spelare, målvakt, kedjor och special teams.
+2. **Utveckling:** planera belastning och återhämtning. Kalendern visar när nästa match spelas.
 3. **Avsluta dagen/Fortsätt:** driver kalendern framåt. Besvara obligatoriska ärenden först; frivillig kontraktsplanering behöver inte stoppa dagen.
 4. Spela första träningsmatchen. Pausa för att fatta beslut; återupptagna matcher startar pausade.
 5. Läs matchrapporten och istiden, följ upp belastningen och välj nästa träningsfokus. Bedöm utveckling över flera matcher.
