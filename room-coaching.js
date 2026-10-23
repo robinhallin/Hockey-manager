@@ -25,6 +25,7 @@ function roomCoachInitiatives(){
  }
  const m=clubhouseModel();
  for(const a of m.life.agenda){
+  if(rows.some(r=>r.proposal&&a.id==='staff-proposal:'+r.proposal.id))continue;
   if(a.area==='match'||a.id==='season:direction')continue;
   if(room!=='office'&&room!=='hub'&&a.room!==room)continue;
   if(a.due>today&&!a.requiresDecision)continue;

@@ -12,7 +12,7 @@ test('in-room board preserves the career and shares swaps, special teams, locks,
 });
 test('staff initiative is read-only until answered and uses the canonical saved proposal with follow-up',()=>{
  const a=setup(),r=a.run;r("staffProposalCreate('training','Återhämtning efter tät matchning');clubhouseRoomsVisit('ice');roomCoachSync();globalThis.row=roomCoachInitiatives().find(r=>r.kind==='staff');globalThis.token=roomCoachUI.token;globalThis.before=JSON.stringify(state)");
- assert.equal(r('roomCoachInitiativeOpen(row.id,token,row.signature)'),true);assert.match(r('clubhouseWorldView("HOME")'),/Godkänn förslaget/);assert.equal(r('JSON.stringify(state)'),r('before'));
+ assert.equal(r('roomCoachInitiatives().filter(r=>r.proposal?.id===row.proposal.id||r.agenda?.id==="staff-proposal:"+row.proposal.id).length'),1);assert.equal(r('roomCoachInitiativeOpen(row.id,token,row.signature)'),true);assert.match(r('clubhouseWorldView("HOME")'),/Godkänn förslaget/);assert.equal(r('JSON.stringify(state)'),r('before'));
  assert.equal(r("roomCoachInitiativeAct(row.id,'accept',token,row.signature)"),true);assert.equal(r('state.office2.proposals[0].status'),'accepted');assert.equal(r("roomCoachInitiativeAct(row.id,'accept',token,row.signature)"),false);assert.match(r('roomCoachHistory()[0].text'),/Godkänt/);
  const loaded=boot(a.storage.value,{production:true});assert.equal(loaded.run('state.office2.proposals[0].status'),'accepted');assert.equal(loaded.run('JSON.stringify(state.calendar.plans[state.office2.proposals[0].target])'),r('JSON.stringify(state.office2.proposals[0].session)'));
 });
