@@ -29,8 +29,9 @@ test('the production entrypoint has no 3D runtime or view-switch controls',()=>{
 test('primary destinations and recruitment steps remain usable without changing the career',()=>{
  const {boot}=require('./scripts/career-test-fixture.cjs'),a=boot(undefined,{production:true}),r=a.run;
  r("startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};clubhouseGo('office');ensureLines();globalThis.before=JSON.stringify([state.calendar,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])]);");
- for(const [page,area,room] of [['squad','team','locker'],['lines','tactics','office'],['training','development','ice'],['transfers','recruit','recruit'],['board','club','boardroom'],['world','world','world']]){
-  r('clubhouseThemeNavigate('+JSON.stringify(page)+')');assert.equal(r('state.page'),page);assert.equal(r('clubhouseThemeArea().id'),area);
+ for(const [page,area,room] of [['squad','team','locker'],['lines','tactics','tactics'],['training','development','ice'],['transfers','recruit','recruit'],['board','club','boardroom'],['world','world','world']]){
+  r('clubhouseThemeNavigate('+JSON.stringify(page)+')');assert.equal(r('clubhouseRoomsKey()'),room);assert.equal(r('clubhouseThemeArea().id'),area);
+  assert.match(r('clubhouseWorldView("ROOM")'),/cr-environment/);r('clubhouseRoomsOpen('+JSON.stringify(page)+',null,clubhouseRoomsUI.token)');assert.equal(r('state.page'),page);
   const html=r('clubhouseWorldView("WORK")');assert.match(html,/role="region"/);assert.doesNotMatch(html,/aria-modal="true"/);
   r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),room);
  }

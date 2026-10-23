@@ -22,6 +22,7 @@ fs.mkdirSync(out,{recursive:true});
   await require('../scripts/clubhouse-browser-checks.cjs').checkClubhouse(page,out);
   await require('../scripts/clubhouse-browser-checks.cjs').checkClubhouseLife(page,out);
   await require('../scripts/clubhouse-browser-checks.cjs').checkClubhouseTheme(page,out);
+  await require('../scripts/room-browser-checks.cjs')(page,out);
   await require('../scripts/coach-journey-browser-checks.cjs').checkCoachJourney(page,out);
   await require('../scripts/coach-workspace-browser-checks.cjs').checkCoachWorkspace(page,out);
   assert.deepEqual(errors,[]);

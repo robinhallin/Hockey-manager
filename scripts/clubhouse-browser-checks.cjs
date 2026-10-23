@@ -8,16 +8,16 @@ async function checkClubhouse(page,out){
  assert.equal(await page.locator('#clubhouse-canvas,#career-ice-3d').count(),0);
  assert.equal(await page.getByRole('button',{name:'Utforska i 3D',exact:true}).count(),0);
  const before=await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])]));
- for(const [label,pageName] of [['Truppen','squad'],['Taktik','lines'],['Utveckling','training'],['Rekrytering','transfers'],['Klubben','board'],['Världen','world']]){
+ for(const [label,pageName] of [['Truppen','locker'],['Taktik','tactics'],['Utveckling','ice'],['Rekrytering','recruit'],['Klubben','boardroom'],['Världen','world']]){
   await nav(page).getByRole('button',{name:label,exact:true}).click();
-  assert.equal(await page.evaluate(()=>state.page),pageName);
-  assert.equal(await page.locator('.ct-work').getAttribute('role'),'region');
+  assert.equal(await page.evaluate(()=>clubhouseRoomsKey()),pageName);
+  await page.locator('.cr-environment').waitFor();
+  assert.equal(await page.locator('.ct-work').count(),0);
   assert.equal(await nav(page).getByRole('button',{name:label,exact:true}).getAttribute('aria-current'),'page');
   assert.equal(await page.evaluate(()=>document.querySelector('.ct-footer').inert),false);
  }
  assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])])),before,'all work areas read the same career');
- await nav(page).getByRole('button',{name:'Kontoret',exact:true}).click();
- await page.getByRole('button',{name:'Omklädningsrum',exact:true}).click();
+ await nav(page).getByRole('button',{name:'Truppen',exact:true}).click();
  const player=await page.evaluate(()=>{const p=managerRoster().find(p=>clubhousePresence(p).present);return {id:String(p.id),name:p.name,trust:p.social.trust};});
  await page.getByLabel('Vem vill du träffa?',{exact:true}).selectOption(player.id);
  await page.getByRole('button',{name:/^Hur har du det/}).click();
@@ -49,6 +49,7 @@ async function checkClubhouseTheme(page,out){
  await page.waitForFunction(()=>[...document.querySelectorAll('.ct-world img')].every(i=>i.complete&&i.naturalWidth>0));
  await page.screenshot({path:path.join(out,'95-klubbhustema.png'),fullPage:true});
  await nav(page).getByRole('button',{name:'Rekrytering',exact:true}).click();
+ await page.getByRole('button',{name:/^Hitta kandidater/}).click();
  await page.getByRole('navigation',{name:'Rekryteringsarbetet'}).getByRole('button',{name:'Spelarsök',exact:true}).click();
  const candidates=await page.locator('.rd-scroll').boundingBox();assert.ok(candidates.height>=240,'candidate list keeps usable height');
  assert.ok(await page.locator('.rd-scroll tbody tr').count()>0);
