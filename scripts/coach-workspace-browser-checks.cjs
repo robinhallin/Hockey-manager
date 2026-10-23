@@ -48,13 +48,12 @@ async function checkCoachWorkspace(page,out){
  assert.equal(await page.evaluate(d=>state.training.history.find(h=>h.date===d).type,future),'powerplay');
  await page.screenshot({path:path.join(out,'93-riktigt-genomford-vecka.png'),fullPage:true});
  await page.locator('.coach-header .coach-continue').click();
- await page.locator('#cj-match-room[data-stage="locker"] #clubhouse-canvas[data-ready="true"]').waitFor();
+ await page.locator('#cj-match-room[data-stage="locker"] .ct-matchroom-art').waitFor();
  assert.equal(await page.evaluate(()=>state.live.friendly),true);
  const matchDate=await page.evaluate(()=>state.calendar.date);
  await page.getByRole('button',{name:'Ge stöd',exact:true}).click();
- await page.getByRole('button',{name:/^Gå mot isen/}).click();
- await page.getByRole('button',{name:/^Ta plats i båset/}).click();
- assert.ok(await page.locator('#career-ice-3d').isVisible());
+ await page.getByRole('button',{name:/^Till 2D-matchen/}).click();
+ assert.ok(await page.locator('#career-ice').isVisible());
  await page.screenshot({path:path.join(out,'94-fran-vecka-till-match.png'),fullPage:true});
  // Finish through the authoritative engine, including its real medical stops.
  await page.evaluate(()=>{let steps=0;while(!state.live.finished&&steps++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}if(!state.live.finished)throw Error('Friendly did not finish');render();});
@@ -75,9 +74,9 @@ async function checkCoachWorkspace(page,out){
  assert.equal(await page.locator('#coach-workspace').count(),1);
  await page.getByRole('button',{name:'Besök klubbhuset ↗',exact:true}).click();
  await page.locator('.ct-interior').waitFor();
- await page.getByRole('button',{name:'Utforska i 3D',exact:true}).click();
- await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
- await page.getByRole('navigation',{name:'Klubbhusets verktyg'}).getByRole('button',{name:'Tränaröversikten',exact:true}).click();
+ assert.equal(await page.getByRole('button',{name:'Utforska i 3D',exact:true}).count(),0);
+ // Retain the old workspace save path without exposing another visual mode.
+ await page.evaluate(()=>coachWorkspaceEnter());
  assert.equal(await page.evaluate(()=>state.page),'home');assert.equal(await page.locator('#coach-workspace').count(),1);
  // Required answers route to the same source message and never consume a day.
  const pending=await page.evaluate(()=>{managerMessage('coach-browser-required','Ditt verkliga svar','Du måste svara.','Spelare',{decisionType:'role'});render();return {id:pendingManagerDecision().id,date:state.calendar.date};});

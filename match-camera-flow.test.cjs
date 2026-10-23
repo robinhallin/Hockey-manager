@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const R=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('archive/retired-3d/match-3d.js','utf8'),context);const R=vm.runInContext('Match3D',context);
 const frame=(wall,x=30,y=15)=>({time:wall,wall,reset:0,phase:'attack',puck:{x,y},actors:[]});
 
 test('camera momentum does not instantly reverse with a rebound and settles on a held puck',()=>{

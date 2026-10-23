@@ -3,11 +3,11 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 let T;test.before(async()=>{T=await import('three');});
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
 const context=vm.createContext({});
-for(const file of ['match-player-asset.js','assets/models/hockey-broadcast.js','match-player-model.js','match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
+for(const file of ['archive/retired-3d/match-player-asset.js','archive/retired-3d/assets/models/hockey-broadcast.js','archive/retired-3d/match-player-model.js','match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(file,'utf8'),context);
 const {Model,Motion,R,asset}=vm.runInContext('({Model:HockeyPlayerModel,Motion:HockeyMotion,R:Match3D,asset:HockeyBroadcastAsset})',context);
 
 test('detailed offline models retain the shared bind pose, normalized weights and a bounded GPU budget',()=>{
- const source=JSON.parse(fs.readFileSync('assets/models/hockey-broadcast.gltf','utf8'));
+ const source=JSON.parse(fs.readFileSync('archive/retired-3d/assets/models/hockey-broadcast.gltf','utf8'));
  assert.equal(JSON.stringify(source),JSON.stringify(asset));
  for(const kind of ['skater','goalie','goalieR','skaterLod','goalieLod','goalieRLod']){
   const model=Model.decode(source,kind),base=Model.model(kind.replace(/Lod$/,''));

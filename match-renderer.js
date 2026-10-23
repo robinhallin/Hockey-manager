@@ -26,7 +26,7 @@ const MatchBroadcastRenderer = (() => {
     ctx.fillStyle='#a8beca';ctx.font='700 35px system-ui';ctx.textAlign='center';if(options.homeCrest){const img=options.homeCrest,ratio=img.naturalWidth/img.naturalHeight,w=ratio>=1?132:132*ratio,h=ratio>=1?132/ratio:132;ctx.globalAlpha=.58;ctx.drawImage(img,W/2-w/2,H/2-h/2,w,h);ctx.globalAlpha=1;}else ctx.fillText(options.arena||'MATCHSÄNDNING',W/2,H/2+12);ctx.restore();
     // Bench gates make controlled changes readable instead of teleporting a whole formation.
     for(const [x,label,color] of [[27,teams[0].code,teams[0].primary],[33,teams[1].code,teams[1].primary]]){const p=xy({x,y:0});ctx.fillStyle=color;ctx.fillRect(p.x-29,top-18,58,16);ctx.font='700 13px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,p.x,top-6);}
-    const sampled=typeof Match3D!=='undefined'?Match3D.sample(frame,before,t):null;
+    const sampled=typeof MatchPresentation!=='undefined'?MatchPresentation.sample(frame,before,t):null;
     const actors=sampled?.actors||frame.actors.map(a=>mix(a,before?.actors.find(b=>a.id===b.id)));
     const puck=sampled?.puck||mix(frame.puck,before?.puck);
     const visibleNames=new Set([frame.carrier,selected]);

@@ -109,7 +109,7 @@ clubhouseSelect=function(id){const ok=clubhouseOriginalSelect(id);if(ok){const p
 document.addEventListener?.('keydown',event=>{
  const work=document.querySelector?.('.ch-work-dialog');if(!work||!clubhouseEnabled()||!clubhouseAvailable()||document.querySelector('dialog[open]'))return;
  if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation?.();clubhouseReturn();}
- if(event.key==='Tab'){
+ if(event.key==='Tab'&&work.getAttribute?.('role')==='dialog'){
   const buttons=Array.from(work.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]')).filter(el=>el.getClientRects().length);
   const first=buttons[0],last=buttons.at(-1);if(!first)return;
   if(event.shiftKey&&(document.activeElement===first||!work.contains(document.activeElement))){event.preventDefault();last.focus();}

@@ -1,4 +1,80 @@
 /* Clubhouse / option 3. Layout belongs here; domain workspaces keep their controls. */
+/* Seven destinations, one presentation. Workspaces are regions, not blocking dialogs. */
+body .career-menu:before{background:url('assets/clubhouse/interior.webp') center/cover no-repeat;filter:brightness(.38)}
+body .career-menu-copy{background:#091a2bed;border-left:2px solid #e6c15f;padding:28px 34px;max-width:650px;border-radius:4px}
+body .career-menu-copy>h1{font-size:clamp(48px,5.8vw,90px);line-height:1.04;letter-spacing:-.045em}
+body .career-menu-copy>h1 em{color:#e6c15f}
+body .career-resume{background:#142c40;border-color:#526779;border-radius:4px}
+body .career-primary{background:#e6c15f;color:#132335;border-color:#f3d98a;border-radius:4px}
+body .ct-work .rd-tabs{display:none}
+@media(max-width:800px){body .career-menu-copy{padding:24px 20px}body .career-menu-copy>h1{font-size:clamp(43px,9vw,68px)}}
+/* Integrated work areas stay navigable while their content is open. */
+.ct-footer>nav button[aria-current=page]{color:#f0d073;border-bottom-color:#e6c15f}
+.ct-footer>nav button[aria-current=page] .ct-icon{filter:invert(83%) sepia(32%) saturate(612%)}
+.ct-footer>nav{min-width:0;overflow-x:auto;scrollbar-width:thin}
+.ct-footer>nav button{flex:1;min-width:70px}
+.ct-profile-portrait{width:90px;height:100px;object-fit:cover;border-radius:5px;border:1px solid #526779}
+body .game-shell #ch-world .ct-work{inset:12px;border:1px solid #526779;border-radius:4px;background:#0d2031;box-shadow:0 8px 30px #0005}
+body .game-shell #ch-world .ct-work.ch-work-wide{inset:0}
+body .game-shell #ch-world .cj-tactic-board{background:#102334;color:#eef2f6;padding:10px;--tw-panel:#102334;--tw-line:#34495b}
+body .game-shell #ch-world .cj-tactic-board .tactics-workspace{--tw-panel:#102334;--tw-line:#34495b;color:#eef2f6}
+body .game-shell #ch-world .cj-tactic-board :is(.tw-heading,.tw-navigation,.tw-toolbar,.tw-board,.tw-forwards,.tw-defense,.tw-inspector,.tw-bench){background:#102334;border-color:#34495b}
+body .game-shell #ch-world .cj-tactic-board .tw-card{background:#1a3044;color:#eef2f6;border:1px solid #4d6477;box-shadow:none;border-radius:4px}
+body .game-shell #ch-world .cj-tactic-board .tw-card :is(button,strong,small){color:#eef2f6}
+body .game-shell #ch-world .cj-tactic-board .tw-card.selected{outline:2px solid #e6c15f}
+body .game-shell #ch-world .cj-board-caption{border-color:#34495b}
+body .game-shell #ch-world .cj-board-caption :is(span,p){color:#b1bdcb}
+body .game-shell #ch-world .ct-work .ch-work-heading{background:#10273a;border-bottom:1px solid #34495b}
+body .game-shell #cj-match-room.ct-match-room{display:grid;grid-template-rows:58px minmax(0,1fr) 62px;height:100dvh;min-height:0;background:#081827;color:#f3f4f3;font-family:var(--ui-font);overflow:hidden}
+.ct-matchroom-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 28px;border-bottom:1px solid #34495b;background:#091a2b;font-size:12px;color:#b1bdcb}
+.ct-matchroom-header button,.ct-match-prep-links button{padding:10px 14px;min-height:40px;background:#152b3e;border:1px solid #4b6376;color:#eef2f6;border-radius:4px;cursor:pointer;font:inherit}
+.ct-matchroom-header strong{font-size:10px;letter-spacing:.12em;color:#e6c15f}
+.ct-matchroom-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,34%);min-height:0;overflow:hidden}
+.ct-match-preview{position:relative;overflow:auto;min-height:0;padding:clamp(28px,4vw,70px);display:flex;align-items:center}
+.ct-matchroom-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.24);pointer-events:none}
+.ct-match-preview-content{position:relative;width:100%;max-width:850px;z-index:1}
+.ct-fixture-clubs{display:flex;align-items:center;gap:26px;margin:24px 0 32px}
+.ct-fixture-clubs>.club-crest{width:86px;height:86px;flex:none;background:none;border:0}
+.ct-fixture-clubs>span{display:grid;gap:9px;font-size:clamp(18px,2.4vw,34px);font-weight:700;line-height:1.2}
+.ct-fixture-clubs strong{font-size:16px;color:#e6c15f;font-weight:500}
+body .game-shell .ct-match-preview h1{font-size:clamp(25px,3vw,44px);line-height:1.15;color:#f4f5f6;letter-spacing:-.035em;margin:0 0 18px}
+.ct-match-preview p{font-size:14px;line-height:1.8;color:#c8d3dd;max-width:570px}
+.ct-match-prep-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}
+.ct-match-preview .pm-preview{background:#102334e8;border-color:#526779}
+body .game-shell .ct-match-room .cj-match-talk{position:static;inset:auto;width:auto;max-height:none;min-height:0;overflow:auto;padding:34px 30px;background:#102334;border:0;border-left:1px solid #34495b;border-radius:0;box-shadow:none;backdrop-filter:none}
+body .game-shell .ct-match-room .cj-match-talk :is(h2,h3){color:#f3f4f3}
+body .game-shell .ct-match-room .cj-match-talk p{color:#b1bdcb}
+body .game-shell .ct-match-room .locker-actions button{background:#1a3044;border-color:#4b6376;color:#eef2f6;border-radius:4px}
+body .game-shell .ct-match-room .ch-action{background:#e6c15f;color:#132335;border:1px solid #f3d98a;border-radius:4px;min-height:48px}
+body .game-shell .ct-match-room .ch-action small{color:#324154}
+body .game-shell .ct-match-room .cj-selected-reaction{border-color:#34495b}
+body .game-shell .ct-match-room .cj-reaction-picker select{background:#152b3e;color:#eef2f6;border-color:#526779}
+body .game-shell .ct-match-room>.cj-route{position:static;inset:auto;margin:0;padding:8px 28px;border:0;border-top:1px solid #34495b;border-radius:0;background:#091a2b;display:flex}
+body .game-shell .cj-route button{color:#b1bdcb;border-radius:3px}
+body .game-shell .cj-route button[aria-current=step]{background:#233b4d;color:#e6c15f;border-color:#8c7c4c}
+body .game-shell .cj-route button:disabled{opacity:.45;cursor:default}
+body .game-shell .ct-match.md-workspace{background:#081827;--mc-accent:#e6c15f;--mc-line:#34495b;--mc-muted:#b1bdcb}
+body .game-shell .ct-match :is(.mc-header,.mc-coach,.mc-coach>header,.mc-stats,.mc-on-ice,.broadcast-view,.broadcast-view>header,.mc-situation,.mc-tabs,.mc-coach>footer){background:#102334;border-color:#34495b;border-radius:4px}
+body .game-shell .ct-match .mc-header{background:#102334}
+body .game-shell .ct-match .mc-tabs button[aria-pressed=true]{color:#e6c15f;border-color:#e6c15f;background:#21384b}
+body .game-shell .ct-match .mc-play{background:#e6c15f;color:#132335;border-color:#f3d98a}
+body .game-shell .ct-match .mc-result>b{color:#f3f4f3}
+body .game-shell .ct-match .cj-route{background:#091a2b;border-color:#34495b;border-radius:4px}
+body .game-shell .ct-match .match-broadcast-tools{display:flex;align-items:center;justify-content:space-between;padding:5px 11px;gap:12px;border-block:1px solid #34495b;background:#091a2b;font-size:10px;color:#b1bdcb;flex:none;min-height:30px}
+.match-broadcast-tools button{background:#1a3044;border:1px solid #4b6376;color:#e8edf2;padding:4px 9px}
+@media(max-width:1000px){
+ .ct-footer .ct-coach{min-width:0}.ct-footer .ct-coach>span{display:none}
+ .ct-matchroom-body{grid-template-columns:minmax(0,1fr) minmax(320px,40%)}.ct-fixture-clubs{gap:16px}.ct-fixture-clubs>.club-crest{width:60px;height:60px}
+}
+@media(max-width:800px){
+ body .game-shell #ch-world .ct-work{position:absolute;inset:8px}
+ .ct-footer>nav button{min-width:63px}.ct-footer>nav{justify-content:flex-start;max-width:100%}
+ .ct-matchroom-header{padding:0 15px;font-size:10px}.ct-matchroom-header>span{display:none}
+ .ct-matchroom-body{display:block;overflow:auto}.ct-match-preview{min-height:340px;padding:28px 22px}
+ body .game-shell .ct-match-room .cj-match-talk{padding:24px;border-left:0;border-top:1px solid #34495b;overflow:visible}
+ body .game-shell .ct-match-room>.cj-route{padding:8px 14px}
+ .ct-fixture-clubs>.club-crest{width:55px;height:55px}.ct-fixture-clubs>span{font-size:21px}
+}
 body:has(.ct-world),body:has(.ct-world) .game-shell{
  --ui-bg:#081522;--ui-panel:#102234;--ui-raised:#182d41;--ui-hover:#213b50;
  --ui-border:#31475a;--ui-text:#f3f4f3;--ui-muted:#b1bdcb;--ui-faint:#93a6b9;

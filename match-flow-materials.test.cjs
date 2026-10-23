@@ -2,7 +2,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
 const Motion=require('./match-broadcast-motion');
-const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','match-player-asset.js','match-player-model.js','match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
+const ctx=vm.createContext({});for(const f of ['match-broadcast-motion.js','archive/retired-3d/match-player-asset.js','archive/retired-3d/match-player-model.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(f,'utf8'),ctx);
 const R=vm.runInContext('Match3D',ctx),Model=vm.runInContext('HockeyPlayerModel',ctx);
 function setup(side=0){const m=new H.Match(rosters,{seed:381,scenario:'attack',duration:100});m.time=m.wall=20;m.stoppage=0;m.owner=side;for(const a of m.actors)if(a.role!=='G')Object.assign(a,{x:30,y:3+m.skaters(a.side).indexOf(a)*5,vx:0,vy:0});const a=m.skaters(side)[0],d=m.skaters(1-side)[0],g=m.actors.find(a=>a.role==='G'&&a.side!==side);Object.assign(a,{x:H.progress(side,50),y:15});m.carrier=a.id;m.puck={x:a.x,y:a.y};Object.assign(g,m.goalieTarget(1-side,a));return {m,a,d,g};}
 

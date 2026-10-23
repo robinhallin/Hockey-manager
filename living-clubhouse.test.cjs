@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {boot}=require('./scripts/career-test-fixture.cjs');
-function setup(){const a=boot(),r=a.run;r(`startCareerWithClub('HV71');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};clubhouseGo('office');`);return a;}
+function setup(){const a=boot(),r=a.run;r(`startCareerWithClub('HV71');globalThis.window={};clubhouseGo('office');`);return a;}
 test('the default clubhouse uses the actual club and full roster without simulating or creating a lineup',()=>{
  const {run:r}=setup();r('globalThis.before=JSON.stringify(state);globalThis.model=clubhouseModel();clubhouseView();clubhouseModel();clubhousePanel(model)');
  assert.equal(r('JSON.stringify(state)'),r('before'));assert.equal(r('model.club'),'HV71');assert.equal(r('model.players.length'),r('managerRoster().length'));assert.equal(r('model.coach'),r('state.managerCareer.name'));assert.match(r('clubhouseWrap("old")'),/Tränarkontoret/);assert.doesNotMatch(r('clubhouseWrap("old")'),/undefined|NaN/);
@@ -44,7 +44,7 @@ test('six permanent rooms and all work routes retain the same career and a way h
   r('clubhouseReturn()');assert.equal(r('clubhouseRoomForPage()'),room);assert.equal(r('clubhouseIsRoom()'),true);assert.doesNotMatch(r('clubhouseWrap("WORK")'),/ch-work-dialog/);
  }
  assert.equal(r('JSON.stringify([state.calendar,state.money,state.lines,state.training.promises])'),r('before'));
- r('clubhouseGo("office");clubhouseAreas()');const menu=r('clubhouseWrap("WORK")');for(const text of ['Alla områden','Sparfiler & inställningar','Huvudmeny','Byt till tabelläge'])assert.ok(menu.includes(text));
+ r('clubhouseGo("office");clubhouseAreas()');const menu=r('clubhouseWrap("WORK")');for(const text of ['Alla områden','Sparfiler & inställningar','Huvudmeny'])assert.ok(menu.includes(text));
 });
 test('work overlay preserves the selected locker player and classic mode remains explicit',()=>{
  const {run:r}=setup();r('clubhouseGo("locker");globalThis.id=managerRoster()[0].id;clubhouseSelect(id);clubhouseWorkView()');assert.equal(r('clubhouseIsRoom()'),false);assert.equal(r('clubhouseEnabled()'),true);assert.match(r('clubhouseWrap("RELATIONS")'),/RELATIONS/);
@@ -85,7 +85,7 @@ test('dated office followup preserves match-based promises and returns from thei
  r('clubhouseCloseMeeting()');assert.notEqual(r('clubhouseLifeVisitor()?.playerId'),r('String(p.id)'));assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));
 });
 test('room event progression uses the existing calendar and stops before the actual match',()=>{
- const a=boot(undefined,{production:true}),r=a.run;r(`startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};ClubhouseScene.mount=()=>{};ClubhouseScene.dispose=()=>{};clubhouseGo('office');for(const key of Object.keys(calendarPaceStore().stops))calendarPaceStore().stops[key]=false;globalThis.before=state.calendar.date;`);
+ const a=boot(undefined,{production:true}),r=a.run;r(`startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};clubhouseGo('office');for(const key of Object.keys(calendarPaceStore().stops))calendarPaceStore().stops[key]=false;globalThis.before=state.calendar.date;`);
  assert.equal(r('clubhouseNextEvent()'),true);r('globalThis.n=0;while(calendarPaceRun&&n++<20)calendarPaceTick(calendarPaceRun)');assert.equal(r('state.calendar.date'),'2026-08-06');assert.equal(r('state.live'),null);assert.equal(r('calendarPaceSettings().last.days'),5);assert.equal(r('clubhouseRoomForPage()'),'office');assert.equal(r('clubhouseIsRoom()'),true);
  assert.match(r('clubhouseLifePace(clubhouseModel())'),/5 dagar senare/);assert.equal(r('clubhouseNextEvent()'),false);assert.equal(r('state.calendar.date'),'2026-08-06');
  r('clubhouseGo("ice");calendarSetSession(state.calendar.date,"type","recovery")');assert.equal(r('clubhouseModel().life.session'),'recovery');assert.doesNotThrow(()=>r('validateSaveText(saveExportText())'));

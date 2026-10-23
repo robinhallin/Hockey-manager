@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),test=require('node:test'),fs=require('node:fs'),vm=require('node:vm');
-const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
+const context=vm.createContext({});vm.runInContext(fs.readFileSync('match-broadcast-motion.js','utf8'),context);vm.runInContext(fs.readFileSync('archive/retired-3d/match-3d.js','utf8'),context);const renderer=vm.runInContext('Match3D',context);
 test('3D interpolation follows actual player IDs and leaves snapshots unchanged',()=>{
  const previous={time:10,puck:{x:5,y:7},actors:[{id:'a',x:4,y:6},{id:'b',x:20,y:21}]};
  const frame={time:10.2,carrier:'b',puck:{x:9,y:11},actors:[{id:'b',x:22,y:23},{id:'c',x:40,y:15},{id:'a',x:6,y:8}]};

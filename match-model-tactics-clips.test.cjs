@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const H=require('./scripts/current-match-engine.cjs'),rosters=require('./match-lab-rosters');
-const context=vm.createContext({});for(const name of ['match-player-asset.js','match-player-model.js','match-broadcast-motion.js','match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
+const context=vm.createContext({});for(const name of ['archive/retired-3d/match-player-asset.js','archive/retired-3d/match-player-model.js','match-broadcast-motion.js','archive/retired-3d/match-3d.js'])vm.runInContext(fs.readFileSync(name,'utf8'),context);
 const Model=vm.runInContext('HockeyPlayerModel',context),R=vm.runInContext('Match3D',context);
 function setup(side=0){
  const m=new H.Match(rosters,{seed:912,scenario:'attack'});m.time=m.wall=20;m.stoppage=0;m.owner=side;m.battle=null;m.flight=null;
@@ -11,7 +11,7 @@ function setup(side=0){
  return {m,a};
 }
 test('all equipped models share valid weights and include a complete, articulated goalkeeper for either hand',()=>{
- const source=JSON.parse(fs.readFileSync('assets/models/hockey-uniform.gltf','utf8'));
+ const source=JSON.parse(fs.readFileSync('archive/retired-3d/assets/models/hockey-uniform.gltf','utf8'));
  assert.equal(source.meshes.length,3);assert.equal(source.scenes.length,3);
  for(const kind of ['skater','goalie','goalieR']){
   const asset=Model.model(kind);assert.equal(asset.joints.length,15);assert.ok(asset.vertices<2400);
