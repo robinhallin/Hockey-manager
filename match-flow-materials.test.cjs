@@ -81,9 +81,10 @@ test('equipment surfaces distinguish cloth, shell and steel independently of kit
  const before=JSON.stringify(f),normal=R.crowd(f,[],0,1),low=R.crowd(f,[],0,2);assert.ok(low.length<normal.length*.65);assert.equal(JSON.stringify(f),before);
 });
 
-test('graphics settings persist without touching live simulation, with normal quality for older saves',()=>{
- const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();globalThis.before=JSON.stringify(state.live);studioSetGraphics('low');");assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(app.run('studioGraphicsQuality()'),'low');
- const loaded=boot(app.storage.value);assert.equal(loaded.run('studioGraphicsQuality()'),'low');loaded.run("delete state.matchPreferences.graphics3d;studioSetGraphics('bogus')");assert.equal(loaded.run('studioGraphicsQuality()'),'normal');assert.ok(loaded.run("matchPreferencesView().includes('3D-grafik')"));
+test('older saves with retired graphics preferences resume in 2D without changing the simulation',()=>{
+ const {boot}=require('./scripts/career-test-fixture.cjs'),app=boot();app.run("startCareerWithClub('HV71');state.calendar.date=calendarTarget();startMatch();pauseMatch();matchPreferences().graphics3d='low';save();globalThis.before=JSON.stringify(state.live);matchPreferencesView();");assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));
+ const loaded=boot(app.storage.value);assert.equal(loaded.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(loaded.run('typeof studioSetGraphics'),'undefined');assert.equal(loaded.run("matchPreferencesView().includes('3D-grafik')"),false);assert.ok(loaded.run("studioView().includes('career-ice')"));
+ const step="globalThis.e=studioEngine();for(let i=0;i<12;i++)e.step();JSON.stringify([e.rng,e.time,e.puck,e.score])";assert.equal(loaded.run(step),app.run(step));
 });
 
 test('saving with a joined duel, keeper posture and marking plan resumes exactly and rejects invalid physical values',()=>{

@@ -100,7 +100,7 @@ test('career saves resume new physical/tactical state and real clips open throug
  const restored=boot(app.storage.value),sequence="globalThis.e=studioEngine();for(let i=0;i<12;i++)e.step();JSON.stringify([e.time,e.rng,e.puck,e.carrier,e.score,e.teams.map(t=>[t.attackPattern,t.specialPlay]),e.actors.map(a=>a.balanceState)])";
  assert.equal(restored.run(sequence),app.run(sequence));
  app.run('pauseMatch();globalThis.before=JSON.stringify(state.live);globalThis.clip=studioEngine().tacticalClips.at(-1);studioObservationClip(clip.id);studioReplayMoment();studioSeekReplay(999);studioPauseReplay();studioReplayFrame(1000);studioReplayFrame(1500);');
- assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.equal(app.run('studioVisualMode'),'3d');assert.ok(app.run("studioView().includes('Till observationen')"));
+ assert.equal(app.run('JSON.stringify(state.live)'),app.run('before'));assert.ok(app.run("studioView().includes('career-ice')"));assert.ok(app.run("studioView().includes('Till observationen')"));assert.equal(app.run("studioView().includes('career-ice-3d')"),false);
  app.run('studioExitReplay()');assert.equal(app.run('studioReplayState'),null);
  assert.throws(()=>app.run('globalThis.bad=JSON.parse(localStorage.getItem("hockey_manager_alpha02"));bad.live.broadcast.tacticalClips[0].frames[0].puck.x=999;validateSaveText(JSON.stringify(bad))'));
 });
