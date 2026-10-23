@@ -17,6 +17,7 @@ No outstanding P0/P1/P2 issue in the reviewed desktop views.
 - Resolved functional P1 during implementation: locker room rendering referenced a nonexistent portrait helper. Reused the existing `playerAvatar` renderer; the post-fix locker capture shows the actual roster and avatars.
 - Resolved responsive P2 by inspection: stations near the scene edge could escape a narrow scene. Horizontal positions now clamp to the scene bounds, with smaller mobile controls. Windows UI checks assert station and footer bounds at each target width.
 - Resolved state integrity issue: the world news reader initialized feedback state during a visit. It now reads the optional collection without writes. Whole-career and room-tour regressions pass.
+- Resolved mobile P2 after inspecting Windows 390px evidence: long footer labels reached adjacent buttons. Labels now cap to their own button width and use narrower inline padding; the UI suite asserts each label stays inside its parent.
 - Resolved accessibility P2: the roster selector now has an explicit accessible name, verified with `getByLabel` in the rendered UI.
 
 Asset loading required a loaded-image capture; an early unloaded office screenshot was discarded and recaptured. Browser caching and preview reloads are tooling observations, not design iterations.

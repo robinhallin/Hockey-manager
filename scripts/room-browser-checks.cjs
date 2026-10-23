@@ -53,6 +53,8 @@ module.exports=async function checkWorkrooms(page,out){
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
   const bounds=await page.locator('.cr-station,.ct-footer').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width};}));
   assert.ok(bounds.every(r=>r.width>0&&r.x>=-1&&r.right<=width+1),'room stations and permanent navigation fit '+width);
+  const labels=await page.locator('.ct-footer>nav button span').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect(),p=n.parentElement.getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;}));
+  assert.ok(labels.every(Boolean),'navigation labels stay inside their own buttons');
   await page.screenshot({path:path.join(out,'room-development-'+width+'.png'),fullPage:true});
  }
  await page.setViewportSize({width:1440,height:1000});
