@@ -3,6 +3,8 @@ const assert=require('node:assert/strict'),path=require('node:path');
 async function checkCoachJourney(page,out){
  await page.setViewportSize({width:1440,height:1000});
  const p=await page.evaluate(()=>{
+  // This journey covers the animated rooms, independently of the overview preference.
+  clubhouseThemeUI.scene='live';clubhouseRemember('scene','live');
   startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','manager','assistant');ensureLines();clubhouseGo('locker');
   const p=managerRoster().find(p=>p.pos==='C'&&p.age<=23&&medicalReady(p)&&!playerLoan(p));return {id:String(p.id),name:p.name};
  });
@@ -79,5 +81,6 @@ async function checkCoachJourney(page,out){
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
  await page.screenshot({path:path.join(out,'86-levande-lag-mobil.png'),fullPage:true});
  await page.setViewportSize({width:1440,height:1000});
+ await page.evaluate(()=>{clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');render();});
 }
 module.exports={checkCoachJourney};

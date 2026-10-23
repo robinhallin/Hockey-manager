@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 async function checkCoachWorkspace(page,out){
  await page.setViewportSize({width:1440,height:1000});
- await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');coachWorkspaceEnter();});
+ await page.evaluate(()=>{clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');coachWorkspaceEnter();});
  await page.getByRole('heading',{name:'Din tränarvecka',exact:true}).waitFor();
  assert.equal(await page.locator('.sidebar').isVisible(),false);
  assert.equal(await page.getByRole('navigation',{name:'Spelets arbetsytor'}).count(),1);
@@ -74,6 +74,8 @@ async function checkCoachWorkspace(page,out){
  assert.deepEqual(await page.evaluate(()=>({date:state.calendar.date,history:state.training.history.length,matches:state.analysis.matches.length})),saved);
  assert.equal(await page.locator('#coach-workspace').count(),1);
  await page.getByRole('button',{name:'Besök klubbhuset ↗',exact:true}).click();
+ await page.locator('.ct-interior').waitFor();
+ await page.getByRole('button',{name:'Utforska i 3D',exact:true}).click();
  await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
  await page.getByRole('navigation',{name:'Klubbhusets verktyg'}).getByRole('button',{name:'Tränaröversikten',exact:true}).click();
  assert.equal(await page.evaluate(()=>state.page),'home');assert.equal(await page.locator('#coach-workspace').count(),1);
@@ -84,6 +86,7 @@ async function checkCoachWorkspace(page,out){
  assert.equal(await page.evaluate(()=>state.calendar.date),pending.date);
  assert.equal(await page.evaluate(()=>state.training.selectedMessage),pending.id);
  assert.equal(await page.evaluate(()=>dayTransition),null);
+ await page.evaluate(()=>{clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');});
  console.log('PASS: coherent workspace, six actual days, planned training, complete friendly, real report, saved reload, optional rooms and mandatory answers.');
 }
 module.exports={checkCoachWorkspace};

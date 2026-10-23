@@ -1,6 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
 async function checkClubhouse(page,out){
+ await page.evaluate(()=>{clubhouseThemeUI.scene='live';clubhouseRemember('scene','live');});
  await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();clubhouseGo('office');});
  await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
  await page.waitForFunction(()=>ClubhouseScene.diagnostics()?.frames>2);
@@ -55,9 +56,10 @@ async function checkClubhouse(page,out){
  await page.evaluate(()=>{globalThis.chOriginalContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type.startsWith('webgl')?null:chOriginalContext.call(this,type,...args);};clubhouseGo('office');});
  assert.ok(await page.locator('.ch-fallback').isVisible());
  await page.getByRole('button',{name:'Taktiktavlan Kedjor & matchplan',exact:true}).click();assert.equal(await page.evaluate(()=>state.page),'lines');
- await page.evaluate(()=>{HTMLCanvasElement.prototype.getContext=chOriginalContext;delete globalThis.chOriginalContext;clubhouseGo('office');clubhouseMode(false);});
+ await page.evaluate(()=>{HTMLCanvasElement.prototype.getContext=chOriginalContext;delete globalThis.chOriginalContext;clubhouseGo('office');clubhouseMode(false);clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');});
 }
 async function checkClubhouseLife(page,out){
+ await page.evaluate(()=>{clubhouseThemeUI.scene='live';clubhouseRemember('scene','live');});
  await page.setViewportSize({width:1440,height:1000});
  await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');ensureLines();globalThis.chGuest=managerRoster().find(p=>clubhousePresence(p).present&&!playerLoan(p));chGuest.social.trust=43;clubhouseGo('office');});
  await page.locator('#clubhouse-canvas[data-ready="true"]').waitFor();
@@ -87,6 +89,26 @@ async function checkClubhouseLife(page,out){
  await page.getByRole('button',{name:'Nästa händelse →',exact:true}).click();await page.waitForFunction(()=>!calendarPaceRun&&state.calendar.date==='2026-08-06');
  assert.equal(await page.evaluate(()=>state.live),null);assert.ok(await page.locator('.ch-life-pace').isVisible());
  await page.screenshot({path:path.join(out,'79-nasta-handelser-i-klubbhuset.png'),fullPage:true});
- await page.evaluate(()=>{save();clubhouseMode(false);});
+ await page.evaluate(()=>{save();clubhouseMode(false);clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');});
 }
-module.exports={checkClubhouse,checkClubhouseLife};
+async function checkClubhouseTheme(page,out){
+ await page.setViewportSize({width:1440,height:1024});
+ await page.evaluate(()=>{startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');clubhouseThemeUI.scene='illustrated';clubhouseRemember('scene','illustrated');clubhouseGo('office');});
+ await page.locator('.ct-interior').waitFor();
+ await page.waitForFunction(()=>[...document.querySelectorAll('.ct-world img')].every(i=>i.complete&&i.naturalWidth>0));
+ const before=await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])]));
+ await page.screenshot({path:path.join(out,'95-klubbhustema.png'),fullPage:true});
+ await page.getByRole('navigation',{name:'Rum i klubbhuset',exact:true}).getByRole('button',{name:/^Rekrytering/}).click();
+ await page.getByRole('button',{name:/^Spelarsök & scouting/}).click();
+ const candidates=await page.locator('.rd-scroll').boundingBox();assert.ok(candidates.height>=240,'candidate list keeps usable height inside the work surface');
+ assert.equal(await page.locator('.rd-scroll tbody tr').count()>0,true);
+ await page.screenshot({path:path.join(out,'96-rekrytering-i-klubbhuset.png'),fullPage:true});
+ await page.keyboard.press('Escape');assert.equal(await page.locator('.ct-work').count(),0);
+ assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.money,state.lines,managerRoster().map(p=>[p.id,p.promisedRole])])),before,'reading the themed presentation does not simulate');
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),true);
+ await page.getByRole('navigation',{name:'Rum i klubbhuset',exact:true}).getByRole('button',{name:'Kontoret',exact:true}).click();
+ await page.screenshot({path:path.join(out,'97-klubbhustema-smal-skarm.png'),fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
+}
+module.exports={checkClubhouse,checkClubhouseLife,checkClubhouseTheme};

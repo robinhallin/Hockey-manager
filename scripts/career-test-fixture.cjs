@@ -15,7 +15,10 @@ function boot(saved,options={}){
     localStorage:{getItem:k=>k==='hockey_manager_alpha02'?storage.value??null:storage.extra[k]??null,setItem:(k,v)=>{if(k==='hockey_manager_alpha02')storage.value=v;else storage.extra[k]=v;},removeItem:k=>{if(k==='hockey_manager_alpha02')storage.value=null;else delete storage.extra[k];}},
     document:{getElementById:k=>get('#'+k),querySelector:get,querySelectorAll:()=>[],addEventListener:listen}});
   // Use the actual entrypoint order so this suite also catches missing modules.
-  for(const [,src] of fs.readFileSync('index.html','utf8').matchAll(/<script src="([^?]+)\?[^\"]+"><\/script>/g))vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
+  const scripts=[...fs.readFileSync('index.html','utf8').matchAll(/<script (defer )?src="([^?]+)\?[^\"]+"><\/script>/g)];
+  // Deferred presentation modules execute after parsing, following all classic
+  // scripts even when their tags are in the head.
+  for(const [,defer,src] of [...scripts.filter(s=>!s[1]),...scripts.filter(s=>s[1])])vm.runInContext(fs.readFileSync(src,'utf8'),context,{filename:src});
   if(!options.production)vm.runInContext(require('./competitive-career-fixture.cjs'),context);
   // Explicit fixture for retained historical preseason/calendar workflows. Normal
   // boot({production:true}) exercises the actual August onboarding.

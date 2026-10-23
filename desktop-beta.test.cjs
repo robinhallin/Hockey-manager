@@ -47,6 +47,12 @@ test('app resources and navigation cannot escape the game directory; version lab
  assert.throws(()=>resourcePath('/game','https://app/index.html'));
  assert.throws(()=>resourcePath('/game','hockey://app/main.cjs'));
  assert.equal(resourcePath('/game','hockey://app/assets/crests/a.svg?v=1').file,path.resolve('/game/assets/crests/a.svg'));
+ for(const image of ['interior','coach']){
+  const asset=resourcePath('/game',`hockey://app/assets/clubhouse/${image}.webp`);
+  assert.equal(asset.type,'image/webp');
+  assert.equal(asset.file,path.resolve(`/game/assets/clubhouse/${image}.webp`));
+ }
+ assert.throws(()=>resourcePath('/game','hockey://app/%2e%2e%2foutside.webp'));
  const version=require('./desktop/package.json').version;
  assert.ok(fs.readFileSync('index.html','utf8').includes('content="'+version+'"'));assert.ok(fs.readFileSync('beta-support.js','utf8').includes("VERSION='"+version+"'"));
 });

@@ -1,8 +1,12 @@
 # Det levande klubbhuset
 
 Klubbhuset är den genomgående standardpresentationen för en anställd tränare.
-Rummet fyller skärmen utan den gamla sidomenyn. Det är en lokal, offline-renderad 3D-miljö
-ovanpå den befintliga karriären. Ingen separat simulering eller ny matchmotor.
+Den valda designriktningen är nu den illustrerade genomskärningsvyn i bild 3:
+varmt trä, marinblå ytor, guldtonade handlingar och en riktig dagsagenda.
+Vyn fyller skärmen utan den gamla sidomenyn och öppnar befintliga arbetsytor
+i samma ram. Miljöbildens personer är illustration; trupp, ärenden och samtal
+hämtas från karriären. **Utforska i 3D** öppnar de tidigare animerade rummen,
+med en tydlig återväg till överblicken. Ingen separat simulering eller ny matchmotor.
 Arbetsytor öppnas som en breddningsbar panel ovanpå miljön. Rummets canvas och
 grafikresurser bevaras när samma rum ligger bakom arbetsytan. Stäng med Escape
 eller Till rummet. Matchen har kvar sin egen fullständiga bildyta.

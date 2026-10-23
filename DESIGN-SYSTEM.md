@@ -23,3 +23,40 @@ Live match geometry and the full-screen match layout remain owned by the match i
 ## Verification
 
 Run the existing interface, squad and match-workspace regression suites for navigation/filter/save continuity. Inspect the public desktop overview, squad, recruitment, development, club, leagues, calendar and paused match, including loaded font, horizontal overflow and browser errors. Do not advance a saved career as part of visual inspection.
+
+## Clubhouse theme · selected direction 3
+
+The selected visual target is [the clubhouse cutaway](docs/clubhouse-theme/reference.jpg).
+`clubhouse-theme.js` is a deferred presentation module: it runs after all classic
+career modules. `clubhouse-theme.css` supplies the full-screen navy frame, warm
+gold actions, illustrated spatial overview, real daily agenda and shared work
+dialog. Keep these materials and the locally bundled Inter font consistent
+across squad, tactics, recruitment, development, club and world workspaces.
+
+The room navigation is always available from the overview. Analytical screens
+open in the same frame, keep their existing sorting, filters, decisions and
+player links, and close with Escape or the return button. Long recruitment
+lists scroll inside the work surface; never allow headers and inspectors to
+squeeze the candidate table to zero height.
+
+The overview is a raster environment with interactive HTML controls. Its people
+are atmospheric illustration, not a live projection of the current roster.
+Real player information and conversations use the career-backed player list.
+The existing animated rooms remain available through **Utforska i 3D**, with a
+route back to the illustrated overview. The overview and generic portrait are
+generated assets, converted to WebP; club crests and player portraits reuse the
+existing assets. The coach portrait is a fictional character, not a likeness of
+the player. Bootstrap Icons are vendored with their MIT license in `assets/icons`.
+
+The theme performs one local presentation migration (`hm-clubhouse-theme-version`)
+and then preserves explicit presentation choices. It does not migrate career
+saves or create decisions, training effects, statistics or a second match engine.
+The dates, priority, training session and fixture in the mock are replaced by
+actual career evidence. Do not reproduce the mock's example appointment times
+or junior scenario as fabricated gameplay.
+
+Validation: `clubhouse-theme.test.cjs` covers read-only views, all rooms/work routes,
+required-decision priority, guarded day continuation, persistence and fixture
+entry. `checkClubhouseTheme` in the Windows browser suite additionally checks
+image loading, usable candidate-table height, room return and narrow layouts.
+See `design-qa.md` for the local browser evidence and remaining test limits.

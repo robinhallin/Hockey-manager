@@ -1,6 +1,6 @@
 'use strict';
 const path = require('node:path');
-const MIME = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.jpg':'image/jpeg','.png':'image/png','.woff2':'font/woff2'};
+const MIME = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.woff2':'font/woff2'};
 function trustedPage(value) {
   try {const u=new URL(value);return u.protocol==='hockey:' && u.hostname==='app' && (u.pathname==='/' || u.pathname==='/index.html');} catch{return false;}
 }
