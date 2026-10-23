@@ -62,6 +62,13 @@ body .game-shell .ct-match .mc-result>b{color:#f3f4f3}
 body .game-shell .ct-match .cj-route{background:#091a2b;border-color:#34495b;border-radius:4px}
 body .game-shell .ct-match .match-broadcast-tools{display:flex;align-items:center;justify-content:space-between;padding:5px 11px;gap:12px;border-block:1px solid #34495b;background:#091a2b;font-size:10px;color:#b1bdcb;flex:none;min-height:30px}
 .match-broadcast-tools button{background:#1a3044;border:1px solid #4b6376;color:#e8edf2;padding:4px 9px}
+@media(min-width:1051px){
+ body .game-shell .ct-match .broadcast-view{grid-template-rows:30px auto minmax(0,1fr) 36px}
+ body .game-shell .ct-match .broadcast-view>header{grid-row:1}
+ body .game-shell .ct-match .match-broadcast-tools{grid-column:1/-1;grid-row:2}
+ body .game-shell .ct-match .broadcast-surface{grid-row:3;overflow:hidden}
+ body .game-shell .ct-match .broadcast-caption,body .game-shell .ct-match .broadcast-view>footer{grid-row:4}
+}
 @media(max-width:1000px){
  .ct-footer .ct-coach{min-width:0}.ct-footer .ct-coach>span{display:none}
  .ct-matchroom-body{grid-template-columns:minmax(0,1fr) minmax(320px,40%)}.ct-fixture-clubs{gap:16px}.ct-fixture-clubs>.club-crest{width:60px;height:60px}

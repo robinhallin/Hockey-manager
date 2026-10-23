@@ -13,6 +13,10 @@ module.exports=async function check2D(page,out,application){
   await page.waitForFunction(w=>innerWidth===w,width);
   const boxes=await page.locator('#career-ice,#match-play,.mc-result').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}));
   assert.ok(boxes.every(r=>r.width>0&&r.height>0&&r.x>=0&&r.y>=0&&r.right<=width+2&&r.bottom<=height+2),'rink, scoreboard and controls fit '+width);
+  const layout=await page.locator('.broadcast-view,.match-broadcast-tools,.broadcast-surface').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {kind:n.className,y:r.y,bottom:r.bottom,width:r.width,height:r.height};}));
+  const rink=layout.find(r=>r.kind==='broadcast-surface'),tools=layout.find(r=>r.kind==='match-broadcast-tools'),view=layout.find(r=>r.kind==='broadcast-view');
+  assert.ok(rink.height>=200&&rink.width>=500&&rink.height>view.height*.6,'rink occupies the main broadcast area at '+width);
+  assert.ok(tools.bottom<=rink.y+1,'sound controls stay above the rink at '+width);
   await page.screenshot({path:path.join(out,'2d-match-'+width+'.png'),fullPage:true});
  }
  assert.equal(await page.evaluate(()=>JSON.stringify([state.live.broadcast,state.live.analysis,state.lines,state.calendar.date])),original,'resizing and rendering never simulate');
