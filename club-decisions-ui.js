@@ -4,7 +4,7 @@
 const clubDepthAgendaView=managerAgendaView;
 managerAgendaView=function(){return clubDecisionDailyView();};
 const clubDepthOverview=overviewWorkspaceView;
-overviewWorkspaceView=function(){return overviewUI.stories?storiesView():clubDepthOverview();};
+overviewWorkspaceView=function(){return clubhouseEnabled()&&overviewUI.stories&&!overviewUI.press?storiesView():clubDepthOverview();};
 const clubDepthSystemsDay=managerSystemsDay;
 managerSystemsDay=function(){const result=clubDepthSystemsDay();clubDecisionCapture();return result;};
 const clubDepthCases=managerLinkedDecisionItems;
