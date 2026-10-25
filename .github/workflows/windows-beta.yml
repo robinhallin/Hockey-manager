@@ -1,12 +1,26 @@
 name: Windows beta
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the verified candidate as a stable GitHub prerelease
+        type: boolean
+        default: false
+  pull_request:
+    branches: [main]
+    paths:
+      - 'desktop/package.json'
+      - '.github/workflows/windows-beta.yml'
 permissions:
   contents: read
+  actions: read
 jobs:
   windows-beta:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'beta/')
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    outputs:
+      version: ${{ steps.release_metadata.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,7 +30,7 @@ jobs:
           cache-dependency-path: desktop/package-lock.json
       - run: npm ci --prefix desktop
       - name: Verify storage, compatibility and protocol boundaries
-        run: node --test desktop-beta.test.cjs career-save-integrity.test.cjs career-storage.test.cjs
+        run: node --test desktop-beta.test.cjs beta-readiness.test.cjs career-save-integrity.test.cjs career-storage.test.cjs
       - name: Build Windows installer
         run: npm run desktop:windows
       - name: Install and exercise the packaged app
@@ -28,12 +42,43 @@ jobs:
           if ($install.ExitCode -ne 0) { throw "Installer failed: $($install.ExitCode)" }
           $env:HM_TEST_EXE = Join-Path $installDirectory 'Hockey Manager.exe'
           if (!(Test-Path $env:HM_TEST_EXE)) { throw 'Installed executable is missing' }
+          node desktop/beta-installed.cjs clean
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run test:ui --prefix desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node desktop/club-build-ui.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify real beta.7 to candidate upgrade
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # This is the exact previously distributed beta.7 artifact, not a generated modern save.
+          # Its retention ends 2026-11-02. Missing evidence must fail, never silently skip.
+          $baseline = Join-Path $env:RUNNER_TEMP 'HockeyManagerBeta7'
+          New-Item -ItemType Directory -Path $baseline | Out-Null
+          $archive = Join-Path $baseline 'beta7.zip'
+          Invoke-WebRequest -Headers @{Authorization="Bearer $env:GH_TOKEN";Accept='application/vnd.github+json'} -Uri 'https://api.github.com/repos/robinhallin/Hockey-manager/actions/artifacts/11273503204/zip' -OutFile $archive
+          Expand-Archive -Path $archive -DestinationPath $baseline
+          $info = Get-Content (Join-Path $baseline 'BUILD-INFO.json') | ConvertFrom-Json
+          if ($info.version -ne '0.1.0-beta.7') { throw 'Wrong upgrade baseline' }
+          $oldInstaller = Join-Path $baseline $info.installer
+          if ((Get-FileHash $oldInstaller -Algorithm SHA256).Hash.ToLower() -ne $info.sha256) { throw 'Baseline checksum mismatch' }
+          $installDirectory = Join-Path $env:RUNNER_TEMP 'HockeyManagerInstalled'
+          $install = Start-Process -FilePath $oldInstaller -ArgumentList '/S', "/D=$installDirectory" -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw 'Baseline installation failed' }
+          $env:HM_TEST_EXE = Join-Path $installDirectory 'Hockey Manager.exe'
+          node desktop/beta-installed.cjs baseline
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installer = (Get-ChildItem dist/beta/*Setup.exe)[0].FullName
+          $install = Start-Process -FilePath $installer -ArgumentList '/S', "/D=$installDirectory" -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw 'Candidate upgrade failed' }
+          node desktop/beta-installed.cjs upgrade
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify installed evidence and record build provenance
         id: release_metadata
         env:
-          BETA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BETA_SOURCE_SHA: ${{ github.sha }}
         run: node scripts/beta-release-manifest.cjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -52,3 +97,24 @@ jobs:
             dist/beta/BUILD-INFO.json
           if-no-files-found: error
           retention-days: 30
+  publish:
+    needs: windows-beta
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Hockey-Manager-Windows-${{ needs.windows-beta.outputs.version }}
+          path: release
+      - name: Verify and publish the exact tested bytes
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.windows-beta.outputs.version }}
+        run: |
+          sha256sum --check SHA256SUMS.txt
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --prerelease --title "Hockey Manager $VERSION" --notes-file BETA_GUIDE.md ./*Setup.exe SHA256SUMS.txt BUILD-INFO.json BETA_GUIDE.md
