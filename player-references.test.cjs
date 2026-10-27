@@ -34,6 +34,12 @@ test('player identity, profile context, retirement and knowledge boundaries',()=
  assert.match(profileHtml,/fm-profile-consolidated/);
  for(const section of ['overview','attributes','report','performance','development','contract','person'])assert.match(profileHtml,new RegExp(`id="profile-section-${section}"`));
  assert.match(profileHtml,/Hoppa till del av spelarprofilen/);
+ assert.match(profileHtml,/id="profile-section-world"/);
+ assert.equal((profileHtml.match(/id="profile-section-world"/g)||[]).length,1);
+ assert.ok(profileHtml.indexOf('id="profile-section-overview"')<profileHtml.indexOf('id="profile-section-world"'),'current role and status precede international background');
+ const international=run('internationalProfile(own)'),nhl=run('nhlProfile(own)');
+ for(const block of [international,nhl].filter(Boolean))assert.equal(profileHtml.split(block).length-1,1,'international evidence and contract actions appear once');
+
  assert.doesNotMatch(profileHtml,/aria-label="Spelarprofil"/);
  assert.match(profileHtml,/Registrerad historik/);
  assert.match(profileHtml,/Förhandla kontrakt/);
