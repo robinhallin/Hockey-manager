@@ -601,6 +601,7 @@ function studioRefresh(){
  set('.mc-result>span',m.running?'LIVE':'PAUSAT');
  if(m.running&&matchReadOnlyTab())matchDeskRefreshPanel();
  matchEvidencePatch();
+ matchCommandRefresh();
  set('.mc-stats',matchDeskStats());
  set('.mc-situation strong',`${e.skaters(0).length} mot ${e.skaters(1).length}${e.isShortHanded(0)?' · Boxplay':e.hasPowerPlay(0)?' · Powerplay':''}`);
  set('.mc-situation>span',`${matchPenaltyText()}${m.goaliePulled?' · Eget mål tomt':''}${m.aiGoaliePulled?' · Motståndarens mål tomt':''}`);

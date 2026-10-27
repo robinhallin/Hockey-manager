@@ -1,0 +1,248 @@
+/* Match command centre: score, ice, decisions, then playback. Presentation only. */
+body .game-shell .match-command.md-workspace {
+ --mc-line:#294355;--mc-muted:#a8becd;--mc-accent:#efc76f;
+ background:#091923;color:#eaf1f5;font-size:13px;max-width:2000px;gap:0;padding:0;position:relative;
+ & :is(button,select){border-radius:6px;min-height:36px;font-size:12px}
+ & button:disabled{opacity:.42;cursor:not-allowed}
+ & .cj-route{margin:0 0 8px;min-height:28px;border:0;background:none;gap:4px}
+ & .cj-route button{padding:5px 16px;min-height:28px;border:0;border-radius:5px;color:#a5bdca;background:#102737;font-size:11px}
+ & .cj-route button[aria-current=step]{background:#e8c77e;color:#142635;font-weight:650;box-shadow:none}
+ & .mc-utility{margin:0 0 10px;min-height:28px}
+ & .mc-utility button{border:0;min-height:28px;font-size:11px;padding:3px 0;color:#bed0dc}
+ & .mc-utility>span{font-size:10px;color:#8eabba}
+ & .mc-header{display:grid;grid-template-columns:minmax(120px,1fr) minmax(460px,2fr) minmax(120px,1fr);padding:14px 24px;gap:20px;align-items:center;background:#102737;border:1px solid #294355;border-radius:12px 12px 0 0;min-height:110px}
+ & .mx-fixture-label,& .mx-match-tag{font-size:13px;font-weight:550;color:#d4e1e8;line-height:1.5}
+ & .mx-fixture-label>span,& .mx-match-tag>span{display:block;font-size:9px;letter-spacing:.07em;color:#8facbf;font-weight:400;margin-top:4px}
+ & .mx-match-tag{text-align:right}
+ & .mc-score{display:grid;grid-template-columns:minmax(0,1fr) 154px minmax(0,1fr);gap:24px;align-items:center;width:100%;margin:0}
+ & .mc-club{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;justify-content:center}
+ & .mc-badge{display:grid;width:46px;height:42px;border:0;background:none;padding:0;border-radius:0}
+ & .mc-badge .club-crest{width:44px;height:42px;object-fit:contain;border:0;background:none}
+ & .mc-club strong{font-size:18px;font-weight:650;align-self:center;color:#eef4f7}
+ & .mc-club>small{font-size:9px;align-self:center;color:#93acbc;letter-spacing:.06em}
+ & .mc-result{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center}
+ & .mc-result>span{font-size:9px;font-weight:650;letter-spacing:.16em;color:#efc76f}
+ & .mc-result>b{display:flex;align-items:center;justify-content:center;font-size:45px;line-height:1.15;font-weight:650;gap:16px;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+ & .mc-result>b>i{font-style:normal;font-size:27px;color:#6f8da1;font-weight:400}
+ & .mc-result>small:first-of-type{font-size:12px;color:#eaf1f5;font-variant-numeric:tabular-nums}
+ & .mc-result>small:last-child{display:none}
+ & .mx-score-detail{display:flex;align-items:center;gap:20px;min-height:33px;background:#0d2230;border:1px solid #294355;border-top:0;border-radius:0 0 12px 12px;margin-bottom:12px;padding:0 14px;flex-shrink:0}
+ & .mc-scorers{flex:1;min-width:0;border:0!important;background:none;padding:6px 0!important;min-height:29px;max-height:29px;font-size:10px;color:#a4bdcb}
+ & .mc-situation{border:0;background:none;padding:0;min-height:29px;gap:12px;max-width:55%;font-size:10px}
+ & .mc-situation>strong{font-size:11px;color:#efc76f;white-space:nowrap}
+ & .mc-situation>span{max-height:26px;color:#a8bfcc}
+ & .mc-layout{display:grid;grid-template-columns:minmax(0,1fr) 366px;gap:14px;min-height:0;flex:1}
+ & .mc-ice-column{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}
+ & .broadcast-view{border-radius:10px;border:1px solid #294355;background:#102737;overflow:hidden;flex:1;min-height:0;box-shadow:none}
+ & .broadcast-view>header{background:#102737;min-height:28px;padding:5px 12px;border-bottom:0;font-size:9px}
+ & .broadcast-view>header strong{font-size:9px;letter-spacing:.06em}
+ & .broadcast-view>header>span{font-size:10px}
+ & .match-broadcast-tools{min-height:28px;padding:3px 12px;background:#102737;border-top:1px solid #203b4d;border-bottom:0;color:#a8bfcd;font-size:10px}
+ & .match-broadcast-tools button{min-height:24px;font-size:10px;padding:3px 8px;background:#1b3749;border:1px solid #365165;color:#c3d5df}
+ & .broadcast-surface{min-height:0;background:#b7cbd8}
+ & .broadcast-surface canvas{width:100%;height:100%;object-fit:contain}
+ & .broadcast-caption{padding:7px 12px;background:#102737;min-height:40px;max-height:60px;border:0}
+ & .broadcast-caption strong{font-size:9px;color:#efc76f}
+ & .broadcast-caption span{font-size:11px;line-height:1.4;color:#d9e6ed}
+ & .broadcast-view footer{padding:4px 9px;background:#102737;min-height:36px}
+ & .broadcast-view footer button{font-size:10px;min-height:26px;padding:4px 8px;border-radius:5px}
+ & .mc-on-ice{border:1px solid #294355;border-radius:8px;background:#102737;padding:8px 12px}
+ & .mc-on-ice>span{font-size:9px;color:#a7becd;letter-spacing:.05em}
+ & .mc-on-ice>p{margin-top:5px;gap:10px}
+ & .mc-on-ice>p>span{border-color:#294355}
+ & .mc-on-ice a{font-size:11px;color:#e5eef4}
+ & .mc-on-ice small{font-size:9px}
+ & .mc-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:0;border:1px solid #294355;border-radius:8px;background:#102737;overflow:hidden;flex-shrink:0}
+ & .mc-stat{padding:7px 9px;text-align:left;border-color:#294355}
+ & .mc-stat>span{font-size:9px;color:#97b1c1;line-height:1.4;margin-bottom:3px}
+ & .mc-stat>strong{font-size:17px;justify-content:flex-start;gap:7px;font-variant-numeric:tabular-nums}
+ & .mc-stat>strong i{color:#658396;font-size:12px}
+ & .mc-coach{border:1px solid #294355;border-radius:10px;background:#102737;min-height:0}
+ & .mc-coach>header{padding:14px;background:#142d3e;gap:8px;align-items:center}
+ & .mc-coach .career-eyebrow{font-size:9px;color:#94b1c3;letter-spacing:.07em}
+ & .mc-coach h2{font-size:17px;font-weight:600;margin:4px 0 0;color:#eef4f7}
+ & .mc-coach .mx-settings{border:1px solid #365165;background:transparent;color:#b7ccd9;padding:5px 7px;min-height:28px;font-size:9px;flex-shrink:0}
+ & .mc-coach .mx-settings[aria-pressed=true]{color:#efc76f;border-color:#b69b65}
+ & .mc-tabs{display:grid;position:static;z-index:auto;grid-template-columns:repeat(4,minmax(0,1fr));background:#102737;border:0;border-top:1px solid #294355;padding:5px 7px;gap:3px}
+ & .mc-tabs button{font-size:11px;padding:7px 3px;min-height:34px;border:0;border-radius:5px;color:#b9cedb;background:transparent;font-weight:450}
+ & .mc-tabs button:hover{background:#203e52;color:#fff}
+ & .mc-tabs button[aria-pressed=true]{background:#e8c77e;color:#152a38;border:0;font-weight:650}
+ &.mc-finished .mx-decisions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ & .mx-data{padding-top:0;border-top:0;border-bottom:1px solid #294355}
+ & .mx-data button{min-height:28px;font-size:10px;color:#91b0c5}
+ & .mx-data button[aria-pressed=true]{background:#29485d;color:#f0d18a}
+ & .mc-coach-content{padding:14px;scrollbar-color:#426075 #102737}
+ & .mc-coach-content>h3{font-size:14px;margin:4px 0 9px}
+ & .mc-coach>footer{font-size:9px;color:#8eabbc;padding:7px 14px;background:#102737;border-top:1px solid #294355}
+ & .mx-context{padding:0 0 14px;margin:0 0 14px;border-bottom:1px solid #294355}
+ & .mx-context>span{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#efc76f}
+ & .mx-context h3{font-size:18px!important;font-weight:550;line-height:1.3;margin:5px 0 7px}
+ & .mx-context p{font-size:12px;color:#a8bfcd;margin:0;line-height:1.6}
+ & .locker-talk{padding:0;border:0;border-radius:0;background:none}
+ & .locker-talk h2{font-size:16px;margin:5px 0 8px;line-height:1.35}
+ & .locker-talk p{font-size:12px;line-height:1.55;color:#b0c5d2}
+ & .locker-talk .career-eyebrow{display:none}
+ & .locker-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ & .locker-actions .btn{padding:9px 7px;font-size:11px;min-height:39px;background:#203d50;border:1px solid #375568;color:#e2edf4}
+ & .locker-talk .training-note{font-size:10px;line-height:1.5;color:#87a6ba;margin-top:12px}
+ & .mx-assistant{margin-top:15px;border-top:1px solid #294355;padding-top:12px}
+ & .mx-assistant>summary{font-size:12px;color:#d9e6ef;cursor:pointer;min-height:30px}
+ & .mc-evidence{background:#142e40;border-color:#355366;border-left-color:#e8c77e;padding:12px}
+ & .mc-evidence p{font-size:12px;line-height:1.55}
+ & .mc-presets{gap:8px}
+ & .mc-choice{background:#1a384c;border:1px solid #36566a;padding:11px;text-align:left}
+ & .mc-choice b{font-size:12px}
+ & .mc-choice small{display:block;font-size:10px;color:#a8c0cf;line-height:1.5;margin-top:6px}
+ & .mc-orders{grid-template-columns:1fr;gap:12px;margin-top:18px}
+ & .mc-order-group{padding:7px 10px;border-color:#365165;border-radius:6px}
+ & .mc-order-group legend{font-size:12px;color:#e4c77f}
+ & .mc-order{font-size:12px;padding:7px 0;gap:6px}
+ & .mc-order select{font-size:12px;min-height:36px}
+ & .mc-order small{display:block;font-size:10px}
+ & .mc-unit{border-radius:6px;background:#19374a;border-color:#35566a;padding:10px}
+ & .mc-unit.active{background:#284a55;border-color:#9abfa8}
+ & .mc-unit b{font-size:12px}
+ & .mc-bench-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 10px}
+ & .mc-bench-actions button{padding:9px 6px;background:#274459;border:1px solid #496476;font-size:11px}
+ & .mc-note{font-size:12px;color:#a9c0ce;line-height:1.6}
+ & .mc-response{font-size:12px;background:#20433f;border-color:#9dbeaa}
+ & .mx-transport{display:flex;align-items:center;gap:24px;margin-top:12px;padding:10px 16px;background:#142e40;border:1px solid #365165;border-radius:10px;flex-shrink:0}
+ & .mx-transport-status{display:grid;grid-template-columns:7px minmax(0,1fr);gap:2px 9px;min-width:170px;align-items:center}
+ & .mx-transport-status strong{font-size:12px;font-weight:550}
+ & .mx-transport-status small{grid-column:2;font-size:10px;color:#9ab7c9}
+ & .mx-transport-status .md-status-dot{width:6px;height:6px;background:#efc76f}
+ & .mx-transport-status .is-running{background:#96d2ad}
+ & .mc-playback,& .mc-playback:has(.mc-highlight-speed){display:grid;grid-template-columns:170px minmax(170px,1fr) minmax(170px,1fr);align-items:center;gap:8px 18px;flex:1;width:auto;max-width:none;padding:0;margin:0;position:static;background:none;border:0}
+ & .mc-playback>.btn,& .mc-playback:has(.mc-highlight-speed)>.btn{grid-column:auto;grid-row:1;min-height:42px;height:auto;align-self:center;font-size:12px;border-radius:6px}
+ & .mc-playback .mc-play{background:#efc76f;color:#142635;border-color:#efc76f;font-weight:650;white-space:normal}
+ & .mc-playback>label,& .mc-playback:not(:has(.mc-highlight-speed)) label:last-child{grid-column:auto;grid-row:1;font-size:10px;display:grid;gap:4px;color:#9fbccc}
+ & .mc-playback select{min-height:31px;height:31px;font-size:11px;padding:5px 8px;background:#0c2333;border:1px solid #39586e;color:#e0eaf2}
+ & .mc-playback-hint{display:none}
+ & .md-status{min-height:18px;padding:5px 3px 0;font-size:9px;color:#88a5b8;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+}
+body .game-shell .mx-preparation.ct-match-room{background:#091923;color:#e7eff5;padding:22px;display:flex;flex-direction:column;gap:18px;min-height:100dvh;height:auto;
+ & .ct-matchroom-header{border:0;border-bottom:1px solid #294355;padding:0 0 15px;background:none;font-size:11px}
+ & .ct-matchroom-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,1fr);gap:22px;max-width:1220px;width:100%;margin:auto;flex:1;align-items:center}
+ & .ct-match-preview{display:block;padding:0;position:relative;border:1px solid #294355;background:#102737;border-radius:14px;min-height:0;overflow:hidden}
+ & .ct-matchroom-art{position:relative;width:100%;height:165px;object-fit:cover;opacity:.6;inset:auto;filter:none;display:block;mask-image:none}
+ & .ct-match-preview-content{position:relative;padding:24px;background:#102737;min-height:0}
+ & .ct-fixture-clubs{display:flex;align-items:center;gap:18px;justify-content:center;margin:18px 0 24px}
+ & .ct-fixture-clubs .club-crest{width:70px;height:70px;object-fit:contain}
+ & .ct-fixture-clubs>span{display:flex;flex-direction:column;text-align:center;font-size:19px;font-weight:600;gap:7px}
+ & .ct-fixture-clubs strong{font-size:12px;color:#87a5b9;font-weight:400}
+ & h1{font:600 25px/1.25 var(--ui-font);letter-spacing:-.02em;margin:12px 0}
+ & .ct-match-preview-content>p{font-size:13px;line-height:1.65;color:#acc3d2}
+ & .ct-match-prep-links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+ & .ct-match-prep-links button{min-height:40px;border:1px solid #3c5a6f;background:#203d50;color:#deebf3;font-size:12px;border-radius:6px;padding:9px}
+ & .ct-match-prep-links button:last-child{grid-column:1/-1;background:transparent;color:#9fb9cc}
+ & .cj-match-talk{padding:26px;border:1px solid #365165;border-radius:14px;background:#142e40;overflow:visible;max-height:none}
+ & .cj-match-talk>small{font-size:10px;letter-spacing:.1em;color:#e8c77e}
+ & .locker-talk{padding:0;background:none;border:0}
+ & .locker-talk h2{font:550 25px/1.3 var(--ui-font);letter-spacing:-.02em;margin:12px 0}
+ & .locker-talk p{font-size:13px;line-height:1.65;color:#b2c7d5}
+ & .locker-talk .career-eyebrow{display:none}
+ & .locker-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:20px 0}
+ & .locker-actions button{min-height:43px;border:1px solid #426177;background:#203f55;color:#e2edf4;font-size:13px;border-radius:6px;padding:10px}
+ & .locker-talk .training-note{font-size:11px;color:#90adbf;line-height:1.55}
+ & .cj-match-talk>.ch-action{margin-top:22px;min-height:65px;padding:14px 16px;border:1px solid #efc76f;border-radius:7px;background:#efc76f;color:#152a38;width:100%;display:grid;grid-template-columns:1fr auto;text-align:left;gap:3px 12px}
+ & .cj-match-talk>.ch-action>span{font-size:14px;font-weight:650}
+ & .cj-match-talk>.ch-action>small{font-size:10px;color:#344d60;line-height:1.5;grid-column:1;display:block}
+ & .cj-match-talk>.ch-action>b{grid-column:2;grid-row:1/3;align-self:center}
+ & .cj-match-talk>.ct-control button{min-height:46px;font-size:14px;background:#efc76f;color:#152a38;border-radius:6px}
+ & .cj-match-talk>.ct-control p{font-size:11px;line-height:1.5;color:#9db9cb}
+ & .cj-reaction-picker{font-size:11px;color:#a6c0d0;margin-top:20px}
+ & .cj-reaction-picker select{font-size:12px;background:#102737;min-height:36px;border:1px solid #3c5a6f;border-radius:6px;color:#e0ebf3}
+ & .cj-selected-reaction{margin-top:15px;padding:15px;background:#102737;border:1px solid #294355;border-radius:8px}
+ & .cj-route{max-width:1220px;width:100%;margin:0 auto;background:none;border-color:#294355}
+ & .cj-route button{min-height:36px;font-size:12px;padding:8px 14px}
+}
+@media(min-width:1051px){
+ body .game-shell.match-mode:has(.match-command) #content{padding:12px 20px!important;background:#091923}
+ body .game-shell .match-command.md-workspace{height:calc(100dvh - 24px)}
+ body .game-shell .match-command.md-workspace .cj-route{position:absolute;inset:0 140px auto;display:flex;margin:0;gap:5px}
+ body .game-shell .match-command.md-workspace .cj-route button{flex:1}
+ body .game-shell .match-command.md-workspace .mc-utility{min-height:32px}
+ body .game-shell .match-command.md-workspace .mc-utility>span{visibility:hidden}
+ body .game-shell .match-command.md-workspace .broadcast-view{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:28px 28px minmax(0,1fr) 40px}
+ body .game-shell .match-command.md-workspace .broadcast-view>header{grid-row:1;grid-column:1/-1}
+ body .game-shell .match-command.md-workspace .match-broadcast-tools{grid-row:2;grid-column:1/-1}
+ body .game-shell .match-command.md-workspace .broadcast-surface{grid-row:3;grid-column:1/-1}
+ body .game-shell .match-command.md-workspace :is(.broadcast-caption,.broadcast-view footer){grid-row:4}
+}
+@media(min-width:1600px){body .game-shell .match-command.md-workspace .mc-layout{grid-template-columns:minmax(0,1fr) 410px}body .game-shell .match-command.md-workspace .mc-coach-content{padding:20px}}
+@media(min-width:1051px) and (max-height:800px){
+ body .game-shell .match-command.md-workspace .mc-header{min-height:90px;padding-block:8px}
+ body .game-shell .match-command.md-workspace .mc-result>b{font-size:36px}
+ body .game-shell .match-command.md-workspace .mc-badge,body .game-shell .match-command.md-workspace .mc-badge .club-crest{height:32px;width:36px}
+ body .game-shell .match-command.md-workspace .mc-club strong{font-size:16px}
+ body .game-shell .match-command.md-workspace .cj-route{margin-bottom:4px}
+ body .game-shell .match-command.md-workspace .mc-utility{margin-bottom:6px}
+ body .game-shell .match-command.md-workspace .mx-transport{margin-top:8px;padding-block:7px}
+ body .game-shell .match-command.md-workspace .mc-on-ice{padding-block:6px}
+}
+@media(max-width:1050px){
+ body .game-shell.match-mode:has(.match-command) #content{padding:12px!important;background:#091923}
+ body .game-shell .match-command.md-workspace{height:auto;min-height:0;padding-bottom:0;display:flex;flex-direction:column}
+ body .game-shell .match-command.md-workspace .mc-header{grid-template-columns:1fr;padding:18px;gap:6px}
+ body .game-shell .match-command.md-workspace .mx-fixture-label{text-align:center;font-size:11px;order:2}
+ body .game-shell .match-command.md-workspace .mx-fixture-label>span,body .game-shell .match-command.md-workspace .mx-match-tag{display:none}
+ body .game-shell .match-command.md-workspace .mc-layout{display:flex;flex-direction:column;gap:14px}
+ body .game-shell .match-command.md-workspace .mc-score{grid-template-columns:minmax(0,1fr) 140px minmax(0,1fr);gap:12px}
+ body .game-shell .match-command.md-workspace .broadcast-view{display:flex;flex-direction:column;flex:none}
+ body .game-shell .match-command.md-workspace .broadcast-surface{aspect-ratio:1200/650;min-height:0;flex:none}
+ body .game-shell .match-command.md-workspace .mc-coach-content{max-height:600px;min-height:220px;flex:auto}
+ body .game-shell .match-command.md-workspace .mx-transport{position:sticky;bottom:8px;z-index:12;box-shadow:0 4px 25px #0008;gap:12px;padding:10px;margin-bottom:8px}
+ body .game-shell .match-command.md-workspace .mx-transport-status{display:none}
+ body .game-shell .match-command.md-workspace .mc-playback{grid-template-columns:140px 1fr 1fr;gap:8px}
+ body .game-shell .match-command.md-workspace .mx-score-detail{gap:10px;padding:0 10px}
+ body .game-shell .mx-preparation.ct-match-room .ct-matchroom-body{grid-template-columns:1fr;max-width:720px;align-items:start}
+ body .game-shell .mx-preparation.ct-match-room .ct-matchroom-art{height:140px}
+}
+@media(max-width:600px){
+ body .game-shell .match-command.md-workspace .cj-route{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+ body .game-shell .match-command.md-workspace .cj-route button{padding:6px;font-size:10px}
+ body .game-shell .match-command.md-workspace .mc-score{grid-template-columns:minmax(0,1fr) 105px minmax(0,1fr);gap:5px}
+ body .game-shell .match-command.md-workspace .mc-club strong{font-size:13px;overflow-wrap:anywhere}
+ body .game-shell .match-command.md-workspace .mc-club>small{font-size:8px;letter-spacing:0}
+ body .game-shell .match-command.md-workspace .mc-badge{display:grid;width:38px;height:36px}
+ body .game-shell .match-command.md-workspace .mc-badge .club-crest{width:38px;height:36px}
+ body .game-shell .match-command.md-workspace .mc-result>b{font-size:35px;gap:10px}
+ body .game-shell .match-command.md-workspace .mc-result>small:first-of-type{font-size:10px}
+ body .game-shell .match-command.md-workspace .mc-result>span{font-size:8px;letter-spacing:.07em}
+ body .game-shell .match-command.md-workspace .mc-header{padding:14px 10px}
+ body .game-shell .match-command.md-workspace .mx-score-detail{display:block}
+ body .game-shell .match-command.md-workspace .mc-scorers{max-height:26px;min-height:26px}
+ body .game-shell .match-command.md-workspace .mc-situation{max-width:none;justify-content:space-between;border-top:1px solid #294355}
+ body .game-shell .match-command.md-workspace .mc-on-ice>p{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ body .game-shell .match-command.md-workspace .mc-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body .game-shell .match-command.md-workspace .mc-stat{padding:8px}
+ body .game-shell .match-command.md-workspace .mc-stat>strong{font-size:16px}
+ body .game-shell .match-command.md-workspace .mc-playback,body .game-shell .match-command.md-workspace .mc-playback:has(.mc-highlight-speed){grid-template-columns:115px minmax(0,1fr);gap:6px 9px}
+ body .game-shell .match-command.md-workspace .mc-playback>.mc-play{grid-row:1/3!important;min-height:65px;align-self:stretch}
+ body .game-shell .match-command.md-workspace .mc-playback>label,body .game-shell .match-command.md-workspace .mc-playback:not(:has(.mc-highlight-speed)) label:last-child{grid-row:auto;grid-column:2;font-size:9px;gap:2px}
+ body .game-shell .match-command.md-workspace .mc-playback select{min-width:0;font-size:10px;height:28px;min-height:28px;padding:4px}
+ body .game-shell .match-command.md-workspace .mx-transport{bottom:5px;border-radius:8px}
+ body .game-shell .match-command.md-workspace .mc-coach h2{font-size:16px}
+ body .game-shell .match-command.md-workspace .mc-tabs button{font-size:11px}
+ body .game-shell .match-command.md-workspace .mx-data button{font-size:10px}
+ body .game-shell .match-command.md-workspace .mc-utility>span{font-size:8px}
+ body .game-shell .match-command.md-workspace .broadcast-caption{max-height:none;min-height:50px}
+ body .game-shell .match-command.md-workspace .broadcast-view footer{flex-wrap:wrap}
+ body .game-shell .mx-preparation.ct-match-room{padding:14px}
+ body .game-shell .mx-preparation.ct-match-room .ct-matchroom-header{flex-wrap:wrap;font-size:10px;gap:8px}
+ body .game-shell .mx-preparation.ct-match-room .ct-match-preview-content,body .game-shell .mx-preparation.ct-match-room .cj-match-talk{padding:20px}
+ body .game-shell .mx-preparation.ct-match-room .ct-fixture-clubs{gap:14px}
+ body .game-shell .mx-preparation.ct-match-room .ct-fixture-clubs .club-crest{width:48px;height:48px}
+ body .game-shell .mx-preparation.ct-match-room .ct-fixture-clubs>span{font-size:17px}
+ body .game-shell .mx-preparation.ct-match-room .cj-route{display:grid;grid-template-columns:1fr 1fr}
+}
+
+/* The match occupies its own surface on phones as well as desktops. */
+@media(max-width:1050px){
+ body .game-shell.match-mode:has(.match-command){display:block!important;background:#091923}
+ body .game-shell.match-mode:has(.match-command) :is(.sidebar,.topbar,.desk-subnav,.entity-search){display:none!important}
+ body .game-shell.match-mode:has(.match-command) .game-area{display:block!important;margin:0!important;width:100%;min-width:0}
+ body .game-shell.match-mode:has(.match-command) #content{height:auto;min-height:100dvh;overflow:visible}
+ body .game-shell .match-command.md-workspace .mc-header{min-width:0}
+ body .game-shell .match-command.md-workspace .mc-playback{min-width:0}
+}

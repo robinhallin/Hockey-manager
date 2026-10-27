@@ -1,44 +1,48 @@
-# Klubbhusets arbetsgränssnitt
+# Match view design QA — 27 October 2026
 
 final result: passed
 
-## Källa, tillstånd och täthet
+This is an intentional redesign of the existing match flow, using its captured screen and established clubhouse theme as source truth. It is not a pixel-for-pixel recreation of the previous layout. The new information order and intentional differences are recorded in `docs/match-command/README.md`.
 
-Visuell grund: `docs/clubhouse-theme/reference.jpg` (1487 × 1066) och `docs/action-surfaces/development-1440.webp` (1440 × 1000). Användaren har valt klubbhustemat och begärt att alla bakomliggande verktyg byggs i det. Arbetsytornas nya innehåll/navigation är en avsiktlig utvidgning: grundbilden visar klubbhusets översikt, inte en specifikation av en spelartabell. Detta är därför en granskning av visuell kontinuitet och användbarhet, inte ett påstående om pixelidentisk återskapning av samma skärm.
+## Evidence and normalization
 
-Implementation: `docs/workbench/final-squad.jpg`, `final-player.jpg`, `final-finance.jpg`, `final-scouting.jpg`, `final-calendar.jpg`, `final-tactics.jpg`; alla 1363 × 936 CSS/pixlar, 1×. HV71, första försäsongsdagen, verklig karriär och faktiskt öppnade verktyg. `final-mobile.jpg`: 390 × 844, 1×, beskuren från den riktiga iframens position (0,55), ingen skalning. Dokument- och innehållsbredd kontrollerad även vid 1366 × 768 och 1920 × 1080.
+- Source visual truth: `docs/match-command/05-before-decisions.jpg`, plus `02-before-locker.jpg` and `03-before-bench.jpg`.
+- Implementation: `docs/match-command/14-final-changes.jpg`, `18-final-match.jpg`, `19-final-room.jpg`, `16-final-tactics.jpg`, `17-replay-guard.jpg`.
+- Full-view combined comparison: `docs/match-command/comparison-decisions.jpg`. Both halves are the same actual friendly, 0–0, paused P1 0:23, changes panel, at 1363 × 936 CSS pixels. Each original screenshot is 1363 × 936 pixels, density 1; combined canvas is 2726 × 972 including a 36-pixel label strip. No density scaling is used in the stored comparison.
+- Focused combined comparison: `docs/match-command/comparison-focus.jpg` crops the original and rebuilt coach panels at their native density. The different panel widths are intentional. Timeout consequences and formation energy are readable; the selected decision and data groups have distinct hierarchy.
+- Mobile combined comparison: `docs/match-command/comparison-mobile.jpg`. A real 390 × 844 CSS iframe viewport contains the app at density 1 inside the 1363 × 936 browser capture. Scrollbars leave 375 CSS pixels for document content. `#content` and the match root have matching client/scroll widths after the fix; playback remains inside the iframe bottom edge. The outer desktop background is a test harness, not product UI.
+- Final desktop capture: `18-final-match.jpg`, same friendly now paused P1 1:02 following actual play, a timeout and tactical preset. The different time/data are disclosed rather than treated as visual drift.
 
-Fulljämförelse: `docs/workbench/comparison.jpg` samlar den valda grundbilden och den nya arbetsytan på samma bild, proportionellt nedskalade till högst 1000 px breda. Kontrolljämförelse: `controls-comparison.jpg` använder verkliga 1×-utsnitt av den befintliga dialoggrunden och de nya underflikarna/filterfälten. Fullstora bilder öppnades separat för att bedöma läsbarhet.
+## Comparison history and fixes
 
-## Fynd och iterationer
+1. **P2 — first mobile implementation inherited desktop grid tracks.** The 390-pixel viewport showed clipped controls, vertically broken club names and horizontal overflow. The internal evidence `10-mobile-before-fix.jpg` is retained in the mobile comparison. Fixed the specificity of breakpoint overrides, removed the surrounding desktop navigation from the phone match surface, stacked the bench and gave playback a two-column layout. Re-capture `11-mobile-fixed.jpg` shows readable clubs, the full rink and complete controls. DOM widths agree; no horizontal scrolling remains.
+2. **P2 — preparation card retained flex layout and large inherited padding.** Its image and copy squeezed into narrow columns. Explicit block layout, zero outer padding and a 165-pixel image strip produce the readable card in `19-final-room.jpg`.
+3. **P2 — compact desktop navigation overlapped the duplicate fixture label.** Moved date/type into the scoreboard and removed that duplicate desktop utility label. `14-final-changes.jpg` and `18-final-match.jpg` show the corrected single navigation row.
+4. **P2 — tactical consequences were hidden by an old stylesheet.** Restored the actual preset descriptions and order notes. `16-final-tactics.jpg` shows the effect/risk alongside each choice. These are the existing tactic descriptions, not invented recommendations.
 
-- P1, spelarprofil: internationell information återkom före varje del och trängde undan nuläget. Den renderas nu en gång i `profile-section-world`, efter huvuddelarna. Profilens översikt använder två riktiga spalter för roll och bedömning. Verifierat i `final-player.jpg` och regressionen för spelarreferenser.
-- P2, sökfält: truppens etikett höll en tom bred spalt på dator och konkurrerade med urval på mobil. Fältet fyller nu etiketten, och mobilen har en tydlig sökrad samt två urval. Efterkontroll: `final-squad.jpg`, `final-mobile.jpg`; läsytans scrollbredd = klientbredd (366 px) vid 390 px.
-- P2, rekryteringslista: gemensamma knappar gjorde spelarnamn till stora rutor och filtret konkurrerade med rubriken. Tabellen har nu lugna textåtgärder och filtret en egen rad i listans rubrik. Efterkontroll: `final-scouting.jpg`.
-- P2, taktikkort: den första gemensamma stilen gav kortens interna kontroller och evidensdetaljer formulärstorlek. Kortkontroller och kompakt evidens undantas nu från fullstora formulär. Efterkontroll: `final-tactics.jpg`; kort 82 px, kedjerad cirka 103 px, läsbara namn och synliga lås.
-- P2, orientering: sidrubriken kunde fortsätta visa stationens namn när ett extra verktyg öppnats. Rubrik och aktiv markering följer nu sidan, bland annat ekonomi, tränarkarriär, inställningar och spelarprofil.
+The final comparison contains no remaining actionable P0/P1/P2 finding. Source-to-implementation changes in scoreboard scale, rink width, bench width, statistic position, grouped navigation and playback position are the requested redesign.
 
-Tidiga bilder som fångade webbläsarens tidigare målningsläge eller cachad resurs togs om och ingår inte i leveransen. Slutbilderna öppnades och granskades efter omtagning. Detta var insamlingsproblem, inte en alternativ design.
+## Required fidelity surfaces
 
-## De fem granskningsytorna
+- **Typography:** retained the real Inter/font stack. Team names and score have a clear hierarchy; 12-pixel body text and 10/11-pixel supporting labels suit this dense management screen. Club names stay readable on the phone; energy-strip names truncate with profile links intact. Heading line height and weights were checked in the final captures.
+- **Spacing/layout:** score, rink, players, statistics and playback have independent regions. Controls fit the observed desktop viewport. The right panel scrolls independently; mobile stacks the content and keeps playback at the bottom. Desktop breakpoint/minimum rink-height assertions are authored for CI, not claimed as locally run.
+- **Colors/tokens:** consistent navy panels, gold selected decisions and primary playback, subdued blue data navigation, green recovery/energy. Focus outlines retain the established high-contrast treatment. No decorative gradient or unrelated accent system was added.
+- **Images:** existing real club crest assets and the existing clubhouse interior asset are retained. No logos or icons were approximated. The native canvas renderer remains the source of the ice image; the image strip has an intentional crop.
+- **Copy/content:** phase-specific guidance distinguishes pregame, play, pause, intermission, medical decision, replay and final whistle. Midperiod visits no longer imply the match has not started. Preset risks, timeout effects and queued keeper actions describe real behavior. Match data comes from the current game and uses the retained home/away mapping.
 
-- Typografi: befintliga lokala HM Inter, 28 px huvudrubrik, 18 px sektionsrubrik, 12 px tabelltext och 10–11 px stödtext. Siffror är tabulära. Långa tabeller behåller kolumner genom intern rullning, inte genom att bryta position/ålder i enstaka tecken.
-- Avstånd/layout: ett dokument med separat verktygsmeny, underflikar och listyta. Samma 8 px panelradie, 6 px kontrollradie, 16–22 px panelavstånd. Taktikkort behåller kompakta mått. Mobilen har rullbara navigationsrader och formulär som ryms inom läsytan.
-- Färger: marinblå bas/panel/upphöjd yta (#091b2b/#102638/#173247), varm guldaccent (#e6c575), ljus primärtext och blågrå stödtext. Statusfärger behåller sina betydelser. Fokus och aktiva val har en uttrycklig guldmarkering.
-- Bilder: befintliga godkända rumsbilder, klubbmärken och spelarporträtt används. Rumsminiatyren beskärs proportionellt; inga nya imitationer eller ersättningsillustrationer har tillkommit.
-- Text/innehåll: svenska sidnamn anger konkret verktyg. Riktiga spelare, ekonomi, avtal och rapporter används. Tomlägen gör inte anspråk på genomförd träning eller resultat. Spelarprofilens internationella underlag finns kvar med ursprungliga åtgärder.
+## Interactions and verification
 
-## Funktion och begränsningar
+Actual browser UI: resume a saved paused game; move between room and bench; select a tactic and inspect updated order; open statistics while play continues; open tactics to pause; spend a timeout and verify the same P1 0:23 clock with recovered energy; start/exit a real latest-shot replay; verify the replay coaching message and disabled match-start control; change viewing mode and see the appropriate speed label. Mobile was opened in the actual responsive iframe rather than by mutating application state.
 
-Alla 21 arbetsstationer öppnades via riktiga knappar och lämnades till rätt rum. Truppens underflikar, sortering, sökning, en namngiven profil och retur testades. Rekryteringslistor, ekonomi, personal, tränarkarriär, landslag/turnering, ligor, kalender och inställningar öppnades. Inga applikationsfel i webbläsarkonsolen vid slutkontrollen. Webbläsartilläggets egna metadatafel ingår inte i spelet.
+Local tests passed: `match-command.test.cjs`, `match-desk.test.cjs`, `match-workspace.test.cjs`, `match-centre.test.cjs`, `timeout-decisions.test.cjs`, `coach-journey.test.cjs`, `match-presentation.test.cjs`, `room-coaching.test.cjs`. The offline desktop stage completed. The phase suite covers current/legacy matches, pregame/replay guards, icing, pending keeper label, used timeout, intermission and finished controls. Existing tests complete real simulations and archive reports, and confirm identical simulated outcomes across presentation modes.
 
-Riktade regressioner och offlinepaketering passerar lokalt. Den utökade automatiska Windows-kontrollen körs separat på GitHub. Granskningen gör inget påstående om färdig Windows-CI eller ett genomspelat säsongs-/matchbalanstest. Matchmotor och sparformat ändras inte i denna PR.
+Console was inspected. No application error appeared; the observed errors originate from the browser extension's metadata transport (`chrome-extension://…/content-script.bundle.js`), not game code.
 
-## Checklista
+## Coverage limits and checklist
 
-- [x] Visuell grund och implementation öppnade och jämförda tillsammans.
-- [x] Full vy och läsbara kontrollutsnitt granskade.
-- [x] Funna P1/P2-problem rättade och berörda vyer granskade igen.
-- [x] 390/1366/1920 px kontrollerade i riktig webbläsarrendering.
-- [x] Riktiga listkontroller, detaljnavigation och retur provade.
-- [x] Inga kvarstående handlingsbara P0/P1/P2 i de granskade vyerna.
+- The interactive browser session covers an actual first-period match, not a manually watched full match. Final reports and full-match accounting are exercised by automated real simulations.
+- Desktop sizes 1366 × 768, 1440 × 1000 and 1920 × 1080, mobile overflow and the complete room-to-report browser journey are included in the Windows CI checks. Their CI result is reported separately.
+- Keep the DOM hooks used by the renderer, score patches and profile return history.
+- Check the PR's CI before merging.
+
+final result: passed
