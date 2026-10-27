@@ -122,7 +122,8 @@ async function close(){
   await page.locator('#match-play').click();await page.waitForFunction(()=>!state.live.running);
   await page.waitForFunction(()=>Boolean(matchIceCrest(matchVenue().home)?.naturalWidth));
   assert.equal(await page.locator('.mc-club strong').first().textContent(),await page.evaluate(()=>matchVenue().home));
-  assert.match(await page.locator('.mc-result').innerText(),/Husqvarna Garden/);
+  assert.ok(await page.locator('.mx-fixture-label').isVisible(),'arena has its own visible place in the match header');
+  assert.match(await page.locator('.mx-fixture-label').innerText(),/Husqvarna Garden/);
   await require('../scripts/match-browser-checks.cjs').checkMatchView(page);
   // Fullscreen must work in the installed application, then restore the
   // desktop size before checking that rink and controls fit without scrolling.
