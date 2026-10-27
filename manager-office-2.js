@@ -66,8 +66,13 @@ function managerOffice2Action(item){
   return item.action?deskAction(item.action):'';
 }
 function managerOfficeOpenPromise(playerId){
-  deskNavigate('locker');lockerUI.tab='promises';lockerUI.player=playerId;
-  render();queueInterfaceSave();
+  const p=managerRoster().find(p=>samePlayerId(p.id,playerId));if(!p)return false;
+  if(clubhouseAvailable()&&clubhouseEnabled()){
+    clubhouseGo('locker');if(!clubhouseSelect(p.id))return false;
+    return clubhouseReviewPromises();
+  }
+  deskNavigate('locker');lockerUI.tab='promises';lockerUI.player=p.id;
+  render();queueInterfaceSave();return true;
 }
 function managerOffice2Row(item,index){
   const action=managerOffice2Action(item),guidance=managerDecisionGuidance(item),delegated=managerOffice2Delegated(item.area)&&!item.requiresDecision;

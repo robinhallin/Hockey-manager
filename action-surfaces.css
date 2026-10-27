@@ -1,0 +1,160 @@
+/* The clubhouse continues beyond the room: one scale, material and control set. */
+body{--as-base:#0b1c29;--as-panel:#122b3b;--as-raised:#193747;--as-line:#385260;--as-text:#f1f0e9;--as-muted:#b3c4ca;--as-gold:#e8c77d;--as-radius:10px;--as-shadow:0 24px 90px #020b14a6}
+body .game-shell #content dialog.as-dialog,body .game-shell #ch-world .rw-content dialog.as-dialog{width:min(1000px,calc(100vw - 48px));max-width:1000px;max-height:calc(100dvh - 64px);padding:0;overflow:auto;overscroll-behavior:contain;background:var(--as-base);color:var(--as-text);border:1px solid #7e775d;border-radius:var(--as-radius);box-shadow:var(--as-shadow);font:14px/1.65 var(--ui-font,Inter,sans-serif);scrollbar-width:thin;scrollbar-color:#58717c var(--as-base)}
+body .game-shell #content dialog.as-dialog::backdrop,body .game-shell #ch-world .rw-content dialog.as-dialog::backdrop{background:#030e18bb;backdrop-filter:blur(6px)}
+body .game-shell #content dialog.as-dialog>.as-heading{position:sticky;top:0;z-index:4;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:27px 32px 24px;margin:0;border:0;border-bottom:1px solid var(--as-line);background:#102735fa;backdrop-filter:blur(12px)}
+.as-heading-copy{min-width:0}.as-eyebrow{display:block;color:var(--as-gold);font-size:10px;font-weight:650;line-height:1.6;letter-spacing:.12em;text-transform:uppercase}
+body .game-shell #content dialog.as-dialog .as-heading h2{margin:7px 0 0;padding:0;color:var(--as-text);font-size:26px;font-weight:600;line-height:1.2;letter-spacing:-.035em;overflow-wrap:anywhere}
+.as-person-line{margin:10px 0 0!important;color:var(--as-text)!important;font-size:13px!important}.as-person-line span{color:var(--as-muted)}
+body .game-shell #content dialog.as-dialog .as-close{display:grid;place-items:center;flex:none;width:38px;height:38px;min-height:38px;margin:0;padding:0;background:#ffffff06;color:var(--as-text);border:1px solid #506775;border-radius:7px;font-size:26px;line-height:1;cursor:pointer}
+body .game-shell #content dialog.as-dialog .as-close:hover{background:#ffffff12;border-color:var(--as-gold)}
+body .game-shell #content dialog.as-dialog>div:is(.dd-dialog-body,.rd-dialog-body,.cd-dialog-body,.wd-dialog-body,.ld-dialog-body){padding:28px 32px 34px;overflow:visible;max-height:none}
+body .game-shell #content dialog.as-dialog :is(h2,h3,h4){color:var(--as-text);line-height:1.3;letter-spacing:-.025em}
+body .game-shell #content dialog.as-dialog h3{font-size:17px;margin:24px 0 12px}
+body .game-shell #content dialog.as-dialog p{line-height:1.75;color:var(--as-muted);max-width:80ch}
+body .game-shell #content dialog.as-dialog :is(.lw-inspector,.rh-inspector,.hub-inspector,.lw-panel,.rd-panel,.sc-card,.cw-section,.cd-panel,.medical-player,.dv-panel){background:var(--as-panel);color:var(--as-text);border:1px solid var(--as-line);border-radius:8px;padding:20px;box-shadow:none;margin-bottom:18px;min-width:0}
+body .game-shell #content dialog.as-dialog .lw-layout{gap:22px}
+body .game-shell #content dialog.as-dialog .ld-context{border:1px solid var(--as-line);border-left:3px solid var(--as-gold);background:#142f3e;padding:4px 20px;margin-bottom:24px;border-radius:0 8px 8px 0}
+body .game-shell #content dialog.as-dialog .ld-context p{margin:13px 0}body .game-shell #content dialog.as-dialog .ld-context small{display:block;margin-top:3px;color:var(--as-muted)}
+body .game-shell #content dialog.as-dialog :is(label,.recruit-field){display:grid;gap:8px;color:var(--as-muted);font-size:12px;min-width:0;margin-bottom:16px}
+body .game-shell #content dialog.as-dialog :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){width:100%;max-width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid #526b79;border-radius:6px;background:#0a202e;color:var(--as-text);font:inherit;font-size:13px;box-shadow:none}
+body .game-shell #content dialog.as-dialog :is(input[type=checkbox],input[type=radio]){accent-color:var(--as-gold)}
+body .game-shell #content dialog.as-dialog :is(button,input,select,textarea,summary):focus-visible,body #ch-world .ct-meeting :is(button,a,select,summary):focus-visible{outline:3px solid var(--as-gold)!important;outline-offset:3px}
+body .game-shell #content dialog.as-dialog button{font-family:inherit;cursor:pointer;line-height:1.5;white-space:normal;max-width:100%}
+body .game-shell #content dialog.as-dialog button:not(.as-close):not(.player-ref):not(.ld-link):not(.rd-link):not(.cd-link):not(.wd-link):not(.dd-link):not(.lw-link):not(.desk-link){min-height:40px;padding:10px 15px;background:var(--as-raised);color:var(--as-text);border:1px solid #526b79;border-radius:6px;box-shadow:none;font-size:13px}
+body .game-shell #content dialog.as-dialog :is(.dd-primary,.rd-primary,.cd-primary,.wd-primary,.ld-primary,.btn:not(.secondary):not(.danger),button[type=submit]){background:var(--as-gold)!important;border-color:var(--as-gold)!important;color:#102735!important;font-weight:650}
+body .game-shell #content dialog.as-dialog button:hover:not(:disabled){border-color:var(--as-gold)}
+body .game-shell #content dialog.as-dialog button:disabled,body #ch-world .ct-meeting button:disabled{opacity:.48;cursor:not-allowed}
+body .game-shell #content dialog.as-dialog :is(.ld-link,.rd-link,.cd-link,.wd-link,.dd-link,.lw-link,.desk-link,.player-ref){color:var(--as-gold);background:transparent;box-shadow:none}
+body .game-shell #content dialog.as-dialog :is(.lw-talks,.rh-actions,.rd-actions){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body .game-shell #content dialog.as-dialog .lw-talks>div{padding:14px;border:1px solid var(--as-line);border-radius:8px;background:#173341}
+body .game-shell #content dialog.as-dialog .lw-talks button{width:100%;text-align:left}body .game-shell #content dialog.as-dialog .lw-talks small{display:block;margin-top:10px;color:var(--as-muted);line-height:1.65}
+body .game-shell #content dialog.as-dialog :is(.lw-last,.manager-outcome,.lw-notice){padding:18px 20px;margin:20px 0;background:#1a383c;border:1px solid #53716c;border-radius:8px;color:#d4e5df}
+body .game-shell #content dialog.as-dialog :is(.wd-dialog-actions,.rd-dialog-actions,.cd-dialog-actions){display:flex;flex-wrap:wrap;justify-content:flex-end;gap:12px;border-top:1px solid var(--as-line);margin-top:26px;padding-top:22px}
+body .game-shell #content dialog.as-dialog :is(table){width:100%;border-collapse:collapse;font-size:12px}body .game-shell #content dialog.as-dialog :is(td,th){padding:12px;border-bottom:1px solid var(--as-line);text-align:left}
+body .game-shell #content dialog.as-dialog thead{background:#193442;color:var(--as-muted)}body .game-shell #content dialog.as-dialog :is(.lw-table-scroll,.sc-table-scroll){overflow:auto}
+body .game-shell #content dialog.as-dialog details{margin-block:18px;border-top:1px solid var(--as-line);padding-top:16px}body .game-shell #content dialog.as-dialog summary{cursor:pointer;color:var(--as-gold)}
+/* Room conversations have room for a person, evidence, and actual choices. */
+body .game-shell #ch-world .ct-meeting{position:absolute;inset:20px auto 20px 50%;transform:translateX(-50%);width:min(1000px,calc(100% - 56px));max-height:none;padding:0 32px 30px;background:var(--as-base);border:1px solid #7e775d;border-radius:var(--as-radius);box-shadow:var(--as-shadow);overflow:auto;overscroll-behavior:contain;backdrop-filter:none;scrollbar-width:thin;scrollbar-color:#58717c var(--as-base)}
+body .game-shell #ch-world.ch-has-panel .ct-main:after{content:"";position:absolute;inset:0;z-index:30;background:#030e1877;backdrop-filter:blur(3px);pointer-events:none}
+body .game-shell #ch-world .ct-meeting .ch-panel-close{position:sticky;float:right;top:16px;right:auto;margin:16px -14px 0 12px;width:36px;height:36px;min-height:36px;min-width:36px;padding:10px;background:#193340;border:1px solid #526b79;border-radius:6px;z-index:5}
+body .game-shell #ch-world .as-meeting-heading{display:flex;gap:16px;align-items:center;justify-content:space-between;min-height:68px;padding:22px 42px 20px 0;border-bottom:1px solid var(--as-line);color:var(--as-muted);font-size:11px}
+body .game-shell #ch-world .ch-meeting-place{display:none}
+body .game-shell #ch-world .as-player-hero{padding:28px 0;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid var(--as-line)}
+body .game-shell #ch-world .ch-person{display:flex;align-items:center;gap:22px;margin:0;padding:0;background:none;border:0;text-align:left;min-width:0}
+body .game-shell #ch-world .ch-person>.sw-portrait{position:relative;inset:auto;width:94px;height:110px;flex:none;margin:0;border:1px solid #496371;border-radius:8px;background:#1d3948;overflow:hidden;isolation:isolate}
+body .game-shell #ch-world .ch-person>.sw-portrait .player-avatar{width:100%;height:100%;object-fit:cover}
+body .game-shell #ch-world .ch-person h2{font-size:clamp(23px,2.5vw,34px);font-weight:600;letter-spacing:-.04em;line-height:1.15;margin:8px 0 10px;color:var(--as-text)}
+body .game-shell #ch-world .ch-person small{font-size:11px;color:var(--as-muted);line-height:1.5}
+body .game-shell #ch-world .ch-person p{display:flex;align-items:center;gap:7px;margin:0;font-size:11px;color:#bdd8cc}
+.ch-person p>i{width:6px;height:6px;border-radius:50%;background:#92bea7}
+body .game-shell #ch-world .ch-meters{display:grid;grid-template-columns:1fr;gap:15px;width:185px;flex:none;margin:0;padding:0;background:none;border:0}
+body .game-shell #ch-world .ch-meters>span{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--as-muted);padding:0}
+body .game-shell #ch-world .ch-meters b{font-size:12px;color:var(--as-text);font-weight:500}
+body .game-shell #ch-world .ch-meters i{display:block;flex-basis:100%;height:3px;background:linear-gradient(to right,var(--as-gold) var(--fill),#334b58 var(--fill));border-radius:2px;margin:0}
+body .game-shell #ch-world .as-conversation-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:30px;padding:28px 0}
+body .game-shell #ch-world .as-choices{border-left:1px solid var(--as-line);padding-left:30px}
+body .game-shell #ch-world .ct-meeting h3{margin:9px 0 14px;font-size:18px;font-weight:550;letter-spacing:-.025em;color:var(--as-text)}
+body .game-shell #ch-world .ct-meeting p{font-size:13px;line-height:1.75;color:var(--as-muted)}
+body .game-shell #ch-world .ct-meeting .ch-context{margin:0 0 22px;padding:0;background:none;border:0}
+body .game-shell #ch-world .ch-facts{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--as-line);border-radius:8px;padding:0;margin:20px 0 16px;background:var(--as-panel)}
+body .game-shell #ch-world .ch-facts>span{display:flex;justify-content:space-between;gap:15px;border:0;border-bottom:1px solid var(--as-line);padding:12px 14px;color:var(--as-text);background:none;border-radius:0;font-size:11px}
+body .game-shell #ch-world .ch-facts>span:last-child{border-bottom:0}.ch-facts small{color:var(--as-muted);font-size:11px}
+body .game-shell #ch-world .ct-meeting .ch-action{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 20px;align-items:center;gap:5px 12px;width:100%;margin:0 0 10px;padding:15px 17px;background:var(--as-panel);border:1px solid var(--as-line);border-radius:8px;text-align:left;color:var(--as-text);line-height:1.5;box-shadow:none}
+body .game-shell #ch-world .ct-meeting .ch-action>span{grid-column:1;font-size:13px;font-weight:550}
+body .game-shell #ch-world .ct-meeting .ch-action>small{grid-column:1;color:var(--as-muted);font-size:11px;line-height:1.6}
+body .game-shell #ch-world .ct-meeting .ch-action>b{position:static;grid-column:2;grid-row:1/3;align-self:center;color:var(--as-gold);font-size:18px;font-weight:400}
+body .game-shell #ch-world .ct-meeting .ch-action:hover:not(:disabled){border-color:#b39b64;background:#1c3948}
+body .game-shell #ch-world .ct-meeting .as-context>.ch-action{border:0;border-radius:0;background:transparent;padding:10px 0;margin:0}
+body .game-shell #ch-world .ct-meeting .ch-conversations>.ch-action:first-child{border-color:#b39b64;background:#203b42}
+body .game-shell #ch-world .ct-meeting :is(.ch-response,.ch-notice){padding:15px 18px;margin:18px 0;border:1px solid #5c6255;border-left:3px solid var(--as-gold);border-radius:0 7px 7px 0;background:#1b343d}
+body .game-shell #ch-world .ct-meeting .ch-response p{margin:8px 0 0}.as-intro{margin:0 0 18px}
+body .game-shell #ch-world .ct-meeting :is(.ch-meeting-followup,.cj-case,.cj-memory){border:1px solid var(--as-line);border-radius:8px;background:var(--as-panel);padding:22px;margin:0 0 18px}
+body .game-shell #ch-world .ct-meeting .ch-meeting-followup>h3{margin-top:0}
+body .game-shell #ch-world .ct-meeting .ch-meeting-memory{margin-top:20px;padding-top:16px;border-top:1px solid var(--as-line)}
+body .game-shell #ch-world .ct-meeting summary{font-size:12px;color:var(--as-gold);cursor:pointer}
+body .game-shell #ch-world .ct-meeting .ch-panel-title{padding:30px 40px 24px 0;margin:0 0 24px;border-bottom:1px solid var(--as-line)}
+body .game-shell #ch-world .ct-meeting .ch-panel-title h2{font-size:30px;line-height:1.2;margin:10px 0;color:var(--as-text);letter-spacing:-.035em}
+body .game-shell #ch-world .ct-meeting .ch-day-item{border:1px solid var(--as-line);border-radius:8px;background:var(--as-panel);padding:20px 22px;margin-bottom:14px}
+body .game-shell #ch-world .ct-meeting .ch-day-item>small{color:var(--as-gold);font-size:10px;letter-spacing:.04em}
+/* Workstation documents, forms and evidence use the same material hierarchy. */
+body .game-shell #ch-world .rw-workbench.ct-work{background:#0c2230fa;border:1px solid #687262;border-radius:10px;box-shadow:0 16px 50px #020b1455}
+body .game-shell #ch-world .rw-heading{padding:20px 28px;background:#112b39;border-bottom-color:var(--as-line)}
+body .game-shell #ch-world .rw-heading h2{font-size:22px;font-weight:550;letter-spacing:-.025em}.rw-heading .rw-eyebrow{color:var(--as-gold)}
+body .game-shell #ch-world .rw-heading>nav button{border-radius:6px;min-height:40px;background:#1a3543;border-color:#526b79;font-size:12px}
+body .game-shell #ch-world .rw-workbench .rw-content{padding:28px 32px 40px;background:radial-gradient(ellipse at 10% 0,#23435330,transparent 65%);color:var(--as-text);font-size:13px;line-height:1.65}
+body .game-shell #ch-world .rw-content>.desk-page{max-width:1500px}
+body .game-shell #ch-world .rw-content :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading,.cw-heading){padding-bottom:22px;margin-bottom:20px}
+body .game-shell #ch-world .rw-content :is(h1){font-size:30px;font-weight:550;letter-spacing:-.035em}
+body .game-shell #ch-world .rw-content :is(h2,h3){font-weight:550;letter-spacing:-.025em}
+body .game-shell #ch-world .rw-content :is(.card,.panel,.mw-panel,.dv-panel,.training-card,.calendar-card,.cw-case,.cw-section,.cd-panel,.wd-panel,.dd-roster,.rd-roster,.ld-roster,.sw-table-panel,.cd-aside,.wd-aside,.dd-aside,.rd-agenda,.ld-attention,.staff-section,.sc-card){background:var(--as-panel);border:1px solid var(--as-line);border-radius:8px;box-shadow:none}
+body .game-shell #ch-world .rw-content :is(.cw-case,.cw-section){padding:22px 24px;margin-block:18px}
+body .game-shell #ch-world .rw-content .cw-case>header{margin-bottom:16px}.rw-content .cw-case h3{font-size:18px}
+body .game-shell #ch-world .rw-content .cw-case-step{border-top:1px solid var(--as-line);padding-block:14px}
+body .game-shell #ch-world .rw-content :is(.dd-inspector,.cd-inspector,.wd-inspector,.ld-inspector,.sw-player-detail){background:#193643;border:1px solid #526b79;border-top:2px solid #b79b60;border-radius:8px;padding:22px;gap:24px}
+body .game-shell #ch-world .rw-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){min-height:40px;padding:9px 12px;border-radius:6px;border-color:#526b79;background:#0b2230;font-size:12px}
+body .game-shell #ch-world .rw-content :is(button.btn,button.secondary,.dd-tab,.ld-tabs button,.cw-tabs button,.wd-tabs button,.sw-view-tabs button,.mw-tabs button,.rd-outline,.cd-outline,.dd-outline,.wd-outline,.ld-outline,.cw-button){min-height:39px;padding:9px 14px;border-radius:6px;background:#1b3745;border:1px solid #526b79;color:var(--as-text);font-size:12px}
+body .game-shell #ch-world .rw-content :is(.dd-primary,.cd-primary,.wd-primary,.ld-primary,.sw-primary,.cw-primary,.btn:not(.secondary):not(.danger)){min-height:40px;border-radius:6px;background:var(--as-gold);border-color:var(--as-gold);color:#102735;font-size:12px;font-weight:650}
+body .game-shell #ch-world .rw-content table thead{background:#193745;color:var(--as-muted)}
+body .game-shell #ch-world .rw-content table :is(td,th){padding-block:14px;border-color:var(--as-line)}
+body .game-shell #ch-world .rw-content table tbody tr:hover{background:#ffffff05}
+/* Correspondence: sender, letter and decision stay in one clear reading order. */
+body .game-shell #ch-world .rw-content .inbox-workspace{background:transparent}
+body .game-shell #ch-world .rw-content .inbox-layout{grid-template-columns:minmax(250px,.7fr) minmax(0,1.7fr);gap:22px;margin-top:22px;min-height:420px}
+body .game-shell #ch-world .rw-content .inbox-list{background:var(--as-panel);border:1px solid var(--as-line);border-radius:8px;overflow:auto;padding:7px;max-height:70vh}
+body .game-shell #ch-world .rw-content .inbox-item{padding:17px 16px;background:transparent;border:0;border-bottom:1px solid var(--as-line);border-radius:5px;text-align:left}
+body .game-shell #ch-world .rw-content .inbox-item.selected{background:#24424b;border-left:3px solid var(--as-gold)}
+body .game-shell #ch-world .rw-content .inbox-item strong{font-size:13px;font-weight:550;line-height:1.55;color:var(--as-text)}
+body .game-shell #ch-world .rw-content .inbox-item :is(p,small){color:var(--as-muted);font-size:10px}
+body .game-shell #ch-world .rw-content .inbox-letter{background:var(--as-panel);border:1px solid var(--as-line);border-radius:8px;padding:28px 32px;color:var(--as-text);overflow:auto;max-height:75vh;min-width:0}
+body .game-shell #ch-world .rw-content .inbox-letter .as-letter-heading{padding:0 0 22px;border-bottom:1px solid var(--as-line);background:none;margin:0 0 24px}
+body .game-shell #ch-world .rw-content .inbox-letter h2{font-size:25px;line-height:1.3;font-weight:550;letter-spacing:-.025em;margin:22px 0 0}
+body .game-shell #ch-world .rw-content .as-letter-sender{display:flex;align-items:center;gap:13px;margin:22px 0 0}
+body .game-shell #ch-world .as-letter-sender>.sw-portrait{position:relative;inset:auto;width:52px;height:60px;flex:none;overflow:hidden;border:1px solid #526b79;border-radius:6px;margin:0;isolation:isolate}
+.as-letter-sender>div>small{display:block;color:var(--as-muted);font-size:9px;letter-spacing:.07em}.as-letter-sender strong{display:block;color:var(--as-text);font-size:14px;margin-top:3px;font-weight:550}
+.as-status{display:inline-flex;align-items:center;padding:6px 10px;margin-left:auto;border:1px solid #8f8157;background:#51482e44;border-radius:20px;font-size:10px;color:#f1d897;white-space:nowrap}
+body .game-shell #ch-world .rw-content .message-body{padding:0;font-size:14px;line-height:1.85;color:var(--as-text)}
+body .game-shell #ch-world .rw-content .message-body p{margin:0 0 16px;max-width:70ch}
+body .game-shell #ch-world .rw-content .as-decision{padding:24px 0 0;margin:28px 0 0;background:transparent;border:0;border-top:1px solid var(--as-line);border-radius:0}
+body .game-shell #ch-world .rw-content .as-decision h3{font-size:20px;margin:8px 0 18px}
+.as-decision-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+body .game-shell #ch-world .rw-content .as-choice{position:relative;display:flex;flex-direction:column;gap:10px;text-align:left;padding:19px 40px 19px 19px;min-height:128px;background:#1a3745;border:1px solid #596c72;border-radius:8px;color:var(--as-text);font:inherit;cursor:pointer}
+body .game-shell #ch-world .rw-content .as-choice:hover{background:#23434c;border-color:var(--as-gold)}
+.as-choice strong{font-size:13px;font-weight:550;line-height:1.5}.as-choice small{font-size:11px;line-height:1.65;color:var(--as-muted)}.as-choice>span{position:absolute;right:16px;top:18px;color:var(--as-gold)}
+body .game-shell #ch-world .rw-content .inbox-letter>footer{margin-top:26px;padding-top:20px;border-top:1px solid var(--as-line)}
+/* System decisions outside the game shell use the same language and controls. */
+body dialog:is(.medical-decision,.day-transition){width:min(820px,calc(100vw - 40px));max-height:calc(100dvh - 48px);overflow:auto;padding:30px 34px;background:var(--as-base);border:1px solid #7e775d;border-radius:10px;box-shadow:var(--as-shadow);font:14px/1.7 var(--ui-font,Inter,sans-serif);color:var(--as-text)}
+body dialog:is(.medical-decision,.day-transition)::backdrop{background:#030e18bb;backdrop-filter:blur(6px)}
+body dialog:is(.medical-decision,.day-transition) :is(h2,h3){color:var(--as-text);letter-spacing:-.025em;font-weight:550;line-height:1.3}
+body dialog:is(.medical-decision,.day-transition) h2{font-size:27px}body dialog:is(.medical-decision,.day-transition) p{color:var(--as-muted);line-height:1.75}
+body dialog:is(.medical-decision,.day-transition) button{min-height:42px;border-radius:6px;padding:10px 15px;background:var(--as-raised);border:1px solid #526b79;color:var(--as-text);font:inherit;font-size:12px;cursor:pointer}
+body dialog:is(.medical-decision,.day-transition) :is(.btn:not(.secondary),button[onclick="medicalDecisionAccept()"]){background:var(--as-gold);border-color:var(--as-gold);color:#102735;font-weight:650}
+body .day-transition-feed article{background:var(--as-panel);padding:18px 20px;border:1px solid var(--as-line);border-radius:8px;margin-block:14px}
+body .day-transition footer{display:flex;flex-wrap:wrap;gap:12px;border-top:1px solid var(--as-line);padding-top:22px}
+@media(max-width:1100px){body .game-shell #ch-world .rw-workbench .rw-content{padding:24px}.as-decision-options{grid-template-columns:1fr}body .game-shell #ch-world .rw-content .inbox-layout{grid-template-columns:250px minmax(0,1fr);gap:16px}body .game-shell #ch-world .rw-content .inbox-letter{padding:24px}}
+@media(max-width:800px){
+ body .game-shell #content dialog.as-dialog,body .game-shell #ch-world .rw-content dialog.as-dialog{width:calc(100vw - 20px);max-height:calc(100dvh - 24px);border-radius:8px;font-size:13px}
+ body .game-shell #content dialog.as-dialog>.as-heading{padding:20px;gap:14px}body .game-shell #content dialog.as-dialog .as-heading h2{font-size:22px}
+ body .game-shell #content dialog.as-dialog>div:is(.dd-dialog-body,.rd-dialog-body,.cd-dialog-body,.wd-dialog-body,.ld-dialog-body){padding:20px}
+ body .game-shell #content dialog.as-dialog :is(.lw-layout,.lw-talks,.rh-actions,.rd-actions){grid-template-columns:minmax(0,1fr)}
+ body .game-shell #ch-world .ct-meeting{position:fixed;inset:65px 8px 84px;transform:none;width:auto;padding:0 20px 24px;border-radius:8px}
+ body .game-shell #ch-world .as-meeting-heading{font-size:10px;gap:10px;padding-right:28px}.as-meeting-heading>span:last-child{display:none}
+ body .game-shell #ch-world .as-player-hero{display:block;padding-block:23px}body .game-shell #ch-world .ch-person{gap:16px}
+ body .game-shell #ch-world .ch-person>.sw-portrait{width:70px;height:82px}body .game-shell #ch-world .ch-person h2{font-size:26px}
+ body .game-shell #ch-world .ch-meters{width:100%;grid-template-columns:1fr 1fr;gap:22px;margin-top:23px}
+ body .game-shell #ch-world .as-conversation-grid{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:24px}
+ body .game-shell #ch-world .as-choices{border-left:0;border-top:1px solid var(--as-line);padding:24px 0 0}
+ body .game-shell #ch-world .ct-meeting :is(.ch-meeting-followup,.cj-case,.cj-memory){padding:18px}
+ body .game-shell #ch-world .rw-heading{padding:15px}.rw-heading .rw-eyebrow{font-size:9px}body .game-shell #ch-world .rw-heading h2{font-size:18px}
+ body .game-shell #ch-world .rw-workbench .rw-content{padding:22px 15px 30px}
+ body .game-shell #ch-world .rw-content :is(.cw-case,.cw-section){padding:18px}
+ body .game-shell #ch-world .rw-content .inbox-layout{display:block;min-height:0}body .game-shell #ch-world .rw-content .inbox-letter{padding:22px 18px;max-height:none}
+ body .game-shell #ch-world .rw-content .inbox-letter h2{font-size:22px}.as-letter-sender{flex-wrap:wrap}.as-status{margin-left:0}
+ body .game-shell #ch-world .rw-content .inbox-workspace.reading .inbox-list{display:none}
+ body .game-shell #ch-world .rw-content .inbox-workspace:not(.reading) .inbox-letter{display:none}
+ body .game-shell #ch-world .rw-content .inbox-workspace.reading>.daily-heading{display:none}
+ body .game-shell #ch-world .rw-content .inbox-workspace.reading>.inbox-filters{display:flex;flex-wrap:nowrap;overflow:auto;gap:8px;padding-bottom:6px}
+ body .game-shell #ch-world .rw-content .inbox-workspace.reading>.inbox-filters>button{flex:none;width:auto;white-space:nowrap}
+ body dialog:is(.medical-decision,.day-transition){padding:24px 20px;width:calc(100vw - 20px)}
+}
+@media(prefers-reduced-motion:reduce){.as-dialog *,.ct-meeting *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
