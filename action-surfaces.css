@@ -109,17 +109,17 @@ body .game-shell #ch-world .rw-content .inbox-item :is(p,small){color:var(--as-m
 body .game-shell #ch-world .rw-content .inbox-letter{background:var(--as-panel);border:1px solid var(--as-line);border-radius:8px;padding:28px 32px;color:var(--as-text);overflow:auto;max-height:75vh;min-width:0}
 body .game-shell #ch-world .rw-content .inbox-letter .as-letter-heading{padding:0 0 22px;border-bottom:1px solid var(--as-line);background:none;margin:0 0 24px}
 body .game-shell #ch-world .rw-content .inbox-letter h2{font-size:25px;line-height:1.3;font-weight:550;letter-spacing:-.025em;margin:22px 0 0}
-body .game-shell #ch-world .rw-content .as-letter-sender{display:flex;align-items:center;gap:13px;margin:22px 0 0}
-body .game-shell #ch-world .as-letter-sender>.sw-portrait{position:relative;inset:auto;width:52px;height:60px;flex:none;overflow:hidden;border:1px solid #526b79;border-radius:6px;margin:0;isolation:isolate}
+body .game-shell .as-letter-sender{display:flex;align-items:center;gap:13px;margin:22px 0 0}
+body .game-shell .as-letter-sender>.sw-portrait{position:relative;inset:auto;width:52px;height:60px;flex:none;overflow:hidden;border:1px solid #526b79;border-radius:6px;margin:0;isolation:isolate}
 .as-letter-sender>div>small{display:block;color:var(--as-muted);font-size:9px;letter-spacing:.07em}.as-letter-sender strong{display:block;color:var(--as-text);font-size:14px;margin-top:3px;font-weight:550}
 .as-status{display:inline-flex;align-items:center;padding:6px 10px;margin-left:auto;border:1px solid #8f8157;background:#51482e44;border-radius:20px;font-size:10px;color:#f1d897;white-space:nowrap}
 body .game-shell #ch-world .rw-content .message-body{padding:0;font-size:14px;line-height:1.85;color:var(--as-text)}
 body .game-shell #ch-world .rw-content .message-body p{margin:0 0 16px;max-width:70ch}
-body .game-shell #ch-world .rw-content .as-decision{padding:24px 0 0;margin:28px 0 0;background:transparent;border:0;border-top:1px solid var(--as-line);border-radius:0}
-body .game-shell #ch-world .rw-content .as-decision h3{font-size:20px;margin:8px 0 18px}
+body .game-shell .as-decision{padding:24px 0 0;margin:28px 0 0;background:transparent;border:0;border-top:1px solid var(--as-line);border-radius:0}
+body .game-shell .as-decision h3{font-size:20px;margin:8px 0 18px}
 .as-decision-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-body .game-shell #ch-world .rw-content .as-choice{position:relative;display:flex;flex-direction:column;gap:10px;text-align:left;padding:19px 40px 19px 19px;min-height:128px;background:#1a3745;border:1px solid #596c72;border-radius:8px;color:var(--as-text);font:inherit;cursor:pointer}
-body .game-shell #ch-world .rw-content .as-choice:hover{background:#23434c;border-color:var(--as-gold)}
+body .game-shell .as-choice{position:relative;display:flex;flex-direction:column;gap:10px;text-align:left;padding:19px 40px 19px 19px;min-height:128px;background:#1a3745;border:1px solid #596c72;border-radius:8px;color:var(--as-text);font:inherit;cursor:pointer}
+body .game-shell .as-choice:hover{background:#23434c;border-color:var(--as-gold)}
 .as-choice strong{font-size:13px;font-weight:550;line-height:1.5}.as-choice small{font-size:11px;line-height:1.65;color:var(--as-muted)}.as-choice>span{position:absolute;right:16px;top:18px;color:var(--as-gold)}
 body .game-shell #ch-world .rw-content .inbox-letter>footer{margin-top:26px;padding-top:20px;border-top:1px solid var(--as-line)}
 /* System decisions outside the game shell use the same language and controls. */

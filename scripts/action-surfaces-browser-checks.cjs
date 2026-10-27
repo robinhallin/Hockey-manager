@@ -34,7 +34,8 @@ module.exports=async function checkActionSurfaces(page,out){
   await page.screenshot({path:path.join(out,'message-'+width+'.png')});
  }
  await page.setViewportSize({width:1440,height:1000});
- await page.getByRole('button',{name:/Jag kan inte lova en större roll/}).click();
+ assert.equal(await page.getByRole('button',{name:'Jag lovar dig mer istid',exact:true}).count(),1);
+ await page.getByRole('button',{name:'Jag kan inte lova en större roll',exact:true}).click();
  assert.equal(await page.evaluate(()=>Boolean(actionMessageA.resolved)),true);assert.equal(await page.evaluate(()=>Boolean(state.training.messages.find(m=>m.key==='action-b').resolved)),false);
  // Exercise real dialogs rather than styling synthetic examples.
  const cases=[

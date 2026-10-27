@@ -27,3 +27,5 @@ Samtliga fem riktiga detaljdialoger öppnas och stängs med Escape. Samtal grans
 Exempel: [samtal](conversation-1440.webp), [spelarbesked](message-1440.webp), [utvecklingsplan](development-1440.webp), [rekrytering](recruitment-1440.webp). Skärmbilderna kommer från en lokal testkarriär.
 
 Den befintliga webbläsarkontrollen av alla 21 arbetsstationer, profiler och återgångar passerar också tillsammans med de nya flödena. Desktopens offlinepaketering inkluderar båda nya runtimefilerna.
+
+Svarsknapparnas korta namn och förklaring är separerade med `aria-labelledby` och `aria-describedby`. Porträtt och svarskort har gemensamma komponentstilar även i den äldre arbetsvyn. Dess tidigare omklädningsrumsflöde inklusive ett faktiskt istidslöfte passerar lokalt tillsammans med de nya rumsflödena (`ACTION_CLASSIC=1`).
