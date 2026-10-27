@@ -3696,7 +3696,9 @@ function playerProfileTabMarkup(player,tab){
  const html=playerProfileTabView(player,tab);
  return html.replace('<article class="fm-profile">','').replace('</article>','')
    .replace(playerProfileHeader(player,managerClub()),'')
-   .replace(playerProfileTabs(player),'');
+   .replace(playerProfileTabs(player),'')
+   .replace(internationalProfile(player),'')
+   .replace(nhlProfile(player),'');
 }
 function playerProfileConsolidated(player){
  const sections=[
@@ -3709,7 +3711,7 @@ function playerProfileConsolidated(player){
   ...(isOwnPlayer(player)?[['person','Person & relation','Förtroende, omklädningsrum och samtal.']]:[])
  ];
  const body=sections.map(([key,label,summary])=>`<details class="fm-profile-section" id="profile-section-${key}" ${key==='overview'||profileWorkspace.tab===key?'open':''}><summary><span><strong>${label}</strong><small>${summary}</small></span><span aria-hidden="true">⌄</span></summary><div class="fm-profile-section-content">${playerProfileTabMarkup(player,key)}</div></details>`).join('');
- return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${internationalProfile(player)}${nhlProfile(player)}${playerProfileTabs(player)}${journeyPlayerView(player)}<div class="fm-profile-sections">${body}</div></article>`;
+ return `<article class="fm-profile fm-profile-consolidated">${playerProfileHeader(player,managerClub())}${playerProfileTabs(player)}${journeyPlayerView(player)}<div class="fm-profile-sections">${body}<details class="fm-profile-section" id="profile-section-world"><summary><span><strong>Landslag & Nordamerika</strong><small>Internationella uppdrag, draft och NHL-villkor.</small></span><span aria-hidden="true">⌄</span></summary><div class="fm-profile-section-content">${internationalProfile(player)}${nhlProfile(player)}</div></details></div></article>`;
 }
 
 /* =========================================================

@@ -1,47 +1,44 @@
-# Clubhouse workrooms QA
+# Klubbhusets arbetsgränssnitt
 
 final result: passed
 
-Scope: seven illustrated room landings and their workstations, extending the approved clubhouse direction. Desktop visual review completed in Chrome at 1363 × 936 CSS pixels (1× captures). Automated responsive checks at 1920 × 1080, 1366 × 768 and 390 × 844 are included in the Windows UI suite; their CI result is reported separately on the PR.
+## Källa, tillstånd och täthet
 
-## Comparison evidence
+Visuell grund: `docs/clubhouse-theme/reference.jpg` (1487 × 1066) och `docs/action-surfaces/development-1440.webp` (1440 × 1000). Användaren har valt klubbhustemat och begärt att alla bakomliggande verktyg byggs i det. Arbetsytornas nya innehåll/navigation är en avsiktlig utvidgning: grundbilden visar klubbhusets översikt, inte en specifikation av en spelartabell. Detta är därför en granskning av visuell kontinuitet och användbarhet, inte ett påstående om pixelidentisk återskapning av samma skärm.
 
-Source: `docs/clubhouse-theme/overview.jpg` and `assets/clubhouse/interior.webp`. Implementation: `docs/rooms/office.jpg`, `locker.jpg`, `tactics.jpg`, `ice.jpg`, `recruit.jpg`, `boardroom.jpg`, `world.jpg`.
+Implementation: `docs/workbench/final-squad.jpg`, `final-player.jpg`, `final-finance.jpg`, `final-scouting.jpg`, `final-calendar.jpg`, `final-tactics.jpg`; alla 1363 × 936 CSS/pixlar, 1×. HV71, första försäsongsdagen, verklig karriär och faktiskt öppnade verktyg. `final-mobile.jpg`: 390 × 844, 1×, beskuren från den riktiga iframens position (0,55), ingen skalning. Dokument- och innehållsbredd kontrollerad även vid 1366 × 768 och 1920 × 1080.
 
-`docs/rooms/comparison.jpg` puts the approved overview and rendered tactics room in the same comparison image, normalized to equal width. `navigation-comparison.jpg` compares focused navigation/material regions. `all-rooms.jpg` permits a single-input comparison across all seven rooms. The reference represents the overview on August 1; implementation represents actual workroom states on August 2. New room subjects, wider working panel, station controls, and permanent seven-area navigation are intentional changes, not pixel-match claims.
+Fulljämförelse: `docs/workbench/comparison.jpg` samlar den valda grundbilden och den nya arbetsytan på samma bild, proportionellt nedskalade till högst 1000 px breda. Kontrolljämförelse: `controls-comparison.jpg` använder verkliga 1×-utsnitt av den befintliga dialoggrunden och de nya underflikarna/filterfälten. Fullstora bilder öppnades separat för att bedöma läsbarhet.
 
-## Findings and fixes
+## Fynd och iterationer
 
-No outstanding P0/P1/P2 issue in the reviewed desktop views.
+- P1, spelarprofil: internationell information återkom före varje del och trängde undan nuläget. Den renderas nu en gång i `profile-section-world`, efter huvuddelarna. Profilens översikt använder två riktiga spalter för roll och bedömning. Verifierat i `final-player.jpg` och regressionen för spelarreferenser.
+- P2, sökfält: truppens etikett höll en tom bred spalt på dator och konkurrerade med urval på mobil. Fältet fyller nu etiketten, och mobilen har en tydlig sökrad samt två urval. Efterkontroll: `final-squad.jpg`, `final-mobile.jpg`; läsytans scrollbredd = klientbredd (366 px) vid 390 px.
+- P2, rekryteringslista: gemensamma knappar gjorde spelarnamn till stora rutor och filtret konkurrerade med rubriken. Tabellen har nu lugna textåtgärder och filtret en egen rad i listans rubrik. Efterkontroll: `final-scouting.jpg`.
+- P2, taktikkort: den första gemensamma stilen gav kortens interna kontroller och evidensdetaljer formulärstorlek. Kortkontroller och kompakt evidens undantas nu från fullstora formulär. Efterkontroll: `final-tactics.jpg`; kort 82 px, kedjerad cirka 103 px, läsbara namn och synliga lås.
+- P2, orientering: sidrubriken kunde fortsätta visa stationens namn när ett extra verktyg öppnats. Rubrik och aktiv markering följer nu sidan, bland annat ekonomi, tränarkarriär, inställningar och spelarprofil.
 
-- Resolved functional P1 during implementation: locker room rendering referenced a nonexistent portrait helper. Reused the existing `playerAvatar` renderer; the post-fix locker capture shows the actual roster and avatars.
-- Resolved responsive P2 by inspection: stations near the scene edge could escape a narrow scene. Horizontal positions now clamp to the scene bounds, with smaller mobile controls. Windows UI checks assert station and footer bounds at each target width.
-- Resolved state integrity issue: the world news reader initialized feedback state during a visit. It now reads the optional collection without writes. Whole-career and room-tour regressions pass.
-- Resolved mobile P2 after inspecting Windows 390px evidence: long footer labels reached adjacent buttons. Labels now cap to their own button width and use narrower inline padding; the UI suite asserts each label stays inside its parent.
-- Resolved accessibility P2: the roster selector now has an explicit accessible name, verified with `getByLabel` in the rendered UI.
+Tidiga bilder som fångade webbläsarens tidigare målningsläge eller cachad resurs togs om och ingår inte i leveransen. Slutbilderna öppnades och granskades efter omtagning. Detta var insamlingsproblem, inte en alternativ design.
 
-Asset loading required a loaded-image capture; an early unloaded office screenshot was discarded and recaptured. Browser caching and preview reloads are tooling observations, not design iterations.
+## De fem granskningsytorna
 
-## Required fidelity surfaces
+- Typografi: befintliga lokala HM Inter, 28 px huvudrubrik, 18 px sektionsrubrik, 12 px tabelltext och 10–11 px stödtext. Siffror är tabulära. Långa tabeller behåller kolumner genom intern rullning, inte genom att bryta position/ålder i enstaka tecken.
+- Avstånd/layout: ett dokument med separat verktygsmeny, underflikar och listyta. Samma 8 px panelradie, 6 px kontrollradie, 16–22 px panelavstånd. Taktikkort behåller kompakta mått. Mobilen har rullbara navigationsrader och formulär som ryms inom läsytan.
+- Färger: marinblå bas/panel/upphöjd yta (#091b2b/#102638/#173247), varm guldaccent (#e6c575), ljus primärtext och blågrå stödtext. Statusfärger behåller sina betydelser. Fokus och aktiva val har en uttrycklig guldmarkering.
+- Bilder: befintliga godkända rumsbilder, klubbmärken och spelarporträtt används. Rumsminiatyren beskärs proportionellt; inga nya imitationer eller ersättningsillustrationer har tillkommit.
+- Text/innehåll: svenska sidnamn anger konkret verktyg. Riktiga spelare, ekonomi, avtal och rapporter används. Tomlägen gör inte anspråk på genomförd träning eller resultat. Spelarprofilens internationella underlag finns kvar med ursprungliga åtgärder.
 
-- Typography: retains the game's font stack and condensed heading treatment; 25px side headings, 12px primary actions, 10–12px supporting copy. No room name truncation or heading overflow in the reviewed viewport. Dense controls use the established navigation hierarchy.
-- Spacing/layout: original top bar and permanent bottom navigation retained. Room image takes the left scene; work occupies a 340–450px right panel with its own scroll. Three station controls match focal objects. Captions stay inside the scene. Full-room comparisons show consistent panel and caption rhythm.
-- Colors/tokens: dark navy surfaces, oak/amber imagery and gold selected/primary controls match the reference. Selected stations, side tabs and footer area agree. Focus outlines are explicit and reduced motion is respected.
-- Images: all seven room assets are distinct 1536 × 1024 WebP illustrations in the approved architectural style. Full-size captures show consistent warm lighting, navy furnishing, ice views and sharp subjects. Decorative text is not embedded as interaction labels. Existing avatars/logos are retained; added icons come from Bootstrap Icons.
-- Copy/content: Swedish labels name concrete work. Needs, injuries, contracts, line assignments, cash, news and schedules come from the active career. Empty states make no claims of completed work. Training explains that the session runs when the day ends. Office count is labeled “Svar som krävs” to distinguish decisions from advisory agenda items.
+## Funktion och begränsningar
 
-## Interaction evidence
+Alla 21 arbetsstationer öppnades via riktiga knappar och lämnades till rätt rum. Truppens underflikar, sortering, sökning, en namngiven profil och retur testades. Rekryteringslistor, ekonomi, personal, tränarkarriär, landslag/turnering, ligor, kalender och inställningar öppnades. Inga applikationsfel i webbläsarkonsolen vid slutkontrollen. Webbläsartilläggets egna metadatafel ingår inte i spelet.
 
-45 targeted regression tests pass, including read-only world/room visits and existing clubhouse, coach and match presentation behavior. Final rerun of 14 directly affected tests passes after the accessibility/copy fixes.
+Riktade regressioner och offlinepaketering passerar lokalt. Den utökade automatiska Windows-kontrollen körs separat på GitHub. Granskningen gör inget påstående om färdig Windows-CI eller ett genomspelat säsongs-/matchbalanstest. Matchmotor och sparformat ändras inte i denna PR.
 
-Browser interactions verified: all seven room landings; PP2 opens the selected real special-teams unit and returns to the tactics room; next-opponent following persists through reload; next-day recovery persists and locks intensity to light without advancing the day; a roster conversation raises trust from 60 to 61, applies the existing three-match cooldown, and persists through reload. No application console errors in the final build session.
+## Checklista
 
-## Implementation checklist
-
-- [x] Distinct scenes and three contextual workstations in each room.
-- [x] Existing career commands and consequences used for changes.
-- [x] Room navigation does not simulate or grant progress.
-- [x] Detail surfaces preserve their originating room and station.
-- [x] Source and implementation viewed together, including focused regions.
-- [x] Desktop primary interactions and reload persistence verified.
-- [x] Responsive interaction/bounds checks added to Windows CI.
+- [x] Visuell grund och implementation öppnade och jämförda tillsammans.
+- [x] Full vy och läsbara kontrollutsnitt granskade.
+- [x] Funna P1/P2-problem rättade och berörda vyer granskade igen.
+- [x] 390/1366/1920 px kontrollerade i riktig webbläsarrendering.
+- [x] Riktiga listkontroller, detaljnavigation och retur provade.
+- [x] Inga kvarstående handlingsbara P0/P1/P2 i de granskade vyerna.
