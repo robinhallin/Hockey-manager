@@ -57,8 +57,8 @@ body .game-shell #ch-world .rc-work-surface{
  /* Page hierarchy. The shell names the place; the page names the work. */
  :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading,.lw-heading,.daily-heading,.cw-heading,.tw-heading,.mw-heading,.press-heading){padding:0 0 20px;margin:0 0 20px;min-height:0;border:0;border-bottom:1px solid var(--wb-line);background:none;gap:16px;overflow:visible}
  :is(h1){font:600 28px/1.2 var(--ui-font);letter-spacing:-.035em;color:var(--wb-text);margin:5px 0 9px}
- :is(h2){font:600 18px/1.35 var(--ui-font);letter-spacing:-.025em;color:var(--wb-text)}
- :is(h3){font:600 14px/1.5 var(--ui-font);letter-spacing:-.01em;color:var(--wb-text)}
+ :is(h2):not(:where(.as-dialog h2)){font:600 18px/1.35 var(--ui-font);letter-spacing:-.025em;color:var(--wb-text)}
+ :is(h3):not(:where(.as-dialog h3)){font:600 14px/1.5 var(--ui-font);letter-spacing:-.01em;color:var(--wb-text)}
  :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading,.daily-heading,.tw-heading,.press-heading) p{font:400 12px/1.7 var(--ui-font);color:var(--wb-muted);max-width:850px;margin:0}
  :is(.desk-kicker,.career-eyebrow,.dd-eyebrow,.rd-eyebrow,.cd-eyebrow,.wd-eyebrow,.tw-eyebrow,.press-eyebrow){color:var(--wb-gold);font-size:10px;font-weight:550;letter-spacing:.08em}
  :is(.dd-heading-mark,.rd-rink,.ld-rink,.wd-globe,.cd-watermark,.cd-arena,.cd-mark){display:none}
@@ -273,7 +273,7 @@ body .game-shell #ch-world .rc-work-surface .rc-route button[aria-current=step]{
  .rw-workbench .rw-content{grid-column:1;grid-row:3;padding:18px 12px 26px}
  .rw-status{grid-row:4;padding:6px 12px;font-size:9px;gap:10px}
  .rw-content .desk-page{
-  h1{font-size:25px}h2{font-size:18px}
+  h1{font-size:25px}h2:not(:where(.as-dialog h2)){font-size:18px}
   :is(.sw-heading,.dd-heading,.rd-heading,.ld-heading,.wd-heading,.cd-heading,.daily-heading){margin-bottom:16px;padding-bottom:16px}
   :is(.sw-filters,.dd-filters,.rd-filters,.ld-filters,.wd-filters,.league-filters){padding:12px;gap:10px}
   :is(.sw-toolbar,.dd-tabs,.ld-tabs,.cw-tabs,.wd-tabs,.fm-tabs){flex-wrap:nowrap;overflow:auto}
