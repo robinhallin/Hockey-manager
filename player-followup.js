@@ -32,7 +32,16 @@ function playerChance(id){
  p.social.lastTalk=state.locker.turn;p.social.lastResponse=text;
  playerFollowupStart(p,'En konkret chans');socialRemember(p,'En konkret chans',text);socialLog('Överenskommelse med '+p.name,text);save();render();return true;
 }
-function playerFollowupOpen(id){deskNavigate('locker');lockerOpenDetail('talk',id);}
+function playerFollowupOpen(id){
+ const p=managerRoster().find(p=>samePlayerId(p.id,id));if(!p)return false;
+ if(clubhouseAvailable()&&clubhouseEnabled()){
+  // The room and the table tool have separate selections. Resolve the named
+  // player before navigating, then open the conversation actually on screen.
+  clubhouseGo('locker');lockerUI.player=p.id;lockerUI.detail=null;
+  return clubhouseSelect(p.id);
+ }
+ deskNavigate('locker');lockerOpenDetail('talk',p.id);return true;
+}
 function playerFollowupClose(id){
  const p=managerRoster().find(p=>samePlayerId(p.id,id)),f=p?.roleFollowup;
  if(!f||f.club!==managerClub()||f.closed||f.due>state.calendar.date||state.live&&!state.live.finished)return false;

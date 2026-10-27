@@ -66,7 +66,7 @@ function recruitmentDialog(){
  const drawer=recruitHub.drawer;if(!drawer)return '';
  const title=drawer==='filters'?'Sökfilter':drawer==='compare'?'Jämför kandidater':'Spelarbedömning & avtal',p=findPlayerAnywhere(recruitHub.player);
  const body=drawer==='filters'?`${hubFilters('search')}<button class="rd-outline" onclick="recruitmentClose()">Visa kandidater</button>`:drawer==='compare'?(scoutingComparison()||'<p>Markera upp till fyra kandidater i tabellen.</p>'):hubInspector(p);
- return `<dialog id="recruitment-dialog" class="rd-dialog" aria-labelledby="rd-dialog-title" data-context="${drawer}:${recruitHub.player}:${recruitHub.panel}" oncancel="event.preventDefault();recruitmentClose()"><header><h2 id="rd-dialog-title">${title}</h2><button aria-label="Stäng dialog" onclick="recruitmentClose()">×</button></header><div class="rd-dialog-body">${body}${drawer==='player'&&p&&(p.nhlDraft||p.naContract||p.naHistory?.length)?naStatusView(p):''}</div></dialog>`;
+ return `<dialog id="recruitment-dialog" class="rd-dialog as-dialog" aria-labelledby="rd-dialog-title" data-context="${drawer}:${recruitHub.player}:${recruitHub.panel}" oncancel="event.preventDefault();recruitmentClose()">${actionSurfaceHeader({id:'rd-dialog-title',title,kicker:'Rekrytering · '+({filters:'Urval',compare:'Jämförelse',player:'Spelarunderlag'}[drawer]||'Underlag'),close:'recruitmentClose()',person:drawer==='player'?p:null})}<div class="rd-dialog-body">${body}${drawer==='player'&&p&&(p.nhlDraft||p.naContract||p.naHistory?.length)?naStatusView(p):''}</div></dialog>`;
 }
 function recruitmentDeskView(override){
  ensureRecruitment();ensureLoans();ensureScoutingOffice();const tab=override||state.recruitment.tab;

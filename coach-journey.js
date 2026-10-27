@@ -69,7 +69,11 @@ clubhouseBriefing=function(){coachJourneyUI.story=null;coachJourneyBriefing();};
 const coachJourneyClose=clubhouseCloseMeeting;
 clubhouseCloseMeeting=function(){coachJourneyUI.story=null;coachJourneyUI.player=null;coachJourneyClose();};
 const coachJourneySelectPlayer=clubhouseSelect;
-clubhouseSelect=function(id){const ok=coachJourneySelectPlayer(id);if(ok){coachJourneyUI.story=null;}return ok;};
+clubhouseSelect=function(id){
+ if(!clubhousePlayer(id))return false;
+ const story=coachJourneyUI.story;coachJourneyUI.story=null;
+ const ok=coachJourneySelectPlayer(id);if(!ok)coachJourneyUI.story=story;return ok;
+};
 function coachJourneyPulse(m){
  const stories=coachJourneyStories().filter(s=>s.status!=='closed'),cases=coachJourneyCases(),groups=coachJourneyGroups(),captain=clubhousePlayer(state.locker.captainId);
  return `<section class="cj-pulse" aria-label="Livet i laget"><small>${m.room==='office'?'BAKOM NÄSTA RESULTAT':'HÄR INNE LEVER LAGET'}</small><h2>${cases.length?'Ord behöver bli handling':stories.length?'Nästa kapitel är ditt':'Människorna bakom tröjorna'}</h2>${m.room==='locker'&&captain?`<button onclick="clubhouseSelect(${trainingSafe(JSON.stringify(String(captain.id)))})"><b>C</b><span>${trainingSafe(captain.name)}<small>Kapten · ${Math.round(captain.social.trust)}/100 i förtroende</small></span><i>↗</i></button>`:''}${cases.slice(0,2).map(c=>`<button onclick="coachJourneyMeet(${trainingSafe(JSON.stringify(c.playerId))})"><b>!</b><span>${trainingSafe(c.name)}<small>${trainingSafe(c.evidence)}</small></span><i>↗</i></button>`).join('')}${stories.slice(0,2).map(s=>`<button onclick="coachJourneyStory(${trainingSafe(JSON.stringify(s.id))})"><b>↳</b><span>${trainingSafe(s.title)}<small>${trainingSafe(storiesNext(s))}</small></span><i>↗</i></button>`).join('')}${m.room==='locker'?groups.slice(0,1).map(g=>`<button onclick="clubhouseSelect(${trainingSafe(JSON.stringify(g.ids[0]))})"><b>○</b><span>${trainingSafe(g.title)}<small>${trainingSafe(g.detail)}</small></span><i>↗</i></button>`).join(''):''}${!stories.length&&!cases.length?`<p>${m.room==='locker'?'Välj en spelare. Lyssna, diskutera ansvar eller följ en provperiod.':'Spelarnas besked och milstolpar följer med genom säsongen.'}</p>`:''}${coachJourneyMatchInvite()}</section>`;

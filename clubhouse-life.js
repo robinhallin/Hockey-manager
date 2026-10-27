@@ -80,7 +80,7 @@ function clubhouseCloseMeeting(){
 function clubhouseLifeGuard(id){return clubhouseAvailable()&&clubhouseIsRoom()&&['office','locker'].includes(clubhouseRoomForPage())&&(clubhouseRoomForPage()!=='office'||samePlayerId(clubhouseLifeVisitor()?.playerId,id))&&samePlayerId(clubhouseUI.player,id)&&Boolean(clubhousePlayer(id))&&clubhousePresence(clubhousePlayer(id)).present&&!(state.live&&!state.live.finished);}
 function clubhouseReviewConversation(id){if(!clubhouseLifeGuard(id))return false;return playerFollowupClose(id);}
 function clubhouseReviewPromises(){
- const p=clubhousePlayer();if(!p||!clubhouseLifeGuard(p.id))return false;
+ const p=clubhousePlayer();if(!p||!clubhouseAvailable()||!clubhouseIsRoom()||!['office','locker'].includes(clubhouseRoomForPage()))return false;
  const origin={room:clubhouseUI.room,player:p.id,guest:clubhouseUI.officeGuest};
  clubhouseUI.work=true;deskNavigate('locker');clubhouseUI.origin=origin;clubhouseUI.work=true;lockerUI.tab='promises';lockerUI.player=p.id;render();return true;
 }
@@ -107,8 +107,8 @@ function clubhouseLifeOpen(id){
  if(!clubhouseAvailable()||!clubhouseEnabled())return false;
  const m=clubhouseModel(),item=m.life.agenda.find(i=>i.id===id);if(!item)return false;
  const a=item.action||{};
- if(a.conversationPlayer!==undefined){const p=clubhousePlayer(a.conversationPlayer);if(!p)return false;clubhouseGo('locker');return clubhouseSelect(p.id);}
- if(a.promisePlayer!==undefined){clubhouseGo('locker');if(!clubhouseSelect(a.promisePlayer))return false;return clubhouseReviewPromises();}
+ if(a.conversationPlayer!==undefined)return playerFollowupOpen(a.conversationPlayer);
+ if(a.promisePlayer!==undefined)return managerOfficeOpenPromise(a.promisePlayer);
  if(a.developmentPlayer!==undefined)managerAgendaOpenDevelopment(a.developmentPlayer);
  else if(item.id.startsWith('relationship:'))managerDecisionNavigate('locker','relationships');
  else if(item.id.startsWith('formation:'))managerDecisionNavigate('statistics','trends');
