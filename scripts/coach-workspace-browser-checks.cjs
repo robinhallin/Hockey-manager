@@ -52,7 +52,7 @@ async function checkCoachWorkspace(page,out){
  assert.equal(await page.evaluate(()=>state.live.friendly),true);
  const matchDate=await page.evaluate(()=>state.calendar.date);
  await page.getByRole('button',{name:'Ge stöd',exact:true}).click();
- await page.getByRole('button',{name:/^Till 2D-matchen/}).click();
+ await page.getByRole('button',{name:/^Till matchbänken/}).click();
  assert.ok(await page.locator('#career-ice').isVisible());
  await page.screenshot({path:path.join(out,'94-fran-vecka-till-match.png'),fullPage:true});
  // Finish through the authoritative engine, including its real medical stops.

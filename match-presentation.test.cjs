@@ -21,7 +21,7 @@ test('the production entrypoint has no 3D runtime or view-switch controls',()=>{
  r("startCareerWithClub('HV71');preseasonConfigure('balanced','manager','rotation','assistant','assistant');globalThis.window={};clubhouseGo('office');");
  assert.doesNotMatch(r('clubhouseWorldView("WORK")'),/Utforska i 3D|Byt till tabelläge|coachWorkspaceEnter|clubhouse-canvas/);
  r('state.calendar.date=calendarTarget();coachJourneyPrepare()');
- assert.match(r('coachJourneyRoomView("locker")'),/Till 2D-matchen/);
+ assert.match(r('coachJourneyRoomView("locker")'),/Till matchbänken/);
  r('coachJourneyMove("bench")');
  assert.match(r('matchDeskView()'),/career-ice/);
  assert.doesNotMatch(r('matchDeskView()+matchPreferencesView()'),/career-ice-3d|3D-kamera|3D-grafik/);

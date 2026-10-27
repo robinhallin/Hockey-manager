@@ -43,22 +43,31 @@ async function checkCoachJourney(page,out){
  const portrait=await page.locator('.cj-selected-reaction .sw-portrait').boundingBox();assert.ok(portrait.width<=80&&portrait.height<=90,'portrait stays inside the reaction instead of covering the room controls');
  await page.screenshot({path:path.join(out,'82-lagsnack-och-individuella-reaktioner.png'),fullPage:true});
  assert.equal(await page.evaluate(()=>JSON.stringify([state.calendar.date,state.live.broadcast,state.lines])),original,'talk and preparation never move the clock or lineup');
- await page.getByRole('button',{name:/^Till 2D-matchen/}).click();
+ await page.getByRole('button',{name:/^Till matchbänken/}).click();
  await page.locator('#career-ice[data-ready="true"]').waitFor();
  assert.equal(await page.locator('#career-ice-3d,#clubhouse-canvas').count(),0);
  for(const [width,height] of [[1920,1080],[1440,1000],[1366,768]]){
   await page.setViewportSize({width,height});
-  const boxes=await page.locator('#career-ice, #match-play, .mc-result').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}));
+  const boxes=await page.locator('#career-ice, #match-play, .mc-result, .mx-transport').evaluateAll(ns=>ns.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};}));
   assert.ok(boxes.every(r=>r.width>0&&r.height>0&&r.x>=0&&r.right<=width+2&&r.y>=0&&r.bottom<=height+2),'rink, score and playback stay inside the viewport');
+  const surface=await page.locator('.broadcast-surface').boundingBox();assert.ok(surface.height>=180,'the rink remains readable at '+width+'x'+height);
   await page.screenshot({path:path.join(out,`84-tranarbass-${width}.png`),fullPage:true});
  }
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'mobile match has no horizontal overflow');
+ await page.locator('#match-tab-changes').click();
+ assert.equal(await page.locator('#match-action-timeout').isEnabled(),false,'no timeout before puck drop');
+ assert.equal(await page.locator('#match-action-goalie').isEnabled(),false,'no extra skater before puck drop');
+ await page.screenshot({path:path.join(out,'84-mobile-match-command.png'),fullPage:true});
+ await page.setViewportSize({width:1366,height:768});
+ await page.locator('#match-tab-feedback').click();
  await page.getByRole('button',{name:'▶ Starta matchen',exact:true}).click();
  await page.waitForFunction(()=>analysisClock()>3);
  await page.getByRole('button',{name:'Ⅱ Pausa',exact:true}).click();
  const clock=await page.evaluate(()=>analysisClock());await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>analysisClock()),clock);
  await page.getByRole('navigation',{name:'Matchdagens väg'}).getByRole('button',{name:'Förberedelser'}).click();
  assert.equal(await page.getByRole('button',{name:'Ge stöd',exact:true}).count(),0,'midperiod visit cannot repeat the team talk');
- await page.getByRole('button',{name:/^Till 2D-matchen/}).click();
+ await page.getByRole('button',{name:/^Till matchbänken/}).click();
  await page.evaluate(()=>{
   let n=0;while(!state.live.finished&&n++<65000){if(!state.live.running){while(medicalPending())medicalDecisionAccept();startMatch();}studioStep();}
   if(!state.live.finished)throw Error('Coach journey match failed to finish');render();
