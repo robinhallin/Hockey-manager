@@ -42,11 +42,20 @@ test('exact ID selects portrait, never name or club',()=>{
  assert.equal(run("playerPortraitRecord(null)"),null);
  assert.equal(run("playerAvatar({id:'ep-796339',name:'Herman Liv',club:'HV71'})"),run("playerAvatar({id:'ep-796339',name:'Herman Liv',club:'Luleå'})"));
 });
-test('all registered portraits ship as local PNGs',()=>{
+test('all registered portraits ship as local raster assets',()=>{
  for(const src of run('Object.values(PLAYER_PORTRAITS).map(x=>x.src)')){
   assert.ok(src.startsWith('assets/portraits/'));
-  assert.equal(fs.readFileSync(src).subarray(1,4).toString(),'PNG');
+  const head=fs.readFileSync(src).subarray(0,4);
+  assert.ok(head.subarray(1,4).toString()==='PNG'||head[0]===0xff&&head[1]===0xd8,src);
  }
+});
+test('first Malmö portrait batch uses exact IDs and distinct local assets',()=>{
+ const expected=[['ep-602267','Oskar Blomgren'],['ep-100297','Marek Langhamer'],['ep-299929','Seth Barton']];
+ for(const [id,name] of expected){
+  assert.equal(run(`playerPortraitRecord({id:${JSON.stringify(id)},name:${JSON.stringify(name)}}).name`),name);
+  assert.ok(fs.existsSync(run(`playerPortraitRecord({id:${JSON.stringify(id)}}).src`)));
+ }
+ assert.equal(new Set(expected.map(([id])=>run(`playerPortraitRecord({id:${JSON.stringify(id)}}).src`))).size,3);
 });
 test('missing or fictional identities get an honest accessible placeholder',()=>{
  const html=run("playerAvatar({id:'new-junior',name:'Test Junior',fictional:true})");

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ep-602267",
+    "name": "Oskar Blomgren",
+    "source": "https://www.malmoredhawks.com/athlete-profile/qYD-5ySuFCGpf/",
+    "asset": "assets/portraits/ep-602267.jpg",
+    "generatedFile": "imagegen-2026-09-30-oskar-blomgren.jpg",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar from the reviewed identity reference. Preserve the player's face proportions, hairstyle and facial hair while using the approved cartoon/sculpted Hockey Manager style: strong cel-shaded facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, plain charcoal undershirt, no text, logos, hockey equipment or photo backdrop.",
+    "method": "built-in imagegen",
+    "created": "2026-09-30"
+  },
+  {
+    "id": "ep-100297",
+    "name": "Marek Langhamer",
+    "source": "https://gallerix.se/poster/13783-marek-langhamer-94-malmo-redhawks-20262027",
+    "asset": "assets/portraits/ep-100297.jpg",
+    "generatedFile": "imagegen-2026-09-30-marek-langhamer.jpg",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar from the reviewed identity reference. Preserve the player's face proportions, hairstyle and facial hair while using the approved cartoon/sculpted Hockey Manager style: strong cel-shaded facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, plain charcoal undershirt, no text, logos, hockey equipment or photo backdrop.",
+    "method": "built-in imagegen",
+    "created": "2026-09-30"
+  },
+  {
+    "id": "ep-299929",
+    "name": "Seth Barton",
+    "source": "https://gallerix.se/poster/11459-seth-barton-49-malmo-redhawks-20252026",
+    "asset": "assets/portraits/ep-299929.jpg",
+    "generatedFile": "imagegen-2026-09-30-seth-barton.jpg",
+    "prompt": "Use case: stylized-concept. Create a new illustrated game avatar from the reviewed identity reference. Preserve the player's face proportions, hairstyle and facial hair while using the approved cartoon/sculpted Hockey Manager style: strong cel-shaded facial planes, simplified sculpted hair, clean painterly shadows, no photographic skin pores. Square head-and-shoulders bust, face centered, plain charcoal undershirt, no text, logos, hockey equipment or photo backdrop.",
+    "method": "built-in imagegen",
+    "created": "2026-09-30"
+  }
+]

@@ -1,6 +1,8 @@
 # Player portraits — HV71, Brynäs, Frölunda Djurgården, Linköping and Luleå complete, wider production pending
 
-All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players, all 25 Djurgården players, all 29 Linköping players, all 22 Luleå players and 23 of 24 Färjestad players have individual cartoon portraits: 177 of 715 active real senior players. The other 538 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+All 28 players in the game's starting HV71 senior roster, all 24 Brynäs players, all 26 Frölunda players, all 25 Djurgården players, all 29 Linköping players, all 22 Luleå players and 23 of 24 Färjestad players have individual cartoon portraits: 180 of 715 active real senior players. The other 535 active real senior players and fictional juniors currently have an explicitly labelled initials placeholder, not an invented likeness. This is NOT a complete all-player portrait pack.
+
+The Malmö rollout has started with Oskar Blomgren, Marek Langhamer and Seth Barton. `malmo-production.json` records their stable IDs, identity references and generated assets. These three are deliberately isolated from roster and simulation data; the remaining Malmö players keep the explicit initials placeholder until their individual portrait has been reviewed.
 
 The Luleå batch adds 22 individually referenced illustrations. `lulea-production.json` records exact IDs, source pages and final prompts. Twenty references come from the August 2026 Luleå photo series; Pontus Själin uses the August 2025 series and Brian O’Neill uses his identified Elite Prospects photo, retaining a plain helmet. All outputs were visually reviewed and optimized to transparent 384×384 PNGs.
 
