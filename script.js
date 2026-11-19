@@ -4167,7 +4167,11 @@ function placeholderView(title){
 
 }
 
-function continueGame(){if(!calendarPaceRun)dayTransitionStart();}
+function continueGame(){
+ if(calendarPaceRun||dayTransition)return;
+ if(!careerScreen&&state.careerStarted&&preseasonOpeningPlanPending()){deskNavigate('season');return;}
+ dayTransitionStart();
+}
 
 function render(){
   const perfStart=performanceNow();

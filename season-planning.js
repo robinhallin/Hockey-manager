@@ -7,6 +7,16 @@ const PRESEASON_APPROACHES={
  goalies:{name:'Jämför målvakterna',text:'Stark utespelartrupp och roterande målvakter ger ett jämförbart underlag.'}
 };
 function preseasonPlan(){const p=state.preseasonCoach;return p?.club===managerClub()&&p.year===state.season.year?p:null;}
+function preseasonOpeningFixture(){
+ if(state.season?.phase!=='preseason')return null;
+ const start=state.season.year+'-08-01',end=calAdd(start,6),today=state.calendar?.date;
+ if(!today||today<start||today>calAdd(end,1))return null;
+ return (state.calendar.friendlies||[]).filter(f=>f.club===managerClub()&&f.scheduled&&f.date>=start&&f.date<=end)
+  .sort((a,b)=>a.date.localeCompare(b.date)||a.id-b.id)[0]||null;
+}
+function preseasonOpeningPlanPending(){
+ return Boolean(preseasonPlan()?.pending&&preseasonOpeningFixture()&&!pendingManagerDecision()&&(!state.live||state.live.finished));
+}
 function preseasonStart(initial=false){
  ensureSeason();ensureCalendar();ensureClub();
  if(!managerEmployed()){state.preseasonCoach=null;state.page='manager';return;}

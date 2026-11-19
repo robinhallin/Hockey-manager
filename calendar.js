@@ -159,6 +159,7 @@ function calendarActionLabel(){
  if(!state.careerStarted)return 'Fortsätt';
  if(state.live&&!state.live.finished)return 'Till pågående match';
  if(pendingManagerDecision())return 'Svara på samtal';
+ if(preseasonOpeningPlanPending())return 'Välj säsongens riktning';
  if(state.calendar?.completedMatchDate===state.calendar?.date)return 'Avsluta matchdagen →';
  if(state.season?.phase==='review')return 'Utvärdera säsongen';
  if(state.calendar?.date>=calendarTarget())return state.season?.phase==='preseason'&&!state.calendar.friendlies.some(f=>!f.played&&f.date===state.calendar.date)?'Till seriepremiären':'Till dagens match';
