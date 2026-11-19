@@ -71,9 +71,27 @@ function managerWeekOpponent(next=deskFixtures().upcoming[0]){
  return {next,style,observed,games,reports:reports.length,strengths,weaknesses,advice};
 }
 function managerWeekButton(label,action){return `<button type="button" class="desk-link" onclick="${trainingSafe(action)}">${trainingSafe(label)} ${deskIcon('arrow')}</button>`;}
+function managerWeekFocusAverage(rows){
+ return rows.length?(rows.reduce((sum,row)=>sum+row.value,0)/rows.length).toFixed(1):'–';
+}
 function managerWeekFocusMetrics(focus){
- const average=rows=>rows.length?(rows.reduce((sum,row)=>sum+row.value,0)/rows.length).toFixed(1):'–';
- return `<dl class="manager-week-metrics"><div><dt>Före · ${focus.baseline.length} ${focus.baseline.length===1?'match':'matcher'}</dt><dd>${average(focus.baseline)}</dd></div><div><dt>Efter · ${focus.results.length} ${focus.results.length===1?'match':'matcher'}</dt><dd>${average(focus.results)}</dd></div></dl>`;
+ return `<dl class="manager-week-metrics"><div><dt>Före · ${focus.baseline.length} ${focus.baseline.length===1?'match':'matcher'}</dt><dd>${managerWeekFocusAverage(focus.baseline)}</dd></div><div><dt>Efter · ${focus.results.length} ${focus.results.length===1?'match':'matcher'}</dt><dd>${managerWeekFocusAverage(focus.results)}</dd></div></dl>`;
+}
+function managerWeekFocusConclusion(focus){
+ if(focus.results.length<(focus.target||3)||!focus.baseline.length)return '';
+ const label=COACH_FOCUSES[focus.key].label;
+ const delta=Number(managerWeekFocusAverage(focus.results))-Number(managerWeekFocusAverage(focus.baseline));
+ const result=delta===0?`${label}: samma snitt per match i båda urvalen.`:`${label}: ${Math.abs(delta).toFixed(1).replace('.',',')} ${delta<0?'färre':'fler'} per match efter att du valde fokuset.`;
+ const training=focus.sessions.length?'Motstånd och matchbild kan också påverka utfallet.':'Inget relevant träningspass finns registrerat under perioden.';
+ return `<p><strong>${trainingSafe(result)}</strong> ${training}</p>`;
+}
+function managerWeekCloseFocus(lastMatchId){
+ const focus=coachFocus();
+ if(!focus||focus.results.length<(focus.target||3)||focus.results.at(-1)?.id!==lastMatchId||state.live&&!state.live.finished)return false;
+ feedbackArchiveCoach();
+ state.analysis.coachFocus=null;
+ save();render();
+ return true;
 }
 function managerWeekFocusView(recommendation,{office=false}={}){
  const f=coachFocus(),suggestion=f?null:recommendation??managerWeekRecommendation();
@@ -83,7 +101,7 @@ function managerWeekFocusView(recommendation,{office=false}={}){
   const metrics=office?`${managerWeekFocusMetrics(f)}<p>${trainingSafe(definition.label)} per match. ${f.results.length?'Motstånd och matchbild påverkar utfallet.':'Jämförelsen fylls på efter kommande tävlingsmatcher.'}</p>`:'';
   const calendarLink=office&&planned?managerWeekButton('Öppna fokuspasset',`officeOpenDay('${slot.date}');deskBrowserBefore()`):'';
   const followup=office?"overviewSupport('followup',true)":"coachWorkspaceEnabled()?coachFollowup():officePanelTab('followup')";
-  return `<article class="manager-week-focus"><span class="desk-kicker">${complete?'DAGS ATT UTVÄRDERA':'VECKANS ARBETE'}</span><h3>${trainingSafe(definition.name)}</h3><p>${f.sessions.length} genomförda relevanta pass · ${f.results.length}/${f.target||3} matcher följda.</p>${metrics}${complete?'<p>Uppföljningen är klar. Granska utfallet innan du väljer nästa fokus.</p>':`<p>${planned?`Fokuspass i kalendern: ${calText(f.planned)}.`:slot?`Nästa lämpliga pass: ${calText(slot.date)} · ${TRAINING_SESSIONS[definition.session].name}.`:'Inget ledigt fokuspass före nästa match. Återhämtning, egna kalenderplaner och matchförberedelser behålls.'}</p>`}<div class="manager-week-actions">${!complete&&!planned&&slot?managerWeekButton('Planera fokuspasset','coachPlan()'):''}${calendarLink}${managerWeekButton('Se hela uppföljningen',followup)}</div></article>`;
+  return `<article class="manager-week-focus"><span class="desk-kicker">${complete?'DAGS ATT UTVÄRDERA':'VECKANS ARBETE'}</span><h3>${trainingSafe(definition.name)}</h3><p>${f.sessions.length} genomförda relevanta pass · ${f.results.length}/${f.target||3} matcher följda.</p>${metrics}${complete?(office?managerWeekFocusConclusion(f):'')+'<p>Uppföljningen är klar. Granska utfallet innan du väljer nästa fokus.</p>':`<p>${planned?`Fokuspass i kalendern: ${calText(f.planned)}.`:slot?`Nästa lämpliga pass: ${calText(slot.date)} · ${TRAINING_SESSIONS[definition.session].name}.`:'Inget ledigt fokuspass före nästa match. Återhämtning, egna kalenderplaner och matchförberedelser behålls.'}</p>`}<div class="manager-week-actions">${!complete&&!planned&&slot?managerWeekButton('Planera fokuspasset','coachPlan()'):''}${calendarLink}${managerWeekButton('Se hela uppföljningen',followup)}</div></article>`;
  }
  if(!suggestion)return '<article class="manager-week-focus"><span class="desk-kicker">BYGG ETT UNDERLAG</span><h3>Lär känna laget</h3><p>Efter första fullständigt registrerade tävlingsmatchen föreslår staben ett träningsfokus. Planera dagens pass och lär känna spelarnas roller under tiden.</p></article>';
  return `<article class="manager-week-focus"><span class="desk-kicker">STABENS FÖRSLAG · ${suggestion.count} MATCHER</span><h3>${trainingSafe(COACH_FOCUSES[suggestion.key].name)}</h3><p>${trainingSafe(suggestion.detail)}${suggestion.count<3?' Litet underlag; en enstaka match visar ingen trend.':''}</p><p>Följ nästa ${state.analysis.coachWindow||3} tävlingsmatcher. Träningspass väljer du i nästa steg.</p><div class="manager-week-actions">${state.live&&!state.live.finished?'<span>Välj fokus efter pågående match.</span>':managerWeekButton('Välj detta fokus',`managerWeekAdopt(${JSON.stringify(suggestion.key)},${JSON.stringify(suggestion.evidenceId)})`)}${managerWeekButton('Granska andra fokus',"deskNavigate('statistics')")}</div></article>`;
@@ -94,13 +112,25 @@ function managerWeekView(){
  const days=managerWeekDays();
  return `<section class="manager-week" aria-label="Din spelvecka"><header><span class="desk-kicker">DIN SPELVECKA · ${trainingSafe(next.eyebrow)}</span><h2>${trainingSafe(next.title)}</h2>${next.score?`<strong class="office-live-score">${trainingSafe(next.score)}</strong>`:''}<p>${trainingSafe(next.detail)}</p>${deskLink(next.label,next.action)}</header><nav class="manager-week-days" aria-label="Kommande sju dagar">${days.map((d,i)=>`<button type="button" ${i===0?'aria-current="date"':''} data-kind="${d.games.length?'match':d.type}" onclick="officeOpenDay('${d.date}')"><time datetime="${d.date}">${i===0?'Idag':new Date(d.date+'T12:00:00Z').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',timeZone:'UTC'})}</time><strong>${trainingSafe(d.games.length?d.games.map(g=>g.opponent).join(' / '):TRAINING_SESSIONS[d.type]?.name||'Planering')}</strong><small>${d.games.length?d.games.every(g=>g.played)?'Spelad':'Matchdag':d.done?'Genomfört':'Planerat'}</small></button>`).join('')}</nav>${managerWeekFocusView()}${tired.length?`<article class="manager-week-load"><h3>Ork före nästa match</h3><p>${tired.slice(0,3).map(p=>`${playerReference(p.id,p.name)} ${Math.round(100-p.fatigue)} % <button type="button" class="desk-link" onclick="squadOpenPlace(${trainingSafe(JSON.stringify(p.id))})">Bedöm alternativ</button>`).join(' · ')}${tired.length>3?` · ytterligare ${tired.length-3} högt belastade`:''}.</p><p>${staffMode('training')==='execute'?'Staben ansvarar för individuell återhämtning.':'Väg återhämtning mot träningsarbete och matchuttagning.'}</p>${deskLink('Bedöm individuell belastning',{page:'training'})}</article>`:''}${opposition?`<details class="manager-week-opponent" ${calGap(state.calendar.date,opposition.next.date)<=1?'open':''}><summary>Inför ${trainingSafe(opposition.next.opponent)}</summary><p>${RIVAL_STYLES[opposition.style]?`${opposition.observed?'Senast observerad spelidé':'Tränarens grundprofil'}: ${trainingSafe(RIVAL_STYLES[opposition.style])}. `:''}${opposition.games.length?`${opposition.games.filter(g=>g.gf>g.ga).length} segrar på ${opposition.games.length} registrerade matcher.`:'Inga fullständiga matcher registrerade denna säsong.'}</p>${opposition.strengths.length?`<p><strong>Observerade styrkor:</strong> ${trainingSafe(opposition.strengths.join(' '))}</p>`:''}${opposition.weaknesses.length?`<p><strong>Möjliga angreppspunkter:</strong> ${trainingSafe(opposition.weaknesses.join(' '))}</p>`:''}<p><strong>Matchförberedelse:</strong> ${trainingSafe(opposition.advice)}</p><small>En förberedelse inför mötet. Motståndaren kan ändra planen.</small><div class="manager-week-actions">${managerWeekButton('Läs motståndsrapporten',`rivalsOpen(${JSON.stringify(opposition.next.opponent)})`)}${deskLink('Arbeta med matchplanen',{page:'tactics'})}</div></details>`:'<p>Ingen nästa match är fastställd. Veckan visar lagets planerade träning.</p>'}</section>`;
 }
+function managerWeekFocusEvidence(focus){
+ const definition=COACH_FOCUSES[focus.key];
+ return `<details><summary>Genomfört arbete och matchunderlag</summary>${focus.sessions.map(s=>`<p>${calText(s.date)} · ${s.trained} tränade, ${s.resting||0} vilade.</p>`).join('')}${focus.results.map(r=>{
+  const report=state.analysis?.matches?.find(m=>m.id===r.id);
+  return `<p>${trainingSafe(r.opponent)} · ${r.value} ${trainingSafe(definition.label.toLowerCase())}${report?' · '+managerWeekButton('Öppna matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`):''}</p>`;
+ }).join('')}${coachRatesView(focus)}</details>${coachDiagnosisView(focus)}`;
+}
+function managerWeekFocusHistoryView(){
+ const history=(state.managerFeedback?.coachHistory||[]).filter(f=>f.club===managerClub()&&f.year===state.season.year&&f.results.length>=(f.target||3));
+ if(!history.length)return '';
+ return `<details class="manager-week"><summary>Avslutade träningsfokus · ${history.length}</summary>${history.map(f=>`<article class="manager-week-focus"><h3>${trainingSafe(COACH_FOCUSES[f.key].name)} · ${calText(f.date)}</h3><p>${f.sessions.length} genomförda pass · ${f.results.length} följda matcher</p>${managerWeekFocusMetrics(f)}${managerWeekFocusConclusion(f)}${managerWeekFocusEvidence(f)}</article>`).join('')}</details>`;
+}
 function managerWeekFollowupView(){
- const f=coachFocus();
- if(!f)return `<section class="manager-week"><h2>Från beslut till uppföljning</h2><p>Välj ett träningsfokus i stabens förslag nedan. Genomförda pass och efterföljande tävlingsmatcher följs här.</p>${managerWeekButton('Till spelveckan',"coachWorkspaceEnabled()?coachHome():officePanelTab('today')")}</section>`;
- const d=COACH_FOCUSES[f.key];
- const complete=f.results.length>=(f.target||3),suggestion=managerWeekRecommendation();
- return `<section class="manager-week manager-week-followup"><span class="desk-kicker">DITT BESLUT · ${calText(f.date)}</span><h2>${trainingSafe(d.name)}</h2><p>${f.results.length}/${f.target||3} matcher följda · ${f.sessions.length} relevanta pass genomförda.</p>${managerWeekFocusMetrics(f)}<p>${trainingSafe(d.label)} per match. ${!f.sessions.length?'Inget relevant träningspass är registrerat ännu. ':''}Motstånd, matchlängd och matchbild påverkar; skillnaden bevisar inte en träningseffekt.</p><details><summary>Genomfört arbete och matchunderlag</summary>${f.sessions.map(s=>`<p>${calText(s.date)} · ${s.trained} tränade, ${s.resting||0} vilade.</p>`).join('')}${f.results.map(r=>{
-  const report=state.analysis.matches.find(m=>m.id===r.id);
-  return `<p>${trainingSafe(r.opponent)} · ${r.value} ${trainingSafe(d.label.toLowerCase())}${report?' · '+managerWeekButton('Öppna matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`):''}</p>`;
- }).join('')}${coachRatesView(f)}</details>${coachDiagnosisView(f)}<div class="manager-week-actions">${complete&&suggestion?managerWeekButton('Starta ny uppföljning: '+COACH_FOCUSES[suggestion.key].name,`managerWeekAdopt(${JSON.stringify(suggestion.key)},${JSON.stringify(suggestion.evidenceId)})`):managerWeekButton('Till veckans plan',"coachWorkspaceEnabled()?coachHome():officePanelTab('today')")}${deskLink('Öppna matchanalysen',{page:'statistics'})}</div></section>`;
+ const f=coachFocus(),history=managerWeekFocusHistoryView();
+ if(!f)return `<section class="manager-week"><h2>Från beslut till uppföljning</h2><p>Välj ett träningsfokus i stabens förslag nedan. Genomförda pass och efterföljande tävlingsmatcher följs här.</p>${managerWeekButton('Till spelveckan',"coachWorkspaceEnabled()?coachHome():officePanelTab('today')")}</section>${history}`;
+ const d=COACH_FOCUSES[f.key],complete=f.results.length>=(f.target||3);
+ const suggestion=complete?managerWeekRecommendation():null;
+ const live=state.live&&!state.live.finished;
+ const next=complete&&!live?managerWeekButton('Avsluta och spara uppföljningen',`managerWeekCloseFocus(${JSON.stringify(f.results.at(-1).id)})`):managerWeekButton('Till veckans plan',"coachWorkspaceEnabled()?coachHome():officePanelTab('today')");
+ const restart=suggestion&&!live?managerWeekButton('Starta ny uppföljning: '+COACH_FOCUSES[suggestion.key].name,`managerWeekAdopt(${JSON.stringify(suggestion.key)},${JSON.stringify(suggestion.evidenceId)})`):'';
+ return `<section class="manager-week manager-week-followup"><span class="desk-kicker">DITT BESLUT · ${calText(f.date)}</span><h2>${trainingSafe(d.name)}</h2><p>${f.results.length}/${f.target||3} matcher följda · ${f.sessions.length} relevanta pass genomförda.</p>${managerWeekFocusMetrics(f)}<p>${trainingSafe(d.label)} per match. ${!f.sessions.length&&!complete?'Inget relevant träningspass är registrerat ännu. ':''}Motstånd, matchlängd och matchbild påverkar jämförelsen.</p>${managerWeekFocusConclusion(f)}${managerWeekFocusEvidence(f)}<div class="manager-week-actions">${next}${restart}${deskLink('Öppna matchanalysen',{page:'statistics'})}</div></section>${history}`;
 }
