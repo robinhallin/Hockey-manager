@@ -72,3 +72,16 @@ assert.match(r('overviewWorkspaceView()'),/Välj vilka som får chansen/);
 r("globalThis.first=preseasonOpeningFixture();state.calendar.date=first.date;Object.assign(first,{played:true,own:3,against:2});deskNavigate('home')");
 assert.match(r('overviewWorkspaceView()'),/Första matchen spelad/);
 assert.match(r('overviewWorkspaceView()'),/3–2/);
+assert.match(r('overviewWorkspaceView()'),/saknar ett komplett spelarunderlag/);
+r(`preseasonPlan().approach='youth';
+const [back,keeper]=['B','MV'].map(pos=>managerRoster().find(p=>p.pos===pos));
+preseasonPlan().matches=[{id:first.id,players:[
+ {id:back.id,name:back.name,pos:'B',age:21,seconds:805,goals:1},
+ {id:keeper.id,name:keeper.name,pos:'MV',seconds:3600,saves:28,against:2}
+]}];`);
+const debrief=r('overviewOpeningWeekView(overviewFixture())');
+assert.match(debrief,/Utespelare upp till 23 år med mest istid/);
+assert.match(debrief,/13:25 istid · 1 mål · 0 assist/);
+assert.match(debrief,/28\/30 räddningar/);
+assert.match(debrief,/Till nästa laguttagning/);
+assert.equal(r('overviewOpeningMatchPlayers(first,preseasonPlan(),{partial:true})'),'');
