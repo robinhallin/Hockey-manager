@@ -30,6 +30,10 @@ assert.equal(r('calendarSession(calAdd(calendarTarget(),-1)).type'),'matchprep')
 r('coachPlan()');
 assert.equal(r('coachFocus().planned'),planned);
 assert.match(r('managerWeekView()'),/Fokuspass i kalendern/);
+const officePlan=r('managerWeekFocusView(undefined,{office:true})');
+assert.match(officePlan,/Öppna fokuspasset/);
+assert.match(officePlan,/Före · 1 match/);
+assert.match(officePlan,/Efter · 0 matcher<\/dt><dd>–/);
 
 // A user edit is authoritative even if training.plan has not been refreshed.
 r("calendarSetSession(coachFocus().planned,'type','physical')");
@@ -51,6 +55,10 @@ assert.match(r('managerWeekFollowupView()'),/1 relevanta pass genomförda/);
 r("coachMatchDone(report('next',4));coachMatchDone(report('next',4));coachMatchDone({...report('partial-next'),partial:true});save()");
 assert.equal(r('coachFocus().results.length'),1);
 assert.match(r('managerWeekFollowupView()'),/4.0/);
+assert.match(r('managerWeekFocusView(undefined,{office:true})'),/Efter · 1 match<\/dt><dd>4.0/);
+r("state.analysis.matches.unshift(report('next',4))");
+assert.match(r('managerWeekFollowupView()'),/Öppna matchrapporten/);
+r("state.analysis.matches.shift();save()");
 const restored=boot(app.storage.value);
 assert.equal(restored.run('JSON.stringify(coachFocus())'),r('JSON.stringify(coachFocus())'));
 assert.equal(restored.run('managerWeekFollowupView()'),r('managerWeekFollowupView()'));
