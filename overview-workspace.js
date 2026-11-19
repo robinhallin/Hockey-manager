@@ -112,12 +112,31 @@ function overviewTableView(){
  const table=leagueTable(),index=table.findIndex(t=>t.name===managerClub()),start=Math.max(0,Math.min(index-2,table.length-5)),played=table.some(t=>t.gp>0);
  return `<section class="ov-panel ov-table"><header><h2>Läget i ${trainingSafe(leagueName())}</h2>${overviewButton('Hela tabellen',"deskNavigate('table')")}</header><table><caption>${played?'Grundserien':'Grundserien har inte börjat'}</caption><thead><tr><th scope="col">Plats</th><th scope="col">Lag</th><th scope="col" title="Spelade matcher">M</th><th scope="col" title="Poäng">P</th></tr></thead><tbody>${table.slice(start,start+5).map((t,i)=>`<tr class="${t.name===managerClub()?'ov-own':''}"><td>${played?start+i+1:'–'}</td><th scope="row">${clubReference(t.name)}</th><td>${t.gp}</td><td>${t.pts}</td></tr>`).join('')}</tbody></table></section>`;
 }
+function overviewOpeningMatchPlayers(first,plan,report){
+ if(report?.partial||report?.abandoned||report?.performance?.partial)return '';
+ const recorded=plan.matches?.find(m=>m.id===first.id)?.players;
+ const rows=(recorded?.length?recorded:(report?.performance?.rows||[]).filter(p=>p.club===report.club))
+  .filter(p=>Number.isFinite(p.seconds)&&p.seconds>0);
+ if(!rows.length)return '';
+ const youth=p=>{const age=p.age??findPlayerAnywhere(p.id)?.age;return Number.isFinite(age)&&age<=23;};
+ const skaters=rows.filter(p=>p.pos!=='MV');
+ const young=plan.approach==='youth'?skaters.filter(youth):[];
+ const featured=(young.length?young:skaters).sort((a,b)=>b.seconds-a.seconds).slice(0,3);
+ const keepers=rows.filter(p=>p.pos==='MV').sort((a,b)=>b.seconds-a.seconds);
+ const player=p=>{
+  const saves=p.saves||0,shots=saves+(p.against||0);
+  const outcome=p.pos==='MV'?(shots?`${saves}/${shots} räddningar`:'Inga registrerade skott emot'):`${p.goals||0} mål · ${p.assists||0} assist`;
+  return `<li>${playerReference(p.id,p.name)} · ${analysisTime(p.seconds)} istid · ${outcome}</li>`;
+ };
+ return `${featured.length?`<p><strong>${young.length?'Utespelare upp till 23 år med mest istid':'Utespelare med mest istid'}</strong></p><ul>${featured.map(player).join('')}</ul>`:''}${keepers.length?`<p><strong>Målvakter som spelade</strong></p><ul>${keepers.map(player).join('')}</ul>`:''}`;
+}
 function overviewOpeningWeekView(fixture){
  const first=preseasonOpeningFixture(),plan=preseasonPlan();
  if(!first||!plan||fixture?.live)return '';
  if(!first.played)return fixture&&fixture.date===first.date&&fixture.opponent===first.opponent?overviewMatchView(fixture,plan):'';
- const report=matchesReportFor({...first,kind:'Träningsmatch'});
- return `<section class="ov-panel"><header><h2>Första matchen spelad</h2></header><div class="ov-empty"><strong>${trainingSafe(first.opponent)} · ${first.own}–${first.against}</strong><p>Följ upp vilka spelare som fick chansen inför nästa uttagning.</p>${report?overviewButton('Läs matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`,'ov-primary'):overviewButton('Se matchresultat',"deskNavigate('schedule');matchesSet('fixtures','played');deskBrowserBefore()",'ov-primary')}</div></section>`;
+ const report=matchesReportFor({...first,kind:'Träningsmatch'}),players=overviewOpeningMatchPlayers(first,plan,report);
+ const next=plan.owner==='assistant'?overviewButton('Se matchansvaret',"deskNavigate('season')"):overviewButton('Till nästa laguttagning',"deskNavigate('tactics')");
+ return `<section class="ov-panel"><header><h2>Första matchen spelad</h2></header><div class="ov-empty"><strong>${trainingSafe(first.opponent)} · ${first.own}–${first.against}</strong><p>${players?'En träningsmatch ger ett första underlag inför nästa uttagning.':'Matchen saknar ett komplett spelarunderlag här.'}</p>${players}<div class="ov-match-actions">${report?overviewButton('Läs matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`,'ov-primary'):overviewButton('Se matchresultat',"deskNavigate('schedule');matchesSet('fixtures','played');deskBrowserBefore()",'ov-primary')}${next}</div></div></section>`;
 }
 function overviewDashboardView(){
  const allItems=overviewDecisionItems(),opening=preseasonOpeningFixture(),items=opening&&!opening.played?allItems.filter(i=>i.id!=='contracts:expiring'):allItems;
