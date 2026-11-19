@@ -3973,83 +3973,6 @@ return `
     ${rows}
   `;
 }
-function scheduleView(){
-
-  const clubName = managerClub();
-  const hvGames = state.schedule
-    .filter(game => game.home === clubName || game.away === clubName)
-    .sort((a,b) => a.round - b.round);
-
-  const rows = hvGames.map(game => {
-
-    const isHome = game.home === clubName;
-
-    const opponentName =
-      isHome ? game.away : game.home;
-
-    const place =
-      isHome ? "Hemma" : "Borta";
-
-    const result = game.played
-      ? `${game.homeGoals} - ${game.awayGoals}`
-      : "Ej spelad";
-
-    return `
-      <div class="card" style="margin-bottom:10px;">
-        <b>Omgång ${game.round}</b>
-
-        <div style="margin-top:6px;">
-          ${game.home} vs ${game.away}
-        </div>
-
-        <div class="muted" style="margin-top:4px;">
-          ${place} mot ${opponentName}
-        </div>
-
-        <div style="margin-top:6px;">
-          ${result}
-        </div>
-        <button
-  class="btn"
-  style="margin-top:10px;"
-  onclick="
-    state.selectedRound=${game.round};
-    state.page='round';
-    render();
-  "
->
-  Visa hela omgången
-</button>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <section class="card">
-
-      <h2>${clubName} – Spelschema</h2>
-
-      <p class="muted">
-        Säsong ${seasonLabel()} • 52 omgångar
-      </p>
-
-      <button
-        class="btn"
-        onclick="
-          state.page='home';
-          render();
-        "
-      >
-        Tillbaka
-      </button>
-
-    </section>
-
-    <br>
-
-    ${rows}
-  `;
-}
 function getTransferMarketPlayers(){
 
   const myClub =
@@ -4319,7 +4242,7 @@ careerScreen === "files" ? saveSettingsView()
 
 : state.page==="schedule"
 
-? scheduleView()
+? matchesFixtureListView()
 
 : state.page==="round"
 
