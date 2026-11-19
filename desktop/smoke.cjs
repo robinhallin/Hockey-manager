@@ -69,8 +69,8 @@ async function close(){
   await page.getByRole('button',{name:'Snittbetyg',exact:true}).first().click();
   await page.locator('.sw-table-help summary').click();
   assert.match(await page.locator('.squad-workspace').innerText(),/0,0–10,0/);
-  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Översikt',exact:true}).click();
-  assert.deepEqual(await page.locator('.desk-subnav button').allTextContents(),['Tränarkontoret','Kalender']);
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Klubbkontoret',exact:true}).click();
+  assert.deepEqual(await page.locator('.desk-subnav button').allTextContents(),['Klubbkontoret','Kalender']);
   await page.getByRole('navigation',{name:'Fördjupning på översikten'}).getByRole('button',{name:'Säsongens historier',exact:true}).click();
   assert.equal(await page.evaluate(()=>state.page),'home');await page.locator('#overview-stories .stories-page').waitFor();
   await page.getByRole('button',{name:'Stäng historier',exact:true}).click();
@@ -85,7 +85,7 @@ async function close(){
   const staffFont=await page.locator('.staff-concrete h1').evaluate(el=>getComputedStyle(el).fontFamily);
   await page.screenshot({path:path.join(out,'08-stab.png'),fullPage:true});
   await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Laget',exact:true}).click();
-  await page.locator('.desk-subnav').getByRole('button',{name:'Taktik & laguttagning',exact:true}).click();
+  await page.getByRole('navigation',{name:'Spelets huvudområden'}).getByRole('button',{name:'Taktik',exact:true}).click();
   await require('../scripts/tactics-browser-checks.cjs').checkTactics(page);
   assert.equal(await page.locator('.multi-lineup h1').evaluate(el=>getComputedStyle(el).fontFamily),staffFont);
   await page.getByRole('navigation',{name:'Taktikarbetsyta'}).getByRole('button',{name:'5 mot 5',exact:true}).click();
