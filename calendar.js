@@ -144,8 +144,9 @@ function calendarFinishFriendly(){
  state.page='match';save();render();
 }
 
+function calendarLaunchDate(){return state.season.year+'-09-07';}
 function calendarLaunch(){
- ensureCalendar();if(state.calendar.date<`${state.season.year}-09-07`)return false;
+ ensureCalendar();if(state.calendar.date<calendarLaunchDate())return false;
  state.training.calendarKey=null;state.training.day=0;return true;
 }
 

@@ -148,12 +148,21 @@ function overviewLatestFriendly(){
  return (state.calendar?.friendlies||[]).filter(f=>f.club===managerClub()&&f.played&&f.date<=state.calendar.date)
   .sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id)[0]||null;
 }
+function overviewSeasonOpener(){
+ const date=calendarLaunchDate(),ready=state.calendar.date>=date,blocker=seasonLaunchBlocker();
+ const action=blocker?overviewButton(blocker.label,deskAction(blocker),'ov-primary'):
+  ready?overviewButton('Granska och godkänn premiärtruppen',"deskNavigate('season')",'ov-primary'):
+  overviewButton('Öppna dagens program',`officeOpenDay('${state.calendar.date}');deskBrowserBefore()`,'ov-primary');
+ return `<section class="ov-panel ov-match"><header><h2>Inför seriepremiären</h2></header><div class="ov-empty"><p><strong>Serieöppning i kalendern</strong> · ${calText(calSeasonOpening())}</p><p>${trainingSafe(blocker?.message||(ready?'Truppen kan godkännas för seriespel.':`Premiärtruppen kan godkännas från ${calText(date)}.`))}</p><div class="ov-match-actions">${action}${overviewButton('Se premiäruttagningen',"deskNavigate('tactics')")}</div></div></section>`;
+}
 function overviewPreseasonMatchView(fixture,opening=preseasonOpeningFixture()){
  const plan=preseasonPlan();
  if(state.season?.phase!=='preseason'||!plan||fixture?.live)return '';
  const latest=overviewLatestFriendly();
+ const opener=!plan.pending&&!state.calendar.friendlies.some(f=>f.club===managerClub()&&!f.played)?overviewSeasonOpener():'';
+
  if(!latest){
-  return opening&&fixture?.date===opening.date&&fixture.opponent===opening.opponent?overviewMatchView(fixture,true):'';
+  return opening&&fixture?.date===opening.date&&fixture.opponent===opening.opponent?overviewMatchView(fixture,true):opener;
  }
  const report=matchesReportFor({...latest,kind:'Träningsmatch'});
  const players=overviewFriendlyMatchPlayers(latest,plan,report);
@@ -167,7 +176,7 @@ function overviewPreseasonMatchView(fixture,opening=preseasonOpeningFixture()){
  const actions=`<div class="ov-match-actions">${reportAction}${next}${preparation?overviewButton('Öppna förberedelserna',`officeOpenDay('${preparation.date}');deskBrowserBefore()`):''}</div>`;
  const debrief=`<p>${players?'Registrerad istid och prestation i den här matchen.':'Matchen saknar ett komplett spelarunderlag här.'}</p>${players}`;
  const showNext=upcoming?.date===state.calendar.date;
- return `${showNext?overviewMatchView(fixture):''}<section class="ov-panel"><header><h2>${heading}</h2><span class="ov-muted">${calText(latest.date)}</span></header><div class="ov-empty"><strong>${score}</strong>${showNext?'':nextFixture}<details ${latest.date===state.calendar.date?'open':''}><summary>Spelaruppföljning</summary>${debrief}</details>${actions}</div></section>`;
+ return `${showNext?overviewMatchView(fixture):opener}<section class="ov-panel"><header><h2>${heading}</h2><span class="ov-muted">${calText(latest.date)}</span></header><div class="ov-empty"><strong>${score}</strong>${showNext?'':nextFixture}<details ${latest.date===state.calendar.date?'open':''}><summary>Spelaruppföljning</summary>${debrief}</details>${actions}</div></section>`;
 }
 function overviewDashboardView(){
  const allItems=overviewDecisionItems(),opening=preseasonOpeningFixture(),items=opening&&!opening.played?allItems.filter(i=>i.id!=='contracts:expiring'):allItems;
