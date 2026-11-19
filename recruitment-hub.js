@@ -1,12 +1,18 @@
 "use strict";
-const recruitHub={attributeOpen:false,player:null,panel:'report',page:0,sort:'profile',market:'all',deal:null,affairs:'open',drawer:null,direction:1,overviewProfile:null,overviewQuery:''};
+const recruitHub={attributeOpen:false,player:null,panel:'report',page:0,sort:'profile',market:'all',deal:null,affairs:'open',drawer:null,direction:1,overviewProfile:null,overviewQuery:'',needSearch:null};
 function hubPick(id){if(!findPlayerAnywhere(id))return;recruitHub.player=id;recruitHub.panel='report';recruitHub.drawer=null;render();const panel=document.querySelector('.rh-inspector');panel?.scrollIntoView({block:'nearest',behavior:'auto'});panel?.focus({preventScroll:true});}
 function hubPanel(panel){if(!['report','transfer','loan','future'].includes(panel))return;recruitmentRememberFocus();recruitHub.panel=panel;recruitHub.drawer='player';render();}
 function hubReportSearch(){scoutUI.query=document.getElementById('hub-report-query')?.value||'';recruitHub.page=0;render();}
 function hubScoutIds(){return hubCandidates(state.recruitment.tab).filter(p=>!isOwnPlayer(p)&&!scoutPending(p.id)&&(state.scoutReports[String(p.id)]?.visits||0)<3).map(p=>p.id);}
 function hubPage(delta){recruitHub.page=Math.max(0,recruitHub.page+delta);render();}
 function hubMarket(value){if(!['all','loan','own'].includes(value))return;recruitHub.market=value;recruitHub.page=0;recruitHub.player=null;render();}
-function hubNeed(profile){deskNavigate('transfers','search');resetRecruitFilters();recruitFilters().profile=profile;recruitHub.sort='profile';recruitHub.direction=1;recruitHub.market='all';recruitHub.page=0;recruitHub.player=null;save();render();}
+function hubNeed(profile,scope=null){
+ if(!Object.hasOwn(RECRUIT_PROFILES,profile))return false;
+ deskNavigate('transfers','search');resetRecruitFilters();
+ recruitFilters().profile=profile;
+ Object.assign(recruitHub,{sort:'profile',direction:1,market:'all',page:0,player:null,needSearch:['now','future','role'].includes(scope)?{club:managerClub(),profile,scope}:null});
+ save();render();deskBrowserBefore();return true;
+}
 function hubCandidates(tab){
  const searching=!['missions','shortlist'].includes(tab);
  const scores=new Map(),score=p=>{if(!scores.has(p.id))scores.set(p.id,recruitHub.sort==='profile'?recruitRoleValue(p,recruitFilters().profile):playerAssessment(p).current);return scores.get(p.id);};
