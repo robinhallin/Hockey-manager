@@ -63,6 +63,24 @@ const restored=boot(app.storage.value);
 assert.equal(restored.run('JSON.stringify(coachFocus())'),r('JSON.stringify(coachFocus())'));
 assert.equal(restored.run('managerWeekFollowupView()'),r('managerWeekFollowupView()'));
 
+const review=restored.run;
+assert.equal(review("managerWeekCloseFocus('next')"),false,'an unfinished focus cannot be archived as complete');
+review(`const nextTwo=${r("JSON.stringify(report('next-two',5))")}, nextThree=${r("JSON.stringify(report('next-three',3))")};coachMatchDone(nextTwo);coachMatchDone(nextThree);state.analysis.matches.unshift(nextThree);`);
+assert.match(review('managerWeekFollowupView()'),/4,0 färre per match/);
+assert.match(review('managerWeekFollowupView()'),/Avsluta och spara uppföljningen/);
+assert.equal(review("managerWeekCloseFocus('stale')"),false);
+assert.equal(review("managerWeekCloseFocus('next-three')"),true);
+assert.equal(review('coachFocus()'),null);
+assert.equal(review("managerWeekCloseFocus('next-three')"),false);
+assert.equal(review('state.managerFeedback.coachHistory.length'),1);
+assert.match(review('managerWeekFollowupView()'),/Avslutade träningsfokus · 1/);
+assert.match(review('managerWeekFocusHistoryView()'),/Öppna matchrapporten/);
+const archiveReload=boot(restored.storage.value);
+assert.match(archiveReload.run('managerWeekFocusHistoryView()'),/4,0 färre per match/);
+assert.equal(archiveReload.run('coachFocus()'),null);
+assert.equal(archiveReload.run("managerWeekAdopt(managerWeekRecommendation().key,managerWeekRecommendation().evidenceId)"),true);
+assert.equal(archiveReload.run('state.managerFeedback.coachHistory.length'),1);
+
 // The briefing targets the actual next fixture, excludes old/partial reports,
 // and does not attribute the former coach's style to a replacement.
 r(`globalThis.next=deskFixtures().upcoming[0];globalThis.rival=state.rivals.clubs[next.opponent];
