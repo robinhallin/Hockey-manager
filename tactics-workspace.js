@@ -134,8 +134,57 @@ function tacticsInspector(special){
  const a=playerAssessment(p),goalie=p.pos==='MV',fields=goalie?tacticsFields('goalie',0):tacticsFields(type==='goalie'||type==='backup'?'forwards':type,index),fit=special?null:positionFit(p,goalie?'G':lineupRole(type,index));
  return `<aside class="tw-inspector" aria-label="Vald spelare: ${trainingSafe(p.name)}"><div class="tw-identity">${squadPortrait(p)}<div><span class="tw-eyebrow">${p.pos} · ${p.age} ÅR · ${trainingSafe(lineupPlayerPlace(p))}</span><h2>${trainingSafe(p.name)}</h2><div class="tw-ratings"><span>${assessmentBadge(p)}<small>Förmåga</small></span><span>${assessmentBadge(p,true)}<small>Potential</small></span></div></div></div><div class="tw-attributes"><h3>${special?'För rollen: '+tacticsSlotLabel(type,index):'Viktiga attribut'}</h3><dl>${fields.map(k=>`<div><dt>${(goalie?GOALIE_ATTRIBUTES:SKATER_ATTRIBUTES)[k]}</dt><dd>${attributeInterval(p,k,a)}</dd></div>`).join('')}</dl></div><div class="tw-advice"><h3>Inför uttagningen</h3>${!special&&!goalie&&['forwards','defense'].includes(type)?playerTaskView(type,index):''}<p>${!medicalAvailable(p)?!medicalReady(p)?trainingSafe(medicalStatus(p)):!depthEligible(p)?'Spelaren ingår inte i den låsta matchtruppen.':'Den medicinska istidsgränsen är nådd.':fit!=null&&fit<.8?'Ovan position. Positionsvanan påverkar utförandet i match.':tacticsEnergy(p)<80?'Begränsad energi. Följ belastningen och överväg kortare byten.':special?lineupWorkload(p):`${Math.round(fit*100)} % positionsvana · ${tacticsEnergy(p)} % energi`}</p><button class="tw-profile" aria-label="Öppna spelarprofil" onclick="deskOpenPlayer(${trainingSafe(JSON.stringify(p.id))})">Öppna spelarprofil →</button></div></aside>`;
 }
+// Read the current selection. Opening a slot uses the existing guarded editor.
+function tacticsPreparationIssues(){
+ if(!state.lines)return [];
+ const roster=managerRoster();
+ const slots=[
+  ['goalie',[state.lines?.goalie]],
+  ['forwards',state.lines?.forwards||[]],
+  ['defense',state.lines?.defense||[]],
+  ...TACTICS_UNITS.map(type=>[type,state.specialTeams?.[type]||[]])
+ ];
+ return slots.flatMap(([type,ids])=>ids.flatMap((id,index)=>{
+  const player=id==null?null:roster.find(p=>samePlayerId(p.id,id));
+  if(medicalAvailable(player))return [];
+  const unit=type==='goalie'?'Startmålvakt':type==='forwards'?'Kedja '+(Math.floor(index/3)+1):type==='defense'?'Backpar '+(Math.floor(index/2)+1):tacticsUnitLabel(type);
+  const position=tacticsSlotLabel(type,index);
+  const reason=!player?'Vakant plats':!medicalReady(player)?medicalStatus(player):'Utanför matchtruppen';
+  return [{type,index,unit,position,name:player?.name,reason}];
+ }));
+}
+function tacticsOpenPreparationSlot(type,index){
+ if(!tacticsPreparationIssues().some(issue=>issue.type===type&&issue.index===index))return false;
+ if(TACTICS_UNITS.includes(type)){
+  deskNavigate('lines');
+  tacticsTab(type.startsWith('pp')?'pp':'pk');
+  specialSelect(type,index);
+ }else{
+  deskNavigate('tactics');
+  tacticsPick(type,index,true);
+ }
+ deskBrowserBefore();
+ return true;
+}
+function tacticsPreparationView({compact=false}={}){
+ if(state.live&&!state.live.finished)return '';
+ const issues=tacticsPreparationIssues();
+ const report=(state.analysis?.matches||[]).find(m=>m.club===managerClub()&&m.year===state.season.year&&m.finished&&!m.partial&&!m.abandoned);
+ const visible=compact?issues.slice(0,3):issues;
+ if(!issues.length&&!report)return '';
+ const review=report?`<div class="preparation-row"><div><strong>Senaste matchrapporten</strong><small>${trainingSafe(report.club)} ${report.own}–${report.against} ${trainingSafe(report.opponent)}${report.date?' · '+calText(report.date):''}</small></div><button type="button" class="desk-link" onclick="${trainingSafe('matchesOpenReport('+JSON.stringify(report.id)+')')}">Öppna rapport</button></div>`:'';
+ return `<section class="preparation-panel" aria-label="Matchförberedelser"><header><h2>Matchförberedelser</h2><small>${issues.length?issues.length+' '+(issues.length===1?'plats':'platser')+' att se över':state.lines?'Uttagna spelare är tillgängliga':'Laguttagningen är inte öppnad'}</small></header>${visible.map(({type,index,unit,position,name,reason})=>`<div class="preparation-row"><div><strong>${unit}${name?' · '+trainingSafe(name):''}</strong><small>${unit!==position?trainingSafe(position)+' · ':''}${trainingSafe(reason)}</small></div><button type="button" class="desk-link" onclick="tacticsOpenPreparationSlot('${type}',${index})">Öppna platsen</button></div>`).join('')}${compact&&issues.length>visible.length?`<div class="preparation-row">${deskLink('Visa alla berörda platser',{page:'lines'})}</div>`:''}${review}</section>`;
+}
+function tacticsReviewOrders(){
+ deskNavigate('tactics');
+ lineupUI.orders=true;
+ render();
+ document.getElementById('desktop-order-forecheck')?.focus?.({preventScroll:true});
+ document.getElementById('desktop-order-forecheck')?.scrollIntoView?.({block:'nearest'});
+ deskBrowserBefore();
+}
 function tacticsWorkspaceView(){
  depthSelection();ensureSpecialTeams();tacticsLocks();
  const special=lineupWorkspace==='special',tab=special?(specialUI.unit.startsWith('pk')?'pk':'pp'):lineupWorkspace,main=['even','pp','pk'].includes(tab),locks=Object.keys(tacticsLocks()).filter(k=>special?k.startsWith(specialUI.unit+'-'):!TACTICS_UNITS.some(u=>k.startsWith(u+'-'))).length;
- return `<section class="tactics-workspace multi-lineup"><header class="tw-heading"><div><span class="tw-eyebrow">${trainingSafe(managerClub())} · LAGET</span><h1>Taktik & laguttagning</h1></div><label>Spelsätt<select aria-label="Spelsätt" onchange="desktopOrder('attackStyle',this.value)">${Object.entries(HOCKEY_STYLES).map(([k,label])=>`<option value="${k}" ${state.tacticalPlan.attackStyle===k?'selected':''}>${label}</option>`).join('')}</select></label></header><div class="tw-navigation"><nav aria-label="Taktikarbetsyta">${[['even','5 mot 5'],['pp','PP'],['pk','BP'],['squad','Matchtrupp'],['analysis','Samspel']].map(([key,label])=>`<button aria-pressed="${tab===key}" onclick="tacticsTab('${key}')">${label}</button>`).join('')}</nav><button class="tw-link" aria-expanded="${Boolean(lineupUI.orders)}" onclick="lineupUI.orders=!lineupUI.orders;render()">Lagorder ${lineupUI.orders?'−':'+'}</button></div>${lineupUI.orders?`<div class="tw-orders">${desktopOrders()}</div>`:''}${main?`<div class="tw-toolbar"><p>${special?'Välj roll på isen · Dra eller välj en spelare':'Dra för att flytta · Klicka på två spelare för att byta'}</p><span class="tw-lock-count">${locks?locks+' låsta platser':'Lås platser att behålla'}</span><button class="tw-assistant" onclick="tacticsAssistant()" title="Väljer efter roll, positionsvana och energi. Låsta platser behålls." ${hockeyChangeBlocked()?'disabled':''}>${special?'Assistenten väljer enheten':'Assistenten väljer laget'}</button><button class="tw-undo" onclick="tacticsUndo()" title="${tacticsCanUndo()?trainingSafe('Ångra: '+tacticsHistory.at(-1).label):'Inget att ångra. Historiken gäller tills matchen eller karriären går vidare.'}" ${!tacticsCanUndo()||hockeyChangeBlocked()?'disabled':''}>↶ Ångra</button></div>`:''}<p class="tw-status ${hockeyChangeBlocked()?'tw-warning':''}" role="status">${hockeyChangeBlocked()?'Icing: spelarbyten är låsta till nedsläpp.':trainingSafe(lineupUI.notice||'Ändringar sparas direkt. Låsta platser behålls när assistenten väljer.')}</p>${tab==='even'?tacticsEvenView():special?tacticsSpecialView():tab==='squad'?depthBenchView():`<div class="tw-toolbar"><p>Följ kedjornas samspel och utfallet över flera matcher.</p><button type="button" class="tw-link" onclick="matchesOpenTrends()">Laganalys →</button></div>`+chemistryAnalysisView()+readinessSquadView()}</section>`;
+ return `<section class="tactics-workspace multi-lineup"><header class="tw-heading"><div><span class="tw-eyebrow">${trainingSafe(managerClub())} · LAGET</span><h1>Taktik & laguttagning</h1></div><label>Spelsätt<select aria-label="Spelsätt" onchange="desktopOrder('attackStyle',this.value)">${Object.entries(HOCKEY_STYLES).map(([k,label])=>`<option value="${k}" ${state.tacticalPlan.attackStyle===k?'selected':''}>${label}</option>`).join('')}</select></label></header>${tab==='even'?tacticsPreparationView():''}<div class="tw-navigation"><nav aria-label="Taktikarbetsyta">${[['even','5 mot 5'],['pp','PP'],['pk','BP'],['squad','Matchtrupp'],['analysis','Samspel']].map(([key,label])=>`<button aria-pressed="${tab===key}" onclick="tacticsTab('${key}')">${label}</button>`).join('')}</nav><button class="tw-link" aria-expanded="${Boolean(lineupUI.orders)}" onclick="lineupUI.orders=!lineupUI.orders;render()">Lagorder ${lineupUI.orders?'−':'+'}</button></div>${lineupUI.orders?`<div class="tw-orders">${desktopOrders()}</div>`:''}${main?`<div class="tw-toolbar"><p>${special?'Välj roll på isen · Dra eller välj en spelare':'Dra för att flytta · Klicka på två spelare för att byta'}</p><span class="tw-lock-count">${locks?locks+' låsta platser':'Lås platser att behålla'}</span><button class="tw-assistant" onclick="tacticsAssistant()" title="Väljer efter roll, positionsvana och energi. Låsta platser behålls." ${hockeyChangeBlocked()?'disabled':''}>${special?'Assistenten väljer enheten':'Assistenten väljer laget'}</button><button class="tw-undo" onclick="tacticsUndo()" title="${tacticsCanUndo()?trainingSafe('Ångra: '+tacticsHistory.at(-1).label):'Inget att ångra. Historiken gäller tills matchen eller karriären går vidare.'}" ${!tacticsCanUndo()||hockeyChangeBlocked()?'disabled':''}>↶ Ångra</button></div>`:''}<p class="tw-status ${hockeyChangeBlocked()?'tw-warning':''}" role="status">${hockeyChangeBlocked()?'Icing: spelarbyten är låsta till nedsläpp.':trainingSafe(lineupUI.notice||'Ändringar sparas direkt. Låsta platser behålls när assistenten väljer.')}</p>${tab==='even'?tacticsEvenView():special?tacticsSpecialView():tab==='squad'?depthBenchView():`<div class="tw-toolbar"><p>Följ kedjornas samspel och utfallet över flera matcher.</p><button type="button" class="tw-link" onclick="matchesOpenTrends()">Laganalys →</button></div>`+chemistryAnalysisView()+readinessSquadView()}</section>`;
 }
