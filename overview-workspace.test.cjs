@@ -79,18 +79,18 @@ preseasonPlan().matches=[{id:first.id,players:[
  {id:back.id,name:back.name,pos:'B',age:21,seconds:805,goals:1},
  {id:keeper.id,name:keeper.name,pos:'MV',seconds:3600,saves:28,against:2}
 ]}];`);
-const debrief=r('overviewOpeningWeekView(overviewFixture())');
+const debrief=r('overviewPreseasonMatchView(overviewFixture())');
 assert.match(debrief,/Utespelare upp till 23 år med mest istid/);
 assert.match(debrief,/13:25 istid · 1 mål · 0 assist/);
 assert.match(debrief,/28\/30 räddningar/);
 assert.match(debrief,/Till nästa laguttagning/);
-assert.equal(r('overviewOpeningMatchPlayers(first,preseasonPlan(),{partial:true})'),'');
+assert.equal(r('overviewFriendlyMatchPlayers(first,preseasonPlan(),{partial:true})'),'');
 assert.match(debrief,/Nästa träningsmatch/);
 r(`globalThis.nextFriendly=overviewFixture();
 globalThis.prepDay=calAdd(nextFriendly.date,-1);
 state.calendar.plans[prepDay]={type:'matchprep',intensity:'light'};`);
 assert.equal(r('overviewFriendlyPreparationDay(nextFriendly).date'),r('prepDay'));
-assert.match(r('overviewOpeningWeekView(overviewFixture())'),/Öppna förberedelserna/);
+assert.match(r('overviewPreseasonMatchView(overviewFixture())'),/Öppna förberedelserna/);
 r("state.calendar.date=calAdd(first.date,2);preseasonPlan().owner='assistant';deskNavigate('home')");
 assert.match(r('overviewWorkspaceView()'),/Assisterande tränaren coachar/);
 assert.match(r('overviewWorkspaceView()'),/Se matchansvaret/);
@@ -98,3 +98,19 @@ assert.match(r('overviewWorkspaceView()'),/Öppna förberedelserna/);
 r("globalThis.prepToday=state.calendar.date;officeOpenDay(prepDay)");
 assert.equal(r('calendarUI.date'),r('prepDay'));
 assert.equal(r('state.calendar.date'),r('prepToday'),'viewing a preparation day does not advance the career');
+
+r(`globalThis.second=state.calendar.friendlies.find(f=>f.club===managerClub()&&f.date===nextFriendly.date);
+state.calendar.date=second.date;
+Object.assign(second,{played:true,own:1,against:4});
+state.calendar.friendlies.push({id:99999,club:managerClub(),played:true,date:calAdd(second.date,3),opponent:'Framtida match'});
+deskNavigate('home');`);
+assert.equal(r('overviewLatestFriendly().id'),r('second.id'));
+const secondReview=r('overviewPreseasonMatchView(overviewFixture())');
+assert.match(secondReview,/Senaste träningsmatchen/);
+assert.match(secondReview,/1–4/);
+assert.doesNotMatch(secondReview,/13:25|Framtida match/);
+r("state.calendar.friendlies=state.calendar.friendlies.filter(f=>f.id!==99999);state.calendar.date=overviewFixture().date;deskNavigate('home')");
+const matchDay=r('overviewPreseasonMatchView(overviewFixture())');
+assert.match(matchDay,/Assisterande tränaren coachar/);
+assert.match(matchDay,/Senaste träningsmatchen/);
+assert.match(matchDay,/<details >/);
