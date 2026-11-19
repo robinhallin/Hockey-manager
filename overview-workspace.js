@@ -35,10 +35,12 @@ function overviewSelectPlayer(id){
  else document.getElementById('overview-watch-'+previous)?.focus?.({preventScroll:true});
 }
 function overviewExpandDecisions(){overviewUI.decisions=!overviewUI.decisions;render();queueInterfaceSave();document.getElementById('overview-more-decisions')?.focus?.({preventScroll:true});}
-function overviewSupport(panel){
+function overviewSupport(panel,open=false){
  if(!['today','followup','club','staff','day'].includes(panel))return;
- officeUI.panel=officeUI.panel===panel?'today':panel;render();queueInterfaceSave();
- document.getElementById('overview-support-'+panel)?.focus?.({preventScroll:true});
+ officeUI.panel=!open&&officeUI.panel===panel?'today':panel;render();queueInterfaceSave();
+ const control=document.getElementById('overview-support-'+panel);
+ control?.focus?.({preventScroll:true});
+ if(open)document.querySelector('.ov-support-fold')?.scrollIntoView?.({block:'start'});
 }
 function overviewDecisionItems(){
  return managerAgendaItems();
@@ -194,7 +196,7 @@ function overviewRegularMatchView(fixture){
  const evidence=verdict?`<p><strong>${trainingSafe(verdict.factor.label)}</strong> · ${trainingSafe(verdict.factor.text)}</p>`:'';
  const link=report?overviewButton(latest.round===1?'Läs premiärens matchrapport':'Läs matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`,'ov-primary'):overviewButton('Se matchresultat',"deskNavigate('schedule');matchesSet('fixtures','played');deskBrowserBefore()",'ov-primary');
  const focus=coachFocus(),suggestion=!focus&&managerWeekRecommendation();
- const coaching=focus||suggestion?`<details><summary>${focus?'Följ ditt träningsfokus':'Stabens förslag inför nästa match'}</summary>${managerWeekFocusView(suggestion||undefined)}</details>`:'';
+ const coaching=focus||suggestion?`<details ${focus?'open':''}><summary>${focus?'Följ ditt träningsfokus':'Stabens förslag inför nästa match'}</summary>${managerWeekFocusView(suggestion||undefined,{office:true})}</details>`:'';
  const heading=latest.round===1?'Premiären spelad':'Senaste seriematchen';
  return `${overviewMatchView(fixture)}<section class="ov-panel"><header><h2>${heading}</h2><span class="ov-muted">${calText(report?.date||latest.date)}</span></header><div class="ov-empty"><strong>${trainingSafe(opponent)} · ${own}–${against}</strong>${detail}${evidence}<div class="ov-match-actions">${link}${overviewButton('Till nästa laguttagning',"deskNavigate('tactics')")}</div>${coaching}</div></section>`;
 }
