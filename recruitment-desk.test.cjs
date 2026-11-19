@@ -26,3 +26,17 @@ r("save()");const loaded=boot(app.storage.value);
 assert.equal(loaded.run('state.recruitment.scouting.compare.length'),1);
 for(const tab of ['overview','needs','search','missions','shortlist','deals','loans','history','world']){r(`deskNavigate('transfers','${tab}')`);assert.doesNotMatch(r('recruitmentView()'),/undefined|NaN/);}
 console.log('PASS: honest priority ranking, unknown assessments, read-only selection, comparison persistence, navigation and sorted loan entry.');
+
+// A search opened from planning keeps the reason and uses the normal candidate filters.
+r("deskNavigate('transfers','needs');globalThis.dealCount=state.recruitment.deals.length");
+assert.match(app.get('#content').innerHTML,/Sök ersättare/);
+r("hubNeed('Målvakt','future')");
+assert.match(app.get('#content').innerHTML,/Nästa säsong · Målvakt/);
+assert.ok(r("recruitmentCandidates('search').every(p=>p.pos==='MV')"));
+assert.equal(r('state.recruitment.deals.length'),r('dealCount'));
+r("setRecruitFilter('profile','Spelfördelare')");
+assert.equal(r('recruitmentSearchContext()'),'');
+r("hubNeed('Spelfördelare','role')");
+assert.match(app.get('#content').innerHTML,/Kvalitet och roll · Spelfördelare/);
+r("deskBack()");
+assert.equal(r('state.recruitment.tab'),'needs');
