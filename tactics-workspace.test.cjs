@@ -39,6 +39,22 @@ r("globalThis.selectedId=state.specialTeams.pp2[3];deskOpenPlayer(selectedId);de
 assert.equal(r('specialUI.unit'),'pp2');assert.equal(r('specialUI.slot'),3);
 r("specialPlace(state.specialTeams.pp2[0])");assert.equal(r('state.specialTeams.pp2[0]'),r('selectedId'));
 r('tacticsUndo()');assert.deepEqual(json('tacticsSnapshot()'),json('specialBefore'));
+// The office opens an affected unit or slot without committing the player's choice.
+r("globalThis.vacantBack=state.lines.defense[2];state.lines.defense[2]=null;deskNavigate('home')");
+assert.match(app.get('#content').innerHTML,/Backpar 2/);
+assert.equal(r("tacticsOpenPreparationSlot('defense',2)"),true);
+assert.deepEqual(json('lineupUI.slot'),{type:'defense',index:2});
+assert.equal(r('state.lines.defense[2]'),null);
+r('lineupPlace(vacantBack)');
+assert.equal(r("tacticsPreparationIssues().some(i=>i.type==='defense'&&i.index===2)"),false);
+r("deskNavigate('home');globalThis.bpPlayer=playerById(state.specialTeams.pk2[1]);bpPlayer.health.injury={remaining:3}");
+assert.equal(r("tacticsOpenPreparationSlot('pk2',1)"),true);
+assert.equal(r('specialUI.unit'),'pk2');
+assert.equal(r('specialUI.slot'),1);
+assert.equal(r("tacticsOpenPreparationSlot('pk2',99)"),false);
+r("bpPlayer.health.injury=null;desktopOrder('tempo','high');desktopOrder('forecheck','aggressive');tacticsReviewOrders()");
+assert.match(app.get('#content').innerHTML,/Belastningsindex 137/);
+r("tacticsTab('pp');specialSelect('pp2',0)");
 // A new injury invalidates old undo, and injured players are never picked by the assistant.
 r("globalThis.injured=playerById(state.specialTeams.pp2[0]);injured.health.injury={remaining:3};tacticsWorkspaceView()");
 assert.equal(r('tacticsCanUndo()'),false);r('tacticsAssistant()');assert.ok(r('!state.specialTeams.pp2.includes(injured.id)'));
