@@ -64,17 +64,25 @@ function overviewFixture(){
  const home=ownHome?managerClub():next.opponent,away=ownHome?next.opponent:managerClub();
  return {...next,home,away,ownHome,arena:clubArena(home)?.name||home};
 }
-function overviewMatchView(fixture,openingPlan=null){
+function overviewFriendlyPreparationDay(fixture){
+ if(!fixture||fixture.live||fixture.type!=='Träningsmatch')return null;
+ const gap=calGap(state.calendar.date,fixture.date);
+ if(gap<1||gap>7)return null;
+ return managerWeekDays().filter(day=>day.date<fixture.date&&!day.done&&!day.games.length&&day.type==='matchprep').at(-1)||null;
+}
+function overviewMatchView(fixture,opening=false){
+ const plan=fixture?.type==='Träningsmatch'&&!fixture.live?preseasonPlan():null;
+ const preparation=plan&&!opening?overviewFriendlyPreparationDay(fixture):null;
  const next=deskNextMatch(deskFixtures().upcoming[0]),opposition=!fixture?.live&&fixture?managerWeekOpponent(fixture):null;
- const title=openingPlan?'Första träningsmatchen':fixture?.live?next.eyebrow:fixture?.type==='Träningsmatch'?'Nästa träningsmatch':'Nästa match';
+ const title=opening?'Första träningsmatchen':fixture?.live?next.eyebrow:fixture?.type==='Träningsmatch'?'Nästa träningsmatch':'Nästa match';
  const gap=fixture?calGap(state.calendar.date,fixture.date):null;
  const caption=fixture?`${fixture.type} · ${gap===0?'I dag':gap===1?'I morgon':new Date(fixture.date+'T12:00:00Z').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'})}`:'Säsongsplanering';
  const values=fixture?.live?(fixture.ownHome?[fixture.live.hv,fixture.live.opp]:[fixture.live.opp,fixture.live.hv]):null;
  const score=values?values.join(' – '):'–';
- const focus=openingPlan&&PRESEASON_APPROACHES[openingPlan.approach];
- const openingText=openingPlan?.pending?'Välj vad du vill testa och vem som ska coacha.':openingPlan?(openingPlan.owner==='assistant'?'Assisterande tränaren coachar.':'Du coachar matchen.')+(focus?' Inriktning: '+focus.name+'.':''):'';
- const primary=openingPlan?.pending?overviewButton('Välj säsongens riktning',"deskNavigate('season')",'ov-primary'):openingPlan?.owner==='assistant'?overviewButton('Se matchansvaret',"deskNavigate('season')",'ov-primary'):openingPlan?overviewButton('Välj vilka som får chansen',"deskNavigate('tactics')",'ov-primary'):overviewButton(next.label,deskAction(next.action),'ov-primary');
- return `<section class="ov-panel ov-match"><header><h2>${trainingSafe(title)}</h2><span class="ov-muted">${trainingSafe(caption)}</span></header>${fixture?`<div class="ov-matchup"><div>${clubCrest(fixture.home)}<strong>${trainingSafe(fixture.home)}</strong><small>HEMMA</small></div><div class="ov-versus ${values?'ov-score':''}">${score}</div><div>${clubCrest(fixture.away)}<strong>${trainingSafe(fixture.away)}</strong><small>BORTA</small></div></div><div class="ov-venue">${trainingSafe(fixture.arena)}${fixture.live?` · Period ${fixture.live.period} · ${fixture.live.minute}:${String(fixture.live.second||0).padStart(2,'0')}`:''}</div>`:`<div class="ov-empty"><strong>${trainingSafe(next.title)}</strong><p>${trainingSafe(next.detail)}</p></div>`}<div class="ov-match-bottom">${openingText||opposition?`<p class="ov-match-advice">${trainingSafe(openingText||opposition.advice)}</p>`:''}<div class="ov-match-actions">${primary}${opposition?overviewButton('Motståndsrapport',`rivalsOpen(${JSON.stringify(fixture.opponent)})`):''}</div></div></section>`;
+ const focus=plan&&PRESEASON_APPROACHES[plan.approach];
+ const planText=plan?.pending?'Välj vad du vill testa och vem som ska coacha.':plan?(plan.owner==='assistant'?'Assisterande tränaren coachar.':'Du coachar matchen.')+(focus?' Inriktning: '+focus.name+'.':''):'';
+ const primary=plan?.pending?overviewButton('Välj säsongens riktning',"deskNavigate('season')",'ov-primary'):plan?.owner==='assistant'?overviewButton('Se matchansvaret',"deskNavigate('season')",'ov-primary'):plan?overviewButton(opening?'Välj vilka som får chansen':'Till laguttagningen',"deskNavigate('tactics')",'ov-primary'):overviewButton(next.label,deskAction(next.action),'ov-primary');
+ return `<section class="ov-panel ov-match"><header><h2>${trainingSafe(title)}</h2><span class="ov-muted">${trainingSafe(caption)}</span></header>${fixture?`<div class="ov-matchup"><div>${clubCrest(fixture.home)}<strong>${trainingSafe(fixture.home)}</strong><small>HEMMA</small></div><div class="ov-versus ${values?'ov-score':''}">${score}</div><div>${clubCrest(fixture.away)}<strong>${trainingSafe(fixture.away)}</strong><small>BORTA</small></div></div><div class="ov-venue">${trainingSafe(fixture.arena)}${fixture.live?` · Period ${fixture.live.period} · ${fixture.live.minute}:${String(fixture.live.second||0).padStart(2,'0')}`:''}</div>`:`<div class="ov-empty"><strong>${trainingSafe(next.title)}</strong><p>${trainingSafe(next.detail)}</p></div>`}<div class="ov-match-bottom">${planText||opposition?`<p class="ov-match-advice">${trainingSafe(planText||opposition.advice)}</p>`:''}${preparation?`<p class="ov-match-advice">Matchförberedelser · ${calText(preparation.date)}</p>`:''}<div class="ov-match-actions">${primary}${preparation?overviewButton('Öppna förberedelserna',`officeOpenDay('${preparation.date}');deskBrowserBefore()`):''}${opposition?overviewButton('Motståndsrapport',`rivalsOpen(${JSON.stringify(fixture.opponent)})`):''}</div></div></section>`;
 }
 function overviewWeekView(){
  const days=managerWeekDays();
@@ -133,10 +141,12 @@ function overviewOpeningMatchPlayers(first,plan,report){
 function overviewOpeningWeekView(fixture){
  const first=preseasonOpeningFixture(),plan=preseasonPlan();
  if(!first||!plan||fixture?.live)return '';
- if(!first.played)return fixture&&fixture.date===first.date&&fixture.opponent===first.opponent?overviewMatchView(fixture,plan):'';
+ if(!first.played)return fixture&&fixture.date===first.date&&fixture.opponent===first.opponent?overviewMatchView(fixture,true):'';
  const report=matchesReportFor({...first,kind:'Träningsmatch'}),players=overviewOpeningMatchPlayers(first,plan,report);
+ const upcoming=fixture?.type==='Träningsmatch'&&fixture.date>=state.calendar.date?fixture:null;
+ const preparation=overviewFriendlyPreparationDay(upcoming);
  const next=plan.owner==='assistant'?overviewButton('Se matchansvaret',"deskNavigate('season')"):overviewButton('Till nästa laguttagning',"deskNavigate('tactics')");
- return `<section class="ov-panel"><header><h2>Första matchen spelad</h2></header><div class="ov-empty"><strong>${trainingSafe(first.opponent)} · ${first.own}–${first.against}</strong><p>${players?'En träningsmatch ger ett första underlag inför nästa uttagning.':'Matchen saknar ett komplett spelarunderlag här.'}</p>${players}<div class="ov-match-actions">${report?overviewButton('Läs matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`,'ov-primary'):overviewButton('Se matchresultat',"deskNavigate('schedule');matchesSet('fixtures','played');deskBrowserBefore()",'ov-primary')}${next}</div></div></section>`;
+ return `<section class="ov-panel"><header><h2>Första matchen spelad</h2></header><div class="ov-empty"><strong>${trainingSafe(first.opponent)} · ${first.own}–${first.against}</strong><p>${players?'En träningsmatch ger ett första underlag inför nästa uttagning.':'Matchen saknar ett komplett spelarunderlag här.'}</p>${players}${upcoming?`<p><strong>Nästa träningsmatch</strong> · ${trainingSafe(upcoming.opponent)} · ${calText(upcoming.date)}</p>`:''}<div class="ov-match-actions">${report?overviewButton('Läs matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`,'ov-primary'):overviewButton('Se matchresultat',"deskNavigate('schedule');matchesSet('fixtures','played');deskBrowserBefore()",'ov-primary')}${next}${preparation?overviewButton('Öppna förberedelserna',`officeOpenDay('${preparation.date}');deskBrowserBefore()`):''}</div></div></section>`;
 }
 function overviewDashboardView(){
  const allItems=overviewDecisionItems(),opening=preseasonOpeningFixture(),items=opening&&!opening.played?allItems.filter(i=>i.id!=='contracts:expiring'):allItems;
