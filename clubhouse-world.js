@@ -98,7 +98,7 @@ function clubhouseRender(content,html){
  const oldStage=typeof window!=='undefined'?document.getElementById('clubhouse-stage'):null;
  const key=immersive?clubhouseSceneKey(clubhouseModel(),clubhouseAppearanceData()):null;
  const preserve=oldStage&&oldStage.dataset?.sceneKey===key&&typeof oldStage.replaceWith==='function';
- content.innerHTML=immersive?clubhouseWrap(html):deskFrame(clubhouseWrap(html));
+ content.innerHTML=immersive?clubhouseWrap(html):deskFrame(html);
  const next=typeof window!=='undefined'?document.getElementById('clubhouse-stage'):null;
  if(preserve&&next)next.replaceWith(oldStage);
  if(next&&!preserve&&next.dataset)next.dataset.sceneKey=key;

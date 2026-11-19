@@ -3,7 +3,7 @@
 // Presentation only: routes share the existing career state and game actions.
 const deskFolds = {iceTime:false,contracts:false};
 const DESK_AREAS = [
-  {id:'overview',label:'Översikt',icon:'home',pages:[['home','Tränarkontoret'],['calendar','Kalender']],details:{stories:'home',press:'home',schedule:'calendar',round:'calendar',opponents:'home',match:'home'}},
+  {id:'overview',label:'Klubbkontoret',icon:'home',pages:[['home','Klubbkontoret'],['calendar','Kalender']],details:{stories:'home',press:'home',schedule:'calendar',round:'calendar',opponents:'home',match:'home'}},
   {id:'team',label:'Laget',icon:'team',pages:[['squad','Trupp'],['lines','Taktik & laguttagning'],['locker','Omklädningsrum']],details:{player:'squad',specialTeams:'lines',tactics:'lines',statistics:'lines'}},
   {id:'training',label:'Utveckling',icon:'training',pages:[['training','Spelarutveckling'],['juniors','Juniorer'],['medical','Medicinskt team']]},
   {id:'recruitment',label:'Rekrytering',icon:'search',pages:[['transfers','Rekrytering']],details:{marketPlayer:'transfers',scouting:'transfers'}},
@@ -137,7 +137,20 @@ function deskAction(action){if(action.deal)return `officeOpenDeal(${JSON.stringi
 function deskLink(label,action,cls='desk-link'){return `<button class="${cls}" onclick="${trainingSafe(deskAction(action))}">${trainingSafe(label)}${deskIcon('arrow')}</button>`;}
 function deskPrimaryNav(){
   const area=deskArea();
-  return DESK_AREAS.map(a=>`<button class="nav-item ${area?.id===a.id?'active':''}" ${area?.id===a.id?'aria-current="true"':''} onclick="deskNavigate('${a.pages[0][0]}')"><span class="nav-icon">${deskIcon(a.icon)}</span><span>${a.label}</span></button>`).join('');
+  const parent=area?.details?.[state.page]||state.page;
+  const matchPage=state.live&&!state.live.finished?'match':'schedule';
+  const inMatches=['match','schedule','statistics','opponents','round'].includes(state.page);
+  const entries=DESK_AREAS.flatMap(a=>{
+    const [page]=a.pages[0];
+    if(a.id==='team')return [
+      [page,a.icon,a.label,parent==='squad'],
+      ['lines','settings','Taktik',parent==='lines'&&!inMatches],
+      ['locker','team','Omklädningsrum',parent==='locker']
+    ];
+    return [[page,a.icon,a.label,area?.id===a.id&&!inMatches]];
+  });
+  entries.push([matchPage,'calendar','Matcher',inMatches]);
+  return entries.map(([page,icon,label,active])=>`<button class="nav-item ${active?'active':''}" ${active?'aria-current="page"':''} onclick="deskNavigate('${page}')"><span class="nav-icon">${deskIcon(icon)}</span><span>${label}</span></button>`).join('');
 }
 function deskSubnav(){
   const area=deskArea(),page=area?.details?.[state.page]||state.page;
@@ -146,6 +159,10 @@ function deskSubnav(){
     const active=['loans','history'].includes(tab)?'deals':['world','free','missions','shortlist'].includes(tab)?'search':tab;
     return `<nav class="desk-subnav" aria-label="Rekrytering">${DESK_RECRUIT_TABS.map(([id,label])=>`<button ${active===id?'aria-current="page"':''} onclick="deskNavigate('transfers','${id}')">${label}</button>`).join('')}</nav>`;
   }
+  if(['schedule','statistics','opponents','round'].includes(state.page)){
+    return `<nav class="desk-subnav" aria-label="Matcher">${[['schedule','Matchlista'],['statistics','Matchrapporter'],['opponents','Motstånd']].map(([id,label])=>`<button ${state.page===id?'aria-current="page"':''} onclick="deskNavigate('${id}')">${label}</button>`).join('')}</nav>`;
+  }
+  if(area?.id==='team')return '';
   const pages=area?.pages||[];
   if(pages.length<2)return '';
   return `<nav class="desk-subnav" aria-label="${area?.label||'Meddelanden'}">${pages.map(([id,label])=>`<button ${page===id?'aria-current="page"':''} onclick="deskNavigate('${id}')">${label}</button>`).join('')}</nav>`;
@@ -181,7 +198,9 @@ document.addEventListener?.('keydown',event=>{
 if(typeof window!=='undefined')window.matchMedia?.('(min-width: 761px)').addEventListener?.('change',event=>{if(event.matches)deskCloseMenu();});
 
 function deskRefreshShell(){
-  document.querySelector('.game-shell')?.classList.toggle('match-mode',state.page==='match'&&!careerScreen);
+  const shell=document.querySelector('.game-shell');
+  shell?.classList.toggle('match-mode',state.page==='match'&&!careerScreen);
+  shell?.classList.toggle('club-office',Boolean(state.careerStarted&&!careerScreen&&clubhousePreference('mode','classic')==='classic'));
   const nav=document.querySelector('.manager-nav');if(nav)nav.innerHTML=deskPrimaryNav();
   const date=document.querySelector('.season-info strong');if(date)date.textContent=state.calendar?calText(state.calendar.date):seasonLabel();
   const season=document.querySelector('.season-info span');if(season)season.textContent=seasonLabel();

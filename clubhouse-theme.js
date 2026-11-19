@@ -117,6 +117,8 @@ document.addEventListener?.('keydown',event=>{
  }
 });
 // One presentation migration only. No career fields or save version changes.
-if(typeof window!=='undefined'&&clubhousePreference('theme-version','')!=='4'){
- clubhouseRemember('theme-version','4');clubhouseRemember('mode','living');clubhouseRemember('scene','illustrated');
+if(typeof window!=='undefined'&&clubhousePreference('theme-version','')!=='5'){
+ clubhouseRemember('mode','classic');
+ clubhouseRemember('theme-version','5');
+ if(state.careerStarted&&!careerScreen)render();
 }

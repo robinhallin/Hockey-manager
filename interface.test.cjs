@@ -6,12 +6,12 @@ const {boot}=require('./scripts/career-test-fixture.cjs');
 const app=boot(),{run,get}=app;
 assert.doesNotMatch(get('#content').innerHTML,/desk-subnav/);
 run('startCareerWithClub("HV71");deskNavigate("home")');
-assert.match(get('#content').innerHTML,/Tränarkontoret/);
+assert.match(get('#content').innerHTML,/Klubbkontoret/);
 assert.match(get('#content').innerHTML,/Nästa match/);
 assert.match(get('#content').innerHTML,/Återhämtning/);
-assert.equal((get('.manager-nav').innerHTML.match(/class="nav-item/g)||[]).length,6);
-assert.equal((get('.manager-nav').innerHTML.match(/aria-current="true"/g)||[]).length,1);
-assert.doesNotMatch(get('.manager-nav').innerHTML,/>Matcher</);
+assert.equal((get('.manager-nav').innerHTML.match(/class="nav-item/g)||[]).length,9);
+assert.equal((get('.manager-nav').innerHTML.match(/aria-current="page"/g)||[]).length,1);
+assert.match(get('.manager-nav').innerHTML,/>Matcher</);
 assert.match(get('#content').innerHTML,/deskNavigate\('calendar'\)[^>]*>Kalender/);
 assert.equal(run("deskArea('calendar').id"),'overview');
 assert.equal(run("deskArea('match').id"),'overview');
@@ -25,7 +25,7 @@ for(const page of run('routes')){
   assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/,page);
 }
 assert.equal(run('JSON.stringify([state.calendar.date,state.round,state.money,state.teams,managerRoster().map(p=>[p.id,p.goals,p.assists,p.contractYears,p.fatigue])])'),run('before'));
-run('selectPlayer(managerRoster()[0].id)');assert.equal(run('deskArea().id'),'team');assert.match(get('#content').innerHTML,/aria-current="page"[^>]*>Trupp/);
+run('selectPlayer(managerRoster()[0].id)');assert.equal(run('deskArea().id'),'team');assert.match(get('.manager-nav').innerHTML,/aria-current="page"[^>]*onclick="deskNavigate\('squad'\)"/);
 run('coachingNavigate("specialTeams")');assert.equal(run('deskArea().id'),'team');
 run('state.recruitment.filters.query="test";deskNavigate("transfers","shortlist")');assert.equal(run('state.recruitment.filters.query'),'test');
 assert.equal((get('#content').innerHTML.match(/class="desk-subnav"/g)||[]).length,1);assert.doesNotMatch(get('#content').innerHTML,/class="recruit-tabs"/);
@@ -53,5 +53,5 @@ run('save()');const reload=boot(app.storage.value);assert.equal(reload.run('stat
 // The dashboard works with every Swedish club, and keeps club identity and fixtures separate.
 const clubs=run('Object.keys(state.world.membership)');assert.equal(clubs.length,28);
 for(const club of clubs){run(`startCareerWithClub(${JSON.stringify(club)});deskNavigate('home')`);assert.doesNotMatch(get('#content').innerHTML,/undefined|NaN/);assert.equal(run('deskFixtures().upcoming.every(g=>g.opponent!==managerClub())'),true);assert.ok(get('#content').innerHTML.includes(club));}
-run('state.managerCareer.status="unemployed";deskNavigate("home")');assert.equal(run('state.page'),'manager');assert.doesNotMatch(get('#content').innerHTML,/Tränarkontoret/);
-console.log('PASS: 6 primary areas, all routes and recruitment sections, dashboard for 28 clubs, actionable priorities, preseason/review/paused-match states, navigation isolation, mobile menu and saved match continuity.');
+run('state.managerCareer.status="unemployed";deskNavigate("home")');assert.equal(run('state.page'),'manager');assert.doesNotMatch(get('#content').innerHTML,/Klubbkontoret/);
+console.log('PASS: 9 primary destinations, all routes and recruitment sections, dashboard for 28 clubs, actionable priorities, preseason/review/paused-match states, navigation isolation, mobile menu and saved match continuity.');
