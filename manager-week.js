@@ -71,8 +71,8 @@ function managerWeekOpponent(next=deskFixtures().upcoming[0]){
  return {next,style,observed,games,reports:reports.length,strengths,weaknesses,advice};
 }
 function managerWeekButton(label,action){return `<button type="button" class="desk-link" onclick="${trainingSafe(action)}">${trainingSafe(label)} ${deskIcon('arrow')}</button>`;}
-function managerWeekFocusView(){
- const f=coachFocus(),suggestion=managerWeekRecommendation();
+function managerWeekFocusView(recommendation){
+ const f=coachFocus(),suggestion=f?null:recommendation??managerWeekRecommendation();
  if(f){
   const definition={...COACH_FOCUSES[f.key],session:f.diagnosis?.session||COACH_FOCUSES[f.key].session},complete=f.results.length>=(f.target||3),slot=complete?null:coachPlanSlot(f.key);
   const planned=slot?.date===f.planned&&slot?.type===definition.session;

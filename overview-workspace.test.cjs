@@ -138,12 +138,24 @@ state.calendar.date=debut.date;
 Object.assign(debut,{played:true,homeGoals:debut.home===managerClub()?2:3,awayGoals:debut.home===managerClub()?3:2});
 state.round=2;
 state.analysis.matches.unshift({id:'debut-test',year:state.season.year,club:managerClub(),round:1,opponent:debutOpponent,finished:true,date:debut.date,shots:[{side:'own',outcome:'save'},{side:'own',outcome:'miss'},{side:'opponent',outcome:'goal'}]});`);
-const leagueDebrief=r('overviewLeagueDebutView(overviewFixture())');
+const leagueDebrief=r('overviewRegularMatchView(overviewFixture())');
 assert.match(leagueDebrief,/Premiären spelad/);
 assert.match(leagueDebrief,/2–3/);
 assert.match(leagueDebrief,/Skott på mål · 1–1/);
 assert.match(leagueDebrief,/debut-test/);
 r("state.analysis.matches[0].partial=true");
-assert.doesNotMatch(r('overviewLeagueDebutView(overviewFixture())'),/Skott på mål/);
-r('currentSeasonFixture().played=true');
-assert.equal(r('overviewLeagueDebutView(overviewFixture())'),'');
+assert.doesNotMatch(r('overviewRegularMatchView(overviewFixture())'),/Skott på mål/);
+r(`globalThis.secondLeague=currentSeasonFixture();
+state.calendar.date=secondLeague.date;
+Object.assign(secondLeague,{played:true,homeGoals:4,awayGoals:1});
+state.round=3;`);
+assert.match(r('overviewRegularMatchView(overviewFixture())'),/Senaste seriematchen/);
+assert.doesNotMatch(r('overviewRegularMatchView(overviewFixture())'),/debut-test|Premiären spelad/);
+r(`globalThis.regularReport={id:'second-report',year:state.season.year,club:managerClub(),round:2,
+opponent:secondLeague.home===managerClub()?secondLeague.away:secondLeague.home,finished:true,date:secondLeague.date,
+own:2,against:1,shots:[{side:'own',situation:'even',outcome:'goal',dangerous:true}],events:[],units:[]};
+state.analysis.matches.unshift(regularReport);`);
+assert.match(r('overviewRegularMatchView(overviewFixture())'),/Farliga lägen vid lika styrka/);
+assert.match(r('overviewRegularMatchView(overviewFixture())'),/Stabens förslag inför nästa match/);
+r(`const suggestion=managerWeekRecommendation();managerWeekAdopt(suggestion.key,suggestion.evidenceId);`);
+assert.match(r('overviewRegularMatchView(overviewFixture())'),/Följ ditt träningsfokus/);
