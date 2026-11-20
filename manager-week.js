@@ -114,10 +114,14 @@ function managerWeekView(){
 }
 function managerWeekFocusEvidence(focus){
  const definition=COACH_FOCUSES[focus.key];
- return `<details><summary>Genomfört arbete och matchunderlag</summary>${focus.sessions.map(s=>`<p>${calText(s.date)} · ${s.trained} tränade, ${s.resting||0} vilade.</p>`).join('')}${focus.results.map(r=>{
-  const report=state.analysis?.matches?.find(m=>m.id===r.id);
-  return `<p>${trainingSafe(r.opponent)} · ${r.value} ${trainingSafe(definition.label.toLowerCase())}${report?' · '+managerWeekButton('Öppna matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`):''}</p>`;
- }).join('')}${coachRatesView(focus)}</details>${coachDiagnosisView(focus)}`;
+ const rows=matches=>matches.map((match,index)=>{
+  const report=state.analysis?.matches?.find(m=>m.id===match.id&&m.club===focus.club&&m.year===focus.year);
+  const opponent=match.opponent||report?.opponent||`Match ${index+1}`;
+  const date=match.date||report?.date;
+  const link=report?managerWeekButton('Öppna matchrapporten',`matchesOpenReport(${JSON.stringify(report.id)})`):'';
+  return `<p>${date?calText(date)+' · ':''}${trainingSafe(opponent)} · ${match.value} ${trainingSafe(definition.label.toLowerCase())}${link?' · '+link:''}</p>`;
+ }).join('');
+ return `<details><summary>Genomfört arbete och matchunderlag</summary><h4>Träningspass</h4>${focus.sessions.map(s=>`<p>${calText(s.date)} · ${s.trained} tränade, ${s.resting||0} vilade.</p>`).join('')||'<p>Inga relevanta pass registrerade.</p>'}<h4>Matcher före fokusvalet</h4>${rows(focus.baseline)||'<p>Utgångsläge saknas.</p>'}<h4>Matcher efter fokusvalet</h4>${rows(focus.results)||'<p>Inga uppföljningsmatcher spelade ännu.</p>'}${coachRatesView(focus)}</details>${coachDiagnosisView(focus)}`;
 }
 function managerWeekFocusHistoryView(){
  const history=(state.managerFeedback?.coachHistory||[]).filter(f=>f.club===managerClub()&&f.year===state.season.year&&f.results.length>=(f.target||3));
