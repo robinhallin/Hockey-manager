@@ -256,7 +256,7 @@ function coachFocus(){const f=state.analysis?.coachFocus;return f&&f.club===mana
 function coachAdopt(key,diagnosis=null){
  ensureAnalysis();const matches=coachEvidence();if(!COACH_FOCUSES[key]||!matches.length||state.live&&!state.live.finished)return;
  feedbackArchiveCoach();
- state.analysis.coachFocus={key,club:managerClub(),year:state.season.year,date:state.calendar.date,target:state.analysis.coachWindow||3,baseline:matches.map(m=>({id:m.id,value:coachMeasure(m,key),rates:analysisStrengthSummary(m,key)})),seen:(state.analysis.matches||[]).map(m=>m.id),sessions:[],results:[]};
+ state.analysis.coachFocus={key,club:managerClub(),year:state.season.year,date:state.calendar.date,target:state.analysis.coachWindow||3,baseline:matches.map(m=>({id:m.id,date:m.date,opponent:m.opponent,value:coachMeasure(m,key),rates:analysisStrengthSummary(m,key)})),seen:(state.analysis.matches||[]).map(m=>m.id),sessions:[],results:[]};
  if(diagnosis)state.analysis.coachFocus.diagnosis={...diagnosis,baseline:matches.map(m=>coachDiagnosisMeasure(m,diagnosis)),results:[]};
  save();render();
 }
@@ -285,7 +285,7 @@ function coachPlan(){
 function coachTrainingDone(log){const f=coachFocus();if(!f||f.results.length>=(f.target||3)||!log.trained||log.type!==(f.diagnosis?.session||COACH_FOCUSES[f.key].session)||f.sessions.some(s=>s.date===log.date))return;f.sessions.push({date:log.date,trained:log.trained,resting:log.resting});f.sessions=f.sessions.slice(-20);}
 function coachMatchDone(m){
  const f=coachFocus();if(!f||!coachEligible(m)||f.results.length>=(f.target||3)||f.seen.includes(m.id)||f.results.some(r=>r.id===m.id))return;
- f.results.push({id:m.id,opponent:m.opponent,value:coachMeasure(m,f.key),rates:analysisStrengthSummary(m,f.key)});
+ f.results.push({id:m.id,date:m.date,opponent:m.opponent,value:coachMeasure(m,f.key),rates:analysisStrengthSummary(m,f.key)});
  if(f.diagnosis)f.diagnosis.results.push(coachDiagnosisMeasure(m,f.diagnosis));
  if(f.results.length===(f.target||3))managerMessage('coach-review:'+m.id,'Dags att följa upp ditt träningsfokus',`${f.target||3} matcher är spelade. Jämför utfallet med utgångsläget i tränarens uppföljning. Resultaten påverkas också av motstånd, istid och matchbild.`,'Assisterande tränare',{link:'training'});
 }

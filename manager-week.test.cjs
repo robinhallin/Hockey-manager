@@ -14,6 +14,8 @@ assert.equal(r('managerWeekRecommendation().key'),'defense');
 assert.equal(r('managerWeekRecommendation().count'),1);
 assert.equal(r("managerWeekAdopt('defense','stale')"),false);
 assert.equal(r("managerWeekAdopt('defense','baseline')"),true);
+assert.match(r('managerWeekFollowupView()'),/Matcher före fokusvalet[\s\S]*matchesOpenReport\(&quot;baseline&quot;\)/);
+assert.match(r("managerWeekFocusEvidence({...coachFocus(),baseline:[{id:'removed',opponent:'Historiskt lag',value:8}]})"),/Historiskt lag · 8/);
 const focus=r('JSON.stringify(coachFocus())');
 assert.equal(r("managerWeekAdopt('defense','baseline')"),false,'repeat click cannot reset an active follow-up');
 assert.equal(r('JSON.stringify(coachFocus())'),focus);
